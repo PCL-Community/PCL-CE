@@ -26,7 +26,6 @@
     Private Sub OnLogOutput(sender As Watcher, e As LogOutputEventArgs)
         RunInUi(Sub()
                     If FrmLogLeft.CurrentLog IsNot Nothing Then
-                        Thread.Sleep(1) '让对面 FrmLogLeft 执行完
                         If CheckAutoScroll.Checked Then PanBack.ScrollToBottom()
                         LabFatal.Text = FrmLogLeft.CurrentLog.CountFatal
                         LabError.Text = FrmLogLeft.CurrentLog.CountError
@@ -49,7 +48,7 @@
         File.WriteAllLines(SavePath, FrmLogLeft.CurrentLog.FullLog)
         'TODO(i18n): 文本 @ 左下角提示 - 导出成功提示
         Hint("日志已导出！", HintType.Finish)
-        OpenExplorer($"/select,""{SavePath}""")
+        OpenExplorer(SavePath)
     End Sub
 
     Private Sub BtnOperationKill_Click(sender As Object, e As RouteEventArgs) Handles BtnOperationKill.Click
