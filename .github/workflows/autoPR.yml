@@ -68,6 +68,6 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: context.issue.number,
-                team_reviewers: ['Developers']
+                team_reviewers: ['developers']
               });
             } catch (error) {}
