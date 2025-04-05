@@ -467,6 +467,16 @@ Refresh:
                  "你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。" & vbCrLf &
                  "直接将自定义主页文件拖进 PCL 窗口也可以快捷加载。", "主页自定义教程")
     End Sub
+    Private Sub BtnCustomTools_Click(sender As Object, e As EventArgs) Handles BtnCustomTools.Click
+        MyMsgBox("1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。" & vbCrLf &
+                 "2. 浏览器访问https://pcl.3t.lol,打开主页自定义在线工具。" & vbCrLf &
+                 "3. 使用记事本等工具打开这个文件并进行修改，修改完记得保存设计完成以后点击生成xaml，把生成的代码复制一下。" & vbCrLf &
+                 "4. 使用记事本等工具打开这个文件并进行覆盖粘贴，粘贴完记得保存。" & vbCrLf &
+                 "5. 点击 刷新主页 按钮，查看主页现在长啥样了。" & vbCrLf &
+                 vbCrLf &
+                 "你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。" & vbCrLf &
+                 "直接将自定义主页文件拖进 PCL 窗口也可以快捷加载。", "主页自定义在线工具")
+    End Sub
 
     '主题
     Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles LabLauncherTheme5Unlock.MouseLeftButtonUp
