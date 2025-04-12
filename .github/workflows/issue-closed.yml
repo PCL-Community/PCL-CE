@@ -59,7 +59,7 @@ jobs:
           labels: '❌ 忽略,❌ 拒绝 / 放弃,❌ 暂无计划,❌ 第三方,⭕ 等待处理'
 
   close-as-not-planned:
-    if: github.actor != 'PCL-Community-Bot' && github.event.issue.state_reason == 'not_planned'
+    if: github.actor != 'PCL-Community-Bot' && github.event.issue.state_reason == 'not_planned' && !(contains(github.event.issue.labels.*.name, '❌') || contains(github.event.issue.labels.*.name, '😂'))
     runs-on: ubuntu-latest
     steps:
       - name: Add labels
