@@ -43,6 +43,7 @@ Public Class ModSetup
         {"SystemSystemServer", New SetupEntry(0)},
         {"SystemSystemActivity", New SetupEntry(0)},
         {"SystemHttpProxy", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
+        {"SystemModrinthAddr", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"SystemDisableHardwareAcceleration", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"CacheExportConfig", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageUrl", New SetupEntry("", Source:=SetupSource.Registry)},

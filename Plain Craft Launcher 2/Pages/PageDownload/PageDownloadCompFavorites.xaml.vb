@@ -151,6 +151,14 @@
             CompItemList.Clear()
             Dim SomeGetFail As Boolean = Loader.Input.Count <> Loader.Output.Count
             HintGetFail.Visibility = If(SomeGetFail, Visibility.Visible, Visibility.Collapsed)
+            ' ModrinthLike 提示
+            Dim SystemModrinthAddr = Setup.Get("SystemModrinthAddr")
+            If Not String.IsNullOrWhiteSpace(SystemModrinthAddr) And SystemModrinthAddr.ToString().TrimEnd("/") <> "https://api.modrinth.com" Then
+                HintModrinthAddr.Visibility = Visibility.Visible
+                HintModrinthAddr.Text = $"当前正在使用自定义 Modrinth API：{SystemModrinthAddr.ToString().TrimEnd("/")}"
+            Else
+                HintModrinthAddr.Visibility = Visibility.Collapsed
+            End If
             For Each item In Loader.Output
                 Dim CompItem = item.ToListItem()
                 ListItemBuild(CompItem)

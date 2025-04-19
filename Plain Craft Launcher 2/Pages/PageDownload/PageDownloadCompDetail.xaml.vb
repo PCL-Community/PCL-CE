@@ -439,10 +439,20 @@
         End Sub, "Download CompDetail Save")
     End Sub
 
+    Private Function GetCustomLink(link As String)
+        Dim SystemModrinthAddr = Setup.Get("SystemModrinthAddr")
+        Dim ModrinthBaseUrl As String = If(String.IsNullOrWhiteSpace(SystemModrinthAddr), "https://modrinth.com", SystemModrinthAddr.ToString().Replace("api.", ""))
+        Return link.Replace("https://modrinth.com", ModrinthBaseUrl)
+    End Function
     Private Sub BtnIntroWeb_Click(sender As Object, e As EventArgs) Handles BtnIntroWeb.Click
-        OpenWebsite(Project.Website)
+        OpenWebsite(GetCustomLink(Project.Website))
     End Sub
     Private Sub BtnIntroWiki_Click(sender As Object, e As EventArgs) Handles BtnIntroWiki.Click
+        Dim SystemModrinthAddr = Setup.Get("SystemModrinthAddr")
+        If Not String.IsNullOrWhiteSpace(SystemModrinthAddr) Then
+            Hint("非官方 Modrinth 源暂不支持跳转 MC 百科页面……")
+            Return
+        End If
         OpenWebsite("https://www.mcmod.cn/class/" & Project.WikiId & ".html")
     End Sub
     Private Sub BtnIntroCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroCopy.Click
@@ -452,11 +462,16 @@
         CompFavorites.ShowMenu(Project, sender)
     End Sub
     Private Sub BtnIntroLinkCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroLinkCopy.Click
-        CompClipboard.CurrentText = Project.Website
-        ClipboardSet(Project.Website)
+        CompClipboard.CurrentText = GetCustomLink(Project.Website)
+        ClipboardSet(GetCustomLink(Project.Website))
     End Sub
     '翻译简介
     Private Async Sub BtnTranslate_Click(sender As Object, e As RoutedEventArgs) Handles BtnTranslate.Click
+        Dim SystemModrinthAddr = Setup.Get("SystemModrinthAddr")
+        If Not String.IsNullOrWhiteSpace(SystemModrinthAddr) Then
+            Hint("非官方 Modrinth 源暂不支持翻译简介……")
+            Return
+        End If
         Hint($"正在获取 {Project.TranslatedName} 的简介译文……")
         Dim ChineseDescription = Await Project.ChineseDescription
         If ChineseDescription Is Nothing Then Return

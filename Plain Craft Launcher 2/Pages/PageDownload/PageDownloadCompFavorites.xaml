@@ -23,6 +23,7 @@
                             </local:MyCard>
                         </Grid>
                         <local:MyHint Text="部分资源在线信息获取失败，点此查看详情" IsWarn="True" Margin="0,0,0,15" x:Name="HintGetFail" Visibility="Collapsed"/>
+				        <local:MyHint x:Name="HintModrinthAddr" Text="目前的 Modrinth API 为自定义服务商：" IsWarn="false" Margin="0,0,0,15" />
                         <StackPanel  x:Name="PanContentList">
                             
                         </StackPanel>

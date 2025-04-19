@@ -1328,6 +1328,28 @@
 #Region "DlMod | Mod 镜像源请求"
 
     ''' <summary>
+    ''' 获取 Modrinth 镜像 API 地址
+    ''' </summary>
+    Private Function GetModrinthApiBase() As String
+        Dim baseAddr = Setup.Get("SystemModrinthAddr").Trim()
+        If String.IsNullOrWhiteSpace(baseAddr) Then
+            Return "https://api.modrinth.com"
+        Else
+            Return baseAddr.TrimEnd("/")
+        End If
+    End Function
+
+    ''' <summary>
+    ''' 如果是 modrinth 的原始地址，尝试用镜像地址替换。
+    ''' </summary>
+    Private Function ReplaceModrinthUrl(url As String) As String
+        If url.Contains("api.modrinth.com") Then
+            Return url.Replace("https://api.modrinth.com", GetModrinthApiBase())
+        End If
+        Return url
+    End Function
+
+    ''' <summary>
     ''' 对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JObject。
     ''' 调用 NetGetCodeByRequest，会进行重试。
     ''' </summary>
@@ -1335,24 +1357,15 @@
         Dim Urls As New List(Of KeyValuePair(Of String, Integer))
         Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
         Urls.Add(New KeyValuePair(Of String, Integer)(Url, 20))
-        'Dim McimUrl As String = DlSourceModGet(Url)
-        'If McimUrl <> Url Then
-        '    Select Case Setup.Get("ToolDownloadMod")
-        '        Case 0
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 5))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '        Case 1
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 5))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '        Case Else
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '            Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '    End Select
-        'End If
+
+        ' 添加镜像地址
+        Dim MirrorUrl As String = ReplaceModrinthUrl(Url)
+        If MirrorUrl <> Url Then
+            Urls.Add(New KeyValuePair(Of String, Integer)(MirrorUrl, 5))
+            Urls.Add(New KeyValuePair(Of String, Integer)(MirrorUrl, 10))
+            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
+        End If
+
         Dim Exs As String = ""
         For Each Source In Urls
             Try
@@ -1372,24 +1385,15 @@
         Dim Urls As New List(Of KeyValuePair(Of String, Integer))
         Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
         Urls.Add(New KeyValuePair(Of String, Integer)(Url, 20))
-        'Dim McimUrl As String = DlSourceModGet(Url)
-        'If McimUrl <> Url Then
-        '   Select Case Setup.Get("ToolDownloadMod")
-        '       Case 0
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 5))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '       Case 1
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 5))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '       Case Else
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(Url, 5))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
-        '           Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
-        '   End Select
-        'End If
+
+        ' 添加镜像地址
+        Dim MirrorUrl As String = ReplaceModrinthUrl(Url)
+        If MirrorUrl <> Url Then
+            Urls.Add(New KeyValuePair(Of String, Integer)(MirrorUrl, 5))
+            Urls.Add(New KeyValuePair(Of String, Integer)(MirrorUrl, 10))
+            Urls.Add(New KeyValuePair(Of String, Integer)(Url, 15))
+        End If
+
         Dim Exs As String = ""
         For Each Source In Urls
             Try

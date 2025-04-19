@@ -963,7 +963,9 @@ NoSubtitle:
             If Tag.EndsWithF("/") Then Storage.ModrinthTotal = 0
             If Storage.ModrinthTotal > -1 AndAlso Storage.ModrinthTotal <= Storage.ModrinthOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.modrinth.com/v2/search?limit={CompPageSize}&index=relevance"
+            Dim baseAddr = Setup.Get("SystemModrinthAddr").Trim()
+            Dim ModrinthBase As String = If(String.IsNullOrWhiteSpace(baseAddr), "https://api.modrinth.com", baseAddr.ToString().TrimEnd("/"))
+            Dim Address As String = $"{ModrinthBase}/v2/search?limit={CompPageSize}&index=relevance"
             If Not String.IsNullOrEmpty(SearchText) Then Address += "&query=" & Net.WebUtility.UrlEncode(SearchText)
             If Storage.ModrinthOffset > 0 Then Address += "&offset=" & Storage.ModrinthOffset
             'facets=[["categories:'game-mechanics'"],["categories:'forge'"],["versions:1.19.3"],["project_type:mod"]]
@@ -1759,9 +1761,21 @@ Retry:
                                                    i.Favs.Remove(Project.Id)
                                                    Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", HintType.Finish)
                                                Else
-                                                   i.Favs.Add(Project.Id)
+                                                   ' 如果为 Modrinth 项目，则检查 API 并给出可能的警告
+                                                   Dim SystemModrinthAddr = Setup.Get("SystemModrinthAddr")
+                                                   Dim ModrinthBaseUrl = If(String.IsNullOrWhiteSpace(SystemModrinthAddr), "[raw]", SystemModrinthAddr.ToString())
+                                                   If Not Project.FromCurseForge And ModrinthBaseUrl <> "[raw]" Then
+                                                       If MyMsgBox($"你当前正在使用自定义 Modrinth API：{ModrinthBaseUrl}" & vbCrLf & "如果后续修改了自定义 API，则可能会导致当前收藏的内容不可用" & vbCrLf & "你是否仍要添加项目至收藏夹？", "提示", "我已知晓，添加", "取消") = 1 Then
+                                                           i.Favs.Add(Project.Id)
+                                                           Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", HintType.Finish)
+                                                       Else
+                                                           Hint("已取消操作")
+                                                       End If
+                                                   Else
+                                                       i.Favs.Add(Project.Id)
+                                                       Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", HintType.Finish)
+                                                   End If
                                                    i.Favs.Distinct()
-                                                   Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", HintType.Finish)
                                                End If
                                                Save()
                                            Catch ex As Exception

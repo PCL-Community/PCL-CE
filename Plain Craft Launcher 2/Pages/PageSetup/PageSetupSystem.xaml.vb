@@ -57,6 +57,7 @@
 
         '网络
         TextSystemHttpProxy.Text = Setup.Get("SystemHttpProxy")
+        TextSystemModrinthAddr.Text = Setup.Get("SystemModrinthAddr")
         CheckDownloadCert.Checked = Setup.Get("ToolDownloadCert")
 
         '调试选项
@@ -91,6 +92,7 @@
             Setup.Reset("SystemSystemActivity")
             Setup.Reset("SystemDisableHardwareAcceleration")
             Setup.Reset("SystemHttpProxy")
+            Setup.Reset("SystemModrinthAddr")
             Setup.Reset("ToolDownloadCert")
             Setup.Reset("UiAniFPS")
 
@@ -113,7 +115,7 @@
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboSystemServer.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged, TextSystemHttpProxy.TextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged, TextSystemHttpProxy.TextChanged, TextSystemModrinthAddr.TextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
 
