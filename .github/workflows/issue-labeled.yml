@@ -6,6 +6,25 @@ on:
     types: [labeled]
 
 jobs:
+  resolve-conflict:
+    if: github.actor != 'PCL-Community-Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset labels
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'set-labels'
+          token: '${{ secrets.BOT }}'
+          labels: '${{ github.event.label.name }}'
+
+      - name: Mark breaking changes
+        if: contains(github.event.issue.labels.*.name, '❗ 破坏性')
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'add-labels'
+          token: '${{ secrets.BOT }}'
+          labels: '❗ 破坏性'
+
   close-as-completed:
     if: github.actor != 'PCL-Community-Bot' && github.event.label.name == '👌 完成'
     runs-on: ubuntu-latest
@@ -17,15 +36,8 @@ jobs:
           token: '${{ secrets.BOT }}'
           close-reason: 'completed'
 
-      - name: Remove labels
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: 'remove-labels'
-          token: '${{ secrets.BOT }}'
-          labels: '⭕ 等待处理,🚧 正在处理,🕑 等待合并,🕑 等待前置,❌ 忽略,❌ 拒绝 / 放弃,❌ 暂无计划'
-
   close-as-not-planned:
-    if: github.actor != 'PCL-Community-Bot' && (github.event.label.name == '❌ 忽略' || github.event.label.name == '❌ 拒绝 / 放弃' || github.event.label.name == '❌ 暂无计划' || github.event.label.name == '❌ 第三方' || github.event.label.name == '😂 移交上游')
+    if: github.actor != 'PCL-Community-Bot' && (contains(github.event.label.name, '❌') || github.event.label.name == '😂 移交上游')
     runs-on: ubuntu-latest
     steps:
       - name: Close as not planned
@@ -34,13 +46,6 @@ jobs:
           actions: 'close-issue'
           token: '${{ secrets.BOT }}'
           close-reason: 'not_planned'
-      
-      - name: Remove labels
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: 'remove-labels'
-          token: '${{ secrets.BOT }}'
-          labels: '⭕ 等待处理,🚧 正在处理,🕑 等待合并,🕑 等待前置'
 
   report-to-upstream:
     if: github.event.label.name == '😂 移交上游'
