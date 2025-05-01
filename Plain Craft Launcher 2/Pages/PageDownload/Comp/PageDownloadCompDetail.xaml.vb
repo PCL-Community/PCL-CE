@@ -33,8 +33,8 @@
             Case LoadState.Failed
                 Dim ErrorMessage As String = ""
                 If CompFileLoader.Error IsNot Nothing Then ErrorMessage = CompFileLoader.Error.Message
-                If ErrorMessage.Contains("不是有效的 json 文件") Then
-                    Log("[Comp] 下载的文件 json 列表损坏，已自动重试", LogLevel.Debug)
+                If ErrorMessage.Contains("不是有效的 Json 文件") Then
+                    Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", LogLevel.Debug)
                     PageLoaderRestart()
                 End If
         End Select
@@ -157,7 +157,7 @@
                     Version.Type = CompType.Mod AndAlso '是 Mod
                     VerName.StartsWith("1.") Then '不是 “快照版本” 之类的
                     For Each Loader In Version.ModLoaders
-                        If Loader = CompModLoaderType.Quilt AndAlso Setup.Get("ToolDownloadIgnoreQuilt") Then Continue For
+                        If Loader = CompLoaderType.Quilt AndAlso Setup.Get("ToolDownloadIgnoreQuilt") Then Continue For
                         If SupportedLoaders.Contains(Loader) Then Loaders.Add(Loader.ToString & " ")
                     Next
                 End If
@@ -175,7 +175,7 @@
             Dict.Add(TargetCardName, New List(Of CompFile))
             For Each Version As CompFile In Results
                 If Version.GameVersions.Contains(TargetVersion) AndAlso
-                   (TargetLoader = CompModLoaderType.Any OrElse Version.ModLoaders.Contains(TargetLoader)) Then
+                   (TargetLoader = CompLoaderType.Any OrElse Version.ModLoaders.Contains(TargetLoader)) Then
                     '检查是否符合版本筛选器
                     If VersionFilter IsNot Nothing AndAlso
                         Not Version.GameVersions.Any(Function(v) GetGroupedVersionName(v, IsMajorVersionFilter, True) = VersionFilter) Then Continue For
@@ -192,6 +192,21 @@
                 Dim NewCard As New MyCard With {.Title = Pair.Key, .Margin = New Thickness(0, 0, 0, 15), .SwapType = If(PageType = CompType.ModPack, 9, 8)} '9 是安装，8 是另存为
                 Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Pair.Value}
                 NewCard.Children.Add(NewStack)
+                NewCard.InstallMethod = Sub(Stack As StackPanel)
+                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of CompFile)), Function(a, b) a.ReleaseDate > b.ReleaseDate)
+                                            If Project.Type = CompType.ModPack Then
+                                                Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
+                                                For Each item In Stack.Tag
+                                                    Stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Install_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=BadDisplayName))
+                                                Next
+                                            Else
+                                                CompFilesCardPreload(Stack, Stack.Tag)
+                                                Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
+                                                For Each item In Stack.Tag
+                                                    Stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=BadDisplayName))
+                                                Next
+                                            End If
+                                        End Sub
                 NewCard.SwapControl = NewStack
                 PanResults.Children.Add(NewCard)
                 '确定卡片是否展开
@@ -228,13 +243,11 @@
     End Function
 
 #End Region
-
     Private IsFirstInit As Boolean = True
     Public Sub Init() Handles Me.PageEnter
         AniControlEnabled += 1
         Project = FrmMain.PageCurrent.Additional(0)
         PanBack.ScrollToHome()
-
         '重启加载器
         If IsFirstInit Then
             '在 Me.Initialized 已经初始化了加载器，不再重复初始化
@@ -242,7 +255,6 @@
         Else
             PageLoaderRestart(IsForceRestart:=True)
         End If
-
         '放置当前工程
         If CompItem IsNot Nothing Then PanIntro.Children.Remove(CompItem)
         CompItem = Project.ToCompItem(True, True)
@@ -315,27 +327,36 @@
                     Case CompType.Mod : Desc = "Mod "
                     Case CompType.ResourcePack : Desc = "资源包"
                     Case CompType.Shader : Desc = "光影包"
-                    Case CompType.DataPack : Desc = "数据包"
                 End Select
                 '确认默认保存位置
                 Dim DefaultFolder As String = Nothing
-                If File.Type = CompType.Mod Then
+                Dim ResourceName As String = ""
+                Select Case Project.Type
+                    Case CompType.Mod : ResourceName = "mods"
+                    Case CompType.ResourcePack : ResourceName = "resourcepacks"
+                    Case CompType.Shader : ResourceName = "shaderpacks"
+                End Select
+                Case CompType.DataPack : Desc = "数据包"
+                End Select
+                Dim IsVersionSuitable As Func(Of McVersion, Boolean)
+                Dim DefaultFolder As String = Nothing
+                If Project.Type = CompType.Mod Then
                     '获取 Mod 所需的加载器种类
                     Dim AllowForge As Boolean? = Nothing, AllowFabric As Boolean? = Nothing
                     If File.ModLoaders.Any Then '从文件中获取
-                        AllowForge = File.ModLoaders.Contains(CompModLoaderType.Forge) OrElse File.ModLoaders.Contains(CompModLoaderType.NeoForge)
-                        AllowFabric = File.ModLoaders.Contains(CompModLoaderType.Fabric)
+                        AllowForge = File.ModLoaders.Contains(CompLoaderType.Forge) OrElse File.ModLoaders.Contains(CompLoaderType.NeoForge)
+                        AllowFabric = File.ModLoaders.Contains(CompLoaderType.Fabric)
                     ElseIf Project.ModLoaders.Any Then '从工程中获取
-                        AllowForge = Project.ModLoaders.Contains(CompModLoaderType.Forge) OrElse File.ModLoaders.Contains(CompModLoaderType.NeoForge)
-                        AllowFabric = Project.ModLoaders.Contains(CompModLoaderType.Fabric)
+                        AllowForge = Project.ModLoaders.Contains(CompLoaderType.Forge) OrElse File.ModLoaders.Contains(CompLoaderType.NeoForge)
+                        AllowFabric = Project.ModLoaders.Contains(CompLoaderType.Fabric)
                     End If
                     If AllowForge IsNot Nothing AndAlso Not AllowForge AndAlso
                        AllowFabric IsNot Nothing AndAlso Not AllowFabric Then
                         AllowForge = Nothing : AllowFabric = Nothing
                     End If
                     Log("[Comp] 允许 Forge：" & If(AllowForge, "未知") & "，允许 Fabric：" & If(AllowFabric, "未知"))
-                    '判断某个版本是否符合要求
-                    Dim IsVersionSuitable As Func(Of McVersion, Boolean) =
+                    '判断某个版本是否符合 Mod 要求
+                    IsVersionSuitable =
                     Function(Version)
                         If Not Version.IsLoaded Then Version.Load()
                         If Not Version.Modable Then Return False
@@ -346,14 +367,24 @@
                         If AllowFabric AndAlso Version.Version.HasFabric Then Return True
                         Return False
                     End Function
-                    '获取 Mod 默认下载位置
+                ElseIf {CompType.ResourcePack, CompType.Shader}.Contains(Project.Type) Then
+                    '判断某个版本是否符合资源包和光影要求
+                    IsVersionSuitable =
+                    Function(Version)
+                        If Not Version.IsLoaded Then Version.Load()
+                        If File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.McName) Then Return True
+                        Return False
+                    End Function
+                End If
+                If Not String.IsNullOrWhiteSpace(ResourceName) AndAlso IsVersionSuitable IsNot Nothing Then
+                    '获取常规资源默认下载位置
                     If CachedFolder IsNot Nothing Then
                         DefaultFolder = CachedFolder
                         Log("[Comp] 使用上次下载时的文件夹作为默认下载位置")
                     ElseIf McVersionCurrent IsNot Nothing AndAlso IsVersionSuitable(McVersionCurrent) Then
-                        DefaultFolder = McVersionCurrent.PathIndie & "mods\"
+                        DefaultFolder = McVersionCurrent.PathIndie & $"{ResourceName}\"
                         Directory.CreateDirectory(DefaultFolder)
-                        Log("[Comp] 使用当前版本的 mods 文件夹作为默认下载位置（" & McVersionCurrent.Name & "）")
+                        Log($"[Comp] 使用当前版本的 {ResourceName} 文件夹作为默认下载位置（{McVersionCurrent.Name}）")
                     Else
                         Dim NeedLoad As Boolean = McVersionListLoader.State <> LoadState.Finished
                         If NeedLoad Then
@@ -367,17 +398,17 @@
                         If Not SuitableVersions.Any() Then
                             DefaultFolder = PathMcFolder
                             If NeedLoad Then
-                                Hint("当前 MC 文件夹中没有找到适合这个 Mod 的版本！")
+                                Hint("当前 MC 文件夹中没有找到适合此资源文件的版本！")
                             Else
                                 Log("[Comp] 由于当前版本不兼容，使用当前的 MC 文件夹作为默认下载位置")
                             End If
-                        Else '选择 Mod 数量最多的版本
+                        Else '选择资源数量最多的版本
                             Dim SelectedVersion = SuitableVersions.OrderBy(
                             Function(v)
-                                Dim Info As New DirectoryInfo(v.PathIndie & "mods\")
+                                Dim Info As New DirectoryInfo(v.PathIndie & $"{ResourceName}\")
                                 Return If(Info.Exists, Info.GetFiles().Length, -1)
                             End Function).LastOrDefault()
-                            DefaultFolder = SelectedVersion.PathIndie & "mods\"
+                            DefaultFolder = SelectedVersion.PathIndie & $"{ResourceName}\"
                             Directory.CreateDirectory(DefaultFolder)
                             Log("[Comp] 使用适合的游戏版本作为默认下载位置（" & SelectedVersion.Name & "）")
                         End If
@@ -440,5 +471,18 @@
     Private Sub BtnIntroCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroCopy.Click
         ClipboardSet(CompItem.LabTitle.Text & CompItem.LabTitleRaw.Text)
     End Sub
-
+    Private Sub BtnFavorites_Click(sender As Object, e As EventArgs) Handles BtnFavorites.Click
+        CompFavorites.ShowMenu(Project, sender)
+    End Sub
+    Private Sub BtnIntroLinkCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroLinkCopy.Click
+        CompClipboard.CurrentText = Project.Website
+        ClipboardSet(Project.Website)
+    End Sub
+    '翻译简介
+    Private Async Sub BtnTranslate_Click(sender As Object, e As RoutedEventArgs) Handles BtnTranslate.Click
+        Hint($"正在获取 {Project.TranslatedName} 的简介译文……")
+        Dim ChineseDescription = Await Project.ChineseDescription
+        If ChineseDescription Is Nothing Then Return
+        MyMsgBox($"原文：{Project.Description}{Environment.NewLine}译文：{ChineseDescription}")
+    End Sub
 End Class

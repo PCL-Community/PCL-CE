@@ -103,35 +103,32 @@
             FrmMain.PageCurrent.Additional(1) = Titles
         End If
         '打开详情页
-        Dim TargetType As CompType
-        Dim TargetVersion As String = Nothing
-        Dim TargetLoader As CompModLoaderType = CompModLoaderType.Any
-        If FrmMain.PageCurrent.Page = FormMain.PageType.Download Then
-            '从下载页进入
-            Select Case FrmMain.PageCurrentSub
-                Case FormMain.PageSubType.DownloadMod
-                    TargetType = CompType.Mod
-                    TargetVersion = FrmDownloadMod.Content.Loader.Input.GameVersion
-                    TargetLoader = FrmDownloadMod.Content.Loader.Input.ModLoader
-                Case FormMain.PageSubType.DownloadPack
-                    TargetType = CompType.ModPack
-                    TargetVersion = FrmDownloadPack.Content.Loader.Input.GameVersion
+        Dim TargetVersion As String
+        Dim TargetLoader As CompLoaderType
+        If FrmMain.PageCurrent.Page = FormMain.PageType.CompDetail Then
+            TargetVersion = FrmMain.PageCurrent.Additional(2)
+            TargetLoader = FrmMain.PageCurrent.Additional(3)
+        ElseIf FrmMain.PageCurrent.Page = FormMain.PageType.Download AndAlso FrmMain.PageCurrentSub = FormMain.PageSubType.DownloadCompFavorites Then
+            TargetVersion = ""
+            TargetLoader = CompLoaderType.Any
+        Else
+            Select Case CType(sender.Tag, CompProject).Type
+                Case CompType.Mod
+                    TargetVersion = If(PageDownloadMod.Loader.Input.GameVersion, "")
+                    TargetLoader = PageDownloadMod.Loader.Input.ModLoader
+                Case CompType.ModPack
+                    TargetVersion = If(PageDownloadPack.Loader.Input.GameVersion, "")
+                Case CompType.Shader
+                    TargetVersion = If(PageDownloadShader.Loader.Input.GameVersion, "")
                 Case FormMain.PageSubType.DownloadDataPack
                     TargetType = CompType.DataPack
                     TargetVersion = FrmDownloadDataPack.Content.Loader.Input.GameVersion
-                Case FormMain.PageSubType.DownloadResourcePack
-                    TargetType = CompType.ResourcePack
-                    TargetVersion = FrmDownloadResourcePack.Content.Loader.Input.GameVersion
-                Case FormMain.PageSubType.DownloadShader
-                    TargetType = CompType.Shader
-                    TargetVersion = FrmDownloadShader.Content.Loader.Input.GameVersion
+                Case Else 'CompType.ResourcePack
+                    'FUTURE: Res
+                    TargetVersion = "" 'If(PageDownloadResource.Loader.Input.GameVersion, "")
             End Select
-        Else
-            '从详情页进入（查看前置）
-            TargetType = CompType.Any '允许任意类别
-            TargetVersion = FrmMain.PageCurrent.Additional(2)
-            TargetLoader = FrmMain.PageCurrent.Additional(3)
         End If
+        If CType(sender.Tag, CompProject).Type <> CompType.Mod Then TargetLoader = CompLoaderType.Any
         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
                            .Additional = {sender.Tag, New List(Of String), TargetVersion, TargetLoader, TargetType}})
     End Sub
