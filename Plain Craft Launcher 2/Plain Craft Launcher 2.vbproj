@@ -1120,6 +1120,9 @@
     <PackageReference Include="Microsoft.Identity.Client.Broker">
       <Version>4.71.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal">
+      <Version>4.71.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts">
       <Version>10.0.19041.2</Version>
     </PackageReference>

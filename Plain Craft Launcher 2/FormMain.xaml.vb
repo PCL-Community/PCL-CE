@@ -1,6 +1,9 @@
-﻿Imports System.ComponentModel
+Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
+Imports Microsoft.Identity.Client
+Imports Microsoft.Identity.Client.Broker
+Imports Microsoft.Identity.Client.Extensions.Msal
 
 Public Class FormMain
 
@@ -441,6 +444,17 @@ Public Class FormMain
         End Sub, "Start Loader", ThreadPriority.Lowest)
         '剪贴板识别
         If Setup.Get("ToolDownloadClipboard") Then RunInNewThread(Sub() CompClipboard.ClipboardListening(), "Clipboard Listener", ThreadPriority.Lowest)
+        'MSAL 初始化
+        MsalApp = PublicClientApplicationBuilder.Create(OAuthClientId) _
+            .WithDefaultRedirectUri() _
+            .WithParentActivityOrWindow(Function() Handle) _
+            .WithBroker(New BrokerOptions(BrokerOptions.OperatingSystems.Windows)) _
+            .Build()
+        'MSAL 缓存
+        Dim storageProperties = New StorageCreationPropertiesBuilder("pclce_msal_cache.bin",
+                                                                     PathAppdataConfig).Build()
+        Dim cacheHelper As MsalCacheHelper = MsalCacheHelper.CreateAsync(storageProperties).GetAwaiter().GetResult()
+        cacheHelper.RegisterCache(MsalApp.UserTokenCache)
 
         Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
     End Sub

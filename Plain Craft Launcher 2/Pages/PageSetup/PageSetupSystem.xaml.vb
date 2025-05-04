@@ -1,4 +1,4 @@
-﻿Class PageSetupSystem
+Class PageSetupSystem
 
     Private Shadows IsLoaded As Boolean = False
 
@@ -25,6 +25,9 @@
         ComboDownloadSource.SelectedIndex = Setup.Get("ToolDownloadSource")
         ComboDownloadVersion.SelectedIndex = Setup.Get("ToolDownloadVersion")
         CheckDownloadAutoSelectVersion.Checked = Setup.Get("ToolDownloadAutoSelectVersion")
+
+        '账户
+        ComboAccountLoginType.SelectedIndex = Setup.Get("ToolAccountLoginType")
 
         'Mod 与整合包
         ComboDownloadTranslateV2.SelectedIndex = Setup.Get("ToolDownloadTranslateV2")
@@ -73,6 +76,7 @@
     '初始化
     Public Sub Reset()
         Try
+            Setup.Reset("ToolAccountLoginType")
             Setup.Reset("ToolDownloadThread")
             Setup.Reset("ToolDownloadSpeed")
             Setup.Reset("ToolDownloadSource")
@@ -116,7 +120,7 @@
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboSystemServer.SelectionChanged, ComboDownloadMod.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboAccountLoginType.SelectionChanged, ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboSystemServer.SelectionChanged, ComboDownloadMod.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged, TextSystemHttpProxy.TextChanged

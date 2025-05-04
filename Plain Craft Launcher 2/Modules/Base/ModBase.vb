@@ -9,6 +9,7 @@ Imports System.Xaml
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Serialization
+Imports Microsoft.Identity.Client
 
 Public Module ModBase
 
@@ -101,6 +102,10 @@ Public Module ModBase
     ''' AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
     ''' </summary>
     Public PathAppdataConfig As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & If(VersionBranchName = "Debug", "\.pclcedebug\", "\.pclce\")
+    ''' <summary>
+    ''' MSAL 的公共客户端应用程序
+    ''' </summary>
+    Public MsalApp As PublicClientApplication
 
 #End Region
 
