@@ -1114,6 +1114,12 @@
     <PackageReference Include="Imazen.WebP">
       <Version>10.0.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Identity.Client">
+      <Version>4.71.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Identity.Client.Broker">
+      <Version>4.71.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts">
       <Version>10.0.19041.2</Version>
     </PackageReference>
