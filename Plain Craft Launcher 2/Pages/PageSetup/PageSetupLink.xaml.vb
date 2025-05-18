@@ -17,13 +17,13 @@
 
     End Sub
     Public Sub Reload()
-        TextLinkRelay.Text = Setup.Get("LinkName")
+        TextLinkRelay.Text = Setup.Get("LinkRelayServer")
     End Sub
 
     '初始化
     Public Sub Reset()
         Try
-            Setup.Reset("LinkName")
+            Setup.Reset("LinkRelayServer")
 
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)

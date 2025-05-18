@@ -1,11 +1,8 @@
 ﻿Imports System.Net.NetworkInformation
 Imports PCL.ModLink
 Public Class PageLinkLobby
-    Public Const RequestVersion As Char = "2"
-
     '记录的启动情况
     Public Shared IsHost As Boolean = Nothing
-    Public Shared LobbyServerLink As String = Nothing
 
 #Region "初始化"
 
@@ -18,6 +15,16 @@ Public Class PageLinkLobby
 
     Private IsLoad As Boolean = False
     Private Sub OnLoaded() Handles Me.Loaded
+        If Not Setup.Get("LinkEula") Then
+            RunInNewThread(Sub()
+                               If MyMsgBox($"联机支持由 EasyTier 提供，使用前请先阅读并同意其使用条款。{vbCrLf}请勿将此功能用于违法违规用途，开发者不为你的行为承担任何责任。",
+                     "联机服务同意与免责声明", "同意", "拒绝", "查看条款", Button3Action:=Sub() OpenWebsite("https://easytier.cn/guide/license.html")) = 1 Then
+                                   Setup.Set("LinkEula", True)
+                               Else
+                                   RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch}))
+                               End If
+                           End Sub)
+        End If
         'FormMain.EndProgramForce(Result.Aborted)
         If IsLoad Then Exit Sub
         IsLoad = True
@@ -71,6 +78,28 @@ Public Class PageLinkLobby
 
 #Region "监视线程"
 
+    Public Class ETPlayerInfo
+        Public IsHost As Boolean
+        Public Hostname As String
+        Public Cost As String
+        Public Ping As String
+        Public Loss As String
+        Public NatType As String
+    End Class
+    Private Function PlayerInfoItem(Info As ETPlayerInfo, OnClick As MyListItem.ClickEventHandler)
+        Dim NewItem As New MyListItem With {
+                .Title = Info.Hostname,
+                .Info = If(Info.Cost = "Local", "[本机]", $"{If(IsHost, "[主机] ", "")}{Info.Ping}ms{If(Not Info.Loss = "0.000", $" / 丢包 {Info.Loss}", "")}"),
+                .Type = MyListItem.CheckType.Clickable,
+                .Tag = Info
+        }
+        AddHandler NewItem.Click, OnClick
+        Return NewItem
+    End Function
+    Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
+        MyMsgBox($"延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}，连接方式：{sender.Tag.Cost}，NAT 类型：{sender.Tag.NatType}", $"玩家 {sender.Tag.Hostname} 的详细信息")
+    End Sub
+
     '主 Timer 线程
     Private IsWatcherStarted As Boolean = False
     Private Sub StartWatcherThread()
@@ -83,12 +112,12 @@ Public Class PageLinkLobby
                                            SplitLineBeforeType.Visibility = Visibility.Collapsed
                                            BtnConnectType.Visibility = Visibility.Collapsed
                                        End Sub)
-                               Exit Sub
+                           Else
+                               Log("[Link] 本机角色：加入者，开始获取 Ping 信息和连接类型信息")
                            End If
-                           Log("[Link] 本机角色：加入者，开始获取 Ping 信息和连接类型信息")
                            Log("[Link] 启动 EasyTier 监视")
                            IsWatcherStarted = True
-                           While ETProcess IsNot Nothing
+                           While ETProcess IsNot Nothing AndAlso ETProcess.HasExited = False
                                Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
@@ -101,7 +130,8 @@ Public Class PageLinkLobby
                                        .RedirectStandardOutput = True,
                                        .RedirectStandardError = True,
                                        .RedirectStandardInput = True,
-                                       .StandardOutputEncoding = Encoding.UTF8},
+                                       .StandardOutputEncoding = Encoding.UTF8,
+                                       .StandardErrorEncoding = Encoding.UTF8},
                                    .EnableRaisingEvents = True
                                }
                                Dim ETCliOutput As String = Nothing
@@ -111,8 +141,9 @@ Public Class PageLinkLobby
 
                                ETCliProcess.StartInfo.Arguments = "peer"
                                ETCliProcess.Start()
-                               ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd()
-                               'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
+                               Thread.Sleep(100)
+                               ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
+                               Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
                                If Not ETCliOutput.Contains("10.114.51.41/24") Then
                                    Log("[Link] 未找到大厅创建者 IP, 判定该大厅未被创建")
                                    Hint("该大厅不存在", HintType.Critical)
@@ -146,15 +177,40 @@ Public Class PageLinkLobby
                                Else
                                    ConnectType = "未知"
                                End If
-                               'Log($"[Link] 与大厅创建者的连接类型原始输出: {ConnectTypeOriginal}, 判定为类型: {ConnectType}")
+                               Dim PlayerNum As Integer = 0
+                               Dim PlayerList As New List(Of ETPlayerInfo)
+                               For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
+                                   If PlayerInfo.Contains("───────") OrElse PlayerInfo.Split("│")(3).Trim() = "cost" OrElse PlayerInfo.Contains("Hostname") OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
+                                   If PlayerInfo.Split("│")(2).Trim().Contains("PublicServer") Then Continue For '服务器
+                                   PlayerList.Add(New ETPlayerInfo With {
+                                       .IsHost = False,
+                                       .Hostname = PlayerInfo.Split("│")(2).Trim(),
+                                       .Cost = PlayerInfo.Split("│")(3).Trim(),
+                                       .Ping = PlayerInfo.Split("│")(4).Trim(),
+                                       .Loss = PlayerInfo.Split("│")(5).Trim(),
+                                       .NatType = PlayerInfo.Split("│")(9).Trim()
+                                   })
+                                   PlayerNum += 1
+                               Next
                                RunInUi(Sub()
-                                           LabFinishPing.Text = PingRtt + "ms"
-                                           SplitLineBeforePing.Visibility = Visibility.Visible
-                                           BtnFinishPing.Visibility = Visibility.Visible
-                                           LabConnectType.Text = ConnectType
-                                           SplitLineBeforeType.Visibility = Visibility.Visible
-                                           BtnConnectType.Visibility = Visibility.Visible
+                                           StackPlayerList.Children.Clear()
+                                           For Each Player In PlayerList
+                                               Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
+                                               StackPlayerList.Children.Add(NewItem)
+                                           Next
+                                           CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
                                        End Sub)
+                               'Log($"[Link] 与大厅创建者的连接类型原始输出: {ConnectTypeOriginal}, 判定为类型: {ConnectType}")
+                               If Not IsHost Then
+                                   RunInUi(Sub()
+                                               LabFinishPing.Text = PingRtt + "ms"
+                                               SplitLineBeforePing.Visibility = Visibility.Visible
+                                               BtnFinishPing.Visibility = Visibility.Visible
+                                               LabConnectType.Text = ConnectType
+                                               SplitLineBeforeType.Visibility = Visibility.Visible
+                                               BtnConnectType.Visibility = Visibility.Visible
+                                           End Sub)
+                               End If
                                'ETCliProcess.Kill()
                                Thread.Sleep(15000)
                            End While
@@ -328,19 +384,8 @@ Public Class PageLinkLobby
 
     '复制联机码
     Private Sub BtnFinishCopy_Click(sender As Object, e As EventArgs) Handles BtnFinishCopy.Click
-        ClipboardSet(ETNetworkName.Replace("PCLCELobby", ""))
+        ClipboardSet("10.114.51.41")
     End Sub
-
-    'Ping 房主
-    Private Sub BtnFinishPing_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) 'Handles BtnFinishPing.MouseLeftButtonUp
-        LabFinishPing.Text = "检测中"
-        If TaskPingHost.State = LoadState.Loading Then Exit Sub
-        TaskPingHost.Start(True, IsForceRestart:=True)
-    End Sub
-    Private Shared TaskPingHost As New LoaderTask(Of Boolean, Integer)("HiPer Ping Host",
-    Sub(Task As LoaderTask(Of Boolean, Integer))
-        HostPing = -1
-    End Sub)
 
 #End Region
 
