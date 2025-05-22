@@ -1,0 +1,30 @@
+name: mirrorchyan_stable
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mirrorchyan_stable:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [win]
+        arch: [ARM64, x64]
+
+    steps:
+      - uses: MirrorChyan/uploading-action@v1
+        with:
+          filetype: latest-release
+          filename: "PCL2_CE_${{ matrix.arch }}.exe"
+          extra_zip: true
+          mirrorchyan_rid: PCL2-CE
+
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          auto_channel: false
+          channel: stable
