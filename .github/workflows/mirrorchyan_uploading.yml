@@ -35,5 +35,4 @@ jobs:
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
           os: win
           arch: ${{ inputs.arch }}
-          auto_channel: false
           channel: ${{ inputs.channel }}
