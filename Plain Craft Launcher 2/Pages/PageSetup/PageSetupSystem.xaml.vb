@@ -205,6 +205,12 @@
     Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
         UpdateCheckByButton()
     End Sub
+    Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
+        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱是一个第三方应用分发平台{vbCrLf}如果你有他们的 CDK，可以让 PCL 使用他们的高速下载源下载版本更新，同时也可以减轻下社区更新服务器的压力……")
+        If String.IsNullOrWhiteSpace(ret) Then Exit Sub
+        Setup.Set("SystemMirrorChyanKey", ret)
+        Hint("设置 CDK 成功！", HintType.Finish)
+    End Sub
     ''' <summary>
     ''' 启动器是否已经是最新版？
     ''' 若返回 Nothing，则代表无更新缓存文件或出错。
