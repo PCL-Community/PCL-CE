@@ -206,7 +206,7 @@
         UpdateCheckByButton()
     End Sub
     Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
-        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱是一个第三方应用分发平台{vbCrLf}如果你有他们的 CDK，可以让 PCL 使用他们的高速下载源下载版本更新，同时也可以减轻下社区更新服务器的压力……")
+        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个第三方应用分发平台{vbCrLf}如果你有他们的 CDK，可以让 PCL 使用他们的高速下载源下载版本更新，同时也可以减轻下社区更新服务器的压力……")
         If String.IsNullOrWhiteSpace(ret) Then Exit Sub
         Setup.Set("SystemMirrorChyanKey", ret)
         Hint("设置 CDK 成功！", HintType.Finish)
