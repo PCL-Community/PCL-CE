@@ -5,4 +5,5 @@
     Public IsArchive As Boolean
     Public sha256 As String
     Public Desc As String
+    Public Source As String
 End Class

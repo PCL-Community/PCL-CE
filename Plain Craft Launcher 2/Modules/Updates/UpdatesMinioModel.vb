@@ -39,6 +39,7 @@
         ChannelName += arch.ToString()
         Dim targetData = _remoteVersionData.assets.Where(Function(x) x.version.channel = ChannelName).First()
         Return New VersionDataModel() With {
+            .Source = SourceName,
             .IsArchive = True,
             .download_url = targetData.downloads,
             .sha256 = targetData.sha256,

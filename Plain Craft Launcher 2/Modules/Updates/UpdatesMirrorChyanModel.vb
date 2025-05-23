@@ -33,6 +33,7 @@
         Dim upd_url = data("url")?.ToString()
         If data IsNot Nothing AndAlso String.IsNullOrWhiteSpace(upd_url) Then Throw New Exception("无效 CDK")
         Return New VersionDataModel() With {
+            .Source = SourceName,
             .IsArchive = False,
             .download_url = New List(Of String) From {upd_url},
             .sha256 = data("sha256")?.ToString(),

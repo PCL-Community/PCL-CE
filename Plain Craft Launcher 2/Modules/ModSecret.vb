@@ -580,10 +580,15 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Throw New Exception("无法获取有效公告源")
         End If
     End Sub
-
-
+    Public Function IsVerisonLatest() As Boolean
+        If LatestVersion.Source = "MirrorChyan" Then
+            Return LatestVersion.version_name = VersionBaseName
+        Else
+            Return LatestVersion.version_code <= VersionCode
+        End If
+    End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
-        If LatestVersion.version_name <> VersionBaseName Then
+        If Not IsVerisonLatest() Then
             If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not LatestVersion.version_name.StartsWithF("2.9.") Then
                 If MyMsgBox($"发现了启动器更新（版本 {LatestVersion.version_name}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
                 Exit Sub
@@ -766,7 +771,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End If
         Select Case UpdateDesire
             Case 0
-                If LatestVersion.version_name <> VersionBaseName Then
+                If Not IsVerisonLatest() Then
                     UpdateStart(LatestVersion, True) '静默更新
                 End If
             Case 1
