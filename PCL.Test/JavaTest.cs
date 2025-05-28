@@ -14,7 +14,7 @@ namespace PCL.Test
         [TestMethod]
         public async Task TestJavaSearch()
         {
-            var res = await JavaHelper.ScanJava();
+            var res = await JavaModel.ScanJava();
             //Assert.IsTrue(res.Count > 0, "No Java successfully found.");
             foreach (var ja in res)
             {

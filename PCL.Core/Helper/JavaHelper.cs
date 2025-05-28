@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using System.IO.Compression;
 
-namespace PCL.Core.Java
+namespace PCL.Core.Helper.Java
 {
     public class JavaHelper
     {
@@ -27,8 +30,8 @@ namespace PCL.Core.Java
             {
                 try
                 {
-                    var output = await GetJavaVersionOutput(javaExePath);
-                    var version = new Version(0,0,0);
+                    var output = await GetJavaVersionFromFile(javaExePath);
+                    var version = new Version(0, 0, 0);
                     var brand = JavaBrandType.Other;
                     ParseJavaVersion(output, ref version, ref brand);
 
@@ -130,30 +133,29 @@ namespace PCL.Core.Java
             //TODO: 扫描  Microsoft Java
         }
 
-        private static async Task<string> GetJavaVersionOutput(string javaExePath)
+        private static async Task<string> GetJavaVersionFromFile(string javaExePath)
         {
-            using (var process = new Process())
+            try
             {
-                process.StartInfo = new ProcessStartInfo
+                using(var fs = new FileStream(javaExePath, FileMode.Open, FileAccess.Read))
                 {
-                    FileName = javaExePath,
-                    Arguments = "-version",
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-
-                try
-                {
-                    process.Start();
-                    string output = await process.StandardError.ReadToEndAsync();
-                    process.WaitForExit();
-                    return output;
+                    using(var zip = new ZipArchive(fs))
+                    {
+                        var VersionFile = zip.GetEntry(".rsrc/version.txt");
+                        if (!(VersionFile is null))
+                        {
+                            using (var fs_VersionFile = VersionFile.Open())
+                            {
+                                //TODO: 读取数据
+                            }
+                        }
+                    }
                 }
-                catch
-                {
-                    return string.Empty;
-                }
+            }
+            catch (Exception ex)
+            {
+                // 如果无法读取版本文件，尝试直接执行命令行获取版本
+                // await GetJavaVersionFromCommandLine(javaExePath);
             }
         }
 
@@ -213,5 +215,6 @@ namespace PCL.Core.Java
 
             return JavaBrandType.Other;
         }
+
     }
 }
