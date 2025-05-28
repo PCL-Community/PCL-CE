@@ -40,8 +40,7 @@
             TextArgumentWindowHeight.Text = Setup.Get("LaunchArgumentWindowHeight")
             CheckArgumentRam.Checked = Setup.Get("LaunchArgumentRam")
             ComboMsAuthType.SelectedIndex = Setup.Get("LoginMsAuthType")
-            CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
-            RefreshJavaComboBox()
+            'CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             '游戏内存
             CType(FindName("RadioRamType" & Setup.Load("LaunchRamType")), MyRadioBox).Checked = True
@@ -118,7 +117,7 @@
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged, ComboArgumentVisibie.SelectionChanged, ComboArgumentWindowType.SelectionChanged, ComboArgumentPriority.SelectionChanged, ComboMsAuthType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckArgumentJavaTraversal.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
@@ -376,144 +375,6 @@ PreFin:
 
 #End Region
 
-#Region "Java 选择"
-
-    '刷新 Java 下拉框显示
-    Public Sub RefreshJavaComboBox()
-        If ComboArgumentJava Is Nothing Then Exit Sub
-        '初始化列表
-        ComboArgumentJava.Items.Clear()
-        ComboArgumentJava.Items.Add(New MyComboBoxItem With {.Content = "自动选择合适的 Java", .Tag = "自动选择"})
-        '更新列表
-        Dim SelectedItem As MyComboBoxItem = Nothing
-        Dim SelectedBySetup As String = Setup.Get("LaunchArgumentJavaSelect")
-        Try
-            For Each Java In JavaList.Clone().OrderByDescending(Function(v) v.VersionCode)
-                Dim ItemGrid As New Grid
-                ItemGrid.Children.Add(New TextBlock With {
-                                      .Text = Java.ToString,
-                                      .VerticalAlignment = VerticalAlignment.Center,
-                                      .HorizontalAlignment = HorizontalAlignment.Left,
-                                      .IsHitTestVisible = False})
-                Dim BtnJavaED = New MyIconButton With {
-                                      .Logo = If(Java.IsEnabled, Logo.IconButtonStop, Logo.IconButtonCheck),
-                                      .LogoScale = 1.2,
-                                      .ToolTip = If(Java.IsEnabled, "禁用"， "启用"),
-                                      .MaxHeight = 20,
-                                      .VerticalAlignment = VerticalAlignment.Center,
-                                      .HorizontalAlignment = HorizontalAlignment.Right}
-                ItemGrid.Children.Add(BtnJavaED)
-                Dim ListItem = New MyComboBoxItem With {.Content = ItemGrid, .ToolTip = Java.PathFolder, .Tag = Java}
-                ToolTipService.SetHorizontalOffset(BtnJavaED, 20)
-                ToolTipService.SetHorizontalOffset(ListItem, 400)
-                ComboArgumentJava.Items.Add(ListItem)
-                AddHandler BtnJavaED.Click, Sub()
-                                                Dim TargetJava = JavaList.Find(Function(j) j.PathFolder = Java.PathFolder)
-                                                If TargetJava Is Nothing Then Exit Sub
-                                                Java.IsEnabled = Not Java.IsEnabled
-                                                TargetJava.IsEnabled = Java.IsEnabled
-                                                BtnJavaED.Logo = If(TargetJava.IsEnabled, Logo.IconButtonStop, Logo.IconButtonCheck)
-                                                BtnJavaED.ToolTip = If(TargetJava.IsEnabled, "禁用", "启用")
-                                                Dim NewJavaList As New JArray
-                                                For Each Item In JavaList
-                                                    NewJavaList.Add(Item.ToJson)
-                                                Next
-                                                Setup.Set("LaunchArgumentJavaAll", NewJavaList.ToString(Newtonsoft.Json.Formatting.None))
-                                            End Sub
-                '判断人为选中
-                If SelectedBySetup = "" Then Continue For
-                If JavaEntry.FromJson(GetJson(SelectedBySetup)).PathFolder = Java.PathFolder Then SelectedItem = ListItem
-            Next
-        Catch ex As Exception
-            Setup.Set("LaunchArgumentJavaSelect", "")
-            Log(ex, "更新设置 Java 下拉框失败", LogLevel.Feedback)
-        End Try
-        '更新选择项
-        If SelectedItem Is Nothing AndAlso JavaList.Any Then SelectedItem = ComboArgumentJava.Items(0) '选中 “自动选择”
-        ComboArgumentJava.SelectedItem = SelectedItem
-        '结束处理
-        If SelectedItem Is Nothing Then
-            ComboArgumentJava.Items.Clear()
-            ComboArgumentJava.Items.Add(New ComboBoxItem With {.Content = "未找到可用的 Java", .IsSelected = True})
-        End If
-        RefreshRam(True)
-    End Sub
-    '阻止在特定情况下展开下拉框
-    Private Sub ComboArgumentJava_DropDownOpened(sender As Object, e As EventArgs) Handles ComboArgumentJava.DropDownOpened
-        If ComboArgumentJava.SelectedItem Is Nothing OrElse ComboArgumentJava.Items(0).Content = "未找到可用的 Java" OrElse ComboArgumentJava.Items(0).Content = "加载中……" Then
-            ComboArgumentJava.IsDropDownOpen = False
-        End If
-    End Sub
-
-    '下拉框选择更改
-    Private Sub JavaSelectionUpdate() Handles ComboArgumentJava.SelectionChanged
-        If AniControlEnabled <> 0 Then Exit Sub
-        'Java 不可用时也不清空，会导致刷新时找不到对象
-        If ComboArgumentJava.SelectedItem Is Nothing OrElse ComboArgumentJava.SelectedItem.Tag Is Nothing Then Exit Sub
-        '设置新的 Java
-        Dim SelectedJava = ComboArgumentJava.SelectedItem.Tag
-        If "自动选择".Equals(SelectedJava) Then
-            '选择 “自动”
-            Setup.Set("LaunchArgumentJavaSelect", "")
-            Log("[Java] 修改 Java 选择设置：自动选择")
-        Else
-            '选择指定项
-            Setup.Set("LaunchArgumentJavaSelect", CType(SelectedJava.ToJson(), JObject).ToString(Newtonsoft.Json.Formatting.None))
-            Log("[Java] 修改 Java 选择设置：" & SelectedJava.ToString)
-        End If
-        RefreshRam(True)
-    End Sub
-
-    '手动选择
-    Private Sub BtnArgumentJavaSelect_Click(sender As Object, e As EventArgs) Handles BtnArgumentJavaSelect.Click
-        If JavaSearchLoader.State = LoadState.Loading Then
-            Hint("正在搜索 Java，请稍候！", HintType.Critical)
-            Exit Sub
-        End If
-        '选择 Java
-        Dim JavaSelected As String = SelectFile("javaw.exe|javaw.exe", "选择 bin 文件夹中的 javaw.exe 文件")
-        If JavaSelected = "" Then Exit Sub
-        JavaSelected = GetPathFromFullPath(JavaSelected)
-        Try
-            '验证 Java 可用
-            Dim NewEntry As New JavaEntry(JavaSelected, True)
-            NewEntry.Check()
-            '加入列表
-            Dim JavaNewList As New JArray From {NewEntry.ToJson}
-            For Each JsonEntry In GetJson(Setup.Get("LaunchArgumentJavaAll"))
-                Dim Entry = JavaEntry.FromJson(JsonEntry)
-                If Entry.PathFolder = NewEntry.PathFolder Then Continue For
-                JavaNewList.Add(JsonEntry)
-            Next
-            Setup.Set("LaunchArgumentJavaAll", JavaNewList.ToString(Newtonsoft.Json.Formatting.None))
-            '重新加载列表
-            JavaSearchLoader.Start(IsForceRestart:=True)
-            Hint("已将该 Java 加入 Java 列表！", HintType.Finish)
-        Catch ex As Exception
-            Log(ex, "该 Java 存在异常，无法使用", LogLevel.Msgbox, "异常的 Java")
-            Exit Sub
-        End Try
-    End Sub
-    '自动查找
-    Private Sub BtnArgumentJavaSearch_Click(sender As Object, e As EventArgs) Handles BtnArgumentJavaSearch.Click
-        If JavaSearchLoader.State = LoadState.Loading Then
-            Hint("正在搜索 Java，请稍候！", HintType.Critical)
-            Exit Sub
-        End If
-        RunInThread(
-        Sub()
-            Hint("正在搜索 Java！")
-            JavaSearchLoader.WaitForExit(IsForceRestart:=True)
-            If Not JavaList.Any() Then
-                Hint("未找到可用的 Java！", HintType.Critical)
-            Else
-                Hint("已找到 " & JavaList.Count & " 个 Java，请检查下拉框查看列表！", HintType.Finish)
-            End If
-        End Sub)
-    End Sub
-
-#End Region
-
 #Region "其他选项"
 
     Private Sub WindowTypeUIRefresh() Handles ComboArgumentWindowType.SelectionChanged
@@ -556,6 +417,11 @@ PreFin:
     Private Sub ComboArgumentIndie_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboArgumentIndieV2.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
         MyMsgBox("默认策略只会对今后新安装的版本生效。" & vbCrLf & "已有版本的隔离策略需要在它的版本设置中调整。")
+    End Sub
+
+    'Java 管理跳转
+    Private Sub BtnJavaManage_Click(sender As Object, e As RouteEventArgs) Handles BtnGotoJavaManage.Click
+        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.SetupJava})
     End Sub
 
 #End Region

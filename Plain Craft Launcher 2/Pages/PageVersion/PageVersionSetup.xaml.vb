@@ -496,13 +496,13 @@ PreFin:
         Dim SelectedItem As MyComboBoxItem = Nothing
         Dim SelectedBySetup As String = Setup.Get("VersionArgumentJavaSelect", Version:=PageVersionLeft.Version)
         Try
-            For Each Java In JavaList.Clone().OrderByDescending(Function(v) v.VersionCode)
-                Dim ListItem = New MyComboBoxItem With {.Content = Java.ToString, .ToolTip = Java.PathFolder, .Tag = Java}
+            For Each CurJava In JavaList.Clone().OrderByDescending(Function(v) v.VersionCode)
+                Dim ListItem = New MyComboBoxItem With {.Content = CurJava.ToString, .ToolTip = CurJava.PathFolder, .Tag = CurJava}
                 ToolTipService.SetHorizontalOffset(ListItem, 400)
                 ComboArgumentJava.Items.Add(ListItem)
                 '判断人为选中
                 If SelectedBySetup = "" OrElse SelectedBySetup = "使用全局设置" Then Continue For
-                If JavaEntry.FromJson(GetJson(SelectedBySetup)).PathFolder = Java.PathFolder Then SelectedItem = ListItem
+                If JavaEntry.FromJson(GetJson(SelectedBySetup)).PathFolder = CurJava.PathFolder Then SelectedItem = ListItem
             Next
         Catch ex As Exception
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageVersionLeft.Version)

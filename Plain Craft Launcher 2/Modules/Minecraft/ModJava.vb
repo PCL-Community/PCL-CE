@@ -247,8 +247,8 @@
             If TargetJavaList.Any Then
                 TargetJavaList = JavaCheckList(TargetJavaList)
                 Log("[Java] 检查后找到 " & TargetJavaList.Count & " 个特定路径下的 Java：")
-                For Each Java In TargetJavaList
-                    Log($"[Java]  - {Java}")
+                For Each TargetJava In TargetJavaList
+                    Log($"[Java]  - {TargetJava}")
                 Next
             End If
 
@@ -315,11 +315,11 @@ RetryGet:
             AllJavaList = AllJavaList.Where(Function(i) i.IsEnabled).ToList()
 
             '根据选定条件进行过滤
-            For Each Java In AllJavaList
-                If MinVersion IsNot Nothing AndAlso Java.Version < MinVersion Then Continue For
-                If MaxVersion IsNot Nothing AndAlso Java.Version > MaxVersion Then Continue For
-                If Java.Is64Bit AndAlso Is32BitSystem Then Continue For
-                AllowedJavaList.Add(Java)
+            For Each TargetJava In AllJavaList
+                If MinVersion IsNot Nothing AndAlso TargetJava.Version < MinVersion Then Continue For
+                If MaxVersion IsNot Nothing AndAlso TargetJava.Version > MaxVersion Then Continue For
+                If TargetJava.Is64Bit AndAlso Is32BitSystem Then Continue For
+                AllowedJavaList.Add(TargetJava)
             Next
 
             '若未找到适合的 Java，尝试触发搜索
@@ -342,8 +342,8 @@ RetryGet:
             '指定的 Java 不可用，弹窗要求选择
             Log("[Java] 发现用户指定的不兼容 Java：" & UserJava.ToString)
             Log($"[Java] 目前实际可用的 Java 列表：")
-            For Each Java In AllowedJavaList
-                Log($"[Java]  - {Java}")
+            For Each TargetJava In AllowedJavaList
+                Log($"[Java]  - {TargetJava}")
             Next
             Dim Requirement As String = ""
             Dim ShowRevision As Boolean = False
@@ -387,14 +387,14 @@ ExitUserJavaCheck:
             If Not AllowedJavaList.Any() Then Return Nothing
 
             '优先使用特定目录下的 Java
-            For Each Java In AllowedJavaList
+            For Each TargetJava In AllowedJavaList
                 '如果在官启文件夹启动，会将官启自带 Java 错误视作 MC 文件夹指定 Java，导致了 #2054 的第二例
-                If Java.PathFolder.Contains(".minecraft\cache\java") Then Continue For
-                If Java.PathFolder.Contains("PCL\MyDownload\") Then Continue For '#5780
-                If TargetJavaList.Contains(Java) Then
+                If TargetJava.PathFolder.Contains(".minecraft\cache\java") Then Continue For
+                If TargetJava.PathFolder.Contains("PCL\MyDownload\") Then Continue For '#5780
+                If TargetJavaList.Contains(TargetJava) Then
                     '直接使用指定的 Java
-                    AllowedJavaList = New List(Of JavaEntry) From {Java}
-                    Log("[Java] 优先使用特定路径下的 Java：" & Java.ToString)
+                    AllowedJavaList = New List(Of JavaEntry) From {TargetJava}
+                    Log("[Java] 优先使用特定路径下的 Java：" & TargetJava.ToString)
                     GoTo UserPass
                 End If
             Next
@@ -403,8 +403,8 @@ UserPass:
             '对适合的 Java 进行排序
             AllowedJavaList = AllowedJavaList.Sort(AddressOf JavaSorter)
             Log($"[Java] 排序后的 Java 优先顺序：")
-            For Each Java In AllowedJavaList
-                Log($"[Java]  - {Java}")
+            For Each TargetJava In AllowedJavaList
+                Log($"[Java]  - {TargetJava}")
             Next
 
             '检查选定的 Java，若测试失败则尝试进行搜索
@@ -454,14 +454,14 @@ UserPass:
                     Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=RelatedVersion)
                     GoTo NoUserJava
                 End Try
-                For Each Java In JavaList
-                    If Java.PathFolder = UserJava.PathFolder Then Return UserJava.Is64Bit
+                For Each TargetJava In JavaList
+                    If TargetJava.PathFolder = UserJava.PathFolder Then Return UserJava.Is64Bit
                 Next
             End If
 NoUserJava:
             '检查列表
-            For Each Java In JavaList
-                If Java.Is64Bit Then Return True
+            For Each TargetJava In JavaList
+                If TargetJava.Is64Bit Then Return True
             Next
             Return False
         Catch ex As Exception
@@ -507,21 +507,6 @@ NoUserJava:
     ''' </summary>
     Public JavaSearchLoader As New LoaderTask(Of Integer, Integer)("查找 Java", AddressOf JavaSearchLoaderSub) With {.ProgressWeight = 2}
     Private Sub JavaSearchLoaderSub(Loader As LoaderTask(Of Integer, Integer))
-        If FrmSetupLaunch IsNot Nothing Then
-            RunInUiWait(
-            Sub()
-                FrmSetupLaunch.ComboArgumentJava.Items.Clear()
-                FrmSetupLaunch.ComboArgumentJava.Items.Add(New ComboBoxItem With {.Content = "加载中……", .IsSelected = True})
-            End Sub)
-        End If
-        If FrmVersionSetup IsNot Nothing Then
-            RunInUiWait(
-            Sub()
-                FrmVersionSetup.ComboArgumentJava.Items.Clear()
-                FrmVersionSetup.ComboArgumentJava.Items.Add(New ComboBoxItem With {.Content = "加载中……", .IsSelected = True})
-            End Sub)
-        End If
-
         Try
 
             '可能包含 Java 的文件夹列表，以 “\” 结尾，且仅包含 “\”
@@ -628,8 +613,8 @@ NoUserJava:
 
             '修改设置项
             Dim AllList As New JArray
-            For Each Java In NewJavaList
-                AllList.Add(Java.ToJson)
+            For Each TargetJava In NewJavaList
+                AllList.Add(TargetJava.ToJson)
             Next
             Setup.Set("LaunchArgumentJavaAll", AllList.ToString(Newtonsoft.Json.Formatting.None))
             JavaList = NewJavaList
@@ -640,8 +625,6 @@ NoUserJava:
         End Try
 
         Log("[Java] Java 搜索完成，发现 " & JavaList.Count & " 个 Java")
-        If FrmSetupLaunch IsNot Nothing Then RunInUi(Sub() FrmSetupLaunch.RefreshJavaComboBox())
-        If FrmVersionSetup IsNot Nothing Then RunInUi(Sub() FrmVersionSetup.RefreshJavaComboBox())
     End Sub
 
     ''' <summary>
