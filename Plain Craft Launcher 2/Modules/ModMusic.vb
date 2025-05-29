@@ -134,9 +134,10 @@ Public Module ModMusic
                     ' 处理专辑封面（使用嵌入的图片数据）
                     If Tags.Pictures.Any() Then
                         Dim firstPicture = Tags.Pictures(0)
-                        Dim tempFile = StorageFile.GetFileFromPathAsync($"{PathTemp}Cache\albumcover.jpg").GetResults()
+                        Dim targetPath = $"{PathTemp}Cache\albumcover.jpg"
+                        File.WriteAllBytes(targetPath, firstPicture.Data.Data)
+                        Dim tempFile = StorageFile.GetFileFromPathAsync(targetPath).GetResults()
                         ' 写入图片数据
-                        FileIO.WriteBytesAsync(tempFile, firstPicture.Data.Data).GetResults()
                         SMTCUpdater.Thumbnail = RandomAccessStreamReference.CreateFromFile(tempFile)
                     Else
                         SMTCUpdater.Thumbnail = Nothing
