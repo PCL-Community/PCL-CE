@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using System.IO.Compression;
+using System.Net.Http.Headers;
 
 namespace PCL.Core.Helper.Java
 {
@@ -30,16 +31,13 @@ namespace PCL.Core.Helper.Java
             {
                 try
                 {
-                    var output = await GetJavaVersionFromFile(javaExePath);
-                    var version = new Version(0, 0, 0);
-                    var brand = JavaBrandType.Other;
-                    ParseJavaVersion(output, ref version, ref brand);
+                    var output = GetJavaInfoFromFile(javaExePath);
 
                     javaList.Add(new JavaModel
                     {
                         Path = javaExePath,
-                        Version = version,
-                        Brand = brand
+                        Version = output.JavaVersion,
+                        Brand = DetermineBrand(output.CompanyName)
                     });
                 }
                 catch
@@ -92,7 +90,10 @@ namespace PCL.Core.Helper.Java
             var programFilesPaths = new List<string>
             {
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
             };
 
             foreach (var pfPath in programFilesPaths)
@@ -133,87 +134,43 @@ namespace PCL.Core.Helper.Java
             //TODO: 扫描  Microsoft Java
         }
 
-        private static async Task<string> GetJavaVersionFromFile(string javaExePath)
+        private static (string CompanyName, Version JavaVersion) GetJavaInfoFromFile(string javaExePath)
         {
             try
             {
-                using(var fs = new FileStream(javaExePath, FileMode.Open, FileAccess.Read))
-                {
-                    using(var zip = new ZipArchive(fs))
-                    {
-                        var VersionFile = zip.GetEntry(".rsrc/version.txt");
-                        if (!(VersionFile is null))
-                        {
-                            using (var fs_VersionFile = VersionFile.Open())
-                            {
-                                //TODO: 读取数据
-                            }
-                        }
-                    }
-                }
+                var version = FileVersionInfo.GetVersionInfo(javaExePath);
+                var JavaVersion = Version.Parse(version.FileVersion);
+                var companyName = version.CompanyName 
+                    ?? version.FileDescription
+                    ?? version.ProductName
+                    ?? string.Empty;
+                
+                return (companyName, JavaVersion);
             }
             catch (Exception ex)
             {
-                // 如果无法读取版本文件，尝试直接执行命令行获取版本
-                // await GetJavaVersionFromCommandLine(javaExePath);
+                
             }
-        }
-
-        private static void ParseJavaVersion(string output, ref Version version, ref JavaBrandType brand)
-        {
-            version = null;
-            brand = JavaBrandType.Other;
-
-            if (string.IsNullOrEmpty(output)) return;
-
-            // 提取版本号
-            Match versionMatch = Regex.Match(output, "version \"([^\"]+)\"", RegexOptions.IgnoreCase);
-            if (!versionMatch.Success) return;
-
-            string versionString = versionMatch.Groups[1].Value;
-
-            // 提取数字部分
-            MatchCollection matches = Regex.Matches(versionString, @"\d+");
-            if (matches.Count == 0) return;
-
-            var parts = new List<int>();
-            foreach (Match match in matches)
-            {
-                parts.Add(int.Parse(match.Value));
-            }
-
-            try
-            {
-                int major = parts[0];
-                int minor = parts.Count > 1 ? parts[1] : 0;
-                int build = parts.Count > 2 ? parts[2] : 0;
-                int revision = parts.Count > 3 ? parts[3] : 0;
-                version = new Version(major, minor, build, revision);
-            }
-            catch
-            {
-                // 版本解析失败
-            }
-
-            // 确定品牌
-            brand = DetermineBrand(output);
+            return (string.Empty, new Version(0, 0, 0));
         }
 
         private static JavaBrandType DetermineBrand(string output)
         {
-            if (output.IndexOf("AdoptOpenJDK", StringComparison.OrdinalIgnoreCase) >= 0)
-                return JavaBrandType.AdoptOpenJDK;
-            if (output.IndexOf("Corretto", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (output.IndexOf("Eclipse", StringComparison.OrdinalIgnoreCase) >= 0)
+                return JavaBrandType.EclipseTemurin;
+            if (output.IndexOf("Bellsoft", StringComparison.OrdinalIgnoreCase) >= 0)
+                return JavaBrandType.Bellsoft;
+            if (output.IndexOf("Microsoft", StringComparison.OrdinalIgnoreCase) >= 0)
+                return JavaBrandType.Microsoft;
+            if (output.IndexOf("Amazon", StringComparison.OrdinalIgnoreCase) >= 0)
                 return JavaBrandType.AmazonCorretto;
-            if (output.IndexOf("Zulu", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (output.IndexOf("Azul", StringComparison.OrdinalIgnoreCase) >= 0)
                 return JavaBrandType.AzulZulu;
-            if (output.IndexOf("OpenJDK", StringComparison.OrdinalIgnoreCase) >= 0)
-                return JavaBrandType.OpenJDK;
-            if (output.IndexOf("Java(TM) SE", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                output.IndexOf("Oracle", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (output.IndexOf("Oracle", StringComparison.OrdinalIgnoreCase) >= 0)
                 return JavaBrandType.Oracle;
-
-            return JavaBrandType.Other;
+            if (output.IndexOf("Alibaba", StringComparison.OrdinalIgnoreCase) >= 0)
+                return JavaBrandType.Dragonwell;
+            return JavaBrandType.Unknown;
         }
 
     }

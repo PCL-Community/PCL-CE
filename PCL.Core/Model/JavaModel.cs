@@ -11,16 +11,27 @@ namespace PCL.Core.Helper.Java
     public enum JavaBrandType
     {
         Oracle,
-        OpenJDK,
-        AdoptOpenJDK,
-        AmazonCorretto,
+        Microsoft,
+        Bellsoft,
         AzulZulu,
-        Other
+        AmazonCorretto,
+        OpenJDK,
+        EclipseTemurin,
+        Dragonwell,
+        Kona,
+        Unknown
     }
     public class JavaModel
     {
+        /// <summary>
+        /// 就像这样：
+        /// D:\Program Files\Java24\bin
+        /// </summary>
         public string Path { get; set; }
         public Version Version { get; set; }
         public JavaBrandType Brand { get; set; }
+        public bool Is64Bit { get; set; }
+        public string JavaExePath => $@"{Path}\java.exe";
+        public string JavawExePath => $@"{Path}\javaw.exe";
     }
 }
