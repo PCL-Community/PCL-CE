@@ -21,8 +21,13 @@ Public Class PageLinkLobby
         'FormMain.EndProgramForce(Result.Aborted)
         If IsLoad Then Exit Sub
         IsLoad = True
+        IsMcWatcherRunning = True
+        McInstanceWatcher()
         '启动监视线程
         'If Not IsWatcherStarted Then RunInNewThread(AddressOf WatcherThread, "Hiper Watcher")
+    End Sub
+    Private Sub OnPageExit() Handles Me.PageExit
+        IsMcWatcherRunning = False
     End Sub
 
 #End Region
@@ -73,6 +78,25 @@ Public Class PageLinkLobby
 
     '主 Timer 线程
     Private IsWatcherStarted As Boolean = False
+    Private IsMcWatcherRunning As Boolean = False
+    Private Sub McInstanceWatcher()
+        RunInNewThread(Sub()
+                           While IsMcWatcherRunning
+                               Dim Worlds As List(Of WorldInfo) = MCInstanceFinding.GetAwaiter().GetResult()
+                               RunInUi(Sub()
+                                           ComboWorldList.Items.Clear()
+                                           If Worlds.Count = 0 Then
+                                               ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "无可用实例，请确保已在游戏内设置对局域网开放"})
+                                           Else
+                                               For Each World In Worlds
+                                                   ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = World.VersionName & $"（端口 {World.Port}）" & " / " & World.Description})
+                                               Next
+                                           End If
+                                       End Sub)
+                               Thread.Sleep(5000) '每 5 秒检查一次
+                           End While
+                       End Sub)
+    End Sub
     Private Sub StartWatcherThread()
         RunInNewThread(Sub()
                            If IsHost Then
@@ -203,7 +227,7 @@ Public Class PageLinkLobby
 
     Public LocalPort As String = Nothing
     '创建房间
-    Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectCreate.MouseLeftButtonUp
+    Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) 'Handles BtnSelectCreate.MouseLeftButtonUp
         LocalPort = MyMsgBoxInput("输入端口号", HintText:="例如：25565")
         If LocalPort = Nothing Then Exit Sub
         IsHost = True
@@ -237,6 +261,7 @@ Public Class PageLinkLobby
                            LaunchEasyTier(False, JoinedLobbyId)
                            Thread.Sleep(1000)
                            StartWatcherThread()
+                           McPortForward("10.114.51.41", 25565)
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
@@ -319,6 +344,7 @@ Public Class PageLinkLobby
         If MyMsgBox("你确定要退出大厅吗？", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             ExitEasyTier()
+            StopMcPortForward()
             'RemoveNATTranversal()
             'ModLink.RemoveUPnPMapping()
             'LocalPort = Nothing

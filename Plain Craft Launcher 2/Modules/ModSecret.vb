@@ -815,6 +815,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public Sub SendTelemetry()
         Dim NetResult = ModLink.NetTest()
         Dim Data = New JObject From {
+            {"Tag", "Telemetry"},
             {"Id", UniqueAddress},
             {"OS", Environment.OSVersion.Version.Build},
             {"Is64Bit", Not Is32BitSystem},
