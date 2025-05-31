@@ -17,24 +17,20 @@
 
     Public Function EnsureLatestData() As Boolean Implements IUpdateSource.EnsureLatestData
         Dim AvailableList = GetAvailableSources()
-        If AvailableList.Count() = 0 Then
-            Throw New Exception("无法获取到任何可用的更新源。请检查配置或网络连接。")
-        End If
+        If AvailableList.Count() = 0 Then Throw New Exception("无法获取到任何可用的更新源。请检查配置或网络连接。")
         _curRandomSource = If(_curRandomSource, AvailableList.ElementAt(RandomInteger(0, AvailableList.Count() - 1)))
         Return _curRandomSource.EnsureLatestData()
     End Function
 
     Public Function GetLatestVersion(channel As UpdateChannel, arch As UpdateArch) As VersionDataModel Implements IUpdateSource.GetLatestVersion
-        If _curRandomSource Is Nothing Then
-            Throw New Exception("没有可用的更新源。请检查配置或网络连接。")
-        End If
+        If _curRandomSource Is Nothing Then EnsureLatestData()
+        If _curRandomSource Is Nothing Then Throw New Exception("没有可用的更新源。请检查配置或网络连接。")
         Return _curRandomSource.GetLatestVersion(channel, arch)
     End Function
 
     Public Function GetAnnouncementList() As AnnouncementInfoModel Implements IUpdateSource.GetAnnouncementList
-        If _curRandomSource Is Nothing Then
-            Throw New Exception("没有可用的更新源。请检查配置或网络连接。")
-        End If
+        If _curRandomSource Is Nothing Then EnsureLatestData()
+        If _curRandomSource Is Nothing Then Throw New Exception("没有可用的更新源。请检查配置或网络连接。")
         Return _curRandomSource.GetAnnouncementList()
     End Function
 
