@@ -24,6 +24,10 @@ Friend Module ModSecret
     Public Const LittleSkinClientId As String = ""
     '遥测鉴权密钥
     Public Const TelemetryKey As String = ""
+    'Natayark ID Client Id
+    Public Const NatayarkClientId As String = ""
+    'Natayark ID Client Secret
+    Public Const NatayarkClientSecret As String = ""
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级

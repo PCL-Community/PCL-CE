@@ -1,12 +1,8 @@
 ﻿Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Open.Nat
-Imports System.Net
 Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
-Imports System.Net.NetworkInformation
-Imports PCL.PageLinkNetStatus
 Imports System.Threading.Tasks
 
 Public Module ModLink
@@ -550,6 +546,46 @@ Public Module ModLink
         End Try
     End Sub
 
+#End Region
+
+#Region "Natayark ID"
+    Public Class NaidUser
+        Public Id As Int32
+        Public Email As String
+        Public Username As String
+        Public AccessToken As String
+        Public RefreshToken As String
+        Public Status As Integer
+        Public IsRealname As Boolean
+        Public LastIp As String
+    End Class
+    Public NaidProfile As NaidUser = Nothing
+    Public Sub GetNatayarkIdData()
+        Dim AccessToken As String = Nothing
+        Dim RefreshToken As String = Nothing
+        RunInNewThread(Sub()
+                           Try
+                               Dim RequestData As String = $"grant_type={If(True, "authorization_code", "refresh_token")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(True, "code", "refresh_token")}=114514&redirect_uri=https://ce.open.pcl2.dev"
+                               Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
+                               Dim Data As JObject = JObject.Parse(Received)
+                               AccessToken = Data("access_token").ToString()
+                               RefreshToken = Data("refresh_token").ToString()
+
+                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", $"Authorization=Bearer {AccessToken}", "application/json")
+                               Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
+                               NaidProfile = New NaidUser With {
+                                      .Id = UserData("id").ToObject(Of Int32)(),
+                                      .Username = UserData("username").ToString(),
+                                      .Email = UserData("email").ToString(),
+                                      .Status = UserData("status").ToObject(Of Integer)(),
+                                      .IsRealname = UserData("realname").ToObject(Of Boolean)(),
+                                      .LastIp = UserData("last_ip").ToString()
+                                 }
+                           Catch ex As Exception
+
+                           End Try
+                       End Sub)
+    End Sub
 #End Region
 
     Public Function StunTest()
