@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("PCL.Core")]
-[assembly: AssemblyDescription("PCL 社区为 PCL 开发的启动器核心")]
+[assembly: AssemblyDescription("PCL Community 为 PCL 开发的启动器核心库")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("PCL Community")]
 [assembly: AssemblyProduct("PCL.Core")]
-[assembly: AssemblyCopyright("Copyright © PCL Community 2025")]
+[assembly: AssemblyCopyright("Copyright © PCL Community")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

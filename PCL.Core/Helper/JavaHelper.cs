@@ -173,5 +173,14 @@ namespace PCL.Core.Helper.Java
             return JavaBrandType.Unknown;
         }
 
+        public static List<JavaModel> SelectSuitableJava(Version MinVerison, Version MaxVersion)
+        {
+            var javaList = ScanJava().Result;
+            return javaList
+                .Where(java => java.Version >= MinVerison && java.Version <= MaxVersion)
+                .OrderByDescending(java => java.Version)
+                .ToList();
+        }
+
     }
 }
