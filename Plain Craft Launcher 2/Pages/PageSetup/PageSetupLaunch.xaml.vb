@@ -14,7 +14,7 @@
         End If
 
         '非重复加载部分
-        If IsLoad Then Exit Sub
+        If IsLoad Then Return
         IsLoad = True
 
         AniControlEnabled += 1
@@ -157,7 +157,7 @@
 #Region "游戏内存"
 
     Public Sub RamType(Type As Integer)
-        If SliderRamCustom Is Nothing Then Exit Sub
+        If SliderRamCustom Is Nothing Then Return
         SliderRamCustom.IsEnabled = (Type = 1)
     End Sub
 
@@ -165,7 +165,7 @@
     ''' 刷新 UI 上的 RAM 显示。
     ''' </summary>
     Public Sub RefreshRam(ShowAnim As Boolean)
-        If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.Setup OrElse FrmSetupLeft.PageID <> FormMain.PageSubType.SetupLaunch Then Exit Sub
+        If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.Setup OrElse FrmSetupLeft.PageID <> FormMain.PageSubType.SetupLaunch Then Return
         '获取内存情况
         Dim RamGame As Double = Math.Round(GetRam(McVersionCurrent, False), 5)
         Dim RamTotal As Double = Math.Round(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024 / 1024, 1)
@@ -378,7 +378,7 @@ PreFin:
 #Region "其他选项"
 
     Private Sub WindowTypeUIRefresh() Handles ComboArgumentWindowType.SelectionChanged
-        If ComboArgumentWindowType Is Nothing Then Exit Sub
+        If ComboArgumentWindowType Is Nothing Then Return
         If ComboArgumentWindowType.SelectedIndex = 3 AndAlso LabArgumentWindowMiddle IsNot Nothing AndAlso LabArgumentWindowMiddle.Visibility = Visibility.Collapsed Then
             LabArgumentWindowMiddle.Visibility = Visibility.Visible
             TextArgumentWindowHeight.Visibility = Visibility.Visible
@@ -392,7 +392,7 @@ PreFin:
 
     '可见性选择直接关闭的警告
     Private Sub ComboArgumentVisibie_SizeChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboArgumentVisibie.SelectionChanged
-        If AniControlEnabled <> 0 Then Exit Sub
+        If AniControlEnabled <> 0 Then Return
         If ComboArgumentVisibie.SelectedIndex = 0 Then
             If MyMsgBox("若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。" & vbCrLf &
                         "如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。", "提醒", "继续", "取消") = 2 Then
@@ -403,7 +403,7 @@ PreFin:
 
     '开启自动内存优化的警告
     Private Sub CheckArgumentRam_Change() Handles CheckArgumentRam.Change
-        If AniControlEnabled <> 0 Then Exit Sub
+        If AniControlEnabled <> 0 Then Return
         If Not CheckArgumentRam.Checked Then Return
         If MyMsgBox("内存优化会显著延长启动耗时，建议仅在内存不足时开启。" & vbCrLf &
                     "如果你在使用机械硬盘，这还可能导致一小段时间的严重卡顿。" &
