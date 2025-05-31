@@ -522,8 +522,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public IsUpdateWaitingRestart As Boolean = False
     Public RemoteServer As New List(Of IUpdateSource) From {
         New UpdatesMirrorChyanModel(),
-        New UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/") With {.SourceName = "Pysio"},
-        New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/") With {.SourceName = "GitHub"}
+        New UpdatesRandomModel({
+                New UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
+                New UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
+                               }),
+        New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
     }
     Public LatestVersion As VersionDataModel = Nothing
     Public LatestAnnouncement As AnnouncementInfoModel = Nothing

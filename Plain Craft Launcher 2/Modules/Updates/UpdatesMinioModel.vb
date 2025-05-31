@@ -2,8 +2,9 @@
     Implements IUpdateSource
 
     Private _baseUrl As String
-    Public Sub New(BaseUrl As String)
+    Public Sub New(BaseUrl As String, Optional Name As String = "Minio")
         _baseUrl = BaseUrl
+        SourceName = Name
     End Sub
     Public Function IsAvailable() As Boolean Implements IUpdateSource.IsAvailable
         Return Not String.IsNullOrWhiteSpace(_baseUrl)
