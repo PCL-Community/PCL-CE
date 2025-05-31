@@ -609,6 +609,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim DlTempPath As String = PathTemp & "Cache\CEUpdates.zip"
         RunInNewThread(Sub()
                            Try
+                               WriteFile($"{PathTemp}CEUpdateLog.md", Version.Desc)
                                '构造步骤加载器
                                Dim Loaders As New List(Of LoaderBase)
                                '下载

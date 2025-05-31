@@ -46,7 +46,7 @@
             .sha256 = targetData.sha256,
             .version_code = targetData.version.code,
             .version_name = targetData.version.name,
-            .Desc = $"此版本发布于 {DateTime.Parse(targetData.upd_time).ToLocalTime().ToString()}"}
+            .Desc = targetData.changelog}
     End Function
 
     Public Function GetAnnouncementList() As AnnouncementInfoModel Implements IUpdateSource.GetAnnouncementList
