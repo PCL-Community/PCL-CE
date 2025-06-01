@@ -209,6 +209,13 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
+            '联机摇号
+            If Not Setup.Get("LinkAvailable") AndAlso Not Now.ToString("yyyyMMdd") = Setup.Get("LinkLastTestDate") Then
+                Dim Num As Integer = RandomInteger(1, 100)
+                If Num > 90 Then Setup.Set("LinkAvailable", True)
+                Setup.Set("LinkLastTestDate", Now.ToString("yyyyMMdd"))
+                Log($"摇号{Num}, {Now:yyyyMMdd}")
+            End If
             '清理自动更新文件
             Try
                 If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")
@@ -353,7 +360,7 @@ Public Class FormMain
             End If
         End If
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -392,7 +399,7 @@ Public Class FormMain
     Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
         On Error Resume Next
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)

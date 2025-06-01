@@ -114,8 +114,14 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="10" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,20" Grid.Column="0">
                     <StackPanel Orientation="Horizontal" Margin="3,0">
                         <StackPanel x:Name="BtnFinishQuality" Orientation="Horizontal" Background="{StaticResource ColorBrushSemiTransparent}"
                                     ToolTip="连接状况" ToolTipService.Placement="Center" ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
@@ -158,7 +164,7 @@
                         </StackPanel>
                     </StackPanel>
                 </local:MyCard>
-                <local:MyCard Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <local:MyCard Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" MinHeight="164">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="25" />
@@ -173,6 +179,7 @@
                             <RowDefinition Height="21" />
                             <RowDefinition Height="Auto" /> <!--标题栏-->
                             <RowDefinition Height="Auto" /> <!--文本区-->
+                            <RowDefinition Height="22" />
                             <RowDefinition Height="Auto" /> <!--按钮-->
                             <RowDefinition Height="21" />
                         </Grid.RowDefinitions>
@@ -180,13 +187,23 @@
                               Stretch="Uniform" Fill="{DynamicResource ColorBrush3}"
                               Data="M845 547.45h65.54A400.6 400.6 0 0 0 712.7 201.77l-33.22 56.49C781.6 318.32 845 429.13 845 547.45zM347.72 253.92L316 196.58a401.21 401.21 0 0 0-207 350.87h65.54a335.66 335.66 0 0 1 173.18-293.53zM509.79 882.68a334 334 0 0 1-181.3-53.2L293 884.57a401.13 401.13 0 0 0 419.1 8.91L679 836.93a334.94 334.94 0 0 1-169.21 45.75z M821.51 625.1A108.64 108.64 0 0 0 752.2 650l-67.31-38.86a185.44 185.44 0 0 0 11.22-63.7c0-91.55-66.38-167.9-153.54-183.42V289a109.14 109.14 0 1 0-65.57 0v75c-87.16 15.53-153.54 91.87-153.54 183.42a185.46 185.46 0 0 0 11.22 63.7L267.39 650a109.17 109.17 0 1 0 35.81 55l64.47-37.23a186 186 0 0 0 284.23 0L716.38 705a109.13 109.13 0 1 0 105.13-79.9zM198.07 777.85a43.6 43.6 0 1 1 43.61-43.61 43.66 43.66 0 0 1-43.61 43.61z m311.72-636.53a43.61 43.61 0 1 1-43.61 43.61 43.65 43.65 0 0 1 43.61-43.61z m0 526.91a120.78 120.78 0 1 1 120.78-120.78 120.91 120.91 0 0 1-120.78 120.77z m311.72 109.62a43.6 43.6 0 1 1 43.61-43.61 43.65 43.65 0 0 1-43.61 43.61z" />
                         <TextBlock x:Name="LabFinishTitle" Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="1"
-                                   Text="已加入 Herobrine 的大厅" FontSize="20" Foreground="{DynamicResource ColorBrush3}" />
+                                   Text="已加入大厅" FontSize="20" Foreground="{DynamicResource ColorBrush3}" />
                         <TextBlock x:Name="LabFinishDesc" Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="2" Margin="0,10,0,12" 
-                                   Text="描述文本。"
+                                   Text="什么描述都没有..."
                                    FontSize="14" LineHeight="19" MaxWidth="400" TextWrapping="Wrap" Foreground="{StaticResource ColorBrushGray2}" />
-                        <local:MyButton x:Name="BtnFinishCopy" Grid.Column="4" Grid.Row="3" Margin="0,0,15,0" Text="复制大厅编号" Padding="13,8" />
-                        <local:MyButton x:Name="BtnFinishExit" Grid.Column="5" Grid.Row="3" Text="退出" Padding="13,8" />
+                        <local:MyButton x:Name="BtnFinishCopy" Grid.Column="4" Grid.Row="4" Margin="0,0,15,0" Text="复制 IP" Padding="13,8" />
+                        <local:MyButton x:Name="BtnFinishExit" Grid.Column="5" Grid.Row="4" Text="退出" Padding="13,8" />
                     </Grid>
+                </local:MyCard>
+                <local:MyCard x:Name="CardPlayerList" Title="大厅成员列表（共 4 人）" Margin="10,0,0,0" MinWidth="280" Grid.Row="1" Grid.Column="1">
+                    <local:MyScrollViewer MaxHeight="120" Margin="5,35,6,8">
+                        <StackPanel x:Name="StackPlayerList">
+                            <local:MyListItem Title="Pigeon-Laptop" Info="[Host] 11ms, P2P" Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7" />
+                            <local:MyListItem Title="wuliaodexiaoluo" Info="66ms, Relay" Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7" />
+                            <local:MyListItem Title="Hill23333" Info="23ms, Relay" Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7" />
+                            <local:MyListItem Title="tangge233" Info="23ms, P2P" Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7" />
+                        </StackPanel>
+                    </local:MyScrollViewer>
                 </local:MyCard>
             </Grid>
         </Grid>

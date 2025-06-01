@@ -23,7 +23,7 @@
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemLobby.Check, ItemIoi.Check, ItemSetup.Check, ItemHelp.Check, ItemFeedback.Check, ItemNetStatus.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemLobby.Check, ItemSetup.Check, ItemHelp.Check, ItemFeedback.Check, ItemNetStatus.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
