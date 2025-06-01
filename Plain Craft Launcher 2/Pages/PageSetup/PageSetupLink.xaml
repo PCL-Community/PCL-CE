@@ -6,7 +6,7 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
-            <local:MyCard Margin="0,15" Title="大厅">
+            <local:MyCard Margin="0,15" Title="Natayark ID" x:Name="CardLogged">
                 <StackPanel Margin="25,40,25,20" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -14,10 +14,59 @@
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="30" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="TextUsername" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                   Text="已以 Pigeon0v0 的身份登录至 Natayark Network" />
+                        <local:MyButton x:Name="BtnLogout" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                                        Width="100" ColorType="Highlight" Text="退出登录"/>
+                        <local:MyButton x:Name="BtnManage" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                            Width="100" ColorType="Normal" Text="账号管理" EventType="打开网页" EventData="https://account.naids.com/dashboard"/>
+                        <TextBlock x:Name="TextStatus" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" 
+                            Text="账号状态：正常 / 已完成实名验证" />
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,15" Title="Natayark ID" x:Name="CardNotLogged">
+                <StackPanel Margin="25,40,25,20" Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
+                       Text="登录至 Natayark Network 以使用大厅等在线服务" />
+                        <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                            Width="100" ColorType="Highlight" Text="登录" Margin="200,0,-130,0"/>
+                        <local:MyButton Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="EasyTier 设置">
+                <StackPanel Margin="25,40,25,20" Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继服务器地址" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkRelayServer" Grid.Column="1" HintText="若有多个，请用半角分号分隔地址" />
+                        <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkRelay" Grid.Column="1" HintText="应以 tcp:// 或 udp:// 开头；若有多个，请使用英文分号分割">
+                            <local:MyTextBox.ValidateRules>
+                                <local:ValidateNullable />
+                                <local:ValidateNullOrWhiteSpace />
+                                <local:ValidateLength Max="20" />
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

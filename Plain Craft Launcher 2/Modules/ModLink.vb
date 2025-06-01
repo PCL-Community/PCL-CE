@@ -1,14 +1,11 @@
 ﻿Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Open.Nat
-Imports System.Net
 Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
-Imports System.Net.NetworkInformation
-Imports PCL.PageLinkNetStatus
+Imports System.Threading.Tasks
 
-Public Class ModLink
+Public Module ModLink
 
 #Region "MCPing"
     Public Class WorldInfo
@@ -154,6 +151,7 @@ Public Class ModLink
         End Function
 
         Private Function ParseVarInt(bytes As Byte(), ByRef value As Integer) As (Success As Boolean, BytesNeeded As Integer, Value As Integer)
+            Log($"[MCPing] Parsing VarInt {String.Join(" ", bytes)}")
             value = 0
             Dim shift = 0
             Dim index = 0
@@ -267,16 +265,16 @@ Public Class ModLink
     ''' <summary>
     ''' UPnP 状态，可能值："Disabled", "Enabled", "Unsupported", "Failed"
     ''' </summary>
-    Public Shared UPnPStatus As UPnPStatusType = Nothing
-    Public Shared UPnPMappingName As String = "PCL2 CE Link Lobby"
-    Public Shared UPnPDevice = Nothing
-    Public Shared CurrentUPnPMapping As Mapping = Nothing
-    Public Shared UPnPPublicPort As String = Nothing
+    Public UPnPStatus As UPnPStatusType = Nothing
+    Public UPnPMappingName As String = "PCL2 CE Link Lobby"
+    Public UPnPDevice = Nothing
+    Public CurrentUPnPMapping As Mapping = Nothing
+    Public UPnPPublicPort As String = Nothing
 
     ''' <summary>
     ''' 寻找 UPnP 设备并尝试创建一个 UPnP 映射
     ''' </summary>
-    Public Shared Async Sub CreateUPnPMapping(Optional LocalPort As Integer = 25565, Optional PublicPort As Integer = 10240)
+    Public Async Sub CreateUPnPMapping(Optional LocalPort As Integer = 25565, Optional PublicPort As Integer = 10240)
         Log($"[UPnP] 尝试创建 UPnP 映射，本地端口：{LocalPort}，远程端口：{PublicPort}，映射名称：{UPnPMappingName}")
 
         UPnPPublicPort = PublicPort
@@ -306,7 +304,7 @@ Public Class ModLink
     ''' <summary>
     ''' 尝试移除现有 UPnP 映射记录
     ''' </summary>
-    Public Shared Async Sub RemoveUPnPMapping()
+    Public Async Sub RemoveUPnPMapping()
         Log($"[UPnP] 尝试移除 UPnP 映射，本地端口：{CurrentUPnPMapping.PrivatePort}，远程端口：{CurrentUPnPMapping.PublicPort}，映射名称：{UPnPMappingName}")
 
         Try
@@ -325,7 +323,7 @@ Public Class ModLink
 #End Region
 
 #Region "Minecraft 实例探测"
-    Public Shared Async Function MCInstanceFinding() As Tasks.Task(Of List(Of WorldInfo))
+    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of WorldInfo))
         'Java 进程 PID 查询
         Dim PIDLookupResult As New List(Of String)
         Dim JavaNames As New List(Of String)
@@ -368,12 +366,12 @@ Public Class ModLink
 #End Region
 
 #Region "NAT 穿透"
-    Public Shared NATEndpoints As List(Of LeasedEndpoint) = Nothing
+    Public NATEndpoints As List(Of LeasedEndpoint) = Nothing
     ''' <summary>
     ''' 尝试进行 NAT 映射
     ''' </summary>
     ''' <param name="localPort">本地端口</param>
-    Public Shared Async Sub CreateNATTranversal(LocalPort As String)
+    Public Async Sub CreateNATTranversal(LocalPort As String)
         Log($"开始尝试进行 NAT 穿透，本地端口 {LocalPort}")
         Try
             NATEndpoints = New List(Of LeasedEndpoint) '寻找 NAT 设备
@@ -393,7 +391,7 @@ Public Class ModLink
     ''' <summary>
     ''' 移除 NAT 映射
     ''' </summary>
-    Public Shared Sub RemoveNATTranversal()
+    Public Sub RemoveNATTranversal()
         Log("开始尝试移除 NAT 映射")
         Try
             For Each endpoint In NATEndpoints
@@ -408,14 +406,14 @@ Public Class ModLink
 
 #Region "EasyTier"
 
-    Public Shared ETProcess As New Process
-    Public Shared ETNetworkName As String = "PCLCELobby"
-    Public Shared ETNetworkSecret As String = "PCLCELobbyDefault"
-    Public Shared ETServerDefault As String = "tcp://public.easytier.top:11010"
-    Public Shared ETPath As String = PathTemp + "EasyTier\easytier-windows-x86_64"
-    Public Shared IsETRunning As Boolean = False
+    Public ETProcess As New Process
+    Public ETNetworkName As String = "PCLCELobby"
+    Public ETNetworkSecret As String = "PCLCELobbyDefault"
+    Public ETServer As String = Nothing '"tcp://public.easytier.cn:11010"
+    Public ETPath As String = PathTemp + "EasyTier\easytier-windows-x86_64"
+    Public IsETRunning As Boolean = False
 
-    Public Shared Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False)
+    Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
             ETProcess = New Process
             ETProcess.StartInfo = New ProcessStartInfo With {
@@ -449,7 +447,7 @@ Public Class ModLink
                     ETNetworkName += RandomInteger(0, 9).ToString()
                 Next
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobbyDefault"}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun" '创建者
+                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} -p {ETServer} --no-tun --port-forward ""tcp://0.0.0.0:{LocalPort}/10.114.51.41:25565""" '创建者
             Else
                 ETNetworkName = "PCLCELobby" + Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {ETNetworkName}")
@@ -490,7 +488,7 @@ Public Class ModLink
         End Try
     End Sub
 
-    Public Shared Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault")
+    Public Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault")
         Dim DlTargetPath As String = PathTemp + "EasyTier\EasyTier.zip"
         RunInNewThread(Sub()
                            Try
@@ -521,7 +519,7 @@ Public Class ModLink
                        End Sub)
     End Sub
 
-    Public Shared Sub ExitEasyTier()
+    Public Sub ExitEasyTier()
         Try
             Log("[Link] 停止 EasyTier")
             ETProcess.Kill()
@@ -539,12 +537,168 @@ Public Class ModLink
 
 #End Region
 
+#Region "大厅操作"
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional LocalPort As Integer = 25565)
+        If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
+            Hint("请先前往设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
+            Return 1
+        End If
+        Try
+            GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+        Catch ex As Exception
+            Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
+            Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
+            Return 1
+        End Try
+        If NaidProfile.IsRealname = False Then
+            Hint("请先完成实名验证再进行联机！", HintType.Critical)
+            Return 1
+        End If
+        If Not NaidProfile.Status = 0 Then
+            Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
+            Return 1
+        End If
+        '回传联机数据
+        Log("[Link] 开始发送联机数据")
+        Dim Data As New JObject From {
+                {"Tag", "Link"},
+                {"Id", UniqueAddress},
+                {"NaidId", NaidProfile.Id},
+                {"NaidEmail", NaidProfile.Email},
+                {"NaidLastIp", NaidProfile.LastIp},
+                {"NetworkName", ETNetworkName},
+                {"NetworkSecret", ETNetworkSecret},
+                {"Server", ETServer},
+                {"IsHost", IsHost}
+            }
+        Dim SendData = New JObject From {{"data", Data}}
+        Try
+            Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
+            If Result.Contains("数据已成功保存") Then
+                Log("[Link] 联机数据已发送")
+            Else
+                Log("[Link] 联机数据发送失败，原始返回内容: " + Result)
+                Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
+                Return 1
+            End If
+        Catch ex As Exception
+            If ex.Message.Contains("429") Then
+                Log("[Link] 联机数据发送失败，请求过于频繁")
+            Else
+                Log(ex, "[Link] 联机数据发送失败", LogLevel.Normal)
+            End If
+            Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
+            Return 1
+        End Try
+        LaunchEasyTier(IsHost, Name, Secret, LocalPort)
+        Return 0
+    End Function
+#End Region
+
+#Region "Natayark ID"
+    Public Class NaidUser
+        Public Id As Int32
+        Public Email As String
+        Public Username As String
+        Public AccessToken As String
+        Public RefreshToken As String
+        Public Status As Integer = 1
+        Public IsRealname As Boolean = False
+        Public LastIp As String
+    End Class
+    Public NaidProfile As New NaidUser
+    Public Sub GetNaidData(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False)
+        RunInNewThread(Sub()
+                           Try
+                               '获取 AccessToken 和 RefreshToken
+                               Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=https://ce.open.pcl2.dev"
+                               'Log("[Link] Naid 请求数据: " & RequestData)
+                               Thread.Sleep(500)
+                               Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
+                               Dim Data As JObject = JObject.Parse(Received)
+                               NaidProfile.AccessToken = Data("access_token").ToString()
+                               NaidProfile.RefreshToken = Data("refresh_token").ToString()
+
+                               '获取用户信息
+                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", $"Authorization=Bearer {NaidProfile.AccessToken}", "application/json")
+                               Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
+                               NaidProfile.Id = UserData("id").ToObject(Of Int32)()
+                               NaidProfile.Username = UserData("username").ToString()
+                               NaidProfile.Email = UserData("email").ToString()
+                               NaidProfile.Status = UserData("status").ToObject(Of Integer)()
+                               NaidProfile.IsRealname = UserData("realname").ToObject(Of Boolean)()
+                               NaidProfile.LastIp = UserData("last_ip").ToString()
+                               '保存数据
+                               Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
+                               '若处于联机设置界面，则进行刷新
+                               If FrmSetupLink IsNot Nothing Then RunInUi(Sub() FrmSetupLink.Reload())
+                               If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)
+                           Catch ex As Exception
+                               If IsRetry Then '如果重试了还失败就报错
+                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                               End If
+                               If ex.Message.Contains("invalid access token") Then
+                                   Log("[Link] Naid Access Token 无效，尝试刷新登录")
+                                   GetNaidData(Token:=Setup.Get("LinkNaidRefreshToken"), IsRefresh:=True, IsRetry:=True)
+                               ElseIf ex.Message.Contains("invalid_grant") Then
+                                   Log("[Link] Naid 验证代码无效，原始信息: " & ex.ToString())
+                               Else
+                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                               End If
+                           End Try
+                       End Sub)
+    End Sub
+#End Region
+
 #Region "NAT 测试"
+    ''' <summary>
+    ''' 使用 EasyTier Cli 进行网络测试。
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function NetTestET()
+        Dim ETCliProcess As New Process With {
+                                   .StartInfo = New ProcessStartInfo With {
+                                       .FileName = $"{ETPath}\easytier-cli.exe",
+                                       .WorkingDirectory = ETPath,
+                                       .Arguments = "stun",
+                                       .ErrorDialog = False,
+                                       .CreateNoWindow = True,
+                                       .WindowStyle = ProcessWindowStyle.Hidden,
+                                       .UseShellExecute = False,
+                                       .RedirectStandardOutput = True,
+                                       .RedirectStandardError = True,
+                                       .RedirectStandardInput = True,
+                                       .StandardOutputEncoding = Encoding.UTF8},
+                                   .EnableRaisingEvents = True
+                               }
+        If Not File.Exists(ETCliProcess.StartInfo.FileName) Then
+            Log("[Link] EasyTier 不存在，开始下载")
+            DownloadEasyTier()
+        End If
+        Log($"[Link] EasyTier 路径: {ETCliProcess.StartInfo.FileName}")
+        Dim Output As String = Nothing
+
+        ETCliProcess.Start()
+        Output = ETCliProcess.StandardOutput.ReadToEnd()
+        Output.Replace("stun info: StunInfo ", "")
+
+        Dim OutJObj As JObject = JObject.Parse(Output)
+        Dim NatType As String = OutJObj("udp_nat_type")
+        Dim SupportIPv6 As Boolean = False
+        Dim Ips As Array = OutJObj("public_ip").ToArray()
+        For Each Ip In Ips
+            If Ip.contains(":") Then
+                SupportIPv6 = True
+                Exit For
+            End If
+        Next
+        Return {NatType, SupportIPv6}
+    End Function
     ''' <summary>
     ''' 进行网络测试，包括 IPv4 NAT 类型测试和 IPv6 支持情况测试
     ''' </summary>
     ''' <returns>NAT 类型 + IPv6 支持与否</returns>
-    Public Shared Function NetTest() As String()
+    Public Function NetTest() As String()
         '申请通过防火墙以准确测试 NAT 类型
         Dim RetryTime As Integer = 0
         Try
@@ -608,4 +762,141 @@ PortRetry:
     End Function
 #End Region
 
-End Class
+#Region "虚假服务端"
+    Private tr1 As Thread = Nothing
+    Private tr2 As Thread = Nothing
+    Private ServerSocket As Socket = Nothing
+    Private ChatClient As UdpClient = Nothing
+    Private IsMcPortForwardRunning As Boolean = False
+    Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565)
+        Log($"[Link] 开始 MC 端口转发，IP: {Ip}, 端口: {Port}")
+        Dim Sip As New IPEndPoint((Await Dns.GetHostAddressesAsync(Ip))(0), Port)
+
+        ServerSocket = New Socket(SocketType.Stream, ProtocolType.Tcp)
+        ServerSocket.Bind(New IPEndPoint(IPAddress.Any, 0))
+        ServerSocket.Listen(-1)
+
+        IsMcPortForwardRunning = True
+
+        tr1 = New Thread(Async Sub()
+                             Try
+                                 Log("[Link] 开始广播虚假的 MC 服务端信息")
+                                 ChatClient = New UdpClient("224.0.2.60", 4445)
+                                 Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]§ePCL CE 大厅 - [/MOTD][AD]{CType(ServerSocket.LocalEndPoint, IPEndPoint).Port}[/AD]")
+                                 While IsMcPortForwardRunning
+                                     If ChatClient IsNot Nothing Then
+                                         ChatClient.EnableBroadcast = True
+                                         ChatClient.MulticastLoopback = True
+                                     End If
+
+                                     If IsMcPortForwardRunning AndAlso ChatClient IsNot Nothing Then
+                                         Await ChatClient.SendAsync(Buffer, Buffer.Length)
+                                         If IsMcPortForwardRunning Then Await Task.Delay(1500)
+                                     End If
+                                 End While
+                             Catch ex As Exception
+                                 Log(ex, "[Link] Minecraft 端口转发线程异常")
+                                 IsMcPortForwardRunning = False
+                             End Try
+                         End Sub)
+
+        tr2 = New Thread(Async Sub()
+                             Dim c As Socket
+                             Dim s As Socket
+                             Try
+                                 While IsMcPortForwardRunning
+                                     c = ServerSocket.Accept()
+                                     s = New Socket(SocketType.Stream, ProtocolType.Tcp)
+
+                                     s.Connect(Sip)
+                                     Dim Count As Integer = 0
+                                     While Not s.Connected
+                                         If Count <= 5 Then
+                                             Count += 1
+                                             Await Task.Delay(1000)
+                                         Else
+                                             Log("[Link] 连接到目标 MC 服务器失败")
+                                             Return
+                                         End If
+                                     End While
+                                     RunInNewThread(Sub() Forward(c, s))
+                                     RunInNewThread(Sub() Forward(s, c))
+                                 End While
+                             Catch ex As Exception
+                                 Log(ex, "[Link] Minecraft 端口转发监听线程异常")
+                                 IsMcPortForwardRunning = False
+                             End Try
+                         End Sub)
+
+        tr1.Start()
+        tr2.Start()
+        Return
+    End Sub
+    Public Sub StopMcPortForward()
+        Log("[Link] 停止 MC 端口转发")
+        If tr1 IsNot Nothing Then
+            tr1.Abort()
+            tr1 = Nothing
+        End If
+        If tr2 IsNot Nothing Then
+            tr2.Abort()
+            tr2 = Nothing
+        End If
+        If ChatClient IsNot Nothing Then
+            ChatClient.Close()
+            ChatClient = Nothing
+        End If
+        If ServerSocket IsNot Nothing Then
+            ServerSocket.Close()
+            ServerSocket = Nothing
+        End If
+        If fw_s IsNot Nothing Then
+            fw_s.Disconnect(False)
+            fw_s.Close()
+            fw_s = Nothing
+        End If
+        If fw_c IsNot Nothing Then
+            fw_c.Disconnect(False)
+            fw_c.Close()
+            fw_c = Nothing
+        End If
+        IsMcPortForwardRunning = False
+    End Sub
+
+    Private fw_s As Socket = Nothing
+    Private fw_c As Socket = Nothing
+    Private Sub Forward(s As Socket, c As Socket)
+        fw_s = s
+        fw_c = c
+        Try
+            Dim Buffer As Byte() = New Byte(8192) {}
+
+            While IsMcPortForwardRunning
+                If IsMcPortForwardRunning Then
+                    Dim Count As Integer = s.Receive(Buffer, 0, Buffer.Length, SocketFlags.None)
+                    If Count > 0 Then
+                        c.Send(Buffer, 0, Count, SocketFlags.None)
+                    Else
+                        fw_s = Nothing
+                        fw_c = Nothing
+                        Exit While
+                    End If
+                End If
+            End While
+        Catch ex As Exception
+            Try
+                c.Disconnect(False)
+            Catch ex1 As Exception
+            End Try
+            Try
+                s.Disconnect(False)
+            Catch ex1 As Exception
+            End Try
+            fw_s = Nothing
+            fw_c = Nothing
+        End Try
+
+    End Sub
+#End Region
+
+End Module

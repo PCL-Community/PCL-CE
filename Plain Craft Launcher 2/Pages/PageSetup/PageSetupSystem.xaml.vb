@@ -8,7 +8,7 @@
         PanBack.ScrollToHome()
 
         '非重复加载部分
-        If IsLoaded Then Exit Sub
+        If IsLoaded Then Return
         IsLoaded = True
 
         AniControlEnabled += 1
@@ -52,7 +52,6 @@
             ComboSystemUpdateBranch.IsEnabled = False
         End If
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
-        ComboSystemServer.SelectedIndex = Setup.Get("SystemSystemServer")
         TextSystemCache.Text = Setup.Get("SystemSystemCache")
         CheckSystemDisableHardwareAcceleration.Checked = Setup.Get("SystemDisableHardwareAcceleration")
         SliderAniFPS.Value = Setup.Get("UiAniFPS")
@@ -93,7 +92,6 @@
             Setup.Reset("SystemDebugSkipCopy")
             Setup.Reset("SystemSystemCache")
             Setup.Reset("SystemSystemUpdate")
-            Setup.Reset("SystemSystemServer")
             Setup.Reset("SystemSystemActivity")
             Setup.Reset("SystemDisableHardwareAcceleration")
             Setup.Reset("SystemHttpProxy")
@@ -117,17 +115,11 @@
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboSystemServer.SelectionChanged, ComboDownloadMod.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboDownloadMod.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged, TextSystemHttpProxy.TextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
-    End Sub
-
-    Private Sub StartClipboardListening() Handles CheckDownloadClipboard.Change
-        If CheckDownloadClipboard.Checked Then
-            RunInNewThread(Sub() CompClipboard.ClipboardListening())
-        End If
     End Sub
 
     '滑动条
@@ -153,7 +145,7 @@
             End Function
     End Sub
     Private Sub SliderDownloadThread_PreviewChange(sender As Object, e As RouteEventArgs) Handles SliderDownloadThread.PreviewChange
-        If SliderDownloadThread.Value < 100 Then Exit Sub
+        If SliderDownloadThread.Value < 100 Then Return
         If Not Setup.Get("HintDownloadThread") Then
             Setup.Set("HintDownloadThread", True)
             MyMsgBox("如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。" & vbCrLf &
@@ -173,8 +165,8 @@
 
     '自动更新
     Private Sub ComboSystemActivity_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemActivity.SelectionChanged
-        If AniControlEnabled <> 0 Then Exit Sub
-        If ComboSystemActivity.SelectedIndex <> 2 Then Exit Sub
+        If AniControlEnabled <> 0 Then Return
+        If ComboSystemActivity.SelectedIndex <> 2 Then Return
         If MyMsgBox("若选择此项，即使在将来出现严重问题时，你也无法获取相关通知。" & vbCrLf &
                     "例如，如果发现某个版本游戏存在严重 Bug，你可能就会因为无法得到通知而导致无法预知的后果。" & vbCrLf & vbCrLf &
                     "一般选择 仅在有重要通知时显示公告 就可以让你尽量不受打扰了。" & vbCrLf &
@@ -183,8 +175,8 @@
         End If
     End Sub
     Private Sub ComboSystemUpdate_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdate.SelectionChanged
-        If AniControlEnabled <> 0 Then Exit Sub
-        If ComboSystemUpdate.SelectedIndex <> 3 Then Exit Sub
+        If AniControlEnabled <> 0 Then Return
+        If ComboSystemUpdate.SelectedIndex <> 3 Then Return
         If MyMsgBox("若选择此项，即使在启动器将来出现严重问题时，你也无法获取更新并获得修复。" & vbCrLf &
                     "例如，如果官方修改了登录方式，从而导致现有启动器无法登录，你可能就会因为无法更新而无法开始游戏。" & vbCrLf & vbCrLf &
                     "一般选择 仅在有重大漏洞更新时显示提示 就可以让你尽量不受打扰了。" & vbCrLf &
@@ -207,22 +199,22 @@
     Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
         UpdateCheckByButton()
     End Sub
+    Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
+        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个第三方应用分发平台{vbCrLf}如果你购买了他们的服务，可以让 PCL CE 使用他们的高速下载源下载版本更新，同时也可以减轻社区更新服务器的压力……")
+        If String.IsNullOrWhiteSpace(ret) Then Exit Sub
+        Setup.Set("SystemMirrorChyanKey", ret)
+        Hint("设置 Mirror 酱 CDK 成功！", HintType.Finish)
+    End Sub
+    Private Sub BtnSystemMirrorChyanGetKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanGetKey.Click
+        OpenWebsite("https://mirrorchyan.com/")
+    End Sub
     ''' <summary>
     ''' 启动器是否已经是最新版？
     ''' 若返回 Nothing，则代表无更新缓存文件或出错。
     ''' </summary>
     Public Shared Function IsLauncherNewest() As Boolean?
         Try
-            '确认服务器公告是否正常
-            Dim ServerContent As String = ReadFile(PathTemp & "Cache\Notice.cfg")
-            If ServerContent.Split("|").Count < 3 Then Return Nothing
-            '确认是否为最新
-#If RELEASE Then
-            Dim NewVersionCode As Integer = ServerContent.Split("|")(2)
-#Else
-            Dim NewVersionCode As Integer = ServerContent.Split("|")(1)
-#End If
-            Return NewVersionCode <= VersionCode
+            Return IsVerisonLatest()
         Catch ex As Exception
             Log(ex, "确认启动器更新失败", LogLevel.Feedback)
             Return Nothing
@@ -232,10 +224,19 @@
 #Region "导出 / 导入设置"
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
-        Hint("该功能尚在开发中！")
+        Dim savePath As String = SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", Path).Replace("/", "\")
+        If savePath = "" Then Exit Sub
+        File.Copy(PathAppdataConfig & "Config.json", savePath, True)
+        Hint("配置导出成功！", HintType.Finish)
+        OpenExplorer(savePath)
     End Sub
     Private Sub BtnSystemSettingImp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingImp.Click
-        Hint("该功能尚在开发中！")
+        Dim sourcePath As String = SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件")
+        If sourcePath = "" Then Exit Sub
+        File.Copy(sourcePath, PathAppdataConfig & "Config.json", True)
+        MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1:="重启", ForceWait:=True)
+        Process.Start(New ProcessStartInfo(PathWithName))
+        FormMain.EndProgramForce(ProcessReturnValues.Success)
     End Sub
 
 #End Region

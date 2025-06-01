@@ -42,13 +42,13 @@ Public Class ModSetup
         {"SystemSystemCache", New SetupEntry("", Source:=SetupSource.Registry)},
         {"SystemSystemUpdate", New SetupEntry(0)},
         {"SystemSystemUpdateBranch", New SetupEntry(0)},
-        {"SystemSystemServer", New SetupEntry(If(IsRestrictedFeatAllowed, 0, 1))},
         {"SystemSystemActivity", New SetupEntry(0)},
         {"SystemSystemAnnouncement", New SetupEntry("", Source:=SetupSource.Registry)},
         {"SystemHttpProxy", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"SystemUseDefaultProxy", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"SystemDisableHardwareAcceleration", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemTelemetry", New SetupEntry(Nothing, Source:=SetupSource.Registry)},
+        {"SystemMirrorChyanKey", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"CacheExportConfig", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageUrl", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageVersion", New SetupEntry("", Source:=SetupSource.Registry)},
@@ -90,6 +90,7 @@ Public Class ModSetup
         {"LinkAvailable", New SetupEntry(False, Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkRelayServer", New SetupEntry("", Source:=SetupSource.Registry)},
         {"LinkName", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"LinkNaidRefreshToken", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkFirstTimeNetTest", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LoginLegacyName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LoginMsJson", New SetupEntry("{}", Source:=SetupSource.Registry, Encoded:=True)}, '{UserName: OAuthToken, ...}
@@ -180,6 +181,7 @@ Public Class ModSetup
         {"VersionRamCustom", New SetupEntry(15, Source:=SetupSource.Version)},
         {"VersionRamOptimize", New SetupEntry(0, Source:=SetupSource.Version)},
         {"VersionArgumentTitle", New SetupEntry("", Source:=SetupSource.Version)},
+        {"VersionArgumentTitleEmpty", New SetupEntry(False, Source:=SetupSource.Version)},
         {"VersionArgumentInfo", New SetupEntry("", Source:=SetupSource.Version)},
         {"VersionArgumentIndie", New SetupEntry(-1, Source:=SetupSource.Version)},
         {"VersionArgumentIndieV2", New SetupEntry(False, Source:=SetupSource.Version)},
@@ -193,7 +195,24 @@ Public Class ModSetup
 
 #Region "Register 存储"
 
-    Private LocalRegisterData As New LocalJsonFileConfig(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & $"\.{RegFolder}\Config.json")
+    Private _LocalRegisterData As LocalJsonFileConfig = Nothing
+    Private ReadOnly Property LocalRegisterData As LocalJsonFileConfig
+        Get
+            Dim ConfigFilePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & $"\.{RegFolder}\Config.json"
+            Try
+                If _LocalRegisterData Is Nothing Then _LocalRegisterData = New LocalJsonFileConfig(ConfigFilePath)
+            Catch ex As Exception
+                Rename(ConfigFilePath, $"{ConfigFilePath}.{GetStringMD5(DateTime.Now.ToString())}.bak")
+                _LocalRegisterData = New LocalJsonFileConfig(ConfigFilePath)
+                MsgBox("读取本地配置文件失败，可能文件损坏。" & vbCrLf &
+                       $"请将 {_LocalRegisterData} 文件删除，并使用备份配置文件 {_LocalRegisterData}.bak",
+                        MsgBoxStyle.Critical)
+                FormMain.EndProgramForce(ProcessReturnValues.Fail)
+            End Try
+            Return _LocalRegisterData
+        End Get
+    End Property
+
 
     Public Class LocalJsonFileConfig
         Private ReadOnly _ConfigData As JObject
@@ -206,7 +225,7 @@ Public Class ModSetup
                     Dim JsonText = ReadFile(JsonFilePath)
                     _ConfigData = JObject.Parse(JsonText)
                 Catch ex As Exception
-                    Log(ex, "读取配置项数据失败", LogLevel.Feedback)
+                    Throw
                 End Try
             Else
                 _ConfigData = New JObject()
@@ -214,12 +233,26 @@ Public Class ModSetup
         End Sub
 
         Private Sub Save()
-            WriteFile(_ConfigFilePath, _ConfigData.ToString())
+            Dim tempPath = _ConfigFilePath & ".tmp"
+            Dim backupPath = _ConfigFilePath & ".bak"
+            Try
+                ' 先写入临时文件
+                WriteFile(tempPath, _ConfigData.ToString())
+                ' 原子化替换文件
+                If File.Exists(_ConfigFilePath) Then
+                    File.Replace(tempPath, _ConfigFilePath, backupPath)
+                Else
+                    File.Move(tempPath, _ConfigFilePath)
+                End If
+            Catch ex As Exception
+                If File.Exists(tempPath) Then File.Delete(tempPath)
+                Throw
+            End Try
         End Sub
 
-        Private ReadOnly _SetLock As New Object()
+        Private ReadOnly _OpLock As New Object()
         Public Sub [Set](key As String, value As String)
-            SyncLock _SetLock
+            SyncLock _OpLock
                 _ConfigData(key) = value
                 Save()
             End SyncLock
@@ -234,8 +267,10 @@ Public Class ModSetup
         End Function
 
         Public Sub Remove(key As String)
-            _ConfigData.Remove(key)
-            Save()
+            SyncLock _OpLock
+                _ConfigData.Remove(key)
+                Save()
+            End SyncLock
         End Sub
 
         Public Function Contains(key As String) As Boolean
@@ -299,7 +334,7 @@ Public Class ModSetup
             Value = CTypeDynamic(Value, E.Type)
             If E.State = 2 Then
                 '如果已应用，且值相同，则无需再次更改
-                If E.Value = Value AndAlso Not ForceReload Then Exit Sub
+                If E.Value = Value AndAlso Not ForceReload Then Return
             Else
                 '如果未应用，则直接更改并应用
                 If E.Source <> SetupSource.Version Then E.State = 2
@@ -417,7 +452,7 @@ Public Class ModSetup
     ''' </summary>
     Private Sub Read(Key As String, ByRef E As SetupEntry, Version As McVersion)
         Try
-            If Not E.State = 0 Then Exit Sub
+            If Not E.State = 0 Then Return
             Dim SourceValue As String = Nothing '先用 String 储存，避免类型转换
             Select Case E.Source
                 Case SetupSource.Normal
@@ -492,7 +527,7 @@ Public Class ModSetup
 
     '游戏内存
     Public Sub LaunchRamType(Type As Integer)
-        If FrmSetupLaunch Is Nothing Then Exit Sub
+        If FrmSetupLaunch Is Nothing Then Return
         FrmSetupLaunch.RamType(Type)
     End Sub
 
@@ -539,11 +574,9 @@ Public Class ModSetup
     Public Sub UiLauncherTransparent(Value As Integer)
         FrmMain.Opacity = Value / 1000 + 0.4
     End Sub
-#If Not BETA Then
     Public Sub UiLauncherTheme(Value As Integer)
         ThemeRefresh(Value)
     End Sub
-#End If
     Public Sub UiBackgroundColorful(Value As Boolean)
         ThemeRefresh()
     End Sub
@@ -561,7 +594,7 @@ Public Class ModSetup
         FrmMain.ImgBack.Margin = New Thickness(-(Value + 1) / 1.8)
     End Sub
     Public Sub UiBackgroundSuit(Value As Integer)
-        If IsNothing(FrmMain.ImgBack.Background) Then Exit Sub
+        If IsNothing(FrmMain.ImgBack.Background) Then Return
         Dim Width As Double = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
         Dim Height As Double = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
         If Value = 0 Then
@@ -632,7 +665,7 @@ Public Class ModSetup
 
     '主页
     Public Sub UiCustomType(Value As Integer)
-        If FrmSetupUI Is Nothing Then Exit Sub
+        If FrmSetupUI Is Nothing Then Return
         Select Case Value
             Case 0 '无
                 FrmSetupUI.PanCustomPreset.Visibility = Visibility.Collapsed
@@ -829,16 +862,16 @@ Public Class ModSetup
 
     '游戏内存
     Public Sub VersionRamType(Type As Integer)
-        If FrmVersionSetup Is Nothing Then Exit Sub
+        If FrmVersionSetup Is Nothing Then Return
         FrmVersionSetup.RamType(Type)
     End Sub
 
     '服务器
     Public Sub VersionServerLogin(Type As Integer)
-        If FrmVersionSetup Is Nothing Then Exit Sub
+        If FrmVersionSetup Is Nothing Then Return
         '为第三方登录清空缓存以更新描述
         WriteIni(PathMcFolder & "PCL.ini", "VersionCache", "")
-        If PageVersionLeft.Version Is Nothing Then Exit Sub
+        If PageVersionLeft.Version Is Nothing Then Return
         PageVersionLeft.Version = New McVersion(PageVersionLeft.Version.Name).Load()
         LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub

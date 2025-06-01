@@ -253,7 +253,7 @@ Public Class MyListItem
             Return _Info
         End Get
         Set(value As String)
-            If _Info = value Then Exit Property
+            If _Info = value Then Return
             value = value.Replace(vbCr, "").Replace(vbLf, "")
             _Info = value
             LabInfo.Text = value
@@ -268,7 +268,7 @@ Public Class MyListItem
             Return _Logo
         End Get
         Set(value As String)
-            If _Logo = value Then Exit Property
+            If _Logo = value Then Return
             _Logo = value
             '删除旧 Logo
             If Not IsNothing(PathLogo) Then Children.Remove(PathLogo)
@@ -357,7 +357,7 @@ Public Class MyListItem
             Return _Type
         End Get
         Set(value As CheckType)
-            If _Type = value Then Exit Property
+            If _Type = value Then Return
             _Type = value
             '切换左栏大小
             ColumnCheck.Width = New GridLength(If(_Type = CheckType.None OrElse _Type = CheckType.Clickable, If(Height < 40, 4, 2), 6))
@@ -427,31 +427,31 @@ Public Class MyListItem
                     RaiseEvent Changed(Me, ChangedEventArgs)
                     If ChangedEventArgs.Handled Then
                         _Checked = RawValue
-                        Exit Sub
+                        Return
                     End If
                 End If
                 _Checked = value
             Else
-                If value = _Checked Then Exit Sub
+                If value = _Checked Then Return
                 _Checked = value
                 If IsInitialized Then
                     RaiseEvent Changed(Me, ChangedEventArgs)
                     If ChangedEventArgs.Handled Then
                         _Checked = RawValue
-                        Exit Sub
+                        Return
                     End If
                 End If
             End If
             If value Then
                 Dim CheckEventArgs As New RouteEventArgs(user)
                 RaiseEvent Check(Me, CheckEventArgs)
-                If CheckEventArgs.Handled Then Exit Sub
+                If CheckEventArgs.Handled Then Return
             End If
 
             '保证只有一个单选 ListItem 选中
 
             If Type = CheckType.RadioBox Then
-                If IsNothing(Parent) Then Exit Sub
+                If IsNothing(Parent) Then Return
                 Dim RadioboxList As New List(Of MyListItem)
                 Dim CheckedCount As Integer = 0
                 '收集控件列表与选中个数
@@ -551,7 +551,7 @@ Public Class MyListItem
             SetValue(ForegroundProperty, value)
         End Set
     End Property
-    Public Shared ReadOnly ForegroundProperty As DependencyProperty = DependencyProperty.Register("Foreground", GetType(Brush), GetType(MyListItem), New PropertyMetadata(CType(Color1, SolidColorBrush)))
+    Public Shared ReadOnly ForegroundProperty As DependencyProperty = DependencyProperty.Register("Foreground", GetType(Brush), GetType(MyListItem), New PropertyMetadata(DynamicColors.Color1Brush))
 
     '菜单与按钮绑定
     Public ContentHandler As Action(Of MyListItem, EventArgs)
@@ -562,15 +562,15 @@ Public Class MyListItem
 
     '触发点击事件
     Private Sub Button_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonUp
-        If Not IsMouseDown Then Exit Sub
+        If Not IsMouseDown Then Return
         RaiseEvent Click(sender, e)
-        If e.Handled Then Exit Sub
+        If e.Handled Then Return
         '触发自定义事件
         If Not String.IsNullOrEmpty(EventType) Then
             ModEvent.TryStartEvent(EventType, EventData)
             e.Handled = True
         End If
-        If e.Handled Then Exit Sub
+        If e.Handled Then Return
         '实际的单击处理
         Select Case Type
             Case CheckType.Clickable
@@ -641,7 +641,7 @@ Public Class MyListItem
                 Time = 180
             End If
         End If
-        If StateLast = StateNew Then Exit Sub
+        If StateLast = StateNew Then Return
         StateLast = StateNew
         '触发颜色动画
         If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
@@ -690,7 +690,7 @@ Public Class MyListItem
                     ColumnPaddingRight.Width = New GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count * 25))
                 End If
                 '由于鼠标已经移入，所以直接实例化 RectBack
-                RectBack.Background = ColorBg1
+                RectBack.Background = DynamicColors.ColorBg1Brush
                 RectBack.Opacity = 1
                 RectBack.RenderTransform = New ScaleTransform(1, 1)
                 Me.RenderTransform = New ScaleTransform(1, 1)
@@ -702,7 +702,7 @@ Public Class MyListItem
                 Me.RenderTransform = New ScaleTransform(1, 1)
                 If _RectBack IsNot Nothing Then
                     If IsScaleAnimationEnabled Then RectBack.RenderTransform = New ScaleTransform(0.75, 0.75)
-                    RectBack.Background = Color7
+                    RectBack.Background = DynamicColors.Color7Brush
                     RectBack.Opacity = 0
                 End If
             End If

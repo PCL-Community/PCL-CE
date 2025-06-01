@@ -15,21 +15,27 @@ Public Class PageLinkLobby
 
     Private IsLoad As Boolean = False
     Private Sub OnLoaded() Handles Me.Loaded
-        If Not Setup.Get("LinkEula") Then
-            RunInNewThread(Sub()
-                               If MyMsgBox($"联机支持由 EasyTier 提供，使用前请先阅读并同意其使用条款。{vbCrLf}请勿将此功能用于违法违规用途，开发者不为你的行为承担任何责任。",
-                     "联机服务同意与免责声明", "同意", "拒绝", "查看条款", Button3Action:=Sub() OpenWebsite("https://easytier.cn/guide/license.html")) = 1 Then
-                                   Setup.Set("LinkEula", True)
-                               Else
-                                   RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch}))
-                               End If
-                           End Sub)
-        End If
-        'FormMain.EndProgramForce(Result.Aborted)
+        RunInNewThread(Sub()
+                           If Not Setup.Get("LinkEula") Then
+                               Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 会收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}{vbCrLf}另外，你还需要同意《Natayark OpenID 服务条款》。", "联机大厅协议授权",
+                                                    "我已阅读并同意", "拒绝并返回", "查看 Natayark 服务协议",
+                                                    Button3Action:=Sub() OpenWebsite(""))
+                                   Case 1
+                                       Setup.Set("LinkEula", True)
+                                   Case 2
+                                       RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch}))
+                               End Select
+                           End If
+                       End Sub)
         If IsLoad Then Exit Sub
         IsLoad = True
+        IsMcWatcherRunning = True
+        DetectMcInstance()
         '启动监视线程
         'If Not IsWatcherStarted Then RunInNewThread(AddressOf WatcherThread, "Hiper Watcher")
+    End Sub
+    Private Sub OnPageExit() Handles Me.PageExit
+        IsMcWatcherRunning = False
     End Sub
 
 #End Region
@@ -102,6 +108,33 @@ Public Class PageLinkLobby
 
     '主 Timer 线程
     Private IsWatcherStarted As Boolean = False
+    Private IsMcWatcherRunning As Boolean = False
+    Private Sub DetectMcInstance() Handles BtnRefresh.Click
+        ComboWorldList.Items.Clear()
+        ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+        ComboWorldList.SelectedIndex = 0
+        BtnCreate.IsEnabled = False
+        BtnRefresh.IsEnabled = False
+        ComboWorldList.IsEnabled = False
+        RunInNewThread(Sub()
+                           Dim Worlds As List(Of WorldInfo) = MCInstanceFinding.GetAwaiter().GetResult()
+                           RunInUi(Sub()
+                                       ComboWorldList.Items.Clear()
+                                       If Worlds.Count = 0 Then
+                                           ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "无可用实例", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                       Else
+                                           For Each World In Worlds
+                                               ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})",
+                                                                        .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                           Next
+                                           BtnCreate.IsEnabled = True
+                                       End If
+                                       ComboWorldList.SelectedIndex = 0
+                                       BtnRefresh.IsEnabled = True
+                                       ComboWorldList.IsEnabled = True
+                                   End Sub)
+                       End Sub)
+    End Sub
     Private Sub StartWatcherThread()
         RunInNewThread(Sub()
                            If IsHost Then
@@ -259,19 +292,19 @@ Public Class PageLinkLobby
 
     Public LocalPort As String = Nothing
     '创建房间
-    Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectCreate.MouseLeftButtonUp
-        LocalPort = MyMsgBoxInput("输入端口号", HintText:="例如：25565")
-        If LocalPort = Nothing Then Exit Sub
+    Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
+        Dim LocalPort As String = ComboWorldList.SelectedItem.Tag.Port.ToString()
+        Dim IsSuccess As Boolean = False
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
-                           LaunchEasyTier(True)
+                           If LaunchLink(True, LocalPort:=LocalPort) = 0 Then IsSuccess = True
                            Thread.Sleep(1000)
                            StartWatcherThread()
                        End Sub)
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
         'ModLink.CreateUPnPMapping(LocalPort)
-        CurrentSubpage = Subpages.PanFinish
+        If IsSuccess Then CurrentSubpage = Subpages.PanFinish
     End Sub
     Private Sub RoomCreate(Port As Integer)
         '记录信息
@@ -287,14 +320,16 @@ Public Class PageLinkLobby
             MyMsgBox($"现阶段如果作为加入方加入大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，然后右键点击程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
             Exit Sub
         End If
+        Dim IsSuccess As Boolean = False
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：01509230")
         If JoinedLobbyId = Nothing Then Exit Sub
         RunInNewThread(Sub()
-                           LaunchEasyTier(False, JoinedLobbyId)
+                           If LaunchLink(False, JoinedLobbyId) = 0 Then IsSuccess = True
                            Thread.Sleep(1000)
                            StartWatcherThread()
+                           McPortForward("10.114.51.41", 25565)
                        End Sub)
-        CurrentSubpage = Subpages.PanFinish
+        If IsSuccess Then CurrentSubpage = Subpages.PanFinish
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
     End Sub
     Private Sub RoomJoin(Ip As String, Port As Integer)
@@ -375,6 +410,7 @@ Public Class PageLinkLobby
         If MyMsgBox("你确定要退出大厅吗？", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             ExitEasyTier()
+            StopMcPortForward()
             'RemoveNATTranversal()
             'ModLink.RemoveUPnPMapping()
             'LocalPort = Nothing

@@ -130,9 +130,17 @@ Retry:
                     request.Headers.Accept.ParseAdd(Accept)
                     request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.5")
                     request.Headers.Add("X-Requested-With", "XMLHttpRequest")
-                    Using response = GetHttpClient().SendAsync(request, cts.Token).Result
+                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         response.EnsureSuccessStatusCode()
-                        Return Encoding.GetString(response.Content.ReadAsByteArrayAsync().Result)
+                        Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
+                            If Encoding Is Nothing Then Encoding = Encoding.UTF8
+                            '读取流并转换为字符串
+                            Using reader As New StreamReader(responseStream, Encoding)
+                                Dim content As String = reader.ReadToEnd()
+                                If String.IsNullOrEmpty(content) Then Throw New WebException("获取结果失败，内容为空（" & Url & "）")
+                                Return content
+                            End Using
+                        End Using
                     End Using
                 End Using
             End Using
@@ -247,11 +255,17 @@ RequestFinished:
                 Using request As New HttpRequestMessage(HttpMethod.Get, Url)
                     request.Headers.Accept.ParseAdd(Accept)
                     SecretHeadersSign(Url, request, UseBrowserUserAgent)
-                    Using response = GetHttpClient().SendAsync(request, cts.Token).Result
+                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         response.EnsureSuccessStatusCode()
                         If Encode Is Nothing Then Encode = Encoding.UTF8
-                        Dim ret = Encode.GetString(response.Content.ReadAsByteArrayAsync().Result)
-                        Return If(IsJson, GetJson(ret), ret)
+                        Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
+                            '读取流并转换为字符串
+                            Using reader As New StreamReader(responseStream, Encode)
+                                Dim content As String = reader.ReadToEnd()
+                                If String.IsNullOrEmpty(content) Then Throw New WebException("获取结果失败，内容为空（" & Url & "）")
+                                Return If(IsJson, GetJson(content), content)
+                            End Using
+                        End Using
                     End Using
                 End Using
             End Using
@@ -309,7 +323,6 @@ RequestFinished:
                 SecretHeadersSign(Url, request, UseBrowserUserAgent)
                 Using response As HttpResponseMessage = Await GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                     response.EnsureSuccessStatusCode()
-
                     Using httpStream As Stream = Await response.Content.ReadAsStreamAsync()
                         Using fileStream As New FileStream(LocalFile, FileMode.Create)
                             Await httpStream.CopyToAsync(fileStream)
@@ -488,9 +501,13 @@ RequestFinished:
                             request.Headers.Add(Pair.Key, Pair.Value)
                         Next
                     End If
-                    Using response = GetHttpClient().SendAsync(request, cts.Token).Result
+                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         response.EnsureSuccessStatusCode()
-                        Return Encoding.UTF8.GetString(response.Content.ReadAsByteArrayAsync().Result)
+                        Using responseStream = response.Content.ReadAsStreamAsync().Result
+                            Using reader As New StreamReader(responseStream, Encoding.UTF8)
+                                Return reader.ReadToEnd()
+                            End Using
+                        End Using
                     End Using
                 End Using
             End Using
@@ -1033,7 +1050,8 @@ Capture:
                     '是否禁用多线程，以及规定碎片大小
                     Dim TargetUrl As String = GetSource().Url
                     If TargetUrl.Contains("pcl2-server") OrElse TargetUrl.Contains("bmclapi") OrElse TargetUrl.Contains("github.com") OrElse
-                       TargetUrl.Contains("optifine.net") OrElse TargetUrl.Contains("modrinth") OrElse TargetUrl.Contains("gitcode") Then Return Nothing
+                       TargetUrl.Contains("optifine.net") OrElse TargetUrl.Contains("modrinth") OrElse TargetUrl.Contains("gitcode") OrElse
+                       TargetUrl.Contains("pysio.online") OrElse TargetUrl.Contains("mirrorchyan.com") Then Return Nothing
                     '寻找最大碎片
                     'FUTURE: 下载引擎重做，计算下载源平均链接时间和线程下载速度，按最高时间节省来开启多线程
                     Dim FilePieceMax As NetThread = Threads
@@ -1374,7 +1392,7 @@ Wrong:
                 If State < NetState.Merge Then
                     State = NetState.Merge
                 Else
-                    Exit Sub
+                    Return
                 End If
             End SyncLock
             Dim RetryCount As Integer = 0
@@ -1384,8 +1402,7 @@ Retry:
                 SyncLock LockChain
                     '创建文件夹
                     If File.Exists(LocalPath) Then File.Delete(LocalPath)
-                    Dim Info As New FileInfo(LocalPath)
-                    Info.Directory.Create()
+                    Directory.CreateDirectory(GetPathFromFullPath(LocalPath))
                     '合并文件
                     If IsNoSplit Then
                         '仅有一个线程，从缓存中输出
@@ -1464,7 +1481,7 @@ Retry:
         ''' </summary>
         Private Sub Fail(Optional RaiseEx As Exception = Nothing)
             SyncLock LockState
-                If State >= NetState.Finish Then Exit Sub
+                If State >= NetState.Finish Then Return
                 If RaiseEx IsNot Nothing Then Ex.Add(RaiseEx)
                 '凉凉
                 State = NetState.Error
@@ -1480,10 +1497,10 @@ Retry:
         Public Sub Abort(CausedByTask As LoaderDownload)
             '从特定任务中移除，如果它还属于其他任务，则继续下载
             Tasks.Remove(CausedByTask)
-            If Tasks.Any Then Exit Sub
+            If Tasks.Any Then Return
             '确认中断
             SyncLock LockState
-                If State >= NetState.Finish Then Exit Sub
+                If State >= NetState.Finish Then Return
                 State = NetState.Error
             End SyncLock
             InterruptAndDelete()
@@ -1503,7 +1520,7 @@ Retry:
         ''' </summary>
         Public Sub Finish(Optional PrintLog As Boolean = True)
             SyncLock LockState
-                If State >= NetState.Finish Then Exit Sub
+                If State >= NetState.Finish Then Return
                 State = NetState.Finish
             End SyncLock
             SyncLock NetManager.LockRemain
@@ -1630,7 +1647,7 @@ NextElement:
                     '输入检测
                     If Not Files.Any() Then
                         OnFinish()
-                        Exit Sub
+                        Return
                     End If
                     For Each File As NetFile In Files
                         If File Is Nothing Then Throw New ArgumentException("存在空文件请求！")
@@ -1687,13 +1704,14 @@ NextElement:
         End Sub
         Private Sub StartCopy(Files As List(Of NetFile), FolderList As List(Of String))
             Try
-                If ModeDebug Then Log("[Download] 检查线程分配文件数：" & Files.Count & "，线程名：" & Thread.CurrentThread.Name)
+                If ModeDebug Then Log($"[Download] 检查线程分配文件数：{Files.Count}，线程名：{Thread.CurrentThread.Name}")
                 '试图从已存在的 Minecraft 文件夹中寻找目标文件
                 Dim ExistFiles As New List(Of KeyValuePair(Of NetFile, String)) '{NetFile, Target As String}
                 For Each File As NetFile In Files
                     Dim ExistFilePath As String = Nothing
                     '判断是否有已存在的文件
-                    If File.Check IsNot Nothing AndAlso McFolderList IsNot Nothing AndAlso PathMcFolder IsNot Nothing AndAlso File.Check.CanUseExistsFile AndAlso File.LocalPath.StartsWithF(PathMcFolder) Then
+                    If File.Check IsNot Nothing AndAlso McFolderList IsNot Nothing AndAlso PathMcFolder IsNot Nothing AndAlso
+                        File.Check.CanUseExistsFile AndAlso File.LocalPath.StartsWithF(PathMcFolder) Then
                         Dim Relative = File.LocalPath.Replace(PathMcFolder, "")
                         For Each Folder In FolderList
                             Dim Target = Folder & Relative
@@ -1719,7 +1737,7 @@ NextElement:
                 For Each FileToken In ExistFiles
                     Dim File As NetFile = FileToken.Key
                     SyncLock LockState
-                        If File.State > NetState.WaitForCopy Then Exit Sub
+                        If File.State > NetState.WaitForCopy Then Return
                     End SyncLock
                     Dim LocalPath As String = FileToken.Value
                     Dim RetryCount As Integer = 0
@@ -1730,7 +1748,7 @@ Retry:
                         File.Finish(False)
                     Catch ex As Exception
                         RetryCount += 1
-                        Log(ex, String.Format("复制已存在的文件失败，重试第 {2} 次（{0} -> {1}）", LocalPath, File.LocalPath, RetryCount))
+                        Log(ex, $"复制已存在的文件失败，重试第 {RetryCount} 次（{LocalPath} -> {File.LocalPath}）")
                         If RetryCount < 3 Then
                             Thread.Sleep(200)
                             GoTo Retry
@@ -1748,14 +1766,14 @@ Retry:
             '要求全部文件完成
             SyncLock FileRemainLock
                 FileRemain -= 1
-                If FileRemain > 0 Then Exit Sub
+                If FileRemain > 0 Then Return
             End SyncLock
             OnFinish()
         End Sub
         Public Sub OnFinish()
             RaisePreviewFinish()
             SyncLock LockState
-                If State > LoadState.Loading Then Exit Sub
+                If State > LoadState.Loading Then Return
                 State = LoadState.Finished
             End SyncLock
         End Sub
@@ -1768,7 +1786,7 @@ Retry:
         End Sub
         Public Sub OnFail(ExList As List(Of Exception))
             SyncLock LockState
-                If State > LoadState.Loading Then Exit Sub
+                If State > LoadState.Loading Then Return
                 If ExList Is Nothing OrElse Not ExList.Any() Then ExList = New List(Of Exception) From {New Exception("未知错误！")}
                 '寻找第一个不是 404 的下载源
                 Dim UsefulExs = ExList.Where(Function(e) Not e.Message.Contains("(404)")).ToList
@@ -1797,7 +1815,7 @@ Retry:
         End Sub
         Public Overrides Sub Abort()
             SyncLock LockState
-                If State >= LoadState.Finished Then Exit Sub
+                If State >= LoadState.Finished Then Return
                 State = LoadState.Aborted
             End SyncLock
             Log("[Download] " & Name & " 已取消！")
@@ -1914,7 +1932,7 @@ Retry:
         ''' 启动监控线程，用于新增下载线程。
         ''' </summary>
         Private Sub StartManager()
-            If IsManagerStarted Then Exit Sub
+            If IsManagerStarted Then Return
             IsManagerStarted = True
             Dim ThreadStarter =
             Sub(Id As Integer) '0 或 1
@@ -1965,7 +1983,7 @@ Retry:
                         Next
                     End While
                 Catch ex As Exception
-                    Log(ex, $"下载管理启动线程 {Id} 出错", LogLevel.Assert)
+                    Log(ex, $"下载管理启动线程 {Id} 出错", LogLevel.Critical)
                 End Try
             End Sub
             RunInNewThread(Sub() ThreadStarter(0), "NetManager ThreadStarter 0")
@@ -1989,7 +2007,7 @@ Retry:
                         Loop
                     End While
                 Catch ex As Exception
-                    Log(ex, "下载管理刷新线程出错", LogLevel.Assert)
+                    Log(ex, "下载管理刷新线程出错", LogLevel.Critical)
                 End Try
             End Sub, "NetManager StatRefresher")
         End Sub
@@ -2074,26 +2092,26 @@ Retry:
         End Sub
 
         <DllImport("dnsapi", EntryPoint:="DnsQuery_W", CharSet:=CharSet.Unicode, SetLastError:=True, ExactSpelling:=True)>
-        Private Shared Function DnsQuery(ByRef pszName As String, wType As QueryTypes, options As QueryOptions, aipServers As Integer, ByRef ppQueryResults As IntPtr, pReserved As Integer) As Integer
+        Private Shared Function DnsQuery(ByVal pszName As String, wType As QueryTypes, options As QueryOptions, aipServers As Integer, ByRef ppQueryResults As IntPtr, pReserved As Integer) As Integer
         End Function
 
         <DllImport("dnsapi", CharSet:=CharSet.Auto, SetLastError:=True)>
         Private Shared Sub DnsRecordListFree(pRecordList As IntPtr, FreeType As Integer)
         End Sub
 
-        Public Shared Function GetSRVRecords(needle As String) As String()
+        Public Shared Function GetSRVRecords(needle As String) As List(Of String)
             Dim ptr1 As IntPtr = IntPtr.Zero
             Dim ptr2 As IntPtr = IntPtr.Zero
             Dim recSRV As SRVRecord
             If Environment.OSVersion.Platform <> PlatformID.Win32NT Then
                 Throw New NotSupportedException()
             End If
-            Dim list1 As New ArrayList()
+            Dim res As New List(Of String)
             Try
-                Dim num1 As Integer = DnsQuery(needle, QueryTypes.DNS_TYPE_SRV, QueryOptions.DNS_QUERY_BYPASS_CACHE, 0, ptr1, 0)
+                Dim num1 As Integer = DnsQuery(needle, QueryTypes.DNS_TYPE_SRV, QueryOptions.DNS_QUERY_STANDARD, 0, ptr1, 0)
                 If num1 <> 0 Then
                     If num1 = 9003 Then
-                        list1.Add("DNS record does not exist")
+                        Return New List(Of String)
                     Else
                         Throw New Win32Exception(num1)
                     End If
@@ -2102,16 +2120,16 @@ Retry:
                 While Not ptr2.Equals(IntPtr.Zero)
                     recSRV = CType(Marshal.PtrToStructure(ptr2, GetType(SRVRecord)), SRVRecord)
                     If recSRV.wType = CShort(QueryTypes.DNS_TYPE_SRV) Then
-                        Dim text1 As String = Marshal.PtrToStringAuto(recSRV.pNameTarget)
-                        text1 += ":" & recSRV.wPort.ToString()
-                        list1.Add(text1)
+                        Dim targetIp As String = Marshal.PtrToStringUni(recSRV.pNameTarget)
+                        Dim targetPort As String = recSRV.wPort.ToString()
+                        res.Add($"{targetIp}:{targetPort}")
                     End If
                     ptr2 = recSRV.pNext
                 End While
             Finally
                 DnsRecordListFree(ptr1, 0)
             End Try
-            Return CType(list1.ToArray(GetType(String)), String())
+            Return res
         End Function
 
         Private Enum QueryOptions As Integer
@@ -2140,17 +2158,17 @@ Retry:
         <StructLayout(LayoutKind.Sequential)>
         Private Structure SRVRecord
             Public pNext As IntPtr
-            Public pName As String
-            Public wType As Short
-            Public wDataLength As Short
+            Public pName As IntPtr
+            Public wType As UShort
+            Public wDataLength As UShort
             Public flags As Integer
             Public dwTtl As Integer
             Public dwReserved As Integer
             Public pNameTarget As IntPtr
-            Public wPriority As Short
-            Public wWeight As Short
-            Public wPort As Short
-            Public Pad As Short
+            Public wPriority As UShort
+            Public wWeight As UShort
+            Public wPort As UShort
+            Public Pad As UShort
         End Structure
 
     End Class

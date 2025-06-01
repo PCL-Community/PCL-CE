@@ -229,6 +229,7 @@ Public Module ModProfile
                         SelectedAuthTypeNum = MyMsgBoxSelect(AuthTypeList, "新建档案 - 选择验证类型", "继续", "取消")
                     End Sub)
         If SelectedAuthTypeNum Is Nothing Then Exit Sub
+        IsCreatingProfile = True
         If SelectedAuthTypeNum = 1 Then '正版验证
             RunInUi(Sub() FrmLaunchLeft.RefreshPage(True, McLoginType.Ms))
         ElseIf SelectedAuthTypeNum = 2 Then '第三方验证
@@ -314,6 +315,15 @@ Public Module ModProfile
 Write:
         ProfileList(ProfileIndex).Uuid = NewUuid
         SelectedProfile = ProfileList(ProfileIndex)
+        SaveProfile()
+        Hint("档案信息已保存！", HintType.Finish)
+    End Sub
+    ''' <summary>
+    ''' 编辑指定档案的验证服务器显示名称
+    ''' </summary>
+    Public Sub EditAuthServerName(Profile As McProfile, ServerName As String)
+        Dim ProfileIndex = ProfileList.IndexOf(Profile)
+        ProfileList(ProfileIndex).ServerName = ServerName
         SaveProfile()
         Hint("档案信息已保存！", HintType.Finish)
     End Sub
@@ -419,7 +429,7 @@ Write:
             Dim OutputNum As Integer = 0
             For Each Profile In ProfileList
                 Dim NewProfile As JObject = Nothing
-                If Profile.Type = 5 Then
+                If Profile.Type = McLoginType.Ms Then
                     NewProfile = New JObject From {
                                            {"uuid", Profile.Uuid},
                                            {"displayName", Profile.Username},
@@ -430,7 +440,7 @@ Write:
                                            {"userid", ""},
                                            {"type", "microsoft"}
                                        }
-                ElseIf Profile.Type = 3 Then
+                ElseIf Profile.Type = McLoginType.Auth Then
                     NewProfile = New JObject From {
                                            {"serverBaseURL", Profile.Server},
                                            {"clientToken", ""},
@@ -662,7 +672,7 @@ Retry:
 
 #Region "旧版迁移"
     ''' <summary>
-    ''' 从旧版配置文件迁移档案
+    ''' 从旧版配置文件迁移档案，不能在 UI 线程调用
     ''' </summary>
     Public Sub MigrateOldProfile()
         ProfileLog("开始从旧版配置迁移档案")
@@ -731,7 +741,19 @@ Retry:
         If Len(Uuid) = 32 Then Return Uuid
         '从官网获取
         Try
-            Dim GotJson As JObject = NetGetCodeByRequestRetry("https://api.mojang.com/users/profiles/minecraft/" & Name, IsJson:=True)
+            Dim GotJson As JObject = Nothing
+            Dim Finished = False
+            RunInNewThread(Sub()
+                               Try
+                                   GotJson = NetGetCodeByRequestRetry("https://api.mojang.com/users/profiles/minecraft/" & Name, IsJson:=True)
+                               Catch ex As Exception
+                               Finally
+                                   Finished = True
+                               End Try
+                           End Sub, $"{Name} Uuid Get")
+            While Not Finished
+                Thread.Sleep(50)
+            End While
             If GotJson Is Nothing Then Throw New FileNotFoundException("正版玩家档案不存在（" & Name & "）")
             Uuid = If(GotJson("id"), "")
         Catch ex As Exception

@@ -17,7 +17,7 @@
     <Grid.ColumnDefinitions>
         <ColumnDefinition />
     </Grid.ColumnDefinitions>
-    <local:MyScrollViewer MaxHeight="296" Margin="10,0,10,0" Grid.Row="2">
+    <local:MyScrollViewer MaxHeight="210" Margin="10,0,10,0" Grid.Row="2">
         <StackPanel x:Name="StackProfile">
             <local:MyListItem Title="LTCat" Info="离线验证 / 当前选择"
                 Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7"
