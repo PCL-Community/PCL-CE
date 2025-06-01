@@ -7,7 +7,6 @@ Public Class PageSetupJava
     Private Async Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, JavaSearchLoader, AddressOf OnLoadFinished)
         Dim ret = Await JavaHelper.ScanJava()
-        MsgBox(ret.Select(Function(x) $"{x.Path} - {x.Version.ToString()} - {x.Brand.ToString()}").Join(vbCrLf))
     End Sub
 
     Private Sub OnLoadFinished()

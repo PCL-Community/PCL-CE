@@ -29,24 +29,51 @@ namespace PCL.Core.Helper.Java
 
             foreach (var javaExePath in javaPaths)
             {
-                try
+                var javaModel = Prase(javaExePath);
+                if (javaModel != null)
                 {
-                    var output = GetJavaInfoFromFile(javaExePath);
-
-                    javaList.Add(new JavaModel
-                    {
-                        Path = javaExePath,
-                        Version = output.JavaVersion,
-                        Brand = DetermineBrand(output.CompanyName)
-                    });
-                }
-                catch
-                {
-                    // 忽略无法获取版本的Java路径
+                    javaList.Add(javaModel);
                 }
             }
 
-            return javaList;
+            return javaList
+                .OrderByDescending(x => x.Version)
+                .ToList();
+        }
+
+        public static JavaModel Prase(string JavaExePath)
+        {
+            try
+            {
+                var JavaFileVersion = FileVersionInfo.GetVersionInfo(JavaExePath);
+                var JavaVersion = Version.Parse(JavaFileVersion.FileVersion);
+                var CompanyName = JavaFileVersion.CompanyName
+                    ?? JavaFileVersion.FileDescription
+                    ?? JavaFileVersion.ProductName
+                    ?? string.Empty;
+                var JavaBrand = DetermineBrand(CompanyName);
+
+                var CurrentJavaPath = Path.GetDirectoryName(JavaExePath);
+                var IsJavaJre = !File.Exists(Path.Combine(CurrentJavaPath, "javac.exe"));
+                var IsJava64Bit = Utils.Programe.IsExecutableFile64Bit(JavaExePath);
+                var ShouldDisableByDefault = (IsJavaJre && JavaVersion.Major >= 16)
+                    || (!IsJava64Bit && Environment.Is64BitOperatingSystem);
+
+                return new JavaModel
+                {
+                    Path = CurrentJavaPath,
+                    Version = JavaVersion,
+                    IsJre = IsJavaJre,
+                    Is64Bit = IsJava64Bit,
+                    IsEnabled = !ShouldDisableByDefault,
+                    Brand = JavaBrand
+                };
+            }
+            catch
+            {
+                // 忽略无法获取版本的Java路径
+            }
+            return null;
         }
 
         private static void ScanRegistryForJava(ref HashSet<string> javaPaths)
@@ -103,10 +130,17 @@ namespace PCL.Core.Helper.Java
                 {
                     foreach (var dirPath in Directory.GetDirectories(javaDir))
                     {
-                        string javaExePath = Path.Combine(dirPath, "bin", "java.exe");
-                        if (File.Exists(javaExePath))
+                        string[] potentialJavas =
                         {
-                            javaPaths.Add(javaExePath);
+                            Path.Combine(dirPath, "bin", "java.exe"),
+                            Path.Combine(dirPath, "jre", "bin", "java.exe")
+                        };
+                        var existingJavas = potentialJavas
+                            .Where(File.Exists)
+                            .ToList();
+                        foreach (var item in existingJavas)
+                        {
+                            javaPaths.Add(item);
                         }
                     }
                 }
@@ -132,26 +166,6 @@ namespace PCL.Core.Helper.Java
         private static void ScanMicrosoftStoreJava(ref HashSet<string> javaPaths)
         {
             //TODO: 扫描  Microsoft Java
-        }
-
-        private static (string CompanyName, Version JavaVersion) GetJavaInfoFromFile(string javaExePath)
-        {
-            try
-            {
-                var version = FileVersionInfo.GetVersionInfo(javaExePath);
-                var JavaVersion = Version.Parse(version.FileVersion);
-                var companyName = version.CompanyName 
-                    ?? version.FileDescription
-                    ?? version.ProductName
-                    ?? string.Empty;
-                
-                return (companyName, JavaVersion);
-            }
-            catch (Exception ex)
-            {
-                
-            }
-            return (string.Empty, new Version(0, 0, 0));
         }
 
         private static JavaBrandType DetermineBrand(string output)
