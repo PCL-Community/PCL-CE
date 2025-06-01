@@ -460,33 +460,6 @@ Public Module ModLink
             ETProcess.StartInfo.Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
             'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
             Log($"[Link] 启动 EasyTier")
-            Dim Data As New JObject From {
-                {"Tag", "Link"},
-                {"Id", UniqueAddress},
-                {"Naid", "Id"}, 'TODO: 接入 Natayark ID
-                {"NetworkName", ETNetworkName},
-                {"NetworkSecret", ETNetworkSecret},
-                {"Server", ETServer},
-                {"IsHost", IsHost}
-            }
-            Dim SendData = New JObject From {
-                {"data", Data}
-            }
-            Try
-                Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
-                If Result.Contains("数据已成功保存") Then
-                    Log("[Link] 联机数据已发送")
-                Else
-                    Log("[Link] 联机数据发送失败，原始返回内容: " + Result)
-                End If
-            Catch ex As Exception
-                If ex.Message.Contains("429") Then
-                    Log("[Link] 联机数据发送失败，请求过于频繁")
-                Else
-                    Log(ex, "[Link] 联机数据发送失败", LogLevel.Normal)
-                End If
-                Exit Sub
-            End Try
             'Log($"[Link] 启动 EasyTier, 参数: {ETProcess.StartInfo.Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", ""))
             ETProcess.Start()
@@ -548,6 +521,63 @@ Public Module ModLink
 
 #End Region
 
+#Region "大厅操作"
+    Public Sub LaunchLink(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional LocalPort As Integer = 25565)
+        If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
+            Hint("请先前往设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
+            Exit Sub
+        End If
+        Try
+            GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+        Catch ex As Exception
+            Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
+            Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
+            Exit Sub
+        End Try
+        If NaidProfile.IsRealname = False Then
+            Hint("请先完成实名验证再进行联机！", HintType.Critical)
+            Exit Sub
+        End If
+        If Not NaidProfile.Status = 0 Then
+            Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
+            Exit Sub
+        End If
+        '回传联机数据
+        Log("[Link] 开始发送联机数据")
+        Dim Data As New JObject From {
+                {"Tag", "Link"},
+                {"Id", UniqueAddress},
+                {"NaidId", NaidProfile.Id},
+                {"NaidEmail", NaidProfile.Email},
+                {"NaidLastIp", NaidProfile.LastIp},
+                {"NetworkName", ETNetworkName},
+                {"NetworkSecret", ETNetworkSecret},
+                {"Server", ETServer},
+                {"IsHost", IsHost}
+            }
+        Dim SendData = New JObject From {{"data", Data}}
+        Try
+            Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
+            If Result.Contains("数据已成功保存") Then
+                Log("[Link] 联机数据已发送")
+            Else
+                Log("[Link] 联机数据发送失败，原始返回内容: " + Result)
+                Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
+                Exit Sub
+            End If
+        Catch ex As Exception
+            If ex.Message.Contains("429") Then
+                Log("[Link] 联机数据发送失败，请求过于频繁")
+            Else
+                Log(ex, "[Link] 联机数据发送失败", LogLevel.Normal)
+            End If
+            Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
+            Exit Sub
+        End Try
+        LaunchEasyTier(IsHost, Name, Secret, LocalPort)
+    End Sub
+#End Region
+
 #Region "Natayark ID"
     Public Class NaidUser
         Public Id As Int32
@@ -555,40 +585,60 @@ Public Module ModLink
         Public Username As String
         Public AccessToken As String
         Public RefreshToken As String
-        Public Status As Integer
-        Public IsRealname As Boolean
+        Public Status As Integer = 1
+        Public IsRealname As Boolean = False
         Public LastIp As String
     End Class
-    Public NaidProfile As NaidUser = Nothing
-    Public Sub GetNatayarkIdData()
-        Dim AccessToken As String = Nothing
-        Dim RefreshToken As String = Nothing
+    Public NaidProfile As New NaidUser
+    Public Sub GetNaidData(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False)
         RunInNewThread(Sub()
                            Try
-                               Dim RequestData As String = $"grant_type={If(True, "authorization_code", "refresh_token")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(True, "code", "refresh_token")}=114514&redirect_uri=https://ce.open.pcl2.dev"
+                               '获取 AccessToken 和 RefreshToken
+                               Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=https://ce.open.pcl2.dev"
+                               'Log("[Link] Naid 请求数据: " & RequestData)
+                               Thread.Sleep(500)
                                Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
                                Dim Data As JObject = JObject.Parse(Received)
-                               AccessToken = Data("access_token").ToString()
-                               RefreshToken = Data("refresh_token").ToString()
+                               NaidProfile.AccessToken = Data("access_token").ToString()
+                               NaidProfile.RefreshToken = Data("refresh_token").ToString()
 
-                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", $"Authorization=Bearer {AccessToken}", "application/json")
+                               '获取用户信息
+                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", $"Authorization=Bearer {NaidProfile.AccessToken}", "application/json")
                                Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
-                               NaidProfile = New NaidUser With {
-                                      .Id = UserData("id").ToObject(Of Int32)(),
-                                      .Username = UserData("username").ToString(),
-                                      .Email = UserData("email").ToString(),
-                                      .Status = UserData("status").ToObject(Of Integer)(),
-                                      .IsRealname = UserData("realname").ToObject(Of Boolean)(),
-                                      .LastIp = UserData("last_ip").ToString()
-                                 }
+                               NaidProfile.Id = UserData("id").ToObject(Of Int32)()
+                               NaidProfile.Username = UserData("username").ToString()
+                               NaidProfile.Email = UserData("email").ToString()
+                               NaidProfile.Status = UserData("status").ToObject(Of Integer)()
+                               NaidProfile.IsRealname = UserData("realname").ToObject(Of Boolean)()
+                               NaidProfile.LastIp = UserData("last_ip").ToString()
+                               '保存数据
+                               Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
+                               '若处于联机设置界面，则进行刷新
+                               If FrmSetupLink IsNot Nothing Then RunInUi(Sub() FrmSetupLink.Reload())
+                               If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)
                            Catch ex As Exception
-
+                               If IsRetry Then '如果重试了还失败就报错
+                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                               End If
+                               If ex.Message.Contains("invalid access token") Then
+                                   Log("[Link] Naid Access Token 无效，尝试刷新登录")
+                                   GetNaidData(Token:=Setup.Get("LinkNaidRefreshToken"), IsRefresh:=True, IsRetry:=True)
+                               ElseIf ex.Message.Contains("invalid_grant") Then
+                                   Log("[Link] Naid 验证代码无效，原始信息: " & ex.ToString())
+                               Else
+                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                               End If
                            End Try
                        End Sub)
     End Sub
 #End Region
 
-    Public Function StunTest()
+#Region "NAT 测试"
+    ''' <summary>
+    ''' 使用 EasyTier Cli 进行网络测试。
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function NetTestET()
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
@@ -627,8 +677,6 @@ Public Module ModLink
         Next
         Return {NatType, SupportIPv6}
     End Function
-
-#Region "NAT 测试"
     ''' <summary>
     ''' 进行网络测试，包括 IPv4 NAT 类型测试和 IPv6 支持情况测试
     ''' </summary>

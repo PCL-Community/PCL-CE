@@ -218,8 +218,6 @@ Public Class FormMain
             GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
-        '剪贴板识别
-        If Setup.Get("ToolDownloadClipboard") Then RunInNewThread(Sub() CompClipboard.ClipboardListening(), "Clipboard Listener", ThreadPriority.Lowest)
 
         Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
@@ -532,6 +530,7 @@ Public Class FormMain
     '切回窗口
     Private Sub FormMain_Activated() Handles Me.Activated
         Try
+            If Setup.Get("ToolDownloadClipboard") Then CompClipboard.GetClipboardResource()
             If PageCurrent = PageType.VersionSetup AndAlso PageCurrentSub = PageSubType.VersionMod Then
                 'Mod 管理自动刷新
                 FrmVersionMod.ReloadCompFileList()

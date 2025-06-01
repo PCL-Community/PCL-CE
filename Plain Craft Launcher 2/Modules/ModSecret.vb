@@ -12,41 +12,27 @@ Friend Module ModSecret
 
 #If DEBUG Then
     Public Const RegFolder As String = "PCLCEDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    '用于微软登录的 ClientId
+    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
+    'CurseForge API Key
+    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
+    'LittleSkin OAuth ClientId
+    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
+    '遥测鉴权密钥
+    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
+    'Natayark ID Client Id
+    Public NatayarkClientId As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_ID"), "")
+    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
+    Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-#End If
-
-    '用于微软登录的 ClientId
-#If DEBUG Then
-    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
-#Else
     Public Const OAuthClientId As String = ""
-#End If
-
-    'CurseForge API Key
-#If DEBUG Then
-    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-#Else
     Public Const CurseForgeAPIKey As String = ""
-#End If
-
-    'LittleSkin OAuth ClientId
-#If DEBUG Then
-    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
-#Else
     Public Const LittleSkinClientId As String = ""
-#End If
-
-    '遥测鉴权密钥
-#If DEBUG Then
-    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
-#Else
     Public Const TelemetryKey As String = ""
-#End If
-    'Natayark ID Client Id
     Public Const NatayarkClientId As String = ""
-    'Natayark ID Client Secret
     Public Const NatayarkClientSecret As String = ""
+#End If
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -198,6 +184,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
         Client.Headers.Add("Referer", "http://" & VersionCode & ".ce.open.pcl2.server/")
         If Url.Contains("pcl2ce.pysio.online/post") AndAlso Not String.IsNullOrEmpty(TelemetryKey) Then Client.Headers.Add("Authorization", TelemetryKey)
+        If Url.Contains("account.naids.com/api/api/user/data") Then Client.Headers.Add("Authorization", $"Bearer {NaidProfile.AccessToken}")
     End Sub
     ''' <summary>
     ''' 设置 Headers 的 UA、Referer。
@@ -213,6 +200,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Request.Referer = "http://" & VersionCode & ".ce.open.pcl2.server/"
         If Url.Contains("api.curseforge.com") Then Request.Headers("x-api-key") = CurseForgeAPIKey
         If Url.Contains("pcl2ce.pysio.online/post") Then Request.Headers("Authorization") = TelemetryKey
+        If Url.Contains("account.naids.com/api/api/user/data") Then Request.Headers("Authorization") = $"Bearer {NaidProfile.AccessToken}"
     End Sub
 
 #End Region
@@ -1048,9 +1036,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             {"NatType", NetResult(0)},
             {"IPv6Status", NetResult(1)}
         }
-        Dim SendData = New JObject From {
-            {"data", Data}
-        }
+        Dim SendData = New JObject From {{"data", Data}}
         Try
             Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
             If Result.Contains("数据已成功保存") Then

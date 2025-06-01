@@ -18,11 +18,22 @@ Public Class PageLinkLobby
 
     Private IsLoad As Boolean = False
     Private Sub OnLoaded() Handles Me.Loaded
-        'FormMain.EndProgramForce(Result.Aborted)
+        RunInNewThread(Sub()
+                           If Not Setup.Get("LinkEula") Then
+                               Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 会收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}{vbCrLf}另外，你还需要同意《Natayark OpenID 服务条款》。", "联机大厅协议授权",
+                                                    "我已阅读并同意", "拒绝并返回", "查看 Natayark 服务协议",
+                                                    Button3Action:=Sub() OpenWebsite(""))
+                                   Case 1
+                                       Setup.Set("LinkEula", True)
+                                   Case 2
+                                       RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch}))
+                               End Select
+                           End If
+                       End Sub)
         If IsLoad Then Exit Sub
         IsLoad = True
         IsMcWatcherRunning = True
-        McInstanceWatcher()
+        DetectMcInstance()
         '启动监视线程
         'If Not IsWatcherStarted Then RunInNewThread(AddressOf WatcherThread, "Hiper Watcher")
     End Sub
@@ -79,22 +90,30 @@ Public Class PageLinkLobby
     '主 Timer 线程
     Private IsWatcherStarted As Boolean = False
     Private IsMcWatcherRunning As Boolean = False
-    Private Sub McInstanceWatcher()
+    Private Sub DetectMcInstance() Handles BtnRefresh.Click
+        ComboWorldList.Items.Clear()
+        ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+        ComboWorldList.SelectedIndex = 0
+        BtnCreate.IsEnabled = False
+        BtnRefresh.IsEnabled = False
+        ComboWorldList.IsEnabled = False
         RunInNewThread(Sub()
-                           While IsMcWatcherRunning
-                               Dim Worlds As List(Of WorldInfo) = MCInstanceFinding.GetAwaiter().GetResult()
-                               RunInUi(Sub()
-                                           ComboWorldList.Items.Clear()
-                                           If Worlds.Count = 0 Then
-                                               ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "无可用实例，请确保已在游戏内设置对局域网开放"})
-                                           Else
-                                               For Each World In Worlds
-                                                   ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = World.VersionName & $"（端口 {World.Port}）" & " / " & World.Description})
-                                               Next
-                                           End If
-                                       End Sub)
-                               Thread.Sleep(5000) '每 5 秒检查一次
-                           End While
+                           Dim Worlds As List(Of WorldInfo) = MCInstanceFinding.GetAwaiter().GetResult()
+                           RunInUi(Sub()
+                                       ComboWorldList.Items.Clear()
+                                       If Worlds.Count = 0 Then
+                                           ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "无可用实例", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                       Else
+                                           For Each World In Worlds
+                                               ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})",
+                                                                        .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                           Next
+                                           BtnCreate.IsEnabled = True
+                                       End If
+                                       ComboWorldList.SelectedIndex = 0
+                                       BtnRefresh.IsEnabled = True
+                                       ComboWorldList.IsEnabled = True
+                                   End Sub)
                        End Sub)
     End Sub
     Private Sub StartWatcherThread()
@@ -233,7 +252,7 @@ Public Class PageLinkLobby
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
-                           LaunchEasyTier(True)
+                           LaunchLink(True)
                            Thread.Sleep(1000)
                            StartWatcherThread()
                        End Sub)
@@ -258,7 +277,7 @@ Public Class PageLinkLobby
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：01509230")
         If JoinedLobbyId = Nothing Then Exit Sub
         RunInNewThread(Sub()
-                           LaunchEasyTier(False, JoinedLobbyId)
+                           LaunchLink(False, JoinedLobbyId)
                            Thread.Sleep(1000)
                            StartWatcherThread()
                            McPortForward("10.114.51.41", 25565)

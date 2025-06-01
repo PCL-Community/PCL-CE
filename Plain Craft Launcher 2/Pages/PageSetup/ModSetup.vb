@@ -87,6 +87,7 @@ Public Class ModSetup
         {"LaunchRamCustom", New SetupEntry(15)},
         {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LinkName", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"LinkNaidRefreshToken", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkFirstTimeNetTest", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LoginLegacyName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LoginMsJson", New SetupEntry("{}", Source:=SetupSource.Registry, Encoded:=True)}, '{UserName: OAuthToken, ...}
