@@ -1035,6 +1035,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' 发送遥测数据，需要在非 UI 线程运行
     ''' </summary>
     Public Sub SendTelemetry()
+        If String.IsNullOrWhiteSpace(TelemetryKey) Then Exit Sub
         Dim NetResult = ModLink.NetTest()
         Dim Data = New JObject From {
             {"Tag", "Telemetry"},
