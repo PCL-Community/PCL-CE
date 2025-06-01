@@ -247,18 +247,19 @@ Public Class PageLinkLobby
     Public LocalPort As String = Nothing
     '创建房间
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
+        BtnCreate.IsEnabled = False
         Dim LocalPort As String = ComboWorldList.SelectedItem.Tag.Port.ToString()
-        Dim IsSuccess As Boolean = False
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
-                           If LaunchLink(True, LocalPort:=LocalPort) = 0 Then IsSuccess = True
+                           LaunchLink(True, LocalPort:=LocalPort)
                            Thread.Sleep(1000)
                            StartWatcherThread()
                        End Sub)
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
         'ModLink.CreateUPnPMapping(LocalPort)
-        If IsSuccess Then CurrentSubpage = Subpages.PanFinish
+        CurrentSubpage = Subpages.PanFinish
+        BtnCreate.IsEnabled = True
     End Sub
     Private Sub RoomCreate(Port As Integer)
         '记录信息
@@ -274,16 +275,15 @@ Public Class PageLinkLobby
             MyMsgBox($"现阶段如果作为加入方加入大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，然后右键点击程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
             Exit Sub
         End If
-        Dim IsSuccess As Boolean = False
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：01509230")
         If JoinedLobbyId = Nothing Then Exit Sub
         RunInNewThread(Sub()
-                           If LaunchLink(False, JoinedLobbyId) = 0 Then IsSuccess = True
+                           LaunchLink(False, JoinedLobbyId)
                            Thread.Sleep(1000)
                            StartWatcherThread()
                            McPortForward("10.114.51.41", 25565)
                        End Sub)
-        If IsSuccess Then CurrentSubpage = Subpages.PanFinish
+        CurrentSubpage = Subpages.PanFinish
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
     End Sub
     Private Sub RoomJoin(Ip As String, Port As Integer)

@@ -485,8 +485,8 @@ Public Module ModLink
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
                                Dim Address As New List(Of String)
-                               Address.Add("https://ghfast.top/https://github.com/EasyTier/EasyTier/releases/download/v2.2.2/easytier-windows-x86_64-v2.2.2.zip")
-                               Address.Add("https://github.com/EasyTier/EasyTier/releases/download/v2.2.2/easytier-windows-x86_64-v2.2.2.zip")
+                               Address.Add("https://cdn.crashmc.com/https://github.com/EasyTier/EasyTier/releases/download/v2.3.0/easytier-windows-x86_64-v2.3.0.zip")
+                               Address.Add("https://github.com/EasyTier/EasyTier/releases/download/v2.3.0/easytier-windows-x86_64-v2.3.0.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier")))
@@ -534,6 +534,16 @@ Public Module ModLink
             Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
             Return 1
         End Try
+        Dim WaitCount As Integer = 0
+        While String.IsNullOrWhiteSpace(NaidProfile.Username)
+            If WaitCount > 30 Then Exit While
+            Thread.Sleep(500)
+            WaitCount += 1
+        End While
+        If String.IsNullOrWhiteSpace(NaidProfile.Username) Then
+            Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
+            Return 1
+        End If
         If NaidProfile.IsRealname = False Then
             Hint("请先完成实名验证再进行联机！", HintType.Critical)
             Return 1
@@ -604,13 +614,15 @@ Public Module ModLink
                                NaidProfile.RefreshToken = Data("refresh_token").ToString()
 
                                '获取用户信息
-                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", $"Authorization=Bearer {NaidProfile.AccessToken}", "application/json")
+                               Dim Headers As New Dictionary(Of String, String)
+                               Headers.Add("Authorization", $"Bearer {NaidProfile.AccessToken}")
+                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", "", "application/json", Headers:=Headers)
                                Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
                                NaidProfile.Id = UserData("id").ToObject(Of Int32)()
                                NaidProfile.Username = UserData("username").ToString()
                                NaidProfile.Email = UserData("email").ToString()
-                               NaidProfile.Status = UserData("status").ToObject(Of Integer)()
-                               NaidProfile.IsRealname = UserData("realname").ToObject(Of Boolean)()
+                               NaidProfile.Status = UserData("status")
+                               NaidProfile.IsRealname = UserData("realname")
                                NaidProfile.LastIp = UserData("last_ip").ToString()
                                '保存数据
                                Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
