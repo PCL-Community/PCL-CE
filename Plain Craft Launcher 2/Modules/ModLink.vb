@@ -522,25 +522,25 @@ Public Module ModLink
 #End Region
 
 #Region "大厅操作"
-    Public Sub LaunchLink(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional LocalPort As Integer = 25565)
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional LocalPort As Integer = 25565)
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             Hint("请先前往设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
-            Exit Sub
+            Return 1
         End If
         Try
             GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
         Catch ex As Exception
             Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
             Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
-            Exit Sub
+            Return 1
         End Try
         If NaidProfile.IsRealname = False Then
             Hint("请先完成实名验证再进行联机！", HintType.Critical)
-            Exit Sub
+            Return 1
         End If
         If Not NaidProfile.Status = 0 Then
             Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
-            Exit Sub
+            Return 1
         End If
         '回传联机数据
         Log("[Link] 开始发送联机数据")
@@ -563,7 +563,7 @@ Public Module ModLink
             Else
                 Log("[Link] 联机数据发送失败，原始返回内容: " + Result)
                 Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
-                Exit Sub
+                Return 1
             End If
         Catch ex As Exception
             If ex.Message.Contains("429") Then
@@ -572,10 +572,11 @@ Public Module ModLink
                 Log(ex, "[Link] 联机数据发送失败", LogLevel.Normal)
             End If
             Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
-            Exit Sub
+            Return 1
         End Try
         LaunchEasyTier(IsHost, Name, Secret, LocalPort)
-    End Sub
+        Return 0
+    End Function
 #End Region
 
 #Region "Natayark ID"
