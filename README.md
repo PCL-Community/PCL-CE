@@ -37,7 +37,8 @@
 
 ## 🔒 许可证
 
-- `PCL.Core/` 使用 [Apache License](./PCL.Core/LICENSE)
+- `PCL.Core/` 使用 [Apache License 2.0](./PCL.Core/LICENSE)
+- `Plain Craft Launcher 2/` 使用 [自定义许可证](./LICENCE)
 
 ## ❤️ 贡献者
 
