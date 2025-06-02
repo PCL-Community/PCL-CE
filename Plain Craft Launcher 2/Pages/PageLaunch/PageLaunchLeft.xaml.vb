@@ -1,4 +1,6 @@
-﻿Public Class PageLaunchLeft
+﻿Imports Windows.Foundation
+
+Public Class PageLaunchLeft
 
     '加载当前版本
     Private IsLoad As Boolean = False

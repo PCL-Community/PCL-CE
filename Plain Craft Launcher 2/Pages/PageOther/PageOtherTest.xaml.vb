@@ -414,6 +414,7 @@ Public Class PageOtherTest
             Exit Sub
         End If
         Dim url = LabServerIp.Text
+        Hint($"查询服务器：{url}")
         Log($"查询服务器：{url}")
         Dim IsIp As Boolean = RegexCheck(url, "^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(:(0|[1-9]\d{0,3}|[1-4]\d{4}|5[0-9]{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5]))?$")
         _IsQueryServer = True

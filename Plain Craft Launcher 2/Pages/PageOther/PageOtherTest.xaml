@@ -72,7 +72,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
+            <local:MyCard Margin="0,0,0,15" Title="查询服务器">
                 <Grid Margin="25,40,25,20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -82,7 +82,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <local:MyTextBox x:Name="LabServerIp" HintText="输入服务器地址" Margin="0,0,15,0" Grid.Column="0">
+                    <local:MyTextBox x:Name="LabServerIp" HintText="输入目标服务器地址" Margin="0,0,15,0" Grid.Column="0">
                         <local:MyTextBox.ValidateRules>
                             <local:ValidateExcept>
                                 <local:ValidateExcept.Excepts>
