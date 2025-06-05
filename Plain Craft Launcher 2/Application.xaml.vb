@@ -155,11 +155,11 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             WriteFile($"{PathPure}CE\libwebp.dll", GetResources("libwebp64"))
             WriteFile($"{PathPure}CE\SQLite.Interop.dll", GetResources("SQLite"))
-            If Not Directory.Exists(Path & "runtimes") Then
+            If Not Directory.Exists(PathPure & "runtimes") Then
                 WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
                 Using fs = New FileStream(PathPure & "CE\" & "msalruntime.zip", FileMode.Open)
                     Using fszip = New ZipArchive(fs)
-                        fszip.ExtractToDirectory(Path)
+                        fszip.ExtractToDirectory(PathPure)
                     End Using
                 End Using
             End If
