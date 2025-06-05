@@ -1175,6 +1175,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\linkd.exe" />
+    <Content Include="Resources\SQLite.Interop.dll" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
