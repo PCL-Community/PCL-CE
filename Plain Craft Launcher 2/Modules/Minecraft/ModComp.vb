@@ -120,6 +120,7 @@ Public Module ModComp
                 .ModrinthSlug = reader("modrinth_id")
             }
         End If
+        reader.Close()
         Return Nothing
     End Function
 
