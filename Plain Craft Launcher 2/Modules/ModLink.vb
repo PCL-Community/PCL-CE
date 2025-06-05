@@ -18,6 +18,7 @@ Public Class ModLink
         Public Property PlayerOnline As Integer
         Public Property Description As String
         Public Property Favicon As String
+        Public Property Latency As Integer = -1
 
         Public Overrides Function ToString() As String
             Return $"[MCPing] Version: {VersionName}, Players: {PlayerOnline}/{PlayerMax}, Description: {Description}"
@@ -27,13 +28,13 @@ Public Class ModLink
     Public Class MCPing
 
 
-        Sub New(IP As String, Optional Port As Integer = 25565)
+        Sub New(IP As String, Optional Port As UInt16 = 25565)
             _IP = IP
             _Port = Port
         End Sub
 
         Private _IP As String
-        Private _Port As Integer
+        Private _Port As UInt16
 
         ''' <summary>
         ''' 对疑似 MC 端口进行 MCPing，并返回相关信息
@@ -46,6 +47,7 @@ Public Class ModLink
                     ' 向服务器发送握手数据包
                     Using stream = client.GetStream()
                         If Not stream.CanWrite OrElse Not stream.CanRead Then Return Nothing
+                        Dim startTime = DateTime.Now '开始计时
 
                         Dim handshake As Byte() = BuildHandshake(_IP, _Port)
                         Log($"[MCPing] Sending {String.Join(" ", handshake)}", LogLevel.Debug)
@@ -77,6 +79,7 @@ Public Class ModLink
                                 Exit Do
                             End If
                         Loop While bytesNeeded > 0
+                        Dim endTime = DateTime.Now '停止计时
                         packetLength -= 3
                         Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
 
@@ -93,11 +96,37 @@ Public Class ModLink
                         Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
 
                         Dim response As String = Encoding.UTF8.GetString(res.ToArray(), 0, res.Count)
-                        Dim startIndex = response.IndexOf("{""")
+                        Dim startIndex = response.IndexOf("{""", StringComparison.Ordinal)
                         If startIndex > 10 Then Return Nothing
                         response = response.Substring(startIndex)
                         Log("[MCPing] Server Response: " & response, LogLevel.Debug)
+                        
+                        '查找并截取第一段 JSON
+                        '有些 mod 或是整合包定制服务端会在返回的 JSON 后面添加新的内容，比如 Better MC
+                        '这时候需要把第一段合法的 JSON 截出来，否则下面解析 JSON 会炸掉
+                        '但是它们完全可以在返回的 JSON 内部添加自定义内容，添加在后面估计就是为了图 mixin 省事
+                        '不守规范一时爽，第三方解析火葬场
+                        Dim stack = 0, index = 0, stackStr = False, length = response.Length
+                        While index < length 
+                            Select Case response(index)
+                                Case "\"c
+                                    If stackStr Then index += 1
+                                Case """"c
+                                    stackStr = Not stackStr
+                                Case "{"c
+                                    If Not stackStr Then stack += 1
+                                Case "}"c
+                                    stack -= 1
+                                    If stack = 0 Then
+                                        response = response.Substring(0, index + 1)
+                                        Log("[MCPing] Correct Response: " & response, LogLevel.Debug)
+                                        Exit While
+                                    End If
+                            End Select
+                            index += 1
+                        End While
 
+                        '解析返回的 JSON 文本
                         Dim j = JObject.Parse(response)
 
                         Dim world As New WorldInfo With {
@@ -105,7 +134,8 @@ Public Class ModLink
                         .PlayerMax = j("players")("max"),
                         .PlayerOnline = j("players")("online"),
                         .Favicon = If(j("favicon"), ""),
-                        .Port = _Port
+                        .Port = _Port,
+                        .Latency = Math.Round((endTime - startTime).TotalMilliseconds)
                         }
                         Dim descObj = j("description")
                         world.Description = ""
