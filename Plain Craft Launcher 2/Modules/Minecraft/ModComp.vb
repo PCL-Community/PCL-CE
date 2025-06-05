@@ -101,7 +101,7 @@ Public Module ModComp
             Dim DBPath = $"{PathTemp}Cache\ModData.db"
             WriteFile(DBPath, GetResources("ModData"))
             Log($"[CompWikiData] 数据库文件已释放到 {DBPath}")
-            _CompDatabase = New SqliteConnection($"Data Source={DBPath};Mode=ReadOnly")
+            _CompDatabase = New SQLiteConnection($"Data Source={DBPath};Mode=ReadOnly")
             _CompDatabase.Open()
             Return _CompDatabase
         End Get
