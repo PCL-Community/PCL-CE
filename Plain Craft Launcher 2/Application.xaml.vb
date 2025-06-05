@@ -153,8 +153,10 @@ WaitRetry:
             '释放资源
             Directory.CreateDirectory(PathPure & "CE")
             SetDllDirectory(PathPure & "CE")
-            WriteFile($"{PathPure}CE\libwebp.dll", GetResources("libwebp64"))
-            WriteFile($"{PathPure}CE\SQLite.Interop.dll", GetResources("SQLite"))
+            Dim WebpPath = $"{PathPure}CE\libwebp.dll"
+            If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
+            Dim SqlPath = $"{PathPure}CE\SQLite.Interop.dll"
+            If Not File.Exists(SqlPath) Then WriteFile(SqlPath, GetResources("SQLite"))
             If Not Directory.Exists(PathPure & "runtimes") Then
                 WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
                 Using fs = New FileStream(PathPure & "CE\" & "msalruntime.zip", FileMode.Open)
