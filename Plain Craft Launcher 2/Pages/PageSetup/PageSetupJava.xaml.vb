@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Helper.Java
+﻿Imports PCL.Core.Helper
 
 Public Class PageSetupJava
 
@@ -6,7 +6,10 @@ Public Class PageSetupJava
 
     Private Async Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, JavaSearchLoader, AddressOf OnLoadFinished)
-        Dim ret = Await JavaHelper.ScanJava()
+        '小测试
+        'Dim javas As New JavaManage()
+        'Await javas.ScanJava()
+        'MsgBox(javas.JavaList.Select(Function(x) $"{x.JavaFolder} - {x.Version.ToString()} - {x.Is64Bit}").Join(vbCrLf))
     End Sub
 
     Private Sub OnLoadFinished()
