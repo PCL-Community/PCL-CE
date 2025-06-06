@@ -92,7 +92,7 @@ Public Class PageVersionScreenshot
                 If New FileInfo(i).Length = 0 Then Continue For ' 空文件
                 Dim myCard As New MyCard With {
                 .Height = Double.NaN, ' 允许高度自适应
-                .Width = Double.NaN,  ' 允许宽度自适应
+                .Width = 221.5,  ' 宽度
                 .Margin = New Thickness(7),
                 .Tag = i,
                 .ToolTip = i.Replace(ScreenshotPath, "") '适配高清截图模组
@@ -204,7 +204,8 @@ Public Class PageVersionScreenshot
     End Function
 
     Private Sub btnOpen_Click(sender As MyIconTextButton, e As EventArgs)
-        OpenExplorer(GetPathFromSender(sender))
+        Dim filePath As String = GetPathFromSender(sender)
+        Process.Start(filePath) ' 使用默认程序打开
     End Sub
     Private Sub btnDelete_Click(sender As MyIconTextButton, e As EventArgs)
         Path = GetPathFromSender(sender)
