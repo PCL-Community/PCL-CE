@@ -409,12 +409,14 @@ Public Module ModLink
     Public ETProcess As New Process
     Public ETNetworkName As String = "PCLCELobby"
     Public ETNetworkSecret As String = "PCLCELobbyDefault"
-    Public ETServer As String = Nothing '"tcp://public.easytier.cn:11010"
-    Public ETPath As String = PathTemp + "EasyTier\easytier-windows-x86_64"
+    Public ETServerDefault As String = "tcp://public.easytier.cn:11010"
+    Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
+    Public ETVersion As String = "2.3.1"
     Public IsETRunning As Boolean = False
 
     Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
+            Log("[Link] 传入大厅编号: " & Name)
             ETProcess = New Process
             ETProcess.StartInfo = New ProcessStartInfo With {
                 .FileName = ETPath & "\easytier-core.exe",
@@ -447,7 +449,7 @@ Public Module ModLink
                     ETNetworkName += RandomInteger(0, 9).ToString()
                 Next
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobbyDefault"}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} -p {ETServer} --no-tun --port-forward ""tcp://0.0.0.0:{LocalPort}/10.114.51.41:25565""" '创建者
+                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun --port-forward ""tcp://0.0.0.0:{LocalPort}/10.114.51.41:25565""" '创建者
             Else
                 ETNetworkName = "PCLCELobby" + Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {ETNetworkName}")
@@ -468,6 +470,11 @@ Public Module ModLink
             '}
 
             ETProcess.StartInfo.Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
+            ETProcess.StartInfo.Arguments += $" --hostname ""{If(IsHost, LocalPort & "-", "Join-")}NAID-{NaidProfile.Username}"
+            If SelectedProfile IsNot Nothing Then
+                ETProcess.StartInfo.Arguments += $"-MCID-{SelectedProfile.Username}"
+            End If
+            ETProcess.StartInfo.Arguments += $""""
             'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
             Log($"[Link] 启动 EasyTier")
             Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
@@ -496,11 +503,11 @@ Public Module ModLink
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
                                Dim Address As New List(Of String)
-                               Address.Add("https://cdn.crashmc.com/https://github.com/EasyTier/EasyTier/releases/download/v2.3.0/easytier-windows-x86_64-v2.3.0.zip")
-                               Address.Add("https://github.com/EasyTier/EasyTier/releases/download/v2.3.0/easytier-windows-x86_64-v2.3.0.zip")
+                               Address.Add($"https://cdn.crashmc.com/https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-x86_64-v{ETVersion}.zip")
+                               Address.Add($"https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-x86_64-v{ETVersion}.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier")))
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier-" + ETVersion)))
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("清理文件", Sub() File.Delete(DlTargetPath)))
                                If LaunchAfterDownload Then
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Sub() LaunchEasyTier(IsHost, Name, Secret, True)))
@@ -773,13 +780,14 @@ PortRetry:
     End Function
 #End Region
 
-#Region "虚假服务端"
+#Region "局域网广播"
     Private tr1 As Thread = Nothing
     Private tr2 As Thread = Nothing
     Private ServerSocket As Socket = Nothing
     Private ChatClient As UdpClient = Nothing
     Private IsMcPortForwardRunning As Boolean = False
     Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565)
+        If IsMcPortForwardRunning Then Exit Sub
         Log($"[Link] 开始 MC 端口转发，IP: {Ip}, 端口: {Port}")
         Dim Sip As New IPEndPoint((Await Dns.GetHostAddressesAsync(Ip))(0), Port)
 
@@ -791,7 +799,7 @@ PortRetry:
 
         tr1 = New Thread(Async Sub()
                              Try
-                                 Log("[Link] 开始广播虚假的 MC 服务端信息")
+                                 Log("[Link] 开始进行 MC 局域网广播")
                                  ChatClient = New UdpClient("224.0.2.60", 4445)
                                  Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]§ePCL CE 大厅 - [/MOTD][AD]{CType(ServerSocket.LocalEndPoint, IPEndPoint).Port}[/AD]")
                                  While IsMcPortForwardRunning
@@ -839,9 +847,13 @@ PortRetry:
                              End Try
                          End Sub)
 
-        tr1.Start()
-        tr2.Start()
-        Return
+        Try
+            tr1.Start()
+            tr2.Start()
+        Catch ex As Exception
+            Log(ex, "[Link] 启动 MC 局域网广播失败")
+            IsMcPortForwardRunning = False
+        End Try
     End Sub
     Public Sub StopMcPortForward()
         Log("[Link] 停止 MC 端口转发")

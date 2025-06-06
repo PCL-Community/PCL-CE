@@ -3,6 +3,7 @@ Imports PCL.ModLink
 Public Class PageLinkLobby
     '记录的启动情况
     Public Shared IsHost As Boolean = Nothing
+    Public Shared RemotePort As String = Nothing
 
 #Region "初始化"
 
@@ -87,6 +88,8 @@ Public Class PageLinkLobby
     Public Class ETPlayerInfo
         Public IsHost As Boolean
         Public Hostname As String
+        Public McName As String
+        Public NaidName As String
         Public Cost As String
         Public Ping As String
         Public Loss As String
@@ -94,7 +97,7 @@ Public Class PageLinkLobby
     End Class
     Private Function PlayerInfoItem(Info As ETPlayerInfo, OnClick As MyListItem.ClickEventHandler)
         Dim NewItem As New MyListItem With {
-                .Title = Info.Hostname,
+                .Title = If(Info.McName, Info.NaidName),
                 .Info = If(Info.Cost = "Local", "[本机]", $"{If(IsHost, "[主机] ", "")}{Info.Ping}ms{If(Not Info.Loss = "0.000", $" / 丢包 {Info.Loss}", "")}"),
                 .Type = MyListItem.CheckType.Clickable,
                 .Tag = Info
@@ -103,12 +106,12 @@ Public Class PageLinkLobby
         Return NewItem
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
-        MyMsgBox($"延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}，连接方式：{sender.Tag.Cost}，NAT 类型：{sender.Tag.NatType}", $"玩家 {sender.Tag.Hostname} 的详细信息")
+        MyMsgBox($"延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}，连接方式：{sender.Tag.Cost}，NAT 类型：{sender.Tag.NatType}", $"玩家 {If(sender.Tag.McName, sender.Tag.NaidName)} 的详细信息")
     End Sub
 
-    '主 Timer 线程
     Private IsWatcherStarted As Boolean = False
     Private IsMcWatcherRunning As Boolean = False
+    '检测本地 MC 局域网实例
     Private Sub DetectMcInstance() Handles BtnRefresh.Click
         ComboWorldList.Items.Clear()
         ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
@@ -168,82 +171,80 @@ Public Class PageLinkLobby
                                    .EnableRaisingEvents = True
                                }
                                Dim ETCliOutput As String = Nothing
-                               Dim Ping As String = Nothing
+                               Dim HostPing As String = Nothing
                                Dim ConnectType As String = Nothing
                                Dim ConnectTypeOriginal As String = Nothing
 
                                ETCliProcess.StartInfo.Arguments = "peer"
-                               ETCliProcess.Start()
-                               Thread.Sleep(100)
-                               ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
-                               Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
-                               If Not ETCliOutput.Contains("10.114.51.41/24") Then
-                                   Log("[Link] 未找到大厅创建者 IP, 判定该大厅未被创建")
-                                   Hint("该大厅不存在", HintType.Critical)
-                                   RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
-                                   ExitEasyTier()
-                                   Exit Sub
-                               End If
-
-                               Ping = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(2).Trim().Split(".")(0)
-                               Dim PingSender = New Ping()
-                               Dim PingReplied As PingReply = Nothing
-                               Dim PingRtt As String = Nothing
                                Try
-                                   PingReplied = PingSender.Send("10.114.51.41")
-                                   If PingReplied.Status = IPStatus.Success Then
-                                       PingRtt = PingReplied.RoundtripTime
+                                   ETCliProcess.Start()
+                                   Thread.Sleep(100)
+                                   ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
+                                   'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
+                                   If Not ETCliOutput.Contains("10.114.51.41/24") Then
+                                       Log("[Link] 未找到大厅创建者 IP, 判定该大厅未被创建")
+                                       Hint("该大厅不存在", HintType.Critical)
+                                       RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
+                                       ExitEasyTier()
+                                       Exit Sub
+                                   End If
+
+                                   HostPing = Math.Round(Val(ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(2).Trim().Split(".")(0))).ToString()
+                                   RemotePort = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("-")(0).Trim()
+
+                                   ConnectTypeOriginal = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(1).Trim()
+                                   If ConnectTypeOriginal.Contains("peer") OrElse ConnectTypeOriginal.Contains("p2p") Then
+                                       ConnectType = "P2P"
+                                   ElseIf ConnectTypeOriginal.Contains("relay") Then
+                                       ConnectType = "中继"
+                                   ElseIf ConnectTypeOriginal.Contains("Local") Then
+                                       ConnectType = "本机"
+                                       'Log("[Link] 与大厅创建者的连接类型为... 本机？你是怎么做到的.jpg")
+                                   Else
+                                       ConnectType = "未知"
+                                   End If
+                                   Dim PlayerNum As Integer = 0
+                                   Dim PlayerList As New List(Of ETPlayerInfo)
+                                   'e.g. │ ipv4 │ hostname │ cost │ lat_ms │ loss_rate │ rx_bytes │ tx_bytes │ tunnel_proto │ nat_type │ id │ version │
+                                   For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
+                                       'Log("当前行：" & PlayerInfo)
+                                       If PlayerInfo.Contains("───────") OrElse PlayerInfo.ContainsF("hostname", True) OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
+                                       If PlayerInfo.Split("│")(2).Trim().Contains("PublicServer") Then Continue For '服务器
+                                       PlayerList.Add(New ETPlayerInfo With {
+                                           .IsHost = PlayerInfo.ContainsF("10.114.51.41", True),
+                                           .Hostname = PlayerInfo.Split("│")(2).Trim(),
+                                           .Cost = PlayerInfo.Split("│")(3).Trim(),
+                                           .Ping = Math.Round(Val(PlayerInfo.Split("│")(4).Trim())).ToString(),
+                                           .Loss = PlayerInfo.Split("│")(5).Trim(),
+                                           .NatType = PlayerInfo.Split("│")(9).Trim(),
+                                           .McName = If(PlayerInfo.ContainsF("MCID", True), PlayerInfo.Split("│")(2).Split("MCID-")(0).Trim(), Nothing),
+                                           .NaidName = PlayerInfo.Split("│")(2).Trim().Split("NAID-")(1).Split("-")(0).Trim()
+                                       })
+                                       PlayerNum += 1
+                                   Next
+                                   RunInUi(Sub()
+                                               StackPlayerList.Children.Clear()
+                                               For Each Player In PlayerList
+                                                   Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
+                                                   StackPlayerList.Children.Add(NewItem)
+                                               Next
+                                               CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
+                                           End Sub)
+                                   'Log($"[Link] 与大厅创建者的连接类型原始输出: {ConnectTypeOriginal}, 判定为类型: {ConnectType}")
+                                   If Not IsHost Then
+                                       RunInUi(Sub()
+                                                   LabFinishPing.Text = HostPing + "ms"
+                                                   SplitLineBeforePing.Visibility = Visibility.Visible
+                                                   BtnFinishPing.Visibility = Visibility.Visible
+                                                   LabConnectType.Text = ConnectType
+                                                   SplitLineBeforeType.Visibility = Visibility.Visible
+                                                   BtnConnectType.Visibility = Visibility.Visible
+                                               End Sub)
                                    End If
                                Catch ex As Exception
-                                   Log("[Ping] 进行 Ping 测试失败: " + ex.ToString())
+                                   Log(ex, "[Link] EasyTier 监视线程异常")
+                                   IsWatcherStarted = False
                                End Try
-                               'Log($"[Link] 与大厅创建者之间的 Ping 值: {PingRtt} ms")
-
-                               ConnectTypeOriginal = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(1).Trim()
-                               If ConnectTypeOriginal.Contains("peer") OrElse ConnectTypeOriginal.Contains("p2p") Then
-                                   ConnectType = "P2P"
-                               ElseIf ConnectTypeOriginal.Contains("relay") Then
-                                   ConnectType = "中继"
-                               ElseIf ConnectTypeOriginal.Contains("Local") Then
-                                   ConnectType = "本机"
-                                   'Log("[Link] 与大厅创建者的连接类型为... 本机？你是怎么做到的.jpg")
-                               Else
-                                   ConnectType = "未知"
-                               End If
-                               Dim PlayerNum As Integer = 0
-                               Dim PlayerList As New List(Of ETPlayerInfo)
-                               For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
-                                   If PlayerInfo.Contains("───────") OrElse PlayerInfo.Split("│")(3).Trim() = "cost" OrElse PlayerInfo.Contains("Hostname") OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
-                                   If PlayerInfo.Split("│")(2).Trim().Contains("PublicServer") Then Continue For '服务器
-                                   PlayerList.Add(New ETPlayerInfo With {
-                                       .IsHost = False,
-                                       .Hostname = PlayerInfo.Split("│")(2).Trim(),
-                                       .Cost = PlayerInfo.Split("│")(3).Trim(),
-                                       .Ping = PlayerInfo.Split("│")(4).Trim(),
-                                       .Loss = PlayerInfo.Split("│")(5).Trim(),
-                                       .NatType = PlayerInfo.Split("│")(9).Trim()
-                                   })
-                                   PlayerNum += 1
-                               Next
-                               RunInUi(Sub()
-                                           StackPlayerList.Children.Clear()
-                                           For Each Player In PlayerList
-                                               Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
-                                               StackPlayerList.Children.Add(NewItem)
-                                           Next
-                                           CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
-                                       End Sub)
-                               'Log($"[Link] 与大厅创建者的连接类型原始输出: {ConnectTypeOriginal}, 判定为类型: {ConnectType}")
-                               If Not IsHost Then
-                                   RunInUi(Sub()
-                                               LabFinishPing.Text = PingRtt + "ms"
-                                               SplitLineBeforePing.Visibility = Visibility.Visible
-                                               BtnFinishPing.Visibility = Visibility.Visible
-                                               LabConnectType.Text = ConnectType
-                                               SplitLineBeforeType.Visibility = Visibility.Visible
-                                               BtnConnectType.Visibility = Visibility.Visible
-                                           End Sub)
-                               End If
                                'ETCliProcess.Kill()
                                Thread.Sleep(15000)
                            End While
@@ -323,20 +324,25 @@ Public Class PageLinkLobby
         End If
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：01509230")
         If JoinedLobbyId = Nothing Then Exit Sub
+        If JoinedLobbyId.Length < 8 Then
+            Hint("大厅编号不合法", HintType.Critical)
+            Exit Sub
+        End If
         RunInNewThread(Sub()
                            LaunchLink(False, JoinedLobbyId)
                            Thread.Sleep(1000)
                            StartWatcherThread()
-                           McPortForward("10.114.51.41", 25565)
+                           Thread.Sleep(100)
+                           While IsWatcherStarted
+                               While RemotePort Is Nothing
+                                   Thread.Sleep(500)
+                               End While
+                               McPortForward("10.114.51.41", RemotePort)
+                           End While
+                           'McPortForward("10.114.51.41", JoinedLobbyId.Substring(JoinedLobbyId.Length - 5))
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
         'If ETProcess IsNot Nothing Then LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", "")
-    End Sub
-    Private Sub RoomJoin(Ip As String, Port As Integer)
-        '记录信息
-        IsHost = False
-        '启动
-        InitLoader.Start(IsForceRestart:=True)
     End Sub
 
 #End Region
