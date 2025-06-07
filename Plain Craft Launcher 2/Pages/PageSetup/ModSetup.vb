@@ -150,7 +150,6 @@ Public Class ModSetup
         {"UiHiddenFunctionHidden", New SetupEntry(False)},
         {"UiHiddenSetupLaunch", New SetupEntry(False)},
         {"UiHiddenSetupUi", New SetupEntry(False)},
-        {"UiHiddenSetupLink", New SetupEntry(False)},
         {"UiHiddenSetupSystem", New SetupEntry(False)},
         {"UiHiddenOtherHelp", New SetupEntry(False)},
         {"UiHiddenOtherFeedback", New SetupEntry(False)},
@@ -506,8 +505,6 @@ Public Class ModSetup
 #If BETA Then
         If Key = "UiLauncherTheme" Then Return "0"
 #End If
-        If Key = "UiHiddenPageLink" Then Return False
-        If Key = "UiHiddenSetupLink" Then Return False
         Return Nothing
     End Function
 
@@ -798,9 +795,6 @@ Public Class ModSetup
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenSetupUi(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupLink(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenSetupSystem(Value As Boolean)
