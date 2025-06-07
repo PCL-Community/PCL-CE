@@ -440,13 +440,12 @@ Public Module ModLink
     Public ETNetworkName As String = "PCLCELobby"
     Public ETNetworkSecret As String = "PCLCELobbyDefault"
     Public ETServerDefault As String = "tcp://public.easytier.cn:11010"
-    Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public ETVersion As String = "2.3.1"
+    Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
 
     Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
-            Log("[Link] 传入大厅编号: " & Name)
             ETProcess = New Process
             ETProcess.StartInfo = New ProcessStartInfo With {
                 .FileName = ETPath & "\easytier-core.exe",
@@ -460,9 +459,10 @@ Public Module ModLink
                 .RedirectStandardError = True,
                 .RedirectStandardInput = True}
             ETProcess.EnableRaisingEvents = True
-            If Not File.Exists(ETPath & "\easytier-core.exe") AndAlso Not IsAfterDownload Then
+            If (Not File.Exists(ETPath & "\easytier-core.exe")) AndAlso (Not IsAfterDownload) Then
                 Log("[Link] EasyTier 不存在，开始下载")
                 DownloadEasyTier(True, IsHost, Name, Secret)
+                Exit Sub
             End If
             Log($"[Link] EasyTier 路径: {ETProcess.StartInfo.FileName}")
 
@@ -479,7 +479,7 @@ Public Module ModLink
                     ETNetworkName += RandomInteger(0, 9).ToString()
                 Next
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobbyDefault"}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun --port-forward ""tcp://0.0.0.0:{LocalPort}/10.114.51.41:25565""" '创建者
+                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun" '创建者
             Else
                 ETNetworkName = "PCLCELobby" + Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {ETNetworkName}")
@@ -491,40 +491,43 @@ Public Module ModLink
             Next
 
             '创建防火墙规则
-            'Dim FirewallProcess As New Process With {
-            '    .StartInfo = New ProcessStartInfo With {
-            '        .Verb = "runas",
-            '        .FileName = "cmd",
-            '        .Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=tcp localport={FrmLinkLobby.LocalPort}"
-            '    }
-            '}
+            Dim FirewallProcessIn As New Process With {
+                .StartInfo = New ProcessStartInfo With {
+                    .Verb = "runas",
+                    .FileName = "cmd",
+                    .CreateNoWindow = True,
+                    .UseShellExecute = False
+                }
+            }
+            If IsHost Then
+                FirewallProcessIn.StartInfo.Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any"
+                FirewallProcessIn.Start()
+                FirewallProcessIn.WaitForExit()
+            End If
+            FirewallProcessIn.StartInfo.Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}"
+            FirewallProcessIn.Start()
+            FirewallProcessIn.WaitForExit()
 
             ETProcess.StartInfo.Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
-            ETProcess.StartInfo.Arguments += $" --hostname ""{If(IsHost, LocalPort & "-", "Join-")}NAID-{NaidProfile.Username}"
+            Dim Hostname As String = Nothing
+            Hostname = If(IsHost, LocalPort & "-", "J-") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
-                ETProcess.StartInfo.Arguments += $"-MCID-{SelectedProfile.Username}"
+                Hostname += $"-{SelectedProfile.Username}"
             End If
-            ETProcess.StartInfo.Arguments += $""""
+            ETProcess.StartInfo.Arguments += $" --hostname ""{Hostname}"""
             'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
             Log($"[Link] 启动 EasyTier")
             Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", ""))
             ETProcess.Start()
             IsETRunning = True
-            Thread.Sleep(2000)
-            'Log(ETProcess.StandardOutput.ReadToEnd())
-            'Log(ETProcess.StandardError.ReadToEnd())
-            'If ETProcess.ExitCode = 0 Then
-            '    Log("[Link] EasyTier 进程已结束，正常退出")
-            'End If
-
         Catch ex As Exception
             Log("[Link] 尝试启动 EasyTier 时遇到问题: " + ex.ToString())
             ETProcess = Nothing
             IsETRunning = False
         End Try
     End Sub
-
+    Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault")
         Dim DlTargetPath As String = PathTemp + "EasyTier\EasyTier.zip"
         RunInNewThread(Sub()
@@ -543,8 +546,8 @@ Public Module ModLink
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Sub() LaunchEasyTier(IsHost, Name, Secret, True)))
                                End If
                                '启动
-                               Dim Loader As New LoaderCombo(Of JObject)("EasyTier 下载", Loaders)
-                               Loader.Start()
+                               DlEasyTierLoader = New LoaderCombo(Of JObject)("EasyTier 下载", Loaders)
+                               DlEasyTierLoader.Start()
                                'LoaderTaskbarAdd(Loader)
                                'FrmMain.BtnExtraDownload.ShowRefresh()
                                'FrmMain.BtnExtraDownload.Ribble()
@@ -556,19 +559,39 @@ Public Module ModLink
     End Sub
 
     Public Sub ExitEasyTier()
-        Try
-            Log("[Link] 停止 EasyTier")
-            ETProcess.Kill()
-            IsETRunning = False
-            ETProcess = Nothing
-        Catch ex As InvalidOperationException
-            Log("[Link] EasyTier 进程不存在，可能已退出")
-            IsETRunning = False
-            ETProcess = Nothing
-        Catch ex As Exception
-            Log("[Link] 尝试停止 EasyTier 进程时遇到问题: " + ex.ToString())
-            ETProcess = Nothing
-        End Try
+        If IsETRunning Then
+            If IsAdmin() Then
+                Dim FirewallProcess As New Process With {
+                    .StartInfo = New ProcessStartInfo With {
+                        .Verb = "runas",
+                        .FileName = "cmd",
+                        .Arguments = $"/c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""",
+                        .CreateNoWindow = True,
+                        .UseShellExecute = False
+                    }
+                }
+                FirewallProcess.Start()
+                FirewallProcess.WaitForExit()
+            End If
+            Try
+                Log("[Link] 停止 EasyTier")
+                ETProcess.Kill()
+                IsETRunning = False
+                ETProcess = Nothing
+                StopMcPortForward()
+            Catch ex As InvalidOperationException
+                Log("[Link] EasyTier 进程不存在，可能已退出")
+                IsETRunning = False
+                ETProcess = Nothing
+            Catch ex As NullReferenceException
+                Log("[Link] EasyTier 进程不存在，可能已退出")
+                IsETRunning = False
+                ETProcess = Nothing
+            Catch ex As Exception
+                Log("[Link] 尝试停止 EasyTier 进程时遇到问题: " + ex.ToString())
+                ETProcess = Nothing
+            End Try
+        End If
     End Sub
 
 #End Region
@@ -614,7 +637,7 @@ Public Module ModLink
                 {"NaidLastIp", NaidProfile.LastIp},
                 {"NetworkName", ETNetworkName},
                 {"NetworkSecret", ETNetworkSecret},
-                {"Server", ETServer},
+                {"Server", ETServerDefault & ";" & Setup.Get("LinkRelayServer")},
                 {"IsHost", IsHost}
             }
         Dim SendData = New JObject From {{"data", Data}}
@@ -636,7 +659,7 @@ Public Module ModLink
             Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
             Return 1
         End Try
-        LaunchEasyTier(IsHost, Name, Secret, LocalPort)
+        LaunchEasyTier(IsHost, Name, Secret, LocalPort:=LocalPort)
         Return 0
     End Function
 #End Region
@@ -683,15 +706,19 @@ Public Module ModLink
                                If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)
                            Catch ex As Exception
                                If IsRetry Then '如果重试了还失败就报错
-                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                                   Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
                                End If
                                If ex.Message.Contains("invalid access token") Then
                                    Log("[Link] Naid Access Token 无效，尝试刷新登录")
                                    GetNaidData(Token:=Setup.Get("LinkNaidRefreshToken"), IsRefresh:=True, IsRetry:=True)
                                ElseIf ex.Message.Contains("invalid_grant") Then
                                    Log("[Link] Naid 验证代码无效，原始信息: " & ex.ToString())
+                               ElseIf ex.Message.Contains("401") Then
+                                   NaidProfile = New NaidUser
+                                   Setup.Set("LinkNaidRefreshToken", "")
+                                   Hint("Natayark 账号信息已过期，请前往设置重新登录！", HintType.Critical)
                                Else
-                                   Log(ex, "[Link] 尝试进行 Naid 登录失败", LogLevel.Msgbox)
+                                   Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
                                End If
                            End Try
                        End Sub)
@@ -816,7 +843,7 @@ PortRetry:
     Private ServerSocket As Socket = Nothing
     Private ChatClient As UdpClient = Nothing
     Private IsMcPortForwardRunning As Boolean = False
-    Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565)
+    Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565, Optional Desc As String = "§ePCL CE 局域网广播")
         If IsMcPortForwardRunning Then Exit Sub
         Log($"[Link] 开始 MC 端口转发，IP: {Ip}, 端口: {Port}")
         Dim Sip As New IPEndPoint((Await Dns.GetHostAddressesAsync(Ip))(0), Port)
@@ -831,7 +858,7 @@ PortRetry:
                              Try
                                  Log("[Link] 开始进行 MC 局域网广播")
                                  ChatClient = New UdpClient("224.0.2.60", 4445)
-                                 Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]§ePCL CE 大厅 - [/MOTD][AD]{CType(ServerSocket.LocalEndPoint, IPEndPoint).Port}[/AD]")
+                                 Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]{Desc}[/MOTD][AD]{CType(ServerSocket.LocalEndPoint, IPEndPoint).Port}[/AD]")
                                  While IsMcPortForwardRunning
                                      If ChatClient IsNot Nothing Then
                                          ChatClient.EnableBroadcast = True

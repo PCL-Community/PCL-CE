@@ -35,16 +35,18 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="100" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
                        Text="登录至 Natayark Network 以使用大厅等在线服务" />
-                        <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                            Width="100" ColorType="Highlight" Text="登录" Margin="200,0,-130,0"/>
-                        <local:MyButton Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                        <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                            Width="100" ColorType="Highlight" Text="登录"/>
+                        <local:MyButton Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                 Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
                     </Grid>
                 </StackPanel>
