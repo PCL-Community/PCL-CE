@@ -1,4 +1,6 @@
-﻿Public Class PageVersionSetup
+﻿Imports PCL.Core.Model
+
+Public Class PageVersionSetup
 
     Private Shadows IsLoaded As Boolean = False
 
@@ -501,7 +503,7 @@ PreFin:
                 ComboArgumentJava.Items.Add(ListItem)
                 '判断人为选中
                 If SelectedBySetup = "" OrElse SelectedBySetup = "使用全局设置" Then Continue For
-                'If JavaEntry.FromJson(GetJson(SelectedBySetup)).PathFolder = CurJava.JavaFolder Then SelectedItem = ListItem
+                If SelectedBySetup = CurJava.JavaExePath Then SelectedItem = ListItem
             Next
         Catch ex As Exception
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageVersionLeft.Version)
@@ -547,7 +549,7 @@ PreFin:
             Log("[Java] 修改版本 Java 选择设置：自动选择")
         Else
             '选择指定项
-            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava.ToJson(), JObject).ToString(Newtonsoft.Json.Formatting.None), Version:=PageVersionLeft.Version)
+            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, Java).JavaExePath, Version:=PageVersionLeft.Version)
             Log("[Java] 修改版本 Java 选择设置：" & SelectedJava.ToString)
         End If
         RefreshRam(True)

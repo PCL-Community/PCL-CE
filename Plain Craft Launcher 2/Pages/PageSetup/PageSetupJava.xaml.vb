@@ -24,6 +24,14 @@ Public Class PageSetupJava
                               displayTags.Add(If(J.Is64Bit, "64 Bit", "32 Bit"))
                               displayTags.Add(J.Brand.ToString())
                               Item.Tags = displayTags
+
+                              Item.Type = MyListItem.CheckType.RadioBox
+                              If J.JavaExePath = Setup.Get("LaunchArgumentJavaSelect") Then
+                                  Item.SetChecked(True, False, False)
+                              End If
+                              AddHandler Item.Check, Sub()
+                                                         Setup.Set("LaunchArgumentJavaSelect", J.JavaExePath)
+                                                     End Sub
                               Return Item
                           End Function
         PanContent.Children.Clear()

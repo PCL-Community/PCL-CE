@@ -91,7 +91,7 @@
             Setup.Reset("LaunchAdvanceDisableJLW")
             Setup.Reset("LaunchAdvanceGraphicCard")
             Setup.Reset("LoginMsAuthType")
-            Setup.Reset("LaunchArgumentJavaAll")
+            Setup.Reset("LaunchArgumentJavaUser")
             Setup.Reset("LaunchArgumentJavaSelect")
 
             Log("[Setup] 已初始化启动设置")

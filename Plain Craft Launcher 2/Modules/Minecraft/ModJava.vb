@@ -4,20 +4,28 @@ Imports PCL.Core.Model
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
 
-
     Private _javas As JavaManage = Nothing
     ''' <summary>
     ''' 目前所有可用的 Java。
     ''' </summary>
     Public ReadOnly Property Javas As JavaManage
         Get
-            If _javas Is Nothing Then
-                _javas = New JavaManage()
-                _javas.ScanJava()
-            End If
+            InitJava()
             Return _javas
         End Get
     End Property
+
+    Private ReadOnly _javasLock As New Object
+    Public Sub InitJava()
+        SyncLock _javasLock
+            If _javas Is Nothing Then
+                _javas = New JavaManage()
+                Log("[Java] 开始搜索 Java")
+                _javas.ScanJava().GetAwaiter().GetResult()
+                Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
+            End If
+        End SyncLock
+    End Sub
 
     ''' <summary>
     ''' 防止多个需要 Java 的部分同时要求下载 Java（#3797）。
@@ -40,7 +48,6 @@ Public Module ModJava
             Return UserTarget
         End If
         Dim ret = Javas.SelectSuitableJava(MinVersion, MaxVersion).Result.FirstOrDefault()
-        MsgBox(ret.ToString())
         Return ret
     End Function
 
@@ -67,17 +74,22 @@ Public Module ModJava
             Dim UserSetup As String = Setup.Get("LaunchArgumentJavaSelect")
             If RelatedVersion IsNot Nothing Then
                 Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=RelatedVersion)
-                If UserSetupVersion <> "使用全局设置" Then UserSetup = UserSetupVersion
+                If UserSetupVersion <> "使用全局设置" Then
+                    If File.Exists(UserSetupVersion) Then
+                        Return Java.Prase(UserSetup)?.Is64Bit
+                    End If
+                End If
             End If
-            If String.IsNullOrEmpty(UserSetup) OrElse Not File.Exists(UserSetup) Then Return False
-            Return Java.Prase(UserSetup).Is64Bit
+            If String.IsNullOrEmpty(UserSetup) Then
+                Return Javas.JavaList.Any(Function(x) x.Is64Bit)
+            End If
+            Return Java.Prase(UserSetup)?.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
             If RelatedVersion IsNot Nothing Then Setup.Set("VersionArgumentJavaSelect", "", Version:=RelatedVersion)
             Setup.Set("LaunchArgumentJavaSelect", "")
-            Return True
         End Try
-        Return False
+        Return True
     End Function
 
 #Region "下载"
