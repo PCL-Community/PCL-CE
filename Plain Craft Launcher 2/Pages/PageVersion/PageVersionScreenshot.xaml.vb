@@ -218,13 +218,16 @@ Public Class PageVersionScreenshot
         End Try
     End Sub
     Private Sub btnCopy_Click(sender As MyIconTextButton, e As EventArgs)
+        Dim filePath As String = sender.Tag?.ToString() ' 获取文件路径
         Dim imagePath As String = GetPathFromSender(sender)
         If File.Exists(imagePath) Then
             Dim TryTime = 0
             While TryTime <= 5
                 Try
                     Log("[Screenshot] 尝试复制" & imagePath & "到剪贴板")
-                    Clipboard.SetImage(New BitmapImage(New Uri(imagePath)))
+                    Dim fileCollection As New System.Collections.Specialized.StringCollection()
+                    fileCollection.Add(filePath)
+                    Clipboard.SetFileDropList(fileCollection)
                     Hint("已复制截图到剪贴板！")
                     TryTime = 6
                     Exit Sub
