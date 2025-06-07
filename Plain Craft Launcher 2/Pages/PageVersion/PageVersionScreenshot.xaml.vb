@@ -204,7 +204,8 @@ Public Class PageVersionScreenshot
     End Function
 
     Private Sub btnOpen_Click(sender As MyIconTextButton, e As EventArgs)
-        OpenExplorer(GetPathFromSender(sender))
+        Dim filePath As String = GetPathFromSender(sender)
+        Process.Start(filePath) ' 使用默认程序打开
     End Sub
     Private Sub btnDelete_Click(sender As MyIconTextButton, e As EventArgs)
         Path = GetPathFromSender(sender)
