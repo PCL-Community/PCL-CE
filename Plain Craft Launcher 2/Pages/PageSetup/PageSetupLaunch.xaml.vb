@@ -93,7 +93,6 @@
             Setup.Reset("LoginMsAuthType")
             Setup.Reset("LaunchArgumentJavaAll")
             Setup.Reset("LaunchArgumentJavaSelect")
-            JavaSearchLoader.Start(IsForceRestart:=True)
 
             Log("[Setup] 已初始化启动设置")
             Hint("已初始化启动设置！", HintType.Finish, False)
@@ -188,7 +187,7 @@
                           If(RamGame <> RamGameActual, " (可用 " & If(RamGameActual = Math.Floor(RamGameActual), RamGameActual & ".0", RamGameActual) & " GB)", "")
         LabRamUsed.Text = If(RamUsed = Math.Floor(RamUsed), RamUsed & ".0", RamUsed) & " GB"
         LabRamTotal.Text = " / " & If(RamTotal = Math.Floor(RamTotal), RamTotal & ".0", RamTotal) & " GB"
-        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not JavaIs64Bit() AndAlso Not Is32BitSystem AndAlso JavaList.Any, Visibility.Visible, Visibility.Collapsed)
+        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava() AndAlso Not Is32BitSystem AndAlso Javas.JavaList.Any, Visibility.Visible, Visibility.Collapsed)
         If ShowAnim Then
             '宽度动画
             AniStart({
@@ -369,7 +368,7 @@ PreFin:
             End If
         End If
         '若使用 32 位 Java，则限制为 1G
-        If If(Is32BitJava, Not JavaIs64Bit(If(UseVersionJavaSetup, Version, Nothing))) Then RamGive = Math.Min(1, RamGive)
+        If If(Is32BitJava, Not IsGameSet64BitJava(If(UseVersionJavaSetup, Version, Nothing))) Then RamGive = Math.Min(1, RamGive)
         Return RamGive
     End Function
 

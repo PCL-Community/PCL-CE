@@ -202,7 +202,6 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
-                JavaListInit() '延后到同意协议后再执行，避免在初次启动时进行进程操作
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
