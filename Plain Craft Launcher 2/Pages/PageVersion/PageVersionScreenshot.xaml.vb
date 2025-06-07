@@ -92,7 +92,7 @@ Public Class PageVersionScreenshot
                 If New FileInfo(i).Length = 0 Then Continue For ' 空文件
                 Dim myCard As New MyCard With {
                 .Height = Double.NaN, ' 允许高度自适应
-                .Width = 221.5,  ' 设定截图展示卡片宽度
+                .Width = Double.NaN,  ' 允许宽度自适应
                 .Margin = New Thickness(7),
                 .Tag = i,
                 .ToolTip = i.Replace(ScreenshotPath, "") '适配高清截图模组
