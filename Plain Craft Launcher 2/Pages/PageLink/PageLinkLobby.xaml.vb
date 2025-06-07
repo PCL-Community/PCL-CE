@@ -15,7 +15,7 @@
     End Sub
 
     Private IsLoad As Boolean = False
-    Private Sub OnLoaded() Handles Me.Loaded
+    Public Sub Reload() Handles Me.Loaded
         RunInNewThread(Sub()
                            If Not Setup.Get("LinkEula") Then
                                Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}{vbCrLf}另外，你还需要同意《Natayark OpenID 服务条款》。", "联机大厅协议授权",
@@ -31,6 +31,7 @@
         If IsLoad Then Exit Sub
         IsLoad = True
         IsMcWatcherRunning = True
+        GetAnnouncement()
         DetectMcInstance()
     End Sub
     Private Sub OnPageExit() Handles Me.PageExit
@@ -56,8 +57,71 @@
 
 #End Region
 
+#Region "公告"
+    Public Const AllowedVersion As Integer = 1
+    Public Sub GetAnnouncement()
+        RunInNewThread(Sub()
+                           Try
+                               Dim Jobj As JObject = Nothing
+                               Dim Cache As Integer = Val(NetRequestRetry("https://s3.pysio.online/pcl2-ce/api/link/cache.ini", "GET", Nothing, "application/json"))
+                               If Cache = Setup.Get("LinkAnnounceCacheVer") Then
+                                   Log("[Link] 使用缓存的公告数据")
+                                   Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                               Else
+                                   Log("[Link] 尝试拉取公告数据")
+                                   Dim Received As String = NetRequestRetry("https://s3.pysio.online/pcl2-ce/api/link/announce.json", "GET", Nothing, "application/json")
+                                   Jobj = JObject.Parse(Received)
+                                   Setup.Set("LinkAnnounceCache", Received)
+                                   Setup.Set("LinkAnnounceCacheVer", Cache)
+                               End If
+                               If Not Val(Jobj("version")) = AllowedVersion Then
+                                   IsLobbyAvailable = False
+                                   RunInUi(Sub()
+                                               HintAnnounce.Theme = MyHint.Themes.Red
+                                               HintAnnounce.Text = "请更新到最新版本 PCL CE 以继续使用大厅"
+                                           End Sub)
+                                   Exit Sub
+                               End If
+                               IsLobbyAvailable = Jobj("available")
+                               '公告
+                               Dim Notices As JArray = Jobj("notices")
+                               Dim NoticeLatest As JObject = Notices(0)
+                               If NoticeLatest("type") = "important" Then
+                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Red)
+                               ElseIf NoticeLatest("type") = "warning" Then
+                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Yellow)
+                               Else
+                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Blue)
+                               End If
+                               RunInUi(Sub() HintAnnounce.Text = NoticeLatest("content").ToString().Replace("\n", vbCrLf))
+                               '中继服务器
+                               Dim Relays As JArray = Jobj("relays")
+                               ETServerDefList = New List(Of ETRelay)
+                               For Each Relay In Relays
+                                   ETServerDefault += Relay("url").ToString() & ";"
+                                   ETServerDefList.Add(New ETRelay With {
+                                       .Name = Relay("name").ToString(),
+                                       .Url = Relay("url").ToString(),
+                                       .Desc = Relay("desc").ToString()
+                                   })
+                               Next
+                           Catch ex As Exception
+                               IsLobbyAvailable = False
+                               RunInUi(Sub()
+                                           HintAnnounce.Theme = MyHint.Themes.Red
+                                           HintAnnounce.Text = "连接到大厅服务器失败"
+                                       End Sub)
+                               Log(ex, "[Link] 获取大厅公告失败")
+                           Finally
+                               RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
+                           End Try
+                       End Sub)
+    End Sub
+#End Region
+
 #Region "信息获取与展示"
 
+#Region "ET 用户信息类"
     Public Class ETPlayerInfo
         Public IsHost As Boolean
         ''' <summary>
@@ -80,10 +144,13 @@
         Public Loss As Double
         Public NatType As String
     End Class
+#End Region
+
+#Region "UI 元素"
     Private Function PlayerInfoItem(Info As ETPlayerInfo, OnClick As MyListItem.ClickEventHandler)
         Dim NewItem As New MyListItem With {
                 .Title = Info.NaidName,
-                .Info = If(Info.IsHost, "[主机] ", "") & If(Info.Cost = "Local", "[本机]", $"{Info.Ping}ms / {Info.Cost}{If(Not Info.Loss = 0, $" / 丢包 {Info.Loss}%", "")}"),
+                .Info = If(Info.IsHost, "[主机] ", "") & If(Info.Cost = "Local", "[本机]", $"{Info.Ping}ms / {GetConnectTypeChinese(Info.Cost)}{If(Not Info.Loss = 0, $" / 丢包 {Info.Loss}%", "")}"),
                 .Type = MyListItem.CheckType.Clickable,
                 .Tag = Info
         }
@@ -91,9 +158,48 @@
         Return NewItem
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
-        MyMsgBox($"Natayark ID：{sender.Tag.NaidName}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{sender.Tag.Cost}，NAT 类型：{sender.Tag.NatType}",
+        MyMsgBox($"Natayark ID：{sender.Tag.NaidName}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
                  $"玩家 {If(sender.Tag.McName, sender.Tag.NaidName)} 的详细信息")
     End Sub
+#End Region
+
+#Region "获取用户友好的描述信息"
+    Private Function GetNatTypeChinese(Type As String) As String
+        If Type.ContainsF("OpenInternet", True) OrElse Type.ContainsF("NoPAT", True) Then
+            Return "开放"
+        ElseIf Type.ContainsF("FullCone", True) Then
+            Return "中等（完全圆锥）"
+        ElseIf Type.ContainsF("PortRestricted") Then
+            Return "中等（端口受限圆锥）"
+        ElseIf Type.ContainsF("Restricted") Then
+            Return "中等（受限圆锥）"
+        ElseIf Type.ContainsF("Symmetric", True) Then
+            Return "严格（对称）"
+        Else
+            Return "未知"
+        End If
+    End Function
+    Private Function GetConnectTypeChinese(Type As String) As String
+        If Type.ContainsF("peer", True) OrElse Type.ContainsF("p2p", True) Then
+            Return "P2P"
+        ElseIf Type.ContainsF("relay", True) Then
+            Return "中继"
+        ElseIf Type.ContainsF("Local", True) Then
+            Return "本机"
+        Else
+            Return "未知"
+        End If
+    End Function
+    Private Function GetQualityDesc(Quality As Integer) As String
+        If Quality >= 3 Then
+            Return "优秀"
+        ElseIf Quality >= 2 Then
+            Return "一般"
+        Else
+            Return "较差"
+        End If
+    End Function
+#End Region
 
     Private IsWatcherStarted As Boolean = False
     Private IsMcWatcherRunning As Boolean = False
@@ -125,7 +231,7 @@
                                    End Sub)
                        End Sub)
     End Sub
-    'EasyTier Cli 信息获取
+    'EasyTier Cli 轮询
     Private Sub StartWatcherThread()
         RunInNewThread(Sub()
                            If IsHost Then
@@ -139,7 +245,7 @@
                            Else
                                Log("[Link] 本机角色：加入者，开始获取 Ping 信息和连接类型信息")
                            End If
-                           Log("[Link] 启动 EasyTier 监视")
+                           Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            While ETProcess IsNot Nothing AndAlso ETProcess.HasExited = False
                                GetETInfo()
@@ -152,16 +258,17 @@
                                            Log("[Link] EasyTier 已退出")
                                        End Sub)
                            End If
-                           Log("[Link] EasyTier 监视线程已退出")
+                           Log("[Link] EasyTier 轮询已结束")
                            IsWatcherStarted = False
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
     End Sub
+    'EasyTier Cli 信息获取
     Private Sub GetETInfo(Optional RemainRetry As Integer = 3)
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
                                        .WorkingDirectory = ETPath,
-                                       .Arguments = ETProcess.StartInfo.Arguments,
+                                       .Arguments = "peer",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
                                        .WindowStyle = ProcessWindowStyle.Hidden,
@@ -173,15 +280,11 @@
                                        .StandardErrorEncoding = Encoding.UTF8},
                                    .EnableRaisingEvents = True
                                }
-        Dim ETCliOutput As String = Nothing
-        Dim HostPing As String = Nothing
-        Dim ConnectType As String = Nothing
-        Dim ConnectTypeOriginal As String = Nothing
-
-        ETCliProcess.StartInfo.Arguments = "peer"
         Try
             ETCliProcess.Start()
             Thread.Sleep(100)
+
+            Dim ETCliOutput As String = Nothing
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
             'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
             If Not ETCliOutput.Contains("10.114.51.41/24") Then
@@ -196,21 +299,14 @@
                 ExitEasyTier()
                 Exit Sub
             End If
-
+            '获取主机信息
+            Dim HostPing As String = Nothing
+            Dim ConnectType As String = Nothing
             HostPing = Math.Round(Val(ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(2).Trim().Split(".")(0))).ToString()
             Hostname = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(0).Split("-")(1).Trim()
             RemotePort = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("-")(0).Trim()
-
-            ConnectTypeOriginal = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(1).Trim()
-            If ConnectTypeOriginal.Contains("peer") OrElse ConnectTypeOriginal.Contains("p2p") Then
-                ConnectType = "P2P"
-            ElseIf ConnectTypeOriginal.Contains("relay") Then
-                ConnectType = "中继"
-            ElseIf ConnectTypeOriginal.Contains("Local") Then
-                ConnectType = "本机"
-            Else
-                ConnectType = "未知"
-            End If
+            ConnectType = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(1).Trim()
+            '查询大厅成员信息
             Dim PlayerNum As Integer = 0
             Dim PlayerList As New List(Of ETPlayerInfo)
             'e.g. │ ipv4 │ hostname │ cost │ lat_ms │ loss_rate │ rx_bytes │ tx_bytes │ tunnel_proto │ nat_type │ id │ version │
@@ -221,7 +317,7 @@
                 Dim ETInfo As New ETPlayerInfo With {
                     .IsHost = Not PlayerInfo.Split("│")(2).Trim().StartsWithF("J-", True),
                     .Hostname = PlayerInfo.Split("│")(2).Trim(),
-                    .Cost = PlayerInfo.Split("│")(3).Trim(),
+                    .Cost = PlayerInfo.Split("│")(3).BeforeLast("(").Trim(),
                     .Ping = Math.Round(Val(PlayerInfo.Split("│")(4).Trim())),
                     .Loss = Math.Round(Val(PlayerInfo.Split("│")(5).Trim()) * 100, 1),
                     .NatType = PlayerInfo.Split("│")(9).Trim(),
@@ -230,18 +326,25 @@
                 }
                 PlayerList.Add(ETInfo)
                 PlayerNum += 1
+                '本地网络质量评估
                 If ETInfo.Cost.ContainsF("Local", True) Then
-                    Dim Quality As String = "较差"
+                    Dim Quality As Integer = 0
+                    'NAT 评估
                     If ETInfo.NatType.ContainsF("OpenInternet", True) OrElse ETInfo.NatType.ContainsF("NoPAT", True) OrElse ETInfo.NatType.ContainsF("FullCone", True) Then
-                        Quality = "优秀"
+                        Quality = 3
                     ElseIf ETInfo.NatType.ContainsF("Restricted", True) OrElse ETInfo.NatType.ContainsF("PortRestricted", True) Then
-                        Quality = "一般"
+                        Quality = 2
                     Else
-                        Quality = "较差"
+                        Quality = 1
                     End If
-                    RunInUi(Sub() LabFinishQuality.Text = Quality)
+                    '到主机延迟评估
+                    If HostPing > 150 Then
+                        Quality -= 1
+                    End If
+                    RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
                 End If
             Next
+            '刷新大厅成员列表 UI
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
                         For Each Player In PlayerList
@@ -250,6 +353,7 @@
                         Next
                         CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
                     End Sub)
+            '加入方刷新连接信息
             If Not IsHost Then
                 RunInUi(Sub()
                             LabFinishPing.Text = HostPing + "ms"
@@ -273,6 +377,10 @@
     Public LocalPort As String = Nothing
     '创建房间
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
+        If Not IsLobbyAvailable Then
+            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+            Exit Sub
+        End If
         If Not IsAdmin() Then
             MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
             Exit Sub
@@ -316,6 +424,10 @@
     Public JoinedLobbyId As String = Nothing
     '加入房间
     Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
+        If Not IsLobbyAvailable Then
+            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+            Exit Sub
+        End If
         If Not IsAdmin() Then
             MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
             Exit Sub
@@ -327,7 +439,7 @@
             Exit Sub
         End If
         RunInNewThread(Sub()
-                           LaunchLink(False, JoinedLobbyId)
+                           LaunchLink(False, JoinedLobbyId, "PCLCELobby" & JoinedLobbyId)
                            RunInUi(Sub()
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        LabFinishTitle.Text = "加入大厅中..."

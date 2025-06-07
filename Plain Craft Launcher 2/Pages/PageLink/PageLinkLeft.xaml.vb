@@ -108,6 +108,12 @@
 
 #End Region
 
+    Public Sub Refresh(sender As Object, e As EventArgs)
+        If IsNothing(FrmLinkLobby) Then FrmLinkLobby = New PageLinkLobby
+        FrmLinkLobby.Reload()
+        ItemLobby.Checked = True
+    End Sub
+
     Public Sub Reset(sender As Object, e As EventArgs)
         If MyMsgBox("是否要初始化联机页的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
             If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageSetupLink
@@ -122,6 +128,7 @@
         FrmLinkNetStatus.NetStatusTest()
         ItemNetStatus.Checked = True
     End Sub
+
     Public Sub NetStatusUpdate(Status As String)
         ItemNetStatus.Title = Status
     End Sub

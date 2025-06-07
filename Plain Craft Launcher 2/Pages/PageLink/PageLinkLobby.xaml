@@ -48,7 +48,8 @@
             </local:MyCard>
         </Grid>
         <Grid x:Name="PanContent">
-            <Grid x:Name="PanSelect" >
+            <local:MyHint x:Name="HintAnnounce" MaxWidth="500" MaxHeight="60" MinWidth="100" Grid.Row="0" Margin="0,-347,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Text="" Visibility="Collapsed"/>
+            <Grid x:Name="PanSelect" Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="1*" />
@@ -203,7 +204,7 @@
             </Grid>
         </Grid>
         <Grid x:Name="PanAlways" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15" Opacity="0.5">
-            <local:MyTextButton Text="联机技术由 EasyTier 提供 | 账号验证服务由 Natayark Network 提供" />
+            <local:MyTextButton Text="联机技术由 EasyTier 提供 | 账号验证服务由 Natayark Network 提供" IsHitTestVisible="False"/>
         </Grid>
     </Grid>
 </local:MyPageRight>

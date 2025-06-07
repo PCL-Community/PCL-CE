@@ -19,6 +19,7 @@
     End Sub
     Public Sub Reload()
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
+        CheckDontUseDefaultRelays.Checked = Setup.Get("LinkDontUseDefaultRelays")
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -34,6 +35,15 @@
                 TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
                 TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
             End If
+        End If
+        If ETServerDefList.Count > 0 Then
+            TextRelays.Text = ""
+            For Each Relay In ETServerDefList
+                TextRelays.Text += Relay.Name & "，"
+            Next
+            TextRelays.Text = TextRelays.Text.BeforeLast("，")
+        Else
+            TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
         End If
     End Sub
     Private Sub ReloadNaidData()
@@ -57,6 +67,10 @@
                        End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogin.Click
+        If Not IsLobbyAvailable Then
+            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+            Exit Sub
+        End If
         If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作后复制浏览器地址栏中的链接，并将其粘贴到输入框中。{vbCrLf}验证完成后的代码存在有效期，请快速操作避免超时。",
                     "登录至 Natayark Network", "继续", "取消") = 1 Then
             OpenWebsite($"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=https://ce.open.pcl2.dev")
@@ -92,6 +106,9 @@
     '将控件改变路由到设置改变
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLinkRelay.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
+    End Sub
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDontUseDefaultRelays.Change
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
 End Class

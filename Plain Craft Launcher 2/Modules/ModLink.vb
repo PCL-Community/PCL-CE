@@ -7,6 +7,8 @@ Imports System.Threading.Tasks
 
 Public Module ModLink
 
+    Public IsLobbyAvailable As Boolean = False
+
 #Region "MCPing"
     Public Class WorldInfo
         Public Property Port As Integer
@@ -435,14 +437,19 @@ Public Module ModLink
 #End Region
 
 #Region "EasyTier"
-
+    Public Class ETRelay
+        Public Url As String
+        Public Name As String
+        Public Desc As String
+    End Class
     Public ETProcess As New Process
     Public ETNetworkName As String = "PCLCELobby"
     Public ETNetworkSecret As String = "PCLCELobbyDefault"
-    Public ETServerDefault As String = "tcp://public.easytier.cn:11010"
+    Public ETServerDefault As String = Nothing
     Public ETVersion As String = "2.3.1"
     Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
+    Public ETServerDefList As New List(Of ETRelay)
 
     Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
@@ -471,14 +478,20 @@ Public Module ModLink
             For Each Server In ServerList.Split(";")
                 If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
             Next
-            Servers.Add(ETServerDefault)
+            If Not Setup.Get("LinkDontUseDefaultRelays") Then
+                For Each Server In ETServerDefault.Split(";")
+                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
+                Next
+            End If
 
             If IsHost Then
-                ETNetworkName = "PCLCELobby"
+                Dim Id As String = Nothing
                 For index = 1 To 8 '生成 8 位随机编号
-                    ETNetworkName += RandomInteger(0, 9).ToString()
+                    Id += RandomInteger(0, 9).ToString()
                 Next
-                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobbyDefault"}")
+                ETNetworkName = "PCLCELobby" & Id
+                Secret = "PCLCELobby" & Id
+                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobby" & Id}")
                 ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun" '创建者
             Else
                 ETNetworkName = "PCLCELobby" + Name
@@ -629,6 +642,7 @@ Public Module ModLink
         End If
         '回传联机数据
         Log("[Link] 开始发送联机数据")
+        Dim Servers As String = ETServerDefault & ";" & Setup.Get("LinkRelayServer")
         Dim Data As New JObject From {
                 {"Tag", "Link"},
                 {"Id", UniqueAddress},
@@ -637,7 +651,7 @@ Public Module ModLink
                 {"NaidLastIp", NaidProfile.LastIp},
                 {"NetworkName", ETNetworkName},
                 {"NetworkSecret", ETNetworkSecret},
-                {"Server", ETServerDefault & ";" & Setup.Get("LinkRelayServer")},
+                {"Server", Servers},
                 {"IsHost", IsHost}
             }
         Dim SendData = New JObject From {{"data", Data}}
@@ -653,10 +667,11 @@ Public Module ModLink
         Catch ex As Exception
             If ex.Message.Contains("429") Then
                 Log("[Link] 联机数据发送失败，请求过于频繁")
+                Hint("请求过于频繁，请稍后再试", HintType.Critical, False)
             Else
                 Log(ex, "[Link] 联机数据发送失败", LogLevel.Normal)
+                Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical, False)
             End If
-            Hint("无法连接到数据服务器，请检查网络连接或稍后再试！", HintType.Critical)
             Return 1
         End Try
         LaunchEasyTier(IsHost, Name, Secret, LocalPort:=LocalPort)
