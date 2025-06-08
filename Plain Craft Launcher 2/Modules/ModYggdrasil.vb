@@ -25,7 +25,7 @@ Public Module ModYggdrasil
                                  Dim Context As HttpListenerContext = Await Server.GetContextAsync()
                                  ApiRoute(Context)
                              Catch ex As Exception
-                                 Log(ex, "[Test] Callback")
+                                 Log(ex,"[Test] 处理响应时发生错误")
                              End Try
                          End While
                      End Function)
@@ -65,7 +65,6 @@ Public Module ModYggdrasil
                     Context.Response.StatusDescription = "Redirect"
                     Context.Response.AddHeader("location", "/api/naid/oauth20/complete")
                     Context.Response.Close()
-                    Log("[Test] 授权码为：" & OAuthCode)
                     If OAuthCode IsNot Nothing Then RunInNewThread(
                             Sub()
                                 GetNaidData(OAuthCode)
