@@ -690,54 +690,59 @@ Public Module ModLink
         Public IsRealname As Boolean = False
         Public LastIp As String
     End Class
-    Public NaidProfile As New NaidUser
+    Public NaidProfile As New NaidUser()
+    Public NaidProfileException As Exception
     Public Sub GetNaidData(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False)
-        RunInNewThread(Sub()
-                           Try
-                               '获取 AccessToken 和 RefreshToken
-                               Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=https://ce.open.pcl2.dev"
-                               'Log("[Link] Naid 请求数据: " & RequestData)
-                               Thread.Sleep(500)
-                               Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
-                               Dim Data As JObject = JObject.Parse(Received)
-                               NaidProfile.AccessToken = Data("access_token").ToString()
-                               NaidProfile.RefreshToken = Data("refresh_token").ToString()
-
-                               '获取用户信息
-                               Dim Headers As New Dictionary(Of String, String)
-                               Headers.Add("Authorization", $"Bearer {NaidProfile.AccessToken}")
-                               Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", "", "application/json", Headers:=Headers)
-                               Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
-                               NaidProfile.Id = UserData("id").ToObject(Of Int32)()
-                               NaidProfile.Username = UserData("username").ToString()
-                               NaidProfile.Email = UserData("email").ToString()
-                               NaidProfile.Status = UserData("status")
-                               NaidProfile.IsRealname = UserData("realname")
-                               NaidProfile.LastIp = UserData("last_ip").ToString()
-                               '保存数据
-                               Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
-                               '若处于联机设置界面，则进行刷新
-                               If FrmSetupLink IsNot Nothing Then RunInUi(Sub() FrmSetupLink.Reload())
-                               If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)
-                           Catch ex As Exception
-                               If IsRetry Then '如果重试了还失败就报错
-                                   Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
-                               End If
-                               If ex.Message.Contains("invalid access token") Then
-                                   Log("[Link] Naid Access Token 无效，尝试刷新登录")
-                                   GetNaidData(Token:=Setup.Get("LinkNaidRefreshToken"), IsRefresh:=True, IsRetry:=True)
-                               ElseIf ex.Message.Contains("invalid_grant") Then
-                                   Log("[Link] Naid 验证代码无效，原始信息: " & ex.ToString())
-                               ElseIf ex.Message.Contains("401") Then
-                                   NaidProfile = New NaidUser
-                                   Setup.Set("LinkNaidRefreshToken", "")
-                                   Hint("Natayark 账号信息已过期，请前往设置重新登录！", HintType.Critical)
-                               Else
-                                   Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
-                               End If
-                           End Try
-                       End Sub)
+        RunInNewThread(Sub() GetNaidDataSync(Token, IsRefresh, IsRetry, IsSilent))
     End Sub
+    Public Function GetNaidDataSync(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False) As Boolean
+        Try
+            '获取 AccessToken 和 RefreshToken
+            Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=https://ce.open.pcl2.dev"
+            'Log("[Link] Naid 请求数据: " & RequestData)
+            Thread.Sleep(500)
+            Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
+            Dim Data As JObject = JObject.Parse(Received)
+            NaidProfile.AccessToken = Data("access_token").ToString()
+            NaidProfile.RefreshToken = Data("refresh_token").ToString()
+
+            '获取用户信息
+            Dim Headers As New Dictionary(Of String, String)
+            Headers.Add("Authorization", $"Bearer {NaidProfile.AccessToken}")
+            Dim ReceivedUserData As String = NetRequestRetry("https://account.naids.com/api/api/user/data", "GET", "", "application/json", Headers:=Headers)
+            Dim UserData As JObject = JObject.Parse(ReceivedUserData)("data")
+            NaidProfile.Id = UserData("id").ToObject(Of Int32)()
+            NaidProfile.Username = UserData("username").ToString()
+            NaidProfile.Email = UserData("email").ToString()
+            NaidProfile.Status = UserData("status")
+            NaidProfile.IsRealname = UserData("realname")
+            NaidProfile.LastIp = UserData("last_ip").ToString()
+            '保存数据
+            Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
+            '若处于联机设置界面，则进行刷新
+            If FrmSetupLink IsNot Nothing Then RunInUi(Sub() FrmSetupLink.Reload())
+            If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)
+            Return True
+        Catch ex As Exception
+            If IsRetry Then '如果重试了还失败就报错
+                Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
+            End If
+            If ex.Message.Contains("invalid access token") Then
+                Log("[Link] Naid Access Token 无效，尝试刷新登录")
+                Return GetNaidDataSync(Token:=Setup.Get("LinkNaidRefreshToken"), IsRefresh:=True, IsRetry:=True)
+            ElseIf ex.Message.Contains("invalid_grant") Then
+                Log("[Link] Naid 验证代码无效，原始信息: " & ex.ToString())
+            ElseIf ex.Message.Contains("401") Then
+                NaidProfile = New NaidUser
+                Setup.Set("LinkNaidRefreshToken", "")
+                Hint("Natayark 账号信息已过期，请前往设置重新登录！", HintType.Critical)
+            Else
+                Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
+            End If
+            NaidProfileException = ex
+            Return False
+        End Try
+    End Function
 #End Region
 
 #Region "NAT 测试"

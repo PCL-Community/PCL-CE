@@ -2844,6 +2844,11 @@ Retry:
         Return Raw
     End Function
 
+    Public Function GetResourceStream(path As String) As Stream
+        Dim resourceInfo = Application.GetResourceStream(New Uri($"pack://application:,,,/{path}", UriKind.Absolute))
+        Return resourceInfo?.Stream
+    End Function
+
 #End Region
 
 #Region "UI"

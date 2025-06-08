@@ -1177,6 +1177,7 @@
   <ItemGroup>
     <Content Include="Resources\linkd.exe" />
     <Content Include="Resources\SQLite.Interop.dll" />
+    <Resource Include="Resources\oauth-complete.html" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
