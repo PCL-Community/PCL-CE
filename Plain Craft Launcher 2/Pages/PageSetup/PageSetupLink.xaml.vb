@@ -2,7 +2,6 @@
 
     Private Shadows IsLoaded As Boolean = False
     Private IsFirstLoad As Boolean = True
-
     Private Sub PageSetupLink_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 
         '重复加载部分
@@ -71,14 +70,9 @@
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Exit Sub
         End If
-        If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作后复制浏览器地址栏中的链接，并将其粘贴到输入框中。{vbCrLf}验证完成后的代码存在有效期，请快速操作避免超时。",
+        If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
                     "登录至 Natayark Network", "继续", "取消") = 1 Then
-            OpenWebsite($"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=https://ce.open.pcl2.dev")
-            Dim Code As String = MyMsgBoxInput("登录至 Natayark Network", $"在浏览器中登录完成后，将地址栏中的链接粘贴到此处。{vbCrLf}若操作过慢可能会超时，此时你需要重新进行验证。", Button1:="确定", Button2:="取消")
-            If Not String.IsNullOrWhiteSpace(Code) Then
-                If Code.Contains("code=") Then Code = Code.AfterFirst("code=")
-                GetNaidData(Code)
-            End If
+            OpenNaidAuthorizeUrl()
         End If
     End Sub
     Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogout.Click
