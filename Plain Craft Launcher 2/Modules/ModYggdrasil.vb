@@ -27,7 +27,7 @@ Public Module ModYggdrasil
                             Dim Context As HttpListenerContext = Await Server.GetContextAsync()
                             ApiRoute(Context)
                         Catch ex As Exception
-                            Log(ex, "[Test] 处理响应时发生错误")
+                            Log(ex, "[Server] 处理响应时发生错误")
                         End Try
                     End While
                 End Function)
@@ -43,25 +43,17 @@ Public Module ModYggdrasil
 
         Public Sub ApiRoute(Context As HttpListenerContext)
 
-            Thread.Sleep(10)
 
             Dim RequestUrl As String = Context.Request.Url.AbsolutePath
             Dim OAuthCode As String = Nothing
-
 
             ' 多斜杠处理
             While RequestUrl.Contains("//")
                 RequestUrl = RequestUrl.Replace("//", "/")
             End While
-
+            
             Select Case RequestUrl
                 Case "/api/naid/oauth20/callback"
-                    If Not Context.Request.HttpMethod.ToUpper() = "GET" Then
-                        Context.Response.StatusCode = 400
-                        Context.Response.StatusDescription = "Bad Request"
-                        Context.Response.Close()
-                        Return
-                    End If
 
                     Dim Query = Context.Request.Url.Query
                     If Query.StartsWith("?") Then Query = Query.Substring(1)
@@ -109,8 +101,7 @@ Public Module ModYggdrasil
                     SyncLock ChangeLock
                         If PicAddress Is Nothing OrElse String.IsNullOrWhiteSpace(PicAddress) Then GoTo NotFound
                         Using FileReadStream As New FileStream(PicAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True)
-                            Context.Response.StatusCode = 200
-                            Context.Response.StatusDescription = "OK"
+                            Context.Response.StatusCode = HttpStatusCode.OK
                             Context.Response.AddHeader("Content-Type", "application/octet-stream")
                             FileReadStream.CopyTo(Context.Response.OutputStream)
                             Context.Response.OutputStream.Dispose()
@@ -143,8 +134,7 @@ Public Module ModYggdrasil
                     End Try
                 Case Else
 NotFound:
-                    Context.Response.StatusCode = 404
-                    Context.Response.StatusDescription = "NotFound"
+                    Context.Response.StatusCode = HttpStatusCode.NotFound
                     Context.Response.Close()
             End Select
         End Sub
