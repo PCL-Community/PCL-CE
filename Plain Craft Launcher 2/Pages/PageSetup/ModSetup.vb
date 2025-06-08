@@ -85,6 +85,7 @@ Public Class ModSetup
         {"LaunchAdvanceGraphicCard", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LaunchRamType", New SetupEntry(0)},
         {"LaunchRamCustom", New SetupEntry(15)},
+        {"ToolFixAuthlib", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LinkLastTestDate", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkAvailable", New SetupEntry(False, Source:=SetupSource.Registry, Encoded:=True)},
