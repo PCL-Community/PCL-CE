@@ -27,7 +27,7 @@ Public Module ModYggdrasil
                             Dim Context As HttpListenerContext = Await Server.GetContextAsync()
                             ApiRoute(Context)
                         Catch ex As Exception
-                            Log(ex, "[Test] 处理响应时发生错误")
+                            Log(ex, "[Server] 处理响应时发生错误")
                         End Try
                     End While
                 End Function)
@@ -47,6 +47,11 @@ Public Module ModYggdrasil
             Dim RequestUrl As String = Context.Request.Url.AbsolutePath
             Dim OAuthCode As String = Nothing
 
+            ' 多斜杠处理
+            While RequestUrl.Contains("//")
+                RequestUrl = RequestUrl.Replace("//", "/")
+            End While
+            
             Select Case RequestUrl
                 Case "/api/naid/oauth20/callback"
 
