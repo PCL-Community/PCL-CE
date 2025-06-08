@@ -119,7 +119,8 @@ NotFound:
             End Select
         End Sub
     End Class
-    Public Function OpenNaidAuthirzeUrl()
+    Public Function OpenNaidAuthorizeUrl()
+
         OpenWebsite($"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=http://local.luotianyi-0712.top:29992/api/naid/oauth20/callback")
         Return Nothing
     End Function
