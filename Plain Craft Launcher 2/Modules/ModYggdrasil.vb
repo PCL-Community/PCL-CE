@@ -78,7 +78,7 @@ Public Module ModYggdrasil
                         End Using
                         Context.Response.OutputStream.Dispose()
                         Context.Response.StatusCode = 200
-                        Context.Response.StatusDescription = "Redirect"
+                        Context.Response.StatusDescription = "OK"
                         Context.Response.Close()
                     Catch ex As Exception
                         GoTo NotFound
