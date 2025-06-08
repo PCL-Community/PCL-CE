@@ -18,7 +18,7 @@
     End Sub
     Public Sub Reload()
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
-        CheckDontUseDefaultRelays.Checked = Setup.Get("LinkDontUseDefaultRelays")
+        ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -37,8 +37,14 @@
         End If
         If ETServerDefList.Count > 0 Then
             TextRelays.Text = ""
+            Dim Count As Integer = 0
             For Each Relay In ETServerDefList
+                If Count = 3 Then
+                    TextRelays.Text += vbCrLf
+                    Count = 0
+                End If
                 TextRelays.Text += Relay.Name & "，"
+                Count += 1
             Next
             TextRelays.Text = TextRelays.Text.BeforeLast("，")
         Else
@@ -72,12 +78,27 @@
         End If
         If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
                     "登录至 Natayark Network", "继续", "取消") = 1 Then
+            BtnLogin.Visibility = Visibility.Collapsed
+            BtnRegister.Visibility = Visibility.Collapsed
+            BtnCancel.Visibility = Visibility.Visible
+            TextLogin.Text = "请在浏览器中完成登录，然后回到启动器中继续..."
             OpenNaidAuthorizeUrl()
         End If
+    End Sub
+    Private Sub BtnCancel_Click(sender As Object, e As RoutedEventArgs) Handles BtnCancel.Click
+        BtnLogin.Visibility = Visibility.Visible
+        BtnRegister.Visibility = Visibility.Visible
+        BtnCancel.Visibility = Visibility.Collapsed
+        TextLogin.Text = "登录至 Natayark Network 以使用大厅等在线服务"
+        Hint("已取消登录！")
     End Sub
     Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogout.Click
         If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
             Setup.Set("LinkNaidRefreshToken", "")
+            BtnLogin.Visibility = Visibility.Visible
+            BtnRegister.Visibility = Visibility.Visible
+            BtnCancel.Visibility = Visibility.Collapsed
+            TextLogin.Text = "登录至 Natayark Network 以使用大厅等在线服务"
             Reload()
             Log("[Link] 已退出登录 Natayark Network")
             Hint("已退出登录！", HintType.Finish, False)
@@ -87,6 +108,7 @@
     Public Sub Reset()
         Try
             Setup.Reset("LinkRelayServer")
+            Setup.Reset("LinkRelayType")
 
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)
@@ -101,8 +123,8 @@
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLinkRelay.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDontUseDefaultRelays.Change
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
+    Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
 
 End Class

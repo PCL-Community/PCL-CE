@@ -19,7 +19,7 @@
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="TextUsername" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                                   Text="已以 Pigeon0v0 的身份登录至 Natayark Network" />
+                                   Text="已以 田所浩二 的身份登录至 Natayark Network" />
                         <local:MyButton x:Name="BtnLogout" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                                         Width="100" ColorType="Highlight" Text="退出登录"/>
                         <local:MyButton x:Name="BtnManage" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
@@ -42,12 +42,12 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                       Text="登录至 Natayark Network 以使用大厅等在线服务" />
+                        <TextBlock x:Name="TextLogin" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="登录至 Natayark Network 以使用大厅等在线服务" />
                         <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                             Width="100" ColorType="Highlight" Text="登录"/>
-                        <local:MyButton Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
+                        <local:MyButton x:Name="BtnRegister" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
+                            Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
+                        <local:MyButton x:Name="BtnCancel" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="100" ColorType="Normal" Text="取消登录" Visibility="Collapsed"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -61,7 +61,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="28" />
                             <RowDefinition Height="8" />
-                            <RowDefinition Height="28" />
+                            <RowDefinition Height="Auto" MinHeight="28"/>
+                            <RowDefinition Height="8" />
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义中继服务器" Margin="0,0,25,0" />
@@ -72,10 +73,14 @@
                                 <local:ValidateLength Max="20" />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="默认中继服务器"/>
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="预设中继服务器"/>
                         <TextBlock x:Name="TextRelays" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="正在获取..."/>
-                        <local:MyCheckBox Text="不使用默认中继服务器" Grid.Row="3" Grid.Column="1" x:Name="CheckDontUseDefaultRelays" Tag="LinkDontUseDefaultRelays" 
-                                          ToolTip="联机时不添加 PCL CE 的默认中继服务器。&#xa;你可能必须手动输入一个中继服务器才能使用大厅。"/>
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继行为"/>
+                        <local:MyComboBox x:Name="ComboRelayType" Tag="LinkRelayType" Grid.Row="4" Grid.Column="1">
+                            <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 无法连接时尝试中继。"/>
+                            <local:MyComboBoxItem Content="不使用预设中继服务器" ToolTip="联机时不添加 PCL CE 预设的中继服务器。&#xa;你可能必须手动输入一个中继服务器才能使用大厅。"/>
+                            <local:MyComboBoxItem Content="始终通过中继连接" ToolTip="始终通过默认中继服务器和自定义中继服务器（如有）建立网络连接。&#xa;仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
+                        </local:MyComboBox>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

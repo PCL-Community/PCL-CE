@@ -31,6 +31,8 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="9" />
                             <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="默认版本隔离" Margin="0,0,25,0" />
@@ -105,13 +107,20 @@
                             <local:MyComboBoxItem Content="Web 账户管理器" IsSelected="True" />
                             <local:MyComboBoxItem Content="设备代码流" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="游戏 Java" Margin="0,0,25,0" />
-                        <local:MyComboBox x:Name="ComboArgumentJava" Grid.ColumnSpan="2" Grid.Row="14" Grid.Column="1" MaxDropDownHeight="240"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="IP 协议偏好" Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboPreferredIpStack" Grid.Row="14" Grid.ColumnSpan="2" Tag="LaunchPreferredIpStack" Grid.Column="1" 
+                                          ToolTip="通过设置 Java 虚拟机参数来设置 MC 的 IP 协议版本偏好。&#xa;一般建议设置为 “IPv4 优先”，这能确保 PCL CE 大厅正常工作。&#xa;如果有手动 IPv6 联机等需要，可以选择其他选项。&#xa;&#xa;IPv4 优先：-Djava.net.preferIPv4Stack=true&#xa;默认：不添加额外参数&#xa;IPv6 优先：-Djava.net.preferIPv6Stack=true">
+                            <local:MyComboBoxItem Content="IPv4 优先" IsSelected="True" />
+                            <local:MyComboBoxItem Content="Java 默认" />
+                            <local:MyComboBoxItem Content="IPv6 优先" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="16" HorizontalAlignment="Left" Text="游戏 Java" Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentJava" Grid.ColumnSpan="2" Grid.Row="16" Grid.Column="1" MaxDropDownHeight="240"
                                       ToolTip="若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL 会尽量优先选择它">
                             <ComboBoxItem Content="加载中……" IsSelected="True" />
                             <!--<local:MyComboBoxItem Content="Java 8 (1.8.0_171)，64 位：C:\Program Files (x86)\Common Files\Oracle\Java\javapath\javaw.exe" ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="5" IsSelected="True" ToolTip="C:\Program Files (x86)\Common Files\Oracle\Java\javapath\javaw.exe" />-->
                         </local:MyComboBox>
-                        <Grid Grid.Row="15" Grid.Column="1">
+                        <Grid Grid.Row="17" Grid.Column="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />

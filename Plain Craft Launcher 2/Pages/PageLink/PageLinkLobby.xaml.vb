@@ -1,9 +1,12 @@
 ﻿Public Class PageLinkLobby
     '记录的启动情况
-    Public Shared IsHost As Boolean = Nothing
+    Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
     Public Shared Hostname As String = Nothing
     Public Shared IsLoading As Boolean = False
+    Public Shared IsConnected As Boolean = False
+    Public Shared LocalInfo As ETPlayerInfo = Nothing
+    Public Shared HostInfo As ETPlayerInfo = Nothing
 
 #Region "初始化"
 
@@ -159,7 +162,7 @@
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
         MyMsgBox($"Natayark ID：{sender.Tag.NaidName}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
-                 $"玩家 {If(sender.Tag.McName, sender.Tag.NaidName)} 的详细信息")
+                 $"玩家 {sender.Tag.NaidName} 的详细信息")
     End Sub
 #End Region
 
@@ -203,7 +206,7 @@
 
     Private IsWatcherStarted As Boolean = False
     Private IsMcWatcherRunning As Boolean = False
-    Private IsETFirstCheckFinished As Boolean = False
+    Public Shared IsETFirstCheckFinished As Boolean = False
     '检测本地 MC 局域网实例
     Private Sub DetectMcInstance() Handles BtnRefresh.Click
         ComboWorldList.Items.Clear()
@@ -235,15 +238,9 @@
     Private Sub StartWatcherThread()
         RunInNewThread(Sub()
                            If IsHost Then
-                               Log($"[Link] 本机角色：大厅创建者，隐藏 Ping 信息和连接类型信息")
-                               RunInUi(Sub()
-                                           SplitLineBeforePing.Visibility = Visibility.Collapsed
-                                           BtnFinishPing.Visibility = Visibility.Collapsed
-                                           SplitLineBeforeType.Visibility = Visibility.Collapsed
-                                           BtnConnectType.Visibility = Visibility.Collapsed
-                                       End Sub)
+                               Log($"[Link] 本机角色：大厅创建者")
                            Else
-                               Log("[Link] 本机角色：加入者，开始获取 Ping 信息和连接类型信息")
+                               Log("[Link] 本机角色：加入者")
                            End If
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
@@ -288,24 +285,25 @@
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
             'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
             If Not ETCliOutput.Contains("10.114.51.41/24") Then
-                If RemainRetry > 0 Then
+                If Not IsETFirstCheckFinished AndAlso RemainRetry > 0 Then
                     Log($"[Link] 未找到大厅创建者 IP，可能是并不存在该大厅，放弃前再重试 {RemainRetry} 次")
                     Thread.Sleep(1000)
                     GetETInfo(RemainRetry - 1)
                     Exit Sub
                 End If
-                Hint("该大厅不存在", HintType.Critical)
-                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
+                If IsETFirstCheckFinished Then
+                    Hint("大厅已被解散", HintType.Critical)
+                Else
+                    Hint("该大厅不存在", HintType.Critical)
+                End If
+                RunInUi(Sub()
+                            CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                            StackPlayerList.Children.Clear()
+                            CurrentSubpage = Subpages.PanSelect
+                        End Sub)
                 ExitEasyTier()
                 Exit Sub
             End If
-            '获取主机信息
-            Dim HostPing As String = Nothing
-            Dim ConnectType As String = Nothing
-            HostPing = Math.Round(Val(ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(2).Trim().Split(".")(0))).ToString()
-            Hostname = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(0).Split("-")(1).Trim()
-            RemotePort = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("-")(0).Trim()
-            ConnectType = ETCliOutput.Split("│ 10.114.51.41/24 │")(1).Split("│")(1).Trim()
             '查询大厅成员信息
             Dim PlayerNum As Integer = 0
             Dim PlayerList As New List(Of ETPlayerInfo)
@@ -324,29 +322,49 @@
                     .McName = If(PlayerInfo.Split("│")(2).Split("-").Length = 3, PlayerInfo.Split("│")(2).Split("-")(2).Trim(), Nothing),
                     .NaidName = PlayerInfo.Split("│")(2).Trim().Split("-")(1).Trim()
                 }
-                PlayerList.Add(ETInfo)
-                PlayerNum += 1
-                '本地网络质量评估
-                If ETInfo.Cost.ContainsF("Local", True) Then
-                    Dim Quality As Integer = 0
-                    'NAT 评估
-                    If ETInfo.NatType.ContainsF("OpenInternet", True) OrElse ETInfo.NatType.ContainsF("NoPAT", True) OrElse ETInfo.NatType.ContainsF("FullCone", True) Then
-                        Quality = 3
-                    ElseIf ETInfo.NatType.ContainsF("Restricted", True) OrElse ETInfo.NatType.ContainsF("PortRestricted", True) Then
-                        Quality = 2
-                    Else
-                        Quality = 1
-                    End If
-                    '到主机延迟评估
-                    If HostPing > 150 Then
-                        Quality -= 1
-                    End If
-                    RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
+                If ETInfo.Cost.ContainsF("Local", True) Then LocalInfo = ETInfo
+                If ETInfo.IsHost Then
+                    HostInfo = ETInfo
+                Else
+                    PlayerList.Add(ETInfo)
                 End If
+                PlayerNum += 1
             Next
+            '本地网络质量评估
+            Dim Quality As Integer = 0
+            'NAT 评估
+            If LocalInfo.NatType.ContainsF("OpenInternet", True) OrElse LocalInfo.NatType.ContainsF("NoPAT", True) OrElse LocalInfo.NatType.ContainsF("FullCone", True) Then
+                Quality = 3
+            ElseIf LocalInfo.NatType.ContainsF("Restricted", True) OrElse LocalInfo.NatType.ContainsF("PortRestricted", True) Then
+                Quality = 2
+            Else
+                Quality = 1
+            End If
+            '到主机延迟评估
+            If HostInfo.Ping > 150 Then
+                Quality -= 1
+            End If
+            RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
+            RemotePort = HostInfo.Hostname.Split("-")(0)
+            Hostname = HostInfo.NaidName
+            If IsHost Then '确认创建者实例存活状态
+                Dim test As New MCPing("127.0.0.1", LocalPort)
+                Dim info = test.GetInfo().GetAwaiter().GetResult()
+                If info Is Nothing Then
+                    Log($"[MCDetect] 本地 MC 局域网实例疑似已关闭，关闭大厅")
+                    RunInUi(Sub()
+                                CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                                StackPlayerList.Children.Clear()
+                                CurrentSubpage = Subpages.PanSelect
+                            End Sub)
+                    ExitEasyTier()
+                    MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
+                End If
+            End If
             '刷新大厅成员列表 UI
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
+                        StackPlayerList.Children.Add(PlayerInfoItem(HostInfo, AddressOf PlayerInfoClick))
                         For Each Player In PlayerList
                             Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(NewItem)
@@ -354,16 +372,10 @@
                         CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
                     End Sub)
             '加入方刷新连接信息
-            If Not IsHost Then
-                RunInUi(Sub()
-                            LabFinishPing.Text = HostPing + "ms"
-                            SplitLineBeforePing.Visibility = Visibility.Visible
-                            BtnFinishPing.Visibility = Visibility.Visible
-                            LabConnectType.Text = ConnectType
-                            SplitLineBeforeType.Visibility = Visibility.Visible
-                            BtnConnectType.Visibility = Visibility.Visible
-                        End Sub)
-            End If
+            RunInUi(Sub()
+                        LabFinishPing.Text = HostInfo.Ping.ToString() & "ms"
+                        LabConnectType.Text = GetConnectTypeChinese(HostInfo.Cost)
+                    End Sub)
             IsETFirstCheckFinished = True
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
@@ -387,14 +399,19 @@
         End If
         BtnCreate.IsEnabled = False
         IsLoading = True
-        Dim LocalPort As String = ComboWorldList.SelectedItem.Tag.Port.ToString()
+        LocalPort = ComboWorldList.SelectedItem.Tag.Port.ToString()
         Log("[Link] 创建大厅，端口：" & LocalPort)
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
                            LaunchLink(True, LocalPort:=LocalPort)
                            RunInUi(Sub()
+                                       SplitLineBeforePing.Visibility = Visibility.Collapsed
+                                       BtnFinishPing.Visibility = Visibility.Collapsed
+                                       SplitLineBeforeType.Visibility = Visibility.Collapsed
+                                       BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                                       StackPlayerList.Children.Clear()
                                        LabFinishTitle.Text = "大厅创建中..."
                                        LabFinishDesc.Text = $"您是大厅创建者，使用 {NaidProfile.Username} 的身份进行联机"
                                    End Sub)
@@ -438,10 +455,18 @@
             Hint("大厅编号不合法", HintType.Critical)
             Exit Sub
         End If
+        IsHost = False
         RunInNewThread(Sub()
                            LaunchLink(False, JoinedLobbyId, "PCLCELobby" & JoinedLobbyId)
                            RunInUi(Sub()
+                                       SplitLineBeforePing.Visibility = Visibility.Visible
+                                       BtnFinishPing.Visibility = Visibility.Visible
+                                       LabFinishPing.Text = "-ms"
+                                       SplitLineBeforeType.Visibility = Visibility.Visible
+                                       BtnConnectType.Visibility = Visibility.Visible
+                                       LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                                       StackPlayerList.Children.Clear()
                                        LabFinishTitle.Text = "加入大厅中..."
                                        LabFinishDesc.Text = $"您是加入者，使用 {NaidProfile.Username} 的身份进行联机"
                                    End Sub)
@@ -530,10 +555,9 @@
     Public Shared PublicIPPort As String = Nothing
     '退出
     Private Sub BtnFinishExit_Click(sender As Object, e As EventArgs) Handles BtnFinishExit.Click
-        If MyMsgBox("你确定要退出大厅吗？", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
+        If MyMsgBox($"你确定要退出大厅吗？{If(IsHost, vbCrLf & "由于你是大厅创建者，退出后此大厅将会自动解散。", "")}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             ExitEasyTier()
-            StopMcPortForward()
             'RemoveNATTranversal()
             'ModLink.RemoveUPnPMapping()
             'LocalPort = Nothing

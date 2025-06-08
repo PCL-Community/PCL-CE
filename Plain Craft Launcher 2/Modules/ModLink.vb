@@ -38,26 +38,26 @@ Public Module ModLink
         ''' <summary>
         ''' 对疑似 MC 端口进行 MCPing，并返回相关信息
         ''' </summary>
-        Public Async Function GetInfo() As Tasks.Task(Of WorldInfo)
+        Public Async Function GetInfo(Optional DoLog As Boolean = True) As Tasks.Task(Of WorldInfo)
             Try
                 ' 创建 TCP 客户端并连接到服务器
                 Using client As New TcpClient(_IP, _Port)
-                    Log($"[MCPing] Established connection ({_IP}:{_Port})", LogLevel.Debug)
+                    If DoLog Then Log($"[MCPing] Established connection ({_IP}:{_Port})", LogLevel.Debug)
                     ' 向服务器发送握手数据包
                     Using stream = client.GetStream()
                         If Not stream.CanWrite OrElse Not stream.CanRead Then Return Nothing
                         Dim startTime = DateTime.Now '开始计时
 
                         Dim handshake As Byte() = BuildHandshake(_IP, _Port)
-                        Log($"[MCPing] Sending {String.Join(" ", handshake)}", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Sending {String.Join(" ", handshake)}", LogLevel.Debug)
                         Await stream.WriteAsync(handshake, 0, handshake.Length)
-                        Log($"[MCPing] Sended handshake", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Sended handshake", LogLevel.Debug)
 
                         ' 向服务器发送查询状态信息的数据包
                         Dim statusRequest As Byte() = BuildStatusRequest()
-                        Log($"[MCPing] Sending {String.Join(" ", statusRequest)}")
+                        If DoLog Then Log($"[MCPing] Sending {String.Join(" ", statusRequest)}")
                         Await stream.WriteAsync(statusRequest, 0, statusRequest.Length)
-                        Log($"[MCPing] Sended statusrequest", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Sended statusrequest", LogLevel.Debug)
 
                         ' 读取服务器响应的数据
                         Dim res As New List(Of Byte)
@@ -80,7 +80,7 @@ Public Module ModLink
                         Loop While bytesNeeded > 0
                         Dim endTime = DateTime.Now '停止计时
                         packetLength -= 3
-                        Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
 
                         ' 读取剩余数据包
                         Dim totalBytes = 0
@@ -89,24 +89,24 @@ Public Module ModLink
                             If bytesRead = 0 Then Exit Do
                             res.AddRange(buffer.Take(bytesRead))
                             totalBytes += bytesRead
-                            Log($"[MCPing] Received part ({bytesRead})", LogLevel.Debug)
+                            If DoLog Then Log($"[MCPing] Received part ({bytesRead})", LogLevel.Debug)
                         Loop While totalBytes < packetLength
 
-                        Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
 
                         Dim response As String = Encoding.UTF8.GetString(res.ToArray(), 0, res.Count)
                         Dim startIndex = response.IndexOf("{""", StringComparison.Ordinal)
                         If startIndex > 10 Then Return Nothing
                         response = response.Substring(startIndex)
-                        Log("[MCPing] Server Response: " & response, LogLevel.Debug)
-                        
+                        If DoLog Then Log("[MCPing] Server Response: " & response, LogLevel.Debug)
+
                         '查找并截取第一段 JSON
                         '有些 mod 或是整合包定制服务端会在返回的 JSON 后面添加新的内容，比如 Better MC
                         '这时候需要把第一段合法的 JSON 截出来，否则下面解析 JSON 会炸掉
                         '但是它们完全可以在返回的 JSON 内部添加自定义内容，添加在后面估计就是为了图 mixin 省事
                         '不守规范一时爽，第三方解析火葬场
                         Dim stack = 0, index = 0, stackStr = False, length = response.Length
-                        While index < length 
+                        While index < length
                             Select Case response(index)
                                 Case "\"c
                                     If stackStr Then index += 1
@@ -118,7 +118,7 @@ Public Module ModLink
                                     stack -= 1
                                     If stack = 0 Then
                                         response = response.Substring(0, index + 1)
-                                        Log("[MCPing] Correct Response: " & response, LogLevel.Debug)
+                                        If DoLog Then Log("[MCPing] Correct Response: " & response, LogLevel.Debug)
                                         Exit While
                                     End If
                             End Select
@@ -139,13 +139,13 @@ Public Module ModLink
                         Dim descObj = j("description")
                         world.Description = ""
                         If descObj.Type = JTokenType.Object AndAlso descObj("extra") IsNot Nothing Then
-                            Log("[MCPing] 获取到的内容为 extra 形式", LogLevel.Debug)
+                            If DoLog Then Log("[MCPing] 获取到的内容为 extra 形式", LogLevel.Debug)
                             world.Description = MinecraftFormatter.ConvertToMinecraftFormat(descObj)
                         ElseIf descObj.Type = JTokenType.Object AndAlso descObj("text") IsNot Nothing Then
-                            Log("[MCPing] 获取到的内容为 text 形式", LogLevel.Debug)
+                            If DoLog Then Log("[MCPing] 获取到的内容为 text 形式", LogLevel.Debug)
                             world.Description = descObj("text").ToString()
                         ElseIf descObj.Type = JTokenType.String Then
-                            Log("[MCPing] 获取到的内容为 string 形式", LogLevel.Debug)
+                            If DoLog Then Log("[MCPing] 获取到的内容为 string 形式", LogLevel.Debug)
                             world.Description = descObj.ToString()
                         End If
                         Return world
@@ -478,7 +478,7 @@ Public Module ModLink
             For Each Server In ServerList.Split(";")
                 If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
             Next
-            If Not Setup.Get("LinkDontUseDefaultRelays") Then
+            If Not Setup.Get("LinkRelayType") = 1 Then
                 For Each Server In ETServerDefault.Split(";")
                     If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
                 Next
@@ -502,6 +502,9 @@ Public Module ModLink
             For Each Server In Servers
                 ETProcess.StartInfo.Arguments += $" -p {Server}"
             Next
+            If Setup.Get("LinkRelayType") = 2 Then
+                ETProcess.StartInfo.Arguments += " --disable-p2p"
+            End If
 
             '创建防火墙规则
             Dim FirewallProcessIn As New Process With {
@@ -530,7 +533,7 @@ Public Module ModLink
             ETProcess.StartInfo.Arguments += $" --hostname ""{Hostname}"""
             'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
             Log($"[Link] 启动 EasyTier")
-            Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
+            'Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", ""))
             ETProcess.Start()
             IsETRunning = True
@@ -591,6 +594,9 @@ Public Module ModLink
                 ETProcess.Kill()
                 IsETRunning = False
                 ETProcess = Nothing
+                PageLinkLobby.RemotePort = Nothing
+                PageLinkLobby.Hostname = Nothing
+                PageLinkLobby.IsETFirstCheckFinished = False
                 StopMcPortForward()
             Catch ex As InvalidOperationException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
@@ -698,7 +704,7 @@ Public Module ModLink
     Public Function GetNaidDataSync(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False) As Boolean
         Try
             '获取 AccessToken 和 RefreshToken
-            Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=https://ce.open.pcl2.dev"
+            Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=http://local.luotianyi-0712.top:29992/api/naid/oauth20/callback"
             'Log("[Link] Naid 请求数据: " & RequestData)
             Thread.Sleep(500)
             Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
@@ -863,8 +869,10 @@ PortRetry:
     Private ServerSocket As Socket = Nothing
     Private ChatClient As UdpClient = Nothing
     Private IsMcPortForwardRunning As Boolean = False
-    Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565, Optional Desc As String = "§ePCL CE 局域网广播")
+    Private PortForwardRetryTimes As Integer = 0
+    Public Async Sub McPortForward(Ip As String, Optional Port As Integer = 25565, Optional Desc As String = "§ePCL CE 局域网广播", Optional IsRetry As Boolean = False)
         If IsMcPortForwardRunning Then Exit Sub
+        If IsRetry Then PortForwardRetryTimes += 1
         Log($"[Link] 开始 MC 端口转发，IP: {Ip}, 端口: {Port}")
         Dim Sip As New IPEndPoint((Await Dns.GetHostAddressesAsync(Ip))(0), Port)
 
@@ -891,8 +899,13 @@ PortRetry:
                                      End If
                                  End While
                              Catch ex As Exception
-                                 Log(ex, "[Link] Minecraft 端口转发线程异常")
-                                 IsMcPortForwardRunning = False
+                                 If PortForwardRetryTimes < 4 Then
+                                     Log($"[Link] Minecraft 端口转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
+                                     McPortForward(Ip, Port, Desc, True)
+                                 Else
+                                     Log(ex, "[Link] Minecraft 端口转发线程异常", LogLevel.Msgbox)
+                                     IsMcPortForwardRunning = False
+                                 End If
                              End Try
                          End Sub)
 
@@ -919,8 +932,13 @@ PortRetry:
                                      RunInNewThread(Sub() Forward(s, c))
                                  End While
                              Catch ex As Exception
-                                 Log(ex, "[Link] Minecraft 端口转发监听线程异常")
-                                 IsMcPortForwardRunning = False
+                                 If PortForwardRetryTimes < 4 Then
+                                     Log($"[Link] Minecraft 端口转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
+                                     McPortForward(Ip, Port, Desc, True)
+                                 Else
+                                     Log(ex, "[Link] Minecraft 端口转发线程异常", LogLevel.Msgbox)
+                                     IsMcPortForwardRunning = False
+                                 End If
                              End Try
                          End Sub)
 

@@ -154,6 +154,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
         Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", Version:=McVersionCurrent)
         DataList.Insert(0, If(DataJvmCustom = "", Setup.Get("LaunchAdvanceJvm"), DataJvmCustom)) '可变 JVM 参数
+        Select Case Setup.Get("LaunchPreferredIpStack")
+            Case 0
+                DataList.Add("-Djava.net.preferIPv4Stack=true")
+            Case 2
+                DataList.Add("-Djava.net.preferIPv6Stack=true")
+        End Select
         McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024) & "m")
