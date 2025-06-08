@@ -79,7 +79,6 @@ Public Module ModYggdrasil
                         Context.Response.OutputStream.Dispose()
                         Context.Response.StatusCode = 200
                         Context.Response.StatusDescription = "Redirect"
-                        Context.Response.AddHeader("location", "/api/naid/oauth20/complete")
                         Context.Response.Close()
                     Catch ex As Exception
                         GoTo NotFound
