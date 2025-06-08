@@ -72,7 +72,7 @@
         End If
         If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
                     "登录至 Natayark Network", "继续", "取消") = 1 Then
-            OpenNaidAuthirzeUrl()
+            OpenNaidAuthorizeUrl()
         End If
     End Sub
     Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogout.Click
