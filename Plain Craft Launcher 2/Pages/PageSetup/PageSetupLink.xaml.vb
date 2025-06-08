@@ -70,7 +70,7 @@
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Exit Sub
         End If
-        If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，并操作完成后回到启动器",
+        If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
                     "登录至 Natayark Network", "继续", "取消") = 1 Then
             OpenNaidAuthirzeUrl()
         End If
