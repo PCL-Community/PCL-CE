@@ -19,13 +19,54 @@ Public Module ModJava
     Public Sub InitJava()
         SyncLock _javasLock
             If _javas Is Nothing Then
+                Dim storeCache = JavaGetCache()
                 _javas = New JavaManage()
+                If storeCache IsNot Nothing Then
+                    _javas.SetCache(storeCache)
+                End If
                 Log("[Java] 开始搜索 Java")
                 _javas.ScanJava().GetAwaiter().GetResult()
+                JavaSetCahce(_javas.GetCache())
                 Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
             End If
         End SyncLock
     End Sub
+
+    Public Sub JavaSetCahce(caches As List(Of JavaLocalCache))
+        Dim newCache = JToken.FromObject(caches).ToString(Newtonsoft.Json.Formatting.None)
+        Setup.Set("LaunchArgumentJavaUser", newCache)
+    End Sub
+
+
+    Public Function JavaGetCache() As List(Of JavaLocalCache)
+        Dim storeCache = Nothing
+        Try
+            storeCache = JToken.Parse(Setup.Get("LaunchArgumentJavaUser")).ToObject(Of List(Of JavaLocalCache))
+        Catch ex As Exception
+            Log("[Java] 解析原有记录错误，可能由于旧版本配置导致")
+        End Try
+        Return storeCache
+    End Function
+
+    ''' <summary>
+    ''' 添加一个用户导入的 Java
+    ''' </summary>
+    ''' <param name="jPath">java.exe 文件位置</param>
+    ''' <returns>如果添加成功则返回 true，已经存在或者添加失败返回 false</returns>
+    Public Function JavaAddNew(jPath As String) As Boolean
+        Try
+            If Javas.HasJava(jPath) Then
+                Return False
+            Else
+                Javas.Add(jPath)
+                JavaSetCahce(Javas.GetCache())
+                Return True
+            End If
+        Catch ex As Exception
+            Log(ex, "[Java] 添加新 Java 失败", LogLevel.Hint)
+        End Try
+        Return False
+    End Function
 
     ''' <summary>
     ''' 防止多个需要 Java 的部分同时要求下载 Java（#3797）。
@@ -76,14 +117,22 @@ Public Module ModJava
                 Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
-                        Return Java.Prase(UserSetup)?.Is64Bit
+                        Dim k = Java.Prase(UserSetup)
+                        Return If(k IsNot Nothing, k.Is64Bit, False)
+                    Else
+                        Setup.Set("VersionArgumentJavaSelect", "", Version:=RelatedVersion)
                     End If
                 End If
+            End If
+            If Not String.IsNullOrEmpty(UserSetup) AndAlso Not File.Exists(UserSetup) Then
+                Setup.Set("LaunchArgumentJavaSelect", "")
+                UserSetup = String.Empty
             End If
             If String.IsNullOrEmpty(UserSetup) Then
                 Return Javas.JavaList.Any(Function(x) x.Is64Bit)
             End If
-            Return Java.Prase(UserSetup)?.Is64Bit
+            Dim j = Java.Prase(UserSetup)
+            Return If(j IsNot Nothing, j.Is64Bit, False)
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
             If RelatedVersion IsNot Nothing Then Setup.Set("VersionArgumentJavaSelect", "", Version:=RelatedVersion)
