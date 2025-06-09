@@ -246,7 +246,7 @@ Public Module ModProfile
         If SelectedProfile.Type = McLoginType.Ms Then
             Dim NewUsername As String = Nothing
             RunInUiWait(Sub() NewUsername = MyMsgBoxInput("输入新的玩家 ID", DefaultInput:=SelectedProfile.Username,
-                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16),New ValidateNullOrWhiteSpace(), New ValidateRegex("([A-z]|[0-9]|_)+")},
+                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If NewUsername = Nothing Then Exit Sub
             RunInNewThread(Sub()
@@ -274,6 +274,7 @@ Public Module ModProfile
                                         MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。","ID 修改失败", "我知道了")
                                     Else
                                         Log(ex,"修改档案 ID 失败",LogLevel.Msgbox)
+                                    End If
                                     Exit Sub
                                End Try
                            End Sub
