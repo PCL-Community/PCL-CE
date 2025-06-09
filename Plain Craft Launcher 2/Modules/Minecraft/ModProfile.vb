@@ -267,6 +267,8 @@ Public Module ModProfile
                                     SelectedProfile.Username = ResultJson("name")
                                     ProfileList.Add(SelectedProfile)
                                     LastUsedProfile = ProfileList.Count - 1
+                                    '刷新页面信息
+                                    FrmLaunchLeft.RefreshPage(True)
                                     SaveProfile()
                                Catch ex As HttpRequestException
                                     Dim ExSummary As String = GetExceptionSummary(ex)
