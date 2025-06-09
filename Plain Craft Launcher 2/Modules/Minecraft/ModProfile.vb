@@ -250,11 +250,11 @@ Public Module ModProfile
             If NewUsername = Nothing Then Exit Sub
             RunInNewThread(Sub()
                                Try
-                                    Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUserName}/available","GET", Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
+                                    Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUserName}/available","GET",Nothing,Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
                                     If CheckResult("status") = "DUPLICATE" Then
                                         MyMsgBox("此 ID 已被使用，请换一个 ID。","ID 修改失败", "确认", IsWarn:=True)
                                         Exit Sub
-                                    Else If CheckResult("status") = "DUPLICATE" Then
+                                    Else If CheckResult("status") = "NOT_ALLOWED" Then
                                         MyMsgBox("此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。","ID 修改失败", "确认", IsWarn:=True)
                                         Exit Sub
                                     End If
