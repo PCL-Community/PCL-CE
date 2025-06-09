@@ -1,4 +1,5 @@
 ﻿Imports System.Security.Cryptography
+Imports System.Net.Http
 
 Public Module ModProfile
 
