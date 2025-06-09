@@ -269,7 +269,11 @@ Public Module ModProfile
                                     LastUsedProfile = ProfileList.Count - 1
                                     SaveProfile()
                                Catch ex As HttpRequestException
-                                    Log(ex,"更新档案名称失败",LogLevel.Msgbox)
+                                    Dim ExSummary As String = GetExceptionSummary(ex)
+                                    If ExSummary.Contains("403") Then
+                                        MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。","ID 修改失败", "我知道了")
+                                    Else
+                                        Log(ex,"修改档案 ID 失败",LogLevel.Msgbox)
                                     Exit Sub
                                End Try
                            End Sub
