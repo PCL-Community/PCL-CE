@@ -74,7 +74,7 @@
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="预设中继服务器"/>
-                        <TextBlock x:Name="TextRelays" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="正在获取..."/>
+                        <TextBlock x:Name="TextRelays" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="正在获取..." TextWrapping="WrapWithOverflow"/>
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继行为"/>
                         <local:MyComboBox x:Name="ComboRelayType" Tag="LinkRelayType" Grid.Row="4" Grid.Column="1">
                             <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 无法连接时尝试中继。"/>

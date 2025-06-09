@@ -37,14 +37,8 @@
         End If
         If ETServerDefList.Count > 0 Then
             TextRelays.Text = ""
-            Dim Count As Integer = 0
             For Each Relay In ETServerDefList
-                If Count = 3 Then
-                    TextRelays.Text += vbCrLf
-                    Count = 0
-                End If
                 TextRelays.Text += Relay.Name & "，"
-                Count += 1
             Next
             TextRelays.Text = TextRelays.Text.BeforeLast("，")
         Else

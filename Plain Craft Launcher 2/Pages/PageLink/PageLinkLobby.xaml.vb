@@ -404,6 +404,48 @@
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
+                           '检查防火墙
+                           Dim CheckFirewall As New Process With {
+                                .StartInfo = New ProcessStartInfo With {
+                                    .Verb = "runas",
+                                    .FileName = "cmd",
+                                    .CreateNoWindow = True,
+                                    .UseShellExecute = False,
+                                    .Arguments = "/c netsh advfirewall show currentprofile state",
+                                    .RedirectStandardOutput = True,
+                                    .RedirectStandardError = True
+                                }
+                           }
+                           CheckFirewall.Start()
+                           Dim Output As String = CheckFirewall.StandardOutput.ReadToEnd()
+                           Output &= CheckFirewall.StandardError.ReadToEnd()
+                           If Output.ContainsF("关闭", True) OrElse Output.ContainsF("off", True) OrElse Output.ContainsF("disable", True) Then
+                               Dim Choice As Integer = MyMsgBox($"Windows 防火墙当前处于关闭状态，这可能带来安全风险。{vbCrLf}是否要开启防火墙？", "防火墙未开启", "开启防火墙并继续", "不开启防火墙并继续", "取消操作并返回", ForceWait:=True, IsWarn:=True)
+                               Select Case Choice
+                                   Case 1
+                                       '开启防火墙
+                                       Dim EnableFirewall As New Process With {
+                                           .StartInfo = New ProcessStartInfo With {
+                                               .Verb = "runas",
+                                               .FileName = "cmd",
+                                               .CreateNoWindow = True,
+                                               .UseShellExecute = False,
+                                               .Arguments = "/c netsh advfirewall set currentprofile state on",
+                                               .RedirectStandardOutput = True,
+                                               .RedirectStandardError = True
+                                           }
+                                       }
+                                       EnableFirewall.Start()
+                                       EnableFirewall.WaitForExit()
+                                       Log("[Link] 已开启 Windows 防火墙")
+                                   Case 2
+                                       Log("[Link] 不更改 Windows 防火墙配置，继续操作")
+                                   Case 3
+                                       Log("[Link] 不更改 Windows 防火墙配置，中止流程")
+                                       RunInUi(Sub() BtnCreate.IsEnabled = True)
+                                       Exit Sub
+                               End Select
+                           End If
                            LaunchLink(True, LocalPort:=LocalPort)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Collapsed
@@ -457,6 +499,48 @@
         End If
         IsHost = False
         RunInNewThread(Sub()
+                           '检查防火墙
+                           Dim CheckFirewall As New Process With {
+                                .StartInfo = New ProcessStartInfo With {
+                                    .Verb = "runas",
+                                    .FileName = "cmd",
+                                    .CreateNoWindow = True,
+                                    .UseShellExecute = False,
+                                    .Arguments = "/c netsh advfirewall show currentprofile state",
+                                    .RedirectStandardOutput = True,
+                                    .RedirectStandardError = True
+                                }
+                           }
+                           CheckFirewall.Start()
+                           Dim Output As String = CheckFirewall.StandardOutput.ReadToEnd()
+                           Output &= CheckFirewall.StandardError.ReadToEnd()
+                           If Output.ContainsF("关闭", True) OrElse Output.ContainsF("off", True) OrElse Output.ContainsF("disable", True) Then
+                               Dim Choice As Integer = MyMsgBox($"Windows 防火墙当前处于关闭状态，这可能带来安全风险。{vbCrLf}是否要开启防火墙？", "防火墙未开启", "开启防火墙并继续", "不开启防火墙并继续", "取消操作并返回", ForceWait:=True, IsWarn:=True)
+                               Select Case Choice
+                                   Case 1
+                                       '开启防火墙
+                                       Dim EnableFirewall As New Process With {
+                                           .StartInfo = New ProcessStartInfo With {
+                                               .Verb = "runas",
+                                               .FileName = "cmd",
+                                               .CreateNoWindow = True,
+                                               .UseShellExecute = False,
+                                               .Arguments = "/c netsh advfirewall set currentprofile state on",
+                                               .RedirectStandardOutput = True,
+                                               .RedirectStandardError = True
+                                           }
+                                       }
+                                       EnableFirewall.Start()
+                                       EnableFirewall.WaitForExit()
+                                       Log("[Link] 已开启 Windows 防火墙")
+                                   Case 2
+                                       Log("[Link] 不更改 Windows 防火墙配置，继续操作")
+                                   Case 3
+                                       Log("[Link] 不更改 Windows 防火墙配置，中止流程")
+                                       RunInUi(Sub() BtnCreate.IsEnabled = True)
+                                       Exit Sub
+                               End Select
+                           End If
                            LaunchLink(False, JoinedLobbyId, "PCLCELobby" & JoinedLobbyId)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Visible
