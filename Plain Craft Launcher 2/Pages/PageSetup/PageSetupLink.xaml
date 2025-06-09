@@ -78,7 +78,7 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继行为"/>
                         <local:MyComboBox x:Name="ComboRelayType" Tag="LinkRelayType" Grid.Row="4" Grid.Column="1">
                             <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 无法连接时尝试中继。"/>
-                            <local:MyComboBoxItem Content="不使用预设中继服务器" ToolTip="联机时不添加 PCL CE 预设的中继服务器。&#xa;你可能必须手动输入一个中继服务器才能使用大厅。"/>
+                            <local:MyComboBoxItem Content="不使用预设中继服务器" ToolTip="联机时不添加 PCL CE 预设的中继服务器。&#xa;虽然 EasyTier 仍会尝试建立 P2P 连接，但你仍可能必须手动输入一个中继服务器才能使用大厅。"/>
                             <local:MyComboBoxItem Content="始终通过中继连接" ToolTip="始终通过默认中继服务器和自定义中继服务器（如有）建立网络连接。&#xa;仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
                         </local:MyComboBox>
                     </Grid>
