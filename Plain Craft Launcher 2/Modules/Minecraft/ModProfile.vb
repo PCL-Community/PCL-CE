@@ -246,11 +246,12 @@ Public Module ModProfile
         If SelectedProfile.Type = McLoginType.Ms Then
             Dim NewUsername As String = Nothing
             RunInUiWait(Sub() NewUsername = MyMsgBoxInput("输入新的玩家 ID", DefaultInput:=SelectedProfile.Username,
-                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
+                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([^A-Za-z0-9_]).?")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If NewUsername = Nothing Then Exit Sub
             RunInNewThread(Sub()
                                Try
+                                    
                                     Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUserName}/available","GET",Nothing,Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
                                     If CheckResult("status") = "DUPLICATE" Then
                                         MyMsgBox("此 ID 已被使用，请换一个 ID。","ID 修改失败", "确认", IsWarn:=True)
@@ -262,8 +263,15 @@ Public Module ModProfile
                                     Dim Result As String = NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}", "PUT", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}})
                                     Dim ResultJson As JObject = GetJson(Result)
                                     Hint($"玩家 ID 修改成功，当前 ID 为：{ResultJson("name")}", HintType.Finish)
+                                    '更新档案信息
+                                    Dim OriginProfile As McProfile = SelectedProfile
+                                    ProfileList.Remove(SelectedProfile)
+                                    SelectedProfile.Username = ResultJson("name")
+                                    If LatestUsedProfile = OriginProfile Then LatestUsedProfile = SelectedProfile
+                                    SaveProfile()
                                Catch ex As HttpRequestException
-                                    Throw
+                                    Log(ex,"更新档案名称失败",LogLevel.Msgbox)
+                                    Exit Sub
                                End Try
                            End Sub
                     )
