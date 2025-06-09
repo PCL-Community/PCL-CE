@@ -251,7 +251,6 @@ Public Module ModProfile
             If NewUsername = Nothing Then Exit Sub
             RunInNewThread(Sub()
                                Try
-                                    
                                     Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUserName}/available","GET",Nothing,Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
                                     If CheckResult("status") = "DUPLICATE" Then
                                         MyMsgBox("此 ID 已被使用，请换一个 ID。","ID 修改失败", "确认", IsWarn:=True)
@@ -264,10 +263,10 @@ Public Module ModProfile
                                     Dim ResultJson As JObject = GetJson(Result)
                                     Hint($"玩家 ID 修改成功，当前 ID 为：{ResultJson("name")}", HintType.Finish)
                                     '更新档案信息
-                                    Dim OriginProfile As McProfile = SelectedProfile
                                     ProfileList.Remove(SelectedProfile)
                                     SelectedProfile.Username = ResultJson("name")
-                                    If LatestUsedProfile = OriginProfile Then LatestUsedProfile = SelectedProfile
+                                    ProfileList.Add(SelectedProfile)
+                                    LastUsedProfile = ProfileList.Count - 1
                                     SaveProfile()
                                Catch ex As HttpRequestException
                                     Log(ex,"更新档案名称失败",LogLevel.Msgbox)
