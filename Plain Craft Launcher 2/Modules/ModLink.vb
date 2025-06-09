@@ -492,11 +492,11 @@ Public Module ModLink
                 ETNetworkName = "PCLCELobby" & Id
                 Secret = "PCLCELobby" & Id
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobby" & Id}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun" '创建者
+                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun --relay-network-whitelist ""{ETNetworkName}"" --private-mode true" '创建者
             Else
                 ETNetworkName = "PCLCELobby" + Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {ETNetworkName}")
-                ETProcess.StartInfo.Arguments = $"-d --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --dev-name ""PCLCELobby""" '加入者
+                ETProcess.StartInfo.Arguments = $"-d --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{ETNetworkName}"" --private-mode true" '加入者
                 'ETProcess.StartInfo.Verb = "runas"
             End If
             For Each Server In Servers
