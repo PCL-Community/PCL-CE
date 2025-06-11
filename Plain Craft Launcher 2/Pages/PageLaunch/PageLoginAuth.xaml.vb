@@ -15,8 +15,8 @@
                 End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
-        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) 
-            Then Hint("输入的验证服务器地址无效")
+        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then 
+            Hint("输入的验证服务器地址无效")
             Exit Sub
         End If
         If String.IsNullOrWhiteSpace(TextServer.Text) OrElse String.IsNullOrWhiteSpace(TextName.Text) OrElse String.IsNullOrWhiteSpace(TextPass.Password) Then
