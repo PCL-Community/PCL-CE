@@ -656,7 +656,6 @@ Public Module ModLink
                 {"NaidEmail", NaidProfile.Email},
                 {"NaidLastIp", NaidProfile.LastIp},
                 {"NetworkName", ETNetworkName},
-                {"NetworkSecret", ETNetworkSecret},
                 {"Server", Servers},
                 {"IsHost", IsHost}
             }
