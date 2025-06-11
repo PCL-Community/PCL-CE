@@ -16,7 +16,7 @@
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
         If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then 
-            Hint("输入的验证服务器地址无效")
+            Hint("输入的验证服务器地址无效", HintType.Critical)
             Exit Sub
         End If
         If String.IsNullOrWhiteSpace(TextServer.Text) OrElse String.IsNullOrWhiteSpace(TextName.Text) OrElse String.IsNullOrWhiteSpace(TextPass.Password) Then
@@ -50,8 +50,6 @@
                                If ex.Message = "$$" Then
                                ElseIf ex.Message.StartsWith("$") Then
                                    Hint(ex.Message.TrimStart("$"), HintType.Critical)
-                               ElseIf TypeOf ex Is Security.Authentication.AuthenticationException AndAlso ex.Message.ContainsF("SSL/TLS") Then
-                                   Log(ex, "第三方登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。" & vbCrLf & vbCrLf & "原始错误信息：", LogLevel.Msgbox)
                                Else
                                    Log(ex, "第三方登录尝试失败", LogLevel.Msgbox)
                                End If
