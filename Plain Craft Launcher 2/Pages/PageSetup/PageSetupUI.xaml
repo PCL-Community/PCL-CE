@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     mc:Ignorable="d" x:Class="PageSetupUI"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
@@ -76,21 +77,31 @@
                                 <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版" Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0" ColorType="Highlight" />
                             </StackPanel>
                         </Border>
-                        <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
-                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,0,0,7">
+                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                                 <ColumnDefinition />
+                                <ColumnDefinition Width="92" SharedSizeGroup="SubName" />
+                                <ColumnDefinition />
+                                <ColumnDefinition SharedSizeGroup="SubName" />
+                                <ColumnDefinition />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="深浅" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboDarkMode" Tag="UiDarkMode" Grid.Column="1">
-                                <local:MyComboBoxItem Content="浅色" IsSelected="True"/>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主题"/>
+                            <local:MyComboBox Grid.Column="1" x:Name="ComboDarkMode" Tag="UiDarkMode">
+                                <local:MyComboBoxItem Content="浅色"/>
                                 <local:MyComboBoxItem Content="深色"/>
-                                <local:MyComboBoxItem Content="跟随系统"/>
+                                <local:MyComboBoxItem Content="跟随系统"/> <!-- default -->
                             </local:MyComboBox>
+
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="浅色配色"/>
+                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor"/>
+
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="深色配色"/>
+                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor"/>
+
                         </Grid>
-                        <Grid Height="28" Margin="0,0,0,7">
+                        <Grid Height="28" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                                 <ColumnDefinition />
@@ -99,6 +110,7 @@
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
                             <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
                         </Grid>
+                        <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                     </StackPanel>
                 </Grid>
             </local:MyCard>

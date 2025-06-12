@@ -581,15 +581,19 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         RaiseThemeChanged(IsDarkMode)
         ThemeRefreshMain()
     End Sub
-    
-    Public Function GetDarkThemeLight(OriginalLight As Double) As Double
+
+    Private Function GetDarkThemeLight(OriginalLight As Double) As Double
         If IsDarkMode Then
             Return OriginalLight * 0.1
         Else
             Return OriginalLight
         End If
     End Function
-    
+
+    Private ReadOnly HueList As Integer() = {200, 210, 225}
+    Private ReadOnly SatList As Integer() = {100, 85, 70}
+    Private ReadOnly LightList As Integer() = {7, 0, -2}
+
     Public Sub ThemeRefreshColor()
 #If DEBUG Then
         If EnableCustomTheme Then
@@ -597,21 +601,17 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             If CustomThemeSat IsNot Nothing Then ColorSat = CustomThemeSat
             If CustomThemeLight IsNot Nothing Then ColorLightAdjust = CustomThemeLight
             If CustomThemeHueDelta IsNot Nothing Then ColorHueTopbarDelta = CustomThemeHueDelta
-        ElseIf IsDarkMode Then
-#Else
-        If IsDarkMode Then
-#End If
-            ColorHue = 205
-            ColorSat = 90
-            ColorLightAdjust = 0
-            ColorHueTopbarDelta = 0
         Else
-            ColorHue = 210
-            ColorSat = 85
-            ColorLightAdjust = 0
+#End If
+            Dim colorIndex As Integer = If(IsDarkMode, Setup.Get("UiDarkColor"), Setup.Get("UiLightColor"))
+            ColorHue = HueList(colorIndex)
+            ColorSat = SatList(colorIndex)
+            ColorLightAdjust = LightList(colorIndex)
             ColorHueTopbarDelta = 0
+#If DEBUG Then
         End If
-        
+#End If
+
         Dim res = Application.Current.Resources
         StaticColors = If(IsDarkMode, DarkStaticColors, LightStaticColors)
         DynamicColors = New ThemeStyleDynamicColors(CurrentStyle, ColorHue, ColorSat, ColorLightAdjust)
@@ -633,7 +633,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushGray6") = StaticColors.Gray6Brush
         res("ColorBrushGray7") = StaticColors.Gray7Brush
         res("ColorBrushGray8") = StaticColors.Gray8Brush
-        
+
         res("ColorObject1") = DynamicColors.Color1
         res("ColorObject2") = DynamicColors.Color2
         res("ColorObject3") = DynamicColors.Color3
@@ -644,7 +644,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorObject8") = DynamicColors.Color8
         res("ColorObjectBg0") = DynamicColors.ColorBg0
         res("ColorObjectBg1") = DynamicColors.ColorBg1
-        
+
         res("ColorBrush1") = DynamicColors.Color1Brush
         res("ColorBrush2") = DynamicColors.Color2Brush
         res("ColorBrush3") = DynamicColors.Color3Brush
@@ -655,7 +655,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrush8") = DynamicColors.Color8Brush
         res("ColorBrushBg0") = DynamicColors.ColorBg0Brush
         res("ColorBrushBg1") = DynamicColors.ColorBg1Brush
-        
+
         res("ColorBrushWhite") = StaticColors.WhiteBrush
         res("ColorBrushHalfWhite") = StaticColors.HalfWhiteBrush
         res("ColorBrushSemiWhite") = StaticColors.SemiWhiteBrush
@@ -667,7 +667,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushMsgBox") = StaticColors.WhiteBrush
         res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
-    
+
     Public Sub ThemeRefreshMain()
 #If DEBUG Then
         If EnableCustomTheme Then ThemeNow = 14
