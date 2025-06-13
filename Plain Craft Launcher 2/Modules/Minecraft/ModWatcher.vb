@@ -487,15 +487,29 @@
         '强制关闭
         Public Sub Kill()
             State = MinecraftState.Canceled
-            WatcherLog("尝试强制结束 Minecraft 进程")
-            Try
-                If Not GameProcess.HasExited Then GameProcess.Kill()
-                WatcherLog("已强制结束 Minecraft 进程")
-                If RealTime Then LogRealTime($"Minecraft 已退出，返回值：{GameProcess.ExitCode}", GameLogLevel.Info)
-                RaiseEvent GameExit()
-            Catch ex As Exception
-                Log(ex, "强制结束 Minecraft 进程失败", LogLevel.Hint)
-            End Try
+            RunInNewThread(
+                Sub()
+                    WatcherLog("尝试强制结束 Minecraft 进程")
+                    Try
+                        If Not GameProcess.HasExited Then GameProcess.Kill()
+                        GameProcess.WaitForExit(5000)
+                        If Not GameProcess.HasExited Then
+                            Dim taskkillProcess = Process.Start("taskkill.exe", $"/PID {GameProcess.Id} /F /T")
+                            Dim output = taskkillProcess.StandardOutput.ReadToEnd()
+                            Log($"Kill() 方法无效，尝试调用 taskkill.exe: {output}")
+                            GameProcess.WaitForExit(5000)
+                            If Not GameProcess.HasExited Then
+                                WatcherLog("强制结束 Minecraft 进程失败: 等待进程退出超时")
+                                Return
+                            End If
+                        End If
+                        WatcherLog("已强制结束 Minecraft 进程")
+                        If RealTime Then LogRealTime($"Minecraft 已退出，返回值：{GameProcess.ExitCode}", GameLogLevel.Info)
+                        RaiseEvent GameExit()
+                    Catch ex As Exception
+                        Log(ex, "强制结束 Minecraft 进程失败", LogLevel.Hint)
+                    End Try
+                End Sub)
         End Sub
 
         '导出运行栈
