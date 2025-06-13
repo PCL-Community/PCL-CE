@@ -673,17 +673,17 @@ Install:
                        End Function
             Case SortMethod.TagNums
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
-                           Return a.Comp.Tags.Count - b.Comp.Tags.Count
+                           Return b.Comp.Tags.Count - a.Comp.Tags.Count
                        End Function
             Case SortMethod.CreateTime
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            Dim aDate = New FileInfo(a.Path).CreationTime
                            Dim bDate = New FileInfo(b.Path).CreationTime
-                           Return If(aDate = bDate, 0, If(aDate > bDate, 1, -1))
+                           Return If(aDate = bDate, 0, If(aDate > bDate, -1, 1))
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
-                           Return (New FileInfo(a.Path)).Length - (New FileInfo(b.Path)).Length
+                           Return (New FileInfo(b.Path)).Length - (New FileInfo(a.Path)).Length
                        End Function
             Case Else
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
