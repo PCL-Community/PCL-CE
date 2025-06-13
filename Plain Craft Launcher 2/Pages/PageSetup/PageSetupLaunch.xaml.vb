@@ -83,7 +83,6 @@
             Setup.Reset("LaunchArgumentPriority")
             Setup.Reset("LaunchPreferredIpStack")
             Setup.Reset("LaunchArgumentRam")
-            Setup.Reset("LaunchArgumentJavaTraversal")
             Setup.Reset("LaunchRamType")
             Setup.Reset("LaunchRamCustom")
             Setup.Reset("LaunchAdvanceJvm")

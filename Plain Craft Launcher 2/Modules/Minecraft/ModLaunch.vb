@@ -1209,13 +1209,13 @@ LoginFinish:
         If McVersionCurrent.Version.HasOptiFine AndAlso McVersionCurrent.Version.IsStandardVersion Then '不管非标准版本
             If McVersionCurrent.Version.McVersion < New Version(1, 7) Then
                 '<1.7：至多 Java 8
-                MaxVer = New Version(1, 8, 999, 999)
+                MaxVer = New Version(8, 999, 999, 999)
             ElseIf McVersionCurrent.Version.McVersion >= New Version(1, 8) AndAlso McVersionCurrent.Version.McVersion < New Version(1, 12) Then
                 '1.8 - 1.11：必须恰好 Java 8
-                MinVer = New Version(1, 8, 0, 0) : MaxVer = New Version(1, 8, 999, 999)
+                MinVer = New Version(1, 8, 0, 0) : MaxVer = New Version(8, 999, 999, 999)
             ElseIf McVersionCurrent.Version.McCodeMain = 12 Then
                 '1.12：最高 Java 8
-                MaxVer = New Version(1, 8, 999, 999)
+                MaxVer = New Version(8, 999, 999, 999)
             End If
         End If
 
@@ -1227,7 +1227,7 @@ LoginFinish:
                 MaxVer = If(New Version(1, 7, 999, 999) < MaxVer, New Version(1, 7, 999, 999), MaxVer)
             ElseIf McVersionCurrent.Version.McCodeMain <= 12 OrElse Not McVersionCurrent.Version.IsStandardVersion Then '非标准版本
                 '<=1.12：Java 8
-                MaxVer = New Version(1, 8, 999, 999)
+                MaxVer = New Version(8, 999, 999, 999)
             ElseIf McVersionCurrent.Version.McCodeMain <= 14 Then
                 '1.13 - 1.14：Java 8 - 10
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
@@ -1260,6 +1260,12 @@ LoginFinish:
                 '1.18+：Java 17+
                 MinVer = If(New Version(17, 0, 0, 0) > MinVer, New Version(17, 0, 0, 0), MinVer)
             End If
+        End If
+
+        'LabyMod 检测
+        If McVersionCurrent.Version.HasLabyMod Then
+            MinVer = If(New Version(21, 0, 0, 0) > MinVer, New Version(21, 0, 0, 0), MinVer)
+            MaxVer = New Version(999, 999, 999, 999)
         End If
 
         SyncLock JavaLock
@@ -2279,7 +2285,11 @@ NextVersion:
         '显示实时日志
         If CurrentLaunchOptions.Test Then
             If FrmLogLeft Is Nothing Then RunInUiWait(Sub() FrmLogLeft = New PageLogLeft)
-            If FrmLogRight Is Nothing Then RunInUiWait(Sub() FrmLogRight = New PageLogRight)
+            If FrmLogRight Is Nothing Then RunInUiWait(Sub()
+                                                           AniControlEnabled += 1
+                                                           FrmLogRight = New PageLogRight
+                                                           AniControlEnabled -= 1
+                                                       End Sub)
             FrmLogLeft.Add(Watcher)
             McLaunchLog("已显示游戏实时日志")
         End If

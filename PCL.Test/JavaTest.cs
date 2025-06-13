@@ -1,10 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using PCL.Core.Java;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using PCL.Core.Helper;
 
 namespace PCL.Test
 {
@@ -14,14 +15,23 @@ namespace PCL.Test
         [TestMethod]
         public async Task TestJavaSearch()
         {
-            var res = await JavaModel.ScanJava();
-            //Assert.IsTrue(res.Count > 0, "No Java successfully found.");
-            foreach (var ja in res)
+            // Java 搜索是否稳定
+            var jas = new JavaManage();
+            await jas.ScanJava();
+            var firstScanedCount = jas.JavaList.Count;
+            foreach (var ja in jas.JavaList)
             {
-                Assert.IsTrue(ja.Version.Major > 0, "Java version is not valid: " + ja.Path);
-                Assert.IsTrue(!string.IsNullOrWhiteSpace(ja.Path));
+                Console.WriteLine(ja.ToString());
+                Assert.IsTrue(ja.Version.Major > 0, "Java version is not valid: " + ja.JavaFolder);
+                Assert.IsTrue(!string.IsNullOrWhiteSpace(ja.JavaFolder));
             }
-            Logger.LogMessage("Got result: {0}", res.Select(x => x.Path).ToList());
+            await jas.ScanJava();
+            var secondScanedCount = jas.JavaList.Count;
+            Assert.IsTrue(firstScanedCount == secondScanedCount);
+            // Java 搜索是否能够正确选择
+            Assert.IsTrue(jas.JavaList.Count == 0 || (jas.JavaList.Count > 0 && (await jas.SelectSuitableJava(new Version(1, 8, 0), new Version(30, 0, 0))).Count > 0));
+            // Java 是否有重复
+            Assert.IsFalse(jas.JavaList.GroupBy(x => x.JavawExePath).Any(x => x.Count() > 1));
         }
     }
 }

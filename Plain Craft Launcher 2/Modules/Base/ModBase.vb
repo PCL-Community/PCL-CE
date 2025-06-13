@@ -15,22 +15,22 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.11.2-beta.3" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.11.1." & VersionBranchCode '标准格式的四段式版本号
+    Public Const VersionBaseName As String = "2.11.5" '不含分支前缀的显示用版本名
+    Public Const VersionStandardCode As String = "2.11.5." & VersionBranchCode
     Public Const CommitHash As String = "native" 'Commit Hash，由 GitHub Workflow 自动替换
     Public CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const UpstreamVersion As String = "2.10.0" '上游版本
-    Public Const VersionCode As Integer = 373 '内部版本号
+    Public Const UpstreamVersion As String = "2.10.1" '上游版本
+    Public Const VersionCode As Integer = 377 '内部版本号
     '自动生成的版本信息
-#If RELEASE Then
-    Public Const VersionBranchName As String = "Slow Ring"
-    Public Const VersionBranchCode As String = "0"
-#ElseIf BETA Then
-    Public Const VersionBranchName As String = "Fast Ring"
-    Public Const VersionBranchCode As String = "50"
-#Else
+#If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
     Public Const VersionBranchCode As String = "100"
+#ElseIf DEBUGCI Then
+    Public Const VersionBranchName As String = "CI"
+    Public Const VersionBranchCode As String = "50"
+#Else
+    Public Const VersionBranchName As String = "Publish"
+    Public Const VersionBranchCode As String = "0"
 #End If
 
     ''' <summary>
@@ -1317,6 +1317,7 @@ Re:
         ''' </summary>
         Public Function Check(LocalPath As String) As String
             Try
+                Log($"[Checker] 开始校验文件 {LocalPath}", LogLevel.Debug)
                 Dim Info As New FileInfo(LocalPath)
                 If Not Info.Exists Then Return "文件不存在：" & LocalPath
                 Dim FileSize As Long = Info.Length
@@ -3192,7 +3193,7 @@ Retry:
         Else
             LogList.Append(AppendText)
         End If
-#If DEBUG Then
+#If DEBUG Or DEBUGCI Then
         Console.Write(AppendText)
 #End If
         If IsProgramEnded OrElse Level = LogLevel.Normal Then Return
@@ -3256,7 +3257,7 @@ Retry:
         Else
             LogList.Append(AppendText)
         End If
-#If DEBUG Then
+#If DEBUG Or DEBUGCI Then
         Console.Write(AppendText)
 #End If
         If IsProgramEnded Then Return

@@ -26,6 +26,7 @@ Public Class ModSetup
         {"HintIndieSetup", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintProfileSelect", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintExportConfig", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"HintMaxLog", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
         {"SystemLaunchCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
@@ -49,6 +50,7 @@ Public Class ModSetup
         {"SystemDisableHardwareAcceleration", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemTelemetry", New SetupEntry(Nothing, Source:=SetupSource.Registry)},
         {"SystemMirrorChyanKey", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
+        {"SystemMaxLog", New SetupEntry(13, Source:=SetupSource.Registry)},
         {"CacheExportConfig", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageUrl", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageVersion", New SetupEntry("", Source:=SetupSource.Registry)},
@@ -77,7 +79,6 @@ Public Class ModSetup
         {"LaunchPreferredIpStack", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"LaunchArgumentRam", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LaunchAdvanceJvm", New SetupEntry("-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")},
-        {"LaunchArgumentJavaTraversal", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LaunchAdvanceGame", New SetupEntry("")},
         {"LaunchAdvanceRun", New SetupEntry("")},
         {"LaunchAdvanceRunWait", New SetupEntry(True)},
@@ -507,7 +508,7 @@ Public Class ModSetup
 
     '对部分设置强制赋值
     Private Function ForceValue(Key As String) As String
-#If BETA Then
+#If RELEASE Or BETA Then
         If Key = "UiLauncherTheme" Then Return "0"
 #End If
         Return Nothing

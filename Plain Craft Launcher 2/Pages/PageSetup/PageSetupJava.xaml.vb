@@ -13,7 +13,7 @@ Public Class PageSetupJava
         Return Javas.JavaList.Count
     End Function
     Private Sub Load_GetJavaList(loader As LoaderTask(Of Integer, List(Of Java)))
-        Javas.ScanJava()
+        Javas.ScanJava().GetAwaiter().GetResult()
         loader.Output = Javas.JavaList
     End Sub
 
@@ -33,9 +33,6 @@ Public Class PageSetupJava
                               Item.Tags = displayTags
 
                               Item.Type = MyListItem.CheckType.RadioBox
-                              If J.JavaExePath = Setup.Get("LaunchArgumentJavaSelect") Then
-                                  Item.Checked = True
-                              End If
                               AddHandler Item.Check, Sub(sender As Object, e As RouteEventArgs)
                                                          If J.IsEnabled Then
                                                              Setup.Set("LaunchArgumentJavaSelect", J.JavaExePath)
@@ -83,7 +80,7 @@ Public Class PageSetupJava
                                                                         Dim target = Javas.JavaList.Where(Function(x) x.JavaExePath = J.JavaExePath).First()
                                                                         target.IsEnabled = Not target.IsEnabled
                                                                         UpdateEnableStyle(target.IsEnabled)
-                                                                        JavaSetCahce(Javas.GetCache())
+                                                                        JavaSetCache(Javas.GetCache())
                                                                     Catch ex As Exception
                                                                         Log(ex, "调整 Java 启用状态失败", LogLevel.Hint)
                                                                     End Try
@@ -93,18 +90,22 @@ Public Class PageSetupJava
                               Return Item
                           End Function
         PanContent.Children.Clear()
-        Dim ItemAuto As New MyListItem
-        ItemAuto.Type = MyListItem.CheckType.RadioBox
-        ItemAuto.Title = "自动选择"
-        ItemAuto.Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
-        ItemAuto.Checked = String.IsNullOrEmpty(Setup.Get("LaunchArgumentJavaSelect"))
+        Dim ItemAuto As New MyListItem With {
+            .Type = MyListItem.CheckType.RadioBox,
+            .Title = "自动选择",
+            .Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
+        }
         AddHandler ItemAuto.Check, Sub()
                                        Setup.Set("LaunchArgumentJavaSelect", "")
                                    End Sub
         PanContent.Children.Add(ItemAuto)
+        Dim CurrentSetJava = Setup.Get("LaunchArgumentJavaSelect")
         For Each J In Javas.JavaList
-            PanContent.Children.Add(ItemBuilder(J))
+            Dim item = ItemBuilder(J)
+            PanContent.Children.Add(item)
+            If J.JavaExePath = CurrentSetJava Then item.SetChecked(True, False, False)
         Next
+        If String.IsNullOrEmpty(CurrentSetJava) Then ItemAuto.SetChecked(True, False, False)
     End Sub
 
     Private Sub BtnRefresh_Click(sender As Object, e As RouteEventArgs) Handles BtnRefresh.Click

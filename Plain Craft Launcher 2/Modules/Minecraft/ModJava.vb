@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.Helper
 Imports PCL.Core.Model
+Imports System.Threading.Tasks
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
@@ -10,29 +11,36 @@ Public Module ModJava
     ''' </summary>
     Public ReadOnly Property Javas As JavaManage
         Get
-            InitJava()
+            InitJava().GetAwaiter().GetResult()
             Return _javas
         End Get
     End Property
 
-    Private ReadOnly _javasLock As New Object
-    Public Sub InitJava()
-        SyncLock _javasLock
-            If _javas Is Nothing Then
-                Dim storeCache = JavaGetCache()
-                _javas = New JavaManage()
-                If storeCache IsNot Nothing Then
-                    _javas.SetCache(storeCache)
-                End If
-                Log("[Java] 开始搜索 Java")
-                _javas.ScanJava().GetAwaiter().GetResult()
-                JavaSetCahce(_javas.GetCache())
-                Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
+    Private _javaInitTask As Task = Nothing
+    Private ReadOnly _javasInitLock As New Object
+    Public Function InitJava() As Task
+        SyncLock _javasInitLock
+            If _javas IsNot Nothing Then
+                Return Task.CompletedTask
             End If
+            If _javaInitTask Is Nothing Then
+                _javaInitTask = Task.Run(Sub()
+                                             Dim storeCache = JavaGetCache()
+                                             _javas = New JavaManage()
+                                             If storeCache IsNot Nothing Then
+                                                 _javas.SetCache(storeCache)
+                                             End If
+                                             Log("[Java] 开始搜索 Java")
+                                             _javas.ScanJava().GetAwaiter().GetResult()
+                                             JavaSetCache(_javas.GetCache())
+                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
+                                         End Sub)
+            End If
+            Return _javaInitTask
         End SyncLock
-    End Sub
+    End Function
 
-    Public Sub JavaSetCahce(caches As List(Of JavaLocalCache))
+    Public Sub JavaSetCache(caches As List(Of JavaLocalCache))
         Dim newCache = JToken.FromObject(caches).ToString(Newtonsoft.Json.Formatting.None)
         Setup.Set("LaunchArgumentJavaUser", newCache)
     End Sub
@@ -59,7 +67,7 @@ Public Module ModJava
                 Return False
             Else
                 Javas.Add(jPath)
-                JavaSetCahce(Javas.GetCache())
+                JavaSetCache(Javas.GetCache())
                 Return True
             End If
         Catch ex As Exception
@@ -81,14 +89,35 @@ Public Module ModJava
                                Optional MinVersion As Version = Nothing,
                                Optional MaxVersion As Version = Nothing,
                                Optional RelatedVersion As McVersion = Nothing) As Java
+        Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedVersion IsNot Nothing, RelatedVersion.Name, "未指定")}")
         Dim IsVersionSuit = Function(ver As Version)
                                 Return ver >= MinVersion AndAlso ver <= MaxVersion
                             End Function
-        Dim UserTarget = GetUserSetJava(RelatedVersion)
-        If UserTarget IsNot Nothing AndAlso IsVersionSuit(UserTarget.Version) Then
-            Return UserTarget
+        If RelatedVersion IsNot Nothing Then '考虑选择的实例指定的 Java
+            Dim userVersionJava = GetVersionUserSetJava(RelatedVersion)
+            If userVersionJava IsNot Nothing AndAlso IsVersionSuit(userVersionJava.Version) Then
+                Log($"[Java] 返回实例 {RelatedVersion.Name} 指定的 Java {userVersionJava.ToString()}")
+                Return userVersionJava
+            End If
         End If
-        Dim ret = Javas.SelectSuitableJava(MinVersion, MaxVersion).Result.FirstOrDefault()
+        '考虑用户全局指定的 Java
+        Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
+        Dim userGlobalJavaSet = Java.Parse(userGlobalJava)
+        If userGlobalJavaSet IsNot Nothing Then
+            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet.ToString()}")
+            Return userGlobalJavaSet
+        End If
+        '寻找合适 Java
+        Javas.CheckJavaAvailability()
+        Dim reqMin = If(MinVersion, New Version(1, 0, 0))
+        Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
+        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+        If ret Is Nothing Then
+            Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
+            Javas.ScanJava().GetAwaiter().GetResult()
+            ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+        End If
+        Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret
     End Function
 
@@ -97,12 +126,13 @@ Public Module ModJava
     ''' </summary>
     ''' <param name="Mc">实例</param>
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
-    Public Function GetUserSetJava(Mc As McVersion) As Java
+    Public Function GetVersionUserSetJava(Mc As McVersion) As Java
+        If Mc Is Nothing Then Return Nothing
         Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=Mc)
         If UserSetupVersion = "使用全局设置" Then
             Return Nothing
         Else
-            Return Java.Prase(UserSetupVersion)
+            Return Java.Parse(UserSetupVersion)
         End If
     End Function
 
@@ -113,14 +143,19 @@ Public Module ModJava
         Try
             '检查强制指定
             Dim UserSetup As String = Setup.Get("LaunchArgumentJavaSelect")
+            If UserSetup.StartsWith("{") Then '旧版本 Json 格式
+                Dim js = JToken.Parse(UserSetup)
+                UserSetup = $"{js("Path")}java.exe"
+                Setup.Set("LaunchArgumentJavaSelect", UserSetup)
+            End If
             If RelatedVersion IsNot Nothing Then
                 Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
-                        Dim k = Java.Prase(UserSetup)
-                        Return If(k IsNot Nothing, k.Is64Bit, False)
+                        Dim k = Java.Parse(UserSetupVersion)
+                        Return k IsNot Nothing AndAlso k.Is64Bit
                     Else
-                        Setup.Set("VersionArgumentJavaSelect", "", Version:=RelatedVersion)
+                        Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
                     End If
                 End If
             End If
@@ -131,11 +166,11 @@ Public Module ModJava
             If String.IsNullOrEmpty(UserSetup) Then
                 Return Javas.JavaList.Any(Function(x) x.Is64Bit)
             End If
-            Dim j = Java.Prase(UserSetup)
-            Return If(j IsNot Nothing, j.Is64Bit, False)
+            Dim j = Java.Parse(UserSetup)
+            Return j IsNot Nothing AndAlso j.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
-            If RelatedVersion IsNot Nothing Then Setup.Set("VersionArgumentJavaSelect", "", Version:=RelatedVersion)
+            If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
             Setup.Set("LaunchArgumentJavaSelect", "")
         End Try
         Return True
