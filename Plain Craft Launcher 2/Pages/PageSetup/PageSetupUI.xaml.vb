@@ -56,7 +56,7 @@ Public Class PageSetupUI
 
         SliderLoad()
 
-        'PanLauncherHide.Visibility = Visibility.Visible
+        PanLauncherHide.Visibility = Visibility.Visible
 
         '设置解锁
 
