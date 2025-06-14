@@ -819,7 +819,11 @@ Retry:
                 Case "net.minecraft"
                     Request.MinecraftName = Component("version")
                 Case "net.minecraftforge"
-                    Request.ForgeVersion = Component("version")
+                    If Component("version").ToString().StartsWithF("0.") Then
+                        Request.CleanroomVersion = Component("version")
+                    Else
+                        Request.ForgeVersion = Component("version")
+                    End If
                 Case "net.neoforged"
                     Request.NeoForgeVersion = Component("version")
                 Case "net.fabricmc.fabric-loader"
