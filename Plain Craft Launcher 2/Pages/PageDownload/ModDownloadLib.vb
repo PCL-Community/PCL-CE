@@ -2495,6 +2495,10 @@ Retry:
         ''' </summary>
         Public LiteLoaderEntry As DlLiteLoaderListEntry = Nothing
 
+        ''' <summary>
+        ''' 若 MMC 整合包安装包含特殊参数，则填写此项。
+        ''' </summary>
+        Public MMCPackInfo As MMCPackInfo = Nothing
     End Class
 
     ''' <summary>
@@ -2716,7 +2720,7 @@ LabyModSkip:
         LoaderList.Add(New LoaderTask(Of String, String)("安装游戏",
         Sub(Task As LoaderTask(Of String, String))
             '合并 JSON
-            MergeJson(VersionFolder, VersionFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder)
+            MergeJson(VersionFolder, VersionFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo)
             Task.Progress = 0.2
             '迁移文件
             If Directory.Exists(TempMcFolder & "libraries") Then CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
@@ -2751,7 +2755,7 @@ LabyModSkip:
     ''' <summary>
     ''' 将多个版本 JSON 进行合并，如果目标已存在则直接覆盖。失败会抛出异常。
     ''' </summary>
-    Private Sub MergeJson(OutputFolder As String, MinecraftFolder As String, Optional OptiFineFolder As String = Nothing, Optional OptiFineAsMod As Boolean = False, Optional ForgeFolder As String = Nothing, Optional ForgeVersion As String = Nothing, Optional NeoForgeFolder As String = Nothing, Optional NeoForgeVersion As String = Nothing, Optional CleanroomFolder As String = Nothing, Optional CleanroomVersion As String = Nothing, Optional FabricFolder As String = Nothing, Optional QuiltFolder As String = Nothing, Optional LabyModFolder As String = Nothing, Optional LabyModChannel As String = Nothing, Optional LiteLoaderFolder As String = Nothing)
+    Private Sub MergeJson(OutputFolder As String, MinecraftFolder As String, Optional OptiFineFolder As String = Nothing, Optional OptiFineAsMod As Boolean = False, Optional ForgeFolder As String = Nothing, Optional ForgeVersion As String = Nothing, Optional NeoForgeFolder As String = Nothing, Optional NeoForgeVersion As String = Nothing, Optional CleanroomFolder As String = Nothing, Optional CleanroomVersion As String = Nothing, Optional FabricFolder As String = Nothing, Optional QuiltFolder As String = Nothing, Optional LabyModFolder As String = Nothing, Optional LabyModChannel As String = Nothing, Optional LiteLoaderFolder As String = Nothing, Optional MMCPackInfo As MMCPackInfo = Nothing)
         Log("[Download] 开始进行版本合并，输出：" & OutputFolder & "，Minecraft：" & MinecraftFolder &
             If(OptiFineFolder IsNot Nothing, "，OptiFine：" & OptiFineFolder, "") &
             If(ForgeFolder IsNot Nothing, "，Forge：" & ForgeFolder, "") &
@@ -2909,7 +2913,19 @@ LabyModSkip:
         Dim RealArguments As String = Join(SplitArguments.Distinct.ToList, " ")
         '合并
         '相关讨论见 #2801
-        OutputJson = MinecraftJson
+        If MMCPackInfo IsNot Nothing Then
+            If MMCPackInfo.IsMinecraftModified Then
+                Log("[Download] 当前版本的 MC 核心已被修改，使用对应的 MMC 整合包参数")
+                OutputJson = MMCPackInfo.PatchedJson
+            Else
+                Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数")
+                OutputJson = MinecraftJson
+                '合并来自 MultiMC 的 JSON
+                OutputJson.Merge(MMCPackInfo.PatchedJson)
+            End If
+        Else
+            OutputJson = MinecraftJson
+        End If
         If HasOptiFine Then
             '合并 OptiFine
             OptiFineJson.Remove("releaseTime")
@@ -2917,16 +2933,24 @@ LabyModSkip:
             OutputJson.Merge(OptiFineJson)
         End If
         If HasForge Then
-            '合并 Forge
-            ForgeJson.Remove("releaseTime")
-            ForgeJson.Remove("time")
-            OutputJson.Merge(ForgeJson)
+            If MMCPackInfo IsNot Nothing Then
+                If Not MMCPackInfo.IsForgeModified Then
+                    '合并 Forge
+                    ForgeJson.Remove("releaseTime")
+                    ForgeJson.Remove("time")
+                    OutputJson.Merge(ForgeJson)
+                End If
+            End If
         End If
         If HasNeoForge Then
-            '合并 NeoForge
-            NeoForgeJson.Remove("releaseTime")
-            NeoForgeJson.Remove("time")
-            OutputJson.Merge(NeoForgeJson)
+            If MMCPackInfo IsNot Nothing Then
+                If Not MMCPackInfo.IsNeoForgeModified Then
+                    '合并 NeoForge
+                    NeoForgeJson.Remove("releaseTime")
+                    NeoForgeJson.Remove("time")
+                    OutputJson.Merge(NeoForgeJson)
+                End If
+            End If
         End If
         If HasCleanroom Then
             '合并 Cleanroom
@@ -2941,16 +2965,24 @@ LabyModSkip:
             OutputJson.Merge(LiteLoaderJson)
         End If
         If HasFabric Then
-            '合并 Fabric
-            FabricJson.Remove("releaseTime")
-            FabricJson.Remove("time")
-            OutputJson.Merge(FabricJson)
+            If MMCPackInfo IsNot Nothing Then
+                If Not MMCPackInfo.IsFabricModified Then
+                    '合并 Fabric
+                    FabricJson.Remove("releaseTime")
+                    FabricJson.Remove("time")
+                    OutputJson.Merge(FabricJson)
+                End If
+            End If
         End If
         If HasQuilt Then
-            '合并 Quilt
-            QuiltJson.Remove("releaseTime")
-            QuiltJson.Remove("time")
-            OutputJson.Merge(QuiltJson)
+            If MMCPackInfo IsNot Nothing Then
+                If Not MMCPackInfo.IsQuiltModified Then
+                    '合并 Quilt
+                    QuiltJson.Remove("releaseTime")
+                    QuiltJson.Remove("time")
+                    OutputJson.Merge(QuiltJson)
+                End If
+            End If
         End If
         If HasLabyMod Then
             '合并 LabyMod
