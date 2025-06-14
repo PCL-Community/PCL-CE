@@ -8,6 +8,7 @@ Imports System.Threading.Tasks
 Public Module ModLink
 
     Public IsLobbyAvailable As Boolean = False
+    Public RequiresRealname As Boolean = True
 
 #Region "MCPing"
     Public Class WorldInfo
@@ -443,15 +444,15 @@ Public Module ModLink
         Public Desc As String
     End Class
     Public ETProcess As New Process
-    Public ETNetworkName As String = "PCLCELobby"
-    Public ETNetworkSecret As String = "PCLCELobbyDefault"
+    Public Const ETNetworkDefaultName As String = "PCLCELobby"
+    Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETServerDefault As String = Nothing
     Public ETVersion As String = "2.3.1"
     Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
 
-    Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
+    Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
             ETProcess = New Process
             ETProcess.StartInfo = New ProcessStartInfo With {
@@ -489,14 +490,13 @@ Public Module ModLink
                 For index = 1 To 8 '生成 8 位随机编号
                     Id += RandomInteger(0, 9).ToString()
                 Next
-                ETNetworkName = "PCLCELobby" & Id
-                Secret = "PCLCELobby" & Id
-                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {ETNetworkName}, 是否自定义网络密钥: {Not Secret = "PCLCELobby" & Id}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --no-tun --relay-network-whitelist ""{ETNetworkName}"" --private-mode true" '创建者
+                Name &= Id
+                Secret &= Id
+                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}, 是否自定义网络密钥: {Not Secret = ETNetworkDefaultSecret & Id}")
+                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
-                ETNetworkName = "PCLCELobby" + Name
-                Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {ETNetworkName}")
-                ETProcess.StartInfo.Arguments = $"-d --network-name {ETNetworkName} --network-secret {ETNetworkSecret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{ETNetworkName}"" --private-mode true" '加入者
+                Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
+                ETProcess.StartInfo.Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
                 'ETProcess.StartInfo.Verb = "runas"
             End If
             For Each Server In Servers
@@ -534,7 +534,7 @@ Public Module ModLink
             'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
             Log($"[Link] 启动 EasyTier")
             'Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
-            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = ETNetworkName.Replace("PCLCELobby", ""))
+            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
             ETProcess.Start()
             IsETRunning = True
         Catch ex As Exception
@@ -544,7 +544,7 @@ Public Module ModLink
         End Try
     End Sub
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault")
+    Public Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret)
         Dim DlTargetPath As String = PathTemp + "EasyTier\EasyTier.zip"
         RunInNewThread(Sub()
                            Try
@@ -616,7 +616,7 @@ Public Module ModLink
 #End Region
 
 #Region "大厅操作"
-    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = "PCLCELobby", Optional Secret As String = "PCLCELobbyDefault", Optional LocalPort As Integer = 25565)
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565)
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             Hint("请先前往设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return 1
@@ -655,7 +655,7 @@ Public Module ModLink
                 {"NaidId", NaidProfile.Id},
                 {"NaidEmail", NaidProfile.Email},
                 {"NaidLastIp", NaidProfile.LastIp},
-                {"NetworkName", ETNetworkName},
+                {"NetworkName", Name},
                 {"Server", Servers},
                 {"IsHost", IsHost}
             }
@@ -731,6 +731,8 @@ Public Module ModLink
         Catch ex As Exception
             If IsRetry Then '如果重试了还失败就报错
                 Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
+                NaidProfile = New NaidUser
+                Setup.Set("LinkNaidRefreshToken", "")
             End If
             If ex.Message.Contains("invalid access token") Then
                 Log("[Link] Naid Access Token 无效，尝试刷新登录")
@@ -743,6 +745,8 @@ Public Module ModLink
                 Hint("Natayark 账号信息已过期，请前往设置重新登录！", HintType.Critical)
             Else
                 Log(ex, "[Link] Naid 登录失败，请尝试前往设置重新登录", LogLevel.Msgbox)
+                NaidProfile = New NaidUser
+                Setup.Set("LinkNaidRefreshToken", "")
             End If
             NaidProfileException = ex
             Return False
