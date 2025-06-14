@@ -679,7 +679,7 @@ Retry:
                     If PatchJson("compatibleJavaMajors") IsNot Nothing Then
                         Dim JavaVersion As Integer = Nothing
                         Dim JavaComponent As String = Nothing
-                        Dim JavaMajors = PatchJson("compatibleJavaMajors")
+                        Dim JavaMajors As JArray = PatchJson("compatibleJavaMajors")
                         '优先选择主要的版本
                         If JavaMajors.Contains(21) Then
                             JavaVersion = 21
