@@ -1187,6 +1187,7 @@
     <Resource Include="Images\Heads\Pysio.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Themes\server_bg.png" />
     <Content Include="Resources\linkd.exe" />
     <Content Include="Resources\SQLite.Interop.dll" />
   </ItemGroup>
