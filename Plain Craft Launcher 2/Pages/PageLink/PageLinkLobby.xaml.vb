@@ -512,7 +512,7 @@
         IsHost = False
         RunInNewThread(Sub()
                            CheckFirewall()
-                           LaunchLink(False, JoinedLobbyId, ETNetworkDefaultName & JoinedLobbyId)
+                           LaunchLink(False, JoinedLobbyId, ETNetworkDefaultSecret & JoinedLobbyId)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Visible
                                        BtnFinishPing.Visibility = Visibility.Visible
