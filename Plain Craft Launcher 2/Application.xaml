@@ -39,6 +39,7 @@
             <Color x:Key="ColorObject8">#eaf2fe</Color>
             <Color x:Key="ColorObjectBg0">#96c0f9</Color>
             <Color x:Key="ColorObjectBg1">#bee0eafd</Color>
+            <Color x:Key="ColorObjectMsgBoxShadow">#343d4a</Color>
             <SolidColorBrush x:Key="ColorBrushGray1">#404040</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray2">#737373</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray3">#8c8c8c</SolidColorBrush>
