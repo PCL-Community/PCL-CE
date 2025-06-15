@@ -887,7 +887,7 @@ Public Class PageVersionInstall
         If CurrentVersion.HasOptiFine Then
             SelectedOptiFine = New DlOptiFineListEntry With {.NameDisplay = CurrentVersion.McName + " " + CurrentVersion.OptiFineVersion, .IsPreview = CurrentVersion.OptiFineVersion.ContainsF("pre"), .Inherit = CurrentVersion.McName, .NameVersion = CurrentVersion.McName & "-OptiFine_HD_U_" & CurrentVersion.OptiFineVersion}
         End If
-        If CurrentVersion.HasCleanroom Then '此处有 BUG
+        If CurrentVersion.HasCleanroom Then
             SelectedAPIName = "Cleanroom"
             SelectedCleanroomVersion = CurrentVersion.CleanroomVersion
         ElseIf CurrentVersion.HasForge Then
@@ -897,12 +897,12 @@ Public Class PageVersionInstall
             SelectedLoaderName = "Fabric"
             SelectedFabric = CurrentVersion.FabricVersion
             SelectedFabricApi = GetCurrentFabricApi() '检测已有 Fabric API
-        ElseIf CurrentVersion.HasNeoForge Then '此处有 BUG
-            SelectedLoaderName = "NeoForge"
-            SelectedNeoForgeVersion = CurrentVersion.NeoForgeVersion
         ElseIf CurrentVersion.HasLabyMod Then
             SelectedLoaderName = "LabyMod"
             SelectedLabyModVersion = CurrentVersion.LabyModVersion
+        ElseIf CurrentVersion.HasNeoForge Then
+            SelectedLoaderName = "NeoForge"
+            SelectedNeoForgeVersion = CurrentVersion.NeoForgeVersion
         ElseIf CurrentVersion.HasQuilt Then
             SelectedLoaderName = "Quilt"
             SelectedQuilt = CurrentVersion.QuiltVersion
