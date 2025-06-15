@@ -570,8 +570,10 @@ Retry:
         Public IsMinecraftModified As Boolean = False
         Public IsForgeModified As Boolean = False
         Public IsNeoForgeModified As Boolean = False
+        Public IsCleanroomModified As Boolean = False
         Public IsFabricModified As Boolean = False
         Public IsQuiltModified As Boolean = False
+        Public IsMcArgsEdited As Boolean = False
     End Class
     Private Function InstallPackMMC(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
         '读取 Json 文件
@@ -591,7 +593,7 @@ Retry:
                 For Each entry In Archive.Entries
                     If Not entry.FullName.EndsWith("/") AndAlso entry.FullName.StartsWith(ArchiveBaseFolder & "patches/") Then
                         Dim Patch As JObject = GetJson(ReadFile(Archive.GetEntry(ArchiveBaseFolder & "patches/" & entry.Name).Open, Encoding.UTF8))
-                        Patches.Add(New KeyValuePair(Of JObject, Integer)(Patch, Patch("order")))
+                        Patches.Add(New KeyValuePair(Of JObject, Integer)(Patch, If(Patch("order") IsNot Nothing, Patch("order"), 0)))
                     End If
                 Next
                 Dim Components As JArray = PackJson("components")
@@ -626,7 +628,11 @@ Retry:
                     If PatchJson("uid") = "net.minecraft" Then
                         PackInfo.IsMinecraftModified = True
                     ElseIf PatchJson("uid") = "net.minecraftforge" Then
-                        PackInfo.IsForgeModified = True
+                        If PatchJson("version").ToString.StartsWithF("0.") Then
+                            PackInfo.IsCleanroomModified = True
+                        Else
+                            PackInfo.IsForgeModified = True
+                        End If
                     ElseIf PatchJson("uid") = "net.neoforged" Then
                         PackInfo.IsNeoForgeModified = True
                     ElseIf PatchJson("uid") = "net.fabricmc.fabric-loader" Then
@@ -640,7 +646,7 @@ Retry:
                         Log($"[ModPack] 已应用 JSON-Patch {PatchJson("uid")} 的 JVM 参数")
                     End If
                     'Libraries
-                    If PatchJson("libraries") IsNot Nothing Then
+                    If PatchJson("libraries") IsNot Nothing OrElse PatchJson("+libraries") IsNot Nothing Then
                         Dim Libs As New JArray
                         For Each Library In PatchJson("libraries")
                             Dim LibJobj = CType(Library, JObject)
@@ -668,6 +674,7 @@ Retry:
                         For Each Arg In PatchJson("minecraftArguments").ToString().Split(" ")
                             GameArguments.Add(Arg)
                         Next
+                        PackInfo.IsMcArgsEdited = True
                         Log($"[ModPack] 已应用 JSON-Patch {PatchJson("uid")} 的 minecraftArguments 至 arguments.game")
                     End If
                     'mainClass
@@ -677,23 +684,29 @@ Retry:
                     End If
                     'Java 版本要求
                     If PatchJson("compatibleJavaMajors") IsNot Nothing Then
-                        Dim JavaVersion As Integer = Nothing
+                        Dim JavaVersion As Integer = 0
                         Dim JavaComponent As String = Nothing
                         Dim JavaMajors As JArray = PatchJson("compatibleJavaMajors")
-                        '优先选择主要的版本
-                        If JavaMajors.Contains(21) Then
-                            JavaVersion = 21
-                            JavaComponent = "java-runtime-delta"
-                        ElseIf JavaMajors.Contains(17) Then
-                            JavaVersion = 17
-                            JavaComponent = "java-runtime-gamma"
-                        ElseIf JavaMajors.Contains(11) Then
-                            JavaVersion = 11
-                        ElseIf JavaMajors.Contains(8) Then
-                            JavaVersion = 8
-                            JavaComponent = "jre-legacy"
-                        Else
+                        For Each Java In JavaMajors
+                            If JavaVersion > Val(Java) Then Continue For
+                            '优先选择主要的版本
+                            If Val(Java) = 21 Then
+                                JavaVersion = 21
+                                JavaComponent = "java-runtime-delta"
+                            ElseIf Val(Java) = 17 Then
+                                JavaVersion = 17
+                                JavaComponent = "java-runtime-gamma"
+                            ElseIf Val(Java) = 11 Then
+                                JavaVersion = 11
+                                JavaComponent = Nothing
+                            ElseIf Val(Java) = 8 Then
+                                JavaVersion = 8
+                                JavaComponent = "jre-legacy"
+                            End If
+                        Next
+                        If JavaVersion = 0 Then
                             JavaVersion = JavaMajors(0)
+                            JavaComponent = Nothing
                         End If
                         JavaVerJson = New JObject From {{"majorVersion", JavaVersion}}
                         If JavaComponent IsNot Nothing Then
@@ -702,12 +715,17 @@ Retry:
                         Log($"[ModPack] JSON-Patch {PatchJson("uid")} 要求 Java 版本: " & JavaVersion)
                     End If
                 Next
+                Dim JsonArguments As JObject = Nothing
                 If Not String.IsNullOrWhiteSpace(Tweakers) Then
                     GameArguments.Add("--tweakClass")
                     GameArguments.Add(Tweakers)
                 End If
-                Dim JsonArguments As JObject = Nothing
                 If GameArguments IsNot Nothing OrElse JvmArguments IsNot Nothing Then
+                    JvmArguments.Insert(0, "-Djava.library.path=${natives_directory}")
+                    JvmArguments.Insert(1, "-Dminecraft.launcher.brand=${launcher_name}")
+                    JvmArguments.Insert(2, "-Dminecraft.launcher.version=${launcher_version}")
+                    JvmArguments.Insert(3, "-cp")
+                    JvmArguments.Insert(4, "${classpath}")
                     JsonArguments = New JObject From {
                         {"game", GameArguments},
                         {"jvm", JvmArguments}
@@ -716,7 +734,7 @@ Retry:
                 PackInfo.PatchedJson = New JObject
                 If JsonArguments IsNot Nothing Then PackInfo.PatchedJson.Add("arguments", JsonArguments)
                 If MainClass IsNot Nothing Then PackInfo.PatchedJson.Add("mainClass", MainClass)
-                If AssetIndex IsNot Nothing Then PackInfo.PatchedJson.Merge(AssetIndex)
+                If AssetIndex IsNot Nothing Then PackInfo.PatchedJson.Add("assetIndex", AssetIndex)
                 If JavaVerJson IsNot Nothing Then PackInfo.PatchedJson.Add("javaVersion", JavaVerJson)
                 If LibrariesJson IsNot Nothing Then PackInfo.PatchedJson.Add("libraries", LibrariesJson)
             Catch ex As Exception

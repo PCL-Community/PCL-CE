@@ -1,5 +1,4 @@
 Imports System.IO.Compression
-Imports System.Net.Http
 Imports PCL.Core.Model
 
 Public Module ModDownloadLib
@@ -2933,30 +2932,28 @@ LabyModSkip:
             OutputJson.Merge(OptiFineJson)
         End If
         If HasForge Then
-            If MMCPackInfo IsNot Nothing Then
-                If Not MMCPackInfo.IsForgeModified Then
-                    '合并 Forge
-                    ForgeJson.Remove("releaseTime")
-                    ForgeJson.Remove("time")
-                    OutputJson.Merge(ForgeJson)
-                End If
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsForgeModified Then
+                '合并 Forge
+                ForgeJson.Remove("releaseTime")
+                ForgeJson.Remove("time")
+                OutputJson.Merge(ForgeJson)
             End If
         End If
         If HasNeoForge Then
-            If MMCPackInfo IsNot Nothing Then
-                If Not MMCPackInfo.IsNeoForgeModified Then
-                    '合并 NeoForge
-                    NeoForgeJson.Remove("releaseTime")
-                    NeoForgeJson.Remove("time")
-                    OutputJson.Merge(NeoForgeJson)
-                End If
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsNeoForgeModified Then
+                '合并 NeoForge
+                NeoForgeJson.Remove("releaseTime")
+                NeoForgeJson.Remove("time")
+                OutputJson.Merge(NeoForgeJson)
             End If
         End If
         If HasCleanroom Then
-            '合并 Cleanroom
-            CleanroomJson.Remove("releaseTime")
-            CleanroomJson.Remove("time")
-            OutputJson.Merge(CleanroomJson)
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsCleanroomModified Then
+                '合并 Cleanroom
+                CleanroomJson.Remove("releaseTime")
+                CleanroomJson.Remove("time")
+                OutputJson.Merge(CleanroomJson)
+            End If
         End If
         If HasLiteLoader Then
             '合并 LiteLoader
@@ -2965,23 +2962,19 @@ LabyModSkip:
             OutputJson.Merge(LiteLoaderJson)
         End If
         If HasFabric Then
-            If MMCPackInfo IsNot Nothing Then
-                If Not MMCPackInfo.IsFabricModified Then
-                    '合并 Fabric
-                    FabricJson.Remove("releaseTime")
-                    FabricJson.Remove("time")
-                    OutputJson.Merge(FabricJson)
-                End If
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsFabricModified Then
+                '合并 Fabric
+                FabricJson.Remove("releaseTime")
+                FabricJson.Remove("time")
+                OutputJson.Merge(FabricJson)
             End If
         End If
         If HasQuilt Then
-            If MMCPackInfo IsNot Nothing Then
-                If Not MMCPackInfo.IsQuiltModified Then
-                    '合并 Quilt
-                    QuiltJson.Remove("releaseTime")
-                    QuiltJson.Remove("time")
-                    OutputJson.Merge(QuiltJson)
-                End If
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsQuiltModified Then
+                '合并 Quilt
+                QuiltJson.Remove("releaseTime")
+                QuiltJson.Remove("time")
+                OutputJson.Merge(QuiltJson)
             End If
         End If
         If HasLabyMod Then
@@ -3043,6 +3036,7 @@ LabyModSkip:
         End If
         '修改
         If RealArguments IsNot Nothing AndAlso RealArguments.Replace(" ", "") <> "" Then OutputJson("minecraftArguments") = RealArguments
+        If MMCPackInfo IsNot Nothing AndAlso MMCPackInfo.IsMcArgsEdited Then OutputJson.Remove("minecraftArguments")
         OutputJson.Remove("_comment_")
         OutputJson.Remove("inheritsFrom")
         OutputJson.Remove("jar")
