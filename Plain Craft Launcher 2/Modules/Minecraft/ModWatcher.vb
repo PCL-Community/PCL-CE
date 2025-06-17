@@ -485,20 +485,28 @@
         End Sub
 
         '强制关闭
+        Public Function CheckAlive(p As Process) As Boolean
+            If p.HasExited Then Return False
+            Dim p1 = Process.GetProcesses.FirstOrDefault(Function(item) item.Id = p.Id)
+            If p1 Is Nothing Then Return True
+            If p1.HasExited Then Return False
+            Return True
+        End Function
         Public Sub Kill()
             State = MinecraftState.Canceled
             RunInNewThread(
                 Sub()
                     WatcherLog("尝试强制结束 Minecraft 进程")
                     Try
-                        If Not GameProcess.HasExited Then GameProcess.Kill()
+                        If CheckAlive(GameProcess) Then GameProcess.Kill()
                         GameProcess.WaitForExit(5000)
-                        If Not GameProcess.HasExited Then
+                        If CheckAlive(GameProcess) Then
+                            WatcherLog("进程仍未退出，尝试使用 taskkill.exe")
                             Dim taskkillProcess = Process.Start("taskkill.exe", $"/PID {GameProcess.Id} /F /T")
                             Dim output = taskkillProcess.StandardOutput.ReadToEnd()
                             Log($"Kill() 方法无效，尝试调用 taskkill.exe: {output}")
                             GameProcess.WaitForExit(5000)
-                            If Not GameProcess.HasExited Then
+                            If CheckAlive(GameProcess) Then
                                 WatcherLog("强制结束 Minecraft 进程失败: 等待进程退出超时")
                                 Return
                             End If
