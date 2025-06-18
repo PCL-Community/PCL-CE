@@ -486,11 +486,10 @@
 
         '强制关闭
         Public Function CheckAlive(p As Process) As Boolean
-            If p.HasExited Then Return False
-            Dim p1 = Process.GetProcesses.FirstOrDefault(Function(item) item.Id = p.Id)
-            If p1 Is Nothing Then Return True
-            If p1.HasExited Then Return False
-            Return True
+            If Not p.HasExited Then Return True
+            Dim exists = Array.Exists(Process.GetProcesses, Function(item) item.Id = p.Id)
+            If exists Then Return True
+            Return False
         End Function
         Public Sub Kill()
             State = MinecraftState.Canceled
