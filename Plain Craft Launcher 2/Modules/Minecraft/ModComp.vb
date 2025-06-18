@@ -291,9 +291,8 @@ Public Module ModComp
                     MyMsgBox("当前资源的简介暂无译文","获取译文失败",Button1:="我知道了")
                     Return Nothing
                 End If
-                GoTo HintException
+                Log(ex, "获取中文描述时出现错误", LogLevel.Hint)
             Catch ex As Exception
-                HintException:
                 Log(ex, "获取中文描述时出现错误", LogLevel.Hint)
             End Try
 
