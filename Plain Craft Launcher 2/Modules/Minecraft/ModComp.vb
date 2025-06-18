@@ -285,12 +285,16 @@ Public Module ModComp
                 If jsonObject.ContainsKey("translated") Then
                     result = jsonObject("translated").ToString()
                     WriteIni(CacheFilePath, DescHash, Base64Encode(result))
-                Else
-                    Hint($"{TranslatedName} 的简介暂无译文！", HintType.Critical)
                 End If
+            Catch ex As HttpRequestException
+                If ex.Message.Contains("404") Then 
+                    MyMsgBox("当前资源的简介暂无译文","获取译文失败",Button1:="我知道了")
+                    Return Nothing
+                End If
+                GoTo HintException
             Catch ex As Exception
-                Log(ex, "获取中文描述时出现错误！")
-                Hint($"获取译文时出现错误，信息：{ex.Message}", HintType.Critical)
+                HintException:
+                Log(ex, "获取中文描述时出现错误",LogLevel.Hint)
             End Try
 
             Return result
