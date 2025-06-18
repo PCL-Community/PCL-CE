@@ -1,6 +1,6 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Data.SQLite
-Import System.Net.Http
+Imports System.Net.Http
 
 Public Module ModComp
 
