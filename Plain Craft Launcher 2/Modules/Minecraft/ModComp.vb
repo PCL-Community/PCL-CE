@@ -1,5 +1,6 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Data.SQLite
+Import System.Net.Http
 
 Public Module ModComp
 
@@ -288,7 +289,7 @@ Public Module ModComp
                 End If
             Catch ex As HttpRequestException
                 If ex.Message.Contains("404") Then 
-                    MyMsgBox("当前资源的简介暂无译文","获取译文失败",Button1:="我知道了")
+                    MyMsgBox("当前资源的简介暂无译文", "获取译文失败", Button1:="我知道了")
                     Return Nothing
                 End If
                 Log(ex, "获取中文描述时出现错误", LogLevel.Hint)
