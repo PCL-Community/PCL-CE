@@ -294,7 +294,7 @@ Public Module ModComp
                 GoTo HintException
             Catch ex As Exception
                 HintException:
-                Log(ex, "获取中文描述时出现错误",LogLevel.Hint)
+                Log(ex, "获取中文描述时出现错误", LogLevel.Hint)
             End Try
 
             Return result
