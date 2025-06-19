@@ -4,6 +4,13 @@
     Private Sub PageSelectRight_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
         PanBack.ScrollToHome()
+        AddHandler PanVerSearchBox.TextChanged, AddressOf PanVerSearchBox_TextChanged
+    End Sub
+    Private Sub PanVerSearchBox_TextChanged(sender As Object, e As TextChangedEventArgs)
+        ' 当搜索框文本变化时，重新加载UI
+        If McVersionListLoader.State = LoadState.Finished Then
+            McVersionListUI(McVersionListLoader)
+        End If
     End Sub
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanAllBack, Nothing, McVersionListLoader, AddressOf McVersionListUI, AutoRun:=False)
@@ -28,9 +35,25 @@
             '加载 UI
             PanMain.Children.Clear()
 
+            Dim hasVisibleFolders As Boolean = False
+            Dim searchText As String = PanVerSearchBox.Text.Trim().ToLower() ' 获取搜索框文本
+            Dim hasAnyResults As Boolean = False
+            Dim originalHasVersions As Boolean = McVersionList.ToArray.Any(Function(c) c.Value.Count > 0)
+
+
             For Each Card As KeyValuePair(Of McVersionCardType, List(Of McVersion)) In McVersionList.ToArray
-                '确认是否为隐藏版本显示状态
                 If Card.Key = McVersionCardType.Hidden Xor ShowHidden Then Continue For
+                Dim filteredVersions = Card.Value.Where(Function(v)
+                                                            If String.IsNullOrEmpty(searchText) Then Return True
+                                                            Return v.Name.ToLower().Contains(searchText) OrElse
+                           (v.Info IsNot Nothing AndAlso v.Info.ToLower().Contains(searchText))
+                                                        End Function).ToList()
+                If filteredVersions.Count = 0 Then Continue For
+
+                hasVisibleFolders = True
+                hasAnyResults = True
+                If filteredVersions.Count = 0 Then Continue For
+                hasVisibleFolders = True
 #Region "确认卡片名称"
                 Dim CardName As String = ""
                 Select Case Card.Key
@@ -87,7 +110,7 @@
                 '建立控件
                 Dim CardTitle As String = CardName & If(CardName = "收藏夹", "", " (" & Card.Value.Count & ")")
                 Dim NewCard As New MyCard With {.Title = CardTitle, .Margin = New Thickness(0, 0, 0, 15)}
-                Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Card.Value}
+                Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = filteredVersions}
                 NewCard.Children.Add(NewStack)
                 NewCard.SwapControl = NewStack
                 PanMain.Children.Add(NewCard)
@@ -98,7 +121,7 @@
                                     Next
                                 End Sub
                 If Card.Key = McVersionCardType.Rubbish OrElse Card.Key = McVersionCardType.Error OrElse Card.Key = McVersionCardType.Fool Then
-                                        NewCard.IsSwaped = True
+                    NewCard.IsSwaped = True
                     NewCard.InstallMethod = PutMethod
                 Else
                     MyCard.StackInstall(NewStack, PutMethod)
@@ -110,23 +133,32 @@
                 CType(PanMain.Children(0), MyCard).IsSwaped = False
             End If
 
+            PanVerSearchBox.Visibility = If(hasVisibleFolders, Visibility.Visible, Visibility.Collapsed)
+
             '判断应该显示哪一个页面
-            If PanMain.Children.Count = 0 Then
-                PanEmpty.Visibility = Visibility.Visible
-                PanBack.Visibility = Visibility.Collapsed
-                If ShowHidden Then
-                    LabEmptyTitle.Text = "无隐藏版本"
-                    LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
-                    BtnEmptyDownload.Visibility = Visibility.Collapsed
+            If Not hasAnyResults Then
+                If Not originalHasVersions Then
+                    PanEmpty.Visibility = Visibility.Visible
+                    PanBack.Visibility = Visibility.Collapsed
+                    If ShowHidden Then
+                        LabEmptyTitle.Text = "无隐藏版本"
+                        LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
+                        BtnEmptyDownload.Visibility = Visibility.Collapsed
+                    Else
+                        LabEmptyTitle.Text = "无可用版本"
+                        LabEmptyContent.Text = "未找到任何版本的游戏，请先下载任意版本的游戏。" & vbCrLf & "若有已存在的游戏，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
+                        BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                    End If
                 Else
-                    LabEmptyTitle.Text = "无可用版本"
-                    LabEmptyContent.Text = "未找到任何版本的游戏，请先下载任意版本的游戏。" & vbCrLf & "若有已存在的游戏，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
-                    BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                    PanEmpty.Visibility = Visibility.Collapsed
+                    PanBack.Visibility = Visibility.Visible
                 End If
             Else
                 PanBack.Visibility = Visibility.Visible
                 PanEmpty.Visibility = Visibility.Collapsed
             End If
+
+            PanVerSearchBox.Visibility = If(originalHasVersions, Visibility.Visible, Visibility.Collapsed)
 
         Catch ex As Exception
             Log(ex, "将版本列表转换显示时失败", LogLevel.Feedback)

@@ -6,10 +6,15 @@
     PanScroll="{Binding ElementName=PanBack}">
     <Grid>
         <Grid x:Name="PanAllBack">
-            <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
-                <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <local:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" HintText="搜索游戏版本" VerticalAlignment="Top" Grid.Row="0"/>
+            <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack" Grid.Row="1">
+                <StackPanel Name="PanMain" Margin="25,2,25,10" Grid.IsSharedSizeScope="True" />
             </local:MyScrollViewer>
-            <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty" UseAnimation="False">
+            <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty" UseAnimation="False" Grid.Row="1">
                 <StackPanel Margin="20,17">
                     <TextBlock Name="LabEmptyTitle" Margin="0,0,0,9" HorizontalAlignment="Center" Text="无可用版本" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
                     <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
