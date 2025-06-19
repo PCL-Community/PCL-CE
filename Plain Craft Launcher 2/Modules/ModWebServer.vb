@@ -78,10 +78,10 @@ Public Module ModWebServer
 
     <Serializable>
     Public Class OAuthCompleteStatus
-        Public success As Boolean = False
-        Public username As String
-        Public message As String
-        Public stacktrace As String
+        Public Property success As Boolean = False
+        Public Property username As String
+        Public Property message As String
+        Public Property stacktrace As String
         Public Shared Function Complete(username As String) As OAuthCompleteStatus
             Return New OAuthCompleteStatus With {.success = True, .username = username}
         End Function
@@ -123,14 +123,15 @@ Public Module ModWebServer
                         Function(path, request)
                             '解析回调 URL 参数
                             Dim parameterMap As New Dictionary(Of String, String)
-                            Dim queryIndex = path.IndexOf("?"c)
-                            If queryIndex <> -1 AndAlso path.Length > queryIndex Then
+                            Dim query = request.Url.Query
+                            Dim queryIndex = query.IndexOf("?"c)
+                            If queryIndex <> -1 AndAlso query.Length > queryIndex Then
                                 Try
-                                    Dim sp = path.Substring(queryIndex + 1).Split("&"c)
+                                    Dim sq = query.Substring(queryIndex + 1).Split("&"c)
                                     Dim splitChar = {"="c}
-                                    For Each ip In sp
-                                        Dim p = ip.Split(splitChar, 2)
-                                        parameterMap(p(0)) = p(1)
+                                    For Each iq In sq
+                                        Dim q = iq.Split(splitChar, 2)
+                                        parameterMap(q(0)) = q(1)
                                     Next
                                 Catch ex As Exception
                                     status = OAuthCompleteStatus.Failed("回调参数解析出错", ex)
@@ -153,10 +154,10 @@ Public Module ModWebServer
                         End Function)
                     server.Route("/status",
                         Function()
+                            If callbackParameters Is Nothing Then Return RoutedResponse.NotFound
+                            server.StopResponse()
                             Try
                                 If status Is Nothing Then
-                                    If callbackParameters Is Nothing Then Return RoutedResponse.NotFound
-                                    server.StopResponse()
                                     status = completeCallback(True, callbackParameters, callbackContent)
                                 ElseIf Not status.success Then
                                     Log($"[OAuth] {serviceName}: {status.message}{vbCrLf}{status.stacktrace}")
@@ -172,7 +173,7 @@ Public Module ModWebServer
                             If String.IsNullOrWhiteSpace(PicAddress) Then Return RoutedResponse.NotFound
                             Return RoutedResponse.Input(New FileStream(PicAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
                         End Function)
-                    server.Route("/assets/icon.ico", Function() RoutedResponse.Input(GetResourceStream("Images/icon.ico")))
+                    server.Route("/assets/icon", Function() RoutedResponse.Input(GetResourceStream("Images/icon.ico")))
                     server.Route("/complete", Function() RoutedResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html"))
                     '开始响应请求
                     StartWebServer($"oauth/{serviceName}", server)
