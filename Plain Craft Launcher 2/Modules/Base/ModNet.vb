@@ -527,31 +527,6 @@ RequestFinished:
             Throw nx
         End Try
     End Function
-    ''' <summary>
-    ''' 获取重定向后的 Url，此功能用于多线程下载处
-    ''' 因为 Range 的存在导致服务器错误的认为直接下载的问题
-    ''' </summary>
-    ''' <param name="Url"></param>
-    ''' <returns></returns>
-    Public Function NetRequestGetRedirectUri(Url As String) As String
-        Try
-            Log($"[Net] 获取 {Url} 的重定向链接……")
-            Using request As New HttpRequestMessage(HttpMethod.Get, Url)
-                Using cts As New CancellationTokenSource()
-                    cts.CancelAfter(TimeSpan.FromSeconds(25))
-                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
-                        response.EnsureSuccessStatusCode()
-                        Dim ret = response.RequestMessage.RequestUri.ToString()
-                        Log($"[Net] 已获取到重定向链接地址为 {ret}")
-                        Return ret
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Log(ex, $"获取 {Url} 重定向链接失败")
-            Return Url
-        End Try
-    End Function
 
     Public Class ResponsedWebException
         Inherits WebException
@@ -1102,9 +1077,6 @@ StartThread:
                     '构建线程
                     Dim ThreadUuid As Integer = GetUuid()
                     If Not Tasks.Any() Then Return Nothing '由于中断，已没有可用任务
-                    If StartSource.Url.Contains("edge.forgecdn.net") Then '处理 Curseforge 的重定向
-                        StartSource.Url = NetRequestGetRedirectUri(StartSource.Url)
-                    End If
                     Th = New Thread(AddressOf Thread) With {.Name = $"NetTask {Tasks(0).Uuid}/{Uuid} Download {ThreadUuid}#", .Priority = ThreadPriority.BelowNormal}
                     ThreadInfo = New NetThread With {.Uuid = ThreadUuid, .DownloadStart = StartPosition, .Thread = Th, .Source = StartSource, .Task = Me, .State = NetState.WaitForDownload}
                     '链表处理
@@ -1152,14 +1124,16 @@ StartThread:
                 ' 使用 HttpClient 替代 HttpWebRequest
                 Dim request As New HttpRequestMessage(HttpMethod.Get, Info.Source.Url)
                 SecretHeadersSign(Info.Source.Url, request, UseBrowserUserAgent)
-                request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
+                If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
                     Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         response.EnsureSuccessStatusCode()
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
-                        If ModeDebug AndAlso response.RequestMessage.RequestUri.OriginalString <> Info.Source.Url Then
-                            Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {response.RequestMessage.RequestUri.OriginalString}")
+                        Dim Redirected = response.RequestMessage.RequestUri.OriginalString
+                        If ModeDebug AndAlso Redirected <> Info.Source.Url Then
+                            Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
+                            Sources.Where(Function(x) x.Url = Info.Source.Url).First().Url = Redirected
                         End If
                         ''从响应头获取文件名
                         'If Info.IsFirstThread Then
@@ -1184,7 +1158,7 @@ StartThread:
                                 FileSize = -1 : IsUnknownSize = True
                                 Log($"[Download] {LocalName} {Info.Uuid}#：文件大小未知")
                             End If
-                        ElseIf ContentLength < 0 Then
+                        ElseIf ContentLength <0 Then
                             Throw New Exception("获取片大小失败，结果为 " & ContentLength & "。")
                         ElseIf Info.IsFirstThread Then
                             If Check IsNot Nothing Then
@@ -1411,12 +1385,8 @@ Wrong:
         ''' 从 HTTP 响应头中获取文件名。
         ''' 如果没有，返回 Nothing。
         ''' </summary>
-        Private Function GetFileNameFromResponse(response As HttpWebResponse) As String
-            Dim header As String = response.Headers("Content-Disposition")
-            If String.IsNullOrEmpty(header) Then Return Nothing
-            'attachment; filename="filename.ext"
-            If Not header.Contains("filename=") Then Return Nothing
-            Return header.AfterLast("filename=").Trim(""""c, " "c).BeforeFirst(";")
+        Private Function GetFileNameFromResponse(response As HttpResponseMessage) As String
+            Return response.Content.Headers.ContentDisposition.FileName
         End Function
 
         '下载文件的最终收束事件
