@@ -1306,7 +1306,7 @@ SourceBreak:
                 End SyncLock
                 Dim IsTimeoutString As String = GetExceptionSummary(ex).ToLower.Replace(" ", "")
                 Dim IsTimeout As Boolean = IsTimeoutString.Contains("由于连接方在一段时间后没有正确答复或连接的主机没有反应") OrElse
-                                           IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout")
+                                           IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout") OrElse ex.GetType() = GetType(AggregateException)
                 Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & GetExceptionDetail(ex)))
                 Info.State = NetState.Error
                 ''使用该下载源的线程是否没有速度
