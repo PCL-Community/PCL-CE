@@ -76,7 +76,7 @@
             BtnRegister.Visibility = Visibility.Collapsed
             BtnCancel.Visibility = Visibility.Visible
             TextLogin.Text = "请在浏览器中完成登录，然后回到启动器中继续..."
-            OpenNaidAuthorizeUrl()
+            StartNaidAuthorize()
         End If
     End Sub
     Private Sub BtnCancel_Click(sender As Object, e As RoutedEventArgs) Handles BtnCancel.Click

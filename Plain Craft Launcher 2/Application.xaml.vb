@@ -170,8 +170,6 @@ WaitRetry:
             ServicePointManager.Expect100Continue = True
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 Or SecurityProtocolType.Tls Or SecurityProtocolType.Tls11 Or SecurityProtocolType.Tls12 Or SecurityProtocolType.Tls13
             ServicePointManager.DefaultConnectionLimit = 1024
-            'TODO HTTP 服务端是个石山 需要重构
-            LoadHttpServer()
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体

@@ -97,7 +97,7 @@
         const blob = await response.blob();
         root.style.setProperty("--bg-root-url", `url(${URL.createObjectURL(blob)})`);
     });
-    fetch("/api/naid/oauth20/status").then(async response => {
+    fetch("/status").then(async response => {
         if (!response.ok) {
             console.warn(`Fetching status returns ${response.status}`);
             return;
