@@ -1131,7 +1131,7 @@ StartThread:
                         response.EnsureSuccessStatusCode()
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString
-                        If ModeDebug AndAlso Redirected <> Info.Source.Url Then
+                        If Redirected <> Info.Source.Url Then
                             Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
                             Info.Source.Url = Redirected
                         End If
