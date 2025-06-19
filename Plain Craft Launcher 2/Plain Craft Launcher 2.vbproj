@@ -1055,6 +1055,7 @@
     <None Include="Resources\Help.zip" />
     <None Include="Resources\ModData.db" />
     <None Include="Resources\msalruntime.zip" />
+    <None Include="Resources\sqlite.zip" />
     <None Include="Resources\transformer.jar" />
   </ItemGroup>
   <ItemGroup>
@@ -1189,7 +1190,6 @@
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
     <Content Include="Resources\linkd.exe" />
-    <Content Include="Resources\SQLite.Interop.dll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj">

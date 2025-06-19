@@ -153,9 +153,9 @@ Namespace My.Resources
         '''<summary>
         '''  查找 System.Byte[] 类型的本地化资源。
         '''</summary>
-        Friend ReadOnly Property SQLite() As Byte()
+        Friend ReadOnly Property sqlite() As Byte()
             Get
-                Dim obj As Object = ResourceManager.GetObject("SQLite", resourceCulture)
+                Dim obj As Object = ResourceManager.GetObject("sqlite", resourceCulture)
                 Return CType(obj,Byte())
             End Get
         End Property

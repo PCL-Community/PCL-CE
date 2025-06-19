@@ -155,17 +155,28 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             Dim WebpPath = $"{PathPure}CE\libwebp.dll"
             If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
-            Dim SqlPath = $"{PathPure}CE\SQLite.Interop.dll"
-            If Not File.Exists(SqlPath) Then WriteFile(SqlPath, GetResources("SQLite"))
-            WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
-            If Not File.Exists(PathPure & "CE\msalruntime.dll") Then
-                If Directory.Exists(PathPure & "CE\runtimes") Then DeleteDirectory(PathPure & "CE\runtimes")
-                Using fs = New FileStream(PathPure & "CE\" & "msalruntime.zip", FileMode.Open)
-                    Using fszip = New ZipArchive(fs)
-                        fszip.ExtractToDirectory(PathPure & "CE\")
-                    End Using
-                End Using
-            End If
+            Dim getResourceFromArchive = Sub(resourceName As String, exportPath As String)
+                                             Dim resourceData = GetResources(resourceName)
+                                             If resourceData Is Nothing Then
+                                                 Log($"程序找不到指定资源 {resourceName}", LogLevel.Critical)
+                                             End If
+                                             Dim archName As String = If(IsArm64System, "arm64.dll", "x64.dll")
+                                             Using ms As New MemoryStream(resourceData)
+                                                 Using zip As New ZipArchive(ms)
+                                                     Dim ret = zip.GetEntry(archName)
+                                                     If ret Is Nothing Then Log($"找不到指定资源 {resourceName}:{archName}", LogLevel.Critical)
+                                                     Using fs As New FileStream(exportPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                                                         Using output = ret.Open()
+                                                             If ret.Length <> fs.Length Then
+                                                                 output.CopyTo(fs)
+                                                             End If
+                                                         End Using
+                                                     End Using
+                                                 End Using
+                                             End Using
+                                         End Sub
+            getResourceFromArchive("sqlite", $"{PathPure}CE\SQLite.Interop.dll")
+            getResourceFromArchive("msalruntime", $"{PathPure}CE\msalruntime.dll")
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体
