@@ -176,7 +176,7 @@ WaitRetry:
                                              End Using
                                          End Sub
             getResourceFromArchive("sqlite", $"{PathPure}CE\SQLite.Interop.dll")
-            getResourceFromArchive("msalruntime", $"{PathPure}CE\msalruntime.dll")
+            getResourceFromArchive("msalruntime", $"{PathPure}CE\{If(IsArm64System, "msalruntime_arm64", "msalruntime")}.dll")
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体
