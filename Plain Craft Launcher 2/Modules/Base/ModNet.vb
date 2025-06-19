@@ -1158,7 +1158,7 @@ StartThread:
                                 FileSize = -1 : IsUnknownSize = True
                                 Log($"[Download] {LocalName} {Info.Uuid}#：文件大小未知")
                             End If
-                        ElseIf ContentLength <0 Then
+                        ElseIf ContentLength < 0 Then
                             Throw New Exception("获取片大小失败，结果为 " & ContentLength & "。")
                         ElseIf Info.IsFirstThread Then
                             If Check IsNot Nothing Then
