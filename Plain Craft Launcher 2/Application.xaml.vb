@@ -165,12 +165,14 @@ WaitRetry:
                                                  Using zip As New ZipArchive(ms)
                                                      Dim ret = zip.GetEntry(archName)
                                                      If ret Is Nothing Then Log($"找不到指定资源 {resourceName}:{archName}", LogLevel.Critical)
-                                                     Using fs As New FileStream(exportPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                                                     Using fs As New FileStream(exportPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
                                                          Using output = ret.Open()
                                                              If ret.Length <> fs.Length Then
                                                                  Log($"[Resource] 文件长度不一致({ret.Length} != {fs.Length})，判断为文件更新，释放新文件({resourceName})")
                                                                  output.CopyTo(fs)
+                                                                 fs.SetLength(ret.Length)
                                                              End If
+                                                             Log($"[Resource] {resourceName} 本地资源检查完成")
                                                          End Using
                                                      End Using
                                                  End Using
