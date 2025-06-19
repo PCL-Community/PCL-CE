@@ -1133,7 +1133,7 @@ StartThread:
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString
                         If ModeDebug AndAlso Redirected <> Info.Source.Url Then
                             Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
-                            Sources.Where(Function(x) x.Url = Info.Source.Url).First().Url = Redirected
+                            Info.Source.Url = Redirected
                         End If
                         ''从响应头获取文件名
                         'If Info.IsFirstThread Then
