@@ -1,15 +1,58 @@
-﻿Public Class PageSelectRight
+﻿Imports System.Windows.Threading
+Public Class PageSelectRight
 
     '窗口基础
     Private Sub PageSelectRight_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
         PanBack.ScrollToHome()
         AddHandler PanVerSearchBox.TextChanged, AddressOf PanVerSearchBox_TextChanged
+
+        ReloadTimer = New DispatcherTimer With {
+            .Interval = TimeSpan.FromMilliseconds(150) ' 0.15秒延迟
+        }
+        AddHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
     End Sub
+
+    Private LastInputTime As DateTime = DateTime.MinValue
+    Private ReloadTimer As DispatcherTimer
+
     Private Sub PanVerSearchBox_TextChanged(sender As Object, e As TextChangedEventArgs)
-        ' 当搜索框文本变化时，重新加载UI
+        LastInputTime = DateTime.Now
+
+        ' 如果搜索框被清空，使用0.05秒延迟刷新
+        If String.IsNullOrWhiteSpace(PanVerSearchBox.Text) Then
+            If ReloadTimer IsNot Nothing Then
+                ReloadTimer.Stop()
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(50) ' 0.05秒延迟
+                ReloadTimer.Start()
+            End If
+        Else
+            ' 正常输入内容时使用0.1秒延迟
+            If ReloadTimer IsNot Nothing Then
+                ReloadTimer.Stop()
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(150) ' 0.15秒延迟
+                ReloadTimer.Start()
+            End If
+        End If
+    End Sub
+
+    Private Sub ReloadTimer_Tick(sender As Object, e As EventArgs)
+        If ReloadTimer IsNot Nothing Then
+            ReloadTimer.Stop()
+        End If
+
+        ' 检查是否超过当前设定的延迟时间没有新输入
         If McVersionListLoader.State = LoadState.Finished Then
             McVersionListUI(McVersionListLoader)
+        End If
+    End Sub
+
+    Private Sub PageSelectRight_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+        ' 清理计时器
+        If ReloadTimer IsNot Nothing Then
+            ReloadTimer.Stop()
+            RemoveHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
+            ReloadTimer = Nothing
         End If
     End Sub
     Private Sub LoaderInit() Handles Me.Initialized
