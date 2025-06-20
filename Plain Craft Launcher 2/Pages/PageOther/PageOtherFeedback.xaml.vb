@@ -19,6 +19,8 @@
         Ignored = 8064650117 '忽略
         Duplicate = 6820804541 '重复
         Wait = 8743070786
+        Pause = 8558220235
+        Upnext = 8550609020
     End Enum
 
     Private Shadows IsLoaded As Boolean = False
@@ -84,6 +86,14 @@
                 ele.Logo = PathImage & "Blocks/RedstoneBlock.png"
                 StatusDesc = "等待处理"
             End If
+            If item.Tags.Contains(TagID.Pause) Then
+                ele.Logo = PathImage & "Blocks/RedstoneLampOff.png"
+                StatusDesc = "近期不计划制作此功能"
+            End If
+            If item.Tags.Contains(TagID.Upnext) Then
+                ele.Logo = PathImage & "Blocks/RedstoneLampOn.png"
+                StatusDesc = "即将开工的内容"
+            End If
             If item.Tags.Contains(TagID.Completed) Then
                 ele.Logo = PathImage & "Blocks/Grass.png"
                 StatusDesc = "已完成"
@@ -118,12 +128,19 @@
                 PanListIgnored.Children.Add(ele)
             ElseIf StatusDesc.Equals("已确认，等待社区开发者接管该内容的处理") Then
                 PanListWait.Children.Add(ele)
+            ElseIf StatusDesc.Equals("近期不计划制作此功能") Then
+                PanListPause.Children.Add(ele)
+            ElseIf StatusDesc.Equals("即将开工的内容") Then
+                PanListUpnext.Children.Add(ele)
             End If
             PanContentDecline.Visibility = If(PanListDecline.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentCompleted.Visibility = If(PanListCompleted.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentWaitingProcess.Visibility = If(PanListWaitingProcess.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentProcessing.Visibility = If(PanListProcessing.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible）
             PanContentIgnored.Visibility = If(PanListIgnored.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
+            PanContentWait.Visibility = If(PanListWait.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
+            PanContentPause.Visibility = If(PanListPause.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
+            PanContentUpnext.Visibility = If(PanListUpnext.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
         Next
     End Sub
 
