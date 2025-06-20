@@ -97,6 +97,8 @@ Public Class PageSelectRight
             Dim hasAnyResults As Boolean = False
             Dim originalHasVersions As Boolean = McVersionList.ToArray.Any(Function(c) c.Value.Count > 0)
 
+            ' 搜索无结果时显示 PanEmptySearch
+            PanEmptySearch.Visibility = Visibility.Collapsed ' 默认隐藏
 
             For Each Card As KeyValuePair(Of McVersionCardType, List(Of McVersion)) In McVersionList.ToArray
                 If Card.Key = McVersionCardType.Hidden Xor ShowHidden Then Continue For
@@ -207,12 +209,19 @@ Public Class PageSelectRight
                         BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
                     End If
                 Else
+                    ' 有版本但搜索无结果
                     PanEmpty.Visibility = Visibility.Collapsed
                     PanBack.Visibility = Visibility.Visible
+                    PanEmptySearch.Visibility = Visibility.Visible ' 显示搜索无结果提示
+                    LabEmptySearchTitle.Text = "无匹配的游戏版本"
+                    LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
+                    "请输入搜索内容",
+                    $"没有找到与 '{searchText}' 匹配的版本")
                 End If
             Else
                 PanBack.Visibility = Visibility.Visible
                 PanEmpty.Visibility = Visibility.Collapsed
+                PanEmptySearch.Visibility = Visibility.Collapsed ' 有结果时隐藏
             End If
 
             PanVerSearchBox.Visibility = If(originalHasVersions, Visibility.Visible, Visibility.Collapsed)
