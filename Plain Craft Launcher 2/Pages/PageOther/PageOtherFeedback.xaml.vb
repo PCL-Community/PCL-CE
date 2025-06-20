@@ -12,16 +12,13 @@
     End Class
 
     Enum TagID As Int64
-        NewIssue = 4365827012
-        Bug = 4365944566
-        Improve = 4365949262
-        Processing = 4365819896
-        WaitingResponse = 4365816377
-        Completed = 4365809832
-        Decline = 4365654603
-        NewFeture = 4365949953
-        Ignored = 4365654601
-        Duplicate = 4365654597
+        Processing = 6820804544 '处理中
+        WaitingProcess = 6820804546 '等待处理
+        Completed = 6820804547 '完成
+        Decline = 6820804539 '拒绝
+        Ignored = 8064650117 '忽略
+        Duplicate = 6820804541 '重复
+        Wait = 8743070786
     End Enum
 
     Private Shadows IsLoaded As Boolean = False
@@ -43,7 +40,7 @@
 
     Public Sub FeedbackListGet(Task As LoaderTask(Of Integer, List(Of Feedback)))
         Dim list As JArray
-        list = NetGetCodeByRequestRetry("https://api.github.com/repos/Hex-Dragon/PCL2/issues?state=all&sort=created&per_page=200", BackupUrl:="https://api.kkgithub.com/repos/Hex-Dragon/PCL2/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True) ' 获取近期 200 条数据就够了
+        list = NetGetCodeByRequestRetry("https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200", BackupUrl:="https://api.kkgithub.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True) ' 获取近期 200 条数据就够了
         If list Is Nothing Then Throw New Exception("无法获取到内容")
         Dim res As List(Of Feedback) = New List(Of Feedback)
         For Each i As JObject In list
@@ -66,40 +63,29 @@
     Public Sub RefreshList()
         PanListCompleted.Children.Clear()
         PanListProcessing.Children.Clear()
-        PanListWaitingResponse.Children.Clear()
+        PanListWaitingProcess.Children.Clear()
         PanListDecline.Children.Clear()
         For Each item In Loader.Output
             Dim ele As New MyListItem With {.Title = item.Title, .Type = MyListItem.CheckType.Clickable}
             Dim StatusDesc As String = "???"
-            If item.Tags.Contains(TagID.Duplicate) Then Continue For
-            If item.Tags.Contains(TagID.NewIssue) Then
-                ele.Logo = PathImage & "Blocks/Grass.png"
-                StatusDesc = "未查看"
+            If item.Tags.Contains(TagID.Duplicate) Then
             End If
             If item.Open Then
                 If item.Tags.Contains(TagID.Processing) Then
                     ele.Logo = PathImage & "Blocks/CommandBlock.png"
                     StatusDesc = "处理中"
                 End If
-                If item.Tags.Contains(TagID.Bug) Then
-                    ele.Logo = PathImage & "Blocks/RedstoneBlock.png"
-                    StatusDesc = "处理中-Bug"
-                End If
-                If item.Tags.Contains(TagID.Improve) Then
-                    ele.Logo = PathImage & "Blocks/Anvil.png"
-                    StatusDesc = "处理中-优化"
-                End If
-                If item.Tags.Contains(TagID.WaitingResponse) Then
-                    ele.Logo = PathImage & "Blocks/RedstoneLampOff.png"
-                    StatusDesc = "等待提交者"
-                End If
-                If item.Tags.Contains(TagID.NewFeture) Then
-                    ele.Logo = PathImage & "Blocks/Egg.png"
-                    StatusDesc = "处理中-新功能"
-                End If
+            End If
+            If item.Tags.Contains(TagID.WaitingProcess) Then
+                ele.Logo = PathImage & "Blocks/Anvil.png"
+                StatusDesc = "已确认，等待社区开发者接管该内容的处理"
+            End If
+            If item.Tags.Contains(TagID.Wait) Then
+                ele.Logo = PathImage & "Blocks/RedstoneBlock.png"
+                StatusDesc = "等待处理"
             End If
             If item.Tags.Contains(TagID.Completed) Then
-                ele.Logo = PathImage & "Blocks/GrassPath.png"
+                ele.Logo = PathImage & "Blocks/Grass.png"
                 StatusDesc = "已完成"
             End If
             If item.Tags.Contains(TagID.Decline) Then
@@ -122,20 +108,22 @@
                                   End Sub
             If StatusDesc.StartsWithF("处理中") Then
                 PanListProcessing.Children.Add(ele)
-            ElseIf StatusDesc.Equals("等待提交者") Then
-                PanListWaitingResponse.Children.Add(ele)
+            ElseIf StatusDesc.Equals("等待处理") Then
+                PanListWaitingProcess.Children.Add(ele)
             ElseIf StatusDesc.Equals("已完成") Then
                 PanListCompleted.Children.Add(ele)
-            ElseIf StatusDesc.Equals("未查看") Then
-                PanListNewIssue.Children.Add(ele)
             ElseIf StatusDesc.Equals("已拒绝") Then
-                PanListDecline.Children.Add(ele)
+                PanListDecline.Children.Add(ele）
+            ElseIf StatusDesc.Equals("已忽略") Then
+                PanListIgnored.Children.Add(ele)
+            ElseIf StatusDesc.Equals("已确认，等待社区开发者接管该内容的处理") Then
+                PanListWait.Children.Add(ele)
             End If
             PanContentDecline.Visibility = If(PanListDecline.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentCompleted.Visibility = If(PanListCompleted.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
-            PanContentNewIssue.Visibility = If(PanListNewIssue.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
-            PanContentWaitingResponse.Visibility = If(PanListWaitingResponse.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
-            PanContentProcessing.Visibility = If(PanListProcessing.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
+            PanContentWaitingProcess.Visibility = If(PanListWaitingProcess.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
+            PanContentProcessing.Visibility = If(PanListProcessing.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible）
+            PanContentIgnored.Visibility = If(PanListIgnored.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
         Next
     End Sub
 
