@@ -90,6 +90,55 @@ Public Module ModNet
             Return -1
         End If
     End Function
+    
+    ''' <summary>
+    ''' 当调用 <see cref="EnsureSuccessStatusCode"/> 时，若给定响应的 <c>IsSuccessStatusCode</c> 属性不为 <c>True</c> 则抛出该异常。
+    ''' </summary>
+    Public Class HttpRequestFailedException
+        Inherits HttpRequestException
+        Public ReadOnly Property StatusCode As HttpStatusCode
+        Public ReadOnly Property ReasonPhrase As String
+        ''' <summary>
+        ''' 不要尝试读取 <c>Content</c> 属性的内容，它已经被 dispose 了
+        ''' </summary>
+        Public ReadOnly Property Response As HttpResponseMessage
+        Public Sub New(response As HttpResponseMessage)
+            MyBase.New($"HTTP 响应失败: {response.ReasonPhrase} ({CType(response.StatusCode, Integer)})")
+            Me.Response = response
+            StatusCode = response.StatusCode
+            ReasonPhrase = response.ReasonPhrase
+        End Sub
+    End Class
+    
+    ''' <summary>
+    ''' <see cref="HttpRequestFailedException"/> 的套壳，包含 <c>StatusCode</c> 属性。<br/>
+    ''' 在此，向龙猫的石山代码致敬。
+    ''' </summary>
+    Public Class HttpWebException
+        Inherits WebException
+        Public ReadOnly Property InnerHttpException As HttpRequestFailedException
+        Public ReadOnly Property StatusCode As HttpStatusCode
+            Get
+                Return InnerHttpException.StatusCode
+            End Get
+        End Property
+        Public Sub New(message As String, ex As HttpRequestFailedException)
+            MyBase.New(message, ex)
+            InnerHttpException = ex
+        End Sub
+    End Class
+    
+    ''' <summary>
+    ''' <see cref="HttpResponseMessage.EnsureSuccessStatusCode"/> 的改进版，将抛出附带 <c>StatusCode</c> 和 <c>ReasonPhrase</c> 属性的异常。
+    ''' 这个改进已经在 .NET 5 官方实装，鬼知道为什么 .NET Framework 连最新的 4.8.1 都这么原始。
+    ''' </summary>
+    ''' <exception cref="HttpRequestFailedException">HTTP 响应失败</exception>
+    Private Sub EnsureSuccessStatusCode(response As HttpResponseMessage)
+        If Not response.IsSuccessStatusCode Then
+            response.Content?.Dispose()
+            Throw New HttpRequestFailedException(response)
+        End If
+    End Sub
 
     ''' <summary>
     ''' 以 HttpClient 获取网页源代码。会进行至多 45 秒 3 次的尝试，允许最长 30s 的超时。
@@ -143,7 +192,7 @@ Retry:
                     request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.5")
                     request.Headers.Add("X-Requested-With", "XMLHttpRequest")
                     Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
-                        response.EnsureSuccessStatusCode()
+                        EnsureSuccessStatusCode(response)
                         Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
                             If Encoding Is Nothing Then Encoding = Encoding.UTF8
                             '读取流并转换为字符串
@@ -158,6 +207,8 @@ Retry:
             End Using
         Catch ex As TaskCanceledException
             Throw New TimeoutException("连接服务器超时（" & Url & "）", ex)
+        Catch ex As HttpRequestFailedException
+            Throw New HttpWebException("获取结果失败，" & ex.Message & "（" & Url & "）", ex)
         Catch ex As Exception
             Throw New WebException("获取结果失败，" & ex.Message & "（" & Url & "）", ex)
         End Try
@@ -266,7 +317,7 @@ RequestFinished:
                     request.Headers.Accept.ParseAdd(Accept)
                     SecretHeadersSign(Url, request, UseBrowserUserAgent)
                     Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
-                        response.EnsureSuccessStatusCode()
+                        EnsureSuccessStatusCode(response)
                         If Encode Is Nothing Then Encode = Encoding.UTF8
                         Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
                             '读取流并转换为字符串
@@ -281,6 +332,8 @@ RequestFinished:
             End Using
         Catch ex As TaskCanceledException
             Throw New TimeoutException("连接服务器超时（" & Url & "）", ex)
+        Catch ex As HttpRequestFailedException
+            Throw New HttpWebException("获取结果失败，" & ex.Message & "（" & Url & "）", ex)
         Catch ex As Exception
             Throw New WebException("获取结果失败，" & ex.Message & "（" & Url & "）", ex)
         End Try
@@ -330,7 +383,7 @@ RequestFinished:
             Using request As New HttpRequestMessage(HttpMethod.Get, Url)
                 SecretHeadersSign(Url, request, UseBrowserUserAgent)
                 Using response As HttpResponseMessage = Await GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
-                    response.EnsureSuccessStatusCode()
+                    EnsureSuccessStatusCode(response)
                     Using httpStream As Stream = Await response.Content.ReadAsStreamAsync()
                         Using fileStream As New FileStream(LocalFile, FileMode.Create)
                             Await httpStream.CopyToAsync(fileStream)
@@ -340,8 +393,8 @@ RequestFinished:
             End Using
         Catch ex As TaskCanceledException When ex.InnerException Is Nothing
             Throw New TimeoutException($"下载超时（{Url}）", ex)
-        Catch ex As HttpRequestException
-            Throw New WebException($"下载失败：{ex.Message}（{Url}）", ex)
+        Catch ex As HttpRequestFailedException
+            Throw New HttpWebException($"下载失败：{ex.Message}（{Url}）", ex)
         Catch ex As Exception
             If File.Exists(LocalFile) Then File.Delete(LocalFile)
             Throw New WebException($"下载失败：{ex.Message}（{Url}）", ex)
@@ -510,7 +563,7 @@ RequestFinished:
                         Next
                     End If
                     Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
-                        response.EnsureSuccessStatusCode()
+                        EnsureSuccessStatusCode(response)
                         Using responseStream = response.Content.ReadAsStreamAsync().Result
                             Using reader As New StreamReader(responseStream, Encoding.UTF8)
                                 Return reader.ReadToEnd()
@@ -522,7 +575,9 @@ RequestFinished:
         Catch ex As ThreadInterruptedException
             Throw
         Catch ex As Exception
-            Dim nx = New WebException("网络请求失败（" & Url & "）", ex)
+            Dim nx = If(TypeOf ex Is HttpRequestFailedException,
+                        New HttpWebException("网络请求失败（" & Url & "）", ex),
+                        New WebException("网络请求失败（" & Url & "）", ex))
             If MakeLog Then Log(nx, "NetRequestOnce 请求失败", LogLevel.Developer)
             Throw nx
         End Try
@@ -1128,7 +1183,7 @@ StartThread:
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
                     Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
-                        response.EnsureSuccessStatusCode()
+                        EnsureSuccessStatusCode(response)
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString
                         If Redirected <> Info.Source.Url Then

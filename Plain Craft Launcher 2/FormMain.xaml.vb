@@ -423,7 +423,6 @@ Public Class FormMain
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
-        LogFlush()
         If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         Process.GetCurrentProcess.Kill()
     End Sub
