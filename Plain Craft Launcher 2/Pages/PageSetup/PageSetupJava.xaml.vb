@@ -54,7 +54,7 @@ Public Class PageSetupJava
                                                             MyMsgBox($"类型: {VersionTypeDesc}" & vbCrLf &
                                                                      $"版本: {J.Version.ToString()}" & vbCrLf &
                                                                      $"架构: {J.JavaArch.ToString()} ({DisplayBits})" & vbCrLf &
-                                                                     $"品排: {DisplayBrand}" & vbCrLf &
+                                                                     $"品牌: {DisplayBrand}" & vbCrLf &
                                                                      $"位置: {J.JavaFolder}", "Java 信息")
                                                         End Sub
                               Dim BtnEnableSwitch As New MyIconButton

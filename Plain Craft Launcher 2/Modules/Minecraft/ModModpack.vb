@@ -437,7 +437,7 @@ Retry:
                 End Select
             End If
             '添加下载文件
-            Dim Urls = File("downloads").ToList()
+            Dim Urls = File("downloads").SelectMany(Function(x) CompFile.HandleCurseForgeDownloadUrls(x.ToString())).ToList()
             Urls.AddRange(Urls.Select(Function(u) DlSourceModGet(u)).ToList)
             Urls = Urls.Distinct.ToList()
             Dim TargetPath As String = $"{PathMcFolder}versions\{VersionName}\{File("path")}"

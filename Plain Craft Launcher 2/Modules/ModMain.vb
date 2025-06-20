@@ -635,11 +635,11 @@ EndHint:
                     End If
                     Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " & FileList.Count & " 条")
                     '读取自带文件
-                    For Each File In EnumerateFiles(PathTemp & "CE\Help")
+                    For Each File In EnumerateFiles(PathHelpFolder)
                         '跳过非 Json 文件与以 . 开头的文件夹
-                        If File.Extension.ToLower <> ".json" OrElse File.Directory.FullName.Replace(PathTemp & "Help", "").Contains("\.") Then Continue For
+                        If File.Extension.ToLower <> ".json" OrElse File.Directory.FullName.Replace(PathHelpFolder.TrimEnd("\"c), "").Contains("\.") Then Continue For
                         '检查忽略列表
-                        Dim RealPath As String = File.FullName.Replace(PathTemp & "Help\", "")
+                        Dim RealPath As String = File.FullName.Replace(PathHelpFolder.TrimEnd("\"c), "")
                         For Each Ignore In IgnoreList
                             If RegexCheck(RealPath, Ignore) Then
                                 If ModeDebug Then Log("[Help] 已忽略 " & RealPath & "：" & Ignore)
