@@ -9,6 +9,7 @@ Imports System.Xaml
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Serialization
+Imports PCL.Core.Helper
 
 Public Module ModBase
 
@@ -1212,7 +1213,7 @@ Re:
             'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             '获取 SHA256
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Using hasher = sha256.Create()
+                Using hasher = SHA256.Create()
                     Dim retval As Byte() = hasher.ComputeHash(fs)
                     Dim Result As New StringBuilder(retval.Length * 2) '预设容量，避免多次扩容导致性能问题
                     For i As Integer = 0 To retval.Length - 1
@@ -1242,7 +1243,7 @@ Re:
         Try
             '获取 SHA1
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Using hasher = sha1.Create()
+                Using hasher = SHA1.Create()
                     Dim retval As Byte() = hasher.ComputeHash(fs)
                     Dim Result As New StringBuilder(retval.Length * 2) '预设容量，避免多次扩容导致性能问题
                     For i As Integer = 0 To retval.Length - 1
@@ -3180,17 +3181,8 @@ Retry:
         '处理错误会导致再次调用 Log() 导致无限循环
 
         '输出日志
-        Dim AppendText As String = "[" & GetTimeNow() & "] " & Text & vbCrLf '减轻同步锁占用
-        If ModeDebug Then
-            SyncLock LogListLock
-                LogList.Append(AppendText)
-            End SyncLock
-        Else
-            LogList.Append(AppendText)
-        End If
-#If DEBUG Or DEBUGCI Then
-        Console.Write(AppendText)
-#End If
+        LogWrapper.Info(Text)
+
         If IsProgramEnded OrElse Level = LogLevel.Normal Then Return
 
         '去除前缀
@@ -3244,17 +3236,8 @@ Retry:
         Dim ExFull As String = Desc & "：" & GetExceptionDetail(Ex)
 
         '输出日志
-        Dim AppendText As String = "[" & GetTimeNow() & "] " & Desc & "：" & GetExceptionDetail(Ex, True) & vbCrLf '减轻同步锁占用
-        If ModeDebug Then
-            SyncLock LogListLock
-                LogList.Append(AppendText)
-            End SyncLock
-        Else
-            LogList.Append(AppendText)
-        End If
-#If DEBUG Or DEBUGCI Then
-        Console.Write(AppendText)
-#End If
+        LogWrapper.Error(Ex, Desc)
+
         If IsProgramEnded Then Return
 
         If Ex.GetType() = GetType(ComponentModel.Win32Exception) Then ExFull += vbCrLf & "与系统底层交互失败，请尝试重新安装 .NET Framework 4.8.1 解决此问题"
