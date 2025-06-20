@@ -114,8 +114,6 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '日志初始化
-            LogStart()
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")

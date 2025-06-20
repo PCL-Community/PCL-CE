@@ -885,7 +885,6 @@ NextStack:
                     If File.Exists(FileAddress) Then File.Delete(FileAddress)
                     '输出诊断信息
                     FeedbackInfo()
-                    LogFlush()
                     '复制文件
                     If ExtraFiles IsNot Nothing Then OutputFiles.AddRange(ExtraFiles)
                     For Each OutputFile In OutputFiles
