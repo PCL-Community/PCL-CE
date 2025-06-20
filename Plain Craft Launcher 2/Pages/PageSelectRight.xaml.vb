@@ -1,6 +1,12 @@
 ﻿Imports System.Windows.Threading
 Public Class PageSelectRight
 
+    Private LastInputTime As DateTime = DateTime.MinValue
+    Private ReloadTimer As DispatcherTimer
+    Private Const NormalDelay As Integer = 75  '正常输入延迟0.075秒
+    Private Const QuickDelay As Integer = 50   '清空搜索框延迟0.05秒
+    Private IsRefreshing As Boolean = False
+
     '窗口基础
     Private Sub PageSelectRight_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
@@ -8,56 +14,64 @@ Public Class PageSelectRight
         AddHandler PanVerSearchBox.TextChanged, AddressOf PanVerSearchBox_TextChanged
 
         ReloadTimer = New DispatcherTimer With {
-            .Interval = TimeSpan.FromMilliseconds(150) ' 0.15秒延迟
+            .Interval = TimeSpan.FromMilliseconds(NormalDelay)
         }
         AddHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
     End Sub
 
-    Private LastInputTime As DateTime = DateTime.MinValue
-    Private ReloadTimer As DispatcherTimer
-
     Private Sub PanVerSearchBox_TextChanged(sender As Object, e As TextChangedEventArgs)
+        '记录最后一次输入时间
         LastInputTime = DateTime.Now
 
-        ' 如果搜索框被清空，使用0.05秒延迟刷新
+        IsRefreshing = False
+
+        '动态调整延迟时间
         If String.IsNullOrWhiteSpace(PanVerSearchBox.Text) Then
-            If ReloadTimer IsNot Nothing Then
-                ReloadTimer.Stop()
-                ReloadTimer.Interval = TimeSpan.FromMilliseconds(50) ' 0.05秒延迟
-                ReloadTimer.Start()
+            If ReloadTimer.Interval.TotalMilliseconds <> QuickDelay Then
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(QuickDelay)
             End If
         Else
-            ' 正常输入内容时使用0.1秒延迟
-            If ReloadTimer IsNot Nothing Then
-                ReloadTimer.Stop()
-                ReloadTimer.Interval = TimeSpan.FromMilliseconds(150) ' 0.15秒延迟
-                ReloadTimer.Start()
+            If ReloadTimer.Interval.TotalMilliseconds <> NormalDelay Then
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(NormalDelay)
             End If
+        End If
+
+
+        If Not ReloadTimer.IsEnabled Then
+            ReloadTimer.Start()
         End If
     End Sub
 
     Private Sub ReloadTimer_Tick(sender As Object, e As EventArgs)
-        If ReloadTimer IsNot Nothing Then
-            ReloadTimer.Stop()
-        End If
+        '检查是否超过当前设定的延迟时间没有新输入
+        Dim elapsed = (DateTime.Now - LastInputTime).TotalMilliseconds
+        Dim currentDelay = ReloadTimer.Interval.TotalMilliseconds
 
-        ' 检查是否超过当前设定的延迟时间没有新输入
-        If McVersionListLoader.State = LoadState.Finished Then
-            McVersionListUI(McVersionListLoader)
+        If elapsed >= currentDelay AndAlso McVersionListLoader.State = LoadState.Finished AndAlso Not IsRefreshing Then
+            IsRefreshing = True
+
+            '确保在UI线程执行刷新
+            Dispatcher.BeginInvoke(Sub()
+                                       McVersionListUI(McVersionListLoader)
+                                       IsRefreshing = False
+                                   End Sub)
+            ReloadTimer.Stop()
         End If
     End Sub
 
     Private Sub PageSelectRight_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
-        ' 清理计时器
+        '清理计时器
         If ReloadTimer IsNot Nothing Then
             ReloadTimer.Stop()
             RemoveHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
             ReloadTimer = Nothing
         End If
     End Sub
+
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanAllBack, Nothing, McVersionListLoader, AddressOf McVersionListUI, AutoRun:=False)
     End Sub
+
     Private Sub Load_Click(sender As Object, e As MouseButtonEventArgs) Handles Load.Click
         If McVersionListLoader.State = LoadState.Failed Then
             LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
