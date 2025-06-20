@@ -37,13 +37,16 @@ public class LoggerTest
         var logger = new Logger(loggerOps);
         var tasks = new List<Task>();
         for (var i = 0; i < 25; i++)
+        {
+            int current = i;
             tasks.Add(Task.Run(() =>
             {
                 for (int j = 0; j < 25565; j++)
                 {
-                    logger.Info($"Current we got {i}");
+                    logger.Info($"Current we got {current}:{j}");
                 }
             }));
+        }
         await Task.WhenAll(tasks.ToArray());
     }
 }
