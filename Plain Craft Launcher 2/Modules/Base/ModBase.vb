@@ -102,6 +102,8 @@ Public Module ModBase
     ''' </summary>
     Public PathAppdataConfig As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & If(VersionBranchName = "Debug", "\.pclcedebug\", "\.pclce\")
 
+    Public PathHelpFolder As String = PathTemp & "CE\Help\"
+
 #End Region
 
 #Region "矢量图标"
