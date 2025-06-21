@@ -129,7 +129,11 @@ Public Class FormMain
 
         ThemeRefresh()
 
-        BlurHelper.RaiseBlurChanged(Setup.Get("UiBlurValue"))
+        If Setup.Get("UiBlur") Then
+            BlurHelper.RaiseBlurChanged(Setup.Get("UiBlurValue"))
+        Else
+            BlurHelper.RaiseBlurChanged(0)
+        End If
 
         Try
             Height = Setup.Get("WindowHeight")
