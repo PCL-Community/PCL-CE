@@ -153,8 +153,6 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             Dim WebpPath = $"{PathPure}CE\libwebp.dll"
             If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
-            Dim SqlPath = $"{PathPure}CE\SQLite.Interop.dll"
-            If Not File.Exists(SqlPath) Then WriteFile(SqlPath, GetResources("SQLite"))
             WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
             If Not File.Exists(PathPure & "CE\msalruntime.dll") Then
                 If Directory.Exists(PathPure & "CE\runtimes") Then DeleteDirectory(PathPure & "CE\runtimes")
