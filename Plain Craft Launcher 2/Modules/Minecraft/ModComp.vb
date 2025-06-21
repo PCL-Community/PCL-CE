@@ -1,6 +1,6 @@
 ﻿Imports System.Threading.Tasks
-Imports System.Data.SQLite
 Imports System.Net.Http
+Imports LiteDB
 
 Public Module ModComp
 
@@ -94,35 +94,34 @@ Public Module ModComp
 
 #Region "CompDatabase | Mod 数据库"
 
-    Private _CompDatabase As SqliteConnection = Nothing
-    Private ReadOnly Property CompDatabase As SqliteConnection
+    Private _CompDatabase As LiteDatabase = Nothing
+    Private ReadOnly Property CompDatabase As LiteDatabase
         Get
             If _CompDatabase IsNot Nothing Then Return _CompDatabase
             '初始化数据库
-            Dim DBPath = $"{PathTemp}Cache\ModData.db"
-            WriteFile(DBPath, GetResources("ModData"))
-            Log($"[CompWikiData] 数据库文件已释放到 {DBPath}")
-            _CompDatabase = New SQLiteConnection($"Data Source={DBPath};Mode=ReadOnly")
-            _CompDatabase.Open()
+            Dim dbPath = $"{PathTemp}Cache\ModData.db"
+            Using db As New FileStream(dbPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
+                Using ms As New MemoryStream(GetResources("ModData"))
+                    If db.Length <> ms.Length Then
+                        ms.CopyTo(db)
+                        db.SetLength(ms.Length)
+                        Log($"[DB] 已更新本地 ModData {dbPath}")
+                    End If
+                End Using
+            End Using
+            CompDatabase = New LiteDatabase(dbPath)
             Return _CompDatabase
         End Get
     End Property
 
+    Private Class CompWikiStruct
+
+    End Class
+
     Private Function GetCompWikiEntryBySlug(slug As String)
-        Dim command = CompDatabase.CreateCommand()
-        command.CommandText = "SELECT * FROM ModWiki WHERE curseforge_id = @slug OR modrinth_id = @slug"
-        command.Parameters.AddWithValue("@slug", slug)
-        Dim reader = command.ExecuteReader()
-        If reader.Read() Then
-            Return New CompDatabaseEntry With {
-                .WikiId = reader("wiki_id"),
-                .ChineseName = reader("chinese_name"),
-                .CurseForgeSlug = reader("curseforge_id"),
-                .ModrinthSlug = reader("modrinth_id")
-            }
-        End If
-        reader.Close()
-        Return Nothing
+        Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModComp")
+        Dim ret = datas.Query().Where(Function(x) x.CurseForgeSlug = slug OrElse x.ModrinthSlug = slug)
+        Return If(ret.Count() = 0, Nothing, ret.First())
     End Function
 
     Private Class CompDatabaseEntry
@@ -288,7 +287,7 @@ Public Module ModComp
                     WriteIni(CacheFilePath, DescHash, Base64Encode(result))
                 End If
             Catch ex As HttpRequestException
-                If ex.Message.Contains("404") Then 
+                If ex.Message.Contains("404") Then
                     MyMsgBox("当前资源的简介暂无译文", "获取译文失败", Button1:="我知道了")
                     Return Nothing
                 End If
@@ -1070,26 +1069,17 @@ NoSubtitle:
         If IsChineseSearch AndAlso (Request.Type = CompType.Mod OrElse Request.Type = CompType.DataPack) Then
             '构造搜索请求
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
-            Dim command = CompDatabase.CreateCommand()
-            command.CommandText = "SELECT * FROM ModWiki WHERE chinese_name LIKE @kw OR curseforge_id LIKE @kw OR modrinth_id LIKE @kw"
-            command.Parameters.AddWithValue("@kw", "%" & RawFilter & "%")
-            Dim reader = command.ExecuteReader()
-            While reader.Read()
-                If reader("chinese_name").ToString().Contains("动态的树") Then Continue While
-                Dim entry As New CompDatabaseEntry With {
-                    .WikiId = reader("wiki_id"),
-                    .ChineseName = reader("chinese_name"),
-                    .CurseForgeSlug = reader("curseforge_id"),
-                    .ModrinthSlug = reader("modrinth_id")
-                }
+            Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModComp")
+            Dim searchRes = datas.Query().Where(Function(x) x.ChineseName.Contains(RawFilter)).ToEnumerable()
+            For Each searchItem In searchRes
+                If searchItem.ChineseName.Contains("动态的树") Then Continue For
                 SearchEntries.Add(New SearchEntry(Of CompDatabaseEntry) With {
-                    .Item = entry,
+                    .Item = searchItem,
                     .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
-                        New KeyValuePair(Of String, Double)(entry.ChineseName & If(entry.CurseForgeSlug, "") & If(entry.ModrinthSlug, ""), 1)
+                        New KeyValuePair(Of String, Double)(searchItem.ChineseName & If(searchItem.CurseForgeSlug, "") & If(searchItem.ModrinthSlug, ""), 1)
                     }
                 })
-            End While
-            reader.Close()
+            Next
             '获取搜索结果
             Dim SearchResults = Search(SearchEntries, Request.SearchText, 3)
             If Not SearchResults.Any() Then Throw New Exception("无搜索结果，请尝试搜索英文名称")
