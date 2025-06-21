@@ -178,10 +178,10 @@
             Location = Path & "PCL\Help\" & RelativeUrl
             WorkingDir = Path & "PCL\Help\"
             Log("[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径" & EventType & "：" & Location)
-        ElseIf EventType = "打开帮助" AndAlso File.Exists(PathTemp & "Help\" & RelativeUrl) Then
+        ElseIf EventType = "打开帮助" AndAlso File.Exists(PathHelpFolder & RelativeUrl) Then
             '相对 PCL 自带帮助文件夹的路径
-            Location = PathTemp & "Help\" & RelativeUrl
-            WorkingDir = PathTemp & "Help\"
+            Location = PathHelpFolder & RelativeUrl
+            WorkingDir = PathHelpFolder
             Log("[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径" & EventType & "：" & Location)
         ElseIf EventType = "打开文件" OrElse EventType = "执行命令" Then
             '直接使用原有路径启动程序

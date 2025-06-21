@@ -114,8 +114,6 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '日志初始化
-            LogStart()
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")
@@ -166,10 +164,6 @@ WaitRetry:
                     End Using
                 End Using
             End If
-            '网络配置初始化
-            ServicePointManager.Expect100Continue = True
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 Or SecurityProtocolType.Tls Or SecurityProtocolType.Tls11 Or SecurityProtocolType.Tls12 Or SecurityProtocolType.Tls13
-            ServicePointManager.DefaultConnectionLimit = 1024
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体

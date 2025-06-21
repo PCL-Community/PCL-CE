@@ -33,7 +33,7 @@ Public Module ModJava
                                              Log("[Java] 开始搜索 Java")
                                              _javas.ScanJava().GetAwaiter().GetResult()
                                              JavaSetCache(_javas.GetCache())
-                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
+                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString(True)).Join(vbCrLf))
                                          End Sub)
             End If
             Return _javaInitTask

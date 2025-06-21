@@ -711,11 +711,12 @@ NextStack:
                 If Word.Length <= 2 OrElse Word.StartsWithF("func_") Then Continue For
                 If {"com", "org", "net", "asm", "fml", "mod", "jar", "sun", "lib", "map", "gui", "dev", "nio", "api", "dsi", "top", "mcp",
                     "core", "init", "mods", "main", "file", "game", "load", "read", "done", "util", "tile", "item", "base", "oshi", "impl", "data", "pool", "task",
-                    "forge", "setup", "block", "model", "mixin", "event", "unimi", "netty", "world",
+                    "forge", "setup", "block", "model", "mixin", "event", "unimi", "netty", "world", "lwjgl",
                     "gitlab", "common", "server", "config", "mixins", "compat", "loader", "launch", "entity", "assist", "client", "plugin", "modapi", "mojang", "shader", "events", "github", "recipe", "render", "packet", "events",
                     "preinit", "preload", "machine", "reflect", "channel", "general", "handler", "content", "systems", "modules", "service",
                     "fastutil", "optifine", "internal", "platform", "override", "fabricmc", "neoforge",
-                    "injection", "listeners", "scheduler", "minecraft", "transformer", "transformers", "neoforged", "universal", "multipart", "minecraftforge", "blockentity", "spongepowered", "electronwill"
+                    "injection", "listeners", "scheduler", "minecraft", "universal", "multipart", "neoforged", "microsoft",
+                    "transformer", "transformers", "minecraftforge", "blockentity", "spongepowered", "electronwill"
                    }.Contains(Word.ToLower) Then Continue For
                 PossibleWords.Add(Word.Trim)
             Next
@@ -885,7 +886,6 @@ NextStack:
                     If File.Exists(FileAddress) Then File.Delete(FileAddress)
                     '输出诊断信息
                     FeedbackInfo()
-                    LogFlush()
                     '复制文件
                     If ExtraFiles IsNot Nothing Then OutputFiles.AddRange(ExtraFiles)
                     For Each OutputFile In OutputFiles
@@ -894,13 +894,14 @@ NextStack:
                         Select Case FileName
                             Case "LatestLaunch.bat"
                                 FileName = "启动脚本.bat"
-                            Case "Log-CE1.log"
-                                FileName = "PCL 启动器日志.txt"
-                                FileEncoding = Encoding.UTF8
                             Case "RawOutput.log"
                                 FileName = "游戏崩溃前的输出.txt"
                                 FileEncoding = Encoding.UTF8
                         End Select
+                        If Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last() = FileName Then
+                            FileName = "PCL 启动器日志.txt"
+                            FileEncoding = Encoding.UTF8
+                        End If
                         If File.Exists(OutputFile) Then
                             If FileEncoding Is Nothing Then FileEncoding = GetEncoding(ReadFileBytes(OutputFile))
                             Dim FileContent As String = ReadFile(OutputFile, FileEncoding)

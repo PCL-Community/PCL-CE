@@ -1455,8 +1455,11 @@ LoginFinish:
     ''' <summary>
     ''' 判断是否使用 RetroWrapper。
     ''' </summary>
-    Private Function McLaunchNeedsRetroWrapper() As Boolean
-        Return (McVersionCurrent.ReleaseTime >= New Date(2013, 6, 25) AndAlso McVersionCurrent.Version.McCodeMain = 99) OrElse (McVersionCurrent.Version.McCodeMain < 6 AndAlso McVersionCurrent.Version.McCodeMain <> 99) AndAlso Not Setup.Get("LaunchAdvanceDisableRW") AndAlso Not Setup.Get("VersionAdvanceDisableRW", McVersionCurrent) '<1.6
+    Private Function McLaunchNeedsRetroWrapper(Mc As McVersion) As Boolean
+        Return (Mc.ReleaseTime >= New Date(2013, 6, 25) AndAlso Mc.Version.McCodeMain = 99) OrElse
+            (Mc.Version.McCodeMain < 6 AndAlso Mc.Version.McCodeMain <> 99) AndAlso
+            Not Setup.Get("LaunchAdvanceDisableRW") AndAlso
+            Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
 
 
@@ -1649,6 +1652,11 @@ NextVersion:
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
         End If
+        '添加 RetroWrapper 相关参数
+        If McLaunchNeedsRetroWrapper(Version) Then
+            'https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
+            DataList.Add("-Dretrowrapper.doUpdateCheck=false")
+        End If
         '添加 Java Wrapper 作为主 Jar
         If Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McVersionCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
@@ -1656,11 +1664,6 @@ NextVersion:
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
 
-        '添加 RetroWrapper 相关参数
-        If McLaunchNeedsRetroWrapper() Then
-            'https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            DataList.Add("-Dretrowrapper.doUpdateCheck=false")
-        End If
 
         '将 "-XXX" 与后面 "XXX" 合并到一起
         '如果不合并，会导致 Forge 1.17 启动无效，它有两个 --add-exports，进一步导致其中一个在后面被去重
@@ -1701,7 +1704,7 @@ NextVersion:
         Dim DataList As New List(Of String)
 
         '添加 RetroWrapper 相关参数
-        If McLaunchNeedsRetroWrapper() Then
+        If McLaunchNeedsRetroWrapper(Version) Then
             DataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker")
         End If
 
@@ -1861,11 +1864,11 @@ NextVersion:
         Dim OptiFineCp As String = Nothing
 
         'RetroWrapper 释放
-        If McLaunchNeedsRetroWrapper() Then
+        If McLaunchNeedsRetroWrapper(Version) Then
             Dim WrapperPath As String = PathMcFolder & "libraries\retrowrapper\RetroWrapper.jar"
             Try
                 WriteFile(WrapperPath, GetResources("RetroWrapper"))
-                CpStrings.Add(WrapperPath)  
+                CpStrings.Add(WrapperPath)
             Catch ex As Exception
                 Log(ex, "RetroWrapper 释放失败")
             End Try

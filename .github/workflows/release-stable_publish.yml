@@ -22,6 +22,38 @@ jobs:
       architecture: ${{ matrix.architecture }}
     secrets: inherit
 
+  changelog:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - name: Checkout all
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install changelogithub
+
+      - name: Generate Changelog
+        run: npx changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add tail
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          body_path: CHANGELOG_TAIL.md
+          append_body: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   rename_and_release:
     needs: build
     runs-on: windows-latest

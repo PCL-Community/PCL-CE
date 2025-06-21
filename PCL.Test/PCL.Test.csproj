@@ -171,8 +171,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigureTest.cs" />
+    <Compile Include="DiffTest.cs" />
     <Compile Include="DynamicJsonTest.cs" />
     <Compile Include="JavaTest.cs" />
+    <Compile Include="LoggerTest.cs" />
+    <Compile Include="Project\Modrinth.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SemVerTest.cs" />
     <Compile Include="WebServerTest.cs" />
