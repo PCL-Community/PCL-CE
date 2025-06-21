@@ -180,7 +180,7 @@ Public Module ModWebServer
                     Log($"[OAuth] {serviceName}: 初始化完成，开始响应 HTTP 请求")
                 End SyncLock
                 '打开 OAuth URL
-                OpenWebsite(url.Replace("%r", $"http://local.luotianyi-0712.top:{port}/callback"))
+                OpenWebsite(url.Replace("%r", $"http://localhost:{port}/callback"))
             End Sub, $"CallbackWebServerLoading/{serviceName}")
         Return True
     End Function
