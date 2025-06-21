@@ -197,6 +197,7 @@ Public Class PageSelectRight
             '判断应该显示哪一个页面
             If Not hasAnyResults Then
                 If Not originalHasVersions Then
+                    ' 完全没有版本的情况
                     PanEmpty.Visibility = Visibility.Visible
                     PanBack.Visibility = Visibility.Collapsed
                     If ShowHidden Then
@@ -209,14 +210,36 @@ Public Class PageSelectRight
                         BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
                     End If
                 Else
-                    ' 有版本但搜索无结果
-                    PanEmpty.Visibility = Visibility.Collapsed
-                    PanBack.Visibility = Visibility.Visible
-                    PanEmptySearch.Visibility = Visibility.Visible ' 显示搜索无结果提示
-                    LabEmptySearchTitle.Text = "无匹配的游戏版本"
-                    LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
-                    "请输入搜索内容",
-                    $"没有找到与 '{searchText}' 匹配的版本")
+                    ' 有版本但搜索无结果的情况
+                    If ShowHidden AndAlso McVersionList.ToArray.Any(Function(c) c.Key = McVersionCardType.Hidden AndAlso c.Value.Count > 0) Then
+                        ' 有隐藏版本但搜索无结果 - 显示搜索无结果提示
+                        PanVerSearchBox.Visibility = Visibility.Visible
+                        PanEmpty.Visibility = Visibility.Collapsed
+                        PanBack.Visibility = Visibility.Visible
+                        PanEmptySearch.Visibility = Visibility.Visible
+                        LabEmptySearchTitle.Text = "无匹配的隐藏版本"
+                        LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
+                        "请输入搜索内容",
+                        $"没有找到与 '{searchText}' 匹配的隐藏版本")
+                    ElseIf ShowHidden Then
+                        ' 无隐藏版本 - 显示"无隐藏版本"提示
+                        PanEmpty.Visibility = Visibility.Visible
+                        PanBack.Visibility = Visibility.Collapsed
+                        LabEmptyTitle.Text = "无隐藏版本"
+                        LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
+                        BtnEmptyDownload.Visibility = Visibility.Collapsed
+                        PanVerSearchBox.Visibility = Visibility.Collapsed
+                    Else
+                        ' 普通模式下的搜索无结果
+                        PanVerSearchBox.Visibility = Visibility.Visible
+                        PanEmpty.Visibility = Visibility.Collapsed
+                        PanBack.Visibility = Visibility.Visible
+                        PanEmptySearch.Visibility = Visibility.Visible
+                        LabEmptySearchTitle.Text = "无匹配的游戏版本"
+                        LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
+                        "请输入搜索内容",
+                        $"没有找到与 '{searchText}' 匹配的版本")
+                    End If
                 End If
             Else
                 PanBack.Visibility = Visibility.Visible
@@ -224,7 +247,7 @@ Public Class PageSelectRight
                 PanEmptySearch.Visibility = Visibility.Collapsed ' 有结果时隐藏
             End If
 
-            PanVerSearchBox.Visibility = If(originalHasVersions, Visibility.Visible, Visibility.Collapsed)
+
 
         Catch ex As Exception
             Log(ex, "将版本列表转换显示时失败", LogLevel.Feedback)
