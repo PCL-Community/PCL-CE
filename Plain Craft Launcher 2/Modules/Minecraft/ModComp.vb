@@ -100,16 +100,18 @@ Public Module ModComp
             If _CompDatabase IsNot Nothing Then Return _CompDatabase
             '初始化数据库
             Dim dbPath = $"{PathTemp}Cache\ModData.db"
-            Using db As New FileStream(dbPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
-                Using ms As New MemoryStream(GetResources("ModData"))
-                    If db.Length <> ms.Length Then
-                        ms.CopyTo(db)
-                        db.SetLength(ms.Length)
-                        Log($"[DB] 已更新本地 ModData {dbPath}")
-                    End If
+            Using compressedDbData As New MemoryStream(GetResources("ModData"))
+                Log($"[DB] 解压 ModData 中")
+                If File.Exists(dbPath) Then File.Delete(dbPath)
+                Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
+                    Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                        trueDbFile.CopyTo(uncompressedDbFile)
+                    End Using
                 End Using
+                Log($"[DB] 已更新本地 ModData {dbPath}")
             End Using
-            CompDatabase = New LiteDatabase(dbPath)
+            _CompDatabase = New LiteDatabase(dbPath)
+            Log($"[DB] 已加载 ModData，共 {_CompDatabase.GetCollection("ModTranslation").Count()} 条数据")
             Return _CompDatabase
         End Get
     End Property
@@ -118,29 +120,34 @@ Public Module ModComp
 
     End Class
 
-    Private Function GetCompWikiEntryBySlug(slug As String)
-        Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModComp")
-        Dim ret = datas.Query().Where(Function(x) x.CurseForgeSlug = slug OrElse x.ModrinthSlug = slug)
-        Return If(ret.Count() = 0, Nothing, ret.First())
+    Private Function GetCompWikiEntryBySlug(slug As String) As CompDatabaseEntry
+        Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
+        Dim paSlug = New BsonValue(slug)
+        Dim queryCmd = Query.Or(
+                Query.EQ("CurseForgeSlug", paSlug),
+                Query.EQ("ModrinthSlug", paSlug)
+                )
+        Dim ret = datas.Find(queryCmd)
+        Return If(ret.Any(), ret.First(), Nothing)
     End Function
 
     Private Class CompDatabaseEntry
         ''' <summary>
         ''' McMod 的对应 ID。
         ''' </summary>
-        Public WikiId As Integer
+        Public Property WikiId As Integer
         ''' <summary>
         ''' 中文译名。空字符串代表没有翻译。
         ''' </summary>
-        Public ChineseName As String = ""
+        Public Property ChineseName As String = ""
         ''' <summary>
         ''' CurseForge Slug（例如 advanced-solar-panels）。
         ''' </summary>
-        Public CurseForgeSlug As String = Nothing
+        Public Property CurseForgeSlug As String = Nothing
         ''' <summary>
         ''' Modrinth Slug（例如 advanced-solar-panels）。
         ''' </summary>
-        Public ModrinthSlug As String = Nothing
+        Public Property ModrinthSlug As String = Nothing
 
         Public Overrides Function ToString() As String
             Return If(CurseForgeSlug, "") & "&" & If(ModrinthSlug, "") & "|" & WikiId & "|" & ChineseName
@@ -1069,8 +1076,13 @@ NoSubtitle:
         If IsChineseSearch AndAlso (Request.Type = CompType.Mod OrElse Request.Type = CompType.DataPack) Then
             '构造搜索请求
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
-            Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModComp")
-            Dim searchRes = datas.Query().Where(Function(x) x.ChineseName.Contains(RawFilter)).ToEnumerable()
+            Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
+            Dim queryCmd = Query.Or(
+                Query.Contains("ChineseName", RawFilter),
+                Query.Contains("CurseForgeSlug", RawFilter),
+                Query.Contains("ModrinthSlug", RawFilter)
+                )
+            Dim searchRes = datas.Find(queryCmd)
             For Each searchItem In searchRes
                 If searchItem.ChineseName.Contains("动态的树") Then Continue For
                 SearchEntries.Add(New SearchEntry(Of CompDatabaseEntry) With {

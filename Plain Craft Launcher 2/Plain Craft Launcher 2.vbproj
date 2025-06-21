@@ -1053,7 +1053,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Help.zip" />
-    <None Include="Resources\ModData.db" />
+    <None Include="Resources\ModData.dbcp" />
     <None Include="Resources\msalruntime.zip" />
     <None Include="Resources\transformer.jar" />
   </ItemGroup>
