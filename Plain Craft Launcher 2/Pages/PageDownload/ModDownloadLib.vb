@@ -2721,13 +2721,17 @@ LabyModSkip:
             '迁移文件
             If Directory.Exists(TempMcFolder & "libraries") Then CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
             Task.Progress = 0.8
+            '创建 Mod 和资源包文件夹
             Dim ModsFolder = New McVersion(VersionFolder).PathIndie & "mods\" '版本隔离信息在此时被决定
             If Directory.Exists(ModsTempFolder) Then
                 CopyDirectory(ModsTempFolder, ModsFolder)
             ElseIf Modable Then
                 Directory.CreateDirectory(ModsFolder)
-                Log("[Download] 自动创建 mods 文件夹：" & ModsFolder)
+                Log("[Download] 自动创建 Mod 文件夹：" & ModsFolder)
             End If
+            Dim ResourcepacksFolder = New McVersion(VersionFolder).PathIndie & "resourcepacks\"
+            Directory.CreateDirectory(ResourcepacksFolder)
+            Log("[Download] 自动创建资源包文件夹：" & ResourcepacksFolder)
         End Sub) With {.ProgressWeight = 2, .Block = True})
         '补全文件
         If Not DontFixLibraries AndAlso

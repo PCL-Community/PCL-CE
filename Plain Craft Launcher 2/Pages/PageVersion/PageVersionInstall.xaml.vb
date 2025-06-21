@@ -265,6 +265,7 @@ Public Class PageVersionInstall
 
     'Cleanroom
     Private SelectedCleanroom As DlCleanroomListEntry = Nothing
+    Private SelectedCleanroomVersion As String = Nothing
     Private Sub SetCleanroomInfoShow(IsShow As String)
         If PanCleanroomInfo.Tag = IsShow Then Exit Sub
         PanCleanroomInfo.Tag = IsShow
@@ -285,6 +286,7 @@ Public Class PageVersionInstall
 
     'NeoForge
     Private SelectedNeoForge As DlNeoForgeListEntry = Nothing
+    Private SelectedNeoForgeVersion As String = Nothing
     Private Sub SetNeoForgeInfoShow(IsShow As String)
         If PanNeoForgeInfo.Tag = IsShow Then Exit Sub
         PanNeoForgeInfo.Tag = IsShow
@@ -513,7 +515,7 @@ Public Class PageVersionInstall
             CardCleanroom.MainSwap.Visibility = If(CleanroomError Is Nothing, Visibility.Visible, Visibility.Collapsed)
             If CleanroomError IsNot Nothing Then CardCleanroom.IsSwaped = True
             SetCleanroomInfoShow(CardCleanroom.IsSwaped)
-            If SelectedCleanroom Is Nothing Then
+            If SelectedCleanroom Is Nothing AndAlso SelectedCleanroomVersion = Nothing Then
                 BtnCleanroomClear.Visibility = Visibility.Collapsed
                 ImgCleanroom.Visibility = Visibility.Collapsed
                 LabCleanroom.Text = If(CleanroomError, "可以添加")
@@ -521,7 +523,7 @@ Public Class PageVersionInstall
             Else
                 BtnCleanroomClear.Visibility = Visibility.Visible
                 ImgCleanroom.Visibility = Visibility.Visible
-                LabCleanroom.Text = SelectedCleanroom.VersionName
+                LabCleanroom.Text = If(SelectedCleanroom IsNot Nothing, SelectedCleanroom.VersionName, SelectedCleanroomVersion)
                 LabCleanroom.Foreground = ColorGray1
             End If
         Else
@@ -536,7 +538,7 @@ Public Class PageVersionInstall
             CardNeoForge.MainSwap.Visibility = If(NeoForgeError Is Nothing, Visibility.Visible, Visibility.Collapsed)
             If NeoForgeError IsNot Nothing Then CardNeoForge.IsSwaped = True
             SetNeoForgeInfoShow(CardNeoForge.IsSwaped)
-            If SelectedNeoForge Is Nothing Then
+            If SelectedNeoForge Is Nothing AndAlso SelectedNeoForgeVersion = Nothing Then
                 BtnNeoForgeClear.Visibility = Visibility.Collapsed
                 ImgNeoForge.Visibility = Visibility.Collapsed
                 LabNeoForge.Text = If(NeoForgeError, "可以添加")
@@ -544,7 +546,7 @@ Public Class PageVersionInstall
             Else
                 BtnNeoForgeClear.Visibility = Visibility.Visible
                 ImgNeoForge.Visibility = Visibility.Visible
-                LabNeoForge.Text = SelectedNeoForge.VersionName
+                LabNeoForge.Text = If(SelectedNeoForge IsNot Nothing, SelectedNeoForge.VersionName, SelectedNeoForgeVersion)
                 LabNeoForge.Foreground = ColorGray1
             End If
         End If
@@ -731,7 +733,9 @@ Public Class PageVersionInstall
         SelectedAPIName = Nothing
         SelectedForge = Nothing
         SelectedNeoForge = Nothing
+        SelectedNeoForgeVersion = Nothing
         SelectedCleanroom = Nothing
+        SelectedCleanroomVersion = Nothing
         SelectedFabric = Nothing
         SelectedFabricApi = Nothing
         SelectedQuilt = Nothing
@@ -758,11 +762,11 @@ Public Class PageVersionInstall
         If SelectedForge IsNot Nothing Then
             Info += ", Forge " & SelectedForge.VersionName
         End If
-        If SelectedNeoForge IsNot Nothing Then
-            Info += ", NeoForge " & SelectedNeoForge.VersionName
+        If SelectedNeoForge IsNot Nothing OrElse Not SelectedNeoForgeVersion = Nothing Then
+            Info += ", NeoForge " & If(SelectedNeoForge IsNot Nothing, SelectedNeoForge.VersionName, SelectedNeoForgeVersion)
         End If
-        If SelectedCleanroom IsNot Nothing Then
-            Info += ", Cleanroom " & SelectedCleanroom.VersionName
+        If SelectedCleanroom IsNot Nothing OrElse Not SelectedCleanroomVersion = Nothing Then
+            Info += ", Cleanroom " & If(SelectedCleanroom IsNot Nothing, SelectedCleanroom.VersionName, SelectedCleanroomVersion)
         End If
         If SelectedLabyModVersion IsNot Nothing Then
             Info += ", LabyMod " & SelectedLabyModVersion
@@ -789,9 +793,9 @@ Public Class PageVersionInstall
             Return "pack://application:,,,/images/Blocks/Quilt.png"
         ElseIf SelectedForge IsNot Nothing Then
             Return "pack://application:,,,/images/Blocks/Anvil.png"
-        ElseIf SelectedNeoForge IsNot Nothing Then
+        ElseIf SelectedNeoForge IsNot Nothing OrElse Not SelectedNeoForgeVersion = Nothing Then
             Return "pack://application:,,,/images/Blocks/NeoForge.png"
-        ElseIf SelectedCleanroom IsNot Nothing Then
+        ElseIf SelectedCleanroom IsNot Nothing OrElse Not SelectedCleanroomVersion = Nothing Then
             Return "pack://application:,,,/images/Blocks/Cleanroom.png"
         ElseIf SelectedLiteLoader IsNot Nothing Then
             Return "pack://application:,,,/images/Blocks/Egg.png"
@@ -883,9 +887,9 @@ Public Class PageVersionInstall
         If CurrentVersion.HasOptiFine Then
             SelectedOptiFine = New DlOptiFineListEntry With {.NameDisplay = CurrentVersion.McName + " " + CurrentVersion.OptiFineVersion, .IsPreview = CurrentVersion.OptiFineVersion.ContainsF("pre"), .Inherit = CurrentVersion.McName, .NameVersion = CurrentVersion.McName & "-OptiFine_HD_U_" & CurrentVersion.OptiFineVersion}
         End If
-        If CurrentVersion.HasCleanroom Then '此处有 BUG
+        If CurrentVersion.HasCleanroom Then
             SelectedAPIName = "Cleanroom"
-            SelectedCleanroom = New DlCleanroomListEntry(CurrentVersion.CleanroomVersion)
+            SelectedCleanroomVersion = CurrentVersion.CleanroomVersion
         ElseIf CurrentVersion.HasForge Then
             SelectedLoaderName = "Forge"
             SelectedForge = New DlForgeVersionEntry(CurrentVersion.ForgeVersion, Nothing, CurrentVersion.McName) With {.Category = "installer", .ForgeType = DlForgelikeEntry.ForgelikeType.Forge, .Inherit = CurrentVersion.McName}
@@ -893,12 +897,12 @@ Public Class PageVersionInstall
             SelectedLoaderName = "Fabric"
             SelectedFabric = CurrentVersion.FabricVersion
             SelectedFabricApi = GetCurrentFabricApi() '检测已有 Fabric API
-        ElseIf CurrentVersion.HasNeoForge Then '此处有 BUG
-            SelectedLoaderName = "NeoForge"
-            SelectedNeoForge = New DlNeoForgeListEntry(CurrentVersion.NeoForgeVersion) With {.ForgeType = DlForgelikeEntry.ForgelikeType.NeoForge, .Inherit = CurrentVersion.McName, .ApiName = If(CurrentVersion.McName = "1.20.1", "1.20.1-", "") & CurrentVersion.NeoForgeVersion}
         ElseIf CurrentVersion.HasLabyMod Then
             SelectedLoaderName = "LabyMod"
             SelectedLabyModVersion = CurrentVersion.LabyModVersion
+        ElseIf CurrentVersion.HasNeoForge Then
+            SelectedLoaderName = "NeoForge"
+            SelectedNeoForgeVersion = CurrentVersion.NeoForgeVersion
         ElseIf CurrentVersion.HasQuilt Then
             SelectedLoaderName = "Quilt"
             SelectedQuilt = CurrentVersion.QuiltVersion
@@ -1331,6 +1335,7 @@ Public Class PageVersionInstall
     '选择与清除
     Private Sub NeoForge_Selected(sender As MyListItem, e As EventArgs)
         SelectedNeoForge = sender.Tag
+        SelectedNeoForgeVersion = Nothing
         SelectedLoaderName = "NeoForge"
         CardNeoForge.IsSwaped = True
         OptiFine_Loaded()
@@ -1338,6 +1343,7 @@ Public Class PageVersionInstall
     End Sub
     Private Sub NeoForge_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnNeoForgeClear.MouseLeftButtonUp
         SelectedNeoForge = Nothing
+        SelectedNeoForgeVersion = Nothing
         SelectedLoaderName = Nothing
         CardNeoForge.IsSwaped = True
         e.Handled = True
@@ -1394,6 +1400,7 @@ Public Class PageVersionInstall
     '选择与清除
     Private Sub Cleanroom_Selected(sender As MyListItem, e As EventArgs)
         SelectedCleanroom = sender.Tag
+        SelectedCleanroomVersion = Nothing
         SelectedLoaderName = "Cleanroom"
         CardCleanroom.IsSwaped = True
         OptiFine_Loaded()
@@ -1401,6 +1408,7 @@ Public Class PageVersionInstall
     End Sub
     Private Sub Cleanroom_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnCleanroomClear.MouseLeftButtonUp
         SelectedCleanroom = Nothing
+        SelectedCleanroomVersion = Nothing
         SelectedLoaderName = Nothing
         CardCleanroom.IsSwaped = True
         e.Handled = True
@@ -2000,7 +2008,9 @@ Public Class PageVersionInstall
             .OptiFineEntry = SelectedOptiFine,
             .ForgeEntry = SelectedForge,
             .NeoForgeEntry = SelectedNeoForge,
+            .NeoForgeVersion = SelectedNeoForgeVersion,
             .CleanroomEntry = SelectedCleanroom,
+            .CleanroomVersion = SelectedCleanroomVersion,
             .FabricVersion = SelectedFabric,
             .FabricApi = SelectedFabricApi,
             .QuiltVersion = SelectedQuilt,

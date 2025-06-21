@@ -1,4 +1,6 @@
-﻿Imports System.Threading.Tasks
+Imports System.Threading.Tasks
+Imports PCL.Core.Controls
+Imports PCL.Core.Helper
 
 Public Class MyCard
 
@@ -6,7 +8,7 @@ Public Class MyCard
     Inherits Grid
     Private ReadOnly MainGrid As Grid
     Public ReadOnly Property MainChrome As MyDropShadow
-    Private ReadOnly MainBorder As Border
+    Private ReadOnly MainBorder As BlurBorder
     Private IsThemeChanging As Boolean = False
     Public Property BorderChild As UIElement
         Get
@@ -67,10 +69,14 @@ Public Class MyCard
     Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
         Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
         IsThemeChanging = True
-        AniStart({AaColor(MainBorder, Border.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
+        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
         Await Task.Delay(300)
         MainBorder.Background = bgBrush
         IsThemeChanging = False
+    End Sub
+
+    Private Sub _BlurChanged(sender As Object, e As Integer)
+        BackgroundPresenter.ForceRender(MainBorder)
     End Sub
 
     'UI 建立
@@ -79,7 +85,7 @@ Public Class MyCard
             .Margin = New Thickness(-3, -3, -3, -3 - GetWPFSize(1)), .ShadowRadius = 3, .Opacity = DropShadowIdleOpacity, .CornerRadius = New CornerRadius(5)}
         MainChrome.SetResourceReference(MyDropShadow.ColorProperty, "ColorObject1")
         Children.Insert(0, MainChrome)
-        MainBorder = New Border With {.CornerRadius = New CornerRadius(5), .IsHitTestVisible = False}
+        MainBorder = New BlurBorder With {.CornerRadius = New CornerRadius(5), .IsHitTestVisible = False}
         Children.Insert(1, MainBorder)
         MainGrid = New Grid
         Children.Add(MainGrid)
@@ -89,6 +95,7 @@ Public Class MyCard
         If IsLoad Then Return
         IsLoad = True
         AddHandler ThemeChanged, AddressOf _ThemeChanged
+        AddHandler BlurHelper.BlurChanged, AddressOf _BlurChanged
         '初次加载限定
         If MainTextBlock Is Nothing Then
             MainTextBlock = New TextBlock With {.HorizontalAlignment = HorizontalAlignment.Left, .VerticalAlignment = VerticalAlignment.Top, .Margin = New Thickness(15, 12, 0, 0), .FontWeight = FontWeights.Bold, .FontSize = 13, .IsHitTestVisible = False}
@@ -117,7 +124,10 @@ Public Class MyCard
         End If
     End Sub
     Private Sub Dispose() Handles Me.Unloaded
-        If Parent Is Nothing Then RemoveHandler ThemeChanged, AddressOf _ThemeChanged
+        If Parent Is Nothing Then
+            RemoveHandler ThemeChanged, AddressOf _ThemeChanged
+            RemoveHandler BlurHelper.BlurChanged, AddressOf _BlurChanged
+        End If
     End Sub
     Public Sub StackInstall()
         StackInstall(SwapControl, InstallMethod)
