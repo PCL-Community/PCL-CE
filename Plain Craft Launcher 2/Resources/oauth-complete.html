@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="/assets/icon.ico">
+    <link rel="icon" id="favicon">
     <title>PCL2 社区版提示页</title>
     <style>
         :root {
@@ -69,7 +69,7 @@
             font-size: 1.5em;
         }
         .stacktrace {
-            font-size: .8em;
+            font-size: .5em;
             font-family: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
         }
     </style>
@@ -77,7 +77,7 @@
 <body id="root">
 <div class="panel" id="panel">
     <div class="title">
-        <img src="/assets/icon.ico" alt="icon" style="margin-right:.4em" width="64">
+        <img src="/assets/icon" alt="icon" style="margin-right:.4em" width="64">
         <span id="title">加载中...</span>
     </div>
     <div id="content" class="content">加载中...</div>
@@ -89,6 +89,7 @@
     let title = document.getElementById("title");
     let content = document.getElementById("content");
     let stacktrace = document.getElementById("stacktrace");
+    let favicon = document.getElementById("favicon");
     fetch("/assets/background").then(async response => {
         if (!response.ok) {
             console.warn(`Fetching background image returns ${response.status}`);
@@ -97,7 +98,15 @@
         const blob = await response.blob();
         root.style.setProperty("--bg-root-url", `url(${URL.createObjectURL(blob)})`);
     });
-    fetch("/api/naid/oauth20/status").then(async response => {
+    fetch("/assets/icon").then(async response => {
+        if (!response.ok) {
+            console.warn(`Fetching favicon image returns ${response.status}`);
+            return;
+        }
+        const blob = await response.blob();
+        favicon.href = URL.createObjectURL(blob);
+    });
+    fetch("/status").then(async response => {
         if (!response.ok) {
             console.warn(`Fetching status returns ${response.status}`);
             return;
