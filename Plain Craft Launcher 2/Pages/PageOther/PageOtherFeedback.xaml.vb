@@ -9,6 +9,7 @@
         Public Property ID As String
         Public Property Tags As New List(Of String)
         Public Property Open As Boolean = True
+        Public Property Type As String
     End Class
 
     Enum TagID As Int64
@@ -53,6 +54,15 @@
                 .User = i("user")("login").ToString(),
                 .ID = i("number"),
                 .Open = i("state").ToString().Equals("open")}
+            Dim issueType As String = "未分类"
+            Dim typeToken As JToken = i("type")
+            If typeToken IsNot Nothing AndAlso typeToken.Type = JTokenType.Object Then
+                Dim typeNameToken As JToken = typeToken("name")
+                If typeNameToken IsNot Nothing Then
+                    issueType = typeNameToken.ToString().ToLower()
+                End If
+            End If
+            item.Type = issueType
             Dim thisTags As JArray = i("labels")
             For Each thisTag As JObject In thisTags
                 item.Tags.Add(thisTag("id"))
@@ -61,7 +71,22 @@
         Next
         Task.Output = res
     End Sub
+    Private Function AppendTypeToStatus(status As String, typeName As String) As String
+        If String.IsNullOrEmpty(typeName) Then Return status
 
+        ' 统一转为小写比较
+        Dim lowerType = typeName.ToLower()
+
+        ' 允许追加的类型列表
+        Dim allowedTypes As New List(Of String) From {"bug", "崩溃", "新功能", "优化", "未分类", "网络"}
+
+        ' 如果类型在允许列表中，则追加
+        If allowedTypes.Contains(lowerType) Then
+            Return status & "-" & typeName
+        End If
+
+        Return status
+    End Function
     Public Sub RefreshList()
         PanListCompleted.Children.Clear()
         PanListProcessing.Children.Clear()
@@ -70,41 +95,242 @@
         For Each item In Loader.Output
             Dim ele As New MyListItem With {.Title = item.Title, .Type = MyListItem.CheckType.Clickable}
             Dim StatusDesc As String = "???"
-            If item.Tags.Contains(TagID.Duplicate) Then
+            Dim commonInfo = $"{item.User} | {item.Time} | 类型: {item.Type}"
+
+            Dim clickHandler As Action = Sub()
+                                             Select Case MyMsgBox(
+                                                 $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                                                 $"状态：{item.Tags} | 类型：{item.Type}" & vbCrLf & vbCrLf &
+                                                 $"{item.Content}",
+                                                 $"#{item.ID} {item.Title}",
+                                                 Button2:="查看详情")
+                                                 Case 2
+                                                     OpenWebsite(item.Url) ' 打开 GitHub Issue 链接
+                                             End Select
+                                         End Sub
+
+            ' 正在处理
+
+            If item.Tags.Contains(TagID.Processing) Then
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/CommandBlock.png"
+                    .Tags = AppendTypeToStatus("处理中", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListProcessing.Children.Add(li)
             End If
-            If item.Open Then
-                If item.Tags.Contains(TagID.Processing) Then
-                    ele.Logo = PathImage & "Blocks/CommandBlock.png"
-                    StatusDesc = "处理中"
-                End If
-            End If
+
+            '等待处理
+
             If item.Tags.Contains(TagID.WaitingProcess) Then
-                ele.Logo = PathImage & "Blocks/Anvil.png"
-                StatusDesc = "已确认，等待社区开发者接管该内容的处理"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/RedstoneBlock.png"
+                    .Tags = AppendTypeToStatus("等待处理", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListWaitingProcess.Children.Add(li)
             End If
+
+            'WAIT
+
             If item.Tags.Contains(TagID.Wait) Then
-                ele.Logo = PathImage & "Blocks/RedstoneBlock.png"
-                StatusDesc = "等待处理"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/Anvil.png"
+                    .Tags = AppendTypeToStatus("已确认，等待社区开发者接管该内容的处理", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListWait.Children.Add(li)
             End If
+
+            'PAUSE
+
             If item.Tags.Contains(TagID.Pause) Then
-                ele.Logo = PathImage & "Blocks/RedstoneLampOff.png"
-                StatusDesc = "近期不计划制作此功能"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/RedstoneLampOff.png"
+                    .Tags = AppendTypeToStatus("近期不计划制作此功能", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListPause.Children.Add(li)
             End If
+
+            'UP NEXT
+
             If item.Tags.Contains(TagID.Upnext) Then
-                ele.Logo = PathImage & "Blocks/RedstoneLampOn.png"
-                StatusDesc = "即将开工的内容"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/RedstoneLampOn.png"
+                    .Tags = AppendTypeToStatus("即将开工的内容", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListUpnext.Children.Add(li)
             End If
+
+            '已完成
+
             If item.Tags.Contains(TagID.Completed) Then
-                ele.Logo = PathImage & "Blocks/Grass.png"
-                StatusDesc = "已完成"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/Grass.png"
+                    .Tags = AppendTypeToStatus("已完成", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListCompleted.Children.Add(li)
             End If
+
+            '已拒绝
+
             If item.Tags.Contains(TagID.Decline) Then
-                ele.Logo = PathImage & "Blocks/CobbleStone.png"
-                StatusDesc = "已拒绝"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/CobbleStone.png"
+                    .Tags = AppendTypeToStatus("已拒绝", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListDecline.Children.Add(li)
             End If
+
+            '已忽略
+
             If item.Tags.Contains(TagID.Ignored) Then
-                ele.Logo = PathImage & "Blocks/CobbleStone.png"
-                StatusDesc = "已忽略"
+                Dim li As New MyListItem()
+                With li
+                    .Title = item.Title
+                    .Type = MyListItem.CheckType.Clickable
+                    .Info = commonInfo
+                    .Logo = PathImage & "Blocks/CobbleStone.png"
+                    .Tags = AppendTypeToStatus("已忽略", item.Type)
+                End With
+
+                AddHandler li.Click,
+            Sub(sender As Object, e As RoutedEventArgs)
+                Select Case MyMsgBox(
+                    $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
+                    $"类型：{item.Type}" & vbCrLf & vbCrLf &
+                    $"{item.Content}",
+                    $"#{item.ID} {item.Title}",
+                    Button2:="查看详情")
+                    Case 2
+                        OpenWebsite(item.Url)
+                End Select
+            End Sub
+
+                PanListIgnored.Children.Add(li)
             End If
             ele.Info = item.User & " | " & item.Time
             ele.Tags = StatusDesc
