@@ -8,7 +8,7 @@ Public Class MyCard
     Inherits Grid
     Private ReadOnly MainGrid As Grid
     Public ReadOnly Property MainChrome As MyDropShadow
-    Private ReadOnly MainBorder As Border
+    Private ReadOnly MainBorder As BlurBorder
     Private IsThemeChanging As Boolean = False
     Public Property BorderChild As UIElement
         Get
@@ -69,7 +69,7 @@ Public Class MyCard
     Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
         Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
         IsThemeChanging = True
-        AniStart({AaColor(MainBorder, Border.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
+        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
         Await Task.Delay(300)
         MainBorder.Background = bgBrush
         IsThemeChanging = False

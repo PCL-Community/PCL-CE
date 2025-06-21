@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,5 +49,6 @@ public class LoggerTest
             }));
         }
         await Task.WhenAll(tasks.ToArray());
+        logger.Dispose();
     }
 }

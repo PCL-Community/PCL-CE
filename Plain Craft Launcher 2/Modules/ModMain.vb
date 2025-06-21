@@ -61,8 +61,8 @@ Public Module ModMain
                 '超量提示直接忽略
                 If FrmMain.PanHint.Children.Count >= 20 Then GoTo EndHint
                 '检查是否有重复提示
-                Dim DoubleStack As BlurBorder = Nothing
-                For Each stack As BlurBorder In FrmMain.PanHint.Children
+                Dim DoubleStack As Border = Nothing
+                For Each stack As Border In FrmMain.PanHint.Children
                     If stack.Tag(0) AndAlso CType(stack.Child, TextBlock).Text = CurrentHint.Text Then DoubleStack = stack
                 Next
                 '获取渐变颜色
@@ -104,7 +104,7 @@ Public Module ModMain
                     End If
                 Else
                     '准备控件
-                    Dim NewHintControl As New BlurBorder With {.Tag = {True, GetUuid()}, .Margin = New Thickness(-70, 0, 20, 0), .Opacity = 0, .Height = 0, .HorizontalAlignment = HorizontalAlignment.Left, .CornerRadius = New CornerRadius(0, 6, 6, 0)}
+                    Dim NewHintControl As New Border With {.Tag = {True, GetUuid()}, .Margin = New Thickness(-70, 0, 20, 0), .Opacity = 0, .Height = 0, .HorizontalAlignment = HorizontalAlignment.Left, .CornerRadius = New CornerRadius(0, 6, 6, 0)}
                     NewHintControl.Background = New LinearGradientBrush(New GradientStopCollection(New List(Of GradientStop) From {
                         New GradientStop(TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 0),
                         New GradientStop(TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 1)}), 90)

@@ -1,3 +1,5 @@
+Imports PCL.Core.Controls
+
 Public Class MyMsgSelect
 
     Private ReadOnly MyConverter As MyMsgBoxConverter
@@ -44,7 +46,7 @@ Public Class MyMsgSelect
             If Btn2.IsVisible AndAlso Not Btn1.ColorType = MyButton.ColorState.Red Then Btn1.ColorType = MyButton.ColorState.Highlight
             '动画
             Opacity = 0
-            AniStart(AaColor(FrmMain.PanMsgBackground, Border.BackgroundProperty, If(MyConverter.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsg.Background, 200), "PanMsg Background")
+            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(MyConverter.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsg.Background, 200), "PanMsg Background")
             AniStart({
                 AaOpacity(Me, 1, 120, 60),
                 AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 300, 60, New AniEaseOutBack(AniEasePower.Weak)),
@@ -66,7 +68,7 @@ Public Class MyMsgSelect
             AaCode(
             Sub()
                 If Not WaitingMyMsgBox.Any() Then
-                    AniStart(AaColor(FrmMain.PanMsgBackground, Border.BackgroundProperty, New MyColor(0, 0, 0, 0) - FrmMain.PanMsgBackground.Background, 200, Ease:=New AniEaseOutFluent(AniEasePower.Weak)))
+                    AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, New MyColor(0, 0, 0, 0) - FrmMain.PanMsgBackground.Background, 200, Ease:=New AniEaseOutFluent(AniEasePower.Weak)))
                 End If
             End Sub, 30),
             AaOpacity(Me, -Opacity, 80, 20),

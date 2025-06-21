@@ -67,12 +67,20 @@ Public Class MyLocalCompItem
             PanTags.Children.Clear()
             PanTags.Visibility = If(value.Any(), Visibility.Visible, Visibility.Collapsed)
             For Each TagText In value
-                Dim NewTag = GetObjectFromXML(
-                "<corelocal:BlurBorder xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
-                         Background=""#0C000000"" Padding=""3,1"" CornerRadius=""3"" Margin=""0,0,3,0"" 
-                         SnapsToDevicePixels=""True"" UseLayoutRounding=""False"">
-                   <TextBlock Text=""" & TagText & """ Foreground=""" & If(IsDarkMode, "#88FFFFFF", "#88000000") & """ FontSize=""11"" />
-                </corelocal:BlurBorder>")
+                Dim NewTag As New Border With {
+                    .Background = New SolidColorBrush(Color.FromArgb(12, 0, 0, 0)),
+                    .Padding = New Thickness(3, 1, 3, 1),
+                    .CornerRadius = New CornerRadius(3),
+                    .Margin = New Thickness(0, 0, 3, 0),
+                    .SnapsToDevicePixels = True,
+                    .UseLayoutRounding = False
+                }
+                Dim TagTextBlock As New TextBlock With {
+                    .Text = TagText,
+                    .Foreground = New SolidColorBrush(If(IsDarkMode, Color.FromArgb(88, 255, 255, 255), Color.FromArgb(88, 136, 136, 136))),
+                    .FontSize = 11
+                }
+                NewTag.Child = TagTextBlock
                 PanTags.Children.Add(NewTag)
             Next
         End Set

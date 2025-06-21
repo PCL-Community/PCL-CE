@@ -23,7 +23,7 @@
             <TextBlock Name="TextName" Text="Username" Margin="8,0" FontSize="16" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
             <TextBlock Name="TextType" Text="AuthType" Margin="8,4,8,5" FontSize="12" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource ColorBrushGray4}" />
         </StackPanel>
-        <corelocal:BlurBorder Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" x:Name="PanButtons" Opacity="0"
+        <Border Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" x:Name="PanButtons" Opacity="0"
                 CornerRadius="5" Background="{DynamicResource ColorBrush8}" Padding="10,3,9,3" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal">
                 <local:MyIconButton Height="24" Margin="0,0.5,9,0"  x:Name="BtnSkin"
@@ -53,6 +53,6 @@
                         ToolTip="选择档案" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35" ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50" 
                         LogoScale="1.15" Logo="M512 0A512 512 0 1 0 1024 512 512 512 0 0 0 512 0z m0 941.407086A429.407086 429.407086 0 1 1 941.407086 512 429.407086 429.407086 0 0 1 512 941.407086z m235.139657-368.64H264.045714a43.505371 43.505371 0 0 0-31.246628 72.060343l159.305143 166.765714a41.281829 41.281829 0 1 0 59.626057-56.788114l-94.997943-99.474286H747.227429a41.311086 41.311086 0 1 0 0-82.622172zM262.670629 450.940343H745.764571a43.505371 43.505371 0 0 0 31.246629-72.352914l-159.305143-166.765715a41.281829 41.281829 0 1 0-59.713828 57.022172l94.968685 99.474285H262.670629a41.281829 41.281829 0 0 0 0 82.563658z" />
             </StackPanel>
-        </corelocal:BlurBorder>
+        </Border>
     </Grid>
 </Grid>

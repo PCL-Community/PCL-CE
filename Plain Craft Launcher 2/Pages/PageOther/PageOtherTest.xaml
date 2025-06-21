@@ -118,10 +118,10 @@
                         </local:MyTextBox.ValidateRules>
                     </local:MyTextBox>
                     <local:MyButton x:Name="BtnServerQuery" Text="查询" Width="60" Grid.Column="1"/>
-                    <corelocal:BlurBorder x:Name="ServerInfo" Margin="0,15,0,0" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="5" BorderThickness="2" BorderBrush="{DynamicResource ColorBrush5}">
-                        <corelocal:BlurBorder.Background>
+                    <Border x:Name="ServerInfo" Margin="0,15,0,0" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="5" BorderThickness="2" BorderBrush="{DynamicResource ColorBrush5}">
+                        <Border.Background>
                             <ImageBrush ImageSource="/Plain Craft Launcher 2;component/Images/Themes/server_bg.png" Stretch="Uniform" TileMode="Tile" Viewport="0,0,124,124" ViewportUnits="Absolute"/>
-                        </corelocal:BlurBorder.Background>
+                        </Border.Background>
                         <Grid Margin="6" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -132,7 +132,7 @@
                             <TextBlock Grid.Column="1" Margin="6" x:Name="LabServerDesc" TextWrapping="Wrap" FontSize="15" Foreground="White"/>
                             <TextBlock Grid.Column="2" Margin="6" x:Name="LabServerPlayer" TextWrapping="Wrap" TextAlignment="Right" FontSize="12" Foreground="White"/>
                         </Grid>
-                    </corelocal:BlurBorder>
+                    </Border>
                 </Grid>
             </local:MyCard>
         </StackPanel>
