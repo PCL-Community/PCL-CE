@@ -12,7 +12,7 @@
     </Grid.RenderTransform>
     <corelocal:BlurBorder Name="PanBorder" CornerRadius="7" Background="{DynamicResource ColorBrushMsgBox}">
         <corelocal:BlurBorder.Effect>
-            <DropShadowEffect Color="{DynamicResource ColorObject1}" BlurRadius="20" ShadowDepth="4" RenderingBias="Performance" Opacity="0.8" x:Name="EffectShadow" />
+            <DropShadowEffect Color="{DynamicResource ColorObjectMsgBoxShadow}" BlurRadius="20" ShadowDepth="4" RenderingBias="Performance" Opacity="0.8" x:Name="EffectShadow" />
         </corelocal:BlurBorder.Effect>
         <Grid Name="PanMain" VerticalAlignment="Top" Margin="22,22,22,23">
             <Grid.RowDefinitions>
