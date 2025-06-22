@@ -88,10 +88,14 @@
         Return status
     End Function
     Public Sub RefreshList()
-        PanListCompleted.Children.Clear()
         PanListProcessing.Children.Clear()
         PanListWaitingProcess.Children.Clear()
+        PanListWait.Children.Clear()
+        PanListPause.Children.Clear()
+        PanListUpnext.Children.Clear()
+        PanListCompleted.Children.Clear()
         PanListDecline.Children.Clear()
+        PanListIgnored.Children.Clear()
         For Each item In Loader.Output
             Dim ele As New MyListItem With {.Title = item.Title, .Type = MyListItem.CheckType.Clickable}
             Dim StatusDesc As String = "???"
