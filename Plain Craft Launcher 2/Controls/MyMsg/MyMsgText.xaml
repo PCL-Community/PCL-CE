@@ -11,7 +11,7 @@
     </Grid.RenderTransform>
     <Border Name="PanBorder" CornerRadius="7" Background="{DynamicResource ColorBrushMsgBox}">
         <Border.Effect>
-            <DropShadowEffect Color="{DynamicResource ColorObject1}" BlurRadius="20" ShadowDepth="4" RenderingBias="Performance" Opacity="0.8" x:Name="EffectShadow" />
+            <DropShadowEffect Color="{DynamicResource ColorObjectMsgBoxShadow}" BlurRadius="20" ShadowDepth="2" RenderingBias="Performance" Opacity="0.8" x:Name="EffectShadow" />
         </Border.Effect>
         <Grid Name="PanMain" VerticalAlignment="Top" Margin="22,22,22,23">
             <Grid.RowDefinitions>

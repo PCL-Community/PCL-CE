@@ -1,6 +1,7 @@
-﻿Imports System.ComponentModel
+Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
+Imports PCL.Core.Helper
 
 Public Class FormMain
 
@@ -127,6 +128,13 @@ Public Class FormMain
         End Select
 
         ThemeRefresh()
+
+        If Setup.Get("UiBlur") Then
+            BlurHelper.RaiseBlurChanged(Setup.Get("UiBlurValue"))
+        Else
+            BlurHelper.RaiseBlurChanged(0)
+        End If
+
         Try
             Height = Setup.Get("WindowHeight")
             Width = Setup.Get("WindowWidth")
@@ -423,7 +431,6 @@ Public Class FormMain
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
-        LogFlush()
         If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         Process.GetCurrentProcess.Kill()
     End Sub

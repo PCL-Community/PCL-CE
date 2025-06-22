@@ -114,8 +114,6 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '日志初始化
-            LogStart()
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")
@@ -131,7 +129,18 @@ WaitRetry:
                 MyMsgBox("PCL 和新版 Minecraft 均不再支持 32 位系统，部分功能将无法使用。" & vbCrLf & "非常建议重装为 64 位系统后再进行游戏！", "环境警告", "我知道了", IsWarn:=True)
             End If
             Dim IS_WINDOWS_MEET_REQUIRE As Boolean = Environment.OSVersion.Version.Major >= 10
-            Dim IS_FRAMEWORK_MEET_REQUIRE As Boolean = Val(Microsoft.Win32.Registry.GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full", "Release", "528049").ToString.AfterFirst("(").BeforeFirst(")")) >= 533320
+            Dim IS_FRAMEWORK_MEET_REQUIRE As Boolean
+            Using key = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32)
+                Using ndpKey = key.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\")
+                    If ndpKey IsNot Nothing AndAlso ndpKey.GetValue("Release") IsNot Nothing Then
+                        Dim rt = ndpKey.GetValue("Release")
+                        IS_FRAMEWORK_MEET_REQUIRE = Val(rt) >= 533320
+                        Log($"[Runtime] 检测到运行时版本为 {Val(rt)}")
+                    Else
+                        Log("[Runtime] 检测不到运行时")
+                    End If
+                End Using
+            End Using
             Dim ProblemList As New List(Of String)
             If Not IS_WINDOWS_MEET_REQUIRE Then ProblemList.Add("Windows 版本不满足最低要求，最低需要 Windows 10 20H2")
             If Not IS_FRAMEWORK_MEET_REQUIRE Then ProblemList.Add(".NET Framework 版本不满足要求，需要 .NET Framework 4.8.1")
@@ -155,8 +164,6 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             Dim WebpPath = $"{PathPure}CE\libwebp.dll"
             If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
-            Dim SqlPath = $"{PathPure}CE\SQLite.Interop.dll"
-            If Not File.Exists(SqlPath) Then WriteFile(SqlPath, GetResources("SQLite"))
             WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
             If Not File.Exists(PathPure & "CE\msalruntime.dll") Then
                 If Directory.Exists(PathPure & "CE\runtimes") Then DeleteDirectory(PathPure & "CE\runtimes")
@@ -166,10 +173,6 @@ WaitRetry:
                     End Using
                 End Using
             End If
-            '网络配置初始化
-            ServicePointManager.Expect100Continue = True
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 Or SecurityProtocolType.Tls Or SecurityProtocolType.Tls11 Or SecurityProtocolType.Tls12 Or SecurityProtocolType.Tls13
-            ServicePointManager.DefaultConnectionLimit = 1024
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体

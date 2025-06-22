@@ -170,7 +170,7 @@ Public Module ModMinecraft
             _McVersionLast = value
             If value Is Nothing Then Return
             '重置缓存的 Mod 文件夹
-            PageDownloadCompDetail.CachedFolder = Nothing
+            PageDownloadCompDetail.CachedFolder.Clear()
         End Set
     End Property
 

@@ -54,6 +54,7 @@
         If IsLoad Then Return
         IsLoad = True
 
+        AddHandler FrmMain.KeyDown, AddressOf FrmMain_KeyDown
         '调整按钮边距（这玩意儿没法从 XAML 改）
         For Each Btn As MyRadioButton In PanFilter.Children
             Btn.LabText.Margin = New Thickness(-2, 0, 8, 0)
@@ -514,7 +515,8 @@ Install:
         ChangeAllSelected(False)
         AniControlEnabled += CacheAniControlEnabled
     End Sub
-    Private Sub PageVersionMod_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+    Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '监听自己的事件的话进入页面后不点击右侧控件就没办法监听到事件 (#4311)
+        If FrmMain.PageRight IsNot Me Then Return
         If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then ChangeAllSelected(True)
     End Sub
 
@@ -673,17 +675,17 @@ Install:
                        End Function
             Case SortMethod.TagNums
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
-                           Return a.Comp.Tags.Count - b.Comp.Tags.Count
+                           Return b.Comp.Tags.Count - a.Comp.Tags.Count
                        End Function
             Case SortMethod.CreateTime
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            Dim aDate = New FileInfo(a.Path).CreationTime
                            Dim bDate = New FileInfo(b.Path).CreationTime
-                           Return If(aDate = bDate, 0, If(aDate > bDate, 1, -1))
+                           Return If(aDate = bDate, 0, If(aDate > bDate, -1, 1))
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
-                           Return (New FileInfo(a.Path)).Length - (New FileInfo(b.Path)).Length
+                           Return (New FileInfo(b.Path)).Length - (New FileInfo(a.Path)).Length
                        End Function
             Case Else
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer

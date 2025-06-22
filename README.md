@@ -35,11 +35,11 @@
 
 ### ✨ 隐藏提示
 
-在配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False` (文本型)
+在全局配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False` (文本型)
 
 ## 🔒 许可证
 
-- `PCL.Core/` 使用 [Apache License 2.0](./PCL.Core/LICENSE)
+- `PCL.Core/` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL.Core/blob/main/LICENSE)
 - `Plain Craft Launcher 2/` 使用 [自定义许可证](./LICENCE)
 
 ## ❤️ 贡献者

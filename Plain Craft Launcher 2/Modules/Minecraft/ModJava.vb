@@ -33,7 +33,7 @@ Public Module ModJava
                                              Log("[Java] 开始搜索 Java")
                                              _javas.ScanJava().GetAwaiter().GetResult()
                                              JavaSetCache(_javas.GetCache())
-                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString()).Join(vbCrLf))
+                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString(True)).Join(vbCrLf))
                                          End Sub)
             End If
             Return _javaInitTask
@@ -95,7 +95,10 @@ Public Module ModJava
                             End Function
         If RelatedVersion IsNot Nothing Then '考虑选择的实例指定的 Java
             Dim userVersionJava = GetVersionUserSetJava(RelatedVersion)
-            If userVersionJava IsNot Nothing AndAlso IsVersionSuit(userVersionJava.Version) Then
+            If userVersionJava IsNot Nothing Then
+                If Not IsVersionSuit(userVersionJava.Version) Then
+                    Hint("当前版本所指定的 Java 可能不合适，容易导致游戏崩溃")
+                End If
                 Log($"[Java] 返回实例 {RelatedVersion.Name} 指定的 Java {userVersionJava.ToString()}")
                 Return userVersionJava
             End If
