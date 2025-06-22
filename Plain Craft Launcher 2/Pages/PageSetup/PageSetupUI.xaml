@@ -78,7 +78,7 @@
                                 <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版" Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0" ColorType="Highlight" />
                             </StackPanel>
                         </Border>
-                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,8">
+                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                                 <ColumnDefinition />
@@ -113,10 +113,10 @@
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <StackPanel x:Name="PanelBlur" Margin="0,0,0,7">
-                            <local:MyCheckBox Text="高级材质" Margin="0,0,0,5" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="选中此功能后会在部分透明区域（例如卡片）实现高斯模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
-                            <Grid x:Name="PanBlurValue" Margin="0,0,0,5" Height="35">
+                            <local:MyCheckBox Text="高级材质" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="选中此功能后会在部分透明区域（例如卡片）实现高斯模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
+                            <Grid x:Name="PanBlurValue" Margin="0,5,0,5" Height="35">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
 
