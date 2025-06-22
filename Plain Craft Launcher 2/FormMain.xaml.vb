@@ -130,9 +130,9 @@ Public Class FormMain
         ThemeRefresh()
 
         If Setup.Get("UiBlur") Then
-            BlurHelper.RaiseBlurChanged(Setup.Get("UiBlurValue"))
+            Application.Current.Resources("BlurValue") = CType(Setup.Get("UiBlurValue"), Double)
         Else
-            BlurHelper.RaiseBlurChanged(0)
+            Application.Current.Resources("BlurValue") = CType(0, Double)
         End If
 
         Try

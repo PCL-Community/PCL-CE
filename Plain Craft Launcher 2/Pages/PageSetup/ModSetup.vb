@@ -723,7 +723,7 @@ Public Class ModSetup
         End If
     End Sub
     Public Sub UiBlurValue(Value As Integer)
-        BlurHelper.RaiseBlurChanged(Value)
+        Application.Current.Resources("BlurValue") = CType(Value, Double)
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)
