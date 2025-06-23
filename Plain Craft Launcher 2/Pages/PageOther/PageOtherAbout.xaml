@@ -435,6 +435,8 @@
                         <RowDefinition Height="60" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="60" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="60" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Java Launch Wrapper" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2022 00ll00&#xa;Licensed under the MIT License." TextWrapping="Wrap" />
@@ -559,6 +561,13 @@ EventType="打开网页" EventData="https://github.com/PCL-Community/PCL.Core/bl
                 EventType="打开网页" EventData="https://github.com/OrgEleCho/EleCho.WpfSuite" />
                     <local:MyButton Grid.Row="35" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/OrgEleCho/EleCho.WpfSuite/blob/master/LICENSE.txt" />
+
+                    <TextBlock Grid.Row="36" Grid.Column="0" Text="LiteDB" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="36" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2014-2022 Mauricio David" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="37" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                EventType="打开网页" EventData="https://github.com/litedb-org/LiteDB" />
+                    <local:MyButton Grid.Row="37" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+EventType="打开网页" EventData="https://github.com/litedb-org/LiteDB/blob/master/LICENSE" />
                 </Grid>
             </local:MyCard>
         </StackPanel>

@@ -37,7 +37,7 @@ body:
   id: "yml-4"
   attributes:
     label: 日志与附件
-    description: "上传 PCL 文件夹中的 Log-CE1~5.log。"
+    description: "上传启动器同目录下的 PCL/Log 文件夹中的按照日期排序最新的日志文件"
     placeholder: "先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。"
   validations:
     required: true

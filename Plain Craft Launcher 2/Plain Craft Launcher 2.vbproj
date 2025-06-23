@@ -1053,7 +1053,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Help.zip" />
-    <None Include="Resources\ModData.db" />
+    <None Include="Resources\ModData.dbcp" />
     <None Include="Resources\msalruntime.zip" />
     <None Include="Resources\transformer.jar" />
   </ItemGroup>
@@ -1131,6 +1131,9 @@
     <PackageReference Include="Imazen.WebP">
       <Version>10.0.1</Version>
     </PackageReference>
+    <PackageReference Include="LiteDB">
+      <Version>5.0.21</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client">
       <Version>4.72.1</Version>
     </PackageReference>
@@ -1164,9 +1167,6 @@
     <PackageReference Include="STUN">
       <Version>0.5.0</Version>
     </PackageReference>
-    <PackageReference Include="System.Data.SQLite">
-      <Version>1.0.119</Version>
-    </PackageReference>
     <PackageReference Include="System.Security.AccessControl">
       <Version>6.0.1</Version>
     </PackageReference>
@@ -1189,7 +1189,6 @@
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
     <Content Include="Resources\linkd.exe" />
-    <Content Include="Resources\SQLite.Interop.dll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj">

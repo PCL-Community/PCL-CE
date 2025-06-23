@@ -29,6 +29,7 @@ Public Class ModSetup
         {"HintProfileSelect", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintExportConfig", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintMaxLog", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"HintDisableGamePathCheckTip", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
         {"SystemLaunchCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},

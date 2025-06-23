@@ -1,13 +1,77 @@
-﻿Public Class PageSelectRight
+﻿Imports System.Windows.Threading
+Public Class PageSelectRight
+
+    Private LastInputTime As DateTime = DateTime.MinValue
+    Private ReloadTimer As DispatcherTimer
+    Private Const NormalDelay As Integer = 75  '正常输入延迟0.075秒
+    Private Const QuickDelay As Integer = 50   '清空搜索框延迟0.05秒
+    Private IsRefreshing As Boolean = False
 
     '窗口基础
     Private Sub PageSelectRight_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
         PanBack.ScrollToHome()
+        AddHandler PanVerSearchBox.TextChanged, AddressOf PanVerSearchBox_TextChanged
+
+        ReloadTimer = New DispatcherTimer With {
+            .Interval = TimeSpan.FromMilliseconds(NormalDelay)
+        }
+        AddHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
     End Sub
+
+    Private Sub PanVerSearchBox_TextChanged(sender As Object, e As TextChangedEventArgs)
+        '记录最后一次输入时间
+        LastInputTime = DateTime.Now
+
+        IsRefreshing = False
+
+        '动态调整延迟时间
+        If String.IsNullOrWhiteSpace(PanVerSearchBox.Text) Then
+            If ReloadTimer.Interval.TotalMilliseconds <> QuickDelay Then
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(QuickDelay)
+            End If
+        Else
+            If ReloadTimer.Interval.TotalMilliseconds <> NormalDelay Then
+                ReloadTimer.Interval = TimeSpan.FromMilliseconds(NormalDelay)
+            End If
+        End If
+
+
+        If Not ReloadTimer.IsEnabled Then
+            ReloadTimer.Start()
+        End If
+    End Sub
+
+    Private Sub ReloadTimer_Tick(sender As Object, e As EventArgs)
+        '检查是否超过当前设定的延迟时间没有新输入
+        Dim elapsed = (DateTime.Now - LastInputTime).TotalMilliseconds
+        Dim currentDelay = ReloadTimer.Interval.TotalMilliseconds
+
+        If elapsed >= currentDelay AndAlso McVersionListLoader.State = LoadState.Finished AndAlso Not IsRefreshing Then
+            IsRefreshing = True
+
+            '确保在UI线程执行刷新
+            Dispatcher.BeginInvoke(Sub()
+                                       McVersionListUI(McVersionListLoader)
+                                       IsRefreshing = False
+                                   End Sub)
+            ReloadTimer.Stop()
+        End If
+    End Sub
+
+    Private Sub PageSelectRight_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+        '清理计时器
+        If ReloadTimer IsNot Nothing Then
+            ReloadTimer.Stop()
+            RemoveHandler ReloadTimer.Tick, AddressOf ReloadTimer_Tick
+            ReloadTimer = Nothing
+        End If
+    End Sub
+
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanAllBack, Nothing, McVersionListLoader, AddressOf McVersionListUI, AutoRun:=False)
     End Sub
+
     Private Sub Load_Click(sender As Object, e As MouseButtonEventArgs) Handles Load.Click
         If McVersionListLoader.State = LoadState.Failed Then
             LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
@@ -28,9 +92,27 @@
             '加载 UI
             PanMain.Children.Clear()
 
+            Dim hasVisibleFolders As Boolean = False
+            Dim searchText As String = PanVerSearchBox.Text.Trim().ToLower() ' 获取搜索框文本
+            Dim hasAnyResults As Boolean = False
+            Dim originalHasVersions As Boolean = McVersionList.ToArray.Any(Function(c) c.Value.Count > 0)
+
+            ' 搜索无结果时显示 PanEmptySearch
+            PanEmptySearch.Visibility = Visibility.Collapsed ' 默认隐藏
+
             For Each Card As KeyValuePair(Of McVersionCardType, List(Of McVersion)) In McVersionList.ToArray
-                '确认是否为隐藏版本显示状态
                 If Card.Key = McVersionCardType.Hidden Xor ShowHidden Then Continue For
+                Dim filteredVersions = Card.Value.Where(Function(v)
+                                                            If String.IsNullOrEmpty(searchText) Then Return True
+                                                            Return v.Name.ToLower().Contains(searchText) OrElse
+                           (v.Info IsNot Nothing AndAlso v.Info.ToLower().Contains(searchText))
+                                                        End Function).ToList()
+                If filteredVersions.Count = 0 Then Continue For
+
+                hasVisibleFolders = True
+                hasAnyResults = True
+                If filteredVersions.Count = 0 Then Continue For
+                hasVisibleFolders = True
 #Region "确认卡片名称"
                 Dim CardName As String = ""
                 Select Case Card.Key
@@ -87,7 +169,7 @@
                 '建立控件
                 Dim CardTitle As String = CardName & If(CardName = "收藏夹", "", " (" & Card.Value.Count & ")")
                 Dim NewCard As New MyCard With {.Title = CardTitle, .Margin = New Thickness(0, 0, 0, 15)}
-                Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Card.Value}
+                Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = filteredVersions}
                 NewCard.Children.Add(NewStack)
                 NewCard.SwapControl = NewStack
                 PanMain.Children.Add(NewCard)
@@ -98,7 +180,7 @@
                                     Next
                                 End Sub
                 If Card.Key = McVersionCardType.Rubbish OrElse Card.Key = McVersionCardType.Error OrElse Card.Key = McVersionCardType.Fool Then
-                                        NewCard.IsSwaped = True
+                    NewCard.IsSwaped = True
                     NewCard.InstallMethod = PutMethod
                 Else
                     MyCard.StackInstall(NewStack, PutMethod)
@@ -110,23 +192,62 @@
                 CType(PanMain.Children(0), MyCard).IsSwaped = False
             End If
 
+            PanVerSearchBox.Visibility = If(hasVisibleFolders, Visibility.Visible, Visibility.Collapsed)
+
             '判断应该显示哪一个页面
-            If PanMain.Children.Count = 0 Then
-                PanEmpty.Visibility = Visibility.Visible
-                PanBack.Visibility = Visibility.Collapsed
-                If ShowHidden Then
-                    LabEmptyTitle.Text = "无隐藏版本"
-                    LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
-                    BtnEmptyDownload.Visibility = Visibility.Collapsed
+            If Not hasAnyResults Then
+                If Not originalHasVersions Then
+                    ' 完全没有版本的情况
+                    PanEmpty.Visibility = Visibility.Visible
+                    PanBack.Visibility = Visibility.Collapsed
+                    If ShowHidden Then
+                        LabEmptyTitle.Text = "无隐藏版本"
+                        LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
+                        BtnEmptyDownload.Visibility = Visibility.Collapsed
+                    Else
+                        LabEmptyTitle.Text = "无可用版本"
+                        LabEmptyContent.Text = "未找到任何版本的游戏，请先下载任意版本的游戏。" & vbCrLf & "若有已存在的游戏，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
+                        BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                    End If
                 Else
-                    LabEmptyTitle.Text = "无可用版本"
-                    LabEmptyContent.Text = "未找到任何版本的游戏，请先下载任意版本的游戏。" & vbCrLf & "若有已存在的游戏，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
-                    BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                    ' 有版本但搜索无结果的情况
+                    If ShowHidden AndAlso McVersionList.ToArray.Any(Function(c) c.Key = McVersionCardType.Hidden AndAlso c.Value.Count > 0) Then
+                        ' 有隐藏版本但搜索无结果 - 显示搜索无结果提示
+                        PanVerSearchBox.Visibility = Visibility.Visible
+                        PanEmpty.Visibility = Visibility.Collapsed
+                        PanBack.Visibility = Visibility.Visible
+                        PanEmptySearch.Visibility = Visibility.Visible
+                        LabEmptySearchTitle.Text = "无匹配的隐藏版本"
+                        LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
+                        "请输入搜索内容",
+                        $"没有找到与 '{searchText}' 匹配的隐藏版本")
+                    ElseIf ShowHidden Then
+                        ' 无隐藏版本 - 显示"无隐藏版本"提示
+                        PanEmpty.Visibility = Visibility.Visible
+                        PanBack.Visibility = Visibility.Collapsed
+                        LabEmptyTitle.Text = "无隐藏版本"
+                        LabEmptyContent.Text = "没有版本被隐藏，你可以在版本设置的版本分类选项中隐藏版本。" & vbCrLf & "再次按下 F11 即可退出隐藏版本查看模式。"
+                        BtnEmptyDownload.Visibility = Visibility.Collapsed
+                        PanVerSearchBox.Visibility = Visibility.Collapsed
+                    Else
+                        ' 普通模式下的搜索无结果
+                        PanVerSearchBox.Visibility = Visibility.Visible
+                        PanEmpty.Visibility = Visibility.Collapsed
+                        PanBack.Visibility = Visibility.Visible
+                        PanEmptySearch.Visibility = Visibility.Visible
+                        LabEmptySearchTitle.Text = "无匹配的游戏版本"
+                        LabEmptySearchContent.Text = If(String.IsNullOrWhiteSpace(searchText),
+                        "请输入搜索内容",
+                        $"没有找到与 '{searchText}' 匹配的版本")
+                    End If
                 End If
             Else
                 PanBack.Visibility = Visibility.Visible
                 PanEmpty.Visibility = Visibility.Collapsed
+                PanEmptySearch.Visibility = Visibility.Collapsed ' 有结果时隐藏
             End If
+
+
 
         Catch ex As Exception
             Log(ex, "将版本列表转换显示时失败", LogLevel.Feedback)
