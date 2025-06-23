@@ -3112,6 +3112,58 @@ Retry:
         ''' 在第二次触发后会直接结束程序。
         ''' </summary>
         Critical = 6
+        
+        ''' <summary>
+        ''' 开发者模式日志
+        ''' </summary>
+        Trace = 1
+        ''' <summary>
+        ''' 调试日志。
+        ''' </summary>
+        Debug = 2
+        ''' <summary>
+        ''' 信息日志。
+        ''' </summary>
+        Info = 0
+        ''' <summary>
+        ''' 警告日志。
+        ''' </summary>
+        Warn = 3
+        ''' <summary>
+        ''' 错误日志。
+        ''' </summary>
+        Error = 4
+    End Enum
+    Public Enum LogOption
+        ''' <summary>
+        ''' 不提示，只记录日志。
+        ''' </summary>
+        Normal = 0
+        ''' <summary>
+        ''' 只提示开发者。
+        ''' </summary>
+        Developer = 1
+        ''' <summary>
+        ''' 只提示开发者与调试模式用户。
+        ''' </summary>
+        Debug = 2
+        ''' <summary>
+        ''' 弹出提示所有用户。
+        ''' </summary>
+        Hint = 3
+        ''' <summary>
+        ''' 弹窗，不要求反馈。
+        ''' </summary>
+        Msgbox = 4
+        ''' <summary>
+        ''' 弹窗，要求反馈。
+        ''' </summary>
+        Feedback = 5
+        ''' <summary>
+        ''' 弹出 Windows 原生弹窗，要求反馈。在无法保证 WPF 窗口能正常运行时使用此级别。
+        ''' 在第二次触发后会直接结束程序。
+        ''' </summary>
+        Critical = 6
     End Enum
     Private IsCriticalErrorTriggered As Boolean = False
     ''' <summary>
