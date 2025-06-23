@@ -134,7 +134,7 @@ WaitRetry:
                 Using ndpKey = key.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\")
                     If ndpKey IsNot Nothing AndAlso ndpKey.GetValue("Release") IsNot Nothing Then
                         Dim rt = ndpKey.GetValue("Release")
-                        IS_FRAMEWORK_MEET_REQUIRE = Val(rt) >= 533320
+                        IS_FRAMEWORK_MEET_REQUIRE = Val(rt) >= 528040
                         Log($"[Runtime] 检测到运行时版本为 {Val(rt)}")
                     Else
                         Log("[Runtime] 检测不到运行时")
