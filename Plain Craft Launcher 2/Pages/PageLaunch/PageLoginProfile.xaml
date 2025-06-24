@@ -12,16 +12,16 @@
     <Grid.RowDefinitions>
         <RowDefinition Height="30" />
         <RowDefinition Height="10" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="10" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="20" />
     </Grid.RowDefinitions>
     
     <local:MyHint x:Name="HintSelect" Theme="Blue" Text="选择一个档案以启动游戏" Grid.Row="0" CanClose="True" RelativeSetup="HintProfileSelect"/>
     <local:MyHint x:Name="HintCreate" Theme="Blue" Text="新建并选择一个档案以启动游戏" Grid.Row="0" Visibility="Collapsed"/>
     
-    <local:MyScrollViewer Grid.Row="2" MaxHeight="185" Margin="10,0,10,0">
+    <local:MyScrollViewer Grid.Row="2" MaxHeight="300" Margin="10,0,10,0">
         <!-- 世界需要 MVVM -->
         <ItemsControl ItemsSource="{Binding ProfileCollection}">
             <ItemsControl.ItemTemplate>
