@@ -1,3 +1,5 @@
+Imports System.Windows.Navigation
+
 Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
@@ -24,7 +26,7 @@ Public Class PageSetupUI
                 End If
             Next
         End If
-        
+
 #If DEBUG Then
         If EnableCustomTheme Then
             LabLauncherDelta.Visibility = Visibility.Visible
@@ -780,5 +782,7 @@ Refresh:
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
     End Sub
-
+    Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
+        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket}）
+    End Sub
 End Class
