@@ -47,7 +47,7 @@ jobs:
           Set-Location ${{ GITHUB.WORKSPACE }}
 
       - name: Restore NuGet Packages
-        run: nuget restore "Plain Craft Launcher 2.sln" -PackagesDirectory "packages"
+        run: msbuild "Plain Craft Launcher 2.sln" /t:Restore
 
       - name: Replace Secrets and Commit Hash
         run: |

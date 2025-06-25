@@ -75,9 +75,6 @@ Public Class MyCard
         IsThemeChanging = False
     End Sub
 
-    Private Sub _BlurChanged(sender As Object, e As Integer)
-        BackgroundPresenter.ForceRender(MainBorder)
-    End Sub
 
     'UI 建立
     Public Sub New()
@@ -95,7 +92,6 @@ Public Class MyCard
         If IsLoad Then Return
         IsLoad = True
         AddHandler ThemeChanged, AddressOf _ThemeChanged
-        AddHandler BlurHelper.BlurChanged, AddressOf _BlurChanged
         '初次加载限定
         If MainTextBlock Is Nothing Then
             MainTextBlock = New TextBlock With {.HorizontalAlignment = HorizontalAlignment.Left, .VerticalAlignment = VerticalAlignment.Top, .Margin = New Thickness(15, 12, 0, 0), .FontWeight = FontWeights.Bold, .FontSize = 13, .IsHitTestVisible = False}
@@ -126,7 +122,6 @@ Public Class MyCard
     Private Sub Dispose() Handles Me.Unloaded
         If Parent Is Nothing Then
             RemoveHandler ThemeChanged, AddressOf _ThemeChanged
-            RemoveHandler BlurHelper.BlurChanged, AddressOf _BlurChanged
         End If
     End Sub
     Public Sub StackInstall()

@@ -229,6 +229,20 @@ NextInner:
         '检查路径
         If McVersionCurrent.PathIndie.Contains("!") OrElse McVersionCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.PathIndie & "）")
         If McVersionCurrent.Path.Contains("!") OrElse McVersionCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.Path & "）")
+        If Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McVersionCurrent.Path.IsASCII() Then
+            Dim userChoice = MyMsgBox(
+                $"欲启动版本 ""{McVersionCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
+                "游戏路径检查",
+                "继续",
+                "返回处理",
+                "不再提示")
+            If userChoice = 2 Then
+                Throw New Exception("$$")
+            End If
+            If userChoice = 3 Then
+                Setup.Set("HintDisableGamePathCheckTip", True)
+            End If
+        End If
         '检查版本
         If McVersionCurrent Is Nothing Then Throw New Exception("未选择 Minecraft 版本！")
         McVersionCurrent.Load()

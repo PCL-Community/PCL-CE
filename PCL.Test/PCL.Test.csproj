@@ -170,6 +170,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteHelperTest.cs" />
     <Compile Include="ConfigureTest.cs" />
     <Compile Include="DiffTest.cs" />
     <Compile Include="DynamicJsonTest.cs" />

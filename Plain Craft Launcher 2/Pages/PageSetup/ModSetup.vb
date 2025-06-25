@@ -29,6 +29,7 @@ Public Class ModSetup
         {"HintProfileSelect", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintExportConfig", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"HintMaxLog", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"HintDisableGamePathCheckTip", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"SystemCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
         {"SystemLaunchCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
@@ -728,7 +729,7 @@ Public Class ModSetup
         End If
     End Sub
     Public Sub UiBlurValue(Value As Integer)
-        BlurHelper.RaiseBlurChanged(Value)
+        Application.Current.Resources("BlurValue") = CType(Value, Double)
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)

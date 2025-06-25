@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Helper.Logger;
+using PCL.Core.Utils.Logger;
 
 namespace PCL.Test;
 
@@ -16,10 +16,7 @@ public class LoggerTest
         var loggerOps = new LoggerConfiguration(
             Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"),
             LoggerSegmentMode.BySize,
-            10 * 1024 * 1024,
-            null,
-            true,
-            10);
+            10 * 1024 * 1024);
         var logger = new Logger(loggerOps);
         for (var i = 0; i < 10; i++)
             logger.Info($"Current we got {i}");
@@ -29,12 +26,7 @@ public class LoggerTest
     public async Task TestHeavyWrite()
     {
         var loggerOps = new LoggerConfiguration(
-            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"),
-            LoggerSegmentMode.BySize,
-            5 * 1024 * 1024,
-            null,
-            true,
-            10);
+            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"));
         var logger = new Logger(loggerOps);
         var tasks = new List<Task>();
         for (var i = 0; i < 25; i++)
