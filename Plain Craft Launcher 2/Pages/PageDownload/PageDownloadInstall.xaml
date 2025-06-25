@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -257,21 +257,21 @@ Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" /
     指不定能把这俩玩意儿提成新控件：
     <Grid Height="40">
         <local:SystemDropShadowChrome Margin="-9.5,-9,0.5,-0.5" Opacity="0.1" CornerRadius="20" Color="{DynamicResource ColorObject1}" />
-        <Border BorderThickness="0.001" Background="{DynamicResource ColorBrush3}" CornerRadius="20">
+        <corelocal:BlurBorder BorderThickness="0.001" Background="{DynamicResource ColorBrush3}" CornerRadius="20">
             <StackPanel Orientation="Horizontal" Margin="13,0" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False">
                 <Path Stretch="Uniform" Height="13" VerticalAlignment="Center" Fill="{DynamicResource ColorBrush8}" RenderTransformOrigin="0.5,0.5"
                       Data="M1097 584 250 584 562 896C591 925 591 972 562 1001 533 1030 487 1030 458 1001L21 565C6 550-0 531 0 511L0 511 0 511C-0 492 6 472 21 457L458 21C487-7 533-7 562 21 591 50 591 97 562 126L250 438 1097 438C1137 438 1170 471 1170 511 1170 551 1137 584 1097 584L1097 584Z" />
             </StackPanel>
-        </Border>
+        </corelocal:BlurBorder>
     </Grid>
     <Grid Height="40" Grid.Column="2">
         <local:SystemDropShadowChrome Margin="-9.5,-9,0.5,-0.5" Opacity="0.1" CornerRadius="20" Color="{DynamicResource ColorObject1}" />
-        <Border BorderThickness="0.001" Background="{DynamicResource ColorBrush3}" CornerRadius="20">
+        <corelocal:BlurBorder BorderThickness="0.001" Background="{DynamicResource ColorBrush3}" CornerRadius="20">
             <StackPanel Orientation="Horizontal" Margin="20,0" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False">
                 <Path Stretch="Uniform" Height="13" VerticalAlignment="Center" Fill="{DynamicResource ColorBrush8}" RenderTransformOrigin="0.5,0.5"
                       Data="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ColorBrush8}" FontSize="15" Margin="10,0,-2,1" Text="开始下载" />
             </StackPanel>
-        </Border>
+        </corelocal:BlurBorder>
     </Grid>
 -->

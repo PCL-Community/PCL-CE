@@ -229,6 +229,20 @@ NextInner:
         '检查路径
         If McVersionCurrent.PathIndie.Contains("!") OrElse McVersionCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.PathIndie & "）")
         If McVersionCurrent.Path.Contains("!") OrElse McVersionCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.Path & "）")
+        If Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McVersionCurrent.Path.IsASCII() Then
+            Dim userChoice = MyMsgBox(
+                $"欲启动版本 ""{McVersionCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
+                "游戏路径检查",
+                "继续",
+                "返回处理",
+                "不再提示")
+            If userChoice = 2 Then
+                Throw New Exception("$$")
+            End If
+            If userChoice = 3 Then
+                Setup.Set("HintDisableGamePathCheckTip", True)
+            End If
+        End If
         '检查版本
         If McVersionCurrent Is Nothing Then Throw New Exception("未选择 Minecraft 版本！")
         McVersionCurrent.Load()
@@ -1461,8 +1475,11 @@ LoginFinish:
     ''' <summary>
     ''' 判断是否使用 RetroWrapper。
     ''' </summary>
-    Private Function McLaunchNeedsRetroWrapper() As Boolean
-        Return (McVersionCurrent.ReleaseTime >= New Date(2013, 6, 25) AndAlso McVersionCurrent.Version.McCodeMain = 99) OrElse (McVersionCurrent.Version.McCodeMain < 6 AndAlso McVersionCurrent.Version.McCodeMain <> 99) AndAlso Not Setup.Get("LaunchAdvanceDisableRW") AndAlso Not Setup.Get("VersionAdvanceDisableRW", McVersionCurrent) '<1.6
+    Private Function McLaunchNeedsRetroWrapper(Mc As McVersion) As Boolean
+        Return (Mc.ReleaseTime >= New Date(2013, 6, 25) AndAlso Mc.Version.McCodeMain = 99) OrElse
+            (Mc.Version.McCodeMain < 6 AndAlso Mc.Version.McCodeMain <> 99) AndAlso
+            Not Setup.Get("LaunchAdvanceDisableRW") AndAlso
+            Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
 
 
@@ -1655,6 +1672,11 @@ NextVersion:
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
         End If
+        '添加 RetroWrapper 相关参数
+        If McLaunchNeedsRetroWrapper(Version) Then
+            'https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
+            DataList.Add("-Dretrowrapper.doUpdateCheck=false")
+        End If
         '添加 Java Wrapper 作为主 Jar
         If Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McVersionCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
@@ -1662,11 +1684,6 @@ NextVersion:
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
 
-        '添加 RetroWrapper 相关参数
-        If McLaunchNeedsRetroWrapper() Then
-            'https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            DataList.Add("-Dretrowrapper.doUpdateCheck=false")
-        End If
 
         '将 "-XXX" 与后面 "XXX" 合并到一起
         '如果不合并，会导致 Forge 1.17 启动无效，它有两个 --add-exports，进一步导致其中一个在后面被去重
@@ -1707,7 +1724,7 @@ NextVersion:
         Dim DataList As New List(Of String)
 
         '添加 RetroWrapper 相关参数
-        If McLaunchNeedsRetroWrapper() Then
+        If McLaunchNeedsRetroWrapper(Version) Then
             DataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker")
         End If
 
@@ -1867,7 +1884,7 @@ NextVersion:
         Dim OptiFineCp As String = Nothing
 
         'RetroWrapper 释放
-        If McLaunchNeedsRetroWrapper() Then
+        If McLaunchNeedsRetroWrapper(Version) Then
             Dim WrapperPath As String = PathMcFolder & "libraries\retrowrapper\RetroWrapper.jar"
             Try
                 WriteFile(WrapperPath, GetResources("RetroWrapper"))

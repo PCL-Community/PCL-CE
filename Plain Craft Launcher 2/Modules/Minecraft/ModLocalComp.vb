@@ -177,6 +177,11 @@ Public Module ModLocalComp
         Private _Authors As String = Nothing
 
         ''' <summary>
+        ''' Mod 图标路径。
+        ''' </summary>
+        Public Property Logo As String
+
+        ''' <summary>
         ''' 依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
         ''' </summary>
         Public ReadOnly Property Dependencies As Dictionary(Of String, String)
@@ -339,6 +344,18 @@ Public Module ModLocalComp
                     Next
                     If Author.Any Then Authors = Join(Author, ", ")
                 End If
+                Dim LogoFile As String = InfoObject("logoFile")
+                If LogoFile IsNot Nothing Then
+                    Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                    If LogoItem IsNot Nothing Then
+                        Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                        Using EntryStream As Stream = LogoItem.Open()
+                            Using FileStream As FileStream = File.Create(Logo)
+                                EntryStream.CopyTo(FileStream)
+                            End Using
+                        End Using
+                    End If
+                End If
                 Dim Reqs As JArray = InfoObject("requiredMods")
                 If Reqs IsNot Nothing Then
                     For Each Token As String In Reqs
@@ -395,6 +412,20 @@ GotFabric:
                     Next
                     If Author.Any Then Authors = Join(Author, ", ")
                 End If
+                If FabricObject.ContainsKey("icon") Then
+                    Dim LogoFile As String = FabricObject("icon")
+                    If LogoFile IsNot Nothing Then
+                        Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                        If LogoItem IsNot Nothing Then
+                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Using EntryStream As Stream = LogoItem.Open()
+                                Using FileStream As FileStream = File.Create(Logo)
+                                    EntryStream.CopyTo(FileStream)
+                                End Using
+                            End Using
+                        End If
+                    End If
+                End If
                 'If (Not FabricObject.ContainsKey("serverSideOnly")) OrElse FabricObject("serverSideOnly")("value").ToObject(Of Boolean) = False Then
                 '    '添加 Minecraft 依赖
                 '    Dim DepMinecraft As String = If(If(FabricObject("acceptedMinecraftVersions") IsNot Nothing, FabricObject("acceptedMinecraftVersions")("value"), ""), "")
@@ -438,6 +469,20 @@ GotFabric:
                     If QuiltMetadata.ContainsKey("name") Then Name = QuiltMetadata("name")
                     If QuiltMetadata.ContainsKey("description") Then Description = QuiltMetadata("description")
                     If QuiltMetadata.ContainsKey("contact") Then Url = If(QuiltMetadata("contact")("homepage"), "")
+                End If
+                If QuiltObject.ContainsKey("icon") Then
+                    Dim LogoFile As String = QuiltObject("icon")
+                    If LogoFile IsNot Nothing Then
+                        Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                        If LogoItem IsNot Nothing Then
+                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Using EntryStream As Stream = LogoItem.Open()
+                                Using FileStream As FileStream = File.Create(Logo)
+                                    EntryStream.CopyTo(FileStream)
+                                End Using
+                            End Using
+                        End If
+                    End If
                 End If
                 GoTo Finished
             Catch ex As Exception
@@ -826,6 +871,15 @@ Finished:
                Path.EndsWithF(".jar.disabled", True) OrElse Path.EndsWithF(".zip.disabled", True) OrElse Path.EndsWithF(".litemod.disabled", True) OrElse
                Path.EndsWithF(".jar.old", True) OrElse Path.EndsWithF(".zip.old", True) OrElse Path.EndsWithF(".litemod.old", True) Then Return True
             Return False
+        End Function
+
+        ''' <summary>
+        ''' 获取图标路径。
+        ''' </summary>
+        Public Function GetLogo() As String
+            If Comp IsNot Nothing AndAlso Comp.LogoUrl IsNot Nothing Then Return Comp.LogoUrl
+            If Logo IsNot Nothing Then Return Logo
+            Return PathImage & "Icons/NoIcon.png"
         End Function
 
     End Class

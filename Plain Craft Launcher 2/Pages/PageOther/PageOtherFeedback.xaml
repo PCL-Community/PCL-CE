@@ -23,20 +23,29 @@
                 </StackPanel>
             </local:MyCard>
             <StackPanel x:Name="PanContent" Margin="0,15,0,0">
-                <local:MyCard Title="已完成" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True">
-                    <StackPanel x:Name="PanListCompleted" Orientation="Vertical" Margin="20,36,18,22"/>
-                </local:MyCard>
-                <local:MyCard Title="等待提交者" Margin="0,0,0,15" x:Name="PanContentWaitingResponse" CanSwap="True">
-                    <StackPanel x:Name="PanListWaitingResponse" Orientation="Vertical" Margin="20,36,18,22"/>
-                </local:MyCard>
                 <local:MyCard Title="正在处理" Margin="0,0,0,15" x:Name="PanContentProcessing" CanSwap="True">
                     <StackPanel x:Name="PanListProcessing" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
-                <local:MyCard Title="已拒绝" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True">
+                <local:MyCard Title="等待处理" Margin="0,0,0,15" x:Name="PanContentWaitingProcess" CanSwap="True">
+                    <StackPanel x:Name="PanListWaitingProcess" Orientation="Vertical" Margin="20,36,18,22"/>
+                </local:MyCard>
+                <local:MyCard Title="WAIT" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True">
+                    <StackPanel x:Name="PanListWait" Orientation="Vertical" Margin="20,36,18,22"/>
+                </local:MyCard>
+                <local:MyCard Title="PAUSE" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True">
+                    <StackPanel x:Name="PanListPause" Orientation="Vertical" Margin="20,36,18,22"/>
+                </local:MyCard>
+                <local:MyCard Title="UP NEXT" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True">
+                    <StackPanel x:Name="PanListUpnext" Orientation="Vertical" Margin="20,36,18,22"/>
+                </local:MyCard>
+                <local:MyCard Title="已完成" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True" IsSwaped="True">
+                    <StackPanel x:Name="PanListCompleted" Orientation="Vertical" Margin="20,36,18,22"/>
+                </local:MyCard>
+                <local:MyCard Title="已拒绝" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwaped="True">
                     <StackPanel x:Name="PanListDecline" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
-                <local:MyCard Title="新反馈" Margin="0,0,0,15" x:Name="PanContentNewIssue">
-                    <StackPanel x:Name="PanListNewIssue" Orientation="Vertical" Margin="20,36,18,22"/>
+                <local:MyCard Title="已忽略" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwaped="True">
+                    <StackPanel x:Name="PanListIgnored" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
             </StackPanel>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="40,50">
