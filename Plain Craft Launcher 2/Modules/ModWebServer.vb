@@ -1,7 +1,7 @@
 Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
-Imports PCL.Core.Service
+Imports PCL.Core.Utils
 
 Public Module ModWebServer
 

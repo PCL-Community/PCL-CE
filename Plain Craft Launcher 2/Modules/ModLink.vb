@@ -508,22 +508,30 @@ Public Module ModLink
             End If
 
             '创建防火墙规则
-            Dim FirewallProcessIn As New Process With {
+            If IsHost Then
+                Dim FirewallProcessAllow As New Process With {
+                    .StartInfo = New ProcessStartInfo With {
+                    .Verb = "runas",
+                    .FileName = "cmd",
+                    .CreateNoWindow = True,
+                    .UseShellExecute = False,
+                    .Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}"
+                    }
+                }
+                FirewallProcessAllow.Start()
+                FirewallProcessAllow.WaitForExit()
+            End If
+            Dim FirewallProcessDeny As New Process With {
                 .StartInfo = New ProcessStartInfo With {
                     .Verb = "runas",
                     .FileName = "cmd",
                     .CreateNoWindow = True,
-                    .UseShellExecute = False
+                    .UseShellExecute = False,
+                    .Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any"
                 }
             }
-            If IsHost Then
-                FirewallProcessIn.StartInfo.Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any"
-                FirewallProcessIn.Start()
-                FirewallProcessIn.WaitForExit()
-            End If
-            FirewallProcessIn.StartInfo.Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}"
-            FirewallProcessIn.Start()
-            FirewallProcessIn.WaitForExit()
+            FirewallProcessDeny.Start()
+            FirewallProcessDeny.WaitForExit()
 
             ETProcess.StartInfo.Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
             Dim Hostname As String = Nothing
