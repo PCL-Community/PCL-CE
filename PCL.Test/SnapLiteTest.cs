@@ -14,7 +14,7 @@ public class SnapLiteTest
     {
         var tempFolder = Path.Combine(Path.GetTempPath(), "PCLTest", "SnapLiteTest");
         Directory.CreateDirectory(tempFolder);
-        using var snap = new LiteSnapVersionControl(tempFolder);
+        using var snap = new SnapLiteVersionControl(tempFolder);
         var nodeId = await snap.CreateNewVersion();
         await snap.Export(nodeId, Path.Combine(Path.GetTempPath(), "PCLTest", "SnapLiteTest.zip"));
     }
