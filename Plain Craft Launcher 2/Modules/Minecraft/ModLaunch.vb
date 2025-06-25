@@ -735,7 +735,7 @@ Exception:
         }"
         Dim Result As String = Nothing
         Try
-            Result = NetRequestMultiple("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", 3)
+            Result = NetRequestRetry("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", 3)
         Catch ex As Exception
             Dim IsIgnore As Boolean = False
             RunInUiWait(Sub()
@@ -771,7 +771,7 @@ Exception:
                                  }"
         Dim Result As String
         Try
-            Result = NetRequestMultiple("https://xsts.auth.xboxlive.com/xsts/authorize", "POST", Request, "application/json", 3)
+            Result = NetRequestRetry("https://xsts.auth.xboxlive.com/xsts/authorize", "POST", Request, "application/json", 3)
         Catch ex As WebException
             '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
             If ex.Message.Contains("2148916227") Then
@@ -861,7 +861,7 @@ Exception:
     Private Sub MsLoginStep5(AccessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
 
-        Dim Result As String = NetRequestMultiple("https://api.minecraftservices.com/entitlements/mcstore", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+        Dim Result As String = NetRequestRetry("https://api.minecraftservices.com/entitlements/mcstore", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
         Try
             Dim ResultJson As JObject = GetJson(Result)
             If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any) Then
@@ -886,7 +886,7 @@ Exception:
 
         Dim Result As String
         Try
-            Result = NetRequestMultiple("https://api.minecraftservices.com/minecraft/profile", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+            Result = NetRequestRetry("https://api.minecraftservices.com/minecraft/profile", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
         Catch ex As Net.WebException
             Dim Message As String = GetExceptionSummary(ex)
             If Message.Contains("(429)") Then
