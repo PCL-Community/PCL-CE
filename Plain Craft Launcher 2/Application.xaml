@@ -4,7 +4,6 @@
     xmlns:local="clr-namespace:PCL"
     xmlns:corelocal="clr-namespace:PCL.Core.Controls;assembly=PCL.Core"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    StartupUri="FormMain.xaml"
     ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>

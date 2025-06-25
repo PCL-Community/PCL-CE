@@ -1,7 +1,7 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
-Imports PCL.Core.Helper
+Imports PCL.Core.LifecycleManagement
 
 Public Class FormMain
 
@@ -84,8 +84,10 @@ Public Class FormMain
         McFolderListLoader.Start(0) '为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
         Log("[Start] 第二阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        '注册生命周期状态事件
+        Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
-    Private Sub FormMain_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+    Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         ApplicationStartTick = GetTimeTick()
         Handle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -143,10 +145,10 @@ Public Class FormMain
             Height = MinHeight + 100
             Width = MinWidth + 100
         End Try
-#If DEBUG Then
-        MinHeight = 50
-        MinWidth = 50
-#End If
+        '#If DEBUG Then
+        '        MinHeight = 50
+        '        MinWidth = 50
+        '#End If
         Topmost = False
         If FrmStart IsNot Nothing Then FrmStart.Close(New TimeSpan(0, 0, 0, 0, 400 / AniSpeed))
         '更改窗口
@@ -191,10 +193,10 @@ Public Class FormMain
 #End If
                 MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
                          "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
-                         Button2Action := Sub()
-                             OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
-                             EndProgram(False)
-                         End Sub)
+                         Button2Action:=Sub()
+                                            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
+                                            EndProgram(False)
+                                        End Sub)
             End If
 #End If
             'EULA 提示
@@ -431,8 +433,9 @@ Public Class FormMain
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
-        If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
-        Process.GetCurrentProcess.Kill()
+        'If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
+        'Process.GetCurrentProcess.Kill()
+        Lifecycle.ForceShutdown(ReturnCode)
     End Sub
     Private Sub BtnTitleClose_Click(sender As Object, e As RoutedEventArgs) Handles BtnTitleClose.Click
         EndProgram(True)

@@ -1,7 +1,6 @@
-﻿Imports System.Drawing
-Imports System.Reflection
-Imports System.Windows.Threading
+﻿Imports System.Windows.Threading
 Imports System.IO.Compression
+Imports PCL.Core.LifecycleManagement
 
 Public Class Application
 
@@ -18,28 +17,34 @@ Public Class Application
     End Sub
 #End If
 
+    Public Sub New()
+        '注册生命周期事件
+        Lifecycle.When(LifecycleState.Loaded, AddressOf Application_Startup)
+    End Sub
+
     '开始
-    Private Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
+    Private Sub Application_Startup() '(sender As Object, e As StartupEventArgs) Handles Me.Startup
         Try
             '创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(New BindingErrorTraceListener())
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
             SecretOnApplicationStart()
             '检查参数调用
-            If e.Args.Length > 0 Then
-                If e.Args(0) = "--update" Then
+            Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
+            If args.Length > 0 Then
+                If args(0) = "--update" Then
                     '自动更新
-                    UpdateReplace(e.Args(1), e.Args(2).Trim(""""), e.Args(3).Trim(""""), e.Args(4))
+                    UpdateReplace(args(1), args(2).Trim(""""), args(3).Trim(""""), args(4))
                     Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf e.Args(0) = "--gpu" Then
+                ElseIf args(0) = "--gpu" Then
                     '调整显卡设置
                     Try
-                        SetGPUPreference(e.Args(1).Trim(""""))
+                        SetGPUPreference(args(1).Trim(""""))
                         Environment.Exit(ProcessReturnValues.TaskDone)
                     Catch ex As Exception
                         Environment.Exit(ProcessReturnValues.Fail)
                     End Try
-                ElseIf e.Args(0).StartsWithF("--memory") Then
+                ElseIf args(0).StartsWithF("--memory") Then
                     '内存优化
                     Dim Ram = My.Computer.Info.AvailablePhysicalMemory
                     Try
@@ -55,11 +60,11 @@ Public Class Application
                     End If
 #If DEBUGRESERVED Then
                     '制作更新包
-                ElseIf e.Args(0) = "--edit1" Then
-                    ExeEdit(e.Args(1), True)
+                ElseIf args(0) = "--edit1" Then
+                    ExeEdit(args(1), True)
                     Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf e.Args(0) = "--edit2" Then
-                    ExeEdit(e.Args(1), False)
+                ElseIf args(0) = "--edit2" Then
+                    ExeEdit(args(1), False)
                     Environment.Exit(ProcessReturnValues.TaskDone)
 #End If
                 End If
@@ -84,7 +89,7 @@ Public Class Application
             Directory.CreateDirectory(PathAppdata)
             '检测单例
 #If Not DEBUGRESERVED Then
-            Dim ShouldWaitForExit As Boolean = e.Args.Length > 0 AndAlso e.Args(0) = "--wait" '要求等待已有的 PCL 退出
+            Dim ShouldWaitForExit As Boolean = args.Length > 0 AndAlso args(0) = "--wait" '要求等待已有的 PCL 退出
             Dim WaitRetryCount As Integer = 0
 WaitRetry:
             Dim WindowHwnd As IntPtr = FindWindow(Nothing, "Plain Craft Launcher Community Edition ")

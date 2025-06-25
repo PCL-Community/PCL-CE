@@ -1993,7 +1993,7 @@ Public Class PageVersionInstall
         End If
         '备份版本核心文件
         CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".json", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".json")
-        If String.IsNullOrWhiteSpace(PageVersionLeft.Version.InheritVersion) Then
+        If File.Exists(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".jar") Then
             CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".jar", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".jar")
         End If
         '确认独立 API (如 Fabric API 等) 是否需要被修改
