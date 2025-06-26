@@ -898,6 +898,14 @@ Public Class FormMain
         ''' Java 管理，这是一个副页面。
         ''' </summary>
         SetupJava = 11
+        ''' <summary>
+        ''' 主页市场，这是一个副页面。
+        ''' </summary>
+        HomepageMarket = 12
+        ''' <summary>
+        ''' 主页设置，这是一个副页面。
+        ''' </summary>
+        HomepageSetup = 13
     End Enum
     ''' <summary>
     ''' 次要页面种类。其数值必须与 StackPanel 中的下标一致。
@@ -965,6 +973,10 @@ Public Class FormMain
                 Return CType(Stack.Additional(0), HelpEntry).Title
             Case PageType.SetupJava
                 Return "Java 管理"
+            Case PageType.HomepageMarket
+                Return "主页市场"
+            Case PageType.HomepageSetup
+                Return "主页设置"
             Case Else
                 Return ""
         End Select
@@ -1186,6 +1198,12 @@ Public Class FormMain
                 Case PageType.SetupJava 'Java 设置
                     FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
                     PageChangeAnim(New MyPageLeft, FrmSetupJava)
+                Case PageType.HomepageMarket '主页市场
+                    FrmHomepageMarket = If(FrmHomepageMarket, New PageHomepageMarket)
+                    PageChangeAnim(New MyPageLeft, FrmHomepageMarket)
+                Case PageType.HomepageSetup '主页设置
+                    FrmHomepageSetup = If(FrmHomepageSetup, New PageHomepageSetup)
+                    PageChangeAnim(New MyPageLeft, FrmHomepageSetup)
                 Case PageType.Other '更多
                     If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
                     PageChangeAnim(FrmOtherLeft, FrmOtherLeft.PageGet(SubType))

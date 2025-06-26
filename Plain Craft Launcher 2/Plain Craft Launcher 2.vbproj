@@ -307,6 +307,12 @@
     <Compile Include="Pages\PageLaunch\PageLoginOffline.xaml.vb">
       <DependentUpon>PageLoginOffline.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\PageSetup\PageHomepageMarket.xaml.vb">
+      <DependentUpon>PageHomepageMarket.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageSetup\PageHomepageSetup.xaml.vb">
+      <DependentUpon>PageHomepageSetup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageSetup\PageSetupJava.xaml.vb">
       <DependentUpon>PageSetupJava.xaml</DependentUpon>
     </Compile>
@@ -756,6 +762,14 @@
     <Page Include="Pages\PageLogRight.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageSetup\PageHomepageMarket.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PageSetup\PageHomepageSetup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\PageSetup\PageSetupJava.xaml">
       <Generator>MSBuild:Compile</Generator>
