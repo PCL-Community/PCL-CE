@@ -449,12 +449,15 @@ EndHint:
     Public FrmVersionMod As PageVersionCompResource
     Public FrmVersionModDisabled As PageVersionModDisabled
     Public FrmVersionScreenshot As PageVersionScreenshot
-    Public FrmVersionWorld As PageVersionWorld
+    Public FrmVersionWorld As PageVersionSaves
     Public FrmVersionShader As PageVersionCompResource
     Public FrmVersionResourcePack As PageVersionCompResource
     Public FrmVersionSetup As PageVersionSetup
     Public FrmVersionInstall As PageVersionInstall
     Public FrmVersionExport As PageVersionExport
+    '版本存档页面
+    Public FrmVersionSavesLeft As PageVersionSavesLeft
+    Public FrmVersionSavesBackup As PageVersionSavesBackup
 
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail
