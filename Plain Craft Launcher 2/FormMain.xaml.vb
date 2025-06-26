@@ -971,7 +971,7 @@ Public Class FormMain
             Case PageType.SetupJava
                 Return "Java 管理"
             Case PageType.VersionSaves
-                Return "存档管理"
+                Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case Else
                 Return ""
         End Select
