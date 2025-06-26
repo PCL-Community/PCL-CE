@@ -158,6 +158,7 @@ Public Class PageSetupUI
             CheckHiddenVersionMod.Checked = Setup.Get("UiHiddenVersionMod")
             CheckHiddenVersionResourcePack.Checked = Setup.Get("UiHiddenVersionResourcePack")
             CheckHiddenVersionShader.Checked = Setup.Get("UiHiddenVersionShader")
+            CheckHiddenVersionSchematic.Checked = Setup.Get("UiHiddenVersionSchematic")
 
         Catch ex As NullReferenceException
             Log(ex, "个性化设置项存在异常，已被自动重置", LogLevel.Msgbox)
@@ -220,6 +221,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionMod")
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
+            Setup.Reset("UiHiddenVersionSchematic")
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -237,7 +239,7 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -309,10 +311,10 @@ Public Class PageSetupUI
             '加载
             If Not Pic.Any() Then
                 If Refresh Then
-                    If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
+                    If FrmMain.PublicImgBack.Visibility = Visibility.Collapsed Then
                         If IsHint Then Hint("未检测到可用背景图片！", HintType.Critical)
                     Else
-                        FrmMain.ImgBack.Visibility = Visibility.Collapsed
+                        FrmMain.PublicImgBack.Visibility = Visibility.Collapsed
                         If IsHint Then Hint("背景图片已清除！", HintType.Finish)
                     End If
                 End If
@@ -322,9 +324,9 @@ Public Class PageSetupUI
                     Dim Address As String = RandomOne(Pic)
                     Try
                         Log("[UI] 加载背景图片：" & Address)
-                        FrmMain.ImgBack.Background = New MyBitmap(Address)
+                        FrmMain.PublicImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
-                        FrmMain.ImgBack.Visibility = Visibility.Visible
+                        FrmMain.PublicImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景图片已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
                         If ex.Message.Contains("参数无效") Then

@@ -1,4 +1,4 @@
-﻿Public Class PageSetupLeft
+Public Class PageSetupLeft
 
     Private IsLoad As Boolean = False
     Private IsPageSwitched As Boolean = False '如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
@@ -124,11 +124,11 @@
         AniStop("FrmMain PageChangeRight") '停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         If Target.Parent IsNot Nothing Then Target.SetValue(ContentPresenter.ContentProperty, Nothing)
         FrmMain.PageRight = Target
-        CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnExit()
+        CType(FrmMain.PublicPanMainRight.Child, MyPageRight).PageOnExit()
         AniStart({
                          AaCode(Sub()
-                                    CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
-                                    FrmMain.PanMainRight.Child = FrmMain.PageRight
+                                    CType(FrmMain.PublicPanMainRight.Child, MyPageRight).PageOnForceExit()
+            FrmMain.PublicPanMainRight.Child = FrmMain.PageRight
                                     FrmMain.PageRight.Opacity = 0
                                 End Sub, 130),
                          AaCode(Sub()
