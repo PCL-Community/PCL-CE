@@ -22,7 +22,8 @@ Public Class PageVersionLeft
             If Setup.Get("UiHiddenVersionMod") Then DisableCount += 1
             If Setup.Get("UiHiddenVersionResourcePack") Then DisableCount += 1
             If Setup.Get("UiHiddenVersionShader") Then DisableCount += 1
-            If DisableCount = 5 Then
+            If Setup.Get("UiHiddenVersionSchematic") Then DisableCount += 1
+            If DisableCount = 6 Then
                 TextResource.Visibility = Visibility.Collapsed
             Else
                 TextResource.Visibility = Visibility.Visible
@@ -36,6 +37,7 @@ Public Class PageVersionLeft
         ItemScreenshot.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionScreenshot"), Visibility.Collapsed, Visibility.Visible)
         ItemResourcePack.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionResourcePack"), Visibility.Collapsed, Visibility.Visible)
         ItemShader.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionShader"), Visibility.Collapsed, Visibility.Visible)
+        ItemSchematic.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionSchematic"), Visibility.Collapsed, Visibility.Visible)
     End Sub
 
 #Region "页面切换"
@@ -48,7 +50,7 @@ Public Class PageVersionLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemOverall.Check, ItemMod.Check, ItemModDisabled.Check, ItemSetup.Check, ItemScreenshot.Check, ItemWorld.Check, ItemResourcePack.Check, ItemShader.Check, ItemInstall.Check, ItemExport.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemOverall.Check, ItemMod.Check, ItemModDisabled.Check, ItemSetup.Check, ItemScreenshot.Check, ItemWorld.Check, ItemResourcePack.Check, ItemShader.Check, ItemSchematic.Check, ItemInstall.Check, ItemExport.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -81,6 +83,9 @@ Public Class PageVersionLeft
             Case FormMain.PageSubType.VersionShader
                 If FrmVersionShader Is Nothing Then FrmVersionShader = New PageVersionCompResource(CompType.Shader)
                 Return FrmVersionShader
+            Case FormMain.PageSubType.VersionSchematic
+                If FrmVersionSchematic Is Nothing Then FrmVersionSchematic = New PageVersionCompResource(CompType.Schematic)
+                Return FrmVersionSchematic
             Case FormMain.PageSubType.VersionInstall
                 If FrmVersionInstall Is Nothing Then FrmVersionInstall = New PageVersionInstall
                 Return FrmVersionInstall
@@ -115,7 +120,7 @@ Public Class PageVersionLeft
         AniStart({
             AaCode(Sub()
                        CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
-                       FrmMain.PanMainRight.Child = FrmMain.PageRight
+            FrmMain.PanMainRight.Child = FrmMain.PageRight
                        FrmMain.PageRight.Opacity = 0
                    End Sub, 130),
             AaCode(Sub()
@@ -146,6 +151,8 @@ Public Class PageVersionLeft
                 PageVersionCompResource.Refresh(CompType.ResourcePack)
             Case FormMain.PageSubType.VersionShader
                 PageVersionCompResource.Refresh(CompType.Shader)
+            Case FormMain.PageSubType.VersionSchematic
+                PageVersionCompResource.Refresh(CompType.Schematic)
             Case FormMain.PageSubType.VersionInstall
                 DlClientListLoader.Start(IsForceRestart:=True)
                 DlOptiFineListLoader.Start(IsForceRestart:=True)
