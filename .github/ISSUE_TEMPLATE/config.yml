@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 主页预设反馈
-    url: https://github.com/Hex-Dragon/PCL2/discussions/categories/自定义主页
+    url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
   - name: 帮助文档反馈
     url: https://github.com/LTCatt/PCL2Help/issues

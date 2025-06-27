@@ -14,6 +14,7 @@
     </TargetFrameworkProfile>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <StartupObject>PCL.Program</StartupObject>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -295,6 +296,7 @@
     <Compile Include="Modules\Minecraft\ModModpack.vb" />
     <Compile Include="Modules\Minecraft\ModProfile.vb" />
     <Compile Include="Modules\Minecraft\ModStyle.vb" />
+    <Compile Include="Modules\Minecraft\ModWorld.vb" />
     <Compile Include="Modules\Updates\AnnouncementDataModel.vb" />
     <Compile Include="Modules\Updates\EnumUpdateChannel.vb" />
     <Compile Include="Modules\Updates\IUpdateSource.vb" />
@@ -532,6 +534,7 @@
     <Compile Include="Pages\PageSpeedRight.xaml.vb">
       <DependentUpon>PageSpeedRight.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Program.vb" />
     <Page Include="Controls\MyExtraTextButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -950,7 +953,7 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8.1">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 和 x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 and x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -1164,8 +1167,14 @@
     <PackageReference Include="Open.NAT">
       <Version>2.1.0</Version>
     </PackageReference>
+    <PackageReference Include="PlainNamedBinaryTag">
+      <Version>1.1.1</Version>
+    </PackageReference>
     <PackageReference Include="STUN">
       <Version>0.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Memory">
+      <Version>4.6.3</Version>
     </PackageReference>
     <PackageReference Include="System.Security.AccessControl">
       <Version>6.0.1</Version>

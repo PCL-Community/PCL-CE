@@ -631,7 +631,7 @@
             If Version = "11.15.1.2318" OrElse Version = "11.15.1.1902" OrElse Version = "11.15.1.1890" Then Branch = "1.8.9"
             If Branch Is Nothing AndAlso Inherit = "1.7.10" AndAlso Version.Split(".")(3) >= 1300 Then Branch = "1.7.10"
             '为 DlForgelikeEntry 提供所有信息
-            ForgeType = 0
+            ForgeType = ForgelikeType.Forge
             VersionName = Version
             Me.Version = New Version(Version)
             Me.Inherit = Inherit
@@ -832,7 +832,7 @@
         End Property
 
         Public Sub New(ApiName As String)
-            ForgeType = 1
+            ForgeType = ForgelikeType.NeoForge
             Me.ApiName = ApiName
             IsBeta = ApiName.Contains("beta")
             If ApiName.Contains("1.20.1") Then '1.20.1-47.1.99
@@ -957,7 +957,7 @@
         End Property
 
         Public Sub New(ApiName As String)
-            ForgeType = 1
+            ForgeType = ForgelikeType.Cleanroom
             Me.ApiName = ApiName
             IsBeta = ApiName.Contains("alpha")
             VersionName = ApiName

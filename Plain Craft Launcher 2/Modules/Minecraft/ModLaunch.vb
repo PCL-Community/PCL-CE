@@ -735,7 +735,7 @@ Exception:
         }"
         Dim Result As String = Nothing
         Try
-            Result = NetRequestMultiple("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", 3)
+            Result = NetRequestRetry("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", 3)
         Catch ex As Exception
             Dim IsIgnore As Boolean = False
             RunInUiWait(Sub()
@@ -771,7 +771,7 @@ Exception:
                                  }"
         Dim Result As String
         Try
-            Result = NetRequestMultiple("https://xsts.auth.xboxlive.com/xsts/authorize", "POST", Request, "application/json", 3)
+            Result = NetRequestRetry("https://xsts.auth.xboxlive.com/xsts/authorize", "POST", Request, "application/json", 3)
         Catch ex As WebException
             '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
             If ex.Message.Contains("2148916227") Then
@@ -861,7 +861,7 @@ Exception:
     Private Sub MsLoginStep5(AccessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
 
-        Dim Result As String = NetRequestMultiple("https://api.minecraftservices.com/entitlements/mcstore", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+        Dim Result As String = NetRequestRetry("https://api.minecraftservices.com/entitlements/mcstore", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
         Try
             Dim ResultJson As JObject = GetJson(Result)
             If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any) Then
@@ -886,7 +886,7 @@ Exception:
 
         Dim Result As String
         Try
-            Result = NetRequestMultiple("https://api.minecraftservices.com/minecraft/profile", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+            Result = NetRequestRetry("https://api.minecraftservices.com/minecraft/profile", "GET", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
         Catch ex As Net.WebException
             Dim Message As String = GetExceptionSummary(ex)
             If Message.Contains("(429)") Then
@@ -1282,6 +1282,12 @@ LoginFinish:
             MaxVer = New Version(999, 999, 999, 999)
         End If
 
+        'JSON 中要求的版本
+        If McVersionCurrent.JsonObject("javaVersion") IsNot Nothing Then
+            MinVer = If(New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0) > MinVer, New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0), MinVer)
+            If MaxVer < MinVer Then MaxVer = New Version(999, 999, 999, 999)
+        End If
+
         SyncLock JavaLock
 
             '选择 Java
@@ -1651,7 +1657,7 @@ NextVersion:
         If McLoginLoader.Output.Type = "Auth" Then
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
-            Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
+                Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
                 DataList.Insert(0, "-javaagent:""" & PathPure & "authlib-injector.jar""=" & Server &
                               " -Dauthlibinjector.side=client" &
                               " -Dauthlibinjector.yggdrasil.prefetched=" & Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)))
@@ -1890,8 +1896,8 @@ NextVersion:
 
         For Each Library As McLibToken In LibList
             If Library.IsNatives Then Continue For
-            If Library.Name IsNot Nothing AndAlso Library.Name.Contains("com.cleanroommc:cleanroom") Then 'Cleanroom 的主 Jar 必须放在 ClassPath 第一位
-                CpStrings.Insert(0, Library.LocalPath + ";")
+            If Library.Name IsNot Nothing AndAlso Library.Name.Contains("com.cleanroommc:cleanroom:0.2") Then 'Cleanroom 的主 Jar 必须放在 ClassPath 第一位
+                CpStrings.Insert(0, Library.LocalPath)
             End If
             If Library.Name IsNot Nothing AndAlso Library.Name = "optifine:OptiFine" Then
                 OptiFineCp = Library.LocalPath
@@ -2123,11 +2129,6 @@ NextVersion:
             Log(ex, "更新 options.txt 失败", LogLevel.Hint)
         End Try
 
-        'LabyMod 预处理
-        If ReadIni(McVersionCurrent.Path & "PCL\Setup.ini", "VersionLabyMod", "") <> "" AndAlso McVersionCurrent.PathIndie = McVersionCurrent.Path Then
-            If Directory.Exists(McVersionCurrent.Path & "labymod-neo") Then Directory.Delete(McVersionCurrent.Path & "labymod-neo")
-            CreateSymbolicLink(McVersionCurrent.Path & "labymod-neo", PathMcFolder & "labymod-neo", &H2)
-        End If
     End Sub
     Private Sub McLaunchCustom(Loader As LoaderTask(Of Integer, Integer))
 

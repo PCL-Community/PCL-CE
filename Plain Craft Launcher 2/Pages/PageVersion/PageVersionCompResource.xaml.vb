@@ -1,4 +1,4 @@
-﻿Public Class PageVersionCompResource
+Public Class PageVersionCompResource
     Implements IRefreshable
 #Region "初始化"
 
@@ -15,9 +15,15 @@
 
         ' 在 InitializeComponent() 调用之后添加任何初始化。
 
-        If {CompType.Shader, CompType.ResourcePack}.Contains(CurrentCompType) Then
+        If {CompType.Shader, CompType.ResourcePack, CompType.Schematic}.Contains(CurrentCompType) Then
             BtnSelectEnable.Visibility = Visibility.Collapsed
             BtnSelectDisable.Visibility = Visibility.Collapsed
+        End If
+        
+        '投影文件管理页隐藏下载按钮
+        If CurrentCompType = CompType.Schematic Then
+            BtnManageDownload.Visibility = Visibility.Collapsed
+            BtnHintDownload.Visibility = Visibility.Collapsed
         End If
 
     End Sub
@@ -34,9 +40,12 @@
                 RequireLoaders = {CompLoaderType.Minecraft}.ToList()
             Case CompType.Shader
                 RequireLoaders = {CompLoaderType.OptiFine, CompLoaderType.Iris, CompLoaderType.Vanilla, CompLoaderType.Canvas}.ToList()
+            Case CompType.Schematic
+                RequireLoaders = {CompLoaderType.Minecraft}.ToList()
         End Select
         res.Loaders = RequireLoaders
         res.CompPath = PageVersionLeft.Version.PathIndie & If(PageVersionLeft.Version.Version.HasLabyMod, "labymod-neo\fabric\" & PageVersionLeft.Version.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+        res.CompType = CurrentCompType
         Return res
     End Function
 
@@ -67,9 +76,11 @@
     Public Sub ReloadCompFileList(Optional ForceReload As Boolean = False)
         If LoaderRun(If(ForceReload, LoaderFolderRunType.ForceRun, LoaderFolderRunType.RunOnUpdated)) Then
             Log($"[System] 已刷新 {CurrentCompType} 列表")
-            Filter = FilterType.All
-            PanBack.ScrollToHome()
-            SearchBox.Text = ""
+            RunInUi(Sub()
+                        Filter = FilterType.All
+                        PanBack.ScrollToHome()
+                        SearchBox.Text = ""
+                    End Sub)
         End If
     End Sub
     '强制刷新
@@ -96,6 +107,9 @@
             Case CompType.Shader
                 If FrmVersionShader IsNot Nothing Then FrmVersionShader.ReloadCompFileList(True)
                 FrmVersionLeft.ItemShader.Checked = True
+            Case CompType.Schematic
+                If FrmVersionSchematic IsNot Nothing Then FrmVersionSchematic.ReloadCompFileList(True)
+                FrmVersionLeft.ItemSchematic.Checked = True
         End Select
         Hint("正在刷新……", Log:=False)
     End Sub
@@ -130,9 +144,31 @@
             If CompResourceListLoader.Output.Any() Then
                 PanBack.Visibility = Visibility.Visible
                 PanEmpty.Visibility = Visibility.Collapsed
+                PanSchematicEmpty.Visibility = Visibility.Collapsed
             Else
+                '检查是否为投影文件类型且schematics文件夹不存在
+                If CurrentCompType = CompType.Schematic Then
+                    Dim schematicsPath As String = PageVersionLeft.Version.PathIndie & "schematics\"
+                    If Not Directory.Exists(schematicsPath) Then
+                        PanSchematicEmpty.Visibility = Visibility.Visible
+                        PanEmpty.Visibility = Visibility.Collapsed
+                        PanBack.Visibility = Visibility.Collapsed
+                        Return
+                    End If
+                End If
+                
+                '根据组件类型设置PanEmpty的文本内容
+                If CurrentCompType = CompType.Schematic Then
+                    TxtEmptyTitle.Text = "尚未安装资源"
+                    TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                Else
+                    TxtEmptyTitle.Text = "尚未安装资源"
+                    TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                End If
+                
                 PanEmpty.Visibility = Visibility.Visible
                 PanBack.Visibility = Visibility.Collapsed
+                PanSchematicEmpty.Visibility = Visibility.Collapsed
                 Return
             End If
             '修改缓存
@@ -141,10 +177,12 @@
                 ModItems(ModEntity.RawFileName) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
-            Filter = FilterType.All
-            SearchBox.Text = "" '这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
-            RefreshUI()
-            SetSortMethod(SortMethod.CompName)
+            RunInUi(Sub()
+                        Filter = FilterType.All
+                        SearchBox.Text = "" '这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
+                        RefreshUI()
+                        SetSortMethod(SortMethod.CompName)
+                    End Sub)
         Catch ex As Exception
             Log(ex, $"加载 {CurrentCompType} 列表 UI 失败", LogLevel.Feedback)
         End Try
@@ -373,9 +411,10 @@
             Case CompType.Mod : FileList = SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
             Case CompType.ResourcePack : FileList = SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
             Case CompType.Shader : FileList = SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
+            Case CompType.Schematic : FileList = SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic)|*.litematic;*.nbt;*.schematic", "选择要安装的投影原理图")
         End Select
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
-        InstallMods(FileList)
+        InstallCompFiles(FileList, CurrentCompType)
     End Sub
     ''' <summary>
     ''' 尝试安装 Mod。
@@ -426,6 +465,131 @@ Install:
         Return True
     End Function
 
+    ''' <summary>
+    ''' 安装组件文件（Mod、资源包、光影包、投影文件等）。
+    ''' </summary>
+    Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType)
+        If Not FilePathList.Any Then Exit Sub
+        
+        Dim Extension As String = FilePathList.First.AfterLast(".").ToLower
+        Dim ValidExtensions As String() = Nothing
+        Dim CompTypeName As String = ""
+        Dim CompFolder As String = ""
+        
+        '检查回收站：回收站中的文件有错误的文件名
+        If FilePathList.First.Contains(":\$RECYCLE.BIN\") Then
+            Hint("请先将文件从回收站还原，再尝试安装！", HintType.Critical)
+            Exit Sub
+        End If
+        
+        '获取并检查目标版本
+        Dim TargetVersion As McVersion = McVersionCurrent
+        If FrmMain.PageCurrent = FormMain.PageType.VersionSetup Then TargetVersion = PageVersionLeft.Version
+        
+        '根据组件类型设置相关参数
+        Select Case CompType
+            Case CompType.Mod
+                ValidExtensions = {"jar", "litemod", "disabled", "old"}
+                CompTypeName = "Mod"
+                CompFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
+            Case CompType.ResourcePack
+                ValidExtensions = {"zip"}
+                CompTypeName = "资源包"
+                CompFolder = TargetVersion.PathIndie & "resourcepacks\"
+            Case CompType.Shader
+                ValidExtensions = {"zip"}
+                CompTypeName = "光影包"
+                CompFolder = TargetVersion.PathIndie & "shaderpacks\"
+            Case CompType.Schematic
+                ValidExtensions = {"litematic", "nbt", "schematic"}
+                CompTypeName = "投影原理图"
+                CompFolder = TargetVersion.PathIndie & "schematics\"
+        End Select
+        
+        '检查文件扩展名
+        If Not ValidExtensions.Contains(Extension) Then
+            Hint($"不支持的文件格式：{Extension}，{CompTypeName}支持的格式：{String.Join(", ", ValidExtensions)}", HintType.Critical)
+            Exit Sub
+        End If
+        
+        Log($"[System] 文件为 {Extension} 格式，尝试作为{CompTypeName}安装")
+        
+        '检查版本兼容性
+        If CompType = CompType.Mod AndAlso (FrmMain.PageCurrent = FormMain.PageType.VersionSelect OrElse TargetVersion Is Nothing OrElse Not TargetVersion.Modable) Then
+            Hint("若要安装 Mod，请先选择一个可以安装 Mod 的版本！")
+            Exit Sub
+        End If
+        
+        '确认安装
+        Dim CurrentPage As FormMain.PageSubType = FormMain.PageSubType.VersionMod
+        Select Case CompType
+            Case CompType.Mod : CurrentPage = FormMain.PageSubType.VersionMod
+            Case CompType.ResourcePack : CurrentPage = FormMain.PageSubType.VersionResourcePack
+            Case CompType.Shader : CurrentPage = FormMain.PageSubType.VersionShader
+            Case CompType.Schematic : CurrentPage = FormMain.PageSubType.VersionSchematic
+        End Select
+        
+        If Not (FrmMain.PageCurrent = FormMain.PageType.VersionSetup AndAlso FrmMain.PageCurrentSub = CurrentPage) Then
+            If MyMsgBox($"是否要将这{If(FilePathList.Count = 1, "个", "些")}文件作为{CompTypeName}安装到 {TargetVersion.Name}？", $"{CompTypeName}安装确认", "确定", "取消") <> 1 Then Exit Sub
+        End If
+        
+        '执行安装
+        Try
+            Directory.CreateDirectory(CompFolder)
+            For Each FilePath In FilePathList
+                Dim NewFileName = GetFileNameFromPath(FilePath)
+                If CompType = CompType.Mod Then
+                    NewFileName = NewFileName.Replace(".disabled", "").Replace(".old", "")
+                    If Not NewFileName.Contains(".") Then NewFileName += ".jar"
+                End If
+                
+                Dim DestFile = CompFolder & NewFileName
+                If File.Exists(DestFile) Then
+                    If MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", "覆盖", "取消") <> 1 Then Continue For
+                End If
+                
+                CopyFile(FilePath, DestFile)
+            Next
+            
+            If FilePathList.Count = 1 Then
+                Hint($"已安装 {GetFileNameFromPath(FilePathList.First)}！", HintType.Finish)
+            Else
+                Hint($"已安装 {FilePathList.Count} 个{CompTypeName}！", HintType.Finish)
+            End If
+            
+            '刷新列表
+            If FrmMain.PageCurrent = FormMain.PageType.VersionSetup AndAlso FrmMain.PageCurrentSub = CurrentPage Then
+                Select Case CompType
+                    Case CompType.Mod
+                        If FrmVersionMod IsNot Nothing Then
+                            LoaderFolderRun(CompResourceListLoader, CompFolder, LoaderFolderRunType.ForceRun, LoaderInput:=FrmVersionMod?.GetRequireLoaderData())
+                        End If
+                    Case CompType.ResourcePack, CompType.Shader, CompType.Schematic
+                        Dim CurrentForm = GetCurrentCompResourceForm()
+                        If CurrentForm IsNot Nothing Then
+                            RunInUi(Sub() CurrentForm.ReloadCompFileList(True))
+                        End If
+                End Select
+            End If
+            
+        Catch ex As Exception
+            Log(ex, $"复制{CompTypeName}文件失败", LogLevel.Msgbox)
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' 获取当前的组件资源管理窗体。
+    ''' </summary>
+    Private Shared Function GetCurrentCompResourceForm() As PageVersionCompResource
+        Select Case FrmMain.PageCurrentSub
+            Case FormMain.PageSubType.VersionMod : Return FrmVersionMod
+            Case FormMain.PageSubType.VersionResourcePack : Return FrmVersionResourcePack
+            Case FormMain.PageSubType.VersionShader : Return FrmVersionShader
+            Case FormMain.PageSubType.VersionSchematic : Return FrmVersionSchematic
+            Case Else : Return Nothing
+        End Select
+    End Function
+
     Private Sub BtnManageInfoExport_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageInfoExport.Click
         Dim Choice = MyMsgBox("TXT 格式：仅导出当前的资源文件名称信息，通常足够他人获取已安装的资源信息" & vbCrLf &
                               "CSV 格式：导出详细的资源信息，包括其文件名，工程的 ID，文件内版本信息等详细信息",
@@ -474,6 +638,21 @@ Install:
         End Select
     End Sub
 
+    ''' <summary>
+    ''' 下载投影Mod按钮点击事件。
+    ''' </summary>
+    Private Sub BtnSchematicDownloadMod_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicDownloadMod.Click
+        PageComp.TargetVersion = PageVersionLeft.Version '将当前版本设置为筛选器
+        FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
+    End Sub
+
+    ''' <summary>
+    ''' 版本选择按钮点击事件。
+    ''' </summary>
+    Private Sub BtnSchematicVersionSelect_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicVersionSelect.Click
+        FrmMain.PageChange(FormMain.PageType.VersionSelect)
+    End Sub
+
 #End Region
 
 #Region "选择"
@@ -515,7 +694,7 @@ Install:
         ChangeAllSelected(False)
         AniControlEnabled += CacheAniControlEnabled
     End Sub
-    Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '监听自己的事件的话进入页面后不点击右侧控件就没办法监听到事件 (#4311)
+    Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '若监听自己的事件则在进入页面后需点击右侧控件才可监听到 (#4311)
         If FrmMain.PageRight IsNot Me Then Return
         If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then ChangeAllSelected(True)
     End Sub
@@ -1064,17 +1243,29 @@ Install:
                 Next
                 ModSearchName = ModSearchName.Replace("++", "+").Replace("pti+Fine", "ptiFine")
                 '显示
-                If ModEntry.Url Is Nothing Then
-                    If MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "百科搜索", "返回") = 1 Then
-                        OpenWebsite("https://www.mcmod.cn/s?key=" & ModSearchName & "&site=all&filter=0")
+                If CurrentCompType = CompType.Schematic Then
+                    '投影原理图文件不显示百科搜索选项
+                    If ModEntry.Url Is Nothing Then
+                        MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "返回")
+                    Else
+                        If MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "打开官网", "返回") = 1 Then
+                            OpenWebsite(ModEntry.Url)
+                        End If
                     End If
                 Else
-                    Select Case MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "打开官网", "百科搜索", "返回")
-                        Case 1
-                            OpenWebsite(ModEntry.Url)
-                        Case 2
+                    '其他资源类型保留百科搜索功能
+                    If ModEntry.Url Is Nothing Then
+                        If MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "百科搜索", "返回") = 1 Then
                             OpenWebsite("https://www.mcmod.cn/s?key=" & ModSearchName & "&site=all&filter=0")
-                    End Select
+                        End If
+                    Else
+                        Select Case MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "打开官网", "百科搜索", "返回")
+                            Case 1
+                                OpenWebsite(ModEntry.Url)
+                            Case 2
+                                OpenWebsite("https://www.mcmod.cn/s?key=" & ModSearchName & "&site=all&filter=0")
+                        End Select
+                    End If
                 End If
             End If
         Catch ex As Exception

@@ -1,4 +1,4 @@
-﻿Public Class PageSetupLeft
+Public Class PageSetupLeft
 
     Private IsLoad As Boolean = False
     Private IsPageSwitched As Boolean = False '如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
@@ -128,7 +128,7 @@
         AniStart({
                          AaCode(Sub()
                                     CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
-                                    FrmMain.PanMainRight.Child = FrmMain.PageRight
+            FrmMain.PanMainRight.Child = FrmMain.PageRight
                                     FrmMain.PageRight.Opacity = 0
                                 End Sub, 130),
                          AaCode(Sub()

@@ -34,6 +34,10 @@ Public Module ModComp
         ''' 服务端插件。
         ''' </summary>
         Plugin = 5
+        ''' <summary>
+        ''' 投影原理图。
+        ''' </summary>
+        Schematic = 6
     End Enum
     Public Enum CompLoaderType
         'https://docs.curseforge.com/?http#tocS_ModLoaderType

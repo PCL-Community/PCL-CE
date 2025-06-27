@@ -1,4 +1,4 @@
-﻿Imports System.IO.Compression
+Imports System.IO.Compression
 
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
@@ -177,6 +177,11 @@ Public Module ModLocalComp
         Private _Authors As String = Nothing
 
         ''' <summary>
+        ''' Mod 图标路径。
+        ''' </summary>
+        Public Property Logo As String
+
+        ''' <summary>
         ''' 依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
         ''' </summary>
         Public ReadOnly Property Dependencies As Dictionary(Of String, String)
@@ -282,11 +287,35 @@ Public Module ModLocalComp
             If IsLoaded AndAlso Not ForceReload Then Return
             '初始化
             Init()
+            
+            '基础可用性检查
+            If Path.Length < 2 Then 
+                _FileUnavailableReason = New FileNotFoundException("错误的资源文件路径（" & If(Path, "null") & "）")
+                IsLoaded = True
+                Return
+            End If
+            If Not File.Exists(Path) Then 
+                _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & "）")
+                IsLoaded = True
+                Return
+            End If
+            
+            '对于投影文件，跳过 zip 解析
+            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) Then
+                Try
+                    _Name = GetFileNameWithoutExtentionFromPath(Path)
+                    _Description = "投影原理图（结构）文件"
+                Catch ex As Exception
+                    Log(ex, "投影文件信息获取失败（" & Path & "）", LogLevel.Developer)
+                    _FileUnavailableReason = ex
+                End Try
+                IsLoaded = True
+                Return
+            End If
+            
+            '对于其他文件，尝试作为 Jar 文件打开
             Dim Jar As ZipArchive = Nothing
             Try
-                '基础可用性检查、打开 Jar 文件
-                If Path.Length < 2 Then Throw New FileNotFoundException("错误的资源文件路径（" & If(Path, "null") & "）")
-                If Not File.Exists(Path) Then Throw New FileNotFoundException("未找到资源文件（" & Path & "）")
                 Jar = New ZipArchive(New FileStream(Path, FileMode.Open))
                 '信息获取
                 LookupMetadata(Jar)
@@ -338,6 +367,18 @@ Public Module ModLocalComp
                         Author.Add(Token.ToString)
                     Next
                     If Author.Any Then Authors = Join(Author, ", ")
+                End If
+                Dim LogoFile As String = InfoObject("logoFile")
+                If LogoFile IsNot Nothing Then
+                    Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                    If LogoItem IsNot Nothing Then
+                        Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                        Using EntryStream As Stream = LogoItem.Open()
+                            Using FileStream As FileStream = File.Create(Logo)
+                                EntryStream.CopyTo(FileStream)
+                            End Using
+                        End Using
+                    End If
                 End If
                 Dim Reqs As JArray = InfoObject("requiredMods")
                 If Reqs IsNot Nothing Then
@@ -395,6 +436,20 @@ GotFabric:
                     Next
                     If Author.Any Then Authors = Join(Author, ", ")
                 End If
+                If FabricObject.ContainsKey("icon") Then
+                    Dim LogoFile As String = FabricObject("icon")
+                    If LogoFile IsNot Nothing Then
+                        Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                        If LogoItem IsNot Nothing Then
+                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Using EntryStream As Stream = LogoItem.Open()
+                                Using FileStream As FileStream = File.Create(Logo)
+                                    EntryStream.CopyTo(FileStream)
+                                End Using
+                            End Using
+                        End If
+                    End If
+                End If
                 'If (Not FabricObject.ContainsKey("serverSideOnly")) OrElse FabricObject("serverSideOnly")("value").ToObject(Of Boolean) = False Then
                 '    '添加 Minecraft 依赖
                 '    Dim DepMinecraft As String = If(If(FabricObject("acceptedMinecraftVersions") IsNot Nothing, FabricObject("acceptedMinecraftVersions")("value"), ""), "")
@@ -438,6 +493,20 @@ GotFabric:
                     If QuiltMetadata.ContainsKey("name") Then Name = QuiltMetadata("name")
                     If QuiltMetadata.ContainsKey("description") Then Description = QuiltMetadata("description")
                     If QuiltMetadata.ContainsKey("contact") Then Url = If(QuiltMetadata("contact")("homepage"), "")
+                End If
+                If QuiltObject.ContainsKey("icon") Then
+                    Dim LogoFile As String = QuiltObject("icon")
+                    If LogoFile IsNot Nothing Then
+                        Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
+                        If LogoItem IsNot Nothing Then
+                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Using EntryStream As Stream = LogoItem.Open()
+                                Using FileStream As FileStream = File.Create(Logo)
+                                    EntryStream.CopyTo(FileStream)
+                                End Using
+                            End Using
+                        End If
+                    End If
                 End If
                 GoTo Finished
             Catch ex As Exception
@@ -828,6 +897,33 @@ Finished:
             Return False
         End Function
 
+        ''' <summary>
+        ''' 检查是否为指定类型的组件文件。
+        ''' </summary>
+        Public Shared Function IsCompFile(Path As String, CompType As CompType)
+            If Path Is Nothing OrElse Not Path.Contains(".") Then Return False
+            Path = Path.ToLower
+            Select Case CompType
+                Case CompType.Mod
+                    Return IsModFile(Path)
+                Case CompType.ResourcePack, CompType.Shader
+                    Return Path.EndsWithF(".zip", True)
+                Case CompType.Schematic
+                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True)
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' 获取图标路径。
+        ''' </summary>
+        Public Function GetLogo() As String
+            If Comp IsNot Nothing AndAlso Comp.LogoUrl IsNot Nothing Then Return Comp.LogoUrl
+            If Logo IsNot Nothing Then Return Logo
+            Return PathImage & "Icons/NoIcon.png"
+        End Function
+
     End Class
 
     Public Class CompLocalLoaderData
@@ -835,6 +931,7 @@ Finished:
         Public Loaders As List(Of CompLoaderType)
         Public Frm As PageVersionCompResource
         Public CompPath As String
+        Public CompType As CompType
 
         Public DetailInfo As KeyValuePair(Of List(Of LocalCompFile), JObject)
     End Class
@@ -873,7 +970,7 @@ Finished:
                             Continue For
                         End If
                     End If
-                    If LocalCompFile.IsModFile(File.FullName) Then ModFileList.Add(File)
+                    If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
                 Next
             End If
 
@@ -1182,6 +1279,7 @@ Finished:
             Case CompType.Mod : Return "mods"
             Case CompType.ResourcePack : Return "resourcepacks"
             Case CompType.Shader : Return "shaderpacks"
+            Case CompType.Schematic : Return "schematics"
         End Select
         Return "Nothing"
     End Function

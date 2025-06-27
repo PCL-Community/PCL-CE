@@ -53,19 +53,19 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="ColumnVersion1" Width="Auto" />
             <ColumnDefinition x:Name="ColumnVersion2" Width="Auto" SharedSizeGroup="CompItemVersion" />
-            <ColumnDefinition x:Name="ColumnVersion3" Width="0.7*" />
+            <ColumnDefinition x:Name="ColumnVersion3" Width="0.25*" />
             
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="55" />
-            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="LabDownload" />
+            <ColumnDefinition Width="0.25*" />
 
             <ColumnDefinition x:Name="ColumnTime1"  Width="Auto" />
             <ColumnDefinition x:Name="ColumnTime2" Width="Auto" MinWidth="57" SharedSizeGroup="CompItemTime" />
-            <ColumnDefinition x:Name="ColumnTime3" Width="1*" />
+            <ColumnDefinition x:Name="ColumnTime3" Width="0.25*" />
 
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" SharedSizeGroup="CompItemSource" />
-            <ColumnDefinition Width="1.7*" />
+            <ColumnDefinition Width="0.25*" />
         </Grid.ColumnDefinitions>
         <Path x:Name="PathVersion" Grid.Column="0" Fill="{StaticResource ColorBrushGray3}" Stretch="Uniform" Height="11"
               Data="M940.4 463.7L773.3 174.2c-17.3-30-49.2-48.4-83.8-48.4H340.2c-34.6 0-66.5 18.5-83.8 48.4L89.2 463.7c-17.3 30-17.3 66.9 0 96.8L256.4 850c17.3 30 49.2 48.4 83.8 48.4h349.2c34.6 0 66.5-18.5 83.8-48.4l167.2-289.5c17.3-29.9 17.3-66.8 0-96.8z m-94.6 96.8L725.9 768.1c-17.3 30-49.2 48.4-83.8 48.4H387.5c-34.6 0-66.5-18.5-83.8-48.4L183.9 560.5c-17.3-30-17.3-66.9 0-96.8l119.8-207.5c17.3-30 49.2-48.4 83.8-48.4h254.6c34.6 0 66.5 18.5 83.8 48.4l119.8 207.5c17.3 30 17.3 66.9 0.1 96.8z M522.3 321.2c-2.5-0.1-5-0.2-7.5-0.2-119.9 0-214 110.3-186.3 235 15.8 70.9 71.5 126.6 142.4 142.4 17.5 3.9 34.7 5.4 51.4 4.7 102.1-3.9 183.6-87.9 183.6-191 0.1-103-81.5-187-183.6-190.9z m68.6 269.1c-18.5 18-43 28.9-68.6 30.7l-6 0.3c-30.2 0.4-58.6-11.4-79.7-33-19.5-20.1-30.7-47-30.9-75-0.3-29.6 11.1-57.4 32-78.3 20.6-20.6 48-32 77.2-32 2.5 0 5 0.1 7.5 0.3 26.7 1.8 51.5 13.2 70.5 32.5 19.6 20 30.8 46.9 31.2 74.9 0.2 30.2-11.5 58.6-33.2 79.6z" />

@@ -1,7 +1,7 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
-Imports PCL.Core.Helper
+Imports PCL.Core.LifecycleManagement
 
 Public Class FormMain
 
@@ -84,8 +84,10 @@ Public Class FormMain
         McFolderListLoader.Start(0) '为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
         Log("[Start] 第二阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        '注册生命周期状态事件
+        Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
-    Private Sub FormMain_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+    Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         ApplicationStartTick = GetTimeTick()
         Handle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -130,9 +132,9 @@ Public Class FormMain
         ThemeRefresh()
 
         If Setup.Get("UiBlur") Then
-            BlurHelper.RaiseBlurChanged(Setup.Get("UiBlurValue"))
+            Application.Current.Resources("BlurValue") = CType(Setup.Get("UiBlurValue"), Double)
         Else
-            BlurHelper.RaiseBlurChanged(0)
+            Application.Current.Resources("BlurValue") = CType(0, Double)
         End If
 
         Try
@@ -143,10 +145,10 @@ Public Class FormMain
             Height = MinHeight + 100
             Width = MinWidth + 100
         End Try
-#If DEBUG Then
-        MinHeight = 50
-        MinWidth = 50
-#End If
+        '#If DEBUG Then
+        '        MinHeight = 50
+        '        MinWidth = 50
+        '#End If
         Topmost = False
         If FrmStart IsNot Nothing Then FrmStart.Close(New TimeSpan(0, 0, 0, 0, 400 / AniSpeed))
         '更改窗口
@@ -191,10 +193,10 @@ Public Class FormMain
 #End If
                 MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
                          "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
-                         Button2Action := Sub()
-                             OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
-                             EndProgram(False)
-                         End Sub)
+                         Button2Action:=Sub()
+                                            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
+                                            EndProgram(False)
+                                        End Sub)
             End If
 #End If
             'EULA 提示
@@ -431,8 +433,9 @@ Public Class FormMain
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
-        If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
-        Process.GetCurrentProcess.Kill()
+        'If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
+        'Process.GetCurrentProcess.Kill()
+        Lifecycle.ForceShutdown(ReturnCode)
     End Sub
     Private Sub BtnTitleClose_Click(sender As Object, e As RoutedEventArgs) Handles BtnTitleClose.Click
         EndProgram(True)
@@ -666,13 +669,16 @@ Public Class FormMain
             End If
             '多文件拖拽
             If FilePathList.Count > 1 Then
-                '必须要求全部为 Jar 文件
-                For Each File In FilePathList
-                    If Not {"jar", "litemod", "disabled", "old"}.Contains(File.AfterLast(".").ToLower) Then
-                        Hint("一次请只拖入一个文件！", HintType.Critical)
-                        Return
-                    End If
-                Next
+                '检查是否为同类型文件
+                Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
+                Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
+                
+                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic"}.Contains(FirstExtension) Then
+                    '允许同类型的 Mod 文件或投影文件批量拖拽
+                Else
+                    Hint("一次请只拖入相同类型的文件！", HintType.Critical)
+                    Return
+                End If
             End If
             '主页
             Dim Extension As String = FilePath.AfterLast(".").ToLower
@@ -694,6 +700,12 @@ Public Class FormMain
             End If
             '安装 Mod
             If PageVersionCompResource.InstallMods(FilePathList) Then Exit Sub
+            '安装投影文件
+            If {"litematic", "nbt", "schematic"}.Contains(Extension) Then
+                Log($"[System] 文件为 {Extension} 格式，尝试作为投影原理图安装")
+                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic)
+                Exit Sub
+            End If
             '处理资源安装
             If PageCurrent = PageType.VersionSetup AndAlso {"zip"}.Any(Function(i) i = Extension) Then
                 Select Case PageCurrentSub
@@ -729,6 +741,19 @@ Public Class FormMain
                         Exit Sub
                 End Select
             End If
+            '处理投影文件
+            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
+                Dim DestFile = PageVersionLeft.Version.PathIndie + "schematics\" + GetFileNameFromPath(FilePath)
+                If File.Exists(DestFile) Then
+                    Hint("已存在同名文件：" + DestFile, HintType.Critical)
+                    Exit Sub
+                End If
+                Directory.CreateDirectory(PageVersionLeft.Version.PathIndie + "schematics\")
+                CopyFile(FilePath, DestFile)
+                Hint($"已导入 {GetFileNameFromPath(FilePath)}", HintType.Finish)
+                If FrmVersionSchematic IsNot Nothing Then RunInUi(Sub() FrmVersionSchematic.ReloadCompFileList())
+                Exit Sub
+            End If
             '安装整合包
             If {"zip", "rar", "mrpack"}.Any(Function(t) t = Extension) Then '部分压缩包是 zip 格式但后缀为 rar，总之试一试
                 Log("[System] 文件为压缩包，尝试作为整合包安装")
@@ -739,6 +764,17 @@ Public Class FormMain
                     Return '用户主动取消
                 Catch ex As Exception
                     '安装失败，继续往后尝试
+                End Try
+            End If
+            If {"zip", "rar"}.Any(Function(t) t = Extension) Then
+                Log("[System] 文件为压缩包，尝试作为存档分析")
+                Try
+                    ReadWorld(FilePath)
+                    Return
+                Catch ex As CancelledException
+                    Return '是存档，但是损坏了
+                Catch ex As Exception
+                    '不是存档（或遇到了其他问题），继续往后尝试
                 End Try
             End If
             'RAR 处理
@@ -941,7 +977,8 @@ Public Class FormMain
         VersionModDisabled = 6
         VersionResourcePack = 7
         VersionShader = 8
-        VersionInstall = 9
+        VersionSchematic = 9
+        VersionInstall = 10
     End Enum
     ''' <summary>
     ''' 获取次级页面的名称。若并非次级页面则返回空字符串，故可以以此判断是否为次级页面。
