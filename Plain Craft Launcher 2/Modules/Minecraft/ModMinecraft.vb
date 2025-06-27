@@ -2063,6 +2063,10 @@ OnLoaded:
 
         'LabyMod Assets 文件
         If Version.Version.HasLabyMod Then
+            If McVersionCurrent.PathIndie = McVersionCurrent.Path Then
+                If Directory.Exists(McVersionCurrent.Path & "labymod-neo") Then DeleteDirectory(McVersionCurrent.Path & "labymod-neo")
+                CreateSymbolicLink(McVersionCurrent.Path & "labymod-neo", PathMcFolder & "labymod-neo", &H2)
+            End If
             Try
                 Dim ChannelType = Version.JsonObject("labymod_data")("channelType").ToString()
                 Directory.CreateDirectory($"{Version.Path}labymod-neo\libraries")

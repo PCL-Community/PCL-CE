@@ -451,8 +451,9 @@ EndHint:
     Public FrmVersionScreenshot As PageVersionScreenshot
     Public FrmVersionWorld As PageVersionWorld
     Public FrmVersionShader As PageVersionCompResource
-    Public FrmVersionResourcePack As PageVersionCompResource
-    Public FrmVersionSetup As PageVersionSetup
+Public FrmVersionSchematic As PageVersionCompResource
+Public FrmVersionResourcePack As PageVersionCompResource
+Public FrmVersionSetup As PageVersionSetup
     Public FrmVersionInstall As PageVersionInstall
     Public FrmVersionExport As PageVersionExport
 

@@ -1,4 +1,4 @@
-﻿Imports System.IO.Compression
+Imports System.IO.Compression
 
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
@@ -287,11 +287,35 @@ Public Module ModLocalComp
             If IsLoaded AndAlso Not ForceReload Then Return
             '初始化
             Init()
+            
+            '基础可用性检查
+            If Path.Length < 2 Then 
+                _FileUnavailableReason = New FileNotFoundException("错误的资源文件路径（" & If(Path, "null") & "）")
+                IsLoaded = True
+                Return
+            End If
+            If Not File.Exists(Path) Then 
+                _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & "）")
+                IsLoaded = True
+                Return
+            End If
+            
+            '对于投影文件，跳过 zip 解析
+            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) Then
+                Try
+                    _Name = GetFileNameWithoutExtentionFromPath(Path)
+                    _Description = "投影原理图（结构）文件"
+                Catch ex As Exception
+                    Log(ex, "投影文件信息获取失败（" & Path & "）", LogLevel.Developer)
+                    _FileUnavailableReason = ex
+                End Try
+                IsLoaded = True
+                Return
+            End If
+            
+            '对于其他文件，尝试作为 Jar 文件打开
             Dim Jar As ZipArchive = Nothing
             Try
-                '基础可用性检查、打开 Jar 文件
-                If Path.Length < 2 Then Throw New FileNotFoundException("错误的资源文件路径（" & If(Path, "null") & "）")
-                If Not File.Exists(Path) Then Throw New FileNotFoundException("未找到资源文件（" & Path & "）")
                 Jar = New ZipArchive(New FileStream(Path, FileMode.Open))
                 '信息获取
                 LookupMetadata(Jar)
@@ -874,6 +898,24 @@ Finished:
         End Function
 
         ''' <summary>
+        ''' 检查是否为指定类型的组件文件。
+        ''' </summary>
+        Public Shared Function IsCompFile(Path As String, CompType As CompType)
+            If Path Is Nothing OrElse Not Path.Contains(".") Then Return False
+            Path = Path.ToLower
+            Select Case CompType
+                Case CompType.Mod
+                    Return IsModFile(Path)
+                Case CompType.ResourcePack, CompType.Shader
+                    Return Path.EndsWithF(".zip", True)
+                Case CompType.Schematic
+                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True)
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        ''' <summary>
         ''' 获取图标路径。
         ''' </summary>
         Public Function GetLogo() As String
@@ -889,6 +931,7 @@ Finished:
         Public Loaders As List(Of CompLoaderType)
         Public Frm As PageVersionCompResource
         Public CompPath As String
+        Public CompType As CompType
 
         Public DetailInfo As KeyValuePair(Of List(Of LocalCompFile), JObject)
     End Class
@@ -927,7 +970,7 @@ Finished:
                             Continue For
                         End If
                     End If
-                    If LocalCompFile.IsModFile(File.FullName) Then ModFileList.Add(File)
+                    If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
                 Next
             End If
 
@@ -1236,6 +1279,7 @@ Finished:
             Case CompType.Mod : Return "mods"
             Case CompType.ResourcePack : Return "resourcepacks"
             Case CompType.Shader : Return "shaderpacks"
+            Case CompType.Schematic : Return "schematics"
         End Select
         Return "Nothing"
     End Function
