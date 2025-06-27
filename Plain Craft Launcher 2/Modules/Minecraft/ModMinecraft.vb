@@ -1872,7 +1872,7 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Version.Name)
-        McLibListGet = McLibListGetWithJson(Version.JsonObject, McVersion:=Version)
+        McLibListGet = McLibListGetWithJson(Version.JsonObject, TargetVersion:=Version)
         If Not IncludeVersionJar Then Return McLibListGet
 
         '需要添加原版 Jar
@@ -1918,7 +1918,7 @@ OnLoaded:
     ''' <summary>
     ''' 获取 Minecraft 某一版本忽视继承的支持库列表，即结果中没有继承项。
     ''' </summary>
-    Public Function McLibListGetWithJson(JsonObject As JObject, Optional KeepSameNameDifferentVersionResult As Boolean = False, Optional CustomMcFolder As String = Nothing, Optional McVersion As McVersion = Nothing) As List(Of McLibToken)
+    Public Function McLibListGetWithJson(JsonObject As JObject, Optional KeepSameNameDifferentVersionResult As Boolean = False, Optional CustomMcFolder As String = Nothing, Optional TargetVersion As McVersion = Nothing) As List(Of McLibToken)
         CustomMcFolder = If(CustomMcFolder, PathMcFolder)
         Dim BasicArray As New List(Of McLibToken)
 
@@ -1949,8 +1949,8 @@ OnLoaded:
             '根据是否本地化处理（Natives）
             If Library("natives") Is Nothing Then '没有 Natives
                 Dim LocalPath As String
-                If IsLocal Then '纯本地项
-                    LocalPath = McVersion.Path & "libraries\" & Library("name").ToString.AfterFirst(":").Replace(":", "-") & ".jar"
+                If IsLocal AndAlso TargetVersion IsNot Nothing Then '纯本地项
+                    LocalPath = TargetVersion.Path & "libraries\" & Library("name").ToString.AfterFirst(":").Replace(":", "-") & ".jar"
                 Else
                     LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder)
                 End If

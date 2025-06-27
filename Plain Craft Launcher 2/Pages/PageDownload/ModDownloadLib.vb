@@ -2913,14 +2913,14 @@ LabyModSkip:
         '合并
         '相关讨论见 #2801
         If MMCPackInfo IsNot Nothing Then
-            If MMCPackInfo.IsMinecraftModified Then
+            If MMCPackInfo.IsMinecraftOverrided Then
                 Log("[Download] 当前版本的 MC 核心已被修改，使用对应的 MMC 整合包参数")
-                OutputJson = MMCPackInfo.PatchedJson
+                OutputJson = MMCPackInfo.OverridedJson
             Else
                 Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数")
                 OutputJson = MinecraftJson
                 '合并来自 MultiMC 的 JSON
-                OutputJson.Merge(MMCPackInfo.PatchedJson)
+                OutputJson.Merge(MMCPackInfo.OverridedJson)
             End If
         Else
             OutputJson = MinecraftJson
@@ -2932,7 +2932,7 @@ LabyModSkip:
             OutputJson.Merge(OptiFineJson)
         End If
         If HasForge Then
-            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsForgeModified Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsForgeOverrided Then
                 '合并 Forge
                 ForgeJson.Remove("releaseTime")
                 ForgeJson.Remove("time")
@@ -2940,7 +2940,7 @@ LabyModSkip:
             End If
         End If
         If HasNeoForge Then
-            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsNeoForgeModified Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsNeoForgeOverrided Then
                 '合并 NeoForge
                 NeoForgeJson.Remove("releaseTime")
                 NeoForgeJson.Remove("time")
@@ -2948,7 +2948,7 @@ LabyModSkip:
             End If
         End If
         If HasCleanroom Then
-            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsCleanroomModified Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsCleanroomOverrided Then
                 '合并 Cleanroom
                 CleanroomJson.Remove("releaseTime")
                 CleanroomJson.Remove("time")
@@ -2962,7 +2962,7 @@ LabyModSkip:
             OutputJson.Merge(LiteLoaderJson)
         End If
         If HasFabric Then
-            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsFabricModified Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsFabricOverrided Then
                 '合并 Fabric
                 FabricJson.Remove("releaseTime")
                 FabricJson.Remove("time")
@@ -2970,7 +2970,7 @@ LabyModSkip:
             End If
         End If
         If HasQuilt Then
-            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsQuiltModified Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsQuiltOverrided Then
                 '合并 Quilt
                 QuiltJson.Remove("releaseTime")
                 QuiltJson.Remove("time")

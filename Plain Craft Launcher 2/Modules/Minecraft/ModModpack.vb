@@ -1,5 +1,4 @@
 ﻿Imports System.IO.Compression
-Imports Windows.Services.Maps
 
 Public Module ModModpack
 
@@ -167,9 +166,7 @@ Retry:
         IniClearCache(VersionIni) '重置缓存，避免被安装过程中写入的 ini 覆盖
     End Sub
 
-#Region "不同类型整合包的安装方法"
-
-    'CurseForge
+#Region "CurseForge"
     Private Function InstallPackCurseForge(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String,
                                            Optional VersionName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
 
@@ -361,8 +358,9 @@ Retry:
         RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.DownloadManager))
         Return Loader
     End Function
+#End Region
 
-    'Modrinth
+#Region "Modrinth"
     Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional VersionName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
 
         '读取 Json 文件
@@ -506,8 +504,9 @@ Retry:
         RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.DownloadManager))
         Return Loader
     End Function
+#End Region
 
-    'HMCL
+#Region "HMCL"
     Private Function InstallPackHMCL(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
         '读取 Json 文件
         Dim Json As JObject
@@ -560,19 +559,21 @@ Retry:
         RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.DownloadManager))
         Return Loader
     End Function
+#End Region
 
-    'MMC
+#Region "MultiMC"
     Public Class MMCPackInfo
-        Public PatchedJson As New JObject
+        Public OverridedJson As New JObject
+        Public AdditionalJson As New JObject
         Public Tweakers As String = Nothing
         Public JvmArgs As New JArray
         Public Libraries As New JArray
-        Public IsMinecraftModified As Boolean = False
-        Public IsForgeModified As Boolean = False
-        Public IsNeoForgeModified As Boolean = False
-        Public IsCleanroomModified As Boolean = False
-        Public IsFabricModified As Boolean = False
-        Public IsQuiltModified As Boolean = False
+        Public IsMinecraftOverrided As Boolean = False
+        Public IsForgeOverrided As Boolean = False
+        Public IsNeoForgeOverrided As Boolean = False
+        Public IsCleanroomOverrided As Boolean = False
+        Public IsFabricOverrided As Boolean = False
+        Public IsQuiltOverrided As Boolean = False
         Public IsMcArgsEdited As Boolean = False
     End Class
     Private Function InstallPackMMC(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
@@ -622,23 +623,24 @@ Retry:
                 Dim MainClass As String = Nothing
                 Dim GameArguments As New JArray
                 Dim JvmArguments As New JArray
-                Dim LibrariesJson As New JArray
+                Dim LibJson As New JArray
+                Dim AddLibJson As New JArray
                 For Each Patch In Patches
                     Dim PatchJson As JObject = Patch.Key
                     If PatchJson("uid") = "net.minecraft" Then
-                        PackInfo.IsMinecraftModified = True
+                        PackInfo.IsMinecraftOverrided = True
                     ElseIf PatchJson("uid") = "net.minecraftforge" Then
                         If PatchJson("version").ToString.StartsWithF("0.") Then
-                            PackInfo.IsCleanroomModified = True
+                            PackInfo.IsCleanroomOverrided = True
                         Else
-                            PackInfo.IsForgeModified = True
+                            PackInfo.IsForgeOverrided = True
                         End If
                     ElseIf PatchJson("uid") = "net.neoforged" Then
-                        PackInfo.IsNeoForgeModified = True
+                        PackInfo.IsNeoForgeOverrided = True
                     ElseIf PatchJson("uid") = "net.fabricmc.fabric-loader" Then
-                        PackInfo.IsFabricModified = True
+                        PackInfo.IsFabricOverrided = True
                     ElseIf PatchJson("uid") = "org.quiltmc.quilt-loader" Then
-                        PackInfo.IsQuiltModified = True
+                        PackInfo.IsQuiltOverrided = True
                     End If
                     'JVM 参数
                     If PatchJson("+jvmArgs") IsNot Nothing Then
@@ -656,7 +658,15 @@ Retry:
                             End If
                             Libs.Add(LibJobj)
                         Next
-                        LibrariesJson.Merge(Libs)
+                        For Each Library In PatchJson("+libraries") 'TODO: 此处处理不严谨，但也能用吧
+                            Dim LibJobj = CType(Library, JObject)
+                            If LibJobj("MMC-hint") IsNot Nothing Then
+                                LibJobj.Add("hint", LibJobj("MMC-hint"))
+                                LibJobj.Remove("MMC-hint")
+                            End If
+                            Libs.Add(LibJobj)
+                        Next
+                        LibJson.Merge(Libs)
                         Log($"[ModPack] 已应用 JSON-Patch {PatchJson("uid")} 的 Libraries")
                     End If
                     'Tweakers
@@ -731,12 +741,12 @@ Retry:
                         {"jvm", JvmArguments}
                     }
                 End If
-                PackInfo.PatchedJson = New JObject
-                If JsonArguments IsNot Nothing Then PackInfo.PatchedJson.Add("arguments", JsonArguments)
-                If MainClass IsNot Nothing Then PackInfo.PatchedJson.Add("mainClass", MainClass)
-                If AssetIndex IsNot Nothing Then PackInfo.PatchedJson.Add("assetIndex", AssetIndex)
-                If JavaVerJson IsNot Nothing Then PackInfo.PatchedJson.Add("javaVersion", JavaVerJson)
-                If LibrariesJson IsNot Nothing Then PackInfo.PatchedJson.Add("libraries", LibrariesJson)
+                PackInfo.OverridedJson = New JObject
+                If JsonArguments IsNot Nothing Then PackInfo.OverridedJson.Add("arguments", JsonArguments)
+                If MainClass IsNot Nothing Then PackInfo.OverridedJson.Add("mainClass", MainClass)
+                If AssetIndex IsNot Nothing Then PackInfo.OverridedJson.Add("assetIndex", AssetIndex)
+                If JavaVerJson IsNot Nothing Then PackInfo.OverridedJson.Add("javaVersion", JavaVerJson)
+                If LibJson IsNot Nothing Then PackInfo.OverridedJson.Add("libraries", LibJson)
             Catch ex As Exception
                 Log(ex, $"应用 MMC JSON-Patches 失败")
             End Try
@@ -873,8 +883,9 @@ Retry:
         RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.DownloadManager))
         Return Loader
     End Function
+#End Region
 
-    'MCBBS
+#Region "MCBBS"
     Private Function InstallPackMCBBS(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String,
                                       Optional VersionName As String = Nothing) As LoaderCombo(Of String)
         '读取 Json 文件
@@ -953,8 +964,9 @@ Retry:
         RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.DownloadManager))
         Return Loader
     End Function
+#End Region
 
-    '带启动器的压缩包
+#Region "带启动器的压缩包"
     Private Function InstallPackLauncherPack(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
         '获取解压路径
         MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait:=True)
@@ -1016,8 +1028,9 @@ Retry:
         FrmMain.BtnExtraDownload.Ribble()
         Return Loader
     End Function
+#End Region
 
-    '普通压缩包
+#Region "普通压缩包"
     Private Function InstallPackCompress(FileAddress As String, Archive As Compression.ZipArchive) As LoaderCombo(Of String)
         '尝试定位 .minecraft 文件夹：寻找形如 “/versions/XXX/XXX.json” 的路径
         Dim Match As RegularExpressions.Match = Nothing
