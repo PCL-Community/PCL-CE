@@ -1,4 +1,6 @@
-﻿Public Class PageLinkLobby
+﻿Imports System.Net.Sockets
+
+Public Class PageLinkLobby
     '记录的启动情况
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
@@ -7,6 +9,7 @@
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
     Public Shared HostInfo As ETPlayerInfo = Nothing
+    Public Shared IsEasyTierExist As Boolean = False
 
 #Region "初始化"
 
@@ -35,13 +38,25 @@
         IsLoad = True
         IsMcWatcherRunning = True
         GetAnnouncement()
-        GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+        If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
+            GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+        End If
         DetectMcInstance()
+        CheckEasyTier()
     End Sub
     Private Sub OnPageExit() Handles Me.PageExit
         IsMcWatcherRunning = False
     End Sub
-
+    Private Sub CheckEasyTier()
+        If (Not File.Exists(ETPath & "\easytier-core.exe")) OrElse (Not File.Exists(ETPath & "\easytier-cli.exe")) OrElse (Not File.Exists(ETPath & "\wintun.dll")) Then
+            Log("[Link] EasyTier 不存在，开始下载")
+            Hint("正在下载联机所需组件...")
+            IsEasyTierExist = False
+            BtnCreate.IsEnabled = False
+            BtnSelectJoin.IsEnabled = False
+            DownloadEasyTier(False)
+        End If
+    End Sub
 #End Region
 
 #Region "加载步骤"
@@ -230,7 +245,7 @@
                                                ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})",
                                                                         .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
                                            Next
-                                           BtnCreate.IsEnabled = True
+                                           If IsEasyTierExist Then BtnCreate.IsEnabled = True
                                        End If
                                        ComboWorldList.SelectedIndex = 0
                                        BtnRefresh.IsEnabled = True

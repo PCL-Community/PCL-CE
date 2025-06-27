@@ -448,7 +448,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETServerDefault As String = Nothing
     Public ETVersion As String = "2.3.1"
-    Public ETPath As String = PathTemp + $"EasyTier-{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
+    Public ETPath As String = PathTemp + $"EasyTier\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
 
@@ -467,7 +467,7 @@ Public Module ModLink
                 .RedirectStandardError = True,
                 .RedirectStandardInput = True}
             ETProcess.EnableRaisingEvents = True
-            If (Not File.Exists(ETPath & "\easytier-core.exe")) AndAlso (Not IsAfterDownload) Then
+            If ((Not File.Exists(ETPath & "\easytier-core.exe")) OrElse (Not File.Exists(ETPath & "\easytier-cli.exe")) OrElse (Not File.Exists(ETPath & "\wintun.dll"))) AndAlso (Not IsAfterDownload) Then
                 Log("[Link] EasyTier 不存在，开始下载")
                 DownloadEasyTier(True, IsHost, Name, Secret)
                 Exit Sub
@@ -554,7 +554,7 @@ Public Module ModLink
     End Sub
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Sub DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret)
-        Dim DlTargetPath As String = PathTemp + "EasyTier\EasyTier.zip"
+        Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETVersion}.zip"
         RunInNewThread(Sub()
                            Try
                                '构造步骤加载器
@@ -565,11 +565,17 @@ Public Module ModLink
                                Address.Add($"https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-x86_64-v{ETVersion}.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier-" + ETVersion)))
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier\" + ETVersion)))
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("清理文件", Sub() File.Delete(DlTargetPath)))
                                If LaunchAfterDownload Then
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Sub() LaunchEasyTier(IsHost, Name, Secret, True)))
                                End If
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("更新联机界面 UI", Sub() RunInUi(Sub()
+                                                                                                              PageLinkLobby.IsEasyTierExist = True
+                                                                                                              FrmLinkLobby.BtnCreate.IsEnabled = True
+                                                                                                              FrmLinkLobby.BtnSelectJoin.IsEnabled = True
+                                                                                                              Hint("联机组件下载完成！", HintType.Finish)
+                                                                                                          End Sub)))
                                '启动
                                DlEasyTierLoader = New LoaderCombo(Of JObject)("EasyTier 下载", Loaders)
                                DlEasyTierLoader.Start()

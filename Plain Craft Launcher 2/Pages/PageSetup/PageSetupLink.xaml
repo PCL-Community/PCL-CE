@@ -29,7 +29,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,15" Title="Natayark ID" x:Name="CardNotLogged">
+            <local:MyCard Margin="0,10,0,0" Title="Natayark ID" x:Name="CardNotLogged">
                 <StackPanel Margin="25,40,25,20" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -51,7 +51,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Title="EasyTier">
+            <local:MyCard Margin="0,10,0,0" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -82,6 +82,22 @@
                             <local:MyComboBoxItem Content="不使用预设节点" ToolTip="联机时不添加 PCL CE 提供的预设节点。&#xa;虽然 EasyTier 仍会尝试建立 P2P 连接，但你仍可能必须手动添加一个节点才能使用大厅。"/>
                             <local:MyComboBoxItem Content="优先通过中继连接" ToolTip="优先通过预设节点和自定义节点（如有）中继建立网络连接。&#xa;不能确保流量经服务器中继，且仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
                         </local:MyComboBox>
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,10,0,0" Title="停止使用">
+                <StackPanel Margin="25,40,25,15" Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="10"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="若要撤回协议授权并停止使用 PCL CE 联机大厅，请点击下面的按钮。&#xa;PCL CE 将会从 Natayark Network 登出，并关闭联机功能。&#xa;&#xa;需要注意，Natayark ID 注销需要前往其用户中心操作。" Grid.Row="0" VerticalAlignment="Stretch" HorizontalAlignment="Left" TextWrapping="Wrap"/>
+                        <local:MyButton x:Name="BtnQuit" Text="撤回授权并停止使用" Grid.Row="2" Width="180" Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" ColorType="Red"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

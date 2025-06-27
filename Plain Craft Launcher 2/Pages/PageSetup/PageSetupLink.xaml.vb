@@ -98,6 +98,18 @@
             Hint("已退出登录！", HintType.Finish, False)
         End If
     End Sub
+    Private Sub BtnQuit_Click(sender As Object, e As RoutedEventArgs) Handles BtnQuit.Click
+        If MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn:=True) = 1 Then
+            Setup.Set("LinkNaidRefreshToken", "")
+            Setup.Set("LinkEula", False)
+            RunInUi(Sub()
+                        FrmLinkLeft.PageChange(FormMain.PageSubType.LinkLobby)
+                        FrmLinkLeft.ItemLobby.SetChecked(True, False, False)
+                        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                    End Sub)
+            Hint("联机功能已停用！")
+        End If
+    End Sub
     '初始化
     Public Sub Reset()
         Try
