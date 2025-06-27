@@ -129,6 +129,7 @@ Class PageVersionSavesBackup
                 DefaultInput:=$"{DateTime.Now:yyyy/dd/MM-HH:mm:ss}")
             If input Is Nothing Then Return
             If String.IsNullOrWhiteSpace(input) Then input = Nothing
+            If MyMsgBox("备份功能不具备热备份功能，请确你没有在使用存档内的任何文件！", "请注意！", "继续", "返回") = 2 Then Return
             BtnCreate.IsEnabled = False
             Hint("开始备份任务，请勿执行其他操作！")
             Dim loaders As New List(Of LoaderBase)
