@@ -72,8 +72,10 @@ Public Class PageVersionSavesLeft
     Public Sub Refresh(SubType As FormMain.PageSubType)
         Select Case SubType
             Case FormMain.PageSubType.VersionSavesBackup
-                'PageVersionSavesBackup.Refresh(CompType.Mod)
+                If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
+                FrmVersionSavesBackup.Refresh()
         End Select
+        Hint("刷新中……")
     End Sub
 
 #End Region

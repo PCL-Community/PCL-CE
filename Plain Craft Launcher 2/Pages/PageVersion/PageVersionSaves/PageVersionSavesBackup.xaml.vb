@@ -1,8 +1,15 @@
 ﻿Imports PCL.Core.Utils.FileVersionControl
 Class PageVersionSavesBackup
+    Implements IRefreshable
 
-    Private _instance As New Dictionary(Of String, SnapLiteVersionControl)
     Private _currentInstance As SnapLiteVersionControl
+
+    Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
+        Refresh()
+    End Sub
+    Public Sub Refresh()
+        RefreshList()
+    End Sub
 
     Private _loaded As Boolean
     Private Sub Init() Handles Me.Loaded
@@ -10,10 +17,7 @@ Class PageVersionSavesBackup
 
         Dim curPath = PageVersionSavesLeft.CurrentSave
 
-        If Not _instance.ContainsKey(curPath) Then
-            _instance.Add(curPath, New SnapLiteVersionControl(curPath))
-        End If
-        _currentInstance = _instance(curPath)
+        _currentInstance = New SnapLiteVersionControl(curPath)
 
         RefreshList()
 
@@ -32,13 +36,14 @@ Class PageVersionSavesBackup
             }
 
             Dim btnApply As New MyIconButton With {
-                .Logo = Logo.IconPlay,
+                .Logo = Logo.IconPlayGame,
                 .ToolTip = "回到到此快照"
             }
 
             AddHandler btnApply.Click, Async Sub()
                                            Try
-                                               Hint("应用快照中……请不要离开此页面")
+                                               If MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1:="确定", Button2:="取消") = 2 Then Return
+                                               Hint("应用快照中，请不要离开此页面！")
                                                Await _currentInstance.ApplyPastVersion(item.NodeId)
                                                Hint("快照应用已完成", HintType.Finish)
                                            Catch ex As Exception
@@ -59,7 +64,7 @@ Class PageVersionSavesBackup
                                                 "压缩文件(*.zip)|*.zip",
                                                 Path)
                                                 If String.IsNullOrEmpty(savePath) Then Return
-                                                Hint("快照导出中……请不要离开此页面")
+                                                Hint("快照导出中，请不要离开此页面。")
                                                 Await _currentInstance.Export(item.NodeId, savePath)
                                                 Hint("快照导出已完成", HintType.Finish)
                                             Catch ex As Exception
@@ -67,7 +72,23 @@ Class PageVersionSavesBackup
                                             End Try
                                         End Sub
 
-            newItem.Buttons = {btnApply, btnExport}
+            Dim btnDelete As New MyIconButton With {
+                .Logo = Logo.IconButtonDelete,
+                .ToolTip = "删除"
+            }
+
+            AddHandler btnDelete.Click, Sub()
+                                            Try
+                                                If MyMsgBox($"你确定要删除备份 {item.Name} 吗？{vbCrLf}描述：{item.Desc}{vbCrLf}创建时间：{item.Created}", "删除确认", "确认", "取消") = 2 Then Return
+                                                _currentInstance.DeleteVersion(item.NodeId)
+                                                RefreshList()
+                                                Hint("已删除！", HintType.Finish)
+                                            Catch ex As Exception
+                                                Log(ex, $"执行删除任务失败")
+                                            End Try
+                                        End Sub
+
+            newItem.Buttons = {btnDelete, btnExport, btnApply}
 
             PanList.Children.Add(newItem)
         Next
@@ -75,6 +96,11 @@ Class PageVersionSavesBackup
 
     Private Async Sub BtnCreate_Click() Handles BtnCreate.Click
         Try
+            Dim input = MyMsgBoxInput(
+                "请输入名称",
+                DefaultInput:=$"{DateTime.Now:yyyy/dd/MM-HH:mm:ss}")
+            If input Is Nothing Then Return
+            If String.IsNullOrWhiteSpace(input) Then input = Nothing
             BtnCreate.IsEnabled = False
             Hint("开始备份任务，请不要退出此页面……")
             Await _currentInstance.CreateNewVersion()
