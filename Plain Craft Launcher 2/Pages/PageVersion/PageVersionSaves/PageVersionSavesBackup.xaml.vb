@@ -2,6 +2,7 @@
 Class PageVersionSavesBackup
     Implements IRefreshable
 
+    Public Shared SnapInstance As New Dictionary(Of String, SnapLiteVersionControl)
     Private _currentInstance As SnapLiteVersionControl
 
     Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
@@ -17,7 +18,10 @@ Class PageVersionSavesBackup
 
         Dim curPath = PageVersionSavesLeft.CurrentSave
 
-        _currentInstance = New SnapLiteVersionControl(curPath)
+        If Not SnapInstance.ContainsKey(curPath) Then
+            SnapInstance.Add(curPath, New SnapLiteVersionControl(curPath))
+        End If
+        _currentInstance = SnapInstance(curPath)
 
         RefreshList()
 
