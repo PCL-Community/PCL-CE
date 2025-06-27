@@ -1,4 +1,4 @@
-﻿Public Class PageSetupLeft
+Public Class PageSetupLeft
 
     Private IsLoad As Boolean = False
     Private IsPageSwitched As Boolean = False '如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
@@ -128,7 +128,7 @@
         AniStart({
                          AaCode(Sub()
                                     CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
-                                    FrmMain.PanMainRight.Child = FrmMain.PageRight
+            FrmMain.PanMainRight.Child = FrmMain.PageRight
                                     FrmMain.PageRight.Opacity = 0
                                 End Sub, 130),
                          AaCode(Sub()
@@ -144,25 +144,25 @@
     Public Sub Reset(sender As Object, e As EventArgs)
         Select Case Val(sender.Tag)
             Case FormMain.PageSubType.SetupLaunch
-                If MyMsgBox("是否要初始化启动页的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 启动 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If IsNothing(FrmSetupLaunch) Then FrmSetupLaunch = New PageSetupLaunch
                     FrmSetupLaunch.Reset()
                     ItemLaunch.Checked = True
                 End If
             Case FormMain.PageSubType.SetupUI
-                If MyMsgBox("是否要初始化个性化页的所有设置？该操作不可撤销。" & vbCrLf & "（背景图片与音乐、主页等外部文件不会被删除）", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 个性化 页面的所有设置？该操作不可撤销。" & vbCrLf & "（背景图片与音乐、主页等外部文件不会被删除）", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If IsNothing(FrmSetupUI) Then FrmSetupUI = New PageSetupUI
                     FrmSetupUI.Reset()
                     ItemUI.Checked = True
                 End If
             Case FormMain.PageSubType.SetupSystem
-                If MyMsgBox("是否要初始化启动器页的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 其他 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If IsNothing(FrmSetupSystem) Then FrmSetupSystem = New PageSetupSystem
                     FrmSetupSystem.Reset()
                     ItemSystem.Checked = True
                 End If
             Case FormMain.PageSubType.SetupLink
-                If MyMsgBox("是否要初始化联机页的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 联机 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageSetupLink
                     FrmSetupLink.Reset()
                     ItemLink.Checked = True

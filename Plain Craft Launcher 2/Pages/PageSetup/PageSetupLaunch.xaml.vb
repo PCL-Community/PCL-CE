@@ -118,39 +118,6 @@
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
-#Region "下载正版皮肤"
-    Private Sub BtnSkinSave_Click(sender As Object, e As EventArgs) Handles BtnSkinSave.Click
-        Dim ID As String = TextSkinID.Text
-        Hint("正在获取皮肤...")
-        RunInNewThread(Sub()
-                           Try
-                               If ID.Count < 3 Then
-                                   Hint("这不是一个有效的 ID...")
-                               Else
-                                   Dim Result As String = McLoginMojangUuid(ID, True)
-                                   Result = McSkinGetAddress(Result, "Mojang")
-                                   Result = McSkinDownload(Result)
-                                   RunInUi(Sub()
-                                               Dim Path As String = SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
-                                               CopyFile(Result, Path)
-                                               Hint($"玩家 {ID} 的皮肤已保存！", HintType.Finish)
-                                           End Sub)
-                               End If
-                           Catch ex As Exception
-                               If GetExceptionSummary(ex).Contains("429") Then
-                                   Hint("获取皮肤太过频繁，请 5 分钟之后再试！", HintType.Critical)
-                                   Log("获取正版皮肤失败（" & ID & "）：获取皮肤太过频繁，请 5 分钟后再试！")
-                               Else
-                                   Log(ex, "获取正版皮肤失败（" & ID & "）")
-                               End If
-                           End Try
-                       End Sub)
-    End Sub
-    Private Sub BtnSkinCache_Click(sender As Object, e As EventArgs) Handles BtnSkinCache.Click
-        MySkin.RefreshCache(Nothing)
-    End Sub
-#End Region
-
 #Region "游戏内存"
 
     Public Sub RamType(Type As Integer)
@@ -186,6 +153,7 @@
         LabRamUsed.Text = If(RamUsed = Math.Floor(RamUsed), RamUsed & ".0", RamUsed) & " GB"
         LabRamTotal.Text = " / " & If(RamTotal = Math.Floor(RamTotal), RamTotal & ".0", RamTotal) & " GB"
         LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava() AndAlso Not Is32BitSystem AndAlso Javas.JavaList.Any, Visibility.Visible, Visibility.Collapsed)
+        HintRamTooHigh.Visibility = If(RamGame / RamTotal > 0.75, Visibility.Visible, Visibility.Collapsed)
         If ShowAnim Then
             '宽度动画
             AniStart({

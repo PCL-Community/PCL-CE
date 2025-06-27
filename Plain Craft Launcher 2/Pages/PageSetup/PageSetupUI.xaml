@@ -1,7 +1,8 @@
 <local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:local="clr-namespace:PCL"
+    xmlns:corelocal="clr-namespace:PCL.Core.Controls;assembly=PCL.Core" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     mc:Ignorable="d" x:Class="PageSetupUI"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
@@ -99,6 +100,18 @@
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
                             <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
                         </Grid>
+                        <StackPanel x:Name="PanelBlur" Margin="0,0,0,7">
+                            <local:MyCheckBox Text="高级材质" Margin="0,0,0,5" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="选中此功能后会在部分透明区域（例如卡片）实现高斯模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
+                            <Grid x:Name="PanBlurValue" Margin="0,0,0,5" Height="35">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="模糊半径" Margin="0,0,25,0" />
+                                <local:MySlider Grid.Column="1" x:Name="SliderBlurValue" Tag="UiBlurValue" MaxValue="40" ValueByKey="10"/>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </local:MyCard>
@@ -275,6 +288,7 @@
                             <local:MyComboBoxItem Content="PCL 新功能说明书（作者：WForst-Breeze）" />
                             <local:MyComboBoxItem Content="OpenMCIM 仪表盘（作者：SALTWOOD）" Visibility="Collapsed" />
                             <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
+                            <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
                         </local:MyComboBox>
                     </Grid>
                 </StackPanel>
@@ -330,6 +344,7 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="6" Text="Mod" x:Name="CheckHiddenVersionMod" Tag="UiHiddenVersionMod" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2" Text="资源包" x:Name="CheckHiddenVersionResourcePack" Tag="UiHiddenVersionResourcePack" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="3" Text="光影包" x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="4" Text="投影原理图" x:Name="CheckHiddenVersionSchematic" Tag="UiHiddenVersionSchematic" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

@@ -112,6 +112,7 @@
             <local:MyCard Margin="0,0,0,15" Title="游戏内存">
                 <StackPanel Margin="25,40,25,15">
                     <local:MyHint x:Name="LabRamWarn" Visibility="Visible" Text="32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！" Theme="Yellow" Margin="0,0,0,12" />
+                    <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow" Text="你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！" Margin="0,0,0,12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     <Grid Margin="0,0,0,3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -124,7 +125,7 @@
                             <RowDefinition Height="9" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <local:MyRadioBox Text="自动配置" Width="110" Checked="True" x:Name="RadioRamType0" Tag="LaunchRamType/0" Margin="0,0,20,0" 
+                        <local:MyRadioBox Text="自动配置" Width="110" Checked="True" x:Name="RadioRamType0" Tag="LaunchRamType/0" Margin="0,0,20,0"
                                       ToolTip="根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存" ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
                         <local:MyRadioBox Grid.Row="2" Text="自定义" x:Name="RadioRamType1" Tag="LaunchRamType/1" Margin="0,0,20,0" />
                         <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom" Tag="LaunchRamCustom" MaxValue="49" Value="13" />
@@ -154,37 +155,13 @@
                         </Rectangle>
                         <Rectangle Grid.Row="1" StrokeThickness="0" Grid.Column="1" Fill="{DynamicResource ColorBrush3}" Opacity="0.5" x:Name="RectRamGame" />
                         <Rectangle x:Name="RectRamEmpty" Grid.Row="1" StrokeThickness="0" Grid.Column="2" Fill="{DynamicResource ColorBrush6}" Opacity="0.7" />
-                        <TextBlock x:Name="LabRamUsedTitle" Text="已使用内存" Grid.ColumnSpan="3" Opacity="0.7" TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="LabRamUsedTitle" Text="已使用内存 / 已安装内存" Grid.ColumnSpan="3" Opacity="0.7" TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <TextBlock x:Name="LabRamGameTitle" Text="游戏分配" Opacity="0.7" Grid.ColumnSpan="3" TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0" HorizontalAlignment="Left">
                             <TextBlock x:Name="LabRamUsed" Text="4.7 GB" FontSize="16" Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
                             <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GB" FontSize="16" Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
                         </StackPanel>
                         <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GB" Grid.ColumnSpan="3" TextTrimming="None" Margin="2,3,0,0" FontSize="16" Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
-                    </Grid>
-                </StackPanel>
-            </local:MyCard>
-            <local:MyCard x:Name="CardSkin" Margin="0,0,0,15" Title="下载正版玩家的皮肤" CanSwap="True" IsSwaped="True">
-                <StackPanel Margin="25,40,25,15">
-                    <Grid x:Name="PanSkinID" Margin="0,14,0,2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="正版玩家名" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextSkinID" Grid.Column="1" MaxLength="50" />
-                        <Grid Height="35" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                            </Grid.ColumnDefinitions>
-                            <local:MyButton x:Name="BtnSkinSave" Text="保存皮肤" MinWidth="140" Padding="13,0" Margin="0,0,20,0" Grid.Row="1" />
-                            <local:MyButton x:Name="BtnSkinCache" Text="刷新缓存" MinWidth="140" Padding="13,0" Margin="0,0,20,0" ToolTip="刷新并重新下载 PCL 当前显示的皮肤" Grid.Row="1" Grid.Column="1" />
-                        </Grid>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

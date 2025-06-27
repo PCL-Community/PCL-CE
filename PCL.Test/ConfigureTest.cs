@@ -33,11 +33,11 @@ namespace PCL.Test
         {
             var path = Path.Combine(Path.GetTempPath(), "PCLTest", $"{new Random().Next().ToString()}.ini");
 
-            var j1 = new IniConfigure(path);
+            var j1 = new IniConfigure(path, false);
             j1.Set("awa", "qwq");
             Assert.IsTrue(j1.Get<string>("awa") == "qwq");
 
-            var j2 = new IniConfigure(path);
+            var j2 = new IniConfigure(path, false);
             Assert.IsTrue(j2.Get<string>("awa") == "qwq");
             j2.Set("qwq", "awa");
             Assert.IsTrue(j2.Get<string>("qwq") == "awa");

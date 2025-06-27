@@ -9,18 +9,19 @@ Imports System.Xaml
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Serialization
+Imports PCL.Core.Helper
 
 Public Module ModBase
 
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.11.5" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.11.5." & VersionBranchCode
+    Public Const VersionBaseName As String = "2.11.8" '不含分支前缀的显示用版本名
+    Public Const VersionStandardCode As String = "2.11.8." & VersionBranchCode
     Public Const CommitHash As String = "native" 'Commit Hash，由 GitHub Workflow 自动替换
     Public CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const UpstreamVersion As String = "2.10.1" '上游版本
-    Public Const VersionCode As Integer = 377 '内部版本号
+    Public Const UpstreamVersion As String = "2.10.3" '上游版本
+    Public Const VersionCode As Integer = 380 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -101,6 +102,8 @@ Public Module ModBase
     ''' AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
     ''' </summary>
     Public PathAppdataConfig As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & If(VersionBranchName = "Debug", "\.pclcedebug\", "\.pclce\")
+
+    Public PathHelpFolder As String = PathTemp & "CE\Help\"
 
 #End Region
 
@@ -1212,7 +1215,7 @@ Re:
             'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             '获取 SHA256
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Using hasher = sha256.Create()
+                Using hasher = SHA256.Create()
                     Dim retval As Byte() = hasher.ComputeHash(fs)
                     Dim Result As New StringBuilder(retval.Length * 2) '预设容量，避免多次扩容导致性能问题
                     For i As Integer = 0 To retval.Length - 1
@@ -1242,7 +1245,7 @@ Re:
         Try
             '获取 SHA1
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Using hasher = sha1.Create()
+                Using hasher = SHA1.Create()
                     Dim retval As Byte() = hasher.ComputeHash(fs)
                     Dim Result As New StringBuilder(retval.Length * 2) '预设容量，避免多次扩容导致性能问题
                     For i As Integer = 0 To retval.Length - 1
@@ -3110,65 +3113,6 @@ Retry:
         ''' </summary>
         Critical = 6
     End Enum
-    Private LogList As New StringBuilder
-    Private LogWritter As StreamWriter
-    Public Sub LogStart()
-        RunInNewThread(
-        Sub()
-            Dim IsInitSuccess As Boolean = True
-            Try
-                For i = 4 To 1 Step -1
-                    If File.Exists(Path & "PCL\Log-CE" & i & ".log") Then
-                        If File.Exists(Path & "PCL\Log-CE" & (i + 1) & ".log") Then File.Delete(Path & "PCL\Log-CE" & (i + 1) & ".log")
-                        CopyFile(Path & "PCL\Log-CE" & i & ".log", Path & "PCL\Log-CE" & (i + 1) & ".log")
-                    End If
-                Next
-                File.Create(Path & "PCL\Log-CE1.log").Dispose()
-            Catch ex As IOException
-                IsInitSuccess = False
-                Hint("可能同时开启了多个 PCL，程序可能会出现未知问题！", HintType.Critical)
-                Log(ex, "日志初始化失败（疑似文件占用问题）")
-            Catch ex As ComponentModel.Win32Exception
-                Hint("与系统底层交互异常，请尝试通过重新安装 .NET 框架解决！", HintType.Critical)
-            Catch ex As Exception
-                IsInitSuccess = False
-                Log(ex, "日志初始化失败", LogLevel.Hint)
-            End Try
-            Try
-                LogWritter = New StreamWriter(Path & "PCL\Log-CE1.log", True) With {.AutoFlush = True}
-            Catch ex As Exception
-                LogWritter = Nothing
-                Log(ex, "日志写入失败", LogLevel.Hint)
-            End Try
-            While True
-                If IsInitSuccess Then
-                    LogFlush()
-                Else
-                    LogList = New StringBuilder '清空 LogList 避免内存爆炸
-                End If
-                Thread.Sleep(50)
-            End While
-        End Sub, "Log Writer", ThreadPriority.Lowest)
-    End Sub
-    Private ReadOnly LogFlushLock As New Object '防止外部调用 LogFlush 时同时输出多次日志
-    Public Sub LogFlush()
-        On Error Resume Next
-        If LogWritter Is Nothing Then Return
-        Dim Log As String = Nothing
-        SyncLock LogFlushLock
-            If LogList.Length > 0 Then
-                Dim LogListCache As StringBuilder
-                LogListCache = LogList
-                LogList = New StringBuilder
-                Log = LogListCache.ToString
-            End If
-        End SyncLock
-        If Log IsNot Nothing Then
-            LogWritter.Write(Log)
-        End If
-    End Sub
-
-    Private ReadOnly LogListLock As New Object '防止日志乱码，只在调试模式下启用
     Private IsCriticalErrorTriggered As Boolean = False
     ''' <summary>
     ''' 输出 Log。
@@ -3180,17 +3124,8 @@ Retry:
         '处理错误会导致再次调用 Log() 导致无限循环
 
         '输出日志
-        Dim AppendText As String = "[" & GetTimeNow() & "] " & Text & vbCrLf '减轻同步锁占用
-        If ModeDebug Then
-            SyncLock LogListLock
-                LogList.Append(AppendText)
-            End SyncLock
-        Else
-            LogList.Append(AppendText)
-        End If
-#If DEBUG Or DEBUGCI Then
-        Console.Write(AppendText)
-#End If
+        LogWrapper.Info(Text)
+
         If IsProgramEnded OrElse Level = LogLevel.Normal Then Return
 
         '去除前缀
@@ -3244,17 +3179,8 @@ Retry:
         Dim ExFull As String = Desc & "：" & GetExceptionDetail(Ex)
 
         '输出日志
-        Dim AppendText As String = "[" & GetTimeNow() & "] " & Desc & "：" & GetExceptionDetail(Ex, True) & vbCrLf '减轻同步锁占用
-        If ModeDebug Then
-            SyncLock LogListLock
-                LogList.Append(AppendText)
-            End SyncLock
-        Else
-            LogList.Append(AppendText)
-        End If
-#If DEBUG Or DEBUGCI Then
-        Console.Write(AppendText)
-#End If
+        LogWrapper.Error(Ex, Desc)
+
         If IsProgramEnded Then Return
 
         If Ex.GetType() = GetType(ComponentModel.Win32Exception) Then ExFull += vbCrLf & "与系统底层交互失败，请尝试重新安装 .NET Framework 4.8.1 解决此问题"
@@ -3317,8 +3243,11 @@ Retry:
     Public Sub Feedback(Optional ShowMsgbox As Boolean = True, Optional ForceOpenLog As Boolean = False)
         On Error Resume Next
         FeedbackInfo()
-        If ForceOpenLog OrElse (ShowMsgbox AndAlso MyMsgBox("若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Log-CE(1~5).txt 中包含错误信息的文件。" & vbCrLf & "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") = 1) Then
-            OpenExplorer(Path & "PCL\Log-CE1.log")
+        Dim currentDate As String
+        currentDate = Format(Now, "yyyy-M-dd")
+
+        If ForceOpenLog OrElse (ShowMsgbox AndAlso MyMsgBox("若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" & currentDate & "-[一串数字].log 中包含错误信息的文件。" & vbCrLf & "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") = 1) Then
+            OpenExplorer(Path & "PCL\Log\")
         End If
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
     End Sub

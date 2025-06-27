@@ -1,4 +1,5 @@
 Imports System.ComponentModel
+Imports System.Management
 Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
@@ -499,4 +500,73 @@ Public Class PageOtherTest
                            End Try
                        End Sub, "Server Query")
     End Sub
+
+    '下载正版玩家皮肤
+    Private Sub BtnSkinSave_Click(sender As Object, e As EventArgs) Handles BtnSkinSave.Click
+        Dim ID As String = TextSkinID.Text
+        Hint("正在获取皮肤...")
+        RunInNewThread(Sub()
+                           Try
+                               If ID.Count < 3 Then
+                                   Hint("这不是一个有效的 ID...")
+                               Else
+                                   Dim Result As String = McLoginMojangUuid(ID, True)
+                                   Result = McSkinGetAddress(Result, "Mojang")
+                                   Result = McSkinDownload(Result)
+                                   RunInUi(Sub()
+                                               Dim Path As String = SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
+                                               CopyFile(Result, Path)
+                                               Hint($"玩家 {ID} 的皮肤已保存！", HintType.Finish)
+                                           End Sub)
+                               End If
+                           Catch ex As Exception
+                               If GetExceptionSummary(ex).Contains("429") Then
+                                   Hint("获取皮肤太过频繁，请 5 分钟之后再试！", HintType.Critical)
+                                   Log("获取正版皮肤失败（" & ID & "）：获取皮肤太过频繁，请 5 分钟后再试！")
+                               Else
+                                   Log(ex, "获取正版皮肤失败（" & ID & "）")
+                               End If
+                           End Try
+                       End Sub)
+    End Sub
+    Private Sub BtnSkinCache_Click(sender As Object, e As EventArgs) Handles BtnSkinCache.Click
+        MySkin.RefreshCache(Nothing)
+    End Sub
+
+    '今日人品
+    Private Sub BtnLuck_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim random As New Random(GenerateDailySeed())
+        Dim luckValue = random.Next(0, 101)
+        Dim rating = GetRating(luckValue)
+        Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
+        Dim title = $"今日人品 - {currentDate}"
+
+        If (luckValue >= 60) Then
+            MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title)
+        Else
+            MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn:=luckValue <= 30)
+        End If
+
+    End Sub
+
+    Private Function GenerateDailySeed() As Integer
+        Dim datePart As String = Date.Today.ToString("yyyyMMdd")
+        Dim secretCode As String = SecretGetRawCode()
+
+        Return (datePart & secretCode).GetHashCode()
+    End Function
+
+    Private Function GetRating(luckValue As Integer) As String
+        If luckValue = 100 Then
+            Return "100！100！\n隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
+        Else
+            Return If(luckValue >= 95, "差一点就到100了呢...",
+           If(luckValue >= 90, "好评如潮！",
+           If(luckValue >= 60, "还行啦，还行啦",
+           If(luckValue >= 40, "勉强还行吧...",
+           If(luckValue >= 30, "呜...",
+           If(luckValue >= 10, "不会吧！",
+                               "（是百分制哦）"))))))
+        End If
+    End Function
 End Class

@@ -1,5 +1,6 @@
-﻿Imports System.Windows.Interop
+Imports System.Windows.Interop
 Imports System.Windows.Threading
+Imports PCL.Core.Controls
 
 Public Module ModMain
 
@@ -349,10 +350,10 @@ EndHint:
             If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing OrElse FrmMain.WindowState = WindowState.Minimized Then Return
             If FrmMain.PanMsg.Children.Count > 0 Then
                 '弹窗中
-                FrmMain.PanMsg.Visibility = Visibility.Visible
+                FrmMain.PanMsgBackground.Visibility = Visibility.Visible
             ElseIf WaitingMyMsgBox.Any Then
                 '没有弹窗，显示一个等待的弹窗
-                FrmMain.PanMsg.Visibility = Visibility.Visible
+                FrmMain.PanMsgBackground.Visibility = Visibility.Visible
                 Select Case CType(WaitingMyMsgBox(0), MyMsgBoxConverter).Type
                     Case MyMsgBoxType.Input
                         FrmMain.PanMsg.Children.Add(New MyMsgInput(WaitingMyMsgBox(0)))
@@ -366,7 +367,7 @@ EndHint:
                 WaitingMyMsgBox.RemoveAt(0)
             Else
                 '没有弹窗，没有等待的弹窗
-                If Not FrmMain.PanMsg.Visibility = Visibility.Collapsed Then FrmMain.PanMsg.Visibility = Visibility.Collapsed
+                If Not FrmMain.PanMsgBackground.Visibility = Visibility.Collapsed Then FrmMain.PanMsgBackground.Visibility = Visibility.Collapsed
             End If
         Catch ex As Exception
             Log(ex, "处理等待中的弹窗失败", LogLevel.Feedback)
@@ -450,8 +451,9 @@ EndHint:
     Public FrmVersionScreenshot As PageVersionScreenshot
     Public FrmVersionWorld As PageVersionWorld
     Public FrmVersionShader As PageVersionCompResource
-    Public FrmVersionResourcePack As PageVersionCompResource
-    Public FrmVersionSetup As PageVersionSetup
+Public FrmVersionSchematic As PageVersionCompResource
+Public FrmVersionResourcePack As PageVersionCompResource
+Public FrmVersionSetup As PageVersionSetup
     Public FrmVersionInstall As PageVersionInstall
     Public FrmVersionExport As PageVersionExport
 
@@ -635,11 +637,11 @@ EndHint:
                     End If
                     Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " & FileList.Count & " 条")
                     '读取自带文件
-                    For Each File In EnumerateFiles(PathTemp & "CE\Help")
+                    For Each File In EnumerateFiles(PathHelpFolder)
                         '跳过非 Json 文件与以 . 开头的文件夹
-                        If File.Extension.ToLower <> ".json" OrElse File.Directory.FullName.Replace(PathTemp & "Help", "").Contains("\.") Then Continue For
+                        If File.Extension.ToLower <> ".json" OrElse File.Directory.FullName.Replace(PathHelpFolder.TrimEnd("\"c), "").Contains("\.") Then Continue For
                         '检查忽略列表
-                        Dim RealPath As String = File.FullName.Replace(PathTemp & "Help\", "")
+                        Dim RealPath As String = File.FullName.Replace(PathHelpFolder.TrimEnd("\"c), "")
                         For Each Ignore In IgnoreList
                             If RegexCheck(RealPath, Ignore) Then
                                 If ModeDebug Then Log("[Help] 已忽略 " & RealPath & "：" & Ignore)

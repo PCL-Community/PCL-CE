@@ -387,7 +387,7 @@
                 If MinecraftWindow Is Nothing Then Return
                 Dim MinecraftWindowName = MinecraftWindow.Value.Value, MinecraftWindowHandle = MinecraftWindow.Value.Key
                 '已找到窗口
-                If Not MinecraftWindowName.StartsWithF("FML") Then
+                If Not MinecraftWindowName.StartsWithF("FML") AndAlso Not MinecraftWindowName.StartsWithF("Quilt Loader") Then
                     '已找到 Minecraft 窗口
                     WindowHandle = MinecraftWindowHandle
                     WatcherLog($"Minecraft 窗口已加载：{MinecraftWindowName}（{MinecraftWindowHandle.ToInt64}）")
@@ -477,7 +477,7 @@
                     Analyzer.Prepare()
                     Analyzer.Analyze(Version)
                     Analyzer.Output(False, New List(Of String) From
-                        {Version.Path & Version.Name & ".json", Path & "PCL\Log-CE1.log", Path & "PCL\LatestLaunch.bat"})
+                        {Version.Path & Version.Name & ".json", Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last(), Path & "PCL\LatestLaunch.bat"})
                 Catch ex As Exception
                     Log(ex, "崩溃分析失败", LogLevel.Feedback)
                 End Try
@@ -485,17 +485,38 @@
         End Sub
 
         '强制关闭
+        Public Function CheckAlive(p As Process) As Boolean
+            If Not p.HasExited Then Return True
+            Dim exists = Array.Exists(Process.GetProcesses, Function(item) item.Id = p.Id)
+            If exists Then Return True
+            Return False
+        End Function
         Public Sub Kill()
             State = MinecraftState.Canceled
-            WatcherLog("尝试强制结束 Minecraft 进程")
-            Try
-                If Not GameProcess.HasExited Then GameProcess.Kill()
-                WatcherLog("已强制结束 Minecraft 进程")
-                If RealTime Then LogRealTime($"Minecraft 已退出，返回值：{GameProcess.ExitCode}", GameLogLevel.Info)
-                RaiseEvent GameExit()
-            Catch ex As Exception
-                Log(ex, "强制结束 Minecraft 进程失败", LogLevel.Hint)
-            End Try
+            RunInNewThread(
+                Sub()
+                    WatcherLog("尝试强制结束 Minecraft 进程")
+                    Try
+                        If CheckAlive(GameProcess) Then GameProcess.Kill()
+                        GameProcess.WaitForExit(5000)
+                        If CheckAlive(GameProcess) Then
+                            WatcherLog("进程仍未退出，尝试使用 taskkill.exe")
+                            Dim taskkillProcess = Process.Start("taskkill.exe", $"/PID {GameProcess.Id} /F /T")
+                            Dim output = taskkillProcess.StandardOutput.ReadToEnd()
+                            Log($"执行 taskkill.exe 结果: {output}")
+                            GameProcess.WaitForExit(5000)
+                            If CheckAlive(GameProcess) Then
+                                WatcherLog("强制结束 Minecraft 进程失败: 等待进程退出超时")
+                                Return
+                            End If
+                        End If
+                        WatcherLog("已强制结束 Minecraft 进程")
+                        If RealTime Then LogRealTime($"Minecraft 已退出，返回值：{GameProcess.ExitCode}", GameLogLevel.Info)
+                        RaiseEvent GameExit()
+                    Catch ex As Exception
+                        Log(ex, "强制结束 Minecraft 进程失败", LogLevel.Hint)
+                    End Try
+                End Sub)
         End Sub
 
         '导出运行栈

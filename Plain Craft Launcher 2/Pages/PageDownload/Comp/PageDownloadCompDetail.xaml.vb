@@ -353,6 +353,7 @@
                     '判断某个版本是否符合资源要求
                     IsVersionSuitable =
                     Function(Version)
+                        If Version Is Nothing Then Return False
                         If Not Version.IsLoaded Then Version.Load()
                         '只对 Mod 和数据包进行版本检测
                         If Project.Type = CompType.Mod OrElse Project.Type = CompType.DataPack Then
@@ -369,7 +370,7 @@
                     End Function
                     '获取常规资源默认下载位置
                     If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, McVersionCurrent.PathIndie)
+                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McVersionCurrent?.PathIndie, Path))
                         Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
                     ElseIf McVersionCurrent IsNot Nothing AndAlso IsVersionSuitable(McVersionCurrent) Then
                         DefaultFolder = $"{McVersionCurrent.PathIndie}{SubFolder}"

@@ -97,6 +97,9 @@ Public Class PageSetupUI
             Else
                 ComboUiFont.SelectedIndex = ComboUiFont.Items.IndexOf(ComboUiFont.Items.Cast(Of MyComboBoxItem).Where(Function(x) x.Tag = Setup.Get("UiFont")).FirstOrDefault)
             End If
+            CheckBlur.Checked = Setup.Get("UiBlur")
+            SliderBlurValue.Value = Setup.Get("UiBlurValue")
+            PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)
 
             '背景图片
             SliderBackgroundOpacity.Value = Setup.Get("UiBackgroundOpacity")
@@ -155,6 +158,7 @@ Public Class PageSetupUI
             CheckHiddenVersionMod.Checked = Setup.Get("UiHiddenVersionMod")
             CheckHiddenVersionResourcePack.Checked = Setup.Get("UiHiddenVersionResourcePack")
             CheckHiddenVersionShader.Checked = Setup.Get("UiHiddenVersionShader")
+            CheckHiddenVersionSchematic.Checked = Setup.Get("UiHiddenVersionSchematic")
 
         Catch ex As NullReferenceException
             Log(ex, "个性化设置项存在异常，已被自动重置", LogLevel.Msgbox)
@@ -174,6 +178,8 @@ Public Class PageSetupUI
             Setup.Reset("UiLauncherSat")
             Setup.Reset("UiLauncherDelta")
             Setup.Reset("UiLauncherLight")
+            Setup.Reset("UiBlur")
+            Setup.Reset("UiBlurValue")
             Setup.Reset("UiBackgroundColorful")
             Setup.Reset("UiBackgroundOpacity")
             Setup.Reset("UiBackgroundBlur")
@@ -215,6 +221,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionMod")
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
+            Setup.Reset("UiHiddenVersionSchematic")
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -226,13 +233,13 @@ Public Class PageSetupUI
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
+    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -773,6 +780,7 @@ Refresh:
         End Function
         SliderBackgroundOpacity.GetHintText = Function(v) Math.Round(v * 0.1) & "%"
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
+        SliderBlurValue.GetHintText = Function(v) v & " 像素"
     End Sub
 
 End Class
