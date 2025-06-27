@@ -447,7 +447,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETServerDefault As String = Nothing
-    Public ETVersion As String = "2.3.1"
+    Public ETVersion As String = "2.3.2"
     Public ETPath As String = PathTemp + $"EasyTier\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
@@ -561,8 +561,8 @@ Public Module ModLink
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
                                Dim Address As New List(Of String)
-                               Address.Add($"https://cdn.crashmc.com/https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-x86_64-v{ETVersion}.zip")
-                               Address.Add($"https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-x86_64-v{ETVersion}.zip")
+                               Address.Add($"https://ghfast.top/https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
+                               Address.Add($"https://github.com/EasyTier/EasyTier/releases/download/v{ETVersion}/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathTemp + "EasyTier\" + ETVersion)))

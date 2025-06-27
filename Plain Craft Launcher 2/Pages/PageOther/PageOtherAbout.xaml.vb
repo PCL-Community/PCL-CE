@@ -20,6 +20,9 @@
     Private Sub BtnAboutWiki_Click(sender As Object, e As EventArgs) Handles BtnAboutWiki.Click
         OpenWebsite("https://www.mcmod.cn")
     End Sub
+    Private Sub BtnAboutPysio_Click(sender As Object, e As EventArgs) Handles BtnAboutPysio.Click
+        OpenWebsite("https://pysio.online")
+    End Sub
 
     Private Sub ImgPCLCommunity_Click(sender As Object, e As MouseButtonEventArgs) Handles ImgPCLCommunity.MouseLeftButtonDown
         AniStart({
