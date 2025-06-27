@@ -17,5 +17,6 @@ public class SnapLiteTest
         using var snap = new SnapLiteVersionControl(tempFolder);
         var nodeId = await snap.CreateNewVersion();
         await snap.Export(nodeId, Path.Combine(Path.GetTempPath(), "PCLTest", "SnapLiteTest.zip"));
+        Assert.IsTrue(await snap.CheckVersion(nodeId));
     }
 }
