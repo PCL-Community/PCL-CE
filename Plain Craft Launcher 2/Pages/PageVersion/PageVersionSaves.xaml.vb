@@ -138,6 +138,7 @@ Public Class PageVersionSaves
                                                   If Directory.Exists(curFolder) Then
                                                       Clipboard.SetFileDropList(New Specialized.StringCollection() From {curFolder})
                                                       Hint("已复制存档文件夹到剪贴板！")
+                                                      Hint("注意！在粘贴之前进行删除操作会导致存档丢失！")
                                                   Else
                                                       Hint("存档文件夹不存在！")
                                                   End If
