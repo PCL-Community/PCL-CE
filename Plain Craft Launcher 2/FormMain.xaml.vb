@@ -669,13 +669,16 @@ Public Class FormMain
             End If
             '多文件拖拽
             If FilePathList.Count > 1 Then
-                '必须要求全部为 Jar 文件
-                For Each File In FilePathList
-                    If Not {"jar", "litemod", "disabled", "old"}.Contains(File.AfterLast(".").ToLower) Then
-                        Hint("一次请只拖入一个文件！", HintType.Critical)
-                        Return
-                    End If
-                Next
+                '检查是否为同类型文件
+                Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
+                Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
+                
+                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic"}.Contains(FirstExtension) Then
+                    '允许同类型的 Mod 文件或投影文件批量拖拽
+                Else
+                    Hint("一次请只拖入相同类型的文件！", HintType.Critical)
+                    Return
+                End If
             End If
             '主页
             Dim Extension As String = FilePath.AfterLast(".").ToLower
@@ -697,6 +700,12 @@ Public Class FormMain
             End If
             '安装 Mod
             If PageVersionCompResource.InstallMods(FilePathList) Then Exit Sub
+            '安装投影文件
+            If {"litematic", "nbt", "schematic"}.Contains(Extension) Then
+                Log($"[System] 文件为 {Extension} 格式，尝试作为投影原理图安装")
+                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic)
+                Exit Sub
+            End If
             '处理资源安装
             If PageCurrent = PageType.VersionSetup AndAlso {"zip"}.Any(Function(i) i = Extension) Then
                 Select Case PageCurrentSub
@@ -731,6 +740,19 @@ Public Class FormMain
                         If FrmVersionShader IsNot Nothing Then RunInUi(Sub() FrmVersionShader.ReloadCompFileList())
                         Exit Sub
                 End Select
+            End If
+            '处理投影文件
+            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
+                Dim DestFile = PageVersionLeft.Version.PathIndie + "schematics\" + GetFileNameFromPath(FilePath)
+                If File.Exists(DestFile) Then
+                    Hint("已存在同名文件：" + DestFile, HintType.Critical)
+                    Exit Sub
+                End If
+                Directory.CreateDirectory(PageVersionLeft.Version.PathIndie + "schematics\")
+                CopyFile(FilePath, DestFile)
+                Hint($"已导入 {GetFileNameFromPath(FilePath)}", HintType.Finish)
+                If FrmVersionSchematic IsNot Nothing Then RunInUi(Sub() FrmVersionSchematic.ReloadCompFileList())
+                Exit Sub
             End If
             '安装整合包
             If {"zip", "rar", "mrpack"}.Any(Function(t) t = Extension) Then '部分压缩包是 zip 格式但后缀为 rar，总之试一试
@@ -944,7 +966,8 @@ Public Class FormMain
         VersionModDisabled = 6
         VersionResourcePack = 7
         VersionShader = 8
-        VersionInstall = 9
+        VersionSchematic = 9
+        VersionInstall = 10
     End Enum
     ''' <summary>
     ''' 获取次级页面的名称。若并非次级页面则返回空字符串，故可以以此判断是否为次级页面。

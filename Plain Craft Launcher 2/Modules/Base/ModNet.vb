@@ -482,46 +482,6 @@ Retry:
         End Try
     End Function
     ''' <summary>
-    ''' 同时发送多个网络请求并要求返回内容。
-    ''' </summary>
-    Public Function NetRequestMultiple(Url As String, Method As String, Data As Object, ContentType As String, Optional RequestCount As Integer = 4, Optional Headers As Dictionary(Of String, String) = Nothing, Optional MakeLog As Boolean = True)
-        Dim Threads As New List(Of Thread)
-        Dim RequestResult = Nothing
-        Dim RequestEx As Exception = Nothing
-        Dim FailCount As Integer = 0
-        For i = 1 To RequestCount
-            Dim th As New Thread(
-            Sub()
-                Try
-                    RequestResult = NetRequestOnce(Url, Method, Data, ContentType, 30000, Headers, MakeLog)
-                Catch ex As Exception
-                    FailCount += 1
-                    RequestEx = ex
-                End Try
-            End Sub)
-            th.Start()
-            Threads.Add(th)
-            Thread.Sleep(i * 250)
-            If RequestResult IsNot Nothing Then GoTo RequestFinished
-        Next
-        Do While True
-            If RequestResult IsNot Nothing Then
-RequestFinished:
-                For Each th In Threads
-                    If th.IsAlive Then th.Interrupt()
-                Next
-                Return RequestResult
-            ElseIf FailCount = RequestCount Then
-                For Each th In Threads
-                    If th.IsAlive Then th.Interrupt()
-                Next
-                Throw RequestEx
-            End If
-            Thread.Sleep(20)
-        Loop
-        Throw New Exception("未知错误")
-    End Function
-    ''' <summary>
     ''' 发送一次网络请求并获取返回内容。
     ''' </summary>
     Public Function NetRequestOnce(Url As String, Method As String, Data As Object, ContentType As String, Optional Timeout As Integer = 25000, Optional Headers As Dictionary(Of String, String) = Nothing, Optional MakeLog As Boolean = True, Optional UseBrowserUserAgent As Boolean = False) As String
