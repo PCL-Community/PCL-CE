@@ -778,6 +778,17 @@ Public Class FormMain
                     '安装失败，继续往后尝试
                 End Try
             End If
+            If {"zip", "rar"}.Any(Function(t) t = Extension) Then
+                Log("[System] 文件为压缩包，尝试作为存档分析")
+                Try
+                    ReadWorld(FilePath)
+                    Return
+                Catch ex As CancelledException
+                    Return '是存档，但是损坏了
+                Catch ex As Exception
+                    '不是存档（或遇到了其他问题），继续往后尝试
+                End Try
+            End If
             'RAR 处理
             If Extension = "rar" Then
                 Hint("PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试！")

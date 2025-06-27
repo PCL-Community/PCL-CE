@@ -1779,6 +1779,10 @@ OnLoaded:
         ''' </summary>
         Public SHA1 As String = Nothing
         ''' <summary>
+        ''' 是否为纯本地文件，若是则不尝试联网下载。
+        ''' </summary>
+        Public IsLocal As Boolean = False
+        ''' <summary>
         ''' 由 Json 提供的 URL，若没有则为 Nothing。
         ''' </summary>
         Public Property Url As String
@@ -1868,7 +1872,7 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Version.Name)
-        McLibListGet = McLibListGetWithJson(Version.JsonObject)
+        McLibListGet = McLibListGetWithJson(Version.JsonObject, TargetVersion:=Version)
         If Not IncludeVersionJar Then Return McLibListGet
 
         '需要添加原版 Jar
@@ -1914,7 +1918,7 @@ OnLoaded:
     ''' <summary>
     ''' 获取 Minecraft 某一版本忽视继承的支持库列表，即结果中没有继承项。
     ''' </summary>
-    Public Function McLibListGetWithJson(JsonObject As JObject, Optional KeepSameNameDifferentVersionResult As Boolean = False, Optional CustomMcFolder As String = Nothing) As List(Of McLibToken)
+    Public Function McLibListGetWithJson(JsonObject As JObject, Optional KeepSameNameDifferentVersionResult As Boolean = False, Optional CustomMcFolder As String = Nothing, Optional TargetVersion As McVersion = Nothing) As List(Of McLibToken)
         CustomMcFolder = If(CustomMcFolder, PathMcFolder)
         Dim BasicArray As New List(Of McLibToken)
 
@@ -1938,10 +1942,18 @@ OnLoaded:
                 RootUrl += McLibGet(Library("name"), False, True, CustomMcFolder).Replace("\", "/")
             End If
 
+            '是否为纯本地项
+            Dim Hint As String = Library("hint")
+            Dim IsLocal As Boolean = If(Hint IsNot Nothing, Hint = "local", False)
+
             '根据是否本地化处理（Natives）
             If Library("natives") Is Nothing Then '没有 Natives
                 Dim LocalPath As String
-                LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder)
+                If IsLocal AndAlso TargetVersion IsNot Nothing Then '纯本地项
+                    LocalPath = TargetVersion.Path & "libraries\" & Library("name").ToString.AfterFirst(":").Replace(":", "-") & ".jar"
+                Else
+                    LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder)
+                End If
                 Try
                     If Library("downloads") IsNot Nothing AndAlso Library("downloads")("artifact") IsNot Nothing Then
                         BasicArray.Add(New McLibToken With {
@@ -1951,9 +1963,10 @@ OnLoaded:
                                 CustomMcFolder:=CustomMcFolder), CustomMcFolder & "libraries\" & Library("downloads")("artifact")("path").ToString.Replace("/", "\")),
                             .Size = Val(Library("downloads")("artifact")("size").ToString),
                             .IsNatives = False,
-                            .SHA1 = Library("downloads")("artifact")("sha1")?.ToString})
+                            .SHA1 = Library("downloads")("artifact")("sha1")?.ToString,
+                            .IsLocal = IsLocal})
                     Else
-                        BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = LocalPath, .Size = 0, .IsNatives = False, .SHA1 = Nothing})
+                        BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = LocalPath, .Size = 0, .IsNatives = False, .SHA1 = Nothing, .IsLocal = IsLocal})
                     End If
                 Catch ex As Exception
                     Log(ex, "处理实际支持库列表失败（无 Natives，" & If(Library("name"), "Nothing").ToString & "）")
@@ -1970,13 +1983,14 @@ OnLoaded:
                                  CustomMcFolder & "libraries\" & Library("downloads")("classifiers")("natives-windows")("path").ToString.Replace("/", "\")),
                              .Size = Val(Library("downloads")("classifiers")("natives-windows")("size").ToString),
                              .IsNatives = True,
-                             .SHA1 = Library("downloads")("classifiers")("natives-windows")("sha1").ToString})
+                             .SHA1 = Library("downloads")("classifiers")("natives-windows")("sha1").ToString,
+                             .IsLocal = IsLocal})
                     Else
-                        BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder).Replace(".jar", "-" & Library("natives")("windows").ToString & ".jar").Replace("${arch}", If(Environment.Is64BitOperatingSystem, "64", "32")), .Size = 0, .IsNatives = True, .SHA1 = Nothing})
+                        BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder).Replace(".jar", "-" & Library("natives")("windows").ToString & ".jar").Replace("${arch}", If(Environment.Is64BitOperatingSystem, "64", "32")), .Size = 0, .IsNatives = True, .SHA1 = Nothing, .IsLocal = IsLocal})
                     End If
                 Catch ex As Exception
                     Log(ex, "处理实际支持库列表失败（有 Natives，" & If(Library("name"), "Nothing").ToString & "）")
-                    BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder).Replace(".jar", "-" & Library("natives")("windows").ToString & ".jar").Replace("${arch}", If(Environment.Is64BitOperatingSystem, "64", "32")), .Size = 0, .IsNatives = True, .SHA1 = Nothing})
+                    BasicArray.Add(New McLibToken With {.OriginalName = Library("name"), .Url = RootUrl, .LocalPath = McLibGet(Library("name"), CustomMcFolder:=CustomMcFolder).Replace(".jar", "-" & Library("natives")("windows").ToString & ".jar").Replace("${arch}", If(Environment.Is64BitOperatingSystem, "64", "32")), .Size = 0, .IsNatives = True, .SHA1 = Nothing, .IsLocal = False})
                 End Try
             End If
 
@@ -2118,6 +2132,10 @@ OnLoaded:
             '检查文件
             Dim Checker As New FileChecker(ActualSize:=If(Token.Size = 0, -1, Token.Size), Hash:=Token.SHA1)
             If Checker.Check(Token.LocalPath) Is Nothing Then Continue For
+            If Token.IsLocal Then
+                Log("[Download] 已跳过被标记为本地文件的支持库: " & Token.OriginalName)
+                Continue For
+            End If
             '文件不符合，添加下载
             Dim Urls As New List(Of String)
             If Token.Url Is Nothing AndAlso Token.Name = "net.minecraftforge:forge:universal" Then

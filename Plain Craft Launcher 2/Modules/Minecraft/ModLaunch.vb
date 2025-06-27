@@ -1282,6 +1282,12 @@ LoginFinish:
             MaxVer = New Version(999, 999, 999, 999)
         End If
 
+        'JSON 中要求的版本
+        If McVersionCurrent.JsonObject("javaVersion") IsNot Nothing Then
+            MinVer = If(New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0) > MinVer, New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0), MinVer)
+            If MaxVer < MinVer Then MaxVer = New Version(999, 999, 999, 999)
+        End If
+
         SyncLock JavaLock
 
             '选择 Java
@@ -1651,7 +1657,7 @@ NextVersion:
         If McLoginLoader.Output.Type = "Auth" Then
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
-            Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
+                Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
                 DataList.Insert(0, "-javaagent:""" & PathPure & "authlib-injector.jar""=" & Server &
                               " -Dauthlibinjector.side=client" &
                               " -Dauthlibinjector.yggdrasil.prefetched=" & Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)))
@@ -1890,8 +1896,8 @@ NextVersion:
 
         For Each Library As McLibToken In LibList
             If Library.IsNatives Then Continue For
-            If Library.Name IsNot Nothing AndAlso Library.Name.Contains("com.cleanroommc:cleanroom") Then 'Cleanroom 的主 Jar 必须放在 ClassPath 第一位
-                CpStrings.Insert(0, Library.LocalPath + ";")
+            If Library.Name IsNot Nothing AndAlso Library.Name.Contains("com.cleanroommc:cleanroom:0.2") Then 'Cleanroom 的主 Jar 必须放在 ClassPath 第一位
+                CpStrings.Insert(0, Library.LocalPath)
             End If
             If Library.Name IsNot Nothing AndAlso Library.Name = "optifine:OptiFine" Then
                 OptiFineCp = Library.LocalPath
