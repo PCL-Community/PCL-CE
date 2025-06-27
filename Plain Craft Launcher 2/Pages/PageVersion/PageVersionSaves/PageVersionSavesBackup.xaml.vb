@@ -32,7 +32,15 @@ Class PageVersionSavesBackup
 
     Private Sub RefreshList()
         PanList.Children.Clear()
-        For Each item In _currentInstance.GetVersions()
+        Dim versions = _currentInstance.GetVersions()
+        If versions.Any() Then
+            PanDisplay.Visibility = Visibility.Visible
+            PanEmpty.Visibility = Visibility.Collapsed
+        Else
+            PanDisplay.Visibility = Visibility.Collapsed
+            PanEmpty.Visibility = Visibility.Visible
+        End If
+        For Each item In versions
             Dim newItem As New MyListItem With {
                 .Title = item.Name,
                 .Info = item.Desc,
@@ -44,12 +52,20 @@ Class PageVersionSavesBackup
                 .ToolTip = "回到到此快照"
             }
 
-            AddHandler btnApply.Click, Async Sub()
+            AddHandler btnApply.Click, Sub()
                                            Try
                                                If MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1:="确定", Button2:="取消") = 2 Then Return
-                                               Hint("应用快照中，请不要离开此页面！")
-                                               Await _currentInstance.ApplyPastVersion(item.NodeId)
-                                               Hint("快照应用已完成", HintType.Finish)
+                                               Hint("应用快照中，请勿执行其他操作！")
+                                               Dim loaders As New List(Of LoaderBase)
+                                               loaders.Add(New LoaderTask(Of Integer, Integer)("Apply", Async Sub()
+                                                                                                            Await _currentInstance.ApplyPastVersion(item.NodeId)
+                                                                                                            Hint("快照应用已完成", HintType.Finish)
+                                                                                                        End Sub))
+                                               Dim loader As New LoaderCombo(Of Integer)($"{item.Name} - 备份应用", loaders)
+                                               loader.Start(1)
+                                               LoaderTaskbarAdd(loader)
+                                               FrmMain.BtnExtraDownload.ShowRefresh()
+                                               FrmMain.BtnExtraDownload.Ribble()
                                            Catch ex As Exception
                                                Log(ex, "应用快照过程中出现错误", LogLevel.Msgbox)
                                            End Try
@@ -60,7 +76,7 @@ Class PageVersionSavesBackup
                 .ToolTip = "导出到压缩包"
             }
 
-            AddHandler btnExport.Click, Async Sub()
+            AddHandler btnExport.Click, Sub()
                                             Try
                                                 Dim savePath = SelectSaveFile(
                                                 "选择保存备份导出的位置",
@@ -68,9 +84,17 @@ Class PageVersionSavesBackup
                                                 "压缩文件(*.zip)|*.zip",
                                                 Path)
                                                 If String.IsNullOrEmpty(savePath) Then Return
-                                                Hint("快照导出中，请不要离开此页面。")
-                                                Await _currentInstance.Export(item.NodeId, savePath)
-                                                Hint("快照导出已完成", HintType.Finish)
+                                                Hint("快照导出中，请勿执行其他操作！")
+                                                Dim loaders As New List(Of LoaderBase)
+                                                loaders.Add(New LoaderTask(Of Integer, Integer)("Export", Async Sub()
+                                                                                                              Await _currentInstance.Export(item.NodeId, savePath)
+                                                                                                              Hint("快照导出已完成", HintType.Finish)
+                                                                                                          End Sub))
+                                                Dim loader As New LoaderCombo(Of Integer)($"{item.Name} - 导出备份", loaders)
+                                                loader.Start(1)
+                                                LoaderTaskbarAdd(loader)
+                                                FrmMain.BtnExtraDownload.ShowRefresh()
+                                                FrmMain.BtnExtraDownload.Ribble()
                                             Catch ex As Exception
                                                 Log(ex, "备份导出过程中出现错误", LogLevel.Msgbox)
                                             End Try
@@ -98,7 +122,7 @@ Class PageVersionSavesBackup
         Next
     End Sub
 
-    Private Async Sub BtnCreate_Click() Handles BtnCreate.Click
+    Private Sub BtnCreate_Click() Handles BtnCreate.Click
         Try
             Dim input = MyMsgBoxInput(
                 "请输入名称",
@@ -106,10 +130,18 @@ Class PageVersionSavesBackup
             If input Is Nothing Then Return
             If String.IsNullOrWhiteSpace(input) Then input = Nothing
             BtnCreate.IsEnabled = False
-            Hint("开始备份任务，请不要退出此页面……")
-            Await _currentInstance.CreateNewVersion()
-            Hint("备份已完成", HintType.Finish)
-            RefreshList()
+            Hint("开始备份任务，请勿执行其他操作！")
+            Dim loaders As New List(Of LoaderBase)
+            loaders.Add(New LoaderTask(Of Integer, Integer)("Export", Async Sub()
+                                                                          Await _currentInstance.CreateNewVersion(input)
+                                                                          Hint("备份已完成", HintType.Finish)
+                                                                          RunInUi(Sub() RefreshList())
+                                                                      End Sub))
+            Dim loader As New LoaderCombo(Of Integer)($"{input} - 导出备份", loaders)
+            loader.Start(1)
+            LoaderTaskbarAdd(loader)
+            FrmMain.BtnExtraDownload.ShowRefresh()
+            FrmMain.BtnExtraDownload.Ribble()
             BtnCreate.IsEnabled = True
         Catch ex As Exception
             Log(ex, $"备份过程中出现错误", LogLevel.Msgbox)
