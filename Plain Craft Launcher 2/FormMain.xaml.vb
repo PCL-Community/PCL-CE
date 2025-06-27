@@ -1469,23 +1469,4 @@ Public Class FormMain
         lastMouseArg = e
     End Sub
 
-    ' 公开控件访问属性，用于解决 ModSetup.vb 中的访问问题
-    Public ReadOnly Property PublicImgBack As Canvas
-        Get
-            Return ImgBack
-        End Get
-    End Property
-
-    Public ReadOnly Property PublicPanMain As Grid
-        Get
-            Return PanMain
-        End Get
-    End Property
-
-    Public ReadOnly Property PublicPanMainRight As Border
-        Get
-            Return PanMainRight
-        End Get
-    End Property
-
 End Class

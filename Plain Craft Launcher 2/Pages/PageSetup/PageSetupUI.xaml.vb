@@ -311,10 +311,10 @@ Public Class PageSetupUI
             '加载
             If Not Pic.Any() Then
                 If Refresh Then
-                    If FrmMain.PublicImgBack.Visibility = Visibility.Collapsed Then
+                    If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
                         If IsHint Then Hint("未检测到可用背景图片！", HintType.Critical)
                     Else
-                        FrmMain.PublicImgBack.Visibility = Visibility.Collapsed
+                        FrmMain.ImgBack.Visibility = Visibility.Collapsed
                         If IsHint Then Hint("背景图片已清除！", HintType.Finish)
                     End If
                 End If
@@ -324,9 +324,9 @@ Public Class PageSetupUI
                     Dim Address As String = RandomOne(Pic)
                     Try
                         Log("[UI] 加载背景图片：" & Address)
-                        FrmMain.PublicImgBack.Background = New MyBitmap(Address)
+                        FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
-                        FrmMain.PublicImgBack.Visibility = Visibility.Visible
+                        FrmMain.ImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景图片已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
                         If ex.Message.Contains("参数无效") Then

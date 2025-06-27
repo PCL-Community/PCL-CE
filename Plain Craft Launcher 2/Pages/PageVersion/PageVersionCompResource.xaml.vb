@@ -694,7 +694,7 @@ Install:
         ChangeAllSelected(False)
         AniControlEnabled += CacheAniControlEnabled
     End Sub
-    Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '监听自己的事件话进入页面后不点击右侧控件就没法监听到事件 (#4311)
+    Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '若监听自己的事件则在进入页面后需点击右侧控件才可监听到 (#4311)
         If FrmMain.PageRight IsNot Me Then Return
         If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then ChangeAllSelected(True)
     End Sub

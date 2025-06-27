@@ -587,83 +587,83 @@ Public Class ModSetup
 
     '背景图片
     Public Sub UiBackgroundOpacity(Value As Integer)
-        FrmMain.PublicImgBack.Opacity = Value / 1000
+        FrmMain.ImgBack.Opacity = Value / 1000
     End Sub
     Public Sub UiBackgroundBlur(Value As Integer)
         If Value = 0 Then
-            FrmMain.PublicImgBack.Effect = Nothing
+            FrmMain.ImgBack.Effect = Nothing
         Else
-            FrmMain.PublicImgBack.Effect = New Effects.BlurEffect With {.Radius = Value + 1}
+            FrmMain.ImgBack.Effect = New Effects.BlurEffect With {.Radius = Value + 1}
         End If
-        FrmMain.PublicImgBack.Margin = New Thickness(-(Value + 1) / 1.8)
+        FrmMain.ImgBack.Margin = New Thickness(-(Value + 1) / 1.8)
     End Sub
     Public Sub UiBackgroundSuit(Value As Integer)
-        If IsNothing(FrmMain.PublicImgBack.Background) Then Return
-        Dim Width As Double = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-        Dim Height As Double = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+        If IsNothing(FrmMain.ImgBack.Background) Then Return
+        Dim Width As Double = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+        Dim Height As Double = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
         If Value = 0 Then
             '智能：当图片较小时平铺，较大时适应
-            If Width < FrmMain.PublicPanMain.ActualWidth / 2 AndAlso Height < FrmMain.PublicPanMain.ActualHeight / 2 Then
+            If Width < FrmMain.PanMain.ActualWidth / 2 AndAlso Height < FrmMain.PanMain.ActualHeight / 2 Then
                 Value = 4 '平铺
             Else
                 Value = 2 '适应
             End If
         End If
-        CType(FrmMain.PublicImgBack.Background, ImageBrush).TileMode = TileMode.None
-        CType(FrmMain.PublicImgBack.Background, ImageBrush).Viewport = New Rect(0, 0, 1, 1)
-        CType(FrmMain.PublicImgBack.Background, ImageBrush).ViewportUnits = BrushMappingMode.RelativeToBoundingBox
+        CType(FrmMain.ImgBack.Background, ImageBrush).TileMode = TileMode.None
+        CType(FrmMain.ImgBack.Background, ImageBrush).Viewport = New Rect(0, 0, 1, 1)
+        CType(FrmMain.ImgBack.Background, ImageBrush).ViewportUnits = BrushMappingMode.RelativeToBoundingBox
         Select Case Value
             Case 1 '居中
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Center
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Center
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                FrmMain.PublicImgBack.Width = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-                FrmMain.PublicImgBack.Height = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Center
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Center
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                FrmMain.ImgBack.Width = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+                FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
             Case 2 '适应
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Stretch
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.UniformToFill
-                FrmMain.PublicImgBack.Width = Double.NaN
-                FrmMain.PublicImgBack.Height = Double.NaN
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Stretch
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.UniformToFill
+                FrmMain.ImgBack.Width = Double.NaN
+                FrmMain.ImgBack.Height = Double.NaN
             Case 3 '拉伸
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Stretch
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.Fill
-                FrmMain.PublicImgBack.Width = Double.NaN
-                FrmMain.PublicImgBack.Height = Double.NaN
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Stretch
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.Fill
+                FrmMain.ImgBack.Width = Double.NaN
+                FrmMain.ImgBack.Height = Double.NaN
             Case 4 '平铺
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Stretch
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).TileMode = TileMode.Tile
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Viewport = New Rect(0, 0, CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width, CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height)
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).ViewportUnits = BrushMappingMode.Absolute
-                FrmMain.PublicImgBack.Width = Double.NaN
-                FrmMain.PublicImgBack.Height = Double.NaN
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Stretch
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Stretch
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                CType(FrmMain.ImgBack.Background, ImageBrush).TileMode = TileMode.Tile
+                CType(FrmMain.ImgBack.Background, ImageBrush).Viewport = New Rect(0, 0, CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width, CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height)
+                CType(FrmMain.ImgBack.Background, ImageBrush).ViewportUnits = BrushMappingMode.Absolute
+                FrmMain.ImgBack.Width = Double.NaN
+                FrmMain.ImgBack.Height = Double.NaN
             Case 5 '左上
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Left
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Top
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                FrmMain.PublicImgBack.Width = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-                FrmMain.PublicImgBack.Height = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Left
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Top
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                FrmMain.ImgBack.Width = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+                FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
             Case 6 '右上
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Right
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Top
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                FrmMain.PublicImgBack.Width = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-                FrmMain.PublicImgBack.Height = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Right
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Top
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                FrmMain.ImgBack.Width = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+                FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
             Case 7 '左下
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Left
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Bottom
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                FrmMain.PublicImgBack.Width = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-                FrmMain.PublicImgBack.Height = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Left
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Bottom
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                FrmMain.ImgBack.Width = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+                FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
             Case 8 '右下
-                FrmMain.PublicImgBack.HorizontalAlignment = HorizontalAlignment.Right
-                FrmMain.PublicImgBack.VerticalAlignment = VerticalAlignment.Bottom
-                CType(FrmMain.PublicImgBack.Background, ImageBrush).Stretch = Stretch.None
-                FrmMain.PublicImgBack.Width = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Width
-                FrmMain.PublicImgBack.Height = CType(FrmMain.PublicImgBack.Background, ImageBrush).ImageSource.Height
+                FrmMain.ImgBack.HorizontalAlignment = HorizontalAlignment.Right
+                FrmMain.ImgBack.VerticalAlignment = VerticalAlignment.Bottom
+                CType(FrmMain.ImgBack.Background, ImageBrush).Stretch = Stretch.None
+                FrmMain.ImgBack.Width = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Width
+                FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
         End Select
     End Sub
 

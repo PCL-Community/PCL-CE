@@ -116,11 +116,11 @@ Public Class PageVersionLeft
         AniStop("FrmMain PageChangeRight") '停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         If Target.Parent IsNot Nothing Then Target.SetValue(ContentPresenter.ContentProperty, Nothing)
         FrmMain.PageRight = Target
-        CType(FrmMain.PublicPanMainRight.Child, MyPageRight).PageOnExit()
+        CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnExit()
         AniStart({
             AaCode(Sub()
-                       CType(FrmMain.PublicPanMainRight.Child, MyPageRight).PageOnForceExit()
-            FrmMain.PublicPanMainRight.Child = FrmMain.PageRight
+                       CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
+            FrmMain.PanMainRight.Child = FrmMain.PageRight
                        FrmMain.PageRight.Opacity = 0
                    End Sub, 130),
             AaCode(Sub()
