@@ -65,100 +65,110 @@ Public Class PageVersionSaves
     End Sub
 
     Private Sub LoadFileList()
-        Log("[World] 刷新存档文件")
-        saveFolders.Clear()
-        saveFolders = Directory.EnumerateDirectories(WorldPath).ToList()
-        If ModeDebug Then Log("[World] 共发现 " & saveFolders.Count & " 个存档文件夹", LogLevel.Debug)
-        PanList.Children.Clear()
-        CheckQuickPlay()
+        Try
+            Log("[World] 刷新存档文件")
+            saveFolders.Clear()
+            saveFolders = Directory.EnumerateDirectories(WorldPath).ToList()
+            If ModeDebug Then Log("[World] 共发现 " & saveFolders.Count & " 个存档文件夹", LogLevel.Debug)
+            PanList.Children.Clear()
+            CheckQuickPlay()
 
-        If ModeDebug Then
-            If QuickPlayFeature Then
-                Log("[World] 该版本支持存档快捷启动", LogLevel.Debug)
-            Else
-                Log("[World] 该版本不支持存档快捷启动", LogLevel.Debug)
+            If ModeDebug Then
+                If QuickPlayFeature Then
+                    Log("[World] 该版本支持存档快捷启动", LogLevel.Debug)
+                Else
+                    Log("[World] 该版本不支持存档快捷启动", LogLevel.Debug)
+                End If
             End If
-        End If
 
-        For Each curFolder In saveFolders
-            Dim SaveLogo = curFolder + "\icon.png"
-            If Not File.Exists(SaveLogo) Then SaveLogo = PathImage & "Icons/NoIcon.png"
-            Dim worldItem As New MyListItem With {
-                .Logo = SaveLogo,
-                .Title = GetFolderNameFromPath(curFolder),
-                .Info = $"创建时间：{ Directory.GetCreationTime(curFolder).ToString("yyyy'/'MM'/'dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy'/'MM'/'dd")}",
-                .Type = MyListItem.CheckType.Clickable
-            }
-            AddHandler worldItem.Click, Sub()
-                                            FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
-                                        End Sub
-
-            Dim BtnOpen As New MyIconButton With {
-                .Logo = Logo.IconButtonOpen,
-                .ToolTip = "打开"
-            }
-            AddHandler BtnOpen.Click, Sub()
-                                          OpenExplorer(curFolder)
-                                      End Sub
-            Dim BtnDelete As New MyIconButton With {
-                .Logo = Logo.IconButtonDelete,
-                .ToolTip = "删除"
-            }
-            AddHandler BtnDelete.Click, Sub()
-                                            worldItem.IsEnabled = False
-                                            worldItem.Info = "删除中……"
-                                            RunInNewThread(Sub()
-                                                               Try
-                                                                   My.Computer.FileSystem.DeleteDirectory(curFolder, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
-                                                                   Hint("已将存档移至回收站！")
-                                                                   RunInUiWait(Sub() RemoveItem(worldItem))
-                                                               Catch ex As Exception
-                                                                   Log(ex, "删除存档失败！", LogLevel.Hint)
-                                                               End Try
-                                                           End Sub)
-                                        End Sub
-            Dim BtnCopy As New MyIconButton With {
-                .Logo = Logo.IconButtonCopy,
-                .ToolTip = "复制"
-            }
-            AddHandler BtnCopy.Click, Sub()
-                                          Try
-                                              If Directory.Exists(curFolder) Then
-                                                  Clipboard.SetFileDropList(New Specialized.StringCollection() From {curFolder})
-                                                  Hint("已复制存档文件夹到剪贴板！")
-                                              Else
-                                                  Hint("存档文件夹不存在！")
-                                              End If
-                                          Catch ex As Exception
-                                              Log(ex, "复制失败……", LogLevel.Hint)
-                                          End Try
-                                      End Sub
-            Dim BtnInfo As New MyIconButton With {
-                .Logo = Logo.IconButtonInfo,
-                .ToolTip = "详情"
-            }
-            AddHandler BtnInfo.Click, Sub()
-                                          FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
-                                      End Sub
-
-            Dim BtnLaunch As New MyIconButton With {
-                    .Logo = Logo.IconPlayGame,
-                    .ToolTip = "快捷启动"
+            For Each curFolder In saveFolders
+                Dim saveLogo = curFolder + "\icon.png"
+                If File.Exists(saveLogo) Then
+                    Dim target = $"{PageVersionLeft.Version.Path}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
+                    CopyFile(saveLogo, target)
+                    saveLogo = target
+                Else
+                    saveLogo = PathImage & "Icons/NoIcon.png"
+                End If
+                Dim worldItem As New MyListItem With {
+                    .Logo = saveLogo,
+                    .Title = GetFolderNameFromPath(curFolder),
+                    .Info = $"创建时间：{ Directory.GetCreationTime(curFolder).ToString("yyyy'/'MM'/'dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy'/'MM'/'dd")}",
+                    .Type = MyListItem.CheckType.Clickable
                 }
-            AddHandler BtnLaunch.Click, Sub()
-                                            Dim WorldName = GetFileNameFromPath(curFolder)
-                                            Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
-                                            ModLaunch.McLaunchStart(LaunchOptions)
-                                            FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                                        End Sub
-            If QuickPlayFeature Then
-                worldItem.Buttons = {BtnOpen, BtnDelete, BtnCopy, BtnInfo, BtnLaunch}
-            Else
-                worldItem.Buttons = {BtnOpen, BtnDelete, BtnCopy, BtnInfo}
-            End If
+                AddHandler worldItem.Click, Sub()
+                                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
+                                            End Sub
 
-            PanList.Children.Add(worldItem)
-        Next
+                Dim BtnOpen As New MyIconButton With {
+                    .Logo = Logo.IconButtonOpen,
+                    .ToolTip = "打开"
+                }
+                AddHandler BtnOpen.Click, Sub()
+                                              OpenExplorer(curFolder)
+                                          End Sub
+                Dim BtnDelete As New MyIconButton With {
+                    .Logo = Logo.IconButtonDelete,
+                    .ToolTip = "删除"
+                }
+                AddHandler BtnDelete.Click, Sub()
+                                                worldItem.IsEnabled = False
+                                                worldItem.Info = "删除中……"
+                                                RunInNewThread(Sub()
+                                                                   Try
+                                                                       My.Computer.FileSystem.DeleteDirectory(curFolder, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                                                                       Hint("已将存档移至回收站！")
+                                                                       RunInUiWait(Sub() RemoveItem(worldItem))
+                                                                   Catch ex As Exception
+                                                                       Log(ex, "删除存档失败！", LogLevel.Hint)
+                                                                   End Try
+                                                               End Sub)
+                                            End Sub
+                Dim BtnCopy As New MyIconButton With {
+                    .Logo = Logo.IconButtonCopy,
+                    .ToolTip = "复制"
+                }
+                AddHandler BtnCopy.Click, Sub()
+                                              Try
+                                                  If Directory.Exists(curFolder) Then
+                                                      Clipboard.SetFileDropList(New Specialized.StringCollection() From {curFolder})
+                                                      Hint("已复制存档文件夹到剪贴板！")
+                                                  Else
+                                                      Hint("存档文件夹不存在！")
+                                                  End If
+                                              Catch ex As Exception
+                                                  Log(ex, "复制失败……", LogLevel.Hint)
+                                              End Try
+                                          End Sub
+                Dim BtnInfo As New MyIconButton With {
+                    .Logo = Logo.IconButtonInfo,
+                    .ToolTip = "详情"
+                }
+                AddHandler BtnInfo.Click, Sub()
+                                              FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
+                                          End Sub
+
+                Dim BtnLaunch As New MyIconButton With {
+                        .Logo = Logo.IconPlayGame,
+                        .ToolTip = "快捷启动"
+                    }
+                AddHandler BtnLaunch.Click, Sub()
+                                                Dim WorldName = GetFileNameFromPath(curFolder)
+                                                Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
+                                                ModLaunch.McLaunchStart(LaunchOptions)
+                                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                                            End Sub
+                If QuickPlayFeature Then
+                    worldItem.Buttons = {BtnOpen, BtnDelete, BtnCopy, BtnInfo, BtnLaunch}
+                Else
+                    worldItem.Buttons = {BtnOpen, BtnDelete, BtnCopy, BtnInfo}
+                End If
+
+                PanList.Children.Add(worldItem)
+            Next
+        Catch ex As Exception
+            Log(ex, "载入存档列表失败", LogLevel.Hint)
+        End Try
         RefreshUI()
     End Sub
 
