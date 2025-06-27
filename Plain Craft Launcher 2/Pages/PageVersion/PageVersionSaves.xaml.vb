@@ -10,7 +10,7 @@ Public Class PageVersionSaves
         CheckQuickPlay()
     End Sub
     Public Shared Sub Refresh()
-        If FrmVersionWorld IsNot Nothing Then FrmVersionWorld.Reload()
+        If FrmVersionSaves IsNot Nothing Then FrmVersionSaves.Reload()
         FrmVersionLeft.ItemWorld.Checked = True
         Hint("正在刷新……", Log:=False)
     End Sub
@@ -122,8 +122,8 @@ Public Class PageVersionSaves
                                                                            PageVersionSavesBackup.SnapInstance.Remove(curFolder)
                                                                        End If
                                                                        My.Computer.FileSystem.DeleteDirectory(curFolder, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
-                                                                           Hint("已将存档移至回收站！")
-                                                                           RunInUiWait(Sub() RemoveItem(worldItem))
+                                                                       Hint("已将存档移至回收站！")
+                                                                       RunInUiWait(Sub() RemoveItem(worldItem))
                                                                    Catch ex As Exception
                                                                        Log(ex, "删除存档失败！", LogLevel.Hint)
                                                                    End Try
@@ -187,27 +187,36 @@ Public Class PageVersionSaves
         OpenExplorer(WorldPath)
     End Sub
     Private Sub BtnPaste_Click(sender As Object, e As MouseButtonEventArgs)
-        Hint("正在粘贴存档文件夹，这可能一段时间……")
         Dim files As Specialized.StringCollection = Clipboard.GetFileDropList()
-        Dim Copied = 0
-        For Each i In files
-            Try
-                If Directory.Exists(i) Then
-                    If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
-                        Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
-                    Else
-                        CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
-                        Copied += 1
-                    End If
-                Else
-                    Hint("源文件夹不存在或源目标不是文件夹")
-                End If
-            Catch ex As Exception
-                Log(ex, "粘贴存档文件夹失败", LogLevel.Hint)
-                Continue For
-            End Try
-        Next
-        If Copied > 0 Then Hint("已粘贴 " & Copied & " 个文件夹", HintType.Finish)
-        LoadFileList()
+        Dim loaders As New List(Of LoaderBase)
+        loaders.Add(New LoaderTask(Of Integer, Integer)("Copy saves", Sub()
+                                                                          Dim Copied = 0
+                                                                          For Each i In files
+                                                                              Try
+                                                                                  If Directory.Exists(i) Then
+                                                                                      If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
+                                                                                          Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
+                                                                                      Else
+                                                                                          CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
+                                                                                          Copied += 1
+                                                                                      End If
+                                                                                  Else
+                                                                                      Hint("源文件夹不存在或源目标不是文件夹")
+                                                                                  End If
+                                                                              Catch ex As Exception
+                                                                                  Log(ex, "粘贴存档文件夹失败", LogLevel.Hint)
+                                                                                  Continue For
+                                                                              End Try
+                                                                          Next
+                                                                          If Copied > 0 Then Hint("已粘贴 " & Copied & " 个文件夹", HintType.Finish)
+                                                                          RunInUi(Sub() FrmVersionSaves?.RefreshUI())
+                                                                      End Sub))
+        Dim loader As New LoaderCombo(Of Integer)($"{PageVersionLeft.Version.Name} - 复制存档", loaders) With {
+            .OnStateChanged = AddressOf LoaderStateChangedHintOnly
+        }
+        loader.Start(1)
+        LoaderTaskbarAdd(loader)
+        FrmMain.BtnExtraDownload.ShowRefresh()
+        FrmMain.BtnExtraDownload.Ribble()
     End Sub
 End Class

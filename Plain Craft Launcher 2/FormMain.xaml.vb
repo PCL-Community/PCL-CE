@@ -717,7 +717,7 @@ Public Class FormMain
                         End If
                         ExtractFile(FilePath, DestFolder)
                         Hint($"已导入 {GetFileNameWithoutExtentionFromPath(FilePath)}", HintType.Finish)
-                        If FrmVersionWorld IsNot Nothing Then RunInUi(Sub() FrmVersionWorld.Reload())
+                        If FrmVersionSaves IsNot Nothing Then RunInUi(Sub() FrmVersionSaves.Reload())
                         Exit Sub
                     Case PageSubType.VersionResourcePack
                         Dim DestFile = PageVersionLeft.Version.PathIndie + "resourcepacks\" + GetFileNameFromPath(FilePath)

@@ -72,8 +72,8 @@ Public Class PageVersionLeft
                 If IsNothing(FrmVersionSetup) Then FrmVersionSetup = New PageVersionSetup
                 Return FrmVersionSetup
             Case FormMain.PageSubType.VersionWorld
-                If FrmVersionWorld Is Nothing Then FrmVersionWorld = New PageVersionSaves
-                Return FrmVersionWorld
+                If FrmVersionSaves Is Nothing Then FrmVersionSaves = New PageVersionSaves
+                Return FrmVersionSaves
             Case FormMain.PageSubType.VersionScreenshot
                 If FrmVersionScreenshot Is Nothing Then FrmVersionScreenshot = New PageVersionScreenshot
                 Return FrmVersionScreenshot
