@@ -11,6 +11,29 @@ Public Module ModLocalComp
         ''' 资源的文件的地址。
         ''' </summary>
         Public ReadOnly Path As String
+        
+        ''' <summary>
+        ''' 是否为文件夹项。
+        ''' </summary>
+        Public ReadOnly Property IsFolder As Boolean
+            Get
+                Return Path.EndsWithF("\__FOLDER__", True)
+            End Get
+        End Property
+        
+        ''' <summary>
+        ''' 获取实际的文件夹路径（去除 __FOLDER__ 标记）。
+        ''' </summary>
+        Public ReadOnly Property ActualPath As String
+            Get
+                If IsFolder Then
+                    Return Path.Replace("\__FOLDER__", "")
+                Else
+                    Return Path
+                End If
+            End Get
+        End Property
+        
         Public Sub New(Path As String)
             Me.Path = If(Path, "")
         End Sub
@@ -28,7 +51,11 @@ Public Module ModLocalComp
         ''' </summary>
         Public ReadOnly Property FileName As String
             Get
-                Return GetFileNameFromPath(Path)
+                If IsFolder AndAlso Not String.IsNullOrEmpty(Name) Then
+                    Return Name
+                Else
+                    Return GetFileNameFromPath(Path)
+                End If
             End Get
         End Property
 
@@ -73,7 +100,13 @@ Public Module ModLocalComp
             Get
                 If _Name Is Nothing Then Load()
                 If _Name Is Nothing Then _Name = _ModId
-                If _Name Is Nothing Then _Name = GetFileNameWithoutExtentionFromPath(Path)
+                If _Name Is Nothing Then
+                    If IsFolder Then
+                        _Name = GetFolderNameFromPath(ActualPath)
+                    Else
+                        _Name = GetFileNameWithoutExtentionFromPath(Path)
+                    End If
+                End If
                 Return _Name
             End Get
             Set(value As String)
@@ -294,6 +327,19 @@ Public Module ModLocalComp
                 IsLoaded = True
                 Return
             End If
+            
+            '对于文件夹项，检查实际文件夹路径是否存在
+            If IsFolder Then
+                If Not Directory.Exists(ActualPath) Then
+                    _FileUnavailableReason = New DirectoryNotFoundException("未找到文件夹（" & ActualPath & "）")
+                    IsLoaded = True
+                    Return
+                End If
+                '文件夹项不需要进一步处理
+                IsLoaded = True
+                Return
+            End If
+            
             If Not File.Exists(Path) Then 
                 _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & "）")
                 IsLoaded = True
@@ -926,6 +972,19 @@ Finished:
 
     End Class
 
+    ''' <summary>
+    ''' 获取文件夹描述信息。
+    ''' </summary>
+    Private Function GetFolderDescription(FolderPath As String) As String
+        Try
+            If Not Directory.Exists(FolderPath) Then Return "空文件夹"
+            Return "文件夹"
+        Catch ex As Exception
+            Log($"[错误] 获取文件夹描述失败：{FolderPath}，错误：{ex.Message}", LogLevel.Debug)
+            Return "文件夹"
+        End Try
+    End Function
+
     Public Class CompLocalLoaderData
         Public GameVersion As McVersion
         Public Loaders As List(Of CompLoaderType)
@@ -961,17 +1020,53 @@ Finished:
             Dim ModFileList As New List(Of FileInfo)
             If Directory.Exists(Loader.Input.CompPath) Then
                 Dim RawName As String = Loader.Input.CompPath.ToLower
-                For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
-                    If File.DirectoryName.ToLower & "\" <> RawName Then
-                        '仅当 Forge 1.13- 且文件夹名与版本号相同时，才加载该子文件夹下的 Mod
-                        If Not (PageVersionLeft.Version IsNot Nothing AndAlso PageVersionLeft.Version.Version.HasForge AndAlso
-                                PageVersionLeft.Version.Version.McCodeMain < 13 AndAlso
-                                File.Directory.Name = $"1.{PageVersionLeft.Version.Version.McCodeMain}.{PageVersionLeft.Version.Version.McCodeSub}") Then
-                            Continue For
-                        End If
+                
+                '对于原理图类型，需要特殊处理文件夹显示
+                If Loader.Input.CompType = CompType.Schematic Then
+                    '获取当前文件夹路径
+                    Dim CurrentFolderPath As String = ""
+                    If Loader.Input.Frm IsNot Nothing Then
+                        CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath
                     End If
-                    If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
-                Next
+                    
+                    Dim SearchPath As String = If(String.IsNullOrEmpty(CurrentFolderPath), Loader.Input.CompPath, CurrentFolderPath)
+                    
+                    '添加当前文件夹下的文件
+                    Try
+                        For Each File As FileInfo In New DirectoryInfo(SearchPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly)
+                            Try
+                                If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
+                            Catch ex As Exception
+                                Log($"[错误] 处理文件失败：{File.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                '跳过有问题的文件，继续处理其他文件
+                            End Try
+                        Next
+                    Catch ex As Exception
+                        Log($"[错误] 枚举文件失败：{SearchPath}，错误：{ex.Message}")
+                    End Try
+                Else
+                    '其他类型保持原有逻辑
+                    Try
+                        For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
+                            Try
+                                If File.DirectoryName.ToLower & "\" <> RawName Then
+                                    '仅当 Forge 1.13- 且文件夹名与版本号相同时，才加载该子文件夹下的 Mod
+                                    If Not (PageVersionLeft.Version IsNot Nothing AndAlso PageVersionLeft.Version.Version.HasForge AndAlso
+                                            PageVersionLeft.Version.Version.McCodeMain < 13 AndAlso
+                                            File.Directory.Name = $"1.{PageVersionLeft.Version.Version.McCodeMain}.{PageVersionLeft.Version.Version.McCodeSub}") Then
+                                        Continue For
+                                    End If
+                                End If
+                                If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
+                            Catch ex As Exception
+                                Log($"[错误] 处理文件失败：{File.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                '跳过有问题的文件，继续处理其他文件
+                            End Try
+                        Next
+                    Catch ex As Exception
+                        Log($"[错误] 枚举文件失败：{Loader.Input.CompPath}，错误：{ex.Message}")
+                    End Try
+                End If
             End If
 
             '确定是否显示进度
@@ -999,6 +1094,38 @@ Finished:
             '加载 Mod 列表
             Dim ModList As New List(Of LocalCompFile)
             Dim ModUpdateList As New List(Of LocalCompFile)
+            
+            '对于原理图类型，在根目录时添加文件夹项
+            If Loader.Input.CompType = CompType.Schematic AndAlso Directory.Exists(Loader.Input.CompPath) Then
+                '获取当前文件夹路径
+                Dim CurrentFolderPath As String = ""
+                If Loader.Input.Frm IsNot Nothing Then
+                    CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath
+                End If
+                
+                Dim SearchPath As String = If(String.IsNullOrEmpty(CurrentFolderPath), Loader.Input.CompPath, CurrentFolderPath)
+                
+                '只在根目录时显示子文件夹
+                If String.IsNullOrEmpty(CurrentFolderPath) Then
+                    Try
+                        For Each SubDir As DirectoryInfo In New DirectoryInfo(SearchPath).EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
+                            Try
+                                '创建一个特殊的 LocalCompFile 来表示文件夹
+                                Dim FolderEntry As New LocalCompFile(SubDir.FullName & "\__FOLDER__")
+                                FolderEntry.Name = SubDir.Name
+                                FolderEntry.Description = GetFolderDescription(SubDir.FullName)
+                                ModList.Add(FolderEntry)
+                            Catch ex As Exception
+                                Log($"[错误] 处理文件夹失败：{SubDir.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                '跳过有问题的文件夹，继续处理其他文件夹
+                            End Try
+                        Next
+                    Catch ex As Exception
+                        Log($"[错误] 枚举文件夹失败：{SearchPath}，错误：{ex.Message}")
+                    End Try
+                End If
+            End If
+            
             For Each ModFile As FileInfo In ModFileList
                 Loader.Progress += 0.94 / ModFileList.Count
                 If Loader.IsAborted Then Return

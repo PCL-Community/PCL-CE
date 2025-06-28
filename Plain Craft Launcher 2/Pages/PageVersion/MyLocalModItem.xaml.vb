@@ -359,16 +359,25 @@ Public Class MyLocalCompItem
             End If
             '标题与描述
             Dim DescFileName As String
-            Select Case Entry.State
-                Case LocalCompFile.LocalFileStatus.Fine
-                    DescFileName = GetFileNameWithoutExtentionFromPath(Entry.Path)
-                Case LocalCompFile.LocalFileStatus.Disabled
-                    DescFileName = GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "").Replace(".old", ""))
-                Case Else 'McMod.McModState.Unavailable
-                    DescFileName = GetFileNameFromPath(Entry.Path)
-            End Select
+            If Entry.IsFolder Then
+                '文件夹项的特殊处理
+                DescFileName = Entry.Name
+            Else
+                Select Case Entry.State
+                    Case LocalCompFile.LocalFileStatus.Fine
+                        DescFileName = GetFileNameWithoutExtentionFromPath(Entry.Path)
+                    Case LocalCompFile.LocalFileStatus.Disabled
+                        DescFileName = GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "").Replace(".old", ""))
+                    Case Else 'McMod.McModState.Unavailable
+                        DescFileName = GetFileNameFromPath(Entry.Path)
+                End Select
+            End If
             Dim NewDescription As String
-            If Setup.Get("ToolModLocalNameStyle") = 1 Then
+            If Entry.IsFolder Then
+                '文件夹项的特殊显示
+                Title = Entry.Name
+                NewDescription = Entry.Description
+            ElseIf Setup.Get("ToolModLocalNameStyle") = 1 Then
                 '标题显示文件名，详情显示译名
                 '标题
                 Title = DescFileName
@@ -410,7 +419,11 @@ Public Class MyLocalCompItem
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty, If(Entry.State = LocalCompFile.LocalFileStatus.Fine, "ColorBrush1", "ColorBrushGray4"))
             End If
             '主 Logo
-            Logo = Entry.GetLogo
+            If Entry.IsFolder Then
+                Logo = PathImage & "Icons/NoIcon.png"
+            Else
+                Logo = Entry.GetLogo
+            End If
             '图标右下角的 Logo
             If Entry.State = LocalCompFile.LocalFileStatus.Fine Then
                 If ImgState IsNot Nothing Then
@@ -434,7 +447,12 @@ Public Class MyLocalCompItem
                 ImgState.Source = New MyBitmap(PathImage & $"Icons/{Entry.State}.png")
             End If
             '标签
-            If Entry.Comp IsNot Nothing Then Tags = Entry.Comp.Tags
+            If Entry.IsFolder Then
+                ' 为文件夹添加标签
+                Tags = New List(Of String) From {"文件夹"}
+            ElseIf Entry.Comp IsNot Nothing Then
+                Tags = Entry.Comp.Tags
+            End If
         End Sub)
     End Sub
 
