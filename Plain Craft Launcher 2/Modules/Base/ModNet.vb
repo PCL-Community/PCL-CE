@@ -4,6 +4,8 @@ Imports System.Runtime.InteropServices
 Imports System.Net.Http
 Imports System.Threading.Tasks
 
+Imports LiteDB
+
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
 
@@ -790,6 +792,26 @@ Retry:
         Public Source As NetSource
 
     End Class
+
+    Private _eTagDatabase As LiteDatabase
+    Private ReadOnly _eTagDatabaseGetLock As New Object
+    Public ReadOnly Property ETagDatabase As LiteDatabase
+        Get
+            SyncLock (_eTagDatabaseGetLock)
+                If _eTagDatabase Is Nothing Then _eTagDatabase = New LiteDatabase($"Filename={PathTemp}Cache\ETag.db")
+                Return _eTagDatabase
+            End SyncLock
+        End Get
+    End Property
+
+    Public Class ETagData
+        Public Property EID As String
+        Public Property Host As String
+        Public Property File As String
+        Public Property Hash As String
+        Public Property Length As Long
+    End Class
+
     ''' <summary>
     ''' 下载单个文件。
     ''' </summary>
@@ -858,6 +880,8 @@ Retry:
         ''' 存储在本地的文件名。
         ''' </summary>
         Public LocalName As String = Nothing
+
+        Private ETagStatus As ETagData
 
         ''' <summary>
         ''' 当前的下载状态。
@@ -1149,6 +1173,49 @@ StartThread:
                         If Redirected <> Info.Source.Url Then
                             Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
                             Info.Source.Url = Redirected
+                        End If
+
+                        'ETag Cache
+                        If Info.IsFirstThread Then
+                            Dim etag = response.Headers?.ETag?.Tag
+                            Dim host = response.RequestMessage.RequestUri.Host
+                            If Not String.IsNullOrEmpty(etag) Then
+                                '标记有 ETag
+                                Log($"[Net] 标记 ETag 信息 {etag}")
+                                ETagStatus = New ETagData With {
+                                            .Host = host,
+                                            .EID = etag
+                                        }
+                                '查询缓存
+                                Dim etags = ETagDatabase.GetCollection(Of ETagData)("ETag")
+                                Dim queryPa = Query.And(
+                                    Query.EQ("EID", New BsonValue(etag)),
+                                    Query.EQ("Host", New BsonValue(host))
+                                    )
+                                Dim etagCache = etags.Find(queryPa)
+                                If etagCache.Any() Then
+                                    Log($"[Net] 击中 ETag 缓存 {host} -> {etag}")
+                                    Dim cache = etagCache.First()
+                                    Dim checker As New FileChecker(Hash:=cache.Hash, ActualSize:=cache.Length)
+                                    If checker.Check(cache.File) Is Nothing Then
+                                        LocalPath = cache.File
+                                        Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomInteger(0, 999999)}.tmp"
+                                        Using cacheFile As New FileStream(cache.File, FileMode.Open, FileAccess.Read, FileShare.Read)
+                                            Using tempFile As New FileStream(Info.Temp, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                                                cacheFile.CopyTo(tempFile)
+                                                Info.DownloadDone = cacheFile.Length
+                                                ContentLength = Info.DownloadDone
+                                            End Using
+                                        End Using
+                                        Info.State = NetState.Download
+                                        GoTo SourceBreak
+                                    Else
+                                        Log("[Net] 清空多个无效缓存")
+                                        etags.DeleteMany(Query.EQ("File", New BsonValue(cache.File)))
+                                    End If
+                                End If
+                            End If
+
                         End If
                         ''从响应头获取文件名
                         'If Info.IsFirstThread Then
@@ -1470,6 +1537,20 @@ Retry:
                             Log($"[Download]     {Th.Uuid}#，状态 {GetStringFromEnum(Th.State)}，范围 {Th.DownloadStart}~{Th.DownloadStart + Th.DownloadDone}，完成 {Th.DownloadDone}，剩余 {Th.DownloadUndone}")
                         Next
                         Throw New Exception(CheckResult)
+                    End If
+                    'ETag 缓存
+                    If ETagStatus IsNot Nothing Then
+                        Log($"[Net] 保存 ETag 状态 {ETagStatus.Host} -> {ETagStatus.EID}")
+                        Dim etags = ETagDatabase.GetCollection(Of ETagData)("ETag")
+                        Dim qu = Query.And(
+                            Query.EQ("Host", New BsonValue(ETagStatus.Host)),
+                            Query.EQ("EID", New BsonValue(ETagStatus.EID)),
+                            Query.EQ("File", New BsonValue(LocalPath)))
+                        If Not etags.Find(qu).Any() Then
+                            ETagStatus.Hash = GetFileSHA256(LocalPath)
+                            ETagStatus.File = LocalPath
+                            etags.Insert(ETagStatus)
+                        End If
                     End If
                     '后处理
                     If IsNoSplit Then
