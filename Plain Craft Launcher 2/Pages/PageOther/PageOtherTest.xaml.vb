@@ -490,6 +490,12 @@ Public Class PageOtherTest
                                                    bitmapImage.EndInit()
                                                End Using
                                                ImgServerLogo.Source = bitmapImage
+                                           Else
+                                               Dim defaultImage As New BitmapImage()
+                                               defaultImage.BeginInit()
+                                               defaultImage.UriSource = New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/icon.ico")
+                                               defaultImage.EndInit()
+                                               ImgServerLogo.Source = defaultImage
                                            End If
                                        End Sub)
                                Hint("查询完成", HintType.Finish)
