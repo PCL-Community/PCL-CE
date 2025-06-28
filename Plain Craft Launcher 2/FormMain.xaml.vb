@@ -729,7 +729,7 @@ Public Class FormMain
                         End If
                         ExtractFile(FilePath, DestFolder)
                         Hint($"已导入 {GetFileNameWithoutExtentionFromPath(FilePath)}", HintType.Finish)
-                        If FrmVersionWorld IsNot Nothing Then RunInUi(Sub() FrmVersionWorld.Reload())
+                        If FrmVersionSaves IsNot Nothing Then RunInUi(Sub() FrmVersionSaves.Reload())
                         Exit Sub
                     Case PageSubType.VersionResourcePack
                         Dim DestFile = PageVersionLeft.Version.PathIndie + "resourcepacks\" + GetFileNameFromPath(FilePath)
@@ -943,6 +943,10 @@ Public Class FormMain
         ''' Java 管理，这是一个副页面。
         ''' </summary>
         SetupJava = 11
+        ''' <summary>
+        ''' 存档详细管理，这是一个副业面
+        ''' </summary>
+        VersionSaves = 12
     End Enum
     ''' <summary>
     ''' 次要页面种类。其数值必须与 StackPanel 中的下标一致。
@@ -991,6 +995,7 @@ Public Class FormMain
         VersionShader = 8
         VersionSchematic = 9
         VersionInstall = 10
+        VersionSavesBackup = 0
     End Enum
     ''' <summary>
     ''' 获取次级页面的名称。若并非次级页面则返回空字符串，故可以以此判断是否为次级页面。
@@ -1011,6 +1016,8 @@ Public Class FormMain
                 Return CType(Stack.Additional(0), HelpEntry).Title
             Case PageType.SetupJava
                 Return "Java 管理"
+            Case PageType.VersionSaves
+                Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case Else
                 Return ""
         End Select
@@ -1255,6 +1262,10 @@ Public Class FormMain
                     PageChangeAnim(New MyPageLeft, FrmDownloadCompDetail)
                 Case PageType.HelpDetail '帮助详情
                     PageChangeAnim(New MyPageLeft, Stack.Additional(1))
+                Case PageType.VersionSaves '存档管理
+                    If FrmVersionSavesLeft Is Nothing Then FrmVersionSavesLeft = New PageVersionSavesLeft
+                    PageVersionSavesLeft.CurrentSave = Stack.Additional
+                    PageChangeAnim(FrmVersionSavesLeft, FrmVersionSavesLeft.PageGet(SubType))
             End Select
 #End Region
 

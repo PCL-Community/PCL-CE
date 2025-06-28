@@ -451,8 +451,14 @@
     <Compile Include="Pages\PageVersion\PageVersionModDisabled.xaml.vb">
       <DependentUpon>PageVersionModDisabled.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionWorld.xaml.vb">
-      <DependentUpon>PageVersionWorld.xaml</DependentUpon>
+    <Compile Include="Pages\PageVersion\PageVersionSaves.xaml.vb">
+      <DependentUpon>PageVersionSaves.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml.vb">
+      <DependentUpon>PageVersionSavesBackup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml.vb">
+      <DependentUpon>PageVersionSavesLeft.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageVersion\PageVersionScreenshot.xaml.vb">
       <DependentUpon>PageVersionScreenshot.xaml</DependentUpon>
@@ -770,7 +776,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionWorld.xaml">
+    <Page Include="Pages\PageVersion\PageVersionSaves.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
