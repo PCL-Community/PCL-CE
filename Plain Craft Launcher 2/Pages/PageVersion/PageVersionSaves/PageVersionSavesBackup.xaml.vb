@@ -57,10 +57,12 @@ Class PageVersionSavesBackup
                                                If MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1:="确定", Button2:="取消") = 2 Then Return
                                                Hint("应用快照中，请勿执行其他操作！")
                                                Dim loaders As New List(Of LoaderBase)
-                                               loaders.Add(New LoaderTask(Of Integer, Integer)("Apply", Async Sub()
-                                                                                                            Await _currentInstance.ApplyPastVersion(item.NodeId)
-                                                                                                            Hint("快照应用已完成", HintType.Finish)
-                                                                                                        End Sub))
+                                               loaders.Add(New LoaderTask(Of Integer, Integer)("搜寻并应用文件", Sub(load As LoaderTask(Of Integer, Integer))
+                                                                                                              load.Progress = 0.2
+                                                                                                              _currentInstance.ApplyPastVersion(item.NodeId).GetAwaiter().GetResult()
+                                                                                                              load.Progress = 1
+                                                                                                              Hint("快照应用已完成", HintType.Finish)
+                                                                                                          End Sub))
                                                Dim loader As New LoaderCombo(Of Integer)($"{item.Name} - 备份应用", loaders)
                                                loader.Start(1)
                                                LoaderTaskbarAdd(loader)
@@ -86,10 +88,12 @@ Class PageVersionSavesBackup
                                                 If String.IsNullOrEmpty(savePath) Then Return
                                                 Hint("快照导出中，请勿执行其他操作！")
                                                 Dim loaders As New List(Of LoaderBase)
-                                                loaders.Add(New LoaderTask(Of Integer, Integer)("Export", Async Sub()
-                                                                                                              Await _currentInstance.Export(item.NodeId, savePath)
-                                                                                                              Hint("快照导出已完成", HintType.Finish)
-                                                                                                          End Sub))
+                                                loaders.Add(New LoaderTask(Of Integer, Integer)("制作压缩包", Sub(load As LoaderTask(Of Integer, Integer))
+                                                                                                             load.Progress = 0.2
+                                                                                                             _currentInstance.Export(item.NodeId, savePath).GetAwaiter().GetResult()
+                                                                                                             load.Progress = 1
+                                                                                                             Hint("快照导出已完成", HintType.Finish)
+                                                                                                         End Sub))
                                                 Dim loader As New LoaderCombo(Of Integer)($"{item.Name} - 导出备份", loaders)
                                                 loader.Start(1)
                                                 LoaderTaskbarAdd(loader)
@@ -133,11 +137,13 @@ Class PageVersionSavesBackup
             BtnCreate.IsEnabled = False
             Hint("开始备份任务，请勿执行其他操作！")
             Dim loaders As New List(Of LoaderBase)
-            loaders.Add(New LoaderTask(Of Integer, Integer)("Export", Async Sub()
-                                                                          Await _currentInstance.CreateNewVersion(input)
-                                                                          Hint("备份已完成", HintType.Finish)
-                                                                          RunInUi(Sub() RefreshList())
-                                                                      End Sub))
+            loaders.Add(New LoaderTask(Of Integer, Integer)("搜寻并制作备份", Sub(load As LoaderTask(Of Integer, Integer))
+                                                                           load.Progress = 0.2
+                                                                           _currentInstance.CreateNewVersion(input).GetAwaiter().GetResult()
+                                                                           Hint("备份已完成", HintType.Finish)
+                                                                           load.Progress = 1
+                                                                           RunInUi(Sub() RefreshList())
+                                                                       End Sub))
             Dim loader As New LoaderCombo(Of Integer)($"{input} - 导出备份", loaders)
             loader.Start(1)
             LoaderTaskbarAdd(loader)
