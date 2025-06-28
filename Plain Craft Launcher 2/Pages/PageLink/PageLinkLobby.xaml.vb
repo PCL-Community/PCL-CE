@@ -1,6 +1,4 @@
-﻿Imports System.Net.Sockets
-
-Public Class PageLinkLobby
+﻿Public Class PageLinkLobby
     '记录的启动情况
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
@@ -106,14 +104,16 @@ Public Class PageLinkLobby
                                '公告
                                Dim Notices As JArray = Jobj("notices")
                                Dim NoticeLatest As JObject = Notices(0)
-                               If NoticeLatest("type") = "important" Then
-                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Red)
-                               ElseIf NoticeLatest("type") = "warning" Then
-                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Yellow)
-                               Else
-                                   RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Blue)
+                               If Not String.IsNullOrWhiteSpace(NoticeLatest("content").ToString()) Then
+                                   If NoticeLatest("type") = "important" Then
+                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Red)
+                                   ElseIf NoticeLatest("type") = "warning" Then
+                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Yellow)
+                                   Else
+                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Blue)
+                                   End If
+                                   RunInUi(Sub() HintAnnounce.Text = NoticeLatest("content").ToString().Replace("\n", vbCrLf))
                                End If
-                               RunInUi(Sub() HintAnnounce.Text = NoticeLatest("content").ToString().Replace("\n", vbCrLf))
                                '中继服务器
                                Dim Relays As JArray = Jobj("relays")
                                ETServerDefList = New List(Of ETRelay)

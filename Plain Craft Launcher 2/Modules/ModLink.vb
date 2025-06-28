@@ -577,11 +577,11 @@ Public Module ModLink
                                                                                                               Hint("联机组件下载完成！", HintType.Finish)
                                                                                                           End Sub)))
                                '启动
-                               DlEasyTierLoader = New LoaderCombo(Of JObject)("EasyTier 下载", Loaders)
+                               DlEasyTierLoader = New LoaderCombo(Of JObject)("EasyTier 初始化", Loaders)
                                DlEasyTierLoader.Start()
-                               'LoaderTaskbarAdd(Loader)
-                               'FrmMain.BtnExtraDownload.ShowRefresh()
-                               'FrmMain.BtnExtraDownload.Ribble()
+                               LoaderTaskbarAdd(DlEasyTierLoader)
+                               FrmMain.BtnExtraDownload.ShowRefresh()
+                               FrmMain.BtnExtraDownload.Ribble()
                            Catch ex As Exception
                                Log(ex, "[Link] 下载 EasyTier 依赖文件失败", LogLevel.Hint)
                                Hint("下载 EasyTier 依赖文件失败，请检查网络连接", HintType.Critical)
