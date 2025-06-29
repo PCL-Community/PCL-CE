@@ -30,23 +30,7 @@ Public Class LocalCompFolder
             Return New DirectoryInfo(Path).EnumerateFiles("*", SearchOption.AllDirectories).Where(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Schematic)).Count()
         End Get
     End Property
-    
-    ''' <summary>
-    ''' 文件夹描述信息。
-    ''' </summary>
-    Public ReadOnly Property Description As String
-        Get
-            Dim count = FileCount
-            If count = 0 Then
-                Return "空文件夹"
-            ElseIf count = 1 Then
-                Return "1 个原理图文件"
-            Else
-                Return $"{count} 个原理图文件"
-            End If
-        End Get
-    End Property
-    
+     
     ''' <summary>
     ''' 是否为文件夹类型。
     ''' </summary>
