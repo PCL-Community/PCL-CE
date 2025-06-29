@@ -1105,7 +1105,7 @@ Finished:
             If Not Directory.Exists(FolderPath) Then Return "空文件夹"
             Return "文件夹"
         Catch ex As Exception
-            Log($"[错误] 获取文件夹描述失败：{FolderPath}，错误：{ex.Message}", LogLevel.Debug)
+            Log(ex, $"获取文件夹描述失败：{FolderPath}", LogLevel.Debug)
             Return "文件夹"
         End Try
     End Function
