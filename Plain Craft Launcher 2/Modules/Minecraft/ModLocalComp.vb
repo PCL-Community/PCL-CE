@@ -1162,12 +1162,12 @@ Finished:
                             Try
                                 If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
                             Catch ex As Exception
-                                Log($"[错误] 处理文件失败：{File.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                Log(ex, $"处理文件失败：{File.FullName}", LogLevel.Debug)
                                 '跳过有问题的文件，继续处理其他文件
                             End Try
                         Next
                     Catch ex As Exception
-                        Log($"[错误] 枚举文件失败：{SearchPath}，错误：{ex.Message}")
+                        Log(ex, $"枚举文件失败：{SearchPath}")
                     End Try
                 Else
                     '其他类型保持原有逻辑
@@ -1184,7 +1184,7 @@ Finished:
                                 End If
                                 If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
                             Catch ex As Exception
-                                Log($"[错误] 处理文件失败：{File.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                Log(ex, $"处理文件失败：{File.FullName}", LogLevel.Debug)
                                 '跳过有问题的文件，继续处理其他文件
                             End Try
                         Next
@@ -1241,12 +1241,12 @@ Finished:
                                 FolderEntry.Description = GetFolderDescription(SubDir.FullName)
                                 ModList.Add(FolderEntry)
                             Catch ex As Exception
-                                Log($"[错误] 处理文件夹失败：{SubDir.FullName}，错误：{ex.Message}", LogLevel.Debug)
+                                Log(ex, $"处理文件夹失败：{SubDir.FullName}", LogLevel.Debug)
                                 '跳过有问题的文件夹，继续处理其他文件夹
                             End Try
                         Next
                     Catch ex As Exception
-                        Log($"[错误] 枚举文件夹失败：{SearchPath}，错误：{ex.Message}")
+                        Log(ex, $"枚举文件夹失败：{SearchPath}")
                     End Try
                 End If
             End If
