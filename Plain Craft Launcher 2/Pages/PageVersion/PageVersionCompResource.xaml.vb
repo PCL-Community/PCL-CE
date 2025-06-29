@@ -150,7 +150,7 @@ Public Class PageVersionCompResource
     Private Sub EnterFolder(folderPath As String)
         Try
             If String.IsNullOrEmpty(folderPath) OrElse Not Directory.Exists(folderPath) Then
-                MyMsgBox("文件夹不存在或已被删除。", "错误")
+                Hint("文件夹不存在或已被删除", HintType.Critical)
                 Return
             End If
             
@@ -159,8 +159,7 @@ Public Class PageVersionCompResource
             
             LoaderFolderRun(CompResourceListLoader, folderPath, LoaderFolderRunType.ForceRun, LoaderInput:=GetRequireLoaderData())
         Catch ex As Exception
-            Log($"[错误] 进入文件夹失败：{ex.Message}")
-            MyMsgBox($"进入文件夹时发生错误：{ex.Message}", "错误")
+            Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
     
@@ -170,7 +169,7 @@ Public Class PageVersionCompResource
     Private Sub EnterFolderWithCheck(folderPath As String)
         Try
             If String.IsNullOrEmpty(folderPath) OrElse Not Directory.Exists(folderPath) Then
-                MyMsgBox("文件夹不存在或已被删除。", "错误")
+                Hint("文件夹不存在或已被删除", HintType.Critical)
                 Return
             End If
             
@@ -197,8 +196,7 @@ Public Class PageVersionCompResource
             '文件夹不为空，进入文件夹
             EnterFolder(folderPath)
         Catch ex As Exception
-            Log($"[错误] 检查文件夹失败：{ex.Message}")
-            MyMsgBox($"检查文件夹时发生错误：{ex.Message}", "错误")
+            Log(ex, $"检查文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
     
@@ -223,7 +221,7 @@ Public Class PageVersionCompResource
                 CurrentFolderPath = parentPath
             End If
         Catch ex As Exception
-            Log($"[错误] 路径处理失败：{ex.Message}")
+            Log(ex, $"路径处理失败")
             '发生错误时直接返回根目录
             CurrentFolderPath = ""
         End Try
@@ -325,7 +323,7 @@ Public Class PageVersionCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log($"[错误] 创建UI项失败：{Entry.RawFileName}，错误：{ex.Message}", LogLevel.Debug)
+            Log(ex, $"创建UI项失败：{Entry.RawFileName}", LogLevel.Debug)
             Throw
         End Try
     End Function
@@ -1125,7 +1123,7 @@ Install:
                 PanList.Children.RemoveAt(IndexOfUi)
                 PanList.Children.Insert(IndexOfUi, NewItem)
             Catch ex As Exception
-                Log($"[错误] 更新UI列表项失败：{ModEntity.RawFileName}，错误：{ex.Message}", LogLevel.Debug)
+                Log(ex, $"更新UI列表项失败：{ModEntity.RawFileName}", LogLevel.Hint)
                 Continue For
             End Try
         Next
