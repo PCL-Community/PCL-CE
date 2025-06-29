@@ -4,6 +4,7 @@ Imports PlainNamedBinaryTag
 Class PageVersionSavesInfo
     Implements IRefreshable
 
+    Private levelData As XElement
     Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
         Refresh()
     End Sub
@@ -56,7 +57,7 @@ Class PageVersionSavesInfo
                     End If
                     AddInfoTable("存档版本", $"{versionName} ({versionId})")
                     Dim seed As String = GetDataInfoByPathWithFallback("//TCompound[@Name='WorldGenSettings']/TInt64[@Name='seed']", "//TInt64[@Name='RandomSeed']")
-                    AddInfoTable("种子", seed, True)
+                    AddInfoTable("种子", seed, True, versionName, True)
                     Dim allowCommandValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='allowCommands']"))
                     Dim allowCommandName As String = "获取失败"
                     Select Case allowCommandValue
@@ -103,8 +104,9 @@ Class PageVersionSavesInfo
         PanList.RowDefinitions.Clear()
     End Sub
 
-    Private Sub AddInfoTable(head As String, content As String, Optional allowCopy As Boolean = False)
+    Private Sub AddInfoTable(head As String, content As String, Optional isSeed As Boolean = False, Optional versionName As String = Nothing, Optional allowCopy As Boolean = False)
         Dim headTextBlock As New TextBlock With {.Text = head, .Margin = New Thickness(0, 3, 0, 3)}
+        Dim contentStack As New StackPanel With {.Orientation = Orientation.Horizontal}
         Dim contentTextBlock As UIElement
         If allowCopy Then
             Dim thisBtn = New MyTextButton With {.Text = content, .Margin = New Thickness(0, 3, 0, 3)}
@@ -119,8 +121,42 @@ Class PageVersionSavesInfo
         Else
             contentTextBlock = New TextBlock With {.Text = content, .Margin = New Thickness(0, 3, 0, 3)}
         End If
+        contentStack.Children.Add(contentTextBlock)
+
+        If isSeed AndAlso content <> "获取失败" Then
+            Dim BtnChunkbase As New MyIconButton With {
+            .Logo = Logo.IconButtonlink,
+            .ToolTip = "跳转到 Chunkbase",
+            .Width = 24,
+            .Height = 24
+        }
+            contentStack.Children.Add(BtnChunkbase)
+
+            AddHandler BtnChunkbase.Click, Sub()
+                                               Try
+                                                   If String.IsNullOrEmpty(versionName) OrElse versionName = "1.12以下的版本无法获取版本名" Then
+                                                       Log($"当前存档版本无法确定，因为1.12以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
+                                                       Return
+                                                   End If
+
+                                                   If String.IsNullOrEmpty(versionName) OrElse versionName = "获取失败" Then
+                                                       Log($"当前存档版本无法确定，因此无法跳转到 Chunkbase", LogLevel.Hint)
+                                                       Return
+                                                   End If
+
+                                                   Dim versionParts = versionName.Split("."c)
+                                                   Dim usedVersion = If(versionParts.Length >= 2, $"{versionParts(0)}_{versionParts(1)}", versionName.Replace(".", "_"))
+
+                                                   Dim cbUri = $"https://www.chunkbase.com/apps/seed-map#seed={content}&platform=java_{usedVersion}&dimension=overworld"
+                                                   Process.Start(cbUri)
+                                               Catch ex As Exception
+                                                   Log(ex, "跳转到 Chunkbase 失败", LogLevel.Hint)
+                                               End Try
+                                           End Sub
+        End If
+
         PanList.Children.Add(headTextBlock)
-        PanList.Children.Add(contentTextBlock)
+        PanList.Children.Add(contentStack)
         Dim targetRow = New RowDefinition
         PanList.RowDefinitions.Add(targetRow)
         Dim rowIndex = PanList.RowDefinitions.IndexOf(targetRow)
@@ -128,6 +164,7 @@ Class PageVersionSavesInfo
         Grid.SetColumn(headTextBlock, 0)
         Grid.SetRow(contentTextBlock, rowIndex)
         Grid.SetColumn(contentTextBlock, 2)
+        Grid.SetRow(contentStack, rowIndex)
+        Grid.SetColumn(contentStack, 2)
     End Sub
-
 End Class
