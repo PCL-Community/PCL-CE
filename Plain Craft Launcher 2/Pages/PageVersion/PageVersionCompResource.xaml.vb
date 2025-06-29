@@ -190,7 +190,7 @@ Public Class PageVersionCompResource
             End Select
             
             If Not hasFiles Then
-                MyMsgBox("该文件夹内没有文件。", "提示")
+                Hint("该文件夹内没有文件。")
                 Return
             End If
             
