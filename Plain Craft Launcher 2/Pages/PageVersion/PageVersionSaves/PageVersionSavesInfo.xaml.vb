@@ -66,7 +66,7 @@ Class PageVersionSavesInfo
                         Case 1
                             allowCommandName = "允许"
                     End Select
-                    AddInfoTable("是否允许作弊", $"{allowCommandName}")
+                    AddInfoTable("是否允许作弊", allowCommandName)
                     AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(GetDataInfoByPath("//TInt64[@Name='LastPlayed']"))).ToLocalTime().ToString())
                     Dim spawnX = GetDataInfoByPath("//TInt32[@Name='SpawnX']")
                     Dim spawnY = GetDataInfoByPath("//TInt32[@Name='SpawnY']")
@@ -90,7 +90,7 @@ Class PageVersionSavesInfo
                     Dim dayTimeTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='DayTime']"))
                     Dim totalSeconds As Double = totalTicks / 20.0
                     Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
-                    Dim formattedPlayTime As String = $"{playTime.Days}天 {playTime.Hours}小时 {playTime.Minutes}分钟"
+                    Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
                     AddInfoTable("游戏时长", formattedPlayTime)
                 End Using
             End Using
@@ -134,12 +134,12 @@ Class PageVersionSavesInfo
 
             AddHandler BtnChunkbase.Click, Sub()
                                                Try
-                                                   If String.IsNullOrEmpty(versionName) OrElse versionName = "1.12以下的版本无法获取版本名" Then
-                                                       Log($"当前存档版本无法确定，因为1.12以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
+                                                   If versionName = "1.12以下的版本无法获取版本名" Then
+                                                       Log($"当前存档版本无法确定，因为 1.12 以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
                                                        Return
                                                    End If
 
-                                                   If String.IsNullOrEmpty(versionName) OrElse versionName = "获取失败" Then
+                                                   If versionName = "获取失败" Then
                                                        Log($"当前存档版本无法确定，因此无法跳转到 Chunkbase", LogLevel.Hint)
                                                        Return
                                                    End If
@@ -148,7 +148,7 @@ Class PageVersionSavesInfo
                                                    Dim usedVersion = If(versionParts.Length >= 2, $"{versionParts(0)}_{versionParts(1)}", versionName.Replace(".", "_"))
 
                                                    Dim cbUri = $"https://www.chunkbase.com/apps/seed-map#seed={content}&platform=java_{usedVersion}&dimension=overworld"
-                                                   Process.Start(cbUri)
+                                                   OpenWebsite(cbUri)
                                                Catch ex As Exception
                                                    Log(ex, "跳转到 Chunkbase 失败", LogLevel.Hint)
                                                End Try
