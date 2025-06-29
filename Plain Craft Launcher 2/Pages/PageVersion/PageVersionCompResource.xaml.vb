@@ -1450,9 +1450,51 @@ Install:
                 Else
                     '处理普通文件详情
                     If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
-                     If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                     ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
-                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
+                    If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
+                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                    If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
+                    
+                    '对于 .litematic 文件，显示额外的 NBT 数据
+                    If ModEntry.Path.EndsWithF(".litematic", True) Then
+                        ContentLines.Add("")
+                        ContentLines.Add("详细信息：")
+                        
+                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+                        End If
+                        
+                        If ModEntry.LitematicTotalBlocks.HasValue Then
+                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicTotalVolume.HasValue Then
+                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicRegionCount.HasValue Then
+                            ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
+                        End If
+                        
+                        If ModEntry.LitematicTimeCreated.HasValue Then
+                            Try
+                                Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).DateTime
+                                ContentLines.Add("创建时间：" & createdTime.ToString("yyyy-MM-dd HH:mm:ss"))
+                            Catch
+                                ' 如果时间转换失败，显示原始时间戳
+                                ContentLines.Add("创建时间：" & ModEntry.LitematicTimeCreated.Value)
+                            End Try
+                        End If
+                        
+                        If ModEntry.LitematicTimeModified.HasValue Then
+                            Try
+                                Dim modifiedTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeModified.Value).DateTime
+                                ContentLines.Add("修改时间：" & modifiedTime.ToString("yyyy-MM-dd HH:mm:ss"))
+                            Catch
+                                ' 如果时间转换失败，显示原始时间戳
+                                ContentLines.Add("修改时间：" & ModEntry.LitematicTimeModified.Value)
+                            End Try
+                        End If
+                    End If
                 End If
                 
                 '只有普通文件才显示调试信息

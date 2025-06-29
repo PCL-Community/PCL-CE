@@ -1,5 +1,9 @@
 Imports System.IO.Compression
 
+Imports PlainNamedBinaryTag
+Imports System.Xml.Linq
+Imports System.Xml.XPath
+
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
 
@@ -210,6 +214,36 @@ Public Module ModLocalComp
         Private _Authors As String = Nothing
 
         ''' <summary>
+        ''' Litematic 文件的创建时间戳。
+        ''' </summary>
+        Public Property LitematicTimeCreated As Long?
+        
+        ''' <summary>
+        ''' Litematic 文件的修改时间戳。
+        ''' </summary>
+        Public Property LitematicTimeModified As Long?
+        
+        ''' <summary>
+        ''' Litematic 文件的包围盒大小。
+        ''' </summary>
+        Public Property LitematicEnclosingSize As String
+        
+        ''' <summary>
+        ''' Litematic 文件的区域数量。
+        ''' </summary>
+        Public Property LitematicRegionCount As Integer?
+        
+        ''' <summary>
+        ''' Litematic 文件的总方块数。
+        ''' </summary>
+        Public Property LitematicTotalBlocks As Integer?
+        
+        ''' <summary>
+        ''' Litematic 文件的总体积。
+        ''' </summary>
+        Public Property LitematicTotalVolume As Integer?
+
+        ''' <summary>
         ''' Mod 图标路径。
         ''' </summary>
         Public Property Logo As String
@@ -351,6 +385,11 @@ Public Module ModLocalComp
                 Try
                     _Name = GetFileNameWithoutExtentionFromPath(Path)
                     _Description = "投影原理图（结构）文件"
+                    
+                    ' 对于 .litematic 文件，尝试读取 NBT 数据
+                    If Path.EndsWithF(".litematic", True) Then
+                        LoadLitematicNbtData()
+                    End If
                 Catch ex As Exception
                     Log(ex, "投影文件信息获取失败（" & Path & "）", LogLevel.Developer)
                     _FileUnavailableReason = ex
@@ -969,6 +1008,92 @@ Finished:
             If Logo IsNot Nothing Then Return Logo
             Return PathImage & "Icons/NoIcon.png"
         End Function
+
+        ''' <summary>
+        ''' 读取 Litematic 文件的 NBT 数据。
+        ''' </summary>
+        Private Sub LoadLitematicNbtData()
+            Try
+                Log($"[Litematic] 开始读取 NBT 数据：{Path}", LogLevel.Developer)
+                Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                    Dim rootTag As XElement = reader.ReadNbtAsXml(NbtType.TCompound)
+                    Log($"[Litematic] 成功解析 NBT 根节点", LogLevel.Developer)
+                    
+                    ' 输出完整的 NBT 结构用于调试
+                    Log($"[Litematic] NBT 结构：{rootTag.ToString()}", LogLevel.Developer)
+                    
+                    ' 读取 Metadata 节点
+                    Dim metadataTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']")
+                    If metadataTag IsNot Nothing Then
+                        Log($"[Litematic] 找到 Metadata 节点", LogLevel.Developer)
+                        ' 读取时间信息
+                        Dim timeCreatedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeCreated']")
+                        If timeCreatedTag IsNot Nothing Then
+                            LitematicTimeCreated = CLng(timeCreatedTag.Value)
+                        End If
+                        
+                        Dim timeModifiedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeModified']")
+                        If timeModifiedTag IsNot Nothing Then
+                            LitematicTimeModified = CLng(timeModifiedTag.Value)
+                        End If
+                        
+                        ' 读取包围盒大小
+                        Dim enclosingSizeTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']")
+                        If enclosingSizeTag IsNot Nothing Then
+                            Dim xTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='x']")
+                            Dim yTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='y']")
+                            Dim zTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='z']")
+                            If xTag IsNot Nothing AndAlso yTag IsNot Nothing AndAlso zTag IsNot Nothing Then
+                                LitematicEnclosingSize = $"{xTag.Value} × {yTag.Value} × {zTag.Value}"
+                            End If
+                        End If
+                        
+                        ' 读取描述信息
+                        Dim descriptionTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Description']")
+                        If descriptionTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(descriptionTag.Value) Then
+                            _Description = descriptionTag.Value
+                        End If
+                        
+                        ' 读取区域数量
+                        Dim regionCountTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='RegionCount']")
+                        If regionCountTag IsNot Nothing Then
+                            LitematicRegionCount = CInt(regionCountTag.Value)
+                        End If
+                        
+                        ' 读取总方块数
+                        Dim totalBlocksTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalBlocks']")
+                        If totalBlocksTag IsNot Nothing Then
+                            LitematicTotalBlocks = CInt(totalBlocksTag.Value)
+                        End If
+                        
+                        ' 读取作者信息
+                        Dim authorTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Author']")
+                        If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
+                            _Authors = authorTag.Value
+                        End If
+                        
+                        ' 读取总体积
+                        Dim totalVolumeTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalVolume']")
+                        If totalVolumeTag IsNot Nothing Then
+                            LitematicTotalVolume = CInt(totalVolumeTag.Value)
+                        End If
+                        
+                        ' 读取名称
+                        Dim nameTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Name']")
+                        If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) AndAlso nameTag.Value <> "Unnamed" Then
+                            _Name = nameTag.Value
+                        End If
+                        
+                        Log($"[Litematic] NBT 数据读取完成", LogLevel.Developer)
+                    Else
+                        Log($"[Litematic] 未找到 Metadata 节点", LogLevel.Developer)
+                    End If
+                End Using
+            Catch ex As Exception
+                ' 如果读取失败，记录日志但不影响基本功能
+                Log(ex, "读取 Litematic NBT 数据时出错（" & Path & "）", LogLevel.Developer)
+            End Try
+        End Sub
 
     End Class
 
