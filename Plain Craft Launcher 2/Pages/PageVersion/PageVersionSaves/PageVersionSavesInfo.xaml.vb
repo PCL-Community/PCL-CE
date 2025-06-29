@@ -144,6 +144,11 @@ Class PageVersionSavesInfo
                                                        Return
                                                    End If
 
+                                                   If versionName.Any(Function(c) Char.IsLetter(c)) Then
+                                                       Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", LogLevel.Hint)
+                                                       Return
+                                                   End If
+
                                                    Dim versionParts = versionName.Split("."c)
                                                    Dim usedVersion = If(versionParts.Length >= 2, $"{versionParts(0)}_{versionParts(1)}", versionName.Replace(".", "_"))
 
