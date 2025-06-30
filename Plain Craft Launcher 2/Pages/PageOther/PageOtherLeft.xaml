@@ -31,5 +31,7 @@
                 </x:Array>
             </local:MyListItem.Buttons>
         </local:MyListItem>
+        <local:MyListItem x:Name="ItemLog" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="5" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="日志浏览"
+                          LogoScale="0.9" Logo="M704 512a192 192 0 1 1 0 384 192 192 0 0 1 0-384z m64-448a64 64 0 0 1 64 64v321.024h-64V128H256v704h196.352v64H256a64 64 0 0 1-64-64V128a64 64 0 0 1 64-64h512z m-64 512a128 128 0 1 0 0 256 128 128 0 0 0 0-256z m32 32v64h64v64h-128v-128h64z m-255.936-64v64H320v-64h160.064zM704 384v64H320V384h384z m0-160v64H320v-64h384z"></local:MyListItem>
     </StackPanel>
 </local:MyPageLeft>
