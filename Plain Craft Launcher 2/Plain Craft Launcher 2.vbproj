@@ -284,6 +284,9 @@
       <DependentUpon>MyExtraTextButton.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MyImage.vb" />
+    <Compile Include="Controls\MyMsg\MyMsgMarkdown.xaml.vb">
+      <DependentUpon>MyMsgMarkdown.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\MyPageRight.vb" />
     <Compile Include="Controls\MyPageLeft.vb" />
     <Compile Include="Controls\MyIconTextButton.xaml.vb">
@@ -583,6 +586,10 @@
     <Page Include="Controls\MyMsg\MyMsgSelect.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\MyMsg\MyMsgMarkdown.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\MyMsg\MyMsgText.xaml">
       <SubType>Designer</SubType>
@@ -911,6 +918,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Resources\Markdown.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
@@ -1157,6 +1168,9 @@
     </PackageReference>
     <PackageReference Include="LiteDB">
       <Version>5.0.21</Version>
+    </PackageReference>
+    <PackageReference Include="Markdig.Wpf">
+      <Version>0.5.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client">
       <Version>4.72.1</Version>

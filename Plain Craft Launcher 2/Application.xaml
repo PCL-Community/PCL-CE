@@ -7,6 +7,9 @@
     ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Markdown.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             <sys:Double x:Key="BlurValue">16</sys:Double>
             
             <!-- Converter -->
