@@ -50,8 +50,8 @@ Class PageVersionSavesInfo
                     versionName = GetDataInfoByPath("//TCompound[@Name='Version']/TString[@Name='Name']")
                     versionId = GetDataInfoByPath("//TCompound[@Name='Version']/TInt32[@Name='Id']")
                     If versionName = "获取失败" Then
-                        Dim tempVersionId As String = GetDataInfoByPathWithFallback("//TInt32[@Name='version']", "//TInt32[@Name='version']")
-                        If tempVersionId = "19133" Then
+                        versionId = GetDataInfoByPathWithFallback("//TInt32[@Name='version']", "//TInt32[@Name='Version']")
+                        If versionId <> "获取失败" Then
                             versionName = "1.9 以下的版本无法获取版本名"
                         End If
                     End If
