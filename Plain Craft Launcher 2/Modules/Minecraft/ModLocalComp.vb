@@ -143,6 +143,32 @@ Public Module ModLocalComp
         Private _Description As String = Nothing
 
         ''' <summary>
+        ''' 文件类型标签。
+        ''' </summary>
+        Public ReadOnly Property Tags As List(Of String)
+            Get
+                If _Tags Is Nothing Then
+                    _Tags = New List(Of String)
+                    If IsFolder Then
+                        _Tags.Add("文件夹")
+                    Else
+                        Dim extension = IO.Path.GetExtension(RawPath).ToLower()
+                        Select Case extension
+                            Case ".litematic"
+                                _Tags.Add("原理图")
+                            Case ".schem", ".schematic"
+                                _Tags.Add("Schematic结构")
+                            Case ".nbt"
+                                _Tags.Add("原版结构")
+                        End Select
+                    End If
+                End If
+                Return _Tags
+            End Get
+        End Property
+        Private _Tags As List(Of String) = Nothing
+
+        ''' <summary>
         ''' Mod 的版本，不保证符合版本格式规范。
         ''' </summary>
         Public Property Version As String
@@ -222,6 +248,21 @@ Public Module ModLocalComp
         ''' Litematic 文件的修改时间戳。
         ''' </summary>
         Public Property LitematicTimeModified As Long?
+        
+        ''' <summary>
+        ''' Schem 读取到的原始名称。
+        ''' </summary>
+        Public Property SchemOriginalName As String
+        
+        ''' <summary>
+        ''' Litematic 读取到的原始名称。
+        ''' </summary>
+        Public Property LitematicOriginalName As String
+        
+        ''' <summary>
+        ''' Litematic 文件的版本。
+        ''' </summary>
+        Public Property LitematicVersion As Integer?
         
         ''' <summary>
         ''' Litematic 文件的包围盒大小。
@@ -381,14 +422,20 @@ Public Module ModLocalComp
             End If
             
             '对于投影文件，跳过 zip 解析
-            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) Then
+            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
                 Try
-                    _Name = GetFileNameWithoutExtentionFromPath(Path)
-                    _Description = "投影原理图（结构）文件"
-                    
-                    ' 对于 .litematic 文件，尝试读取 NBT 数据
+                    _Name = GetFileNameWithoutExtentionFromPath(Path)                    
+                    ' 根据文件类型加载数据
                     If Path.EndsWithF(".litematic", True) Then
                         LoadLitematicNbtData()
+                    ElseIf Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
+                        If Path.EndsWithF(".schem", True) Then
+                            LoadSchemNbtData()
+                        Else
+                            LoadSchematicNbtData()
+                        End If
+                    ElseIf Path.EndsWithF(".nbt", True) Then
+                        LoadStructureNbtData()
                     End If
                 Catch ex As Exception
                     Log(ex, "投影文件信息获取失败（" & Path & "）", LogLevel.Developer)
@@ -994,7 +1041,7 @@ Finished:
                 Case CompType.ResourcePack, CompType.Shader
                     Return Path.EndsWithF(".zip", True)
                 Case CompType.Schematic
-                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True)
+                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) OrElse Path.EndsWithF(".schem", True)
                 Case Else
                     Return False
             End Select
@@ -1081,17 +1128,219 @@ Finished:
                         ' 读取名称
                         Dim nameTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Name']")
                         If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) AndAlso nameTag.Value <> "Unnamed" Then
-                            _Name = nameTag.Value
+                            LitematicOriginalName = nameTag.Value
                         End If
                         
-                        Log($"[Litematic] NBT 数据读取完成", LogLevel.Developer)
+                        ' 读取版本信息
+                        Dim versionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='Version']")
+                        If versionTag IsNot Nothing Then
+                            LitematicVersion = CInt(versionTag.Value)
+                        End If
+                        
+                        Log($"NBT 数据读取完成", LogLevel.Developer)
                     Else
-                        Log($"[Litematic] 未找到 Metadata 节点", LogLevel.Developer)
+                        Log($"未找到 Metadata 节点", LogLevel.Developer)
                     End If
                 End Using
             Catch ex As Exception
                 ' 如果读取失败，记录日志但不影响基本功能
                 Log(ex, "读取 Litematic NBT 数据时出错（" & Path & "）", LogLevel.Developer)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .schem 文件的 NBT 数据（Sponge Schematic 格式）。
+        ''' </summary>
+        Private Sub LoadSchemNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Developer)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 首先尝试压缩格式
+                Try
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Developer)
+                    End Using
+                Catch ex As Exception
+                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Developer)
+                End Try
+                
+                ' 如果压缩格式失败，尝试非压缩格式
+                If Not success Then
+                    Try
+                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
+                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                            success = True
+                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Developer)
+                        End Using
+                    Catch ex As Exception
+                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Developer)
+                        Return
+                    End Try
+                End If
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据", LogLevel.Developer)
+                    Return
+                End If
+
+                    ' 读取尺寸信息
+                    Dim widthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Width']")
+                    Dim heightTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Height']")
+                    Dim lengthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Length']")
+                    If widthTag IsNot Nothing AndAlso heightTag IsNot Nothing AndAlso lengthTag IsNot Nothing Then
+                        Dim width As Integer = CInt(widthTag.Value)
+                        Dim height As Integer = CInt(heightTag.Value)
+                        Dim length As Integer = CInt(lengthTag.Value)
+                        LitematicEnclosingSize = $"{width} × {height} × {length}"
+                        
+                        ' 计算总体积
+                        LitematicTotalVolume = width * height * length
+                        
+                    End If
+
+                    ' 读取元数据
+                    Dim metadataTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']")
+                    If metadataTag IsNot Nothing Then
+                        ' 读取名称
+                        Dim nameTag As XElement = metadataTag.XPathSelectElement(".//TString[@Name='Name']")
+                        If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) Then
+                            SchemOriginalName = nameTag.Value
+                        End If
+
+                        ' 读取日期
+                        Dim dateTag As XElement = metadataTag.XPathSelectElement(".//TInt64[@Name='Date']")
+                        If dateTag IsNot Nothing Then
+                            LitematicTimeCreated = CLng(dateTag.Value)
+                        End If
+
+                    End If
+
+                    Log($"NBT 数据读取完成", LogLevel.Developer)
+            Catch ex As Exception
+                Log(ex, "读取 Schem NBT 数据时出错（" & Path & "）", LogLevel.Developer)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .schematic 文件的 NBT 数据（MCEdit/WorldEdit 格式）。
+        ''' </summary>
+        Private Sub LoadSchematicNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Developer)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 首先尝试压缩格式
+                Try
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Developer)
+                    End Using
+                Catch ex As Exception
+                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Developer)
+                End Try
+                
+                ' 如果压缩格式失败，尝试非压缩格式
+                If Not success Then
+                    Try
+                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
+                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                            success = True
+                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Developer)
+                        End Using
+                    Catch ex As Exception
+                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Developer)
+                        Return
+                    End Try
+                End If
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据", LogLevel.Developer)
+                    Return
+                End If
+
+                    ' 读取尺寸信息
+                    Dim widthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Width']")
+                    Dim heightTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Height']")
+                    Dim lengthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Length']")
+                    If widthTag IsNot Nothing AndAlso heightTag IsNot Nothing AndAlso lengthTag IsNot Nothing Then
+                        LitematicEnclosingSize = $"{widthTag.Value} × {heightTag.Value} × {lengthTag.Value}"
+                        LitematicTotalVolume = CInt(widthTag.Value) * CInt(heightTag.Value) * CInt(lengthTag.Value)
+                    End If
+
+                    ' 读取材料列表
+                    Dim materialsTag As XElement = rootTag.XPathSelectElement("//TString[@Name='Materials']")
+                    If materialsTag IsNot Nothing Then
+                        Log($"材料类型：{materialsTag.Value}", LogLevel.Developer)
+                    End If
+
+                    Log($"NBT 数据读取完成", LogLevel.Developer)
+            Catch ex As Exception
+                Log(ex, "读取 Schematic NBT 数据时出错（" & Path & "）", LogLevel.Developer)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .nbt 文件的 NBT 数据（Minecraft 结构文件格式）。
+        ''' </summary>
+        Private Sub LoadStructureNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Developer)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 首先尝试压缩格式
+                Try
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Developer)
+                    End Using
+                Catch ex As Exception
+                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Developer)
+                End Try
+                
+                ' 如果压缩格式失败，尝试非压缩格式
+                If Not success Then
+                    Try
+                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
+                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                            success = True
+                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Developer)
+                        End Using
+                    Catch ex As Exception
+                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Developer)
+                        Return
+                    End Try
+                End If
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据", LogLevel.Developer)
+                    Return
+                End If
+
+                    ' 读取尺寸信息
+                    Dim sizeTag As XElement = rootTag.XPathSelectElement("//TList[@Name='size']")
+                    If sizeTag IsNot Nothing Then
+                        Dim sizeElements = sizeTag.Elements("TInt32")
+                        If sizeElements.Count() >= 3 Then
+                            Dim sizeArray = sizeElements.Take(3).Select(Function(e) e.Value).ToArray()
+                            LitematicEnclosingSize = $"{sizeArray(0)} × {sizeArray(1)} × {sizeArray(2)}"
+                            LitematicTotalVolume = CInt(sizeArray(0)) * CInt(sizeArray(1)) * CInt(sizeArray(2))
+                        End If
+                    End If
+
+                    Log($"NBT 数据读取完成", LogLevel.Developer)
+            Catch ex As Exception
+                Log(ex, "读取 Structure NBT 数据时出错（" & Path & "）", LogLevel.Developer)
             End Try
         End Sub
 
@@ -1189,7 +1438,7 @@ Finished:
                             End Try
                         Next
                     Catch ex As Exception
-                        Log($"[错误] 枚举文件失败：{Loader.Input.CompPath}，错误：{ex.Message}")
+                        Log(ex, $"枚举文件夹失败：{Loader.Input.CompPath}")
                     End Try
                 End If
             End If

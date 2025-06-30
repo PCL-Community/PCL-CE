@@ -673,7 +673,7 @@ Public Class FormMain
                 Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
                 Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
                 
-                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic"}.Contains(FirstExtension) Then
+                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic", "schem"}.Contains(FirstExtension) Then
                     '允许同类型的 Mod 文件或投影文件批量拖拽
                 Else
                     Hint("一次请只拖入相同类型的文件！", HintType.Critical)
@@ -701,8 +701,8 @@ Public Class FormMain
             '安装 Mod
             If PageVersionCompResource.InstallMods(FilePathList) Then Exit Sub
             '安装投影文件
-            If {"litematic", "nbt", "schematic"}.Contains(Extension) Then
-                Log($"[System] 文件为 {Extension} 格式，尝试作为投影原理图安装")
+            If {"litematic", "nbt", "schematic", "schem"}.Contains(Extension) Then
+                Log($"[System] 文件为 {Extension} 格式，尝试作为原理图安装")
                 PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic)
                 Exit Sub
             End If
@@ -742,7 +742,7 @@ Public Class FormMain
                 End Select
             End If
             '处理投影文件
-            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
+            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic", "schem"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
                 Dim DestFile = PageVersionLeft.Version.PathIndie + "schematics\" + GetFileNameFromPath(FilePath)
                 If File.Exists(DestFile) Then
                     Hint("已存在同名文件：" + DestFile, HintType.Critical)
