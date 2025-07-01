@@ -147,26 +147,26 @@ Public Module ModLocalComp
         ''' </summary>
         Public ReadOnly Property Tags As List(Of String)
             Get
-                If _Tags Is Nothing Then
-                    _Tags = New List(Of String)
+                If _tags Is Nothing Then
+                    _tags = New List(Of String)
                     If IsFolder Then
-                        _Tags.Add("文件夹")
+                        _tags.Add("文件夹")
                     Else
                         Dim extension = IO.Path.GetExtension(RawPath).ToLower()
                         Select Case extension
                             Case ".litematic"
-                                _Tags.Add("原理图")
+                                _tags.Add("原理图")
                             Case ".schem", ".schematic"
-                                _Tags.Add("Schematic结构")
+                                _tags.Add("Schematic结构")
                             Case ".nbt"
-                                _Tags.Add("原版结构")
+                                _tags.Add("原版结构")
                         End Select
                     End If
                 End If
-                Return _Tags
+                Return _tags
             End Get
         End Property
-        Private _Tags As List(Of String) = Nothing
+        Private _tags As List(Of String) = Nothing
 
         ''' <summary>
         ''' Mod 的版本，不保证符合版本格式规范。
@@ -424,7 +424,7 @@ Public Module ModLocalComp
             '对于投影文件，跳过 zip 解析
             If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
                 Try
-                    _Name = GetFileNameWithoutExtentionFromPath(Path)                    
+                    _name = GetFileNameWithoutExtentionFromPath(Path)                    
                     ' 根据文件类型加载数据
                     If Path.EndsWithF(".litematic", True) Then
                         LoadLitematicNbtData()
@@ -808,7 +808,7 @@ Got:
                     End If
                 End If
             Catch ex As Exception
-                Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Developer)
+                Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Debug)
             End Try
 #End Region
 Finished:
@@ -1061,18 +1061,18 @@ Finished:
         ''' </summary>
         Private Sub LoadLitematicNbtData()
             Try
-                Log($"开始读取 NBT 数据：{Path}", LogLevel.Debug)
+                Log($"[Litematic] 开始读取 NBT 数据：{Path}", LogLevel.Debug)
                 Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
                     Dim rootTag As XElement = reader.ReadNbtAsXml(NbtType.TCompound)
-                    Log($"成功解析 NBT 根节点", LogLevel.Debug)
+                    Log($"[Litematic] 成功解析 NBT 根节点", LogLevel.Debug)
 
                     ' 输出完整的 NBT 结构用于调试
-                    ' Log($"NBT 结构：{rootTag.ToString()}", LogLevel.Developer)
+                    ' Log($"[Litematic] NBT 结构：{rootTag.ToString()}", LogLevel.Developer)
 
                     ' 读取 Metadata 节点
                     Dim metadataTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']")
                     If metadataTag IsNot Nothing Then
-                        Log($"找到 Metadata 节点", LogLevel.Debug)
+                        Log($"[Litematic] 找到 Metadata 节点", LogLevel.Debug)
                         ' 读取时间信息
                         Dim timeCreatedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeCreated']")
                         If timeCreatedTag IsNot Nothing Then
