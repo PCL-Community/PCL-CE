@@ -1160,10 +1160,11 @@ Finished:
                 
                 ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
                     Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
@@ -1225,10 +1226,11 @@ Finished:
                 
                 ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
                     Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
@@ -1273,10 +1275,11 @@ Finished:
                 
                 ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
                     Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
