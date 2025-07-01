@@ -1158,30 +1158,17 @@ Finished:
                 Dim rootTag As XElement = Nothing
                 Dim success As Boolean = False
                 
-                ' 首先尝试压缩格式
+                ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
-                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Debug)
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
                 End Try
-                
-                ' 如果压缩格式失败，尝试非压缩格式
-                If Not success Then
-                    Try
-                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
-                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
-                            success = True
-                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Debug)
-                        End Using
-                    Catch ex As Exception
-                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Debug)
-                        Return
-                    End Try
-                End If
                 
                 If Not success OrElse rootTag Is Nothing Then
                     Log($"无法读取 NBT 数据", LogLevel.Debug)
@@ -1236,30 +1223,17 @@ Finished:
                 Dim rootTag As XElement = Nothing
                 Dim success As Boolean = False
                 
-                ' 首先尝试压缩格式
+                ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
-                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Debug)
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
                 End Try
-                
-                ' 如果压缩格式失败，尝试非压缩格式
-                If Not success Then
-                    Try
-                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
-                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
-                            success = True
-                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Debug)
-                        End Using
-                    Catch ex As Exception
-                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Debug)
-                        Return
-                    End Try
-                End If
                 
                 If Not success OrElse rootTag Is Nothing Then
                     Log($"无法读取 NBT 数据", LogLevel.Debug)
@@ -1297,30 +1271,17 @@ Finished:
                 Dim rootTag As XElement = Nothing
                 Dim success As Boolean = False
                 
-                ' 首先尝试压缩格式
+                ' 使用自动检测压缩格式
                 Try
-                    Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path)
                         rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
                         success = True
-                        Log($"成功解析 NBT 根节点（压缩格式）", LogLevel.Debug)
+                        Log($"成功解析 NBT 根节点", LogLevel.Debug)
                     End Using
                 Catch ex As Exception
-                    Log($"压缩格式读取失败，尝试非压缩格式：{ex.Message}", LogLevel.Debug)
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
                 End Try
-                
-                ' 如果压缩格式失败，尝试非压缩格式
-                If Not success Then
-                    Try
-                        Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, False)
-                            rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
-                            success = True
-                            Log($"成功解析 NBT 根节点（非压缩格式）", LogLevel.Debug)
-                        End Using
-                    Catch ex As Exception
-                        Log($"非压缩格式读取也失败：{ex.Message}", LogLevel.Debug)
-                        Return
-                    End Try
-                End If
                 
                 If Not success OrElse rootTag Is Nothing Then
                     Log($"无法读取 NBT 数据")
