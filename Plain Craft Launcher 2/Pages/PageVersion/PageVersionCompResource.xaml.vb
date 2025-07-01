@@ -298,8 +298,11 @@ Public Class PageVersionCompResource
             End If
             '修改缓存
             ModItems.Clear()
+            PanList.Children.Clear()
             For Each ModEntity As LocalCompFile In CompResourceListLoader.Output
-                ModItems(ModEntity.RawFileName) = BuildLocalCompItem(ModEntity)
+                Dim NewItem = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.RawFileName) = NewItem
+                PanList.Children.Add(NewItem)
             Next
             '显示结果
             RunInUi(Sub()

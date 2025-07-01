@@ -1008,6 +1008,10 @@ Finished:
             Return target IsNot Nothing AndAlso Path = target.Path
         End Function
 
+        Public Sub TriggerCompUpdate()
+            RaiseEvent OnCompUpdate(Me)
+        End Sub
+
 #End Region
 
         ''' <summary>
@@ -1341,7 +1345,7 @@ Finished:
 
             '等待 Mod 更新完成
             If PageVersionCompResource.UpdatingVersions.Contains(Loader.Input.CompPath) Then
-                Log($"[Mod] 等待资源更新完成后才能继续加载资源列表：" & Loader.Input.CompPath)
+                Log($"[Mod] 等待资源更新完成后才能继续加载资源列表：{Loader.Input.CompPath}")
                 Try
                     RunInUiWait(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.Text = "正在更新资源")
                     Do Until Not PageVersionCompResource.UpdatingVersions.Contains(Loader.Input.CompPath)
@@ -1358,7 +1362,7 @@ Finished:
             Dim ModFileList As New List(Of FileInfo)
             If Directory.Exists(Loader.Input.CompPath) Then
                 Dim RawName As String = Loader.Input.CompPath.ToLower
-                
+
                 '对于原理图类型，需要特殊处理文件夹显示
                 If Loader.Input.CompType = CompType.Schematic Then
                     '获取当前文件夹路径
@@ -1366,9 +1370,9 @@ Finished:
                     If Loader.Input.Frm IsNot Nothing Then
                         CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath
                     End If
-                    
+
                     Dim SearchPath As String = If(String.IsNullOrEmpty(CurrentFolderPath), Loader.Input.CompPath, CurrentFolderPath)
-                    
+
                     '添加当前文件夹下的文件
                     Try
                         For Each File As FileInfo In New DirectoryInfo(SearchPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly)
@@ -1407,42 +1411,19 @@ Finished:
                 End If
             End If
 
-            '确定是否显示进度
-            Loader.Progress = 0.05
-            If ModFileList.Count > 50 Then RunInUi(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.ShowProgress = True)
+            ' --- STAGE 1: Return placeholders ---
+            Dim PlaceHolderList As New List(Of LocalCompFile)
 
-            '获取本地文件缓存
-            Dim CachePath As String = PathTemp & "Cache\LocalComp.json"
-            Dim Cache As New JObject
-            Try
-                Dim CacheContent As String = ReadFile(CachePath)
-                If Not String.IsNullOrWhiteSpace(CacheContent) Then
-                    Cache = GetJson(CacheContent)
-                    If Not Cache.ContainsKey("version") OrElse Cache("version").ToObject(Of Integer) <> LocalModCacheVersion Then
-                        Log($"[Mod] 本地 Mod 信息缓存版本已过期，将弃用这些缓存信息", LogLevel.Debug)
-                        Cache = New JObject
-                    End If
-                End If
-            Catch ex As Exception
-                Log(ex, "读取本地 Mod 信息缓存失败，已重置")
-                Cache = New JObject
-            End Try
-            Cache("version") = LocalModCacheVersion
-
-            '加载 Mod 列表
-            Dim ModList As New List(Of LocalCompFile)
-            Dim ModUpdateList As New List(Of LocalCompFile)
-            
-            '对于原理图类型，在根目录时添加文件夹项
+            '对于原理图类型，需要特殊处理文件夹显示
             If Loader.Input.CompType = CompType.Schematic AndAlso Directory.Exists(Loader.Input.CompPath) Then
                 '获取当前文件夹路径
                 Dim CurrentFolderPath As String = ""
                 If Loader.Input.Frm IsNot Nothing Then
                     CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath
                 End If
-                
+
                 Dim SearchPath As String = If(String.IsNullOrEmpty(CurrentFolderPath), Loader.Input.CompPath, CurrentFolderPath)
-                
+
                 '只在根目录时显示子文件夹
                 If String.IsNullOrEmpty(CurrentFolderPath) Then
                     Try
@@ -1452,7 +1433,7 @@ Finished:
                                 Dim FolderEntry As New LocalCompFile(SubDir.FullName & "\__FOLDER__")
                                 FolderEntry.Name = SubDir.Name
                                 FolderEntry.Description = GetFolderDescription(SubDir.FullName)
-                                ModList.Add(FolderEntry)
+                                PlaceHolderList.Add(FolderEntry)
                             Catch ex As Exception
                                 Log(ex, $"处理文件夹失败：{SubDir.FullName}", LogLevel.Debug)
                                 '跳过有问题的文件夹，继续处理其他文件夹
@@ -1463,40 +1444,13 @@ Finished:
                     End Try
                 End If
             End If
-            
-            For Each ModFile As FileInfo In ModFileList
-                Loader.Progress += 0.94 / ModFileList.Count
-                If Loader.IsAborted Then Return
-                '加载 McMod 对象
-                Dim ModEntry As New LocalCompFile(ModFile.FullName)
-                ModEntry.Load()
-                Dim DumpMod As LocalCompFile = ModList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName)
-                If DumpMod IsNot Nothing Then
-                    Dim DisabledMod As LocalCompFile = If(DumpMod.State = LocalCompFile.LocalFileStatus.Disabled, DumpMod, ModEntry)
-                    Log($"[Mod] 重复的 Mod 文件：{DumpMod.FileName} 与 {ModEntry.FileName}，已忽略 {DisabledMod.FileName}", LogLevel.Debug)
-                    If DisabledMod Is ModEntry Then
-                        Continue For
-                    Else
-                        ModList.Remove(DisabledMod)
-                        ModUpdateList.Remove(DisabledMod)
-                    End If
-                End If
-                ModList.Add(ModEntry)
-                '读取 Comp 缓存
-                If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
-                Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.McName & Loader.Input.Loaders.Join("")
-                If Cache.ContainsKey(CacheKey) Then
-                    ModEntry.FromJson(Cache(CacheKey))
-                    '如果缓存中的信息在 6 小时以内更新过，则无需重新获取
-                    If ModEntry.CompLoaded AndAlso Date.Now - Cache(CacheKey)("Comp")("CacheTime").ToObject(Of Date) < New TimeSpan(6, 0, 0) Then Continue For
-                End If
-                ModUpdateList.Add(ModEntry)
-            Next
-            Loader.Progress = 0.99
-            Log($"[Mod] 共有 {ModList.Count} 个 Mod，其中 {ModUpdateList.Where(Function(m) m.Comp Is Nothing).Count} 个需要联网获取信息，{ModUpdateList.Where(Function(m) m.Comp IsNot Nothing).Count} 个需要更新信息")
 
-            '排序
-            ModList = Sort(ModList,
+            For Each ModFile As FileInfo In ModFileList
+                PlaceHolderList.Add(New LocalCompFile(ModFile.FullName))
+            Next
+
+            ' Sort placeholders by filename
+            PlaceHolderList = Sort(PlaceHolderList,
                 Function(Left As LocalCompFile, Right As LocalCompFile) As Boolean
                     If (Left.State = LocalCompFile.LocalFileStatus.Unavailable) <> (Right.State = LocalCompFile.LocalFileStatus.Unavailable) Then
                         Return Left.State = LocalCompFile.LocalFileStatus.Unavailable
@@ -1505,16 +1459,89 @@ Finished:
                     End If
                 End Function)
 
-            '回设
+            ' Return placeholders to UI
+            Loader.Output = PlaceHolderList
             If Loader.IsAborted Then Return
-            Loader.Output = ModList
 
-            '开始联网加载
-            If ModUpdateList.Any() Then
-                'TODO: 添加信息获取中提示
-                Loader.Input.DetailInfo = New KeyValuePair(Of List(Of LocalCompFile), JObject)(ModUpdateList, Cache)
-                CompUpdateDetailLoader.Start(Loader.Input, IsForceRestart:=True)
-            End If
+            ' --- STAGE 2: Load details in background ---
+            RunInNewThread(Sub()
+                Try
+                    '获取本地文件缓存
+                    Dim CachePath As String = PathTemp & "Cache\LocalComp.json"
+                    Dim Cache As New JObject
+                    Try
+                        Dim CacheContent As String = ReadFile(CachePath)
+                        If Not String.IsNullOrWhiteSpace(CacheContent) Then
+                            Cache = GetJson(CacheContent)
+                            If Not Cache.ContainsKey("version") OrElse Cache("version").ToObject(Of Integer) <> LocalModCacheVersion Then
+                                Log($"[Mod] 本地 Mod 信息缓存版本已过期，将弃用这些缓存信息", LogLevel.Debug)
+                                Cache = New JObject
+                            End If
+                        End If
+                    Catch ex As Exception
+                        Log(ex, "读取本地 Mod 信息缓存失败，已重置")
+                        Cache = New JObject
+                    End Try
+                    Cache("version") = LocalModCacheVersion
+
+                    '加载 Mod 列表
+                    Dim ModUpdateList As New List(Of LocalCompFile)
+                    Dim LoadedList As New List(Of LocalCompFile)
+
+                    For Each ModEntry As LocalCompFile In PlaceHolderList
+                        If Loader.IsAborted Then Return
+
+                        '加载 McMod 对象
+                        ModEntry.Load()
+
+                        'Duplicate Check
+                        Dim DumpMod As LocalCompFile = LoadedList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName)
+                        If DumpMod IsNot Nothing Then
+                            Dim DisabledMod As LocalCompFile = If(DumpMod.State = LocalCompFile.LocalFileStatus.Disabled, DumpMod, ModEntry)
+                            Log($"[Mod] 重复的 Mod 文件：{DumpMod.FileName} 与 {ModEntry.FileName}，已忽略 {DisabledMod.FileName}", LogLevel.Debug)
+                            If DisabledMod Is ModEntry Then
+                                Continue For
+                            Else
+                                LoadedList.Remove(DumpMod)
+                                ModUpdateList.Remove(DumpMod)
+                                RunInUi(Sub()
+                                    Dim Frm = Loader.Input.Frm
+                                    If Frm IsNot Nothing AndAlso Frm.ModItems.ContainsKey(DumpMod.RawFileName) Then
+                                        Dim ItemToRemove = Frm.ModItems(DumpMod.RawFileName)
+                                        Frm.ModItems.Remove(DumpMod.RawFileName)
+                                        Frm.PanList.Children.Remove(ItemToRemove)
+                                        Loader.Output.Remove(DumpMod)
+                                    End If
+                                End Sub)
+                            End If
+                        End If
+                        LoadedList.Add(ModEntry)
+
+                        '触发UI更新
+                        RunInUi(Sub() ModEntry.TriggerCompUpdate())
+
+                        '读取 Comp 缓存
+                        If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
+                        Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.McName & Loader.Input.Loaders.Join("")
+                        If Cache.ContainsKey(CacheKey) Then
+                            ModEntry.FromJson(Cache(CacheKey))
+                            '如果缓存中的信息在 6 小时以内更新过，则无需重新获取
+                            If ModEntry.CompLoaded AndAlso Date.Now - Cache(CacheKey)("Comp")("CacheTime").ToObject(Of Date) < New TimeSpan(6, 0, 0) Then Continue For
+                        End If
+                        ModUpdateList.Add(ModEntry)
+                    Next
+
+                    Log($"[Mod] 共有 {LoadedList.Count} 个 Mod，其中 {ModUpdateList.Where(Function(m) m.Comp Is Nothing).Count} 个需要联网获取信息，{ModUpdateList.Where(Function(m) m.Comp IsNot Nothing).Count} 个需要更新信息")
+
+                    '开始联网加载
+                    If ModUpdateList.Any() Then
+                        Loader.Input.DetailInfo = New KeyValuePair(Of List(Of LocalCompFile), JObject)(ModUpdateList, Cache)
+                        CompUpdateDetailLoader.Start(Loader.Input, IsForceRestart:=True)
+                    End If
+                Catch ex As Exception
+                    Log(ex, "Mod 列表详情加载失败", LogLevel.Debug)
+                End Try
+            End Sub, "Comp Resource Detail Loader")
 
         Catch ex As Exception
             Log(ex, "Mod 列表加载失败", LogLevel.Debug)
