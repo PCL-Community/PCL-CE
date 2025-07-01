@@ -8,7 +8,9 @@
         <Setter Property="FontSize" Value="15" />
         <Setter Property="TextAlignment" Value="Left" />
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
-        <Setter Property="ContextMenuService.IsEnabled" Value="False"/>
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+        <Setter Property="VirtualizingPanel.UseLayoutRounding" Value="True"/>
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     </Style>
 
     <!-- 紧凑段落样式 -->
@@ -25,7 +27,7 @@
 
     <!-- 代码块样式 -->
     <Style TargetType="{x:Type Paragraph}" x:Key="{x:Static markdig:Styles.CodeBlockStyleKey}">
-        <Setter Property="Background" Value="{DynamicResource ColorBrush8}" />
+        <Setter Property="Background" Value="{DynamicResource ColorBrush6}" />
         <Setter Property="FontFamily" Value="Consolas, Courier New, monospace" />
         <Setter Property="Margin" Value="0,6,0,6" />
         <Setter Property="Padding" Value="8,6,8,6" />
@@ -33,7 +35,7 @@
 
     <!-- 行内代码样式 -->
     <Style TargetType="{x:Type Run}" x:Key="{x:Static markdig:Styles.CodeStyleKey}">
-        <Setter Property="Background" Value="{DynamicResource ColorBrush8}" />
+        <Setter Property="Background" Value="{DynamicResource ColorBrush6}" />
         <Setter Property="FontFamily" Value="Consolas, Courier New, monospace" />
     </Style>
 
@@ -52,27 +54,25 @@
 
     <Style TargetType="{x:Type Paragraph}" x:Key="{x:Static markdig:Styles.Heading3StyleKey}">
         <Setter Property="FontSize" Value="18" />
-        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,8,0,4" />
     </Style>
 
     <Style TargetType="{x:Type Paragraph}" x:Key="{x:Static markdig:Styles.Heading4StyleKey}">
         <Setter Property="FontSize" Value="16" />
-        <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="TextDecorations" Value="Underline" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,6,0,4" />
     </Style>
 
     <Style TargetType="{x:Type Paragraph}" x:Key="{x:Static markdig:Styles.Heading5StyleKey}">
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,4,0,4" />
     </Style>
 
     <Style TargetType="{x:Type Paragraph}" x:Key="{x:Static markdig:Styles.Heading6StyleKey}">
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray5}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,4,0,4" />
     </Style>
 
@@ -90,6 +90,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
         <Setter Property="BorderThickness" Value="2,0,0,0" />
         <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray2}" />
+        <Setter Property="Background" Value="{DynamicResource ColorBrushGray7}"/>
         <Setter Property="Padding" Value="8,2,0,2" />
         <Setter Property="Margin" Value="0,4,0,4" />
     </Style>
@@ -110,7 +111,11 @@
 
     <Style TargetType="{x:Type TableRow}" x:Key="{x:Static markdig:Styles.TableHeaderStyleKey}">
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Background" Value="{DynamicResource ColorBrush8}"/>
+        <Setter Property="Background" Value="{DynamicResource ColorBrushGray6}"/>
+    </Style>
+
+    <Style TargetType="{x:Type CheckBox}" x:Key="{x:Static markdig:Styles.TaskListStyleKey}">
+        <Setter Property="Margin" Value="0,0,0,-2" />
     </Style>
 
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.SubscriptStyleKey}">
@@ -121,12 +126,13 @@
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.StrikeThroughStyleKey}">
         <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
+        <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray4}"/>
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.InsertedStyleKey}">
         <Setter Property="TextBlock.TextDecorations" Value="Underline" />
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.MarkedStyleKey}">
-        <Setter Property="Background" Value="{DynamicResource ColorBrush4}"/>
+        <Setter Property="Background" Value="{DynamicResource ColorBrush5}"/>
     </Style>
 
     <!-- MarkdownViewer模板优化 -->
@@ -135,8 +141,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="markdig:MarkdownViewer">
                     <FlowDocumentScrollViewer 
-            Document="{TemplateBinding Document}"
-            ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        Document="{TemplateBinding Document}"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        ContextMenu="{x:Null}"
+                        SelectionBrush="{DynamicResource ColorBrush6}"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
