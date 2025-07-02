@@ -458,6 +458,7 @@ EndHint:
     Public FrmVersionExport As PageVersionExport
     '版本存档页面
     Public FrmVersionSavesLeft As PageVersionSavesLeft
+    Public FrmVersionSavesInfo As PageVersionSavesInfo
     Public FrmVersionSavesBackup As PageVersionSavesBackup
 
     '资源信息分页声明

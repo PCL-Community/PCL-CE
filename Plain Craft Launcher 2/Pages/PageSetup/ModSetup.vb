@@ -90,6 +90,7 @@ Public Class ModSetup
         {"LaunchAdvanceGraphicCard", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LaunchRamType", New SetupEntry(0)},
         {"LaunchRamCustom", New SetupEntry(15)},
+        {"LaunchUuid", New SetupEntry(String.Empty, Source:=SetupSource.Registry)},
         {"ToolFixAuthlib", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LinkLastTestDate", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},

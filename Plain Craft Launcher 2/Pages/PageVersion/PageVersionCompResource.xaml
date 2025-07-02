@@ -11,12 +11,13 @@
                     <local:MySearchBox Margin="0,15" HintText="搜索资源 名称 / 描述 / 标签" x:Name="SearchBox" />
                     <local:MyCard Grid.Row="0" Margin="0,0,0,15" x:Name="PanManage">
                         <WrapPanel Margin="15,8,0,15">
-                            <local:MyButton x:Name="BtnManageOpen" Grid.Column="0" MinWidth="110" Text="打开文件夹" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" />
-                            <local:MyButton x:Name="BtnManageInstall" Grid.Column="1" MinWidth="110" Text="从文件安装" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
-                            <local:MyButton x:Name="BtnManageDownload" Grid.Column="2" MinWidth="110" Text="下载新资源" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
-                            <local:MyButton x:Name="BtnManageSelectAll" Grid.Column="3" MinWidth="110" Text="全选" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
-                            <local:MyButton x:Name="BtnManageInfoExport" Grid.Column="4" MinWidth="110" Text="导出信息" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="导出详细的资源的版本信息"/>
-                            <local:MyButton x:Name="BtnManageCheck" Grid.Column="5" MinWidth="110" Text="检查 Mod" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="快速检查 Mod 的版本要求、重复、前置缺失等问题。&#xa;结果仅供参考，由于部分 Mod 标注的信息有误，可能并不准确。" Visibility="Collapsed" />
+                            <local:MyButton x:Name="BtnManageBack" Grid.Column="0" MinWidth="110" Text="返回上级" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="Collapsed" />
+                            <local:MyButton x:Name="BtnManageOpen" Grid.Column="1" MinWidth="110" Text="打开文件夹" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" />
+                            <local:MyButton x:Name="BtnManageInstall" Grid.Column="2" MinWidth="110" Text="从文件安装" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
+                            <local:MyButton x:Name="BtnManageDownload" Grid.Column="3" MinWidth="110" Text="下载新资源" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
+                            <local:MyButton x:Name="BtnManageSelectAll" Grid.Column="4" MinWidth="110" Text="全选" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
+                            <local:MyButton x:Name="BtnManageInfoExport" Grid.Column="5" MinWidth="110" Text="导出信息" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="导出详细的资源的版本信息"/>
+                            <local:MyButton x:Name="BtnManageCheck" Grid.Column="6" MinWidth="110" Text="检查 Mod" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="快速检查 Mod 的版本要求、重复、前置缺失等问题。&#xa;结果仅供参考，由于部分 Mod 标注的信息有误，可能并不准确。" Visibility="Collapsed" />
                         </WrapPanel>
                     </local:MyCard>
                     <local:MyCard x:Name="PanListBack" VerticalAlignment="Top" Opacity="0" Margin="0,0,0,14" Title=" " MinHeight="55">
@@ -40,16 +41,12 @@
                 <TextBlock x:Name="TxtEmptyTitle" Margin="0,0,0,9" HorizontalAlignment="Center" Text="尚未安装资源" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
                 <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
                 <TextBlock x:Name="TxtEmptyDescription" Margin="10,10,10,0" Text="你可以从已经下载好的文件安装资源。&#xa;如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。" TextWrapping="Wrap" />
-                <Grid Margin="15,20,0,5" Height="35" HorizontalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                    </Grid.ColumnDefinitions>
-                    <local:MyButton Height="35" HorizontalAlignment="Center" Grid.Column="0" x:Name="BtnHintInstall" MinWidth="140" Text="从文件安装资源" Margin="0,0,17,0" Padding="13,0" ColorType="Highlight" />
-                    <local:MyButton Height="35" HorizontalAlignment="Center" Grid.Column="1" x:Name="BtnHintDownload" MinWidth="140" Text="下载新资源" Margin="0,0,17,0" Padding="13,0" />
-                    <local:MyButton Height="35" HorizontalAlignment="Center" Grid.Column="2" x:Name="BtnHintOpen" MinWidth="140" Text="打开文件夹" Margin="0,0,17,0" Padding="13,0" />
-                </Grid>
+                <WrapPanel Margin="10,20,10,5" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <local:MyButton Height="35" x:Name="BtnHintBack" MinWidth="130" Text="返回上一级" Margin="5,0" Padding="12,0" Visibility="Collapsed" />
+                    <local:MyButton Height="35" x:Name="BtnHintInstall" MinWidth="130" Text="从文件安装资源" Margin="5,0" Padding="12,0" ColorType="Highlight" />
+                    <local:MyButton Height="35" x:Name="BtnHintDownload" MinWidth="130" Text="下载新资源" Margin="5,0" Padding="12,0" />
+                    <local:MyButton Height="35" x:Name="BtnHintOpen" MinWidth="130" Text="打开文件夹" Margin="5,0" Padding="12,0" />
+                </WrapPanel>
             </StackPanel>
         </local:MyCard>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanSchematicEmpty" Visibility="Collapsed">
@@ -57,14 +54,10 @@
                 <TextBlock Margin="0,0,0,9" HorizontalAlignment="Center" Text="该版本不可用投影原理图" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
                 <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
                 <TextBlock Margin="10,10,10,0" Text="你可能需要先安装投影 Mod，如果已经安装过了投影 Mod 请先启动一次游戏。&#xa;也可能是你选择错了版本，请点击版本选择按钮切换版本。" TextWrapping="Wrap" HorizontalAlignment="Center" />
-                <Grid Margin="15,20,0,5" Height="35" HorizontalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                    </Grid.ColumnDefinitions>
-                    <local:MyButton Height="35" HorizontalAlignment="Center" Grid.Column="0" x:Name="BtnSchematicDownloadMod" MinWidth="140" Text="下载投影Mod" Margin="0,0,17,0" Padding="13,0" ColorType="Highlight" />
-                    <local:MyButton Height="35" HorizontalAlignment="Center" Grid.Column="1" x:Name="BtnSchematicVersionSelect" MinWidth="140" Text="版本选择" Margin="0,0,17,0" Padding="13,0" />
-                </Grid>
+                <WrapPanel Margin="10,20,10,5" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <local:MyButton Height="35" x:Name="BtnSchematicDownloadMod" MinWidth="130" Text="下载投影Mod" Margin="5,0" Padding="12,0" ColorType="Highlight" />
+                    <local:MyButton Height="35" x:Name="BtnSchematicVersionSelect" MinWidth="130" Text="版本选择" Margin="5,0" Padding="12,0" />
+                </WrapPanel>
             </StackPanel>
         </local:MyCard>
         </Grid>

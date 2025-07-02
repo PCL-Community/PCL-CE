@@ -116,11 +116,6 @@ Public Class PageVersionSaves
                                                 worldItem.Info = "删除中……"
                                                 RunInNewThread(Sub()
                                                                    Try
-                                                                       Dim curSnapInstance As Core.Utils.FileVersionControl.SnapLiteVersionControl
-                                                                       If PageVersionSavesBackup.SnapInstance.TryGetValue(curFolder, curSnapInstance) Then
-                                                                           curSnapInstance.Dispose()
-                                                                           PageVersionSavesBackup.SnapInstance.Remove(curFolder)
-                                                                       End If
                                                                        My.Computer.FileSystem.DeleteDirectory(curFolder, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
                                                                        Hint("已将存档移至回收站！")
                                                                        RunInUiWait(Sub() RemoveItem(worldItem))

@@ -118,12 +118,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Friend Function SecretGetUniqueAddress() As String
         Dim code As String
-        Dim rawCode As String = SecretGetRawCode()
         Try
-            Using SHA As SHA256 = SHA256.Create()
-                Dim buffer = SHA.ComputeHash(Encoding.UTF8.GetBytes(rawCode))
-                code = BitConverter.ToString(buffer).Replace("-", "")
-            End Using
+            Dim rawId As String = Setup.Get("LaunchUuid")
+            If String.IsNullOrEmpty(rawId) Then
+                rawId = Identify.GetGuid()
+                Setup.Set("LaunchUuid", rawId)
+            End If
+            code = Identify.GetMachineId(rawId)
             code = code.Substring(6, 16)
             code = code.Insert(4, "-").Insert(9, "-").Insert(14, "-")
             Return code

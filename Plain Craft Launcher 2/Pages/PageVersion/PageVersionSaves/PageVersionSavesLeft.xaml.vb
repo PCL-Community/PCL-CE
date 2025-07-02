@@ -13,7 +13,7 @@ Public Class PageVersionSavesLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemBackup.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemBackup.Check, ItemInfo.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -21,6 +21,9 @@ Public Class PageVersionSavesLeft
     Public Function PageGet(Optional ID As FormMain.PageSubType = -1)
         If ID = -1 Then ID = PageID
         Select Case ID
+            Case FormMain.PageSubType.VersionSavesInfo
+                If FrmVersionSavesInfo Is Nothing Then FrmVersionSavesInfo = New PageVersionSavesInfo
+                Return FrmVersionSavesInfo
             Case FormMain.PageSubType.VersionSavesBackup
                 If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
                 Return FrmVersionSavesBackup
@@ -73,7 +76,11 @@ Public Class PageVersionSavesLeft
         Select Case SubType
             Case FormMain.PageSubType.VersionSavesBackup
                 If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
-                FrmVersionSavesBackup.Refresh()
+                If ItemBackup.Checked Then
+                    FrmVersionSavesBackup.Refresh()
+                Else
+                    ItemBackup.Checked = True
+                End If
         End Select
         Hint("刷新中……")
     End Sub
@@ -90,5 +97,10 @@ Public Class PageVersionSavesLeft
         If IsLoad Then Return
         IsLoad = True
 
+    End Sub
+
+    Private Sub BtnOpenFolder_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnOpenFolder.Click
+        e.Handled = True
+        OpenExplorer($"{CurrentSave}\")
     End Sub
 End Class

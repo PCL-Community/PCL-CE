@@ -455,6 +455,9 @@
     <Compile Include="Pages\PageVersion\PageVersionSaves.xaml.vb">
       <DependentUpon>PageVersionSaves.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml.vb">
+      <DependentUpon>PageVersionSavesInfo.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml.vb">
       <DependentUpon>PageVersionSavesBackup.xaml</DependentUpon>
     </Compile>
@@ -781,6 +784,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -968,7 +975,7 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8.1">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 and x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 和 x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

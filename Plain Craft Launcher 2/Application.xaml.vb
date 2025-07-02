@@ -164,6 +164,11 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
+            '删除旧日志
+            For i = 1 To 5
+                Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
+                If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
+            Next
             '释放资源
             Directory.CreateDirectory(PathPure & "CE")
             SetDllDirectory(PathPure & "CE")

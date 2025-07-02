@@ -223,17 +223,29 @@ Public Module ModProfile
         Dim SelectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
                         Dim AuthTypeList As New List(Of IMyRadio) From {
-                            New MyRadioBox With {.Text = "离线验证"},
-                            New MyRadioBox With {.Text = "正版验证"},
-                            New MyRadioBox With {.Text = "第三方验证"}
+                                New MyListItem With {
+                                .Title = "正版验证",
+                                .Type = MyListItem.CheckType.RadioBox,
+                                .Logo = Logo.IconButtonAuth
+                            },
+                                New MyListItem With {
+                                .Title = "第三方验证",
+                                .Type = MyListItem.CheckType.RadioBox,
+                                .Logo = Logo.IconButtonThirdparty
+                            },
+                            New MyListItem With {
+                                .Title = "离线验证",
+                                .Type = MyListItem.CheckType.RadioBox,
+                                .Logo = Logo.IconButtonOffline
+                            }
                         }
                         SelectedAuthTypeNum = MyMsgBoxSelect(AuthTypeList, "新建档案 - 选择验证类型", "继续", "取消")
                     End Sub)
         If SelectedAuthTypeNum Is Nothing Then Exit Sub
         IsCreatingProfile = True
-        If SelectedAuthTypeNum = 1 Then '正版验证
+        If SelectedAuthTypeNum = 0 Then '正版验证
             RunInUi(Sub() FrmLaunchLeft.RefreshPage(True, McLoginType.Ms))
-        ElseIf SelectedAuthTypeNum = 2 Then '第三方验证
+        ElseIf SelectedAuthTypeNum = 1 Then '第三方验证
             RunInUi(Sub() FrmLaunchLeft.RefreshPage(True, McLoginType.Auth))
         Else '离线验证
             RunInUi(Sub() FrmLaunchLeft.RefreshPage(True, McLoginType.Legacy))
