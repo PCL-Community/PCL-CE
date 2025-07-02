@@ -98,4 +98,9 @@ Public Class PageVersionSavesLeft
         IsLoad = True
 
     End Sub
+
+    Private Sub BtnOpenFolder_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnOpenFolder.Click
+        e.Handled = True
+        OpenExplorer($"{CurrentSave}\")
+    End Sub
 End Class

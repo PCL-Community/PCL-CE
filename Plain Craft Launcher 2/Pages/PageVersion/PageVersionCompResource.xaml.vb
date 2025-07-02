@@ -53,6 +53,8 @@ Public Class PageVersionCompResource
     Private IsLoad As Boolean = False
     Public Sub PageOther_Loaded() Handles Me.Loaded
 
+        CurrentFolderPath = String.Empty
+
         If FrmMain.PageLast.Page <> FormMain.PageType.CompDetail Then PanBack.ScrollToHome()
         AniControlEnabled += 1
         SelectedMods.Clear()

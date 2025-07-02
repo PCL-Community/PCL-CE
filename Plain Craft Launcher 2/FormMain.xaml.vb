@@ -1137,6 +1137,14 @@ Public Class FormMain
                             Exit For
                         End If
                     Next
+                Case PageType.VersionSaves
+                    If FrmVersionSavesLeft Is Nothing Then FrmVersionSavesLeft = New PageVersionSavesLeft
+                    For Each item In FrmVersionSavesLeft.PanItem.Children
+                        If item.GetType() Is GetType(MyListItem) AndAlso Val(item.tag) = SubType Then
+                            CType(item, MyListItem).SetChecked(True, True, Stack = PageCurrent)
+                            Exit For
+                        End If
+                    Next
             End Select
             PageChangeActual(Stack, SubType)
         End If
