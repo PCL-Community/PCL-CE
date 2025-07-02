@@ -166,7 +166,7 @@ Public Class PageVersionCompResource
     End Sub
     
     ''' <summary>
-    ''' 检查文件夹是否为空，如果为空则提示用户，否则进入文件夹。
+    ''' 进入指定文件夹。
     ''' </summary>
     Private Sub EnterFolderWithCheck(folderPath As String)
         Try
@@ -175,30 +175,9 @@ Public Class PageVersionCompResource
                 Return
             End If
             
-            '检查文件夹是否为空
-            Dim hasFiles As Boolean = False
-            Select Case CurrentCompType
-                Case CompType.Schematic
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.AllDirectories).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Schematic))
-                Case CompType.Mod
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Mod))
-                Case CompType.ResourcePack
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.ResourcePack))
-                Case CompType.Shader
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Shader))
-                Case Else
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any()
-            End Select
-            
-            If Not hasFiles Then
-                Hint("该文件夹内没有文件。")
-                Return
-            End If
-            
-            '文件夹不为空，进入文件夹
             EnterFolder(folderPath)
         Catch ex As Exception
-            Log(ex, $"检查文件夹失败", LogLevel.Msgbox)
+            Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
     
@@ -289,6 +268,13 @@ Public Class PageVersionCompResource
                 Else
                     TxtEmptyTitle.Text = "尚未安装资源"
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                End If
+                
+                '如果当前在子文件夹中，显示返回上一级按钮
+                If Not String.IsNullOrEmpty(CurrentFolderPath) Then
+                    BtnHintBack.Visibility = Visibility.Visible
+                Else
+                    BtnHintBack.Visibility = Visibility.Collapsed
                 End If
                 
                 PanEmpty.Visibility = Visibility.Visible
@@ -533,6 +519,10 @@ Public Class PageVersionCompResource
     Private Sub BtnManageBack_Click(sender As Object, e As EventArgs) Handles BtnManageBack.Click
         GoBackToParentFolder()
     End Sub
+    
+    Private Sub BtnHintBack_Click(sender As Object, e As EventArgs) Handles BtnHintBack.Click
+        GoBackToParentFolder()
+    End Sub
 
     Private Sub BtnManageOpen_Click(sender As Object, e As EventArgs) Handles BtnManageOpen.Click, BtnHintOpen.Click
         Try
@@ -563,7 +553,7 @@ Public Class PageVersionCompResource
             Case CompType.Schematic : FileList = SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
         End Select
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
-        InstallCompFiles(FileList, CurrentCompType)
+        InstallCompFiles(FileList, CurrentCompType, CurrentFolderPath)
     End Sub
     ''' <summary>
     ''' 尝试安装 Mod。
@@ -617,7 +607,7 @@ Install:
     ''' <summary>
     ''' 安装组件文件（Mod、资源包、光影包、投影文件等）。
     ''' </summary>
-    Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType)
+    Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType, Optional TargetFolderPath As String = "")
         If Not FilePathList.Any Then Exit Sub
         
         Dim Extension As String = FilePathList.First.AfterLast(".").ToLower
@@ -640,19 +630,35 @@ Install:
             Case CompType.Mod
                 ValidExtensions = {"jar", "litemod", "disabled", "old"}
                 CompTypeName = "Mod"
-                CompFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.ResourcePack
                 ValidExtensions = {"zip"}
                 CompTypeName = "资源包"
-                CompFolder = TargetVersion.PathIndie & "resourcepacks\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "resourcepacks\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.Shader
                 ValidExtensions = {"zip"}
                 CompTypeName = "光影包"
-                CompFolder = TargetVersion.PathIndie & "shaderpacks\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "shaderpacks\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.Schematic
                 ValidExtensions = {"litematic", "nbt", "schematic", "schem"}
                 CompTypeName = "投影原理图"
-                CompFolder = TargetVersion.PathIndie & "schematics\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "schematics\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
         End Select
         
         '检查文件扩展名

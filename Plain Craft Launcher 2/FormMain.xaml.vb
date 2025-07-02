@@ -703,7 +703,13 @@ Public Class FormMain
             '安装投影文件
             If {"litematic", "nbt", "schematic", "schem"}.Contains(Extension) Then
                 Log($"[System] 文件为 {Extension} 格式，尝试作为原理图安装")
-                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic)
+                ' 获取当前文件夹路径（如果在资源管理页面）
+                Dim targetFolderPath As String = Nothing
+                If PageCurrent = PageType.VersionSetup AndAlso PageCurrentSub = PageSubType.VersionSchematic AndAlso 
+                   FrmVersionSchematic IsNot Nothing AndAlso TypeOf FrmVersionSchematic Is PageVersionCompResource Then
+                    targetFolderPath = DirectCast(FrmVersionSchematic, PageVersionCompResource).CurrentFolderPath
+                End If
+                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic, targetFolderPath)
                 Exit Sub
             End If
             '处理资源安装
