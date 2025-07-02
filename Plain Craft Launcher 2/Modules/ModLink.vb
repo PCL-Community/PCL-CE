@@ -631,9 +631,17 @@ Public Module ModLink
 #End Region
 
 #Region "大厅操作"
-    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565)
+    Public Function LobbyPrecheck() As Boolean
+        If Not IsLobbyAvailable Then
+            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+            Return False
+        End If
+        If Not IsAdmin() Then
+            MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
+            Return False
+        End If
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
-            Hint("请先前往设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
+            Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return 1
         End If
         Try
@@ -653,14 +661,18 @@ Public Module ModLink
             Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
             Return 1
         End If
-        If NaidProfile.IsRealname = False Then
-            Hint("请先完成实名验证再进行联机！", HintType.Critical)
-            Return 1
+        If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
+            Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
+            Return False
         End If
         If Not NaidProfile.Status = 0 Then
             Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
-            Return 1
+            Return False
         End If
+        Return True
+    End Function
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565)
+
         '回传联机数据
         Log("[Link] 开始发送联机数据")
         Dim Servers As String = ETServerDefault & ";" & Setup.Get("LinkRelayServer")
@@ -718,7 +730,7 @@ Public Module ModLink
     Public Function GetNaidDataSync(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False) As Boolean
         Try
             '获取 AccessToken 和 RefreshToken
-            Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=http://local.luotianyi-0712.top:29992/api/naid/oauth20/callback"
+            Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=http://localhost:29992/callback"
             'Log("[Link] Naid 请求数据: " & RequestData)
             Thread.Sleep(500)
             Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")

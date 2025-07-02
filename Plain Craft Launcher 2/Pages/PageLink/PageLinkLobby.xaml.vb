@@ -53,6 +53,8 @@
             BtnCreate.IsEnabled = False
             BtnSelectJoin.IsEnabled = False
             DownloadEasyTier(False)
+        Else
+            IsEasyTierExist = True
         End If
     End Sub
 #End Region
@@ -405,26 +407,6 @@
 #Region "PanSelect | 种类选择页面"
 
     Public LocalPort As String = Nothing
-    Private Function LobbyPrecheck() As Boolean
-        If Not IsLobbyAvailable Then
-            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
-            Return False
-        End If
-        If Not IsAdmin() Then
-            MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
-            Return False
-        End If
-        If String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
-            Hint("请先登录 Natayark 账号再尝试操作！", HintType.Critical)
-            Return False
-        Else
-            If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
-                Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
-                Return False
-            End If
-        End If
-        Return True
-    End Function
     Public Sub CheckFirewall()
         '检查防火墙
         Dim CheckFirewall As New Process With {
