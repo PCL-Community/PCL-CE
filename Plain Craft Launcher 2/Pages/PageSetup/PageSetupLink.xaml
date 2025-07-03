@@ -19,7 +19,7 @@
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="TextUsername" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                                   Text="已以 田所浩二 的身份登录至 Natayark Network" />
+                                   Text="已以 玩家 的身份登录至 Natayark Network" />
                         <local:MyButton x:Name="BtnLogout" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                                         Width="100" ColorType="Highlight" Text="退出登录"/>
                         <local:MyButton x:Name="BtnManage" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
