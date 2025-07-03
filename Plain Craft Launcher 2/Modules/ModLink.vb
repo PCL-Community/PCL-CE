@@ -3,6 +3,7 @@ Imports Open.Nat
 Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
+Imports System.Threading.Tasks
 Imports System.Net.NetworkInformation
 Imports PCL.Core.Helper
 
