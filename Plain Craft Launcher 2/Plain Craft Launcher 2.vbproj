@@ -300,7 +300,6 @@
     <Compile Include="Modules\Minecraft\ModProfile.vb" />
     <Compile Include="Modules\Minecraft\ModStyle.vb" />
     <Compile Include="Modules\ModWebServer.vb" />
-    <Compile Include="Modules\Updates\AnnouncementDataModel.vb" />
     <Compile Include="Modules\Minecraft\ModWorld.vb" />
     <Compile Include="Modules\Updates\EnumUpdateChannel.vb" />
     <Compile Include="Modules\Updates\IUpdateSource.vb" />
