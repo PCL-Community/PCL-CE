@@ -20,6 +20,8 @@
 
     Private IsLoad As Boolean = False
     Public Sub Reload() Handles Me.Loaded
+        HintAnnounce.Visibility = Visibility.Visible
+        HintAnnounce.Text = "正在连接到大厅服务器..."
         RunInNewThread(Sub()
                            If Not Setup.Get("LinkEula") Then
                                Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
@@ -37,7 +39,12 @@
         IsMcWatcherRunning = True
         GetAnnouncement()
         If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
-            GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+            If Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) > 0 Then
+                Setup.Set("LinkNaidRefreshToken", "")
+                Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
+            Else
+                GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+            End If
         End If
         DetectMcInstance()
         CheckEasyTier()
@@ -82,13 +89,13 @@
         RunInNewThread(Sub()
                            Try
                                Dim Jobj As JObject = Nothing
-                               Dim Cache As Integer = Val(NetRequestRetry("https://s3.pysio.online/pcl2-ce/api/link/cache.ini", "GET", Nothing, "application/json"))
+                               Dim Cache As Integer = Val(NetRequestRetry($"{LinkServerRoot}/api/link/cache.ini", "GET", Nothing, "application/json"))
                                If Cache = Setup.Get("LinkAnnounceCacheVer") Then
                                    Log("[Link] 使用缓存的公告数据")
                                    Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
                                Else
                                    Log("[Link] 尝试拉取公告数据")
-                                   Dim Received As String = NetRequestRetry("https://s3.pysio.online/pcl2-ce/api/link/announce.json", "GET", Nothing, "application/json")
+                                   Dim Received As String = NetRequestRetry($"{LinkServerRoot}/api/link/announce.json", "GET", Nothing, "application/json")
                                    Jobj = JObject.Parse(Received)
                                    Setup.Set("LinkAnnounceCache", Received)
                                    Setup.Set("LinkAnnounceCacheVer", Cache)
@@ -107,14 +114,16 @@
                                Dim Notices As JArray = Jobj("notices")
                                Dim NoticeLatest As JObject = Notices(0)
                                If Not String.IsNullOrWhiteSpace(NoticeLatest("content").ToString()) Then
-                                   If NoticeLatest("type") = "important" Then
+                                   If NoticeLatest("type") = "important" OrElse NoticeLatest("type") = "red" Then
                                        RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Red)
-                                   ElseIf NoticeLatest("type") = "warning" Then
+                                   ElseIf NoticeLatest("type") = "warning" OrElse NoticeLatest("type") = "yellow" Then
                                        RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Yellow)
                                    Else
                                        RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Blue)
                                    End If
                                    RunInUi(Sub() HintAnnounce.Text = NoticeLatest("content").ToString().Replace("\n", vbCrLf))
+                               Else
+                                   HintAnnounce.Visibility = Visibility.Collapsed
                                End If
                                '中继服务器
                                Dim Relays As JArray = Jobj("relays")

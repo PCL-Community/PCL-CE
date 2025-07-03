@@ -240,7 +240,7 @@ Public Class FormMain
             Try
                 Dim DateNow As String = Now.ToString("yyyyMMdd")
                 If Not Setup.Get("LinkAvailable") AndAlso Not DateNow = Setup.Get("LinkLastTestDate") Then
-                    Dim Chance As Double = Val(NetRequestRetry("https://s3.pysio.online/pcl2-ce/api/link/lottery.ini", "GET", Nothing, "application/json"))
+                    Dim Chance As Double = Val(NetRequestRetry($"{LinkServerRoot}/api/link/lottery.ini", "GET", Nothing, "application/json"))
                     Dim Num As Integer = RandomInteger(0, 100)
                     If Num > 1 - (Chance * 100) Then Setup.Set("LinkAvailable", True)
                     Setup.Set("LinkLastTestDate", DateNow)

@@ -642,14 +642,14 @@ Public Module ModLink
         End If
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
-            Return 1
+            Return False
         End If
         Try
             GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
         Catch ex As Exception
             Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
             Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
-            Return 1
+            Return False
         End Try
         Dim WaitCount As Integer = 0
         While String.IsNullOrWhiteSpace(NaidProfile.Username)
@@ -659,7 +659,7 @@ Public Module ModLink
         End While
         If String.IsNullOrWhiteSpace(NaidProfile.Username) Then
             Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
-            Return 1
+            Return False
         End If
         If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
             Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
@@ -672,7 +672,6 @@ Public Module ModLink
         Return True
     End Function
     Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565)
-
         '回传联机数据
         Log("[Link] 开始发送联机数据")
         Dim Servers As String = ETServerDefault & ";" & Setup.Get("LinkRelayServer")
@@ -737,6 +736,7 @@ Public Module ModLink
             Dim Data As JObject = JObject.Parse(Received)
             NaidProfile.AccessToken = Data("access_token").ToString()
             NaidProfile.RefreshToken = Data("refresh_token").ToString()
+            Dim ExpiresAt As String = Data("refresh_token_expires_at").ToString()
 
             '获取用户信息
             Dim Headers As New Dictionary(Of String, String)
@@ -751,6 +751,7 @@ Public Module ModLink
             NaidProfile.LastIp = UserData("last_ip").ToString()
             '保存数据
             Setup.Set("LinkNaidRefreshToken", NaidProfile.RefreshToken)
+            Setup.Set("LinkNaidRefreshExpiresAt", ExpiresAt)
             '若处于联机设置界面，则进行刷新
             If FrmSetupLink IsNot Nothing Then RunInUi(Sub() FrmSetupLink.Reload())
             If Not IsSilent Then Hint("已登录至 Natayark Network！", HintType.Finish)

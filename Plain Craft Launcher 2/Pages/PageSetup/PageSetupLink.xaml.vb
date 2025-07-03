@@ -48,7 +48,13 @@
     Private Sub ReloadNaidData()
         RunInNewThread(Sub()
                            Try
-                               GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+                               If Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) > 0 Then
+                                   Setup.Set("LinkNaidRefreshToken", "")
+                                   Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
+                                   Exit Sub
+                               Else
+                                   GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+                               End If
                                While String.IsNullOrWhiteSpace(NaidProfile.Username)
                                    Thread.Sleep(1000)
                                End While
