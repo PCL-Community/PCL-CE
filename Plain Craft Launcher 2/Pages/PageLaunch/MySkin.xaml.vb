@@ -270,6 +270,20 @@ Retry:
                 Dim AccessToken As String = McLoginMsLoader.Output.AccessToken
                 Dim Uuid As String = McLoginMsLoader.Output.Uuid
                 Dim SkinData As JObject = GetJson(McLoginMsLoader.Output.ProfileJson)
+                For Each itemSkin In SkinData("capes")
+                    If itemSkin("url") Is Nothing Then Continue For
+                    Dim localFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}.png"
+                    Dim capeFrontFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}-front.png"
+                    itemSkin("url") = capeFrontFile
+                    If File.Exists(localFile) AndAlso File.Exists(capeFrontFile) Then Continue For
+                    NetDownloadByLoader(itemSkin("url").ToString(), localFile)
+                    Dim capeFrontRegion As New Rectangle(0, 0, 11, 17)
+                    Dim capeFront As New Bitmap(capeFrontRegion.Width, capeFrontRegion.Height)
+                    Dim capeImage = Image.FromFile(localFile)
+                    Dim gra = Graphics.FromImage(capeFront)
+                    gra.DrawImage(capeImage, capeFrontRegion, capeFrontRegion, GraphicsUnit.Pixel)
+                    capeFront.Save(capeFrontFile)
+                Next
                 '获取玩家的所有披风
                 Dim SelId As Integer? = Nothing
                 RunInUiWait(
@@ -285,13 +299,23 @@ Retry:
                             {"Mojang Office", "Mojang 办公室披风"}, {"Home", "家园披风"}, {"Menace", "入侵披风"}, {"Yearn", "渴望披风"},
                             {"Common", "普通披风"}, {"Pan", "薄煎饼披风"}, {"Founder's", "创始人披风"}
                         }
-                        Dim SelectionControl As New List(Of IMyRadio) From {New MyRadioBox With {.Text = "无披风"}}
+                        Dim SelectionControl As New List(Of IMyRadio) From {New MyListItem With {
+                            .Title = "无披风",
+                            .Info = "Null"
+                        }}
                         For Each Cape In SkinData("capes")
-                            Dim CapeName As String = Cape("alias").ToString
+                            Dim CapeName As String = Cape("alias").ToString()
                             If CapeNames.ContainsKey(CapeName) Then CapeName = CapeNames(CapeName)
                             Dim state = Cape("state") '检测披风状态，若为 ACTIVE 则选中
-                            Dim active As String = state IsNot Nothing And state.ToString.ToUpper.Equals("ACTIVE")
-                            SelectionControl.Add(New MyRadioBox With {.Text = CapeName, .Checked = active})
+                            Dim active As Boolean = state IsNot Nothing And state.ToString().ToUpper().Equals("ACTIVE")
+                            SelectionControl.Add(New MyListItem With {
+                                                     .Title = CapeName,
+                                                     .Info = Cape("alias").ToString(),
+                                                     .Checked = active,
+                                                     .Type = MyListItem.CheckType.RadioBox,
+                                                     .Logo = Cape("url"),
+                                                     .LogoScale = 0.6
+                                                 })
                         Next
                         SelId = MyMsgBoxSelect(SelectionControl, "选择披风", "确定", "取消")
                     Catch ex As Exception
@@ -301,14 +325,14 @@ Retry:
                 If SelId Is Nothing Then Return
                 '发送请求
                 Dim Result As String = NetRequestRetry("https://api.minecraftservices.com/minecraft/profile/capes/active",
-                    If(SelId = 0, "DELETE", "PUT"),
-                    If(SelId = 0, "", New JObject(New JProperty("capeId", SkinData("capes")(SelId - 1)("id"))).ToString(0)),
-                    "application/json", Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+                            If(SelId = 0, "DELETE", "PUT"),
+                            If(SelId = 0, "", New JObject(New JProperty("capeId", SkinData("capes")(SelId - 1)("id"))).ToString(0)),
+                            "application/json", Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
                 If Result.Contains("""errorMessage""") Then
                     Hint("更改披风失败：" & GetJson(Result)("errorMessage"), HintType.Critical)
                     Return
                 Else
-                    Hint("更改披风成功！", HintType.Finish)
+                    Hint("更改披风成功！等待一段时间后将会生效……", HintType.Finish)
                 End If
             Catch ex As Exception
                 Log(ex, "更改披风失败", LogLevel.Hint)

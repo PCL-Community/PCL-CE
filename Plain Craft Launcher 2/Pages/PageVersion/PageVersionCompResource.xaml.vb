@@ -571,7 +571,6 @@ Public Class PageVersionCompResource
         End If
         '获取并检查目标版本
         Dim TargetVersion As McVersion = McVersionCurrent
-        Dim ModFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
         If FrmMain.PageCurrent = FormMain.PageType.VersionSetup Then TargetVersion = PageVersionLeft.Version
         If FrmMain.PageCurrent = FormMain.PageType.VersionSelect OrElse TargetVersion Is Nothing OrElse Not TargetVersion.Modable Then
             '正在选择版本，或当前版本不能安装 Mod
@@ -582,6 +581,7 @@ Public Class PageVersionCompResource
         Else
             '处于 Mod 管理页面
 Install:
+            Dim ModFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
             Try
                 For Each ModFile In FilePathList
                     Dim NewFileName = GetFileNameFromPath(ModFile).Replace(".disabled", "").Replace(".old", "")

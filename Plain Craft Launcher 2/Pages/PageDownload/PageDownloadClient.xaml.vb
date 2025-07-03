@@ -12,7 +12,10 @@
         Try
             '归类
             Dim Dict As New Dictionary(Of String, List(Of JObject)) From {
-                {"正式版", New List(Of JObject)}, {"预览版", New List(Of JObject)}, {"远古版", New List(Of JObject)}, {"愚人节版", New List(Of JObject)}
+                {"正式版", New List(Of JObject)},
+                {"预览版", New List(Of JObject)},
+                {"远古版", New List(Of JObject)},
+                {"愚人节版", New List(Of JObject)}
             }
             Dim Versions As JArray = DlClientListLoader.Output.Value("versions")
             For Each Version As JObject In Versions
@@ -21,7 +24,7 @@
                 Select Case Type
                     Case "release"
                         Type = "正式版"
-                    Case "snapshot"
+                    Case "snapshot", "pending"
                         Type = "预览版"
                         'Mojang 误分类
                         If Version("id").ToString.StartsWith("1.") AndAlso

@@ -2077,13 +2077,13 @@ OnLoaded:
 
         'LabyMod Assets 文件
         If Version.Version.HasLabyMod Then
-            If McVersionCurrent.PathIndie = McVersionCurrent.Path Then
-                If Directory.Exists(McVersionCurrent.Path & "labymod-neo") Then DeleteDirectory(McVersionCurrent.Path & "labymod-neo")
-                CreateSymbolicLink(McVersionCurrent.Path & "labymod-neo", PathMcFolder & "labymod-neo", &H2)
+            If Version.PathIndie = Version.Path Then
+                If Directory.Exists(Version.Path & "labymod-neo") Then Directory.Delete(Version.Path & "labymod-neo", True)
+                CreateSymbolicLink(Version.Path & "labymod-neo", PathMcFolder & "labymod-neo", &H2)
             End If
             Try
                 Dim ChannelType = Version.JsonObject("labymod_data")("channelType").ToString()
-                Directory.CreateDirectory($"{Version.Path}labymod-neo\libraries")
+                Directory.CreateDirectory($"{PathMcFolder}labymod-neo\libraries")
                 Log("[Minecraft] 开始获取 LabyMod 信息")
                 Dim labyManifest As JObject = NetGetCodeByRequestRetry($"https://releases.r2.labymod.net/api/v1/manifest/{ChannelType}/latest.json", IsJson:=True)
                 Dim LabyAssets As JObject = labyManifest("assets")
@@ -2091,7 +2091,7 @@ OnLoaded:
                 For Each Asset In LabyAssets
                     Dim AssetName As String = Asset.Key
                     Dim AssetSHA1 As String = Asset.Value.ToString()
-                    Dim AssetPath As String = $"{Version.Path}labymod-neo\assets\{AssetName}.jar"
+                    Dim AssetPath As String = $"{PathMcFolder}labymod-neo\assets\{AssetName}.jar"
                     Dim AssetUrl As String = $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{ChannelType}/{LabyModCommitRef}/{AssetName}/{AssetSHA1}.jar"
                     Dim Checker = New FileChecker(Hash:=AssetSHA1)
                     If Checker.Check(AssetPath) Is Nothing Then Continue For

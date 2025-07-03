@@ -21,7 +21,7 @@ Public Module ModBase
     Public Const CommitHash As String = "native" 'Commit Hash，由 GitHub Workflow 自动替换
     Public CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     Public Const UpstreamVersion As String = "2.10.3" '上游版本
-    Public Const VersionCode As Integer = 381 '内部版本号
+    Public Const VersionCode As Integer = 382 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -3343,7 +3343,7 @@ Retry:
     ''' 取随机整数。
     ''' </summary>
     Public Function RandomInteger(min As Integer, max As Integer) As Integer
-        Return Math.Floor((max - min + 1) * Random.NextDouble) + min
+        Return Math.Floor((max - min + 1) * Random.NextDouble()) + min
     End Function
 
     ''' <summary>
