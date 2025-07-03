@@ -1,5 +1,6 @@
-﻿Imports System.Security.Cryptography
+﻿Imports System.IO.Pipelines
 Imports System.Net.Http
+Imports System.Security.Cryptography
 
 Public Module ModProfile
 
@@ -264,33 +265,33 @@ Public Module ModProfile
             If NewUsername = Nothing Then Exit Sub
             RunInNewThread(Sub()
                                Try
-                                    Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUserName}/available","GET",Nothing,Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
-                                    If CheckResult("status") = "DUPLICATE" Then
-                                        MyMsgBox("此 ID 已被使用，请换一个 ID。","ID 修改失败", "确认", IsWarn:=True)
-                                        Exit Sub
-                                    Else If CheckResult("status") = "NOT_ALLOWED" Then
-                                        MyMsgBox("此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。","ID 修改失败", "确认", IsWarn:=True)
-                                        Exit Sub
-                                    End If
-                                    Dim Result As String = NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}", "PUT", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}})
-                                    Dim ResultJson As JObject = GetJson(Result)
-                                    Hint($"玩家 ID 修改成功，当前 ID 为：{ResultJson("name")}", HintType.Finish)
-                                    '更新档案信息
-                                    ProfileList.Remove(SelectedProfile)
-                                    SelectedProfile.Username = ResultJson("name")
-                                    ProfileList.Add(SelectedProfile)
-                                    LastUsedProfile = ProfileList.Count - 1
-                                    '刷新页面信息
-                                    FrmLaunchLeft.RefreshPage(True)
-                                    SaveProfile()
+                                   Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}/available", "GET", Nothing, Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
+                                   If CheckResult("status") = "DUPLICATE" Then
+                                       MyMsgBox("此 ID 已被使用，请换一个 ID。", "ID 修改失败", "确认", IsWarn:=True)
+                                       Exit Sub
+                                   ElseIf CheckResult("status") = "NOT_ALLOWED" Then
+                                       MyMsgBox("此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。", "ID 修改失败", "确认", IsWarn:=True)
+                                       Exit Sub
+                                   End If
+                                   Dim Result As String = NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}", "PUT", "", "application/json", 2, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}})
+                                   Dim ResultJson As JObject = GetJson(Result)
+                                   Hint($"玩家 ID 修改成功，当前 ID 为：{ResultJson("name")}", HintType.Finish)
+                                   '更新档案信息
+                                   ProfileList.Remove(SelectedProfile)
+                                   SelectedProfile.Username = ResultJson("name")
+                                   ProfileList.Add(SelectedProfile)
+                                   LastUsedProfile = ProfileList.Count - 1
+                                   '刷新页面信息
+                                   FrmLaunchLeft.RefreshPage(True)
+                                   SaveProfile()
                                Catch ex As HttpRequestException
-                                    Dim ExSummary As String = GetExceptionSummary(ex)
-                                    If ExSummary.Contains("403") Then
-                                        MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。","ID 修改失败", "我知道了")
-                                    Else
-                                        Log(ex,"修改档案 ID 失败",LogLevel.Msgbox)
-                                    End If
-                                    Exit Sub
+                                   Dim ExSummary As String = GetExceptionSummary(ex)
+                                   If ExSummary.Contains("403") Then
+                                       MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。", "ID 修改失败", "我知道了")
+                                   Else
+                                       Log(ex, "修改档案 ID 失败", LogLevel.Msgbox)
+                                   End If
+                                   Exit Sub
                                End Try
                            End Sub
                     )
@@ -656,26 +657,26 @@ Retry:
                 Dim AccessToken As String = SelectedProfile.AccessToken
                 Dim Uuid As String = SelectedProfile.Uuid
 
-                Dim Client As New Net.Http.HttpClient With {.Timeout = New TimeSpan(0, 0, 30)}
-                Client.DefaultRequestHeaders.Authorization = New Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken)
-                Client.DefaultRequestHeaders.Accept.Add(New Net.Http.Headers.MediaTypeWithQualityHeaderValue("*/*"))
-                Client.DefaultRequestHeaders.UserAgent.Add(New Net.Http.Headers.ProductInfoHeaderValue("MojangSharp", "0.1"))
-                Dim Contents As New Net.Http.MultipartFormDataContent From {
-                    {New Net.Http.StringContent(If(SkinInfo.IsSlim, "slim", "classic")), "variant"},
-                    {New Net.Http.ByteArrayContent(ReadFileBytes(SkinInfo.LocalFile)), "file", GetFileNameFromPath(SkinInfo.LocalFile)}
+                Dim headers As New Dictionary(Of String, String)
+                headers.Add("Authorization", $"Bearer {AccessToken}")
+                headers.Add("Accept", "*/*")
+                headers.Add("User-Agent", "MojangSharp/0.1")
+                Dim Contents As New MultipartFormDataContent From {
+                    {New StringContent(If(SkinInfo.IsSlim, "slim", "classic")), "variant"},
+                    {New ByteArrayContent(ReadFileBytes(SkinInfo.LocalFile)), "file", GetFileNameFromPath(SkinInfo.LocalFile)}
                 }
-                Dim Result As String = Await (Await Client.PostAsync(New Uri("https://api.minecraftservices.com/minecraft/profile/skins"), Contents)).Content.ReadAsStringAsync
-                If Result.Contains("request requires user authentication") Then
+                Dim res = NetRequestRetry("https://api.minecraftservices.com/minecraft/profile/skins", "POST", Contents, Nothing, Headers:=headers)
+                If res.Contains("request requires user authentication") Then
                     Hint("正在登录，将在登录完成后继续更改皮肤……")
                     McLoginMsLoader.Start(GetLoginData(), IsForceRestart:=True)
                     GoTo Retry
-                ElseIf Result.Contains("""error""") Then
-                    Hint("更改皮肤失败：" & GetJson(Result)("error"), HintType.Critical)
+                ElseIf res.Contains("""error""") Then
+                    Hint("更改皮肤失败：" & GetJson(res)("error"), HintType.Critical)
                     Exit Sub
                 End If
                 '获取新皮肤地址
-                Log("[Skin] 皮肤修改返回值：" & vbCrLf & Result)
-                Dim ResultJson As JObject = GetJson(Result)
+                Log("[Skin] 皮肤修改返回值：" & vbCrLf & res)
+                Dim ResultJson As JObject = GetJson(res)
                 If ResultJson.ContainsKey("errorMessage") Then Throw New Exception(ResultJson("errorMessage").ToString) '#5309
                 For Each Skin As JObject In ResultJson("skins")
                     If Skin("state").ToString = "ACTIVE" Then
@@ -683,7 +684,7 @@ Retry:
                         Exit Sub
                     End If
                 Next
-                Throw New Exception("未知错误（" & Result & "）")
+                Throw New Exception("未知错误（" & res & "）")
             Catch ex As Exception
                 If ex.GetType.Equals(GetType(Tasks.TaskCanceledException)) Then
                     Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Critical)

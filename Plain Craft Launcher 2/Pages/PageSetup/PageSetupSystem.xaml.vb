@@ -226,9 +226,14 @@
     End Sub
     Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
         Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个第三方应用分发平台{vbCrLf}如果你购买了他们的服务，可以让 PCL CE 使用他们的高速下载源下载版本更新，同时也可以减轻社区更新服务器的压力……")
-        If String.IsNullOrWhiteSpace(ret) Then Exit Sub
-        Setup.Set("SystemMirrorChyanKey", ret)
-        Hint("设置 Mirror 酱 CDK 成功！", HintType.Finish)
+        If ret Is Nothing Then Return
+        If String.IsNullOrWhiteSpace(ret) Then
+            Setup.Reset("SystemMirrorChyanKey")
+            Hint("已移除 Mirror 酱 CDK！", HintType.Finish)
+        Else
+            Setup.Set("SystemMirrorChyanKey", ret)
+            Hint("设置 Mirror 酱 CDK 成功！", HintType.Finish)
+        End If
     End Sub
     Private Sub BtnSystemMirrorChyanGetKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanGetKey.Click
         OpenWebsite("https://mirrorchyan.com/zh/projects?rid=PCL2-CE&source=pcl2ce-app")

@@ -18,7 +18,7 @@ Public Class FormMain
             Else
                 Changelog = "欢迎使用呀~"
             End If
-            If MyMsgBox(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
+            If MyMsgBoxMarkdown(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
                 OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases")
             End If
         End Sub, "UpdateLog Output")
@@ -227,7 +227,7 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
-                InitJava().GetAwaiter().GetResult()
+                InitJava()
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()

@@ -2,6 +2,18 @@ Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
 
+    Public ReadOnly ThemeColors As String() = {"天空蓝", "龙猫蓝", "死机蓝"}
+
+    Public Sub New()
+        InitializeComponent()
+        '还是石山控件，不支持 ItemsSource Binding，虽然龙猫确实就没考虑 MVVM
+        '或者说，支持了一半（内容用了原生的 ComboBoxItem 而不是自定义的 MyComboBoxItem）
+        For Each color In ThemeColors
+            ComboLightColor.Items.Add(New MyComboBoxItem With {.Content = color})
+            ComboDarkColor.Items.Add(New MyComboBoxItem With {.Content = color})
+        Next
+    End Sub
+
     Private Sub PageSetupUI_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 
         '重复加载部分
@@ -67,6 +79,8 @@ Public Class PageSetupUI
             If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
+            ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
+            ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
             ComboUiFont.Items.Clear()
             ComboUiFont.Items.Add(New MyComboBoxItem With {
                 .Content = New TextBlock With {
@@ -503,6 +517,10 @@ Refresh:
     End Sub
 
     '主题
+    Private Sub ThemeColor_Change(sender As MyComboBox, e As EventArgs) Handles ComboDarkColor.SelectionChanged, ComboLightColor.SelectionChanged
+        Setup.Set(sender.Tag, sender.SelectedIndex)
+        ThemeRefresh()
+    End Sub
     Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles LabLauncherTheme5Unlock.MouseLeftButtonUp
         RadioLauncherTheme5Gray.Opacity -= 0.23
         RadioLauncherTheme5.Opacity += 0.23
