@@ -85,6 +85,10 @@
         Catch ex As Exception
             Log(ex, $"加载主页市场失败 ({url})", LogLevel.Hint)
             UpdateLoadingState("加载失败，点击重试", MyLoading.MyLoadingState.Error)
+
+            RunInUi(Sub()
+                        PanMain.Visibility = Visibility.Visible
+                    End Sub)
         End Try
     End Sub
 
@@ -106,9 +110,17 @@
                 ' 加载成功后停止显示加载状态
                 Load.State.LoadingState = MyLoading.MyLoadingState.Stop
 
+                RunInUi(Sub()
+                            PanMain.Visibility = Visibility.Visible
+                        End Sub)
+
             Catch ex As Exception
                 Log(ex, "解析XAML失败", LogLevel.Msgbox)
                 UpdateLoadingState("解析失败，点击重试", MyLoading.MyLoadingState.Error)
+
+                RunInUi(Sub()
+                            PanMain.Visibility = Visibility.Visible
+                        End Sub)
             End Try
         End SyncLock
     End Sub
