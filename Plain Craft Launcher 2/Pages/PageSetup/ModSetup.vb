@@ -98,6 +98,7 @@ Public Class ModSetup
         {"LinkAnnounceCache", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkAnnounceCacheVer", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"LinkRelayType", New SetupEntry(0, Source:=SetupSource.Registry)},
+        {"LinkServerType", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"LinkRelayServer", New SetupEntry("", Source:=SetupSource.Registry)},
         {"LinkName", New SetupEntry("", Source:=SetupSource.Registry)},
         {"LinkNaidRefreshToken", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},

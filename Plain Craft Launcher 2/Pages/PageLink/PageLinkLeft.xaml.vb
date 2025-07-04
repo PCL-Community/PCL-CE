@@ -110,6 +110,7 @@
 
     Public Sub Refresh(sender As Object, e As EventArgs)
         If IsNothing(FrmLinkLobby) Then FrmLinkLobby = New PageLinkLobby
+        FrmLinkLobby.IsLoad = False
         FrmLinkLobby.Reload()
         ItemLobby.Checked = True
     End Sub

@@ -19,6 +19,7 @@
     Public Sub Reload()
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
         ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
+        ComboServerType.SelectedIndex = Setup.Get("LinkServerType")
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -38,7 +39,7 @@
         If ETServerDefList.Count > 0 Then
             TextRelays.Text = ""
             For Each Relay In ETServerDefList
-                TextRelays.Text += Relay.Name & "，"
+                TextRelays.Text += If(Relay.Type = "community", "[社区] ", "[自有] ") & Relay.Name & "，"
             Next
             TextRelays.Text = TextRelays.Text.BeforeLast("，")
         Else

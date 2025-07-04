@@ -391,12 +391,11 @@ Public Module ModLink
     Public Class ETRelay
         Public Url As String
         Public Name As String
-        Public Desc As String
+        Public Type As String
     End Class
     Public ETProcess As New Process
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
-    Public ETServerDefault As String = Nothing
     Public ETVersion As String = "2.3.2"
     Public ETPath As String = PathTemp + $"EasyTier\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
@@ -424,17 +423,6 @@ Public Module ModLink
             End If
             Log($"[Link] EasyTier 路径: {ETProcess.StartInfo.FileName}")
 
-            Dim ServerList As String = Setup.Get("LinkRelayServer")
-            Dim Servers As New List(Of String)
-            For Each Server In ServerList.Split(";")
-                If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
-            Next
-            If Not Setup.Get("LinkRelayType") = 1 Then
-                For Each Server In ETServerDefault.Split(";")
-                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
-                Next
-            End If
-
             If IsHost Then
                 Dim Id As String = Nothing
                 For index = 1 To 8 '生成 8 位随机编号
@@ -450,10 +438,24 @@ Public Module ModLink
                 ETProcess.StartInfo.Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
                 'ETProcess.StartInfo.Verb = "runas"
             End If
+
+            '添加节点
+            Dim ServerList As String = Setup.Get("LinkRelayServer")
+            Dim Servers As New List(Of String)
+            For Each Server In ServerList.Split(";")
+                If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
+            Next
+            If Not Setup.Get("LinkServerType") = 2 Then
+                Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 2
+                For Each Server In ETServerDefList
+                    If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
+                    Servers.Add(Server.Url)
+                Next
+            End If
             For Each Server In Servers
                 ETProcess.StartInfo.Arguments += $" -p {Server}"
             Next
-            If Setup.Get("LinkRelayType") = 2 Then
+            If Setup.Get("LinkRelayType") = 1 Then
                 ETProcess.StartInfo.Arguments += " --disable-p2p"
             End If
 
@@ -624,7 +626,15 @@ Public Module ModLink
     Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565)
         '回传联机数据
         Log("[Link] 开始发送联机数据")
-        Dim Servers As String = ETServerDefault & ";" & Setup.Get("LinkRelayServer")
+        Dim Servers As String = Nothing
+        If Not Setup.Get("LinkServerType") = 2 Then
+            Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 2
+            For Each Server In ETServerDefList
+                If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
+                Servers &= Server.Url & ";"
+            Next
+        End If
+        Servers &= Setup.Get("LinkRelayServer")
         Dim Data As New JObject From {
                 {"Tag", "Link"},
                 {"Id", UniqueAddress},
