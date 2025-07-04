@@ -938,9 +938,13 @@ Public Class FormMain
         ''' </summary>
         SetupJava = 11
         ''' <summary>
-        ''' 存档详细管理，这是一个副业面
+        ''' 存档详细管理，这是一个副页面。
         ''' </summary>
         VersionSaves = 12
+        ''' <summary>
+        ''' 主页市场，这是一个副页面。
+        ''' </summary>
+        HomePageMarket = 13
     End Enum
     ''' <summary>
     ''' 次要页面种类。其数值必须与 StackPanel 中的下标一致。
@@ -1013,6 +1017,8 @@ Public Class FormMain
                 Return "Java 管理"
             Case PageType.VersionSaves
                 Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
+            Case PageType.HomePageMarket
+                Return "主页市场"
             Case Else
                 Return ""
         End Select
@@ -1269,6 +1275,9 @@ Public Class FormMain
                     If FrmVersionSavesLeft Is Nothing Then FrmVersionSavesLeft = New PageVersionSavesLeft
                     PageVersionSavesLeft.CurrentSave = Stack.Additional
                     PageChangeAnim(FrmVersionSavesLeft, FrmVersionSavesLeft.PageGet(SubType))
+                Case PageType.HomePageMarket '主页市场
+                    FrmHomepageMarket = If(FrmHomepageMarket, New PageHomePageMarket)
+                    PageChangeAnim(New MyPageLeft, FrmHomepageMarket)
             End Select
 #End Region
 

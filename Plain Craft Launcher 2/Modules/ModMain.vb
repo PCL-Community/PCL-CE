@@ -489,6 +489,7 @@ EndHint:
     Public FrmSetupSystem As PageSetupSystem
     Public FrmSetupLink As PageSetupLink
     Public FrmSetupJava As PageSetupJava
+    Public FrmHomePageMarket As PageHomePageMarket
 
     '其他页面声明
     Public FrmOtherLeft As PageOtherLeft
