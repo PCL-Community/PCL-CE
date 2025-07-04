@@ -1765,10 +1765,6 @@ Install:
             ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
         
-        If ModEntry.StructureAuthor IsNot Nothing Then
-            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
-        End If
-        
         ContentLines.Add("文件类型：Sponge Schematic")
     End Sub
     

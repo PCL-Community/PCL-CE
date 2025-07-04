@@ -250,10 +250,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicTimeCreated As Long?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicTimeCreated
+                Return _litematicTimeCreated
             End Get
         End Property
-        Private _LitematicTimeCreated As Long?
+        Private _litematicTimeCreated As Long?
         
         ''' <summary>
         ''' Litematic 文件的修改时间戳。
@@ -261,10 +261,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicTimeModified As Long?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicTimeModified
+                Return _litematicTimeModified
             End Get
         End Property
-        Private _LitematicTimeModified As Long?
+        Private _litematicTimeModified As Long?
         
         ''' <summary>
         ''' Schem 读取到的原始名称。
@@ -272,10 +272,10 @@ Public Module ModLocalComp
         Public ReadOnly Property SchemOriginalName As String
             Get
                 LoadNbtDataIfNeeded()
-                Return _SchemOriginalName
+                Return _schemOriginalName
             End Get
         End Property
-        Private _SchemOriginalName As String
+        Private _schemOriginalName As String
         
         ''' <summary>
         ''' Litematic 读取到的原始名称。
@@ -283,10 +283,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicOriginalName As String
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicOriginalName
+                Return _litematicOriginalName
             End Get
         End Property
-        Private _LitematicOriginalName As String
+        Private _litematicOriginalName As String
         
         ''' <summary>
         ''' Litematic 文件的版本。
@@ -294,10 +294,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicVersion As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicVersion
+                Return _litematicVersion
             End Get
         End Property
-        Private _LitematicVersion As Integer?
+        Private _litematicVersion As Integer?
         
         ''' <summary>
         ''' Litematic 文件的包围盒大小。
@@ -305,10 +305,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicEnclosingSize As String
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicEnclosingSize
+                Return _litematicEnclosingSize
             End Get
         End Property
-        Private _LitematicEnclosingSize As String
+        Private _litematicEnclosingSize As String
         
         ''' <summary>
         ''' Litematic 文件的区域数量。
@@ -316,10 +316,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicRegionCount As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicRegionCount
+                Return _litematicRegionCount
             End Get
         End Property
-        Private _LitematicRegionCount As Integer?
+        Private _litematicRegionCount As Integer?
         
         ''' <summary>
         ''' Litematic 文件的总方块数。
@@ -327,10 +327,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicTotalBlocks As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicTotalBlocks
+                Return _litematicTotalBlocks
             End Get
         End Property
-        Private _LitematicTotalBlocks As Integer?
+        Private _litematicTotalBlocks As Integer?
         
         ''' <summary>
         ''' Litematic 文件的总体积。
@@ -338,10 +338,10 @@ Public Module ModLocalComp
         Public ReadOnly Property LitematicTotalVolume As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _LitematicTotalVolume
+                Return _litematicTotalVolume
             End Get
         End Property
-        Private _LitematicTotalVolume As Integer?
+        Private _litematicTotalVolume As Integer?
         
         ''' <summary>
         ''' 原版结构文件的游戏版本。
@@ -349,10 +349,10 @@ Public Module ModLocalComp
         Public ReadOnly Property StructureGameVersion As String
             Get
                 LoadNbtDataIfNeeded()
-                Return _StructureGameVersion
+                Return _structureGameVersion
             End Get
         End Property
-        Private _StructureGameVersion As String
+        Private _structureGameVersion As String
         
         ''' <summary>
         ''' 原版结构文件的数据版本。
@@ -360,10 +360,10 @@ Public Module ModLocalComp
         Public ReadOnly Property StructureDataVersion As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _StructureDataVersion
+                Return _structureDataVersion
             End Get
         End Property
-        Private _StructureDataVersion As Integer?
+        Private _structureDataVersion As Integer?
         
         ''' <summary>
         ''' 原版结构文件的作者。
@@ -371,10 +371,10 @@ Public Module ModLocalComp
         Public ReadOnly Property StructureAuthor As String
             Get
                 LoadNbtDataIfNeeded()
-                Return _StructureAuthor
+                Return _structureAuthor
             End Get
         End Property
-        Private _StructureAuthor As String
+        Private _structureAuthor As String
         
         ''' <summary>
         ''' Sponge Schematic 文件的版本。
@@ -382,10 +382,10 @@ Public Module ModLocalComp
         Public ReadOnly Property SpongeVersion As Integer?
             Get
                 LoadNbtDataIfNeeded()
-                Return _SpongeVersion
+                Return _spongeVersion
             End Get
         End Property
-        Private _SpongeVersion As Integer?
+        Private _spongeVersion As Integer?
 
         ''' <summary>
         ''' Mod 图标路径。
@@ -504,7 +504,7 @@ Public Module ModLocalComp
                 End If
                 
                 If Not File.Exists(Path) Then 
-                    _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & ")")
+                    _fileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & ")")
                     IsLoaded = True
                     Return
                 End If
@@ -1237,12 +1237,12 @@ Finished:
                         ' 读取时间信息
                         Dim timeCreatedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeCreated']")
                         If timeCreatedTag IsNot Nothing Then
-                            _LitematicTimeCreated = CLng(timeCreatedTag.Value)
+                            _litematicTimeCreated = CLng(timeCreatedTag.Value)
                         End If
                         
                         Dim timeModifiedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeModified']")
                         If timeModifiedTag IsNot Nothing Then
-                            _LitematicTimeModified = CLng(timeModifiedTag.Value)
+                            _litematicTimeModified = CLng(timeModifiedTag.Value)
                         End If
                         
                         ' 读取包围盒大小
@@ -1252,7 +1252,7 @@ Finished:
                             Dim yTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='y']")
                             Dim zTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='z']")
                             If xTag IsNot Nothing AndAlso yTag IsNot Nothing AndAlso zTag IsNot Nothing Then
-                                _LitematicEnclosingSize = $"{xTag.Value} × {yTag.Value} × {zTag.Value}"
+                                _litematicEnclosingSize = $"{xTag.Value} × {yTag.Value} × {zTag.Value}"
                             End If
                         End If
                         
@@ -1265,19 +1265,19 @@ Finished:
                         ' 读取区域数量
                         Dim regionCountTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='RegionCount']")
                         If regionCountTag IsNot Nothing Then
-                            _LitematicRegionCount = CInt(regionCountTag.Value)
+                            _litematicRegionCount = CInt(regionCountTag.Value)
                         End If
                         
                         ' 读取总方块数
                         Dim totalBlocksTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalBlocks']")
                         If totalBlocksTag IsNot Nothing Then
-                            _LitematicTotalBlocks = CInt(totalBlocksTag.Value)
+                            _litematicTotalBlocks = CInt(totalBlocksTag.Value)
                         End If
 
                     ' 读取数据版本信息
                     Dim dataVersionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='DataVersion']")
                     If dataVersionTag IsNot Nothing Then
-                        _StructureDataVersion = CInt(dataVersionTag.Value)
+                        _structureDataVersion = CInt(dataVersionTag.Value)
                     End If
                     
                     ' 读取作者信息
@@ -1289,19 +1289,19 @@ Finished:
                         ' 读取总体积
                         Dim totalVolumeTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalVolume']")
                         If totalVolumeTag IsNot Nothing Then
-                            _LitematicTotalVolume = CInt(totalVolumeTag.Value)
+                            _litematicTotalVolume = CInt(totalVolumeTag.Value)
                         End If
                         
                         ' 读取名称
                         Dim nameTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Name']")
                         If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) AndAlso nameTag.Value <> "Unnamed" Then
-                            _LitematicOriginalName = nameTag.Value
+                            _litematicOriginalName = nameTag.Value
                         End If
                         
                         ' 读取版本信息
                         Dim versionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='Version']")
                         If versionTag IsNot Nothing Then
-                            _LitematicVersion = CInt(versionTag.Value)
+                            _litematicVersion = CInt(versionTag.Value)
                         End If
                         
                         Log($"NBT 数据读取完成", LogLevel.Debug)
@@ -1346,7 +1346,7 @@ Finished:
                     ' 读取Sponge版本信息
                     Dim versionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='Version']")
                     If versionTag IsNot Nothing Then
-                        _SpongeVersion = CInt(versionTag.Value)
+                        _spongeVersion = CInt(versionTag.Value)
                     End If
                     
                     ' 读取尺寸信息
@@ -1357,30 +1357,30 @@ Finished:
                         Dim width As Integer = CInt(widthTag.Value)
                         Dim height As Integer = CInt(heightTag.Value)
                         Dim length As Integer = CInt(lengthTag.Value)
-                        _LitematicEnclosingSize = $"{width} × {height} × {length}"
+                        _litematicEnclosingSize = $"{width} × {height} × {length}"
                         
                         ' 计算总体积
-                        _LitematicTotalVolume = width * height * length
+                        _litematicTotalVolume = width * height * length
                         
                     End If
 
                     ' 读取数据版本信息
                     Dim dataVersionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='DataVersion']")
                     If dataVersionTag IsNot Nothing Then
-                        _StructureDataVersion = CInt(dataVersionTag.Value)
+                        _structureDataVersion = CInt(dataVersionTag.Value)
                     End If
                     
                     ' 读取方块数据来计算方块数量
                     Dim blockDataTag As XElement = rootTag.XPathSelectElement("//TByteArray[@Name='BlockData']")
                     If blockDataTag IsNot Nothing AndAlso _LitematicTotalVolume.HasValue Then
                         ' 对于Sponge格式，方块数量等于总体积（因为包含空气方块）
-                        _LitematicTotalBlocks = _LitematicTotalVolume.Value
+                        _litematicTotalBlocks = _LitematicTotalVolume.Value
                     End If
                     
                     ' 读取调色板信息来计算区域数量
                     Dim paletteTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Palette']")
                     If paletteTag IsNot Nothing Then
-                        _LitematicRegionCount = 1 ' Sponge Schematic 通常只有一个区域
+                        _litematicRegionCount = 1 ' Sponge Schematic 通常只有一个区域
                     End If
 
                     ' 读取元数据
@@ -1389,14 +1389,14 @@ Finished:
                         ' 读取名称
                         Dim nameTag As XElement = metadataTag.XPathSelectElement(".//TString[@Name='Name']")
                         If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) Then
-                            _SchemOriginalName = nameTag.Value
+                            _schemOriginalName = nameTag.Value
                         End If
                         
                         ' 读取作者信息
                         Dim authorTag As XElement = metadataTag.XPathSelectElement(".//TString[@Name='Author']")
                         If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
-                            _StructureAuthor = authorTag.Value
-                            If _Authors Is Nothing Then _Authors = _StructureAuthor
+                            _structureAuthor = authorTag.Value
+                            If _Authors Is Nothing Then _Authors = _structureAuthor
                         End If
 
                     End If
@@ -1440,8 +1440,8 @@ Finished:
                     Dim heightTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Height']")
                     Dim lengthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Length']")
                     If widthTag IsNot Nothing AndAlso heightTag IsNot Nothing AndAlso lengthTag IsNot Nothing Then
-                        _LitematicEnclosingSize = $"{widthTag.Value} × {heightTag.Value} × {lengthTag.Value}"
-                        _LitematicTotalVolume = CInt(widthTag.Value) * CInt(heightTag.Value) * CInt(lengthTag.Value)
+                        _litematicEnclosingSize = $"{widthTag.Value} × {heightTag.Value} × {lengthTag.Value}"
+                        _litematicTotalVolume = CInt(widthTag.Value) * CInt(heightTag.Value) * CInt(lengthTag.Value)
                     End If
 
                     ' 读取材料列表
@@ -1490,8 +1490,8 @@ Finished:
                         Dim sizeElements = sizeTag.Elements("TInt32")
                         If sizeElements.Count() >= 3 Then
                             Dim sizeArray = sizeElements.Take(3).Select(Function(e) e.Value).ToArray()
-                            _LitematicEnclosingSize = $"{sizeArray(0)} × {sizeArray(1)} × {sizeArray(2)}"
-                            _LitematicTotalVolume = CInt(sizeArray(0)) * CInt(sizeArray(1)) * CInt(sizeArray(2))
+                            _litematicEnclosingSize = $"{sizeArray(0)} × {sizeArray(1)} × {sizeArray(2)}"
+                            _litematicTotalVolume = CInt(sizeArray(0)) * CInt(sizeArray(1)) * CInt(sizeArray(2))
                         End If
                     End If
                     
@@ -1500,21 +1500,21 @@ Finished:
                     ' 读取作者信息
                     Dim authorTag As XElement = rootTag.XPathSelectElement("//TString[@Name='author']")
                     If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
-                        _StructureAuthor = authorTag.Value
-                        If _Authors Is Nothing Then _Authors = _StructureAuthor
+                        _structureAuthor = authorTag.Value
+                        If _Authors Is Nothing Then _Authors = _structureAuthor
                     End If
                     
                     ' 读取方块数量信息
                     Dim blocksTag As XElement = rootTag.XPathSelectElement("//TList[@Name='blocks']")
                     If blocksTag IsNot Nothing Then
                         Dim blockElements = blocksTag.Elements("TCompound")
-                        _LitematicTotalBlocks = blockElements.Count()
+                        _litematicTotalBlocks = blockElements.Count()
                     End If
                     
                     ' 读取调色板信息来计算区域数量
                     Dim paletteTag As XElement = rootTag.XPathSelectElement("//TList[@Name='palette']")
                     If paletteTag IsNot Nothing Then
-                        _LitematicRegionCount = 1 ' 原版结构文件通常只有一个区域
+                        _litematicRegionCount = 1 ' 原版结构文件通常只有一个区域
                     End If
                     
 
