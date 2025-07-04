@@ -23,7 +23,7 @@
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemLobby.Check, ItemSetup.Check, ItemHelp.Check, ItemFeedback.Check, ItemNetStatus.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemLobby.Check, ItemSetup.Check, ItemHelp.Check, ItemFeedback.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -35,9 +35,6 @@
             Case 0, FormMain.PageSubType.LinkLobby
                 If FrmLinkLobby Is Nothing Then FrmLinkLobby = New PageLinkLobby
                 Return FrmLinkLobby
-            Case FormMain.PageSubType.LinkIoi
-                If FrmLinkIoi Is Nothing Then FrmLinkIoi = New PageLinkIoi
-                Return FrmLinkIoi
             Case FormMain.PageSubType.LinkSetup
                 If FrmSetupLink Is Nothing Then FrmSetupLink = New PageSetupLink
                 Return FrmSetupLink
@@ -63,9 +60,6 @@
             Case FormMain.PageSubType.LinkFeedback
                 If FrmLinkFeedback Is Nothing Then FrmLinkFeedback = New PageLinkFeedback
                 Return FrmLinkFeedback
-            Case FormMain.PageSubType.LinkNetStatus
-                If FrmLinkNetStatus Is Nothing Then FrmLinkNetStatus = New PageLinkNetStatus
-                Return FrmLinkNetStatus
             Case Else
                 Throw New Exception("未知的更多子页面种类：" & ID)
         End Select
@@ -121,17 +115,6 @@
             FrmSetupLink.Reset()
             ItemSetup.Checked = True
         End If
-    End Sub
-
-    Public Sub Recheck(sender As Object, e As EventArgs)
-        If IsNothing(FrmLinkNetStatus) Then FrmLinkNetStatus = New PageLinkNetStatus
-        Hint("正在重新检测网络环境，请稍后...")
-        FrmLinkNetStatus.NetStatusTest()
-        ItemNetStatus.Checked = True
-    End Sub
-
-    Public Sub NetStatusUpdate(Status As String)
-        ItemNetStatus.Title = Status
     End Sub
 
 End Class

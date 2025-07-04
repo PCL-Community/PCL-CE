@@ -980,11 +980,9 @@ Public Class FormMain
         SetupSystem = 2
         SetupLink = 3
         LinkLobby = 1
-        LinkIoi = 2
         LinkSetup = 4
         LinkHelp = 5
         LinkFeedback = 6
-        LinkNetStatus = 7
         OtherHelp = 0
         OtherAbout = 1
         OtherTest = 2
