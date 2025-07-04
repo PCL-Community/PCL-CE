@@ -6,7 +6,7 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
-            <local:MyCard Title="关于与使用条款" Margin="0,0,0,15">
+            <local:MyCard Title="说明与条款" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" 
                                Text="此处列出了 PCL CE 大厅使用的相关服务文档及介绍" />
