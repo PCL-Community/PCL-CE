@@ -49,7 +49,7 @@
     Private Sub ReloadNaidData()
         RunInNewThread(Sub()
                            Try
-                               If Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) > 0 Then
+                               If Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) < 0 Then
                                    Setup.Set("LinkNaidRefreshToken", "")
                                    Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
                                    Exit Sub

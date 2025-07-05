@@ -20,7 +20,7 @@
                               Type="Clickable" EventType="打开网页" EventData="https://easytier.cn/"
                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
                     <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" 
-                              Text="同时，使用大厅功能即代表你同意下列条款：&#xa;&#xa;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#xa;我承诺使用大厅功能带来的一切风险自行承担。&#xa;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#xa;&#xa;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。" />
+                              Text="同时，使用大厅功能即代表你同意下列条款：&#xa;&#xa;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#xa;我承诺使用大厅功能带来的一切风险自行承担。&#xa;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#xa;为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。&#xa;&#xa;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="发送反馈" Margin="0,0,0,15">
