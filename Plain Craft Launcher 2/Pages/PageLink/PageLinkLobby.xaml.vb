@@ -472,7 +472,11 @@
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
                            CheckFirewall()
-                           LaunchLink(True, LocalPort:=LocalPort)
+                           Dim Id As String = Nothing
+                           For index = 1 To 8 '生成 8 位随机编号
+                               Id += RandomInteger(0, 9).ToString()
+                           Next
+                           LaunchLink(True, Id, LocalPort:=LocalPort)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Collapsed
                                        BtnFinishPing.Visibility = Visibility.Collapsed

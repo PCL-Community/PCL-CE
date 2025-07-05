@@ -414,13 +414,9 @@ Public Module ModLink
 
             '大厅设置
             If IsHost Then
-                Dim Id As String = Nothing
-                For index = 1 To 8 '生成 8 位随机编号
-                    Id += RandomInteger(0, 9).ToString()
-                Next
-                Name &= Id
-                Secret &= Id
-                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}, 是否自定义网络密钥: {Not Secret = ETNetworkDefaultSecret & Id}")
+                Name = ETNetworkDefaultName & Name
+                Secret = ETNetworkDefaultSecret & Name
+                Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
                 Name = ETNetworkDefaultName & Name
@@ -451,9 +447,9 @@ Public Module ModLink
 
             '创建防火墙规则
             If IsHost Then
-                PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}", Nothing)
+                PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}")
             End If
-            PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any", Nothing)
+            PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any")
             PromoteService.Activate()
 
             '用户名与其他参数
@@ -469,7 +465,7 @@ Public Module ModLink
             Log($"[Link] 启动 EasyTier")
             'Log($"[Link] EasyTier 参数: {Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
-            PromoteService.AppendOperation($"start {ETPath}\easytier-core.exe. ; ", Sub(s As String) ETProcessPid = s)
+            PromoteService.AppendOperation($"start {ETPath}\easytier-core.exe. ; ", Sub(s As String) ETProcessPid = s, False)
             IsETRunning = PromoteService.Activate()
         Catch ex As Exception
             Log("[Link] 尝试启动 EasyTier 时遇到问题: " + ex.ToString())
@@ -515,12 +511,14 @@ Public Module ModLink
     End Sub
 
     Public Sub ExitEasyTier()
-        If IsETRunning Then
+        If IsETRunning AndAlso ETProcessPid IsNot Nothing Then
             Try
-                Log("[Link] 停止 EasyTier")
-                PromoteService.AppendOperation("start cmd. ; /c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""", Nothing)
-                PromoteService.AppendOperation($"start taskkill. ; /f /pid {ETProcessPid}", Nothing)
-                PromoteService.Activate()
+                Log($"[Link] 停止 EasyTier（PID: {ETProcessPid}）")
+                RunInNewThread(Sub()
+                                   PromoteService.AppendOperation("start cmd. ; /c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""")
+                                   PromoteService.AppendOperation($"start taskkill. ; /f /pid {ETProcessPid}")
+                                   PromoteService.Activate()
+                               End Sub)
                 IsETRunning = False
                 ETProcessPid = Nothing
                 PageLinkLobby.RemotePort = Nothing
@@ -627,6 +625,7 @@ Public Module ModLink
             End If
             Return 1
         End Try
+        StopMcPortForward()
         LaunchEasyTier(IsHost, Name, Secret, LocalPort:=LocalPort)
         Return 0
     End Function

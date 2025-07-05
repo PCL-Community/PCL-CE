@@ -392,6 +392,7 @@ Public Class FormMain
         End If
         '关闭 EasyTier 联机
         ModLink.ExitEasyTier()
+        StopMcPortForward()
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -431,6 +432,7 @@ Public Class FormMain
         On Error Resume Next
         '关闭 EasyTier 联机
         ModLink.ExitEasyTier()
+        StopMcPortForward()
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
