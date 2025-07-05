@@ -4,8 +4,8 @@ Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
 Imports System.Threading.Tasks
-Imports System.Net.NetworkInformation
 Imports PCL.Core.Helper
+Imports PCL.Core.Service
 
 Public Module ModLink
 
@@ -393,36 +393,26 @@ Public Module ModLink
         Public Name As String
         Public Type As String
     End Class
-    Public ETProcess As New Process
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETVersion As String = "2.3.2"
     Public ETPath As String = PathTemp + $"EasyTier\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
-
+    Public ETProcessPid As String = Nothing
     Public Sub LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565)
         Try
-            ETProcess = New Process
-            ETProcess.StartInfo = New ProcessStartInfo With {
-                .FileName = ETPath & "\easytier-core.exe",
-                .WorkingDirectory = ETPath,
-                .Arguments = ETProcess.StartInfo.Arguments,
-                .ErrorDialog = False,
-                .CreateNoWindow = True,
-                .WindowStyle = ProcessWindowStyle.Hidden,
-                .UseShellExecute = False,
-                .RedirectStandardOutput = True,
-                .RedirectStandardError = True,
-                .RedirectStandardInput = True}
-            ETProcess.EnableRaisingEvents = True
+            '兜底
             If ((Not File.Exists(ETPath & "\easytier-core.exe")) OrElse (Not File.Exists(ETPath & "\easytier-cli.exe")) OrElse (Not File.Exists(ETPath & "\wintun.dll"))) AndAlso (Not IsAfterDownload) Then
                 Log("[Link] EasyTier 不存在，开始下载")
                 DownloadEasyTier(True, IsHost, Name, Secret)
                 Exit Sub
             End If
-            Log($"[Link] EasyTier 路径: {ETProcess.StartInfo.FileName}")
+            Log($"[Link] EasyTier 路径: {ETPath}")
 
+            Dim Arguments As String = Nothing
+
+            '大厅设置
             If IsHost Then
                 Dim Id As String = Nothing
                 For index = 1 To 8 '生成 8 位随机编号
@@ -431,15 +421,14 @@ Public Module ModLink
                 Name &= Id
                 Secret &= Id
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}, 是否自定义网络密钥: {Not Secret = ETNetworkDefaultSecret & Id}")
-                ETProcess.StartInfo.Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
+                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
                 Name = ETNetworkDefaultName & Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
-                ETProcess.StartInfo.Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
-                'ETProcess.StartInfo.Verb = "runas"
+                Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
             End If
 
-            '添加节点
+            '节点设置
             Dim ServerList As String = Setup.Get("LinkRelayServer")
             Dim Servers As New List(Of String)
             For Each Server In ServerList.Split(";")
@@ -452,56 +441,40 @@ Public Module ModLink
                     Servers.Add(Server.Url)
                 Next
             End If
+            '中继行为设置
             For Each Server In Servers
-                ETProcess.StartInfo.Arguments += $" -p {Server}"
+                Arguments += $" -p {Server}"
             Next
             If Setup.Get("LinkRelayType") = 1 Then
-                ETProcess.StartInfo.Arguments += " --disable-p2p"
+                Arguments += " --disable-p2p"
             End If
 
             '创建防火墙规则
             If IsHost Then
-                Dim FirewallProcessAllow As New Process With {
-                    .StartInfo = New ProcessStartInfo With {
-                    .Verb = "runas",
-                    .FileName = "cmd",
-                    .CreateNoWindow = True,
-                    .UseShellExecute = False,
-                    .Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}"
-                    }
-                }
-                FirewallProcessAllow.Start()
-                FirewallProcessAllow.WaitForExit()
+                PromoteService.AppendOperation($"start cmd ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}", Nothing)
             End If
-            Dim FirewallProcessDeny As New Process With {
-                .StartInfo = New ProcessStartInfo With {
-                    .Verb = "runas",
-                    .FileName = "cmd",
-                    .CreateNoWindow = True,
-                    .UseShellExecute = False,
-                    .Arguments = $"/c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any"
-                }
-            }
-            FirewallProcessDeny.Start()
-            FirewallProcessDeny.WaitForExit()
+            PromoteService.AppendOperation($"start cmd ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any", Nothing)
+            PromoteService.Activate()
 
-            ETProcess.StartInfo.Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
+            '用户名与其他参数
+            Arguments += $" --enable-kcp-proxy --latency-first --use-smoltcp"
             Dim Hostname As String = Nothing
             Hostname = If(IsHost, LocalPort & "-", "J-") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
                 Hostname += $"-{SelectedProfile.Username}"
             End If
-            ETProcess.StartInfo.Arguments += $" --hostname ""{Hostname}"""
-            'AddHandler ETProcess.Exited, AddressOf LaunchEasyTier
+            Arguments += $" --hostname ""{Hostname}"""
+
+            '启动
             Log($"[Link] 启动 EasyTier")
-            'Log($"[Link] EasyTier 参数: {ETProcess.StartInfo.Arguments}")
+            'Log($"[Link] EasyTier 参数: {Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
-            ETProcess.Start()
-            IsETRunning = True
+            PromoteService.AppendOperation($"start {ETPath}\easytier-core.exe ; ", Sub(s As String) ETProcessPid = s)
+            IsETRunning = PromoteService.Activate()
         Catch ex As Exception
             Log("[Link] 尝试启动 EasyTier 时遇到问题: " + ex.ToString())
-            ETProcess = Nothing
             IsETRunning = False
+            ETProcessPid = Nothing
         End Try
     End Sub
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
@@ -522,14 +495,14 @@ Public Module ModLink
                                If LaunchAfterDownload Then
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Sub() LaunchEasyTier(IsHost, Name, Secret, True)))
                                End If
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("更新联机界面 UI", Sub() RunInUi(Sub()
-                                                                                                              PageLinkLobby.IsEasyTierExist = True
-                                                                                                              FrmLinkLobby.BtnCreate.IsEnabled = True
-                                                                                                              FrmLinkLobby.BtnSelectJoin.IsEnabled = True
-                                                                                                              Hint("联机组件下载完成！", HintType.Finish)
-                                                                                                          End Sub)))
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
+                                                                                                         PageLinkLobby.IsEasyTierExist = True
+                                                                                                         FrmLinkLobby.BtnCreate.IsEnabled = True
+                                                                                                         FrmLinkLobby.BtnSelectJoin.IsEnabled = True
+                                                                                                         Hint("联机组件下载完成！", HintType.Finish)
+                                                                                                     End Sub)))
                                '启动
-                               DlEasyTierLoader = New LoaderCombo(Of JObject)("EasyTier 初始化", Loaders)
+                               DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
                                DlEasyTierLoader.Start()
                                LoaderTaskbarAdd(DlEasyTierLoader)
                                FrmMain.BtnExtraDownload.ShowRefresh()
@@ -543,24 +516,13 @@ Public Module ModLink
 
     Public Sub ExitEasyTier()
         If IsETRunning Then
-            If IsAdmin() Then
-                Dim FirewallProcess As New Process With {
-                    .StartInfo = New ProcessStartInfo With {
-                        .Verb = "runas",
-                        .FileName = "cmd",
-                        .Arguments = $"/c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""",
-                        .CreateNoWindow = True,
-                        .UseShellExecute = False
-                    }
-                }
-                FirewallProcess.Start()
-                FirewallProcess.WaitForExit()
-            End If
             Try
                 Log("[Link] 停止 EasyTier")
-                ETProcess.Kill()
+                PromoteService.AppendOperation("start cmd ; /c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""", Nothing)
+                PromoteService.AppendOperation($"start taskkill ; /f /pid {ETProcessPid}", Nothing)
+                PromoteService.Activate()
                 IsETRunning = False
-                ETProcess = Nothing
+                ETProcessPid = Nothing
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.Hostname = Nothing
                 PageLinkLobby.IsETFirstCheckFinished = False
@@ -568,14 +530,14 @@ Public Module ModLink
             Catch ex As InvalidOperationException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
                 IsETRunning = False
-                ETProcess = Nothing
+                ETProcessPid = Nothing
             Catch ex As NullReferenceException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
                 IsETRunning = False
-                ETProcess = Nothing
+                ETProcessPid = Nothing
             Catch ex As Exception
                 Log("[Link] 尝试停止 EasyTier 进程时遇到问题: " + ex.ToString())
-                ETProcess = Nothing
+                ETProcessPid = Nothing
             End Try
         End If
     End Sub
@@ -588,10 +550,10 @@ Public Module ModLink
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Return False
         End If
-        If Not IsAdmin() Then
-            MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
-            Return False
-        End If
+        'If Not IsAdmin() Then
+        '    MyMsgBox($"现阶段要使用大厅，需要以管理员身份启动 PCL。{vbCrLf}请退出启动器，右键点击启动器程序，选择 ⌈以管理员身份运行⌋，然后继续操作。", "需要管理员权限", "我知道了", ForceWait:=True)
+        '    Return False
+        'End If
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return False

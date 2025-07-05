@@ -274,11 +274,11 @@
                            End If
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
-                           While ETProcess IsNot Nothing AndAlso ETProcess.HasExited = False
+                           While ETProcessPid IsNot Nothing
                                GetETInfo()
                                Thread.Sleep(15000)
                            End While
-                           If ETProcess Is Nothing OrElse ETProcess.HasExited Then
+                           If ETProcessPid Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
                                            Log("[Link] EasyTier 已退出")
