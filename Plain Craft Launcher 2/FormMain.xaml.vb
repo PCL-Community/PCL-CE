@@ -236,6 +236,19 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
+            '联机摇号
+            Try
+                Dim DateNow As String = Now.ToString("yyyyMMdd")
+                If Not Setup.Get("LinkAvailable") AndAlso Not DateNow = Setup.Get("LinkLastTestDate") Then
+                    Dim Chance As Double = Val(NetRequestRetry($"{LinkServerRoot}/api/link/lottery.ini", "GET", Nothing, "application/json"))
+                    Dim Num As Integer = RandomInteger(0, 100)
+                    If Num > 1 - (Chance * 100) Then Setup.Set("LinkAvailable", True)
+                    Setup.Set("LinkLastTestDate", DateNow)
+                    Log($"[Link] 摇号 {Num} ({DateNow})")
+                End If
+            Catch ex As Exception
+                Log(ex, "联机摇号失败")
+            End Try
             '清理自动更新文件
             Try
                 If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")
@@ -245,8 +258,6 @@ Public Class FormMain
             GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
-        '剪贴板识别
-        If Setup.Get("ToolDownloadClipboard") Then RunInNewThread(Sub() CompClipboard.ClipboardListening(), "Clipboard Listener", ThreadPriority.Lowest)
 
         Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
@@ -380,7 +391,7 @@ Public Class FormMain
             End If
         End If
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -419,7 +430,7 @@ Public Class FormMain
     Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
         On Error Resume Next
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
@@ -557,6 +568,7 @@ Public Class FormMain
     '切回窗口
     Private Sub FormMain_Activated() Handles Me.Activated
         Try
+            If Setup.Get("ToolDownloadClipboard") Then CompClipboard.GetClipboardResource()
             If PageCurrent = PageType.VersionSetup AndAlso PageCurrentSub = PageSubType.VersionMod Then
                 'Mod 管理自动刷新
                 FrmVersionMod.ReloadCompFileList()
@@ -972,11 +984,9 @@ Public Class FormMain
         SetupSystem = 2
         SetupLink = 3
         LinkLobby = 1
-        LinkIoi = 2
         LinkSetup = 4
         LinkHelp = 5
         LinkFeedback = 6
-        LinkNetStatus = 7
         OtherHelp = 0
         OtherAbout = 1
         OtherTest = 2

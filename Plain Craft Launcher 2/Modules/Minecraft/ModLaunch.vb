@@ -2350,11 +2350,7 @@ NextVersion:
         End If
         Select Case McLoginLoader.Input.Type
             Case McLoginType.Legacy
-                If PageLinkLobby.HiperState = LoadState.Finished Then
-                    Raw = Raw.Replace("{login}", "联机离线")
-                Else
-                    Raw = Raw.Replace("{login}", "离线")
-                End If
+                Raw = Raw.Replace("{login}", "离线")
             Case McLoginType.Ms
                 Raw = Raw.Replace("{login}", "正版")
             Case McLoginType.Auth

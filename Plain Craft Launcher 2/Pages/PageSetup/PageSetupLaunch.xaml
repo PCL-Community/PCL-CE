@@ -31,6 +31,9 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="9" />
                             <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="默认版本隔离" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2" Tag="LaunchArgumentIndieV2" Grid.Column="1"
@@ -104,8 +107,15 @@
                             <local:MyComboBoxItem Content="Web 账户管理器" IsSelected="True" />
                             <local:MyComboBoxItem Content="设备代码流" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="游戏 Java" Margin="0,0,25,0" />
-                        <local:MyIconTextButton x:Name="BtnGotoJavaManage" Grid.ColumnSpan="2" Grid.Row="14" Grid.Column="1" HorizontalAlignment="Left" Text="前往 Java 管理" Logo="M857.856 0H55.296a53.248 53.248 0 0 0-51.2 53.248V230.4a51.2 51.2 0 0 0 102.4 0V106.496h708.352a102.4 102.4 0 0 1 102.4 102.4v606.464a102.4 102.4 0 0 1-102.4 102.4H105.984v-120.32a51.2 51.2 0 0 0-102.4 0V972.8a53.248 53.248 0 0 0 51.2 51.2h803.072A166.4 166.4 0 0 0 1024 858.368v-691.2A166.4 166.4 0 0 0 857.856 0z M91.136 512a57.344 57.344 0 0 0 57.088 57.088h380.672l-103.68 103.68a53.248 53.248 0 0 0 75.264 75.264l198.144-198.4a52.992 52.992 0 0 0 0-75.264l-198.4-198.4a53.248 53.248 0 1 0-75.264 75.264l103.68 103.68H148.224A57.344 57.344 0 0 0 91.136 512z"/>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="IP 协议偏好" Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboPreferredIpStack" Grid.Row="14" Grid.ColumnSpan="2" Tag="LaunchPreferredIpStack" Grid.Column="1" 
+                                          ToolTip="通过设置 Java 虚拟机参数来设置 MC 的 IP 协议版本偏好。&#xa;一般建议设置为 “IPv4 优先”，这能确保 PCL CE 大厅正常工作。&#xa;如果有手动 IPv6 联机等需要，可以选择其他选项。&#xa;&#xa;IPv4 优先：-Djava.net.preferIPv4Stack=true&#xa;默认：不添加额外参数&#xa;IPv6 优先：-Djava.net.preferIPv6Stack=true">
+                            <local:MyComboBoxItem Content="IPv4 优先" IsSelected="True" />
+                            <local:MyComboBoxItem Content="Java 默认" />
+                            <local:MyComboBoxItem Content="IPv6 优先" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="16" HorizontalAlignment="Left" Text="游戏 Java" Margin="0,0,25,0" />
+                        <local:MyIconTextButton x:Name="BtnGotoJavaManage" Grid.ColumnSpan="2" Grid.Row="16" Grid.Column="1" HorizontalAlignment="Left" Text="前往 Java 管理" Logo="M857.856 0H55.296a53.248 53.248 0 0 0-51.2 53.248V230.4a51.2 51.2 0 0 0 102.4 0V106.496h708.352a102.4 102.4 0 0 1 102.4 102.4v606.464a102.4 102.4 0 0 1-102.4 102.4H105.984v-120.32a51.2 51.2 0 0 0-102.4 0V972.8a53.248 53.248 0 0 0 51.2 51.2h803.072A166.4 166.4 0 0 0 1024 858.368v-691.2A166.4 166.4 0 0 0 857.856 0z M91.136 512a57.344 57.344 0 0 0 57.088 57.088h380.672l-103.68 103.68a53.248 53.248 0 0 0 75.264 75.264l198.144-198.4a52.992 52.992 0 0 0 0-75.264l-198.4-198.4a53.248 53.248 0 1 0-75.264 75.264l103.68 103.68H148.224A57.344 57.344 0 0 0 91.136 512z"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

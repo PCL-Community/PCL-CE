@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Helper.Diff;
@@ -36,5 +37,17 @@ public class DiffTest
         Assert.IsTrue(res.Length == trueData.Length);
         for (int i = 0; i < res.Length; i++)
             Assert.IsTrue(res[i] == trueData[i]);
+    }
+
+    [TestMethod]
+    public async Task TestBsDiff2()
+    {
+        const string from = @"";
+        const string diffFile = @"";
+        const string outFile = @"";
+        if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(outFile) || string.IsNullOrEmpty(diffFile))
+            return;
+        var diff = new BsDiff();
+        File.WriteAllBytes(outFile, await diff.Apply(File.ReadAllBytes(from), File.ReadAllBytes(diffFile)));
     }
 }

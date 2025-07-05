@@ -125,12 +125,6 @@
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
 
-    Private Sub StartClipboardListening() Handles CheckDownloadClipboard.Change
-        If CheckDownloadClipboard.Checked Then
-            RunInNewThread(Sub() CompClipboard.ClipboardListening())
-        End If
-    End Sub
-
     '滑动条
     Private Sub SliderLoad()
         SliderDownloadThread.GetHintText = Function(v) v + 1

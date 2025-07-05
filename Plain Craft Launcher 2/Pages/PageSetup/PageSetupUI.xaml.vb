@@ -158,7 +158,6 @@ Public Class PageSetupUI
             CheckHiddenFunctionHidden.Checked = Setup.Get("UiHiddenFunctionHidden")
             CheckHiddenSetupLaunch.Checked = Setup.Get("UiHiddenSetupLaunch")
             CheckHiddenSetupUI.Checked = Setup.Get("UiHiddenSetupUi")
-            CheckHiddenSetupLink.Checked = Setup.Get("UiHiddenSetupLink")
             CheckHiddenSetupSystem.Checked = Setup.Get("UiHiddenSetupSystem")
             CheckHiddenOtherAbout.Checked = Setup.Get("UiHiddenOtherAbout")
             CheckHiddenOtherFeedback.Checked = Setup.Get("UiHiddenOtherFeedback")
@@ -221,7 +220,6 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenFunctionHidden")
             Setup.Reset("UiHiddenSetupLaunch")
             Setup.Reset("UiHiddenSetupUi")
-            Setup.Reset("UiHiddenSetupLink")
             Setup.Reset("UiHiddenSetupSystem")
             Setup.Reset("UiHiddenOtherAbout")
             Setup.Reset("UiHiddenOtherFeedback")
@@ -253,7 +251,7 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -620,7 +618,7 @@ Refresh:
                 '顶部栏未被全部隐藏
                 FrmMain.PanTitleSelect.Visibility = Visibility.Visible
                 FrmMain.BtnTitleSelect1.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageDownload"), Visibility.Collapsed, Visibility.Visible)
-                FrmMain.BtnTitleSelect2.Visibility = If(Not VersionBranchName = "Debug", Visibility.Collapsed, Visibility.Visible) 'If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageLink"), Visibility.Collapsed, Visibility.Visible)
+                FrmMain.BtnTitleSelect2.Visibility = If(Not (VersionBranchName = "Debug" OrElse Setup.Get("LinkAvailable")) OrElse (Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageLink")), Visibility.Collapsed, Visibility.Visible)
                 FrmMain.BtnTitleSelect3.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageSetup"), Visibility.Collapsed, Visibility.Visible)
                 FrmMain.BtnTitleSelect4.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageOther"), Visibility.Collapsed, Visibility.Visible)
             End If
@@ -633,13 +631,11 @@ Refresh:
             If FrmSetupLeft IsNot Nothing Then
                 FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupLaunch"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupUi"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemLink.Visibility = Visibility.Collapsed 'If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupLink"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupSystem"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡
                 Dim AvaliableCount As Integer = 0
                 If Not Setup.Get("UiHiddenSetupLaunch") Then AvaliableCount += 1
                 If Not Setup.Get("UiHiddenSetupUi") Then AvaliableCount += 1
-                If Not Setup.Get("UiHiddenSetupLink") Then AvaliableCount += 1
                 If Not Setup.Get("UiHiddenSetupSystem") Then AvaliableCount += 1
                 FrmSetupLeft.PanItem.Visibility = If(AvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
@@ -688,21 +684,19 @@ Refresh:
             '开启
             CheckHiddenSetupLaunch.Checked = True
             CheckHiddenSetupSystem.Checked = True
-            CheckHiddenSetupLink.Checked = True
             CheckHiddenSetupUI.Checked = True
         Else
             '关闭
-            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") AndAlso Setup.Get("UiHiddenSetupLink") Then
+            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
                 CheckHiddenSetupLaunch.Checked = False
                 CheckHiddenSetupSystem.Checked = False
-                CheckHiddenSetupLink.Checked = False
                 CheckHiddenSetupUI.Checked = False
             End If
         End If
     End Sub
-    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change
+    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
         '设置子页面
-        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") AndAlso Setup.Get("UiHiddenSetupLink") Then
+        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
             '已被全部隐藏
             CheckHiddenPageSetup.Checked = True
         Else
