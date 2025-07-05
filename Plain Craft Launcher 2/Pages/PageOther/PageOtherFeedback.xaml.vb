@@ -26,7 +26,7 @@
 
     Private Shadows IsLoaded As Boolean = False
     Private Sub PageOtherFeedback_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, AddressOf RefreshList, AddressOf LoaderInput)
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, AddressOf RefreshList)
         '重复加载部分
         PanBack.ScrollToHome()
         '非重复加载部分
@@ -35,11 +35,7 @@
 
     End Sub
 
-    Public Loader As New LoaderTask(Of Integer, List(Of Feedback))("FeedbackList", AddressOf FeedbackListGet, AddressOf LoaderInput)
-
-    Private Function LoaderInput() As Integer
-        Return 0 ' awa?
-    End Function
+    Public Loader As New LoaderTask(Of Integer, List(Of Feedback))("FeedbackList", AddressOf FeedbackListGet)
 
     Public Sub FeedbackListGet(Task As LoaderTask(Of Integer, List(Of Feedback)))
         Dim list As JArray
