@@ -281,6 +281,7 @@
                            If ETProcessPid Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
+                                           StopMcPortForward()
                                            Log("[Link] EasyTier 已退出")
                                        End Sub)
                            End If

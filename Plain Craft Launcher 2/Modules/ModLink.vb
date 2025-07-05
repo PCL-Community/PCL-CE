@@ -451,9 +451,9 @@ Public Module ModLink
 
             '创建防火墙规则
             If IsHost Then
-                PromoteService.AppendOperation($"start cmd ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}", Nothing)
+                PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=allow program=""{ETPath}\easytier-core.exe"" protocol=any localport={LocalPort}", Nothing)
             End If
-            PromoteService.AppendOperation($"start cmd ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any", Nothing)
+            PromoteService.AppendOperation($"start cmd. ; /c netsh advfirewall firewall add rule name=""PCLCE Lobby - EasyTier"" dir=in action=deny program=""{ETPath}\easytier-core.exe"" protocol=any", Nothing)
             PromoteService.Activate()
 
             '用户名与其他参数
@@ -469,7 +469,7 @@ Public Module ModLink
             Log($"[Link] 启动 EasyTier")
             'Log($"[Link] EasyTier 参数: {Arguments}")
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
-            PromoteService.AppendOperation($"start {ETPath}\easytier-core.exe ; ", Sub(s As String) ETProcessPid = s)
+            PromoteService.AppendOperation($"start {ETPath}\easytier-core.exe. ; ", Sub(s As String) ETProcessPid = s)
             IsETRunning = PromoteService.Activate()
         Catch ex As Exception
             Log("[Link] 尝试启动 EasyTier 时遇到问题: " + ex.ToString())
@@ -518,8 +518,8 @@ Public Module ModLink
         If IsETRunning Then
             Try
                 Log("[Link] 停止 EasyTier")
-                PromoteService.AppendOperation("start cmd ; /c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""", Nothing)
-                PromoteService.AppendOperation($"start taskkill ; /f /pid {ETProcessPid}", Nothing)
+                PromoteService.AppendOperation("start cmd. ; /c netsh advfirewall firewall delete rule name=""PCLCE Lobby - EasyTier""", Nothing)
+                PromoteService.AppendOperation($"start taskkill. ; /f /pid {ETProcessPid}", Nothing)
                 PromoteService.Activate()
                 IsETRunning = False
                 ETProcessPid = Nothing
@@ -894,7 +894,6 @@ PortRetry:
                                  End If
                              End Try
                          End Sub)
-
         Try
             tr1.Start()
             tr2.Start()
