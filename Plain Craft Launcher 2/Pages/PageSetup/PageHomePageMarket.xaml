@@ -182,103 +182,46 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                 <!-- OpenBMCLApi仪表盘Lite -->
 
-                <local:MyCard Margin="0,0,0,14" Title="OpenBMCLApi 仪表盘 Lite" CanSwap="True" IsSwaped="True">
-                    <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
-                        <StackPanel>
-                            <Grid Margin="26,20,20,2">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,20,0,4">
-                                        <TextBlock FontSize="18" Foreground="{DynamicResource ColorBrush2}">
+                    <local:MyCard Margin="0,0,0,14" Title="OpenBMCLApi 仪表盘 Lite" CanSwap="True" IsSwaped="True">
+                        <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
+                            <StackPanel>
+                                <Grid Margin="26,20,20,2">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,20,0,4">
+                                            <TextBlock FontSize="18" Foreground="{DynamicResource ColorBrush2}">
                             <Bold>OpenBMCLApi 仪表盘 Lite</Bold>
-                                        </TextBlock>
-                                    </StackPanel>
-                                    <TextBlock Text="BMCLAPI是@bangbang93开发的BMCL的一部分，用于解决国内线路对Forge和Minecraft官方使用的Amazon S3 速度缓慢的问题。BMCLAPI是对外开放的，所有需要Minecraft资源的启动器均可调用。" TextWrapping="Wrap"/>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="-4,0,0,10" Height="2">
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal"
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <TextBlock Text="BMCLAPI是@bangbang93开发的BMCL的一部分，用于解决国内线路对Forge和Minecraft官方使用的Amazon S3 速度缓慢的问题。BMCLAPI是对外开放的，所有需要Minecraft资源的启动器均可调用。" TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="-4,0,0,10" Height="2">
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 Margin="-8,0,0,10">
-                                        <local:MyIconTextButton HorizontalAlignment="Left"
+                                            <local:MyIconTextButton HorizontalAlignment="Left"
                                                 Text="GitHub"
                                                 ToolTip="前往 OpenBMCLApi 的 GitHub 页面"
                                                 EventType="打开网页"
                                                 EventData="https://github.com/bangbang93/openbmclapi"
                                                 LogoScale="1"
                                                 Logo="M512 42.666667A464.64 464.64 0 0 0 42.666667 502.186667 460.373333 460.373333 0 0 0 363.52 938.666667c23.466667 4.266667 32-9.813333 32-22.186667v-78.08c-130.56 27.733333-158.293333-61.44-158.293333-61.44a122.026667 122.026667 0 0 0-52.053334-67.413333c-42.666667-28.16 3.413333-27.733333 3.413334-27.733334a98.56 98.56 0 0 1 71.68 47.36 101.12 101.12 0 0 0 136.533333 37.973334 99.413333 99.413333 0 0 1 29.866667-61.44c-104.106667-11.52-213.333333-50.773333-213.333334-226.986667a177.066667 177.066667 0 0 1 47.36-124.16 161.28 161.28 0 0 1 4.693334-121.173333s39.68-12.373333 128 46.933333a455.68 455.68 0 0 1 234.666666 0c89.6-59.306667 128-46.933333 128-46.933333a161.28 161.28 0 0 1 4.693334 121.173333A177.066667 177.066667 0 0 1 810.666667 477.866667c0 176.64-110.08 215.466667-213.333334 226.986666a106.666667 106.666667 0 0 1 32 85.333334v125.866666c0 14.933333 8.533333 26.88 32 22.186667A460.8 460.8 0 0 0 981.333333 502.186667 464.64 464.64 0 0 0 512 42.666667" />
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                                <StackPanel HorizontalAlignment="Right">
-                                    <local:MyIconTextButton HorizontalAlignment="Left" Margin="0,20,0,4"
+                                    <StackPanel HorizontalAlignment="Right">
+                                        <local:MyIconTextButton HorizontalAlignment="Left" Margin="0,20,0,4"
                                             ToolTip="反馈 OpenBMCLApi 的问题"
                                             Text="反馈"
                                             EventType="打开网页"
                                             EventData="https://www.bangbang93.com/category/6/bmclapi"
                                             LogoScale="1"
                                             Logo="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0z M1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0z" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                </local:MyCard>
-
-                <!-- pcl2主页市场 -->
-
-                <local:MyCard Margin="0,0,0,14" Title="PCL2 主页市场" CanSwap="True" IsSwaped="True">
-                    <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
-                        <StackPanel>
-                            <Grid Margin="26,20,20,2">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,20,0,4">
-                                        <TextBlock FontSize="18" Foreground="{DynamicResource ColorBrush2}">
-                            <Bold>PCL2 主页广场</Bold>
-                                        </TextBlock>
                                     </StackPanel>
-                                    <TextBlock Text="这里是 PCL 主页市场，用于分享未被载入预设的主页。" TextWrapping="Wrap"/>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="-4,0,0,10" Height="48">
-                                        <Image Margin="2"
-                               Source="https://s3.bmp.ovh/imgs/2024/08/18/5454ae7566fc802d.png" />
-                                        <Image Margin="2"
-                               Source="https://s3.bmp.ovh/imgs/2024/08/18/db681f5ee25b47c7.png" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Margin="-8,0,0,10">
-                                        <local:MyIconTextButton HorizontalAlignment="Left"
-                                                Text="GitHub"
-                                                ToolTip="前往主页广场 GitHub 页面"
-                                                EventType="打开网页"
-                                                EventData="https://github.com/HomePlaza-Of-PCL2/Homepage-Market"
-                                                LogoScale="1"
-                                                Logo="M512 42.666667A464.64 464.64 0 0 0 42.666667 502.186667 460.373333 460.373333 0 0 0 363.52 938.666667c23.466667 4.266667 32-9.813333 32-22.186667v-78.08c-130.56 27.733333-158.293333-61.44-158.293333-61.44a122.026667 122.026667 0 0 0-52.053334-67.413333c-42.666667-28.16 3.413333-27.733333 3.413334-27.733334a98.56 98.56 0 0 1 71.68 47.36 101.12 101.12 0 0 0 136.533333 37.973334 99.413333 99.413333 0 0 1 29.866667-61.44c-104.106667-11.52-213.333333-50.773333-213.333334-226.986667a177.066667 177.066667 0 0 1 47.36-124.16 161.28 161.28 0 0 1 4.693334-121.173333s39.68-12.373333 128 46.933333a455.68 455.68 0 0 1 234.666666 0c89.6-59.306667 128-46.933333 128-46.933333a161.28 161.28 0 0 1 4.693334 121.173333A177.066667 177.066667 0 0 1 810.666667 477.866667c0 176.64-110.08 215.466667-213.333334 226.986666a106.666667 106.666667 0 0 1 32 85.333334v125.866666c0 14.933333 8.533333 26.88 32 22.186667A460.8 460.8 0 0 0 981.333333 502.186667 464.64 464.64 0 0 0 512 42.666667" />
-                                        <local:MyIconTextButton Text="license"
-                                                ToolTip="无特殊声明本主页文字内容使用该授权协议"
-                                                EventType="打开网页"
-                                                EventData="http://www.wtfpl.net/"
-                                                LogoScale="1"
-                                                Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C4.556 10.78 3.88 11 3 11a4.498 4.498 0 0 1-2.023-.454 3.544 3.544 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z" />
-                                        <local:MyIconTextButton Text="鸣谢"
-                                                ToolTip="感谢为本项目提供了技术支持的人"
-                                                EventType="弹出窗口"
-                                                EventData="鸣谢|在此感谢为主页广场提供了技术支持的人\n名称使用“昵称 @GitHub用户名”的形式标注\n\n鸣谢列表：\n 最亮的信标 @Light-Beacon\n     · 借鉴使用了部分样式代码\n 雨杉楠 @YuShanNan\n     · 从其主页中获得了早期 UI 灵感"
-                                                LogoScale="1"
-                                                Logo="M330.688 192c41.152 0 74.624 33.536 74.624 74.688V352a32 32 0 1 0 64.064 0V266.688a138.88 138.88 0 0 0-138.688-138.752 32 32 0 1 0 0 64.128z m225.792 279.232a32 32 0 0 1-22.656-54.72c23.808-23.808 50.752-22.656 66.816-22.016 13.888 0.64 15.424 0.128 18.816-3.2 3.328-3.392 3.84-4.928 3.2-18.752-0.64-16.064-1.92-43.008 21.952-66.816 23.808-23.808 50.752-22.656 66.816-22.016 13.888 0.64 15.424 0.128 18.816-3.2 3.392-3.456 3.84-4.992 3.328-18.944-0.64-16.064-1.792-43.008 22.08-66.816 23.808-23.872 50.752-22.72 66.816-22.08 13.952 0.576 15.488 0.064 18.88-3.328a32 32 0 0 1 45.312 45.312c-23.808 23.808-50.752 22.72-66.816 22.08-13.952-0.64-15.488-0.064-18.88 3.328-3.392 3.392-3.904 4.928-3.328 18.88 0.64 16.064 1.728 43.008-22.08 66.816s-50.752 22.72-66.816 22.016c-13.888-0.576-15.424-0.064-18.816 3.328-3.328 3.328-3.84 4.864-3.2 18.688 0.64 16.064 1.856 43.008-21.952 66.816-23.808 23.808-50.752 22.656-66.816 21.952-13.888-0.64-15.424-0.064-18.752 3.264a32 32 0 0 1-22.72 9.408zM512.64 208.896a31.808 31.808 0 0 0 13.632 20.48 32 32 0 0 0 46.08-11.584 36.096 36.096 0 0 0 3.2-8.896 31.616 31.616 0 0 0-13.696-32.896 27.648 27.648 0 0 0-8.448-3.968 31.68 31.68 0 0 0-37.568 15.552 35.712 35.712 0 0 0-3.2 8.832 31.104 31.104 0 0 0 0 12.48zM302.08 384.832c10.752-2.56 22.144 0.64 30.016 8.512l298.624 298.688a32 32 0 0 1-12.48 53.056l-448 149.312a32 32 0 0 1-40.576-40.512l149.312-448a32 32 0 0 1 23.04-21.12z m591.552 82.944a29.76 29.76 0 0 1 2.496 12.16 32.192 32.192 0 0 1-16.96 28.352A33.024 33.024 0 0 1 864 512a32.512 32.512 0 0 1-20.288-7.296 27.264 27.264 0 0 1-4.48-4.48 30.464 30.464 0 0 1-5.888-10.944 31.744 31.744 0 0 1 24.384-40.768 31.68 31.68 0 0 1 35.84 19.2z m-570.24 7.552l-112.64 337.984 337.984-112.64-225.28-225.28z m433.984 79.296H672a32 32 0 1 0 0 64.064h85.312c41.152 0 74.624 33.472 74.624 74.624a32 32 0 1 0 64.128 0 138.88 138.88 0 0 0-138.752-138.688z" />
-                                    </StackPanel>
-                                </StackPanel>
-                                <StackPanel HorizontalAlignment="Right">
-                                    <local:MyIconTextButton HorizontalAlignment="Left" Margin="0,20,0,4"
-                                            ToolTip="反馈问题"
-                                            Text="反馈"
-                                            EventType="打开网页"
-                                            EventData="https://github.com/HomePlaza-Of-PCL2/Homepage-Market/issues/new/choose"
-                                            LogoScale="1"
-                                            Logo="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0z M1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0z" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                </local:MyCard>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </local:MyCard>
 
-                <!-- PCL2 新闻速报 -->
+                    <!-- PCL2 新闻速报 -->
 
                 <local:MyCard Margin="0,0,0,14" Title="PCL2 新闻速报" CanSwap="True" IsSwaped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
