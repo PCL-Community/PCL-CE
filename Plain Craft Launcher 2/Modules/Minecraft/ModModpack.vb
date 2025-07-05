@@ -650,22 +650,26 @@ Retry:
                     'Libraries
                     If PatchJson("libraries") IsNot Nothing OrElse PatchJson("+libraries") IsNot Nothing Then
                         Dim Libs As New JArray
-                        For Each Library In PatchJson("libraries")
-                            Dim LibJobj = CType(Library, JObject)
-                            If LibJobj("MMC-hint") IsNot Nothing Then
-                                LibJobj.Add("hint", LibJobj("MMC-hint"))
-                                LibJobj.Remove("MMC-hint")
-                            End If
-                            Libs.Add(LibJobj)
-                        Next
-                        For Each Library In PatchJson("+libraries") 'TODO: 此处处理不严谨，但也能用吧
-                            Dim LibJobj = CType(Library, JObject)
-                            If LibJobj("MMC-hint") IsNot Nothing Then
-                                LibJobj.Add("hint", LibJobj("MMC-hint"))
-                                LibJobj.Remove("MMC-hint")
-                            End If
-                            Libs.Add(LibJobj)
-                        Next
+                        If PatchJson("libraries") IsNot Nothing Then
+                            For Each Library In PatchJson("libraries")
+                                Dim LibJobj = CType(Library, JObject)
+                                If LibJobj("MMC-hint") IsNot Nothing Then
+                                    LibJobj.Add("hint", LibJobj("MMC-hint"))
+                                    LibJobj.Remove("MMC-hint")
+                                End If
+                                Libs.Add(LibJobj)
+                            Next
+                        End If
+                        If PatchJson("+libraries") IsNot Nothing Then
+                            For Each Library In PatchJson("+libraries") 'TODO: 此处处理不严谨，但也能用吧
+                                Dim LibJobj = CType(Library, JObject)
+                                If LibJobj("MMC-hint") IsNot Nothing Then
+                                    LibJobj.Add("hint", LibJobj("MMC-hint"))
+                                    LibJobj.Remove("MMC-hint")
+                                End If
+                                Libs.Add(LibJobj)
+                            Next
+                        End If
                         LibJson.Merge(Libs)
                         Log($"[ModPack] 已应用 JSON-Patch {PatchJson("uid")} 的 Libraries")
                     End If

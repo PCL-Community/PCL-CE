@@ -231,6 +231,7 @@ EndHint:
         [Select]
         Input
         Login
+        Markdown
     End Enum
 
     ''' <summary>
@@ -251,6 +252,65 @@ EndHint:
                              Optional Button1Action As Action = Nothing, Optional Button2Action As Action = Nothing, Optional Button3Action As Action = Nothing) As Integer
         '将弹窗列入队列
         Dim Converter As New MyMsgBoxConverter With {.Type = MyMsgBoxType.Text, .Button1 = Button1, .Button2 = Button2, .Button3 = Button3, .Text = Caption, .IsWarn = IsWarn, .Title = Title, .HighLight = HighLight, .ForceWait = True, .Button1Action = Button1Action, .Button2Action = Button2Action, .Button3Action = Button3Action}
+        WaitingMyMsgBox.Add(Converter)
+        If RunInUi() Then
+            '若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
+            MyMsgBoxTick()
+        End If
+        If Button2.Length > 0 OrElse ForceWait Then
+            '若有多个按钮则开始等待
+            If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing AndAlso RunInUi() Then
+                '主窗体尚未加载，用老土的弹窗来替代
+                WaitingMyMsgBox.Remove(Converter)
+                If Button2.Length > 0 Then
+                    Dim RawResult As MsgBoxResult = MsgBox(Caption, If(Button3.Length > 0, MsgBoxStyle.YesNoCancel, MsgBoxStyle.YesNo) + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
+                    Select Case RawResult
+                        Case MsgBoxResult.Yes
+                            Converter.Result = 1
+                        Case MsgBoxResult.No
+                            Converter.Result = 2
+                        Case MsgBoxResult.Cancel
+                            Converter.Result = 3
+                    End Select
+                Else
+                    MsgBox(Caption, MsgBoxStyle.OkOnly + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
+                    Converter.Result = 1
+                End If
+                Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" & Button1 & "," & Button2 & "," & Button3, LogLevel.Debug)
+            Else
+                Try
+                    FrmMain.DragStop()
+                    ComponentDispatcher.PushModal()
+                    Dispatcher.PushFrame(Converter.WaitFrame)
+                Finally
+                    ComponentDispatcher.PopModal()
+                End Try
+            End If
+            Log("[Control] 普通弹框返回：" & If(Converter.Result, "null"))
+            Return Converter.Result
+        Else
+            '不进行等待，直接返回
+            Return 1
+        End If
+    End Function
+    ''' <summary>
+    ''' 显示弹窗，返回点击按钮的编号（从 1 开始）。
+    ''' </summary>
+    ''' <param name="Title">弹窗的标题。</param>
+    ''' <param name="Caption">弹窗的内容。</param>
+    ''' <param name="Button1">显示的第一个按钮，默认为“确定”。</param>
+    ''' <param name="Button2">显示的第二个按钮，默认为空。</param>
+    ''' <param name="Button3">显示的第三个按钮，默认为空。</param>
+    ''' <param name="Button1Action">点击第一个按钮将执行该方法，不关闭弹窗。</param>
+    ''' <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
+    ''' <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
+    ''' <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    Public Function MyMsgBoxMarkdown(Caption As String, Optional Title As String = "提示",
+                             Optional Button1 As String = "确定", Optional Button2 As String = "", Optional Button3 As String = "",
+                             Optional IsWarn As Boolean = False, Optional HighLight As Boolean = True, Optional ForceWait As Boolean = False,
+                             Optional Button1Action As Action = Nothing, Optional Button2Action As Action = Nothing, Optional Button3Action As Action = Nothing) As Integer
+        '将弹窗列入队列
+        Dim Converter As New MyMsgBoxConverter With {.Type = MyMsgBoxType.Markdown, .Button1 = Button1, .Button2 = Button2, .Button3 = Button3, .Text = Caption, .IsWarn = IsWarn, .Title = Title, .HighLight = HighLight, .ForceWait = True, .Button1Action = Button1Action, .Button2Action = Button2Action, .Button3Action = Button3Action}
         WaitingMyMsgBox.Add(Converter)
         If RunInUi() Then
             '若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
@@ -363,6 +423,8 @@ EndHint:
                         FrmMain.PanMsg.Children.Add(New MyMsgText(WaitingMyMsgBox(0)))
                     Case MyMsgBoxType.Login
                         FrmMain.PanMsg.Children.Add(New MyMsgLogin(WaitingMyMsgBox(0)))
+                    Case MyMsgBoxType.Markdown
+                        FrmMain.PanMsg.Children.Add(New MyMsgMarkdown(WaitingMyMsgBox(0)))
                 End Select
                 WaitingMyMsgBox.RemoveAt(0)
             Else
@@ -395,11 +457,9 @@ EndHint:
 
     '联机页面声明
     Public FrmLinkLeft As PageLinkLeft
-    Public FrmLinkIoi As PageLinkIoi
     Public FrmLinkLobby As PageLinkLobby
     Public FrmLinkHelp As PageOtherHelpDetail
     Public FrmLinkFeedback As PageLinkFeedback
-    Public FrmLinkNetStatus As PageLinkNetStatus
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft

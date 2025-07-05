@@ -2049,77 +2049,74 @@ Retry:
         '剪贴板已读取内容
         Public Shared CurrentText As String = Nothing
         '识别剪贴板内容
-        Public Shared Sub ClipboardListening()
-            While Setup.Get("ToolDownloadClipboard")
-                Thread.Sleep(700)
-                Dim Text As String = Nothing
-                Dim Slug As String = Nothing
-                Dim ProjectId As String = Nothing
-                Dim CategoryURL As String = Nothing
-                Dim ReturnData = Nothing
-                RunInUiWait(Sub()
-                                Text = My.Computer.Clipboard.GetText()
-                            End Sub)
-                If Text = CurrentText Then Continue While
-                CurrentText = Text
-                Text = Text.Replace("https://", "").Replace("http://", "")
+        Public Shared Sub GetClipboardResource()
+            Dim Text As String = Nothing
+            Dim Slug As String = Nothing
+            Dim ProjectId As String = Nothing
+            Dim CategoryURL As String = Nothing
+            Dim ReturnData = Nothing
+            RunInUiWait(Sub()
+                            Text = My.Computer.Clipboard.GetText()
+                        End Sub)
+            If Text = CurrentText Then Exit Sub
+            CurrentText = Text
+            Text = Text.Replace("https://", "").Replace("http://", "")
 
-                If Text.Contains("curseforge.com/minecraft/") Then 'e.g. www.curseforge.com/minecraft/mc-mods/jei
-                    Dim ClassIds As List(Of String) = New List(Of String) From {"6", "4471", "12", "6552"}
-                    Try
-                        CategoryURL = Text.Split("/")(2)
-                        Slug = Text.Split("/")(3)
-                        ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug, IsJson:=True) '获取资源信息
-                        Dim ReceivedClassId As String = ReturnData("data")(0)("categories")(0)("classId") '获取资源的 ClassId
+            If Text.Contains("curseforge.com/minecraft/") Then 'e.g. www.curseforge.com/minecraft/mc-mods/jei
+                Dim ClassIds As List(Of String) = New List(Of String) From {"6", "4471", "12", "6552"}
+                Try
+                    CategoryURL = Text.Split("/")(2)
+                    Slug = Text.Split("/")(3)
+                    ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug, IsJson:=True) '获取资源信息
+                    Dim ReceivedClassId As String = ReturnData("data")(0)("categories")(0)("classId") '获取资源的 ClassId
 
-                        '判断资源的分类是否匹配，不在支持的资源类型中的就直接显示
-                        Dim IsCategoryMatched As Boolean = True
-                        Dim ResClassId As String = Nothing
-                        If CategoryURL = "mc-mods" AndAlso Not ReceivedClassId = "6" Then
-                            IsCategoryMatched = False
-                            ResClassId = "6"
-                        ElseIf CategoryURL = "modpacks" AndAlso Not ReceivedClassId = "4471" Then
-                            IsCategoryMatched = False
-                            ResClassId = "4471"
-                        ElseIf CategoryURL = "texture-packs" AndAlso Not ReceivedClassId = "12" Then
-                            IsCategoryMatched = False
-                            ResClassId = "12"
-                        ElseIf CategoryURL = "shaders" AndAlso Not ReceivedClassId = "6552" Then
-                            IsCategoryMatched = False
-                            ResClassId = "6552"
-                        End If
+                    '判断资源的分类是否匹配，不在支持的资源类型中的就直接显示
+                    Dim IsCategoryMatched As Boolean = True
+                    Dim ResClassId As String = Nothing
+                    If CategoryURL = "mc-mods" AndAlso Not ReceivedClassId = "6" Then
+                        IsCategoryMatched = False
+                        ResClassId = "6"
+                    ElseIf CategoryURL = "modpacks" AndAlso Not ReceivedClassId = "4471" Then
+                        IsCategoryMatched = False
+                        ResClassId = "4471"
+                    ElseIf CategoryURL = "texture-packs" AndAlso Not ReceivedClassId = "12" Then
+                        IsCategoryMatched = False
+                        ResClassId = "12"
+                    ElseIf CategoryURL = "shaders" AndAlso Not ReceivedClassId = "6552" Then
+                        IsCategoryMatched = False
+                        ResClassId = "6552"
+                    End If
 
-                        If Not IsCategoryMatched Then
-                            ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug + "&classId=" + ResClassId, IsJson:=True)
-                        End If
+                    If Not IsCategoryMatched Then
+                        ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug + "&classId=" + ResClassId, IsJson:=True)
+                    End If
 
-                        ProjectId = ReturnData("data")(0)("id")
-                    Catch ex As Exception
-                        Log("[Clipboard] 获取剪贴板 CurseForge 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
-                        Continue While
-                    End Try
-                ElseIf Text.Contains("modrinth.com/") Then 'e.g. modrinth.com/mod/fabric-api
-                    Try
-                        Slug = Text.Split("/")(2)
-                        ProjectId = DlModRequest("https://api.modrinth.com/v2/project/" + Slug, IsJson:=True)("id")
-                    Catch ex As Exception
-                        Log("[Clipboard] 获取剪贴板 Modrinth 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
-                        Continue While
-                    End Try
-                Else
-                    Continue While
-                End If
+                    ProjectId = ReturnData("data")(0)("id")
+                Catch ex As Exception
+                    Log("[Clipboard] 获取剪贴板 CurseForge 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
+                    Exit Sub
+                End Try
+            ElseIf Text.Contains("modrinth.com/") Then 'e.g. modrinth.com/mod/fabric-api
+                Try
+                    Slug = Text.Split("/")(2)
+                    ProjectId = DlModRequest("https://api.modrinth.com/v2/project/" + Slug, IsJson:=True)("id")
+                Catch ex As Exception
+                    Log("[Clipboard] 获取剪贴板 Modrinth 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
+                    Exit Sub
+                End Try
+            Else
+                Exit Sub
+            End If
 
-                Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
+            Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
 
-                If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
-                    Hint("正在获取资源信息，请稍等...")
-                    Dim Ids As New List(Of String)({ProjectId})
-                    Dim CompProjects = CompRequest.GetCompProjectsByIds(Ids)
-                    RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
+            If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
+                Hint("正在获取资源信息，请稍等...")
+                Dim Ids As New List(Of String)({ProjectId})
+                Dim CompProjects = CompRequest.GetCompProjectsByIds(Ids)
+                RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
                                .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}}))
-                End If
-            End While
+            End If
         End Sub
     End Class
 #End Region

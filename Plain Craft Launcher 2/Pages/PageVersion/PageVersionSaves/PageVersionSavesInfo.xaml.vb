@@ -52,7 +52,7 @@ Class PageVersionSavesInfo
                     If versionName = "获取失败" Then
                         versionId = GetDataInfoByPathWithFallback("//TInt32[@Name='version']", "//TInt32[@Name='Version']")
                         If versionId <> "获取失败" Then
-                            versionName = "1.12以下的版本无法获取版本名"
+                            versionName = "1.9 以下的版本无法获取版本名"
                         End If
                     End If
                     AddInfoTable("存档版本", $"{versionName} ({versionId})")
@@ -72,19 +72,25 @@ Class PageVersionSavesInfo
                     Dim spawnY = GetDataInfoByPath("//TInt32[@Name='SpawnY']")
                     Dim spawnZ = GetDataInfoByPath("//TInt32[@Name='SpawnZ']")
                     AddInfoTable("出生点 (X/Y/Z)", $"{spawnX} / {spawnY} / {spawnZ}")
-                    Dim difficultyValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='Difficulty']"))
+                    Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
                     Dim difficultyName As String = "获取失败"
-                    Select Case difficultyValue
-                        Case 0
-                            difficultyName = "和平"
-                        Case 1
-                            difficultyName = "简单"
-                        Case 2
-                            difficultyName = "普通"
-                        Case 3
-                            difficultyName = "困难"
-                    End Select
-                    Dim isDifficultyLocked As Boolean = GetDataInfoByPath("//TInt8[@Name='DifficultyLocked']") <> "0"
+                    If difficultyElement IsNot Nothing Then
+                        Dim difficultyValue As Integer
+                        If Integer.TryParse(difficultyElement.Value, difficultyValue) Then
+                            Select Case difficultyValue
+                                Case 0
+                                    difficultyName = "和平"
+                                Case 1
+                                    difficultyName = "简单"
+                                Case 2
+                                    difficultyName = "普通"
+                                Case 3
+                                    difficultyName = "困难"
+                            End Select
+                        End If
+                    End If
+                    Dim lockedElement = levelData.XPathSelectElement("//TInt8[@Name='DifficultyLocked']")
+                    Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
                     AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
                     Dim totalTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='Time']"))
                     Dim dayTimeTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='DayTime']"))
@@ -134,8 +140,8 @@ Class PageVersionSavesInfo
 
             AddHandler BtnChunkbase.Click, Sub()
                                                Try
-                                                   If versionName = "1.12以下的版本无法获取版本名" Then
-                                                       Log($"当前存档版本无法确定，因为 1.12 以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
+                                                   If versionName = "1.9 以下的版本无法获取版本名" Then
+                                                       Log($"当前存档版本无法确定，因为 1.9 以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
                                                        Return
                                                    End If
 

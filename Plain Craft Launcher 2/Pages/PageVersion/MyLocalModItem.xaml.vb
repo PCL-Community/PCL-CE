@@ -419,11 +419,8 @@ Public Class MyLocalCompItem
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty, If(Entry.State = LocalCompFile.LocalFileStatus.Fine, "ColorBrush1", "ColorBrushGray4"))
             End If
             '主 Logo
-            If Entry.IsFolder Then
-                Logo = PathImage & "Icons/NoIcon.png"
-            Else
-                Logo = Entry.GetLogo
-            End If
+             Logo = Entry.GetLogo
+
             '图标右下角的 Logo
             If Entry.State = LocalCompFile.LocalFileStatus.Fine Then
                 If ImgState IsNot Nothing Then

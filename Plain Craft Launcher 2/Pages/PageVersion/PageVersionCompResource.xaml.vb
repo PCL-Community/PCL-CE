@@ -53,6 +53,8 @@ Public Class PageVersionCompResource
     Private IsLoad As Boolean = False
     Public Sub PageOther_Loaded() Handles Me.Loaded
 
+        CurrentFolderPath = String.Empty
+
         If FrmMain.PageLast.Page <> FormMain.PageType.CompDetail Then PanBack.ScrollToHome()
         AniControlEnabled += 1
         SelectedMods.Clear()
@@ -164,7 +166,7 @@ Public Class PageVersionCompResource
     End Sub
     
     ''' <summary>
-    ''' 检查文件夹是否为空，如果为空则提示用户，否则进入文件夹。
+    ''' 进入指定文件夹。
     ''' </summary>
     Private Sub EnterFolderWithCheck(folderPath As String)
         Try
@@ -173,30 +175,9 @@ Public Class PageVersionCompResource
                 Return
             End If
             
-            '检查文件夹是否为空
-            Dim hasFiles As Boolean = False
-            Select Case CurrentCompType
-                Case CompType.Schematic
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.AllDirectories).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Schematic))
-                Case CompType.Mod
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Mod))
-                Case CompType.ResourcePack
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.ResourcePack))
-                Case CompType.Shader
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Shader))
-                Case Else
-                    hasFiles = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.TopDirectoryOnly).Any()
-            End Select
-            
-            If Not hasFiles Then
-                Hint("该文件夹内没有文件。")
-                Return
-            End If
-            
-            '文件夹不为空，进入文件夹
             EnterFolder(folderPath)
         Catch ex As Exception
-            Log(ex, $"检查文件夹失败", LogLevel.Msgbox)
+            Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
     
@@ -289,6 +270,13 @@ Public Class PageVersionCompResource
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
                 End If
                 
+                '如果当前在子文件夹中，显示返回上一级按钮
+                If Not String.IsNullOrEmpty(CurrentFolderPath) Then
+                    BtnHintBack.Visibility = Visibility.Visible
+                Else
+                    BtnHintBack.Visibility = Visibility.Collapsed
+                End If
+                
                 PanEmpty.Visibility = Visibility.Visible
                 PanBack.Visibility = Visibility.Collapsed
                 PanSchematicEmpty.Visibility = Visibility.Collapsed
@@ -316,6 +304,7 @@ Public Class PageVersionCompResource
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
                 .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawFileName)}
             NewItem.CurrentSwipe = CurrentSwipSelect
+            NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
             'AddHandler Entry.OnCompUpdate, Sub() RunInUi(Sub() DoSort())
             NewItem.Refresh()
@@ -530,6 +519,10 @@ Public Class PageVersionCompResource
     Private Sub BtnManageBack_Click(sender As Object, e As EventArgs) Handles BtnManageBack.Click
         GoBackToParentFolder()
     End Sub
+    
+    Private Sub BtnHintBack_Click(sender As Object, e As EventArgs) Handles BtnHintBack.Click
+        GoBackToParentFolder()
+    End Sub
 
     Private Sub BtnManageOpen_Click(sender As Object, e As EventArgs) Handles BtnManageOpen.Click, BtnHintOpen.Click
         Try
@@ -557,10 +550,10 @@ Public Class PageVersionCompResource
             Case CompType.Mod : FileList = SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
             Case CompType.ResourcePack : FileList = SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
             Case CompType.Shader : FileList = SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
-            Case CompType.Schematic : FileList = SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic)|*.litematic;*.nbt;*.schematic", "选择要安装的投影原理图")
+            Case CompType.Schematic : FileList = SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
         End Select
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
-        InstallCompFiles(FileList, CurrentCompType)
+        InstallCompFiles(FileList, CurrentCompType, CurrentFolderPath)
     End Sub
     ''' <summary>
     ''' 尝试安装 Mod。
@@ -578,7 +571,6 @@ Public Class PageVersionCompResource
         End If
         '获取并检查目标版本
         Dim TargetVersion As McVersion = McVersionCurrent
-        Dim ModFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
         If FrmMain.PageCurrent = FormMain.PageType.VersionSetup Then TargetVersion = PageVersionLeft.Version
         If FrmMain.PageCurrent = FormMain.PageType.VersionSelect OrElse TargetVersion Is Nothing OrElse Not TargetVersion.Modable Then
             '正在选择版本，或当前版本不能安装 Mod
@@ -589,6 +581,7 @@ Public Class PageVersionCompResource
         Else
             '处于 Mod 管理页面
 Install:
+            Dim ModFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
             Try
                 For Each ModFile In FilePathList
                     Dim NewFileName = GetFileNameFromPath(ModFile).Replace(".disabled", "").Replace(".old", "")
@@ -614,7 +607,7 @@ Install:
     ''' <summary>
     ''' 安装组件文件（Mod、资源包、光影包、投影文件等）。
     ''' </summary>
-    Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType)
+    Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType, Optional TargetFolderPath As String = "")
         If Not FilePathList.Any Then Exit Sub
         
         Dim Extension As String = FilePathList.First.AfterLast(".").ToLower
@@ -637,19 +630,35 @@ Install:
             Case CompType.Mod
                 ValidExtensions = {"jar", "litemod", "disabled", "old"}
                 CompTypeName = "Mod"
-                CompFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & If(TargetVersion.Version.HasLabyMod, "labymod-neo\fabric\" & TargetVersion.Version.McName & "\", "") & "mods\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.ResourcePack
                 ValidExtensions = {"zip"}
                 CompTypeName = "资源包"
-                CompFolder = TargetVersion.PathIndie & "resourcepacks\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "resourcepacks\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.Shader
                 ValidExtensions = {"zip"}
                 CompTypeName = "光影包"
-                CompFolder = TargetVersion.PathIndie & "shaderpacks\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "shaderpacks\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
             Case CompType.Schematic
-                ValidExtensions = {"litematic", "nbt", "schematic"}
+                ValidExtensions = {"litematic", "nbt", "schematic", "schem"}
                 CompTypeName = "投影原理图"
-                CompFolder = TargetVersion.PathIndie & "schematics\"
+                If String.IsNullOrEmpty(TargetFolderPath) Then
+                    CompFolder = TargetVersion.PathIndie & "schematics\"
+                Else
+                    CompFolder = TargetFolderPath & "\"
+                End If
         End Select
         
         '检查文件扩展名
@@ -1123,7 +1132,7 @@ Install:
                 PanList.Children.RemoveAt(IndexOfUi)
                 PanList.Children.Insert(IndexOfUi, NewItem)
             Catch ex As Exception
-                Log(ex, $"更新UI列表项失败：{ModEntity.RawFileName}", LogLevel.Hint)
+                Log(ex, $"更新 UI 列表项失败：{ModEntity.RawFileName}", LogLevel.Hint)
                 Continue For
             End Try
         Next
@@ -1452,19 +1461,22 @@ Install:
                     ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
                     
-                    '对于 .litematic 文件，显示额外的 NBT 数据
+                    '对于原理图文件，显示额外的 NBT 数据
                     If ModEntry.Path.EndsWithF(".litematic", True) Then
                         ContentLines.Add("")
                         ContentLines.Add("详细信息：")
                         
+                        If ModEntry.LitematicVersion.HasValue Then
+                            ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
+                        End If
+                        
                         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
                             ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
                         End If
-                        
+                         
                         If ModEntry.LitematicTotalBlocks.HasValue Then
                             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-                        End If
-                        
+                        End If                       
                         If ModEntry.LitematicTotalVolume.HasValue Then
                             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
                         End If
@@ -1491,6 +1503,65 @@ Install:
                                 ' 如果时间转换失败，显示原始时间戳
                                 ContentLines.Add("修改时间：" & ModEntry.LitematicTimeModified.Value)
                             End Try
+                        End If
+                    ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
+                        ContentLines.Add("")
+                        ContentLines.Add("详细信息：")
+                        
+                        If ModEntry.SchemOriginalName IsNot Nothing Then
+                            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
+                        End If
+                        
+                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+                        End If
+                        
+                        If ModEntry.LitematicTotalBlocks.HasValue Then
+                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicTotalVolume.HasValue Then
+                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicTimeCreated.HasValue Then
+                            Try
+                                Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).DateTime
+                                ContentLines.Add("创建日期：" & createdTime.ToString("yyyy-MM-dd HH:mm:ss"))
+                            Catch
+                                ' 如果时间转换失败，显示原始时间戳
+                                ContentLines.Add("创建日期：" & ModEntry.LitematicTimeCreated.Value)
+                            End Try
+                        End If
+                    ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
+                        ContentLines.Add("")
+                        ContentLines.Add("详细信息：")
+                        
+                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+                        End If
+                        
+                        If ModEntry.LitematicTotalBlocks.HasValue Then
+                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicTotalVolume.HasValue Then
+                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+                        End If
+                    ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
+                        ContentLines.Add("")
+                        ContentLines.Add("详细信息：")
+                        
+                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+                        End If
+                        
+                        If ModEntry.LitematicTotalBlocks.HasValue Then
+                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+                        End If
+                        
+                        If ModEntry.LitematicTotalVolume.HasValue Then
+                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
                         End If
                     End If
                 End If

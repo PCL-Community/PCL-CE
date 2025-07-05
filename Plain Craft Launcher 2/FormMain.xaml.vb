@@ -18,7 +18,7 @@ Public Class FormMain
             Else
                 Changelog = "欢迎使用呀~"
             End If
-            If MyMsgBox(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
+            If MyMsgBoxMarkdown(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
                 OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases")
             End If
         End Sub, "UpdateLog Output")
@@ -227,7 +227,7 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
-                InitJava().GetAwaiter().GetResult()
+                InitJava()
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
@@ -235,6 +235,19 @@ Public Class FormMain
                 RunInNewThread(AddressOf TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal)
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
+            End Try
+            '联机摇号
+            Try
+                Dim DateNow As String = Now.ToString("yyyyMMdd")
+                If Not Setup.Get("LinkAvailable") AndAlso Not DateNow = Setup.Get("LinkLastTestDate") Then
+                    Dim Chance As Double = Val(NetRequestRetry($"{LinkServerRoot}/api/link/lottery.ini", "GET", Nothing, "application/json"))
+                    Dim Num As Integer = RandomInteger(0, 100)
+                    If Num > 1 - (Chance * 100) Then Setup.Set("LinkAvailable", True)
+                    Setup.Set("LinkLastTestDate", DateNow)
+                    Log($"[Link] 摇号 {Num} ({DateNow})")
+                End If
+            Catch ex As Exception
+                Log(ex, "联机摇号失败")
             End Try
             '清理自动更新文件
             Try
@@ -245,8 +258,6 @@ Public Class FormMain
             GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
-        '剪贴板识别
-        If Setup.Get("ToolDownloadClipboard") Then RunInNewThread(Sub() CompClipboard.ClipboardListening(), "Clipboard Listener", ThreadPriority.Lowest)
 
         Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
@@ -380,7 +391,7 @@ Public Class FormMain
             End If
         End If
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -419,7 +430,7 @@ Public Class FormMain
     Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
         On Error Resume Next
         '关闭 EasyTier 联机
-        If ModLink.IsETRunning Then ModLink.ExitEasyTier()
+        ModLink.ExitEasyTier()
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
@@ -557,6 +568,7 @@ Public Class FormMain
     '切回窗口
     Private Sub FormMain_Activated() Handles Me.Activated
         Try
+            If Setup.Get("ToolDownloadClipboard") Then CompClipboard.GetClipboardResource()
             If PageCurrent = PageType.VersionSetup AndAlso PageCurrentSub = PageSubType.VersionMod Then
                 'Mod 管理自动刷新
                 FrmVersionMod.ReloadCompFileList()
@@ -673,7 +685,7 @@ Public Class FormMain
                 Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
                 Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
                 
-                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic"}.Contains(FirstExtension) Then
+                If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic", "schem"}.Contains(FirstExtension) Then
                     '允许同类型的 Mod 文件或投影文件批量拖拽
                 Else
                     Hint("一次请只拖入相同类型的文件！", HintType.Critical)
@@ -701,9 +713,15 @@ Public Class FormMain
             '安装 Mod
             If PageVersionCompResource.InstallMods(FilePathList) Then Exit Sub
             '安装投影文件
-            If {"litematic", "nbt", "schematic"}.Contains(Extension) Then
-                Log($"[System] 文件为 {Extension} 格式，尝试作为投影原理图安装")
-                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic)
+            If {"litematic", "nbt", "schematic", "schem"}.Contains(Extension) Then
+                Log($"[System] 文件为 {Extension} 格式，尝试作为原理图安装")
+                ' 获取当前文件夹路径（如果在资源管理页面）
+                Dim targetFolderPath As String = Nothing
+                If PageCurrent = PageType.VersionSetup AndAlso PageCurrentSub = PageSubType.VersionSchematic AndAlso 
+                   FrmVersionSchematic IsNot Nothing AndAlso TypeOf FrmVersionSchematic Is PageVersionCompResource Then
+                    targetFolderPath = DirectCast(FrmVersionSchematic, PageVersionCompResource).CurrentFolderPath
+                End If
+                PageVersionCompResource.InstallCompFiles(FilePathList, CompType.Schematic, targetFolderPath)
                 Exit Sub
             End If
             '处理资源安装
@@ -742,7 +760,7 @@ Public Class FormMain
                 End Select
             End If
             '处理投影文件
-            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
+            If PageCurrent = PageType.VersionSetup AndAlso {"litematic", "nbt", "schematic", "schem"}.Contains(Extension) AndAlso PageCurrentSub = PageSubType.VersionSchematic Then
                 Dim DestFile = PageVersionLeft.Version.PathIndie + "schematics\" + GetFileNameFromPath(FilePath)
                 If File.Exists(DestFile) Then
                     Hint("已存在同名文件：" + DestFile, HintType.Critical)
@@ -962,11 +980,9 @@ Public Class FormMain
         SetupSystem = 2
         SetupLink = 3
         LinkLobby = 1
-        LinkIoi = 2
         LinkSetup = 4
         LinkHelp = 5
         LinkFeedback = 6
-        LinkNetStatus = 7
         OtherHelp = 0
         OtherAbout = 1
         OtherTest = 2

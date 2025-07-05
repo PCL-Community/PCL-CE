@@ -22,10 +22,10 @@ public class Modrinth
         ret.EnsureSuccessStatusCode();
         var s = await ret!.Content.ReadAsStreamAsync();
         Assert.IsNotNull(s);
-        var instance = (ModrinthProject)(JsonSerializer.Deserialize(
+        var instance = (ModrinthProject)(await JsonSerializer.DeserializeAsync(
             s,
             typeof(ModrinthProject),
             JsonSerializerOptions.Web) ?? throw new NullReferenceException());
-        Assert.IsTrue(instance.slug == "sodium");
+        Assert.AreEqual("sodium", instance.slug);
     }
 }

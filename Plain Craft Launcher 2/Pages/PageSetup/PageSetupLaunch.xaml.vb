@@ -40,6 +40,8 @@
             TextArgumentWindowHeight.Text = Setup.Get("LaunchArgumentWindowHeight")
             CheckArgumentRam.Checked = Setup.Get("LaunchArgumentRam")
             ComboMsAuthType.SelectedIndex = Setup.Get("LoginMsAuthType")
+            ComboPreferredIpStack.SelectedIndex = Setup.Get("LaunchPreferredIpStack")
+            'CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             '游戏内存
             CType(FindName("RadioRamType" & Setup.Load("LaunchRamType")), MyRadioBox).Checked = True
@@ -79,6 +81,7 @@
             Setup.Reset("LaunchArgumentWindowWidth")
             Setup.Reset("LaunchArgumentWindowHeight")
             Setup.Reset("LaunchArgumentPriority")
+            Setup.Reset("LaunchPreferredIpStack")
             Setup.Reset("LaunchArgumentRam")
             Setup.Reset("LaunchRamType")
             Setup.Reset("LaunchRamCustom")
@@ -111,7 +114,7 @@
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged, ComboArgumentVisibie.SelectionChanged, ComboArgumentWindowType.SelectionChanged, ComboArgumentPriority.SelectionChanged, ComboMsAuthType.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged, ComboArgumentVisibie.SelectionChanged, ComboArgumentWindowType.SelectionChanged, ComboArgumentPriority.SelectionChanged, ComboMsAuthType.SelectionChanged, ComboPreferredIpStack.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change
