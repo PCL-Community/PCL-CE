@@ -13,7 +13,7 @@
                         <WrapPanel Margin="15,8,0,15">
                             <local:MyButton x:Name="BtnManageBack" Grid.Column="0" MinWidth="110" Text="返回上级" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="Collapsed" />
                             <local:MyButton x:Name="BtnManageOpen" Grid.Column="1" MinWidth="110" Text="打开文件夹" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" />
-                            <local:MyButton x:Name="BtnManageCreateFolder" Grid.Column="2" MinWidth="110" Text="创建文件夹" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
+
                             <local:MyButton x:Name="BtnManageInstall" Grid.Column="3" MinWidth="110" Text="从文件安装" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageDownload" Grid.Column="4" MinWidth="110" Text="下载新资源" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageSelectAll" Grid.Column="5" MinWidth="110" Text="全选" Padding="13,7" Margin="0,7,15,0" HorizontalAlignment="Left" />

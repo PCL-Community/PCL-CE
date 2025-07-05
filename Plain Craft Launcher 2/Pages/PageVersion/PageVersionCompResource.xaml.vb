@@ -449,12 +449,7 @@ Public Class PageVersionCompResource
             BtnManageBack.Visibility = Visibility.Collapsed
         End If
         
-        '创建文件夹按钮显示控制（只在原理图管理页面显示）
-        If CurrentCompType = CompType.Schematic Then
-            BtnManageCreateFolder.Visibility = Visibility.Visible
-        Else
-            BtnManageCreateFolder.Visibility = Visibility.Collapsed
-        End If
+
 
         '-----------------
         ' 底部栏
@@ -554,57 +549,7 @@ Public Class PageVersionCompResource
         End Try
     End Sub
 
-    ''' <summary>
-    ''' 创建文件夹。
-    ''' </summary>
-    Private Sub BtnManageCreateFolder_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageCreateFolder.Click
-        Try
-            ' 弹出输入框让用户自定义文件夹名称
-            Dim folderName As String = MyMsgBoxInput("创建文件夹", "请输入文件夹名称：", "新建文件夹", Nothing, "文件夹名称")
-            
-            ' 检查用户是否取消或输入为空
-            If String.IsNullOrWhiteSpace(folderName) Then
-                Return
-            End If
-            
-            ' 验证文件夹名称是否合法
-            Dim invalidChars = System.IO.Path.GetInvalidFileNameChars()
-            If folderName.IndexOfAny(invalidChars) >= 0 Then
-                Hint("文件夹名称包含非法字符，请重新输入！", HintType.Critical)
-                Return
-            End If
-            
-            ' 确定目标路径
-            Dim targetPath As String
-            If String.IsNullOrEmpty(CurrentFolderPath) Then
-                ' 在根目录创建
-                targetPath = PageVersionLeft.Version.PathIndie & If(PageVersionLeft.Version.Version.HasLabyMod, "labymod-neo\fabric\" & PageVersionLeft.Version.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\" & folderName
-            Else
-                ' 在当前文件夹创建
-                targetPath = System.IO.Path.Combine(CurrentFolderPath, folderName)
-            End If
-            
-            ' 检查文件夹是否已存在
-            If Directory.Exists(targetPath) Then
-                Hint("文件夹已存在，请使用其他名称！", HintType.Critical)
-                Return
-            End If
-            
-            ' 创建文件夹
-            Directory.CreateDirectory(targetPath)
-            
-            ' 显示成功提示
-            Hint($"文件夹 ""{folderName}"" 创建成功！", HintType.Finish)
-            
-            ' 刷新文件列表
-            ReloadCompFileList(True)
-            
-            Log($"[{CurrentCompType}] 创建文件夹：{targetPath}")
-            
-        Catch ex As Exception
-            Log(ex, "创建文件夹失败", LogLevel.Msgbox)
-        End Try
-    End Sub
+
 
     ''' <summary>
     ''' 全选。
