@@ -281,7 +281,7 @@
                            If ETProcessPid Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
-                                           StopMcPortForward()
+                                           If Not IsHost Then StopMcPortForward()
                                            Log("[Link] EasyTier 已退出")
                                        End Sub)
                            End If
@@ -472,11 +472,6 @@
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
                            CheckFirewall()
-                           Dim Id As String = Nothing
-                           For index = 1 To 8 '生成 8 位随机编号
-                               Id += RandomInteger(0, 9).ToString()
-                           Next
-                           LaunchLink(True, Id, LocalPort:=LocalPort)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Collapsed
                                        BtnFinishPing.Visibility = Visibility.Collapsed
@@ -487,6 +482,11 @@
                                        LabFinishTitle.Text = "大厅创建中..."
                                        LabFinishDesc.Text = $"您是大厅创建者，使用 {NaidProfile.Username} 的身份进行联机"
                                    End Sub)
+                           Dim Id As String = Nothing
+                           For index = 1 To 8 '生成 8 位随机编号
+                               Id += RandomInteger(0, 9).ToString()
+                           Next
+                           LaunchLink(True, Id, LocalPort:=LocalPort)
                            Dim RetryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
@@ -523,7 +523,6 @@
         IsHost = False
         RunInNewThread(Sub()
                            CheckFirewall()
-                           LaunchLink(False, JoinedLobbyId, ETNetworkDefaultSecret & JoinedLobbyId)
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Visible
                                        BtnFinishPing.Visibility = Visibility.Visible
@@ -536,6 +535,8 @@
                                        LabFinishTitle.Text = "加入大厅中..."
                                        LabFinishDesc.Text = $"您是加入者，使用 {NaidProfile.Username} 的身份进行联机"
                                    End Sub)
+                           Dim Status As Integer = 1
+                           Status = LaunchLink(False, JoinedLobbyId, ETNetworkDefaultSecret & JoinedLobbyId)
                            Dim RetryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
@@ -554,7 +555,7 @@
                            While IsWatcherStarted AndAlso RemotePort Is Nothing
                                Thread.Sleep(500)
                            End While
-                           McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
+                           If Status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
                            RunInUi(Sub() LabFinishTitle.Text = $"已加入 {Hostname} 的大厅")
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
