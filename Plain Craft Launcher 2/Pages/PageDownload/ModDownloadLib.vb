@@ -741,7 +741,7 @@ pause"
                               BaseMcFolder & "versions\" & DownloadInfo.Inherit & "\" & DownloadInfo.Inherit & ".jar")
                     Task.Progress = 0.06
                     '进行安装
-                    Dim UseJavaWrapper As Boolean = True
+                    Dim UseJavaWrapper As Boolean = IsUtf8CodePage()
 Retry:
                     Try
                         McDownloadOptiFineInstall(BaseMcFolderHome, Target, Task, UseJavaWrapper)
