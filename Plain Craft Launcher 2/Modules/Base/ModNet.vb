@@ -128,11 +128,11 @@ Public Module ModNet
 
             ' 创建可序列化的缓存对象
             Dim cached As New CachedResponse With {
-            .StatusCode = response.StatusCode,
-            .Headers = response.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
-            .ContentHeaders = response.Content.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
-            .Content = Await response.Content.ReadAsByteArrayAsync()
-        }
+                .StatusCode = response.StatusCode,
+                .Headers = response.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
+                .ContentHeaders = response.Content.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
+                .Content = Await response.Content.ReadAsByteArrayAsync()
+            }
 
             Dim target = New KeyData() With {.ID = key.HashBase64, .Data = cached}
 
