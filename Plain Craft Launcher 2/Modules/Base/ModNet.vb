@@ -800,7 +800,7 @@ Retry:
     Public ReadOnly Property ETagDatabase As LiteDatabase
         Get
             SyncLock (_eTagDatabaseGetLock)
-                If _eTagDatabase Is Nothing Then _eTagDatabase = New LiteDatabase($"Filename={PathTemp}Cache\ETag.db")
+                If _eTagDatabase Is Nothing Then _eTagDatabase = New LiteDatabase($"Filename={PathAppdata}ETag.db")
                 Return _eTagDatabase
             End SyncLock
         End Get
@@ -1176,14 +1176,14 @@ StartThread:
                             Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
                             Info.Source.Url = Redirected
                         End If
-
+                        ContentLength = response.Content.Headers.ContentLength.GetValueOrDefault(-1)
                         'ETag Cache
                         If Info.IsFirstThread Then
-                            Dim etag = response.Headers?.ETag?.Tag
-                            Dim host = response.RequestMessage.RequestUri.Host
+                            Dim etag = response.Headers.ETag?.Tag
+                            Dim host = response.RequestMessage.RequestUri.Host & response.RequestMessage.RequestUri.AbsolutePath
                             If Not String.IsNullOrEmpty(etag) Then
                                 '标记有 ETag
-                                Log($"[Net] 标记 ETag 信息 {etag}")
+                                Log($"[Net] 发现 ETag 信息 {host}:{etag}")
                                 ETagStatus = New ETagData With {
                                             .Host = host,
                                             .EID = etag
@@ -1194,30 +1194,44 @@ StartThread:
                                     Query.EQ("EID", New BsonValue(etag)),
                                     Query.EQ("Host", New BsonValue(host))
                                     )
-                                Dim etagCache = etags.Find(queryPa)
-                                If etagCache.Any() Then
-                                    Log($"[Net] 击中 ETag 缓存 {host} -> {etag}")
-                                    Dim cache = etagCache.First()
-                                    Dim checker As New FileChecker(Hash:=cache.Hash, ActualSize:=cache.Length)
-                                    If checker.Check(cache.File) Is Nothing Then
-                                        LocalPath = cache.File
+                                Dim etagCaches = etags.Find(queryPa)
+                                If etagCaches.Any() Then
+                                    Log($"[Net] 击中 ETag 缓存 {host}:{etag}")
+                                    Dim targetCache As ETagData
+                                    For Each etagCache In etagCaches
+                                        Dim fileInfo As New FileInfo(etagCache.File)
+                                        If Not fileInfo.Exists OrElse (ContentLength <> -1 AndAlso ContentLength <> etagCache.Length) OrElse fileInfo.Length <> etagCache.Length OrElse GetFileSHA256(fileInfo.FullName) <> etagCache.Hash Then
+                                            etags.DeleteMany(Query.EQ("File", New BsonValue(etagCache.File)))
+                                            Log($"[Net] 清空无效的缓存: {etagCache.Host}:{etagCache.EID} -> {etagCache.File}")
+                                            Continue For
+                                        End If
+                                        targetCache = etagCache
+                                        Exit For
+                                    Next
+                                    If targetCache Is Nothing Then
+                                        Log($"[Net] 本地缓存失效，继续进行下载任务")
+                                    Else
+                                        Log($"[Net] 使用本地缓存 {targetCache.File} 代替下载 {LocalName} 文件")
+                                        LocalPath = targetCache.File
                                         Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomInteger(0, 999999)}.tmp"
-                                        Using cacheFile As New FileStream(cache.File, FileMode.Open, FileAccess.Read, FileShare.Read)
+                                        Using cacheFile As New FileStream(targetCache.File, FileMode.Open, FileAccess.Read, FileShare.Read)
                                             Using tempFile As New FileStream(Info.Temp, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
                                                 cacheFile.CopyTo(tempFile)
+                                                '告诉那破下载器，下载完成了
                                                 Info.DownloadDone = cacheFile.Length
-                                                ContentLength = Info.DownloadDone
+                                                DownloadDone = cacheFile.Length
+                                                FileSize = cacheFile.Length
+                                                IsUnknownSize = False
                                             End Using
                                         End Using
                                         Info.State = NetState.Download
+                                        SyncLock LockState
+                                            State = NetState.Download
+                                        End SyncLock
                                         GoTo SourceBreak
-                                    Else
-                                        Log("[Net] 清空多个无效缓存")
-                                        etags.DeleteMany(Query.EQ("File", New BsonValue(cache.File)))
                                     End If
                                 End If
                             End If
-
                         End If
                         ''从响应头获取文件名
                         'If Info.IsFirstThread Then
@@ -1229,7 +1243,6 @@ StartThread:
                         '    End If
                         'End If
                         '文件大小校验
-                        ContentLength = response.Content.Headers.ContentLength.GetValueOrDefault(-1)
                         If ContentLength = -1 Then
                             If FileSize > 1 Then
                                 If Info.DownloadStart = 0 Then
@@ -1542,7 +1555,7 @@ Retry:
                     End If
                     'ETag 缓存
                     If ETagStatus IsNot Nothing Then
-                        Log($"[Net] 保存 ETag 状态 {ETagStatus.Host} -> {ETagStatus.EID}")
+                        Log($"[Net] 保存 ETag 状态 {ETagStatus.Host}:{ETagStatus.EID} -> {LocalPath}")
                         Dim etags = ETagDatabase.GetCollection(Of ETagData)("ETag")
                         Dim qu = Query.And(
                             Query.EQ("Host", New BsonValue(ETagStatus.Host)),
@@ -1551,6 +1564,7 @@ Retry:
                         If Not etags.Find(qu).Any() Then
                             ETagStatus.Hash = GetFileSHA256(LocalPath)
                             ETagStatus.File = LocalPath
+                            ETagStatus.Length = New FileInfo(LocalPath).Length
                             etags.Insert(ETagStatus)
                         End If
                     End If
