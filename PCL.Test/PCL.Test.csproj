@@ -119,16 +119,13 @@
       <Version>17.14.1</Version>
     </PackageReference>
     <PackageReference Include="MSTest.TestAdapter">
-      <Version>3.9.2</Version>
+      <Version>3.9.3</Version>
     </PackageReference>
     <PackageReference Include="MSTest.TestFramework">
-      <Version>3.9.2</Version>
+      <Version>3.9.3</Version>
     </PackageReference>
     <PackageReference Include="System.Text.Json">
       <Version>9.0.6</Version>
-    </PackageReference>
-    <PackageReference Include="System.Threading.Tasks.Extensions">
-      <Version>4.6.3</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

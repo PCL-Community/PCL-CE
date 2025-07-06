@@ -13,36 +13,29 @@ Friend Module ModSecret
 
 #If DEBUG Then
     Public Const RegFolder As String = "PCLCEDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    '用于微软登录的 ClientId
+    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
+    'CurseForge API Key
+    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
+    'LittleSkin OAuth ClientId
+    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
+    '遥测鉴权密钥
+    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
+    'Natayark ID Client Id
+    Public NatayarkClientId As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_ID"), "")
+    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
+    Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
+    '联机服务根地址
+    Public LinkServerRoot As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-#End If
-
-    '用于微软登录的 ClientId
-#If DEBUG Then
-    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
-#Else
     Public Const OAuthClientId As String = ""
-#End If
-
-    'CurseForge API Key
-#If DEBUG Then
-    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-#Else
     Public Const CurseForgeAPIKey As String = ""
-#End If
-
-    'LittleSkin OAuth ClientId
-#If DEBUG Then
-    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
-#Else
     Public Const LittleSkinClientId As String = ""
-#End If
-
-    '遥测鉴权密钥
-#If DEBUG Then
-    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
-#Else
     Public Const TelemetryKey As String = ""
+    Public Const NatayarkClientId As String = ""
+    Public Const NatayarkClientSecret As String = ""
+    Public Const LinkServerRoot As String = ""
 #End If
 
     Friend Sub SecretOnApplicationStart()
@@ -166,6 +159,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
         Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", Version:=McVersionCurrent)
         DataList.Insert(0, If(DataJvmCustom = "", Setup.Get("LaunchAdvanceJvm"), DataJvmCustom)) '可变 JVM 参数
+        Select Case Setup.Get("LaunchPreferredIpStack")
+            Case 0
+                DataList.Add("-Djava.net.preferIPv4Stack=true")
+            Case 2
+                DataList.Add("-Djava.net.preferIPv6Stack=true")
+        End Select
         McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024) & "m")
@@ -314,7 +313,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End Region
 
 #Region "主题"
-    
+
 #If DEBUG Then
     Public ReadOnly EnableCustomTheme As Boolean = Environment.GetEnvironmentVariable("PCL_CUSTOM_THEME") IsNot Nothing
     Private ReadOnly EnvThemeHue = Environment.GetEnvironmentVariable("PCL_THEME_HUE") '0 ~ 359
@@ -328,13 +327,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End If
 
     Public IsDarkMode As Boolean = False
-    
+
     Public ReadOnly Property ColorGray1 As MyColor
         Get
             Return If(StaticColors?.Gray1, LightStaticColors.Gray1)
         End Get
     End Property
-    
+
     Public ReadOnly Property ColorGray4 As MyColor
         Get
             Return If(StaticColors?.Gray4, LightStaticColors.Gray4)
@@ -346,7 +345,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Return If(StaticColors?.Gray5, LightStaticColors.Gray5)
         End Get
     End Property
-    
+
     Public ReadOnly Property ColorSemiTransparent As MyColor
         Get
             Return DynamicColors.SemiTransparent
@@ -365,32 +364,32 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public Property G1 As Integer
         Public Property G2 As Integer
         Public Property G3 As Integer
-        
+
         Public ReadOnly Property Lb0 As Integer
             Get
                 Return L5
             End Get
         End Property
-        
+
         Public ReadOnly Property Lb1 As Integer
             Get
                 Return L7
             End Get
         End Property
-        
+
         Public Property LaP As Double = 1
         Public Property LaN As Double = 1
-        
+
         Public Property Sa0 As Double
         Public Property Sa1 As Double
     End Class
-    
+
     Private ReadOnly Property NewColor As MyColor
         Get
             Return New MyColor()
         End Get
     End Property
-    
+
     Public Class ThemeStyleStaticColors
         Public ReadOnly Gray1 As Color
         Public ReadOnly Gray2 As Color
@@ -407,7 +406,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly Memory As Color
         Public ReadOnly Tooltip As Color
         Public ReadOnly BackgroundTransparentSidebar As Color
-        
+
         Public ReadOnly Gray1Brush As SolidColorBrush
         Public ReadOnly Gray2Brush As SolidColorBrush
         Public ReadOnly Gray3Brush As SolidColorBrush
@@ -423,7 +422,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly MemoryBrush As SolidColorBrush
         Public ReadOnly TooltipBrush As SolidColorBrush
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
-        
+
         Public Sub New(style As ThemeStyle)
             Gray1 = NewColor.FromHSL2(0, 0, style.L1)
             Gray2 = NewColor.FromHSL2(0, 0, style.L2)
@@ -440,7 +439,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Memory = NewColor.FromHSL2(0, 0, style.G3)
             Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(&HE5)
             BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(&HD2)
-            
+
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
             Gray3Brush = New SolidColorBrush(Gray3)
@@ -473,7 +472,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         '对数分布 -> 线性分布
         Dim originF = Math.Log(origin + LogLightBase) / LogLightBaseRate '源 [0,1]
         Dim adjustF = adjust / 20.0 '参数 [-1,1]
-        Dim resultF = originF + adjustF * If (adjustF > 0, 1 - originF, originF) '线性插值
+        Dim resultF = originF + adjustF * If(adjustF > 0, 1 - originF, originF) '线性插值
         '线性分布 -> 对数分布
         Dim result As Integer = Math.Exp(resultF * LogLightBaseRate) - LogLightBase
         Return result
@@ -491,7 +490,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly ColorBg0 As Color
         Public ReadOnly ColorBg1 As Color
         Public ReadOnly SemiTransparent As Color
-        
+
         Public ReadOnly Color1Brush As SolidColorBrush
         Public ReadOnly Color2Brush As SolidColorBrush
         Public ReadOnly Color3Brush As SolidColorBrush
@@ -503,11 +502,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly ColorBg0Brush As SolidColorBrush
         Public ReadOnly ColorBg1Brush As SolidColorBrush
         Public ReadOnly SemiTransparentBrush As SolidColorBrush
-        
+
         Public Sub New(style As ThemeStyle, hue As Integer, sat As Integer, lightAdjust As Integer)
             Dim sat0 = sat * style.Sa0
             Dim sat1 = sat * style.Sa1
-            
+
             Color1 = NewColor.FromHSL2(hue, sat0 * 0.2, style.L1)
             Color2 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L2, lightAdjust, style))
             Color3 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L3, lightAdjust, style))
@@ -518,8 +517,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Color8 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
             ColorBg0 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
             ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(&HBE)
-            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(&H01)
-            
+            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(&H1)
+
             Color1Brush = New SolidColorBrush(Color1)
             Color2Brush = New SolidColorBrush(Color2)
             Color3Brush = New SolidColorBrush(Color3)
@@ -533,7 +532,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             SemiTransparentBrush = New SolidColorBrush(SemiTransparent)
         End Sub
     End Class
-    
+
     Public ReadOnly LightStyle = New ThemeStyle With {
         .L1 = 25, .L2 = 45, .L3 = 55, .L4 = 65,
         .L5 = 80, .L6 = 91, .L7 = 95, .L8 = 97,
@@ -551,7 +550,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     Public ReadOnly DarkStaticColors As New ThemeStyleStaticColors(DarkStyle)
-    
+
     Public ReadOnly Property CurrentStyle As ThemeStyle
         Get
             Return If(IsDarkMode, DarkStyle, LightStyle)
@@ -559,7 +558,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Property
 
     Public Property StaticColors As ThemeStyleStaticColors = Nothing
-    
+
     Public Property DynamicColors As ThemeStyleDynamicColors = Nothing
 
     Public ThemeNow As Integer = -1
@@ -634,7 +633,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushGray6") = StaticColors.Gray6Brush
         res("ColorBrushGray7") = StaticColors.Gray7Brush
         res("ColorBrushGray8") = StaticColors.Gray8Brush
-        
+
         res("ColorObject1") = DynamicColors.Color1
         res("ColorObject2") = DynamicColors.Color2
         res("ColorObject3") = DynamicColors.Color3
@@ -645,7 +644,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorObject8") = DynamicColors.Color8
         res("ColorObjectBg0") = DynamicColors.ColorBg0
         res("ColorObjectBg1") = DynamicColors.ColorBg1
-        
+
         res("ColorBrush1") = DynamicColors.Color1Brush
         res("ColorBrush2") = DynamicColors.Color2Brush
         res("ColorBrush3") = DynamicColors.Color3Brush
@@ -656,7 +655,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrush8") = DynamicColors.Color8Brush
         res("ColorBrushBg0") = DynamicColors.ColorBg0Brush
         res("ColorBrushBg1") = DynamicColors.ColorBg1Brush
-        
+
         res("ColorBrushWhite") = StaticColors.WhiteBrush
         res("ColorBrushHalfWhite") = StaticColors.HalfWhiteBrush
         res("ColorBrushSemiWhite") = StaticColors.SemiWhiteBrush
@@ -668,7 +667,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushMsgBox") = StaticColors.WhiteBrush
         res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
-    
+
     Public Sub ThemeRefreshMain()
 #If DEBUG Then
         If EnableCustomTheme Then ThemeNow = 14
@@ -997,8 +996,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' 发送遥测数据，需要在非 UI 线程运行
     ''' </summary>
     Public Sub SendTelemetry()
+        If String.IsNullOrWhiteSpace(TelemetryKey) Then Exit Sub
         Dim NetResult = ModLink.NetTest()
         Dim Data = New JObject From {
+            {"Tag", "Telemetry"},
             {"Id", UniqueAddress},
             {"OS", Environment.OSVersion.Version.Build},
             {"Is64Bit", Not Is32BitSystem},
@@ -1012,9 +1013,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             {"NatType", NetResult(0)},
             {"IPv6Status", NetResult(1)}
         }
-        Dim SendData = New JObject From {
-            {"data", Data}
-        }
+        Dim SendData = New JObject From {{"data", Data}}
         Try
             Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
             If Result.Contains("数据已成功保存") Then

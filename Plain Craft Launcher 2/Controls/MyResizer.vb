@@ -177,6 +177,12 @@ Public Class MyResizer
         Me.leftElements.Add(element, 0)
         Me.upElements.Add(element, 0)
     End Sub
+    Public Sub removeAllResizers()
+        Me.leftElements.Clear()
+        Me.rightElements.Clear()
+        Me.upElements.Clear()
+        Me.downElements.Clear()
+    End Sub
 
     Private Sub element_MouseLeftButtonDown(sender As Object, e As MouseButtonEventArgs)
         GetCursorPos(startMousePoint)

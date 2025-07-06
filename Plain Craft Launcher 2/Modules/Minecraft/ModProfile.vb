@@ -650,10 +650,16 @@ Write:
         IsMsSkinChanging = True
         '开始实际获取
         RunInNewThread(
-        Async Sub()
+        Sub()
             Try
 Retry:
                 If McLoginMsLoader.State = LoadState.Loading Then McLoginMsLoader.WaitForExit() '等待登录结束
+                '获取登录信息
+                If McLoginMsLoader.State <> LoadState.Finished Then McLoginMsLoader.WaitForExit(GetLoginData())
+                If McLoginMsLoader.State <> LoadState.Finished Then
+                    Hint("登录失败，无法更改皮肤！", HintType.Critical)
+                    Return
+                End If
                 Dim AccessToken As String = SelectedProfile.AccessToken
                 Dim Uuid As String = SelectedProfile.Uuid
 

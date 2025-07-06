@@ -1,8 +1,16 @@
 # 如何为项目做贡献
 
+Wiki 页面:
+[开发指南](https://github.com/PCL-Community/PCL2-CE/wiki/开发指南)
+[技术规范](https://github.com/PCL-Community/PCL2-CE/wiki/技术规范)
+
+<details>
+
+<summary>原 CONTRIBUTING.md 内容</summary>
+
 ## 开始之前
 
-- 查看 [Issues](https://github.com/PCL-Community/PCL2-CE/issues) 寻找可以参与的任务，或创建新 Issue 讨论您的想法。
+查看 [Issues](https://github.com/PCL-Community/PCL2-CE/issues) 寻找可以参与的任务，或创建新 Issue 讨论您的想法。
 
 ## 贡献流程
 
@@ -149,3 +157,5 @@ revert:<type>(<scope>): <subject>
 ## 提交上游
 
 若你要将他人在 CE 中实现的功能或修复提交到上游，请用 Co-authored 来指明原始贡献者
+
+</details>

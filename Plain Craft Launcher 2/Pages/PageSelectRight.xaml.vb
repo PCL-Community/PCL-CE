@@ -167,7 +167,7 @@ Public Class PageSelectRight
                 End Select
 #End Region
                 '建立控件
-                Dim CardTitle As String = CardName & If(CardName = "收藏夹", "", " (" & Card.Value.Count & ")")
+                Dim CardTitle As String = CardName & If(CardName = "收藏夹", "", " (" & filteredVersions.Count & ")")
                 Dim NewCard As New MyCard With {.Title = CardTitle, .Margin = New Thickness(0, 0, 0, 15)}
                 Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = filteredVersions}
                 NewCard.Children.Add(NewStack)

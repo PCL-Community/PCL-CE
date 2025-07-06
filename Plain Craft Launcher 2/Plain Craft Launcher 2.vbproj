@@ -276,6 +276,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\Behaviors\ClipboardInterceptor.vb" />
     <Compile Include="Controls\IMyRadio.vb" />
     <Compile Include="Controls\MyComboBox.vb" />
     <Compile Include="Controls\MyComboBoxItem.vb" />
@@ -299,7 +300,7 @@
     <Compile Include="Modules\Minecraft\ModModpack.vb" />
     <Compile Include="Modules\Minecraft\ModProfile.vb" />
     <Compile Include="Modules\Minecraft\ModStyle.vb" />
-    <Compile Include="Modules\Minecraft\ModWorld.vb" />
+    <Compile Include="Modules\ModWebServer.vb" />
     <Compile Include="Modules\Updates\EnumUpdateChannel.vb" />
     <Compile Include="Modules\Updates\IUpdateSource.vb" />
     <Compile Include="Modules\Updates\UpdatesRandomModel.vb" />
@@ -347,6 +348,7 @@
     <Compile Include="Modules\ModMusic.vb" />
     <Compile Include="Modules\ModDevelop.vb" />
     <Compile Include="Modules\Minecraft\ModWatcher.vb" />
+    <Compile Include="Modules\Minecraft\ModWorld.vb" />
     <Compile Include="Modules\ModSecret.vb" />
     <Compile Include="Pages\PageDownload\Comp\PageComp.xaml.vb">
       <DependentUpon>PageComp.xaml</DependentUpon>
@@ -411,12 +413,6 @@
     </Compile>
     <Compile Include="Pages\PageLink\PageLinkFeedback.xaml.vb">
       <DependentUpon>PageLinkFeedback.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\PageLink\PageLinkIoi.xaml.vb">
-      <DependentUpon>PageLinkIoi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\PageLink\PageLinkNetStatus.xaml.vb">
-      <DependentUpon>PageLinkNetStatus.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageLink\PageLinkLobby.xaml.vb">
       <DependentUpon>PageLinkLobby.xaml</DependentUpon>
@@ -739,14 +735,6 @@
       <SubType>Designer</SubType>
     </None>
     <Page Include="Pages\PageLink\PageLinkFeedback.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\PageLink\PageLinkIoi.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\PageLink\PageLinkNetStatus.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -1153,6 +1141,9 @@
     <None Include="Resources\libwebp64.dll" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CacheCow.Client">
+      <Version>2.13.1</Version>
+    </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>6.0.0</Version>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -1233,6 +1224,7 @@
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
     <Content Include="Resources\linkd.exe" />
+    <Resource Include="Resources\oauth-complete.html" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj">

@@ -457,11 +457,9 @@ EndHint:
 
     '联机页面声明
     Public FrmLinkLeft As PageLinkLeft
-    Public FrmLinkIoi As PageLinkIoi
     Public FrmLinkLobby As PageLinkLobby
     Public FrmLinkHelp As PageOtherHelpDetail
     Public FrmLinkFeedback As PageLinkFeedback
-    Public FrmLinkNetStatus As PageLinkNetStatus
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft

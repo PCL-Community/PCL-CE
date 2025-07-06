@@ -79,6 +79,7 @@ Public Class ModSetup
         {"LaunchArgumentWindowWidth", New SetupEntry(854)},
         {"LaunchArgumentWindowHeight", New SetupEntry(480)},
         {"LaunchArgumentWindowType", New SetupEntry(1)},
+        {"LaunchPreferredIpStack", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"LaunchArgumentRam", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LaunchAdvanceJvm", New SetupEntry("-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")},
         {"LaunchAdvanceGame", New SetupEntry("")},
@@ -92,7 +93,15 @@ Public Class ModSetup
         {"LaunchUuid", New SetupEntry(String.Empty, Source:=SetupSource.Registry)},
         {"ToolFixAuthlib", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"LinkName", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"LinkLastTestDate", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
+        {"LinkAvailable", New SetupEntry(False, Source:=SetupSource.Registry, Encoded:=True)},
+        {"LinkAnnounceCache", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
+        {"LinkAnnounceCacheVer", New SetupEntry(0, Source:=SetupSource.Registry)},
+        {"LinkRelayType", New SetupEntry(0, Source:=SetupSource.Registry)},
+        {"LinkServerType", New SetupEntry(0, Source:=SetupSource.Registry)},
+        {"LinkRelayServer", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"LinkNaidRefreshToken", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
+        {"LinkNaidRefreshExpiresAt", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkFirstTimeNetTest", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LoginLegacyName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LoginMsJson", New SetupEntry("{}", Source:=SetupSource.Registry, Encoded:=True)}, '{UserName: OAuthToken, ...}
@@ -138,6 +147,7 @@ Public Class ModSetup
         {"UiDarkMode", New SetupEntry(2, Source:=SetupSource.Registry)},
         {"UiDarkColor", New SetupEntry(1, Source:=SetupSource.Registry)},
         {"UiLightColor", New SetupEntry(1, Source:=SetupSource.Registry)},
+        {"UiLockWindowSize", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"UiLogoType", New SetupEntry(1)},
         {"UiLogoText", New SetupEntry("")},
         {"UiLogoLeft", New SetupEntry(False)},
@@ -156,7 +166,6 @@ Public Class ModSetup
         {"UiHiddenFunctionHidden", New SetupEntry(False)},
         {"UiHiddenSetupLaunch", New SetupEntry(False)},
         {"UiHiddenSetupUi", New SetupEntry(False)},
-        {"UiHiddenSetupLink", New SetupEntry(False)},
         {"UiHiddenSetupSystem", New SetupEntry(False)},
         {"UiHiddenOtherHelp", New SetupEntry(False)},
         {"UiHiddenOtherFeedback", New SetupEntry(False)},
@@ -513,8 +522,6 @@ Public Class ModSetup
 #If RELEASE Or BETA Then
         If Key = "UiLauncherTheme" Then Return "0"
 #End If
-        If Key = "UiHiddenPageLink" Then Return False
-        If Key = "UiHiddenSetupLink" Then Return False
         Return Nothing
     End Function
 
@@ -586,6 +593,14 @@ Public Class ModSetup
     End Sub
     Public Sub UiBackgroundColorful(Value As Boolean)
         ThemeRefresh()
+    End Sub
+
+    Public Sub UiLockWindowSize(Value As Boolean)
+        If Value Then
+            FrmMain.RemoveResizer()
+        Else
+            FrmMain.AddResizer()
+        End If
     End Sub
 
     '背景图片
@@ -817,9 +832,6 @@ Public Class ModSetup
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenSetupUi(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupLink(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenSetupSystem(Value As Boolean)
