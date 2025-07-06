@@ -1,4 +1,6 @@
-﻿Public Class CrashAnalyzer
+﻿Imports System.Text.RegularExpressions
+
+Public Class CrashAnalyzer
 
     '构造函数
     Private TempFolder As String
@@ -388,10 +390,16 @@ Extracted:
         Mod需要Java11
         Mod缺少前置或MC版本错误
     End Enum
+    
+    '暂存分析的版本供特殊用途
+    '龙猫味石山代码小记: CrashAnalyze 猛一顿分析不知道自己在分析啥版本
+    Private _version As McVersion = Nothing
+    
     ''' <summary>
     ''' 根据 AnalyzeLogs 与可能的版本信息分析崩溃原因。
     ''' </summary>
-    Public Sub Analyze(Optional Version As McVersion = Nothing)
+    Public Sub Analyze(Optional version As McVersion = Nothing)
+        _version = version
         Log("[Crash] 步骤 3：分析崩溃原因")
         LogAll = If(LogMc, If(LogMcDebug, "")) & If(LogHs, "") & If(LogCrash, "")
 
@@ -862,9 +870,14 @@ NextStack:
     Public Sub Output(IsHandAnalyze As Boolean, Optional ExtraFiles As List(Of String) = Nothing)
         '弹窗提示
         FrmMain.ShowWindowToTop()
-        Select Case MyMsgBox(GetAnalyzeResult(IsHandAnalyze), If(IsHandAnalyze, "错误报告分析结果", "Minecraft 出现错误"),
-            "确定", If(IsHandAnalyze OrElse DirectFile Is Nothing, "", "查看日志"), If(IsHandAnalyze, "", "导出错误报告"),
-            Button2Action:=If(IsHandAnalyze OrElse DirectFile Is Nothing, Nothing,
+        Dim resultText = GetAnalyzeResult(IsHandAnalyze)
+        '确定是否是加载器版本不兼容问题
+        Dim isModLoaderIncompatible = _version IsNot Nothing AndAlso resultText.StartsWith("Mod 加载器版本与 Mod 不兼容")
+        Select Case MyMsgBox(resultText, If(IsHandAnalyze, "错误报告分析结果", "Minecraft 出现错误"),
+            "确定", 
+            If(IsHandAnalyze OrElse DirectFile Is Nothing, "", If(isModLoaderIncompatible, "前往修改", "查看日志")),
+            If(IsHandAnalyze, "", "导出错误报告"),
+            Button2Action:=If(IsHandAnalyze OrElse DirectFile Is Nothing OrElse isModLoaderIncompatible, Nothing,
             Sub()
                 '弹窗选择：查看日志
                 If File.Exists(DirectFile.Value.Key) Then
@@ -875,6 +888,10 @@ NextStack:
                     ShellOnly(FilePath)
                 End If
             End Sub))
+            Case 2
+                '弹窗选择：前往修改
+                PageVersionLeft.Version = _version
+                RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.VersionSetup, FormMain.PageSubType.VersionInstall))
             Case 3
                 '弹窗选择：导出错误报告
                 Dim FileAddress As String = Nothing
@@ -944,6 +961,9 @@ NextStack:
                 OpenExplorer(FileAddress)
         End Select
     End Sub
+    
+    Private Shared ReadOnly PatternIncompatibleModLoader As New Regex("(incompatible[\s\S]+'Fabric Loader' \(fabricloader\)|Mod ID: '(?:neo)?forge', Requested by '([^']+)')")
+    
     ''' <summary>
     ''' 获取崩溃分析的结果描述。
     ''' </summary>
@@ -960,6 +980,7 @@ NextStack:
 
         '根据不同原因判断
         Dim Results As New List(Of String)
+        Const LoaderIncompatibleResultText = "Mod 加载器版本与 Mod 不兼容，请前往版本修改页面更换加载器版本。\n\n详细信息：\n"
         For Each Reason In CrashReasons
             Dim Additional As List(Of String) = Reason.Value
             Select Case Reason.Key
@@ -987,7 +1008,12 @@ NextStack:
                     End If
                 Case CrashReason.Mod缺少前置或MC版本错误
                     If Additional.Any Then
-                        Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " & Join(Additional, "\n - ") & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
+                        Dim info = Additional.Join("\n - ")
+                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                            Results.Add(LoaderIncompatibleResultText & info)
+                        Else
+                            Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
+                        End If
                     Else
                         Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h")
                     End If
@@ -1089,7 +1115,12 @@ NextStack:
                     End If
                 Case CrashReason.Mod互不兼容
                     If Additional.Count = 1 Then
-                        Results.Add("你所安装的 Mod 不兼容：\n" & Additional.First & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
+                        Dim info = Additional.First
+                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                            Results.Add(LoaderIncompatibleResultText & info)
+                        Else
+                            Results.Add("你所安装的 Mod 不兼容：\n" & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
+                        End If
                     Else
                         Results.Add("你所安装的 Mod 不兼容，Mod 加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h")
                     End If
