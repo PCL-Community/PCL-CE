@@ -88,27 +88,32 @@
     Public Const AllowedVersion As Integer = 1
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
+                           RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
                            Try
+                               Dim Server As String = LinkServerRoot
+                               Dim ServerNumber As Integer = 1
                                Dim Jobj As JObject = Nothing
-                               Dim Cache As Integer = Val(NetRequestRetry($"{LinkServerRoot}/api/link/cache.ini", "GET", Nothing, "application/json"))
-                               If Cache = Setup.Get("LinkAnnounceCacheVer") Then
-                                   Log("[Link] 使用缓存的公告数据")
-                                   Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
-                               Else
-                                   Log("[Link] 尝试拉取公告数据")
-                                   Dim Received As String = NetRequestRetry($"{LinkServerRoot}/api/link/announce.json", "GET", Nothing, "application/json")
-                                   Jobj = JObject.Parse(Received)
-                                   Setup.Set("LinkAnnounceCache", Received)
-                                   Setup.Set("LinkAnnounceCacheVer", Cache)
-                               End If
-                               If Not Val(Jobj("version")) = AllowedVersion Then
-                                   IsLobbyAvailable = False
-                                   RunInUi(Sub()
-                                               HintAnnounce.Theme = MyHint.Themes.Red
-                                               HintAnnounce.Text = "请更新到最新版本 PCL CE 以继续使用大厅"
-                                           End Sub)
-                                   Exit Sub
-                               End If
+                               Dim Cache As Integer = Nothing
+Retry:
+                               If ServerNumber = 2 Then Server = LinkServerRoot2
+                               Try
+                                   Cache = Val(NetRequestOnce($"{Server}/api/link/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
+                                   If Cache = Setup.Get("LinkAnnounceCacheVer") Then
+                                       Log("[Link] 使用缓存的公告数据")
+                                       Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                                   Else
+                                       Log("[Link] 尝试拉取公告数据")
+                                       Dim Received As String = NetRequestOnce($"{Server}/api/link/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
+                                       Jobj = JObject.Parse(Received)
+                                       Setup.Set("LinkAnnounceCache", Received)
+                                       Setup.Set("LinkAnnounceCacheVer", Cache)
+                                   End If
+                               Catch ex As Exception
+                                   Log(ex, $"[Link] 从服务器 {ServerNumber} 获取公告缓存失败")
+                                   ServerNumber += 1
+                                   If ServerNumber <= 2 Then GoTo Retry
+                               End Try
+                               If Jobj Is Nothing Then Throw New Exception("获取联机数据失败")
                                IsLobbyAvailable = Jobj("available")
                                RequiresRealname = Jobj("requireRealname")
                                '公告
@@ -143,8 +148,6 @@
                                            HintAnnounce.Text = "连接到大厅服务器失败"
                                        End Sub)
                                Log(ex, "[Link] 获取大厅公告失败")
-                           Finally
-                               RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
                            End Try
                        End Sub)
     End Sub

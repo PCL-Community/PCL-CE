@@ -27,6 +27,7 @@ Friend Module ModSecret
     Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
     '联机服务根地址
     Public LinkServerRoot As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
+    Public LinkServerRoot2 As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT2"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
     Public Const OAuthClientId As String = ""
@@ -36,6 +37,7 @@ Friend Module ModSecret
     Public Const NatayarkClientId As String = ""
     Public Const NatayarkClientSecret As String = ""
     Public Const LinkServerRoot As String = ""
+    Public Const LinkServerRoot2 As String = ""
 #End If
 
     Friend Sub SecretOnApplicationStart()
