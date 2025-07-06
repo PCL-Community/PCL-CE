@@ -87,6 +87,7 @@ Public Class FormMain
         '注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
+
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         ApplicationStartTick = GetTimeTick()
         Handle = New WindowInteropHelper(Me).Handle
@@ -105,15 +106,10 @@ Public Class FormMain
         BtnExtraLog.ShowCheck = AddressOf BtnExtraLog_ShowCheck
         BtnExtraApril.ShowRefresh()
         '初始化尺寸改变
-        Dim Resizer As New MyResizer(Me)
-        Resizer.addResizerDown(ResizerB)
-        Resizer.addResizerLeft(ResizerL)
-        Resizer.addResizerLeftDown(ResizerLB)
-        Resizer.addResizerLeftUp(ResizerLT)
-        Resizer.addResizerRight(ResizerR)
-        Resizer.addResizerRightDown(ResizerRB)
-        Resizer.addResizerRightUp(ResizerRT)
-        Resizer.addResizerUp(ResizerT)
+        Resizer = New MyResizer(Me)
+        If Not Setup.Get("UiLockWindowSize") Then
+            AddResizer()
+        End If
         'PLC 彩蛋
         If RandomInteger(1, 1000) = 233 Then
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
@@ -489,10 +485,23 @@ Public Class FormMain
     Private Sub BtnTitleMin_Click() Handles BtnTitleMin.Click
         WindowState = WindowState.Minimized
     End Sub
-
 #End Region
 
 #Region "窗体事件"
+    Private Resizer
+    Public Sub AddResizer()
+        Resizer.addResizerDown(ResizerB)
+        Resizer.addResizerLeft(ResizerL)
+        Resizer.addResizerLeftDown(ResizerLB)
+        Resizer.addResizerLeftUp(ResizerLT)
+        Resizer.addResizerRight(ResizerR)
+        Resizer.addResizerRightDown(ResizerRB)
+        Resizer.addResizerRightUp(ResizerRT)
+        Resizer.addResizerUp(ResizerT)
+    End Sub
+    Public Sub RemoveResizer()
+        Resizer.removeAllResizers()
+    End Sub
 
     '按键事件
     Private Sub FormMain_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown

@@ -2108,6 +2108,10 @@ RetryDir:
 
 #Region "系统"
 
+    Public Function IsUtf8CodePage() As Boolean
+        Return Encoding.Default.CodePage = 65001
+    End Function
+
     ''' <summary>
     ''' 线程安全的 List。
     ''' 通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
