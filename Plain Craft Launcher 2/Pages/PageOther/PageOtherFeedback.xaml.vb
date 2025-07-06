@@ -26,7 +26,7 @@
 
     Private Shadows IsLoaded As Boolean = False
     Private Sub PageOtherFeedback_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, AddressOf RefreshList, AddressOf LoaderInput)
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, AddressOf RefreshList)
         '重复加载部分
         PanBack.ScrollToHome()
         '非重复加载部分
@@ -35,11 +35,7 @@
 
     End Sub
 
-    Public Loader As New LoaderTask(Of Integer, List(Of Feedback))("FeedbackList", AddressOf FeedbackListGet, AddressOf LoaderInput)
-
-    Private Function LoaderInput() As Integer
-        Return 0 ' awa?
-    End Function
+    Public Loader As New LoaderTask(Of Integer, List(Of Feedback))("FeedbackList", AddressOf FeedbackListGet)
 
     Public Sub FeedbackListGet(Task As LoaderTask(Of Integer, List(Of Feedback)))
         Dim list As JArray
@@ -102,7 +98,7 @@
             Dim commonInfo = $"{item.User} | {item.Time} | 类型: {item.Type}"
 
             Dim clickHandler As Action = Sub()
-                                             Select Case MyMsgBox(
+                                             Select Case MyMsgBoxMarkdown(
                                                  $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                                                  $"状态：{item.Tags} | 类型：{item.Type}" & vbCrLf & vbCrLf &
                                                  $"{item.Content}",
@@ -127,7 +123,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -155,7 +151,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -183,7 +179,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -211,7 +207,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -239,7 +235,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -267,7 +263,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -295,7 +291,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -323,7 +319,7 @@
 
                 AddHandler li.Click,
             Sub(sender As Object, e As RoutedEventArgs)
-                Select Case MyMsgBox(
+                Select Case MyMsgBoxMarkdown(
                     $"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）" & vbCrLf &
                     $"类型：{item.Type}" & vbCrLf & vbCrLf &
                     $"{item.Content}",
@@ -339,7 +335,7 @@
             ele.Info = item.User & " | " & item.Time
             ele.Tags = StatusDesc
             AddHandler ele.Click, Sub()
-                                      Select Case MyMsgBox($"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）{vbCrLf}状态：{StatusDesc}{vbCrLf}{vbCrLf}{item.Content}",
+                                      Select Case MyMsgBoxMarkdown($"提交者：{item.User}（{GetTimeSpanString(item.Time - DateTime.Now, False)}）{vbCrLf}状态：{StatusDesc}{vbCrLf}{vbCrLf}{item.Content}",
                                                "#" & item.ID & " " & item.Title,
                                                Button2:="查看详情")
                                           Case 2

@@ -276,6 +276,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\Behaviors\ClipboardInterceptor.vb" />
     <Compile Include="Controls\IMyRadio.vb" />
     <Compile Include="Controls\MyComboBox.vb" />
     <Compile Include="Controls\MyComboBoxItem.vb" />
@@ -284,6 +285,9 @@
       <DependentUpon>MyExtraTextButton.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MyImage.vb" />
+    <Compile Include="Controls\MyMsg\MyMsgMarkdown.xaml.vb">
+      <DependentUpon>MyMsgMarkdown.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\MyPageRight.vb" />
     <Compile Include="Controls\MyPageLeft.vb" />
     <Compile Include="Controls\MyIconTextButton.xaml.vb">
@@ -296,14 +300,14 @@
     <Compile Include="Modules\Minecraft\ModModpack.vb" />
     <Compile Include="Modules\Minecraft\ModProfile.vb" />
     <Compile Include="Modules\Minecraft\ModStyle.vb" />
-    <Compile Include="Modules\Minecraft\ModWorld.vb" />
-    <Compile Include="Modules\Updates\AnnouncementDataModel.vb" />
+    <Compile Include="Modules\ModWebServer.vb" />
     <Compile Include="Modules\Updates\EnumUpdateChannel.vb" />
     <Compile Include="Modules\Updates\IUpdateSource.vb" />
-    <Compile Include="Modules\Updates\UpdateInfoModel.vb" />
     <Compile Include="Modules\Updates\UpdatesRandomModel.vb" />
     <Compile Include="Modules\Updates\UpdatesMinioModel.vb" />
     <Compile Include="Modules\Updates\UpdatesMirrorChyanModel.vb" />
+    <Compile Include="Modules\Updates\UpdatesWrapperModel.vb" />
+    <Compile Include="Modules\Updates\VersionAnnouncementDataModel.vb" />
     <Compile Include="Modules\Updates\VersionDataModel.vb" />
     <Compile Include="Pages\PageLaunch\PageLoginOffline.xaml.vb">
       <DependentUpon>PageLoginOffline.xaml</DependentUpon>
@@ -344,6 +348,7 @@
     <Compile Include="Modules\ModMusic.vb" />
     <Compile Include="Modules\ModDevelop.vb" />
     <Compile Include="Modules\Minecraft\ModWatcher.vb" />
+    <Compile Include="Modules\Minecraft\ModWorld.vb" />
     <Compile Include="Modules\ModSecret.vb" />
     <Compile Include="Pages\PageDownload\Comp\PageComp.xaml.vb">
       <DependentUpon>PageComp.xaml</DependentUpon>
@@ -409,12 +414,6 @@
     <Compile Include="Pages\PageLink\PageLinkFeedback.xaml.vb">
       <DependentUpon>PageLinkFeedback.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageLink\PageLinkIoi.xaml.vb">
-      <DependentUpon>PageLinkIoi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\PageLink\PageLinkNetStatus.xaml.vb">
-      <DependentUpon>PageLinkNetStatus.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\PageLink\PageLinkLobby.xaml.vb">
       <DependentUpon>PageLinkLobby.xaml</DependentUpon>
     </Compile>
@@ -451,8 +450,17 @@
     <Compile Include="Pages\PageVersion\PageVersionModDisabled.xaml.vb">
       <DependentUpon>PageVersionModDisabled.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionWorld.xaml.vb">
-      <DependentUpon>PageVersionWorld.xaml</DependentUpon>
+    <Compile Include="Pages\PageVersion\PageVersionSaves.xaml.vb">
+      <DependentUpon>PageVersionSaves.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml.vb">
+      <DependentUpon>PageVersionSavesInfo.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml.vb">
+      <DependentUpon>PageVersionSavesBackup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml.vb">
+      <DependentUpon>PageVersionSavesLeft.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageVersion\PageVersionScreenshot.xaml.vb">
       <DependentUpon>PageVersionScreenshot.xaml</DependentUpon>
@@ -574,6 +582,10 @@
     <Page Include="Controls\MyMsg\MyMsgSelect.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\MyMsg\MyMsgMarkdown.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\MyMsg\MyMsgText.xaml">
       <SubType>Designer</SubType>
@@ -726,14 +738,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageLink\PageLinkIoi.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\PageLink\PageLinkNetStatus.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Pages\PageLink\PageLinkLobby.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -770,7 +774,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionWorld.xaml">
+    <Page Include="Pages\PageVersion\PageVersionSaves.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -890,6 +906,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Resources\Markdown.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
@@ -953,7 +973,7 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8.1">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 and x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 和 x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -1137,6 +1157,9 @@
     <PackageReference Include="LiteDB">
       <Version>5.0.21</Version>
     </PackageReference>
+    <PackageReference Include="Markdig.Wpf">
+      <Version>0.5.0.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client">
       <Version>4.72.1</Version>
     </PackageReference>
@@ -1198,6 +1221,7 @@
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
     <Content Include="Resources\linkd.exe" />
+    <Resource Include="Resources\oauth-complete.html" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj">

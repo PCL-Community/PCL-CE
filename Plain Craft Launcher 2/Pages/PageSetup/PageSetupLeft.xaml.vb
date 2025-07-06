@@ -8,7 +8,6 @@ Public Class PageSetupLeft
         If ItemLaunch.Checked AndAlso Setup.Get("UiHiddenSetupLaunch") Then IsHiddenPage = True
         If ItemUI.Checked AndAlso Setup.Get("UiHiddenSetupUi") Then IsHiddenPage = True
         If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
-        If ItemLink.Checked AndAlso Setup.Get("UiHiddenSetupLink") Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
         If IsLoad AndAlso Not IsHiddenPage Then Return
@@ -23,8 +22,6 @@ Public Class PageSetupLeft
             ItemUI.SetChecked(True, False, False)
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             ItemSystem.SetChecked(True, False, False)
-        ElseIf Not Setup.Get("UiHiddenSetupLink") Then
-            ItemLink.SetChecked(True, False, False)
         Else
             ItemLaunch.SetChecked(True, False, False)
         End If
@@ -48,8 +45,6 @@ Public Class PageSetupLeft
             PageID = FormMain.PageSubType.SetupUI
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             PageID = FormMain.PageSubType.SetupSystem
-        ElseIf Not Setup.Get("UiHiddenSetupLink") Then
-            PageID = FormMain.PageSubType.SetupLink
         Else
             PageID = FormMain.PageSubType.SetupLaunch
         End If
@@ -58,7 +53,7 @@ Public Class PageSetupLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check, ItemLink.Check
+    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -76,9 +71,6 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupUI
                 If FrmSetupUI Is Nothing Then FrmSetupUI = New PageSetupUI
                 Return FrmSetupUI
-            Case FormMain.PageSubType.SetupLink
-                If FrmSetupLink Is Nothing Then FrmSetupLink = New PageSetupLink
-                Return FrmSetupLink
             Case FormMain.PageSubType.SetupSystem
                 If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
                 Return FrmSetupSystem
@@ -103,9 +95,6 @@ Public Class PageSetupLeft
                 Case FormMain.PageSubType.SetupUI
                     If IsNothing(FrmSetupUI) Then FrmSetupUI = New PageSetupUI
                     PageChangeRun(FrmSetupUI)
-                Case FormMain.PageSubType.SetupLink
-                    If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageSetupLink
-                    PageChangeRun(FrmSetupLink)
                 Case FormMain.PageSubType.SetupSystem
                     If IsNothing(FrmSetupSystem) Then FrmSetupSystem = New PageSetupSystem
                     PageChangeRun(FrmSetupSystem)
@@ -160,12 +149,6 @@ Public Class PageSetupLeft
                     If IsNothing(FrmSetupSystem) Then FrmSetupSystem = New PageSetupSystem
                     FrmSetupSystem.Reset()
                     ItemSystem.Checked = True
-                End If
-            Case FormMain.PageSubType.SetupLink
-                If MyMsgBox("是否要初始化 联机 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
-                    If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageSetupLink
-                    FrmSetupLink.Reset()
-                    ItemLink.Checked = True
                 End If
         End Select
     End Sub

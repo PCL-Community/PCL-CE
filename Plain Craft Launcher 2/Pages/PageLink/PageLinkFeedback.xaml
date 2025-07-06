@@ -6,22 +6,48 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
-            <local:MyCard Title="关于" Margin="0,0,0,15">
+            <local:MyCard Title="说明与条款" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="这是一段介绍" 
-                           Margin="0,0,0,3" />
-                    <TextBlock TextWrapping="Wrap" Text="这是另一段介绍" 
-                           Margin="0,0,0,6" />
-                    <local:MyListItem Title="用户协议与隐私政策" Info="查看用户协议与隐私政策文档"
-                              Type="Clickable" EventType="打开网页" EventData="https://www.bilibili.com/video/BV1GJ411x7h7"
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" 
+                               Text="此处列出了 PCL CE 大厅使用的相关服务文档及介绍" />
+                    <local:MyListItem Title="PCL CE 大厅相关隐私政策" Info="了解 PCL CE 如何处理您的个人信息"
+                              Type="Clickable" EventType="打开网页" EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
+                    <local:MyListItem Title="Natayark Network 用户协议与隐私政策" Info="查看 Natayark OpenID 服务条款"
+                              Type="Clickable" EventType="打开网页" EventData="https://account.naids.com/policy"
+                              Logo="pack://application:,,,/images/Blocks/Grass.png" />
+                    <local:MyListItem Title="EasyTier 官网" Info="转到 EasyTier 官网，支持其持续开发"
+                              Type="Clickable" EventType="打开网页" EventData="https://easytier.cn/"
+                              Logo="pack://application:,,,/images/Blocks/Grass.png" />
+                    <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" 
+                              Text="同时，使用大厅功能即代表你同意下列条款：&#xa;&#xa;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#xa;我承诺使用大厅功能带来的一切风险自行承担。&#xa;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#xa;&#xa;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="发送反馈" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <local:MyListItem Title="违法违规举报" Info="投诉、举报联机使用者的各类违法违规行为"
-                              Type="Clickable" EventType="打开网页" EventData="https://github.com/PCL-Community/PCL2-CE/issues"
+                              Type="Clickable" EventType="打开网页" EventData="https://qm.qq.com/q/yaubjC6C5y"
                               Logo="pack://application:,,,/images/Blocks/RedstoneBlock.png" />
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="鸣谢">
+                <StackPanel Margin="20,40,18,18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="45"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+                        <local:MyListItem Title="Pysio" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="pysio.online" Grid.Row="0" Grid.Column="1" />
+                        <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Pysio.jpg" Grid.Row="0" Margin="3">
+                            <Image.Clip>
+                                <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
                 </StackPanel>
             </local:MyCard>
         </StackPanel>

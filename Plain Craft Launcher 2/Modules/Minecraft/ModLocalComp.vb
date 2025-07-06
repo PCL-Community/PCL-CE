@@ -1,5 +1,9 @@
 Imports System.IO.Compression
 
+Imports PlainNamedBinaryTag
+Imports System.Xml.Linq
+Imports System.Xml.XPath
+
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
 
@@ -11,9 +15,37 @@ Public Module ModLocalComp
         ''' 资源的文件的地址。
         ''' </summary>
         Public ReadOnly Path As String
+        
+        ''' <summary>
+        ''' 是否为文件夹项。
+        ''' </summary>
+        Public ReadOnly Property IsFolder As Boolean
+            Get
+                Return Path.EndsWithF("\__FOLDER__", True)
+            End Get
+        End Property
+        
+        ''' <summary>
+        ''' 获取实际的文件夹路径（去除 __FOLDER__ 标记）。
+        ''' </summary>
+        Public ReadOnly Property ActualPath As String
+            Get
+                If IsFolder Then
+                    Return Path.Replace("\__FOLDER__", "")
+                Else
+                    Return Path
+                End If
+            End Get
+        End Property
+        
         Public Sub New(Path As String)
             Me.Path = If(Path, "")
         End Sub
+        
+        ''' <summary>
+        ''' NBT数据是否已加载（用于延迟加载优化）。
+        ''' </summary>
+        Private _nbtDataLoaded As Boolean = False
         ''' <summary>
         ''' Mod 资源的完整路径，去除最后的 .disabled 和 .old。
         ''' </summary>
@@ -28,7 +60,11 @@ Public Module ModLocalComp
         ''' </summary>
         Public ReadOnly Property FileName As String
             Get
-                Return GetFileNameFromPath(Path)
+                If IsFolder AndAlso Not String.IsNullOrEmpty(Name) Then
+                    Return Name
+                Else
+                    Return GetFileNameFromPath(Path)
+                End If
             End Get
         End Property
 
@@ -73,7 +109,13 @@ Public Module ModLocalComp
             Get
                 If _Name Is Nothing Then Load()
                 If _Name Is Nothing Then _Name = _ModId
-                If _Name Is Nothing Then _Name = GetFileNameWithoutExtentionFromPath(Path)
+                If _Name Is Nothing Then
+                    If IsFolder Then
+                        _Name = GetFolderNameFromPath(ActualPath)
+                    Else
+                        _Name = GetFileNameWithoutExtentionFromPath(Path)
+                    End If
+                End If
                 Return _Name
             End Get
             Set(value As String)
@@ -104,6 +146,32 @@ Public Module ModLocalComp
             End Set
         End Property
         Private _Description As String = Nothing
+
+        ''' <summary>
+        ''' 文件类型标签。
+        ''' </summary>
+        Public ReadOnly Property Tags As List(Of String)
+            Get
+                If _tags Is Nothing Then
+                    _tags = New List(Of String)
+                    If IsFolder Then
+                        _tags.Add("文件夹")
+                    Else
+                        Dim extension = IO.Path.GetExtension(RawPath).ToLower()
+                        Select Case extension
+                            Case ".litematic"
+                                _tags.Add("原理图")
+                            Case ".schem", ".schematic"
+                                _tags.Add("Schematic结构")
+                            Case ".nbt"
+                                _tags.Add("原版结构")
+                        End Select
+                    End If
+                End If
+                Return _tags
+            End Get
+        End Property
+        Private _tags As List(Of String) = Nothing
 
         ''' <summary>
         ''' Mod 的版本，不保证符合版本格式规范。
@@ -175,6 +243,149 @@ Public Module ModLocalComp
             End Set
         End Property
         Private _Authors As String = Nothing
+
+        ''' <summary>
+        ''' Litematic 文件的创建时间戳。
+        ''' </summary>
+        Public ReadOnly Property LitematicTimeCreated As Long?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicTimeCreated
+            End Get
+        End Property
+        Private _litematicTimeCreated As Long?
+        
+        ''' <summary>
+        ''' Litematic 文件的修改时间戳。
+        ''' </summary>
+        Public ReadOnly Property LitematicTimeModified As Long?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicTimeModified
+            End Get
+        End Property
+        Private _litematicTimeModified As Long?
+        
+        ''' <summary>
+        ''' Schem 读取到的原始名称。
+        ''' </summary>
+        Public ReadOnly Property SchemOriginalName As String
+            Get
+                LoadNbtDataIfNeeded()
+                Return _schemOriginalName
+            End Get
+        End Property
+        Private _schemOriginalName As String
+        
+        ''' <summary>
+        ''' Litematic 读取到的原始名称。
+        ''' </summary>
+        Public ReadOnly Property LitematicOriginalName As String
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicOriginalName
+            End Get
+        End Property
+        Private _litematicOriginalName As String
+        
+        ''' <summary>
+        ''' Litematic 文件的版本。
+        ''' </summary>
+        Public ReadOnly Property LitematicVersion As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicVersion
+            End Get
+        End Property
+        Private _litematicVersion As Integer?
+        
+        ''' <summary>
+        ''' Litematic 文件的包围盒大小。
+        ''' </summary>
+        Public ReadOnly Property LitematicEnclosingSize As String
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicEnclosingSize
+            End Get
+        End Property
+        Private _litematicEnclosingSize As String
+        
+        ''' <summary>
+        ''' Litematic 文件的区域数量。
+        ''' </summary>
+        Public ReadOnly Property LitematicRegionCount As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicRegionCount
+            End Get
+        End Property
+        Private _litematicRegionCount As Integer?
+        
+        ''' <summary>
+        ''' Litematic 文件的总方块数。
+        ''' </summary>
+        Public ReadOnly Property LitematicTotalBlocks As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicTotalBlocks
+            End Get
+        End Property
+        Private _litematicTotalBlocks As Integer?
+        
+        ''' <summary>
+        ''' Litematic 文件的总体积。
+        ''' </summary>
+        Public ReadOnly Property LitematicTotalVolume As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _litematicTotalVolume
+            End Get
+        End Property
+        Private _litematicTotalVolume As Integer?
+        
+        ''' <summary>
+        ''' 原版结构文件的游戏版本。
+        ''' </summary>
+        Public ReadOnly Property StructureGameVersion As String
+            Get
+                LoadNbtDataIfNeeded()
+                Return _structureGameVersion
+            End Get
+        End Property
+        Private _structureGameVersion As String
+        
+        ''' <summary>
+        ''' 原版结构文件的数据版本。
+        ''' </summary>
+        Public ReadOnly Property StructureDataVersion As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _structureDataVersion
+            End Get
+        End Property
+        Private _structureDataVersion As Integer?
+        
+        ''' <summary>
+        ''' 原版结构文件的作者。
+        ''' </summary>
+        Public ReadOnly Property StructureAuthor As String
+            Get
+                LoadNbtDataIfNeeded()
+                Return _structureAuthor
+            End Get
+        End Property
+        Private _structureAuthor As String
+        
+        ''' <summary>
+        ''' Sponge Schematic 文件的版本。
+        ''' </summary>
+        Public ReadOnly Property SpongeVersion As Integer?
+            Get
+                LoadNbtDataIfNeeded()
+                Return _spongeVersion
+            End Get
+        End Property
+        Private _spongeVersion As Integer?
 
         ''' <summary>
         ''' Mod 图标路径。
@@ -281,6 +492,63 @@ Public Module ModLocalComp
         End Sub
 
         ''' <summary>
+        ''' 加载基本信息（不解析NBT数据）。
+        ''' </summary>
+        Public Sub LoadBasicInfo()
+            Try
+                '可用性检查
+                If IsFolder Then
+                    '文件夹项不需要进一步处理
+                    IsLoaded = True
+                    Return
+                End If
+                
+                If Not File.Exists(Path) Then 
+                    _fileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & ")")
+                    IsLoaded = True
+                    Return
+                End If
+                
+                '对于原理图文件，只设置基本状态，不解析NBT数据
+                If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
+                    _name = GetFileNameWithoutExtentionFromPath(Path)
+                    IsLoaded = True
+                    Return
+                End If
+                
+                '对于其他文件类型，正常加载
+                Load()
+            Catch ex As Exception
+                Log(ex, $"加载基本信息失败：{Path}")
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 延迟加载NBT数据。
+        ''' </summary>
+        Public Sub LoadNbtDataIfNeeded()
+            Try
+                '如果已经加载过NBT数据，则跳过
+                If _nbtDataLoaded Then Return
+                
+                '根据文件类型加载NBT数据
+                If Path.EndsWithF(".litematic", True) Then
+                    LoadLitematicNbtData()
+                ElseIf Path.EndsWithF(".nbt", True) Then
+                    LoadStructureNbtData()
+                ElseIf Path.EndsWithF(".schem", True) Then
+                    LoadSchemNbtData()
+                ElseIf Path.EndsWithF(".schematic", True) Then
+                    LoadSchematicNbtData()
+                End If
+                
+                _nbtDataLoaded = True
+            Catch ex As Exception
+                Log(ex, $"延迟加载NBT数据失败：{Path}")
+            End Try
+        End Sub
+
+        ''' <summary>
         ''' 进行文件可用性检查与 .class 以外的信息获取。
         ''' </summary>
         Public Sub Load(Optional ForceReload As Boolean = False)
@@ -294,6 +562,19 @@ Public Module ModLocalComp
                 IsLoaded = True
                 Return
             End If
+            
+            '对于文件夹项，检查实际文件夹路径是否存在
+            If IsFolder Then
+                If Not Directory.Exists(ActualPath) Then
+                    _FileUnavailableReason = New DirectoryNotFoundException("未找到文件夹（" & ActualPath & "）")
+                    IsLoaded = True
+                    Return
+                End If
+                '文件夹项不需要进一步处理
+                IsLoaded = True
+                Return
+            End If
+            
             If Not File.Exists(Path) Then 
                 _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & "）")
                 IsLoaded = True
@@ -301,10 +582,22 @@ Public Module ModLocalComp
             End If
             
             '对于投影文件，跳过 zip 解析
-            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) Then
+            If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
                 Try
-                    _Name = GetFileNameWithoutExtentionFromPath(Path)
-                    _Description = "投影原理图（结构）文件"
+                    _name = GetFileNameWithoutExtentionFromPath(Path)                    
+                    ' 根据文件类型加载数据
+                    If Path.EndsWithF(".litematic", True) Then
+                        LoadLitematicNbtData()
+                    ElseIf Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
+                        If Path.EndsWithF(".schem", True) Then
+                            LoadSchemNbtData()
+                        Else
+                            LoadSchematicNbtData()
+                        End If
+                    ElseIf Path.EndsWithF(".nbt", True) Then
+                        LoadStructureNbtData()
+                    End If
+                    _nbtDataLoaded = True
                 Catch ex As Exception
                     Log(ex, "投影文件信息获取失败（" & Path & "）", LogLevel.Developer)
                     _FileUnavailableReason = ex
@@ -676,7 +969,7 @@ Got:
                     End If
                 End If
             Catch ex As Exception
-                Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Developer)
+                Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Debug)
             End Try
 #End Region
 Finished:
@@ -909,7 +1202,7 @@ Finished:
                 Case CompType.ResourcePack, CompType.Shader
                     Return Path.EndsWithF(".zip", True)
                 Case CompType.Schematic
-                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True)
+                    Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) OrElse Path.EndsWithF(".schem", True)
                 Case Else
                     Return False
             End Select
@@ -924,7 +1217,328 @@ Finished:
             Return PathImage & "Icons/NoIcon.png"
         End Function
 
+        ''' <summary>
+        ''' 读取 Litematic 文件的 NBT 数据。
+        ''' </summary>
+        Private Sub LoadLitematicNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Debug)
+                Using reader As NbtReader = VbNbtReaderCreator.FromPath(Path, True)
+                    Dim rootTag As XElement = reader.ReadNbtAsXml(NbtType.TCompound)
+                    Log($"成功解析 NBT 根节点", LogLevel.Debug)
+
+                    ' 输出完整的 NBT 结构用于调试
+                    ' Log($"NBT 结构：{rootTag.ToString()}", LogLevel.Developer)
+
+                    ' 读取 Metadata 节点
+                    Dim metadataTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']")
+                    If metadataTag IsNot Nothing Then
+                        Log($"找到 Metadata 节点", LogLevel.Debug)
+                        ' 读取时间信息
+                        Dim timeCreatedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeCreated']")
+                        If timeCreatedTag IsNot Nothing Then
+                            _litematicTimeCreated = CLng(timeCreatedTag.Value)
+                        End If
+                        
+                        Dim timeModifiedTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt64[@Name='TimeModified']")
+                        If timeModifiedTag IsNot Nothing Then
+                            _litematicTimeModified = CLng(timeModifiedTag.Value)
+                        End If
+                        
+                        ' 读取包围盒大小
+                        Dim enclosingSizeTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']")
+                        If enclosingSizeTag IsNot Nothing Then
+                            Dim xTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='x']")
+                            Dim yTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='y']")
+                            Dim zTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TCompound[@Name='EnclosingSize']/TInt32[@Name='z']")
+                            If xTag IsNot Nothing AndAlso yTag IsNot Nothing AndAlso zTag IsNot Nothing Then
+                                _litematicEnclosingSize = $"{xTag.Value} × {yTag.Value} × {zTag.Value}"
+                            End If
+                        End If
+                        
+                        ' 读取描述信息
+                        Dim descriptionTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Description']")
+                        If descriptionTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(descriptionTag.Value) Then
+                            _Description = descriptionTag.Value
+                        End If
+                        
+                        ' 读取区域数量
+                        Dim regionCountTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='RegionCount']")
+                        If regionCountTag IsNot Nothing Then
+                            _litematicRegionCount = CInt(regionCountTag.Value)
+                        End If
+                        
+                        ' 读取总方块数
+                        Dim totalBlocksTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalBlocks']")
+                        If totalBlocksTag IsNot Nothing Then
+                            _litematicTotalBlocks = CInt(totalBlocksTag.Value)
+                        End If
+
+                    ' 读取数据版本信息
+                    Dim dataVersionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='DataVersion']")
+                    If dataVersionTag IsNot Nothing Then
+                        _structureDataVersion = CInt(dataVersionTag.Value)
+                    End If
+                    
+                    ' 读取作者信息
+                        Dim authorTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Author']")
+                        If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
+                            _Authors = authorTag.Value
+                        End If
+                        
+                        ' 读取总体积
+                        Dim totalVolumeTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TInt32[@Name='TotalVolume']")
+                        If totalVolumeTag IsNot Nothing Then
+                            _litematicTotalVolume = CInt(totalVolumeTag.Value)
+                        End If
+                        
+                        ' 读取名称
+                        Dim nameTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']/TString[@Name='Name']")
+                        If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) AndAlso nameTag.Value <> "Unnamed" Then
+                            _litematicOriginalName = nameTag.Value
+                        End If
+                        
+                        ' 读取版本信息
+                        Dim versionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='Version']")
+                        If versionTag IsNot Nothing Then
+                            _litematicVersion = CInt(versionTag.Value)
+                        End If
+                        
+                        Log($"NBT 数据读取完成", LogLevel.Debug)
+                    Else
+                        Log($"未找到 Metadata 节点", LogLevel.Debug)
+                    End If
+                End Using
+            Catch ex As Exception
+                ' 如果读取失败，记录日志但不影响基本功能
+                Log(ex, "读取 Litematic NBT 数据时出错（" & Path & "）", LogLevel.Debug)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .schem 文件的 NBT 数据（Sponge Schematic 格式）。
+        ''' </summary>
+        Private Sub LoadSchemNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Debug)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 使用自动检测压缩格式
+                Try
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
+                    End Using
+                Catch ex As Exception
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
+                End Try
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据", LogLevel.Debug)
+                    Return
+                End If
+
+                    ' 读取Sponge版本信息
+                    Dim versionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='Version']")
+                    If versionTag IsNot Nothing Then
+                        _spongeVersion = CInt(versionTag.Value)
+                    End If
+                    
+                    ' 读取尺寸信息
+                    Dim widthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Width']")
+                    Dim heightTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Height']")
+                    Dim lengthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Length']")
+                    If widthTag IsNot Nothing AndAlso heightTag IsNot Nothing AndAlso lengthTag IsNot Nothing Then
+                        Dim width As Integer = CInt(widthTag.Value)
+                        Dim height As Integer = CInt(heightTag.Value)
+                        Dim length As Integer = CInt(lengthTag.Value)
+                        _litematicEnclosingSize = $"{width} × {height} × {length}"
+                        
+                        ' 计算总体积
+                        _litematicTotalVolume = width * height * length
+                        
+                    End If
+
+                    ' 读取数据版本信息
+                    Dim dataVersionTag As XElement = rootTag.XPathSelectElement("//TInt32[@Name='DataVersion']")
+                    If dataVersionTag IsNot Nothing Then
+                        _structureDataVersion = CInt(dataVersionTag.Value)
+                    End If
+                    
+                    ' 读取方块数据来计算方块数量
+                    Dim blockDataTag As XElement = rootTag.XPathSelectElement("//TByteArray[@Name='BlockData']")
+                    If blockDataTag IsNot Nothing AndAlso _LitematicTotalVolume.HasValue Then
+                        ' 对于Sponge格式，方块数量等于总体积（因为包含空气方块）
+                        _litematicTotalBlocks = _LitematicTotalVolume.Value
+                    End If
+                    
+                    ' 读取调色板信息来计算区域数量
+                    Dim paletteTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Palette']")
+                    If paletteTag IsNot Nothing Then
+                        _litematicRegionCount = 1 ' Sponge Schematic 通常只有一个区域
+                    End If
+
+                    ' 读取元数据
+                    Dim metadataTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Metadata']")
+                    If metadataTag IsNot Nothing Then
+                        ' 读取名称
+                        Dim nameTag As XElement = metadataTag.XPathSelectElement(".//TString[@Name='Name']")
+                        If nameTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(nameTag.Value) Then
+                            _schemOriginalName = nameTag.Value
+                        End If
+                        
+                        ' 读取作者信息
+                        Dim authorTag As XElement = metadataTag.XPathSelectElement(".//TString[@Name='Author']")
+                        If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
+                            _structureAuthor = authorTag.Value
+                            If _Authors Is Nothing Then _Authors = _structureAuthor
+                        End If
+
+                    End If
+
+                    Log($"NBT 数据读取完成", LogLevel.Debug)
+            Catch ex As Exception
+                Log(ex, "读取 Schem NBT 数据时出错（" & Path & "）", LogLevel.Debug)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .schematic 文件的 NBT 数据（MCEdit/WorldEdit 格式）。
+        ''' </summary>
+        Private Sub LoadSchematicNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Debug)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 使用自动检测压缩格式
+                Try
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
+                    End Using
+                Catch ex As Exception
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
+                End Try
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据", LogLevel.Debug)
+                    Return
+                End If
+
+                    ' 读取尺寸信息
+                    Dim widthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Width']")
+                    Dim heightTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Height']")
+                    Dim lengthTag As XElement = rootTag.XPathSelectElement("//TInt16[@Name='Length']")
+                    If widthTag IsNot Nothing AndAlso heightTag IsNot Nothing AndAlso lengthTag IsNot Nothing Then
+                        _litematicEnclosingSize = $"{widthTag.Value} × {heightTag.Value} × {lengthTag.Value}"
+                        _litematicTotalVolume = CInt(widthTag.Value) * CInt(heightTag.Value) * CInt(lengthTag.Value)
+                    End If
+
+                    ' 读取材料列表
+                    Dim materialsTag As XElement = rootTag.XPathSelectElement("//TString[@Name='Materials']")
+                    If materialsTag IsNot Nothing Then
+                        Log($"材料类型：{materialsTag.Value}", LogLevel.Debug)
+                    End If
+
+                    Log($"NBT 数据读取完成", LogLevel.Debug)
+            Catch ex As Exception
+                Log(ex, "读取 Schematic NBT 数据时出错（" & Path & "）", LogLevel.Debug)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' 读取 .nbt 文件的 NBT 数据（Minecraft 结构文件格式）。
+        ''' </summary>
+        Private Sub LoadStructureNbtData()
+            Try
+                Log($"开始读取 NBT 数据：{Path}", LogLevel.Debug)
+                ' 尝试不同的压缩方式读取
+                Dim rootTag As XElement = Nothing
+                Dim success As Boolean = False
+                
+                ' 使用自动检测压缩格式
+                Try
+                    Dim _compressed As Boolean
+                    Using reader As NbtReader = VbNbtReaderCreator.FromPathAutoDetect(Path, _compressed)
+                        rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                        success = True
+                        Log($"成功解析 NBT 根节点（自动检测格式）", LogLevel.Debug)
+                    End Using
+                Catch ex As Exception
+                    Log($"NBT 数据读取失败：{ex.Message}", LogLevel.Debug)
+                    Return
+                End Try
+                
+                If Not success OrElse rootTag Is Nothing Then
+                    Log($"无法读取 NBT 数据")
+                    Return
+                End If
+
+                    ' 读取尺寸信息
+                    Dim sizeTag As XElement = rootTag.XPathSelectElement("//TList[@Name='size']")
+                    If sizeTag IsNot Nothing Then
+                        Dim sizeElements = sizeTag.Elements("TInt32")
+                        If sizeElements.Count() >= 3 Then
+                            Dim sizeArray = sizeElements.Take(3).Select(Function(e) e.Value).ToArray()
+                            _litematicEnclosingSize = $"{sizeArray(0)} × {sizeArray(1)} × {sizeArray(2)}"
+                            _litematicTotalVolume = CInt(sizeArray(0)) * CInt(sizeArray(1)) * CInt(sizeArray(2))
+                        End If
+                    End If
+                    
+
+                    
+                    ' 读取作者信息
+                    Dim authorTag As XElement = rootTag.XPathSelectElement("//TString[@Name='author']")
+                    If authorTag IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(authorTag.Value) Then
+                        _structureAuthor = authorTag.Value
+                        If _Authors Is Nothing Then _Authors = _structureAuthor
+                    End If
+                    
+                    ' 读取方块数量信息
+                    Dim blocksTag As XElement = rootTag.XPathSelectElement("//TList[@Name='blocks']")
+                    If blocksTag IsNot Nothing Then
+                        Dim blockElements = blocksTag.Elements("TCompound")
+                        _litematicTotalBlocks = blockElements.Count()
+                    End If
+                    
+                    ' 读取调色板信息来计算区域数量
+                    Dim paletteTag As XElement = rootTag.XPathSelectElement("//TList[@Name='palette']")
+                    If paletteTag IsNot Nothing Then
+                        _litematicRegionCount = 1 ' 原版结构文件通常只有一个区域
+                    End If
+                    
+
+
+                    Log($"NBT 数据读取完成", LogLevel.Debug)
+            Catch ex As Exception
+                Log(ex, "读取 Structure NBT 数据时出错（" & Path & "）", LogLevel.Debug)
+            End Try
+        End Sub
+
     End Class
+
+    ''' <summary>
+    ''' 获取文件夹描述信息。
+    ''' </summary>
+    Private Function GetFolderDescription(FolderPath As String) As String
+        Try
+            If Not Directory.Exists(FolderPath) Then Return "空文件夹"
+            Return "文件夹"
+        Catch ex As Exception
+            Log(ex, $"获取文件夹描述失败：{FolderPath}", LogLevel.Debug)
+            Return "文件夹"
+        End Try
+    End Function
 
     Public Class CompLocalLoaderData
         Public GameVersion As McVersion
@@ -958,25 +1572,58 @@ Finished:
             End If
 
             '获取 Mod 文件夹下的可用文件列表
-            Dim ModFileList As New List(Of FileInfo)
+            Dim ModList As New List(Of LocalCompFile)
             If Directory.Exists(Loader.Input.CompPath) Then
                 Dim RawName As String = Loader.Input.CompPath.ToLower
-                For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
-                    If File.DirectoryName.ToLower & "\" <> RawName Then
-                        '仅当 Forge 1.13- 且文件夹名与版本号相同时，才加载该子文件夹下的 Mod
-                        If Not (PageVersionLeft.Version IsNot Nothing AndAlso PageVersionLeft.Version.Version.HasForge AndAlso
-                                PageVersionLeft.Version.Version.McCodeMain < 13 AndAlso
-                                File.Directory.Name = $"1.{PageVersionLeft.Version.Version.McCodeMain}.{PageVersionLeft.Version.Version.McCodeSub}") Then
-                            Continue For
-                        End If
+
+                If Loader.Input.CompType = CompType.Schematic Then
+                    Dim CurrentFolderPath As String = ""
+                    If Loader.Input.Frm IsNot Nothing Then
+                        CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath
                     End If
-                    If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModFileList.Add(File)
-                Next
+
+                    Dim SearchPath As String = If(String.IsNullOrEmpty(CurrentFolderPath), Loader.Input.CompPath, CurrentFolderPath)
+
+                    Try
+                        Dim DirInfo As New DirectoryInfo(SearchPath)
+                        For Each Dir As DirectoryInfo In DirInfo.EnumerateDirectories("*", SearchOption.AllDirectories)
+                            ModList.Add(New LocalCompFile(Dir.FullName & "\__FOLDER__"))
+                        Next
+                        For Each File As FileInfo In DirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
+                            Try
+                                If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModList.Add(New LocalCompFile(File.FullName))
+                            Catch ex As Exception
+                                Log(ex, $"处理文件失败：{File.FullName}", LogLevel.Debug)
+                            End Try
+                        Next
+                    Catch ex As Exception
+                        Log(ex, $"枚举文件失败：{SearchPath}")
+                    End Try
+                Else
+                    Try
+                        For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
+                            Try
+                                If File.DirectoryName.ToLower & "\" <> RawName Then
+                                    If Not (PageVersionLeft.Version IsNot Nothing AndAlso PageVersionLeft.Version.Version.HasForge AndAlso
+                                            PageVersionLeft.Version.Version.McCodeMain < 13 AndAlso
+                                            File.Directory.Name = $"1.{PageVersionLeft.Version.Version.McCodeMain}.{PageVersionLeft.Version.Version.McCodeSub}") Then
+                                        Continue For
+                                    End If
+                                End If
+                                If LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType) Then ModList.Add(New LocalCompFile(File.FullName))
+                            Catch ex As Exception
+                                Log(ex, $"处理文件失败：{File.FullName}", LogLevel.Debug)
+                            End Try
+                        Next
+                    Catch ex As Exception
+                        Log(ex, $"枚举文件夹失败：{Loader.Input.CompPath}")
+                    End Try
+                End If
             End If
 
             '确定是否显示进度
             Loader.Progress = 0.05
-            If ModFileList.Count > 50 Then RunInUi(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.ShowProgress = True)
+            If ModList.Count > 50 Then RunInUi(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.ShowProgress = True)
 
             '获取本地文件缓存
             Dim CachePath As String = PathTemp & "Cache\LocalComp.json"
@@ -996,17 +1643,23 @@ Finished:
             End Try
             Cache("version") = LocalModCacheVersion
 
-            '加载 Mod 列表
-            Dim ModList As New List(Of LocalCompFile)
+            '加载 Mod 列表 - 优化：对于原理图文件，延迟加载NBT数据
             Dim ModUpdateList As New List(Of LocalCompFile)
-            For Each ModFile As FileInfo In ModFileList
-                Loader.Progress += 0.94 / ModFileList.Count
+            For Each ModEntry As LocalCompFile In ModList
+                Loader.Progress += 0.94 / ModList.Count
                 If Loader.IsAborted Then Return
-                '加载 McMod 对象
-                Dim ModEntry As New LocalCompFile(ModFile.FullName)
-                ModEntry.Load()
-                Dim DumpMod As LocalCompFile = ModList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName)
-                If DumpMod IsNot Nothing Then
+                If ModEntry.IsFolder Then Continue For
+                
+                '优化：对于原理图文件，只进行基础加载，不解析NBT数据
+                If Loader.Input.CompType = CompType.Schematic Then
+                    ModEntry.LoadBasicInfo()
+                Else
+                    '加载 McMod 对象
+                    ModEntry.Load()
+                End If
+                
+                Dim DumpMod As LocalCompFile = ModList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName AndAlso Not m.IsFolder)
+                If DumpMod IsNot Nothing AndAlso DumpMod IsNot ModEntry Then
                     Dim DisabledMod As LocalCompFile = If(DumpMod.State = LocalCompFile.LocalFileStatus.Disabled, DumpMod, ModEntry)
                     Log($"[Mod] 重复的 Mod 文件：{DumpMod.FileName} 与 {ModEntry.FileName}，已忽略 {DisabledMod.FileName}", LogLevel.Debug)
                     If DisabledMod Is ModEntry Then
@@ -1016,7 +1669,6 @@ Finished:
                         ModUpdateList.Remove(DisabledMod)
                     End If
                 End If
-                ModList.Add(ModEntry)
                 '读取 Comp 缓存
                 If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
                 Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.McName & Loader.Input.Loaders.Join("")
@@ -1413,5 +2065,7 @@ Finished:
         Return Result
     End Function
 #End If
+
+
 
 End Module

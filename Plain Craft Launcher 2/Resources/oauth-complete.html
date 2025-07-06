@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" id="favicon">
+    <title>PCL2 社区版提示页</title>
+    <style>
+        :root {
+            --hue: 210deg;
+            --sat: 85%;
+            --light: 80%;
+            --lighter: 90%;
+            --hue1: 195deg;
+            --hue2: 225deg;
+            --fg: #111;
+            --bg-panel: #fff8;
+            @media (prefers-color-scheme: dark) {
+                --light: 12%;
+                --lighter: 8%;
+                --fg: #eee;
+                --bg-panel: #4446;
+            }
+        }
+        body {
+            --bg-root-url: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--fg);
+            background-image:
+                    linear-gradient(to bottom left,
+                        hsl(var(--hue1), var(--sat), var(--light)),
+                        hsl(var(--hue), var(--sat), var(--lighter)),
+                        hsl(var(--hue2), var(--sat), var(--light))),
+                    var(--bg-root-url);
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
+        }
+        @keyframes expand {
+            0%   { transform: scaleY(0%); }
+            30%  { transform: scaleY(0%); }
+            70%  { transform: scaleY(115%) }
+            100% { transform: scaleY(100%); }
+        }
+        .panel {
+            max-width: 34em;
+            padding: 4em;
+            overflow: hidden;
+            will-change: transform;
+            animation: expand 0.5s forwards;
+            animation-timing-function: ease-out;
+            animation-play-state: paused;
+            background-color: var(--bg-panel);
+            border-radius: .6em;
+        }
+        .title {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .content {
+            font-size: 1.5em;
+        }
+        .stacktrace {
+            font-size: .5em;
+            font-family: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body id="root">
+<div class="panel" id="panel">
+    <div class="title">
+        <img src="/assets/icon" alt="icon" style="margin-right:.4em" width="64">
+        <span id="title">加载中...</span>
+    </div>
+    <div id="content" class="content">加载中...</div>
+    <div id="stacktrace" class="stacktrace"></div>
+</div>
+<script>
+    let root = document.getElementById("root");
+    let panel = document.getElementById("panel");
+    let title = document.getElementById("title");
+    let content = document.getElementById("content");
+    let stacktrace = document.getElementById("stacktrace");
+    let favicon = document.getElementById("favicon");
+    fetch("/assets/background").then(async response => {
+        if (!response.ok) {
+            console.warn(`Fetching background image returns ${response.status}`);
+            return;
+        }
+        const blob = await response.blob();
+        root.style.setProperty("--bg-root-url", `url(${URL.createObjectURL(blob)})`);
+    });
+    fetch("/assets/icon").then(async response => {
+        if (!response.ok) {
+            console.warn(`Fetching favicon image returns ${response.status}`);
+            return;
+        }
+        const blob = await response.blob();
+        favicon.href = URL.createObjectURL(blob);
+    });
+    fetch("/status").then(async response => {
+        if (!response.ok) {
+            console.warn(`Fetching status returns ${response.status}`);
+            return;
+        }
+        const status = await response.json();
+        if (status.success) {
+            title.innerText = `欢迎回来, ${status.username}！`;
+            content.innerText = "已完成登录授权，现在可以安全关闭浏览器窗口";
+        } else {
+            title.innerText = "出现错误";
+            title.style.color = "red";
+            content.innerText = status.message;
+            if (status.stacktrace) {
+                content.style.marginBottom = "1em";
+                stacktrace.innerText = status.stacktrace;
+            }
+        }
+        panel.style.animationPlayState = "running";
+    });
+</script>
+</body>
+</html>

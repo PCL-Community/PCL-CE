@@ -801,24 +801,28 @@ Public Class PageDownloadInstall
         ExitSelectPage() '返回
         Try
             Dim Dict As New Dictionary(Of String, List(Of JObject)) From {
-                {"正式版", New List(Of JObject)}, {"预览版", New List(Of JObject)}, {"远古版", New List(Of JObject)}, {"愚人节版", New List(Of JObject)}
+                {"正式版", New List(Of JObject)},
+                {"预览版", New List(Of JObject)},
+                {"远古版", New List(Of JObject)},
+                {"愚人节版", New List(Of JObject)}
             }
             Dim Versions As JArray = DlClientListLoader.Output.Value("versions")
             For Each Version As JObject In Versions
                 '确定分类
-                Dim Type As String = Version("type")
+                Dim Type As String = Version("type").ToString()
+                Dim versionId = Version("id").ToString().ToLower()
                 Select Case Type
                     Case "release"
                         Type = "正式版"
-                    Case "snapshot"
+                    Case "snapshot", "pending"
                         Type = "预览版"
                         'Mojang 误分类
-                        If Version("id").ToString.StartsWith("1.") AndAlso
-                            Not Version("id").ToString.ToLower.Contains("combat") AndAlso
-                            Not Version("id").ToString.ToLower.Contains("rc") AndAlso
-                            Not Version("id").ToString.ToLower.Contains("experimental") AndAlso
-                            Not Version("id").ToString.ToLower.Equals("1.2") AndAlso
-                            Not Version("id").ToString.ToLower.Contains("pre") Then
+                        If versionId.StartsWith("1.") AndAlso
+                            Not versionId.Contains("combat") AndAlso
+                            Not versionId.Contains("rc") AndAlso
+                            Not versionId.Contains("experimental") AndAlso
+                            Not versionId.Equals("1.2") AndAlso
+                            Not versionId.Contains("pre") Then
                             Type = "正式版"
                             Version("type") = "release"
                         End If

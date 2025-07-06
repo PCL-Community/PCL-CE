@@ -72,8 +72,8 @@ Public Class PageVersionLeft
                 If IsNothing(FrmVersionSetup) Then FrmVersionSetup = New PageVersionSetup
                 Return FrmVersionSetup
             Case FormMain.PageSubType.VersionWorld
-                If FrmVersionWorld Is Nothing Then FrmVersionWorld = New PageVersionWorld
-                Return FrmVersionWorld
+                If FrmVersionSaves Is Nothing Then FrmVersionSaves = New PageVersionSaves
+                Return FrmVersionSaves
             Case FormMain.PageSubType.VersionScreenshot
                 If FrmVersionScreenshot Is Nothing Then FrmVersionScreenshot = New PageVersionScreenshot
                 Return FrmVersionScreenshot
@@ -146,7 +146,7 @@ Public Class PageVersionLeft
             Case FormMain.PageSubType.VersionScreenshot
                 PageVersionScreenshot.Refresh()
             Case FormMain.PageSubType.VersionWorld
-                PageVersionWorld.Refresh()
+                PageVersionSaves.Refresh()
             Case FormMain.PageSubType.VersionResourcePack
                 PageVersionCompResource.Refresh(CompType.ResourcePack)
             Case FormMain.PageSubType.VersionShader

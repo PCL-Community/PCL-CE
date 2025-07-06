@@ -514,6 +514,8 @@ Retry:
                                 request.Content = New ByteArrayContent(Data)
                             ElseIf TypeOf Data Is String Then
                                 request.Content = New StringContent(Data, Encoding.UTF8, ContentType)
+                            ElseIf Data.GetType().IsSubclassOf(GetType(HttpContent)) Then
+                                request.Content = CType(Data, HttpContent)
                             Else
                                 Throw New ArgumentException("Data 参数类型不支持")
                             End If

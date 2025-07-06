@@ -229,7 +229,7 @@ NextInner:
         '检查路径
         If McVersionCurrent.PathIndie.Contains("!") OrElse McVersionCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.PathIndie & "）")
         If McVersionCurrent.Path.Contains("!") OrElse McVersionCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.Path & "）")
-        If Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McVersionCurrent.Path.IsASCII() Then
+        If Encoding.Default.CodePage = 65001 AndAlso Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McVersionCurrent.Path.IsASCII() Then
             Dim userChoice = MyMsgBox(
                 $"欲启动版本 ""{McVersionCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
                 "游戏路径检查",
@@ -865,9 +865,11 @@ Exception:
         Try
             Dim ResultJson As JObject = GetJson(Result)
             If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any) Then
-                Select Case MyMsgBox("你尚未购买正版 Minecraft，或者 Xbox Game Pass 已到期。", "登录失败", "购买 Minecraft", "取消")
+                Select Case MyMsgBox($"暂时无法获取到你的账户信息，可能存在以下原因{vbCrLf}{vbCrLf}- 你尚未购买正版 Minecraft 或者 Xbox Game Pass 已过期{vbCrLf}- 未在官网创建 Minecraft 用户档案", "登录失败", "购买 Minecraft", "去官网创建 Minecraft 档案", "取消")
                     Case 1
                         OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
+                    Case 2
+                        OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames")
                 End Select
                 Throw New Exception("$$")
             End If
@@ -1363,50 +1365,24 @@ LoginFinish:
 #Region "启动参数"
 
     Public Class LaunchArgument
-        Private _features As New Dictionary(Of String, String)
+        Private _features As New List(Of String)
         Public Sub New(Minecraft As McVersion)
             Dim curArgu As String = String.Empty
             If Minecraft.IsOldJson Then
-                '分隔开参数
-                Dim param = Minecraft.JsonObject("minecraftArguments").ToString.Split(" "c).ToList()
-                For Each p In param
-                    If p.StartsWithF("--") Then
-                        curArgu = p
-                        Continue For
-                    End If
-                    If p.StartsWithF("$") Then
-                        _features.Add(curArgu, p)
-                    End If
-                Next
+                _features = Minecraft.JsonObject("minecraftArguments").ToString.Split(" "c).ToList()
             Else
                 For Each item In Minecraft.JsonObject("arguments")("game")
                     If item.Type = JTokenType.String Then
-                        If item.ToString().StartsWithF("$") Then
-                            curArgu = item.ToString()
-                            Continue For
-                        End If
-                        If item.ToString().StartsWithF("--") Then
-                            _features.Add(curArgu, item.ToString())
-                        End If
+                        _features.Add(item.ToString)
                     ElseIf item.Type = JTokenType.Object Then
-                        For Each values In item("value")
-                            If values.ToString().StartsWithF("--") Then
-                                curArgu = values.ToString()
-                                _features.Add(curArgu, String.Empty)
-                            End If
-                            If values.ToString().StartsWithF("$") AndAlso
-                                _features.ContainsKey(curArgu) AndAlso
-                                String.IsNullOrEmpty(_features(curArgu)) Then
-                                _features(curArgu) = values.ToString()
-                            End If
-                        Next
+                        _features.AddRange(item("value").Select(Function(x) x.ToString))
                     End If
                 Next
             End If
         End Sub
 
         Public Function HasArguments(key As String)
-            Return _features.ContainsKey(key)
+            Return _features.Contains(key)
         End Function
     End Class
 
@@ -2374,11 +2350,7 @@ NextVersion:
         End If
         Select Case McLoginLoader.Input.Type
             Case McLoginType.Legacy
-                If PageLinkLobby.HiperState = LoadState.Finished Then
-                    Raw = Raw.Replace("{login}", "联机离线")
-                Else
-                    Raw = Raw.Replace("{login}", "离线")
-                End If
+                Raw = Raw.Replace("{login}", "离线")
             Case McLoginType.Ms
                 Raw = Raw.Replace("{login}", "正版")
             Case McLoginType.Auth

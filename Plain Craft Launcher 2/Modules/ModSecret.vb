@@ -13,36 +13,29 @@ Friend Module ModSecret
 
 #If DEBUG Then
     Public Const RegFolder As String = "PCLCEDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    '用于微软登录的 ClientId
+    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
+    'CurseForge API Key
+    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
+    'LittleSkin OAuth ClientId
+    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
+    '遥测鉴权密钥
+    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
+    'Natayark ID Client Id
+    Public NatayarkClientId As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_ID"), "")
+    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
+    Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
+    '联机服务根地址
+    Public LinkServerRoot As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-#End If
-
-    '用于微软登录的 ClientId
-#If DEBUG Then
-    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
-#Else
     Public Const OAuthClientId As String = ""
-#End If
-
-    'CurseForge API Key
-#If DEBUG Then
-    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-#Else
     Public Const CurseForgeAPIKey As String = ""
-#End If
-
-    'LittleSkin OAuth ClientId
-#If DEBUG Then
-    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
-#Else
     Public Const LittleSkinClientId As String = ""
-#End If
-
-    '遥测鉴权密钥
-#If DEBUG Then
-    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
-#Else
     Public Const TelemetryKey As String = ""
+    Public Const NatayarkClientId As String = ""
+    Public Const NatayarkClientSecret As String = ""
+    Public Const LinkServerRoot As String = ""
 #End If
 
     Friend Sub SecretOnApplicationStart()
@@ -128,12 +121,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Friend Function SecretGetUniqueAddress() As String
         Dim code As String
-        Dim rawCode As String = SecretGetRawCode()
         Try
-            Using SHA As SHA256 = SHA256.Create()
-                Dim buffer = SHA.ComputeHash(Encoding.UTF8.GetBytes(rawCode))
-                code = BitConverter.ToString(buffer).Replace("-", "")
-            End Using
+            Dim rawId As String = Setup.Get("LaunchUuid")
+            If String.IsNullOrEmpty(rawId) Then
+                rawId = Identify.GetGuid()
+                Setup.Set("LaunchUuid", rawId)
+            End If
+            code = Identify.GetMachineId(rawId)
             code = code.Substring(6, 16)
             code = code.Insert(4, "-").Insert(9, "-").Insert(14, "-")
             Return code
@@ -165,6 +159,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
         Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", Version:=McVersionCurrent)
         DataList.Insert(0, If(DataJvmCustom = "", Setup.Get("LaunchAdvanceJvm"), DataJvmCustom)) '可变 JVM 参数
+        Select Case Setup.Get("LaunchPreferredIpStack")
+            Case 0
+                DataList.Add("-Djava.net.preferIPv4Stack=true")
+            Case 2
+                DataList.Add("-Djava.net.preferIPv6Stack=true")
+        End Select
         McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent) * 1024) & "m")
@@ -313,7 +313,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End Region
 
 #Region "主题"
-    
+
 #If DEBUG Then
     Public ReadOnly EnableCustomTheme As Boolean = Environment.GetEnvironmentVariable("PCL_CUSTOM_THEME") IsNot Nothing
     Private ReadOnly EnvThemeHue = Environment.GetEnvironmentVariable("PCL_THEME_HUE") '0 ~ 359
@@ -327,13 +327,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End If
 
     Public IsDarkMode As Boolean = False
-    
+
     Public ReadOnly Property ColorGray1 As MyColor
         Get
             Return If(StaticColors?.Gray1, LightStaticColors.Gray1)
         End Get
     End Property
-    
+
     Public ReadOnly Property ColorGray4 As MyColor
         Get
             Return If(StaticColors?.Gray4, LightStaticColors.Gray4)
@@ -345,7 +345,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Return If(StaticColors?.Gray5, LightStaticColors.Gray5)
         End Get
     End Property
-    
+
     Public ReadOnly Property ColorSemiTransparent As MyColor
         Get
             Return DynamicColors.SemiTransparent
@@ -364,32 +364,32 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public Property G1 As Integer
         Public Property G2 As Integer
         Public Property G3 As Integer
-        
+
         Public ReadOnly Property Lb0 As Integer
             Get
                 Return L5
             End Get
         End Property
-        
+
         Public ReadOnly Property Lb1 As Integer
             Get
                 Return L7
             End Get
         End Property
-        
+
         Public Property LaP As Double = 1
         Public Property LaN As Double = 1
-        
+
         Public Property Sa0 As Double
         Public Property Sa1 As Double
     End Class
-    
+
     Private ReadOnly Property NewColor As MyColor
         Get
             Return New MyColor()
         End Get
     End Property
-    
+
     Public Class ThemeStyleStaticColors
         Public ReadOnly Gray1 As Color
         Public ReadOnly Gray2 As Color
@@ -406,7 +406,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly Memory As Color
         Public ReadOnly Tooltip As Color
         Public ReadOnly BackgroundTransparentSidebar As Color
-        
+
         Public ReadOnly Gray1Brush As SolidColorBrush
         Public ReadOnly Gray2Brush As SolidColorBrush
         Public ReadOnly Gray3Brush As SolidColorBrush
@@ -422,7 +422,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly MemoryBrush As SolidColorBrush
         Public ReadOnly TooltipBrush As SolidColorBrush
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
-        
+
         Public Sub New(style As ThemeStyle)
             Gray1 = NewColor.FromHSL2(0, 0, style.L1)
             Gray2 = NewColor.FromHSL2(0, 0, style.L2)
@@ -439,7 +439,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Memory = NewColor.FromHSL2(0, 0, style.G3)
             Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(&HE5)
             BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(&HD2)
-            
+
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
             Gray3Brush = New SolidColorBrush(Gray3)
@@ -472,7 +472,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         '对数分布 -> 线性分布
         Dim originF = Math.Log(origin + LogLightBase) / LogLightBaseRate '源 [0,1]
         Dim adjustF = adjust / 20.0 '参数 [-1,1]
-        Dim resultF = originF + adjustF * If (adjustF > 0, 1 - originF, originF) '线性插值
+        Dim resultF = originF + adjustF * If(adjustF > 0, 1 - originF, originF) '线性插值
         '线性分布 -> 对数分布
         Dim result As Integer = Math.Exp(resultF * LogLightBaseRate) - LogLightBase
         Return result
@@ -490,7 +490,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly ColorBg0 As Color
         Public ReadOnly ColorBg1 As Color
         Public ReadOnly SemiTransparent As Color
-        
+
         Public ReadOnly Color1Brush As SolidColorBrush
         Public ReadOnly Color2Brush As SolidColorBrush
         Public ReadOnly Color3Brush As SolidColorBrush
@@ -502,11 +502,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly ColorBg0Brush As SolidColorBrush
         Public ReadOnly ColorBg1Brush As SolidColorBrush
         Public ReadOnly SemiTransparentBrush As SolidColorBrush
-        
+
         Public Sub New(style As ThemeStyle, hue As Integer, sat As Integer, lightAdjust As Integer)
             Dim sat0 = sat * style.Sa0
             Dim sat1 = sat * style.Sa1
-            
+
             Color1 = NewColor.FromHSL2(hue, sat0 * 0.2, style.L1)
             Color2 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L2, lightAdjust, style))
             Color3 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L3, lightAdjust, style))
@@ -517,8 +517,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Color8 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
             ColorBg0 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
             ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(&HBE)
-            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(&H01)
-            
+            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(&H1)
+
             Color1Brush = New SolidColorBrush(Color1)
             Color2Brush = New SolidColorBrush(Color2)
             Color3Brush = New SolidColorBrush(Color3)
@@ -532,7 +532,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             SemiTransparentBrush = New SolidColorBrush(SemiTransparent)
         End Sub
     End Class
-    
+
     Public ReadOnly LightStyle = New ThemeStyle With {
         .L1 = 25, .L2 = 45, .L3 = 55, .L4 = 65,
         .L5 = 80, .L6 = 91, .L7 = 95, .L8 = 97,
@@ -550,7 +550,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     Public ReadOnly DarkStaticColors As New ThemeStyleStaticColors(DarkStyle)
-    
+
     Public ReadOnly Property CurrentStyle As ThemeStyle
         Get
             Return If(IsDarkMode, DarkStyle, LightStyle)
@@ -558,7 +558,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Property
 
     Public Property StaticColors As ThemeStyleStaticColors = Nothing
-    
+
     Public Property DynamicColors As ThemeStyleDynamicColors = Nothing
 
     Public ThemeNow As Integer = -1
@@ -589,7 +589,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Return OriginalLight
         End If
     End Function
-    
+
+    Private ReadOnly HueList As Integer() = {200, 210, 225}
+    Private ReadOnly SatList As Integer() = {100, 85, 70}
+    Private ReadOnly LightList As Integer() = {7, 0, -2}
+
     Public Sub ThemeRefreshColor()
 #If DEBUG Then
         If EnableCustomTheme Then
@@ -597,21 +601,17 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             If CustomThemeSat IsNot Nothing Then ColorSat = CustomThemeSat
             If CustomThemeLight IsNot Nothing Then ColorLightAdjust = CustomThemeLight
             If CustomThemeHueDelta IsNot Nothing Then ColorHueTopbarDelta = CustomThemeHueDelta
-        ElseIf IsDarkMode Then
-#Else
-        If IsDarkMode Then
-#End If
-            ColorHue = 205
-            ColorSat = 90
-            ColorLightAdjust = 0
-            ColorHueTopbarDelta = 0
         Else
-            ColorHue = 210
-            ColorSat = 85
-            ColorLightAdjust = 0
+#End If
+            Dim colorIndex As Integer = If(IsDarkMode, Setup.Get("UiDarkColor"), Setup.Get("UiLightColor"))
+            ColorHue = HueList(colorIndex)
+            ColorSat = SatList(colorIndex)
+            ColorLightAdjust = LightList(colorIndex)
             ColorHueTopbarDelta = 0
+#If DEBUG Then
         End If
-        
+#End If
+
         Dim res = Application.Current.Resources
         StaticColors = If(IsDarkMode, DarkStaticColors, LightStaticColors)
         DynamicColors = New ThemeStyleDynamicColors(CurrentStyle, ColorHue, ColorSat, ColorLightAdjust)
@@ -633,7 +633,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushGray6") = StaticColors.Gray6Brush
         res("ColorBrushGray7") = StaticColors.Gray7Brush
         res("ColorBrushGray8") = StaticColors.Gray8Brush
-        
+
         res("ColorObject1") = DynamicColors.Color1
         res("ColorObject2") = DynamicColors.Color2
         res("ColorObject3") = DynamicColors.Color3
@@ -644,7 +644,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorObject8") = DynamicColors.Color8
         res("ColorObjectBg0") = DynamicColors.ColorBg0
         res("ColorObjectBg1") = DynamicColors.ColorBg1
-        
+
         res("ColorBrush1") = DynamicColors.Color1Brush
         res("ColorBrush2") = DynamicColors.Color2Brush
         res("ColorBrush3") = DynamicColors.Color3Brush
@@ -655,7 +655,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrush8") = DynamicColors.Color8Brush
         res("ColorBrushBg0") = DynamicColors.ColorBg0Brush
         res("ColorBrushBg1") = DynamicColors.ColorBg1Brush
-        
+
         res("ColorBrushWhite") = StaticColors.WhiteBrush
         res("ColorBrushHalfWhite") = StaticColors.HalfWhiteBrush
         res("ColorBrushSemiWhite") = StaticColors.SemiWhiteBrush
@@ -667,7 +667,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushMsgBox") = StaticColors.WhiteBrush
         res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
-    
+
     Public Sub ThemeRefreshMain()
 #If DEBUG Then
         If EnableCustomTheme Then ThemeNow = 14
@@ -745,16 +745,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     Public IsCheckingUpdates As Boolean = False
     Public IsUpdateWaitingRestart As Boolean = False
-    Public RemoteServer As New List(Of IUpdateSource) From {
+    Public RemoteServer As New UpdatesWrapperModel({
         New UpdatesMirrorChyanModel(),
         New UpdatesRandomModel({
                 New UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
                 New UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
-                               }),
+            }),
         New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
-    }
-    Public LatestVersion As VersionDataModel = Nothing
-    Public LatestAnnouncement As AnnouncementInfoModel = Nothing
+    })
     Public ReadOnly Property IsUpdBetaChannel
         Get
             Return Setup.Get("SystemSystemUpdateBranch") = 1
@@ -769,7 +767,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Hint("正在获取更新信息...")
         RunInNewThread(Sub()
                            Try
-                               RefreshUpdatesCache()
                                NoticeUserUpdate()
                            Catch ex As Exception
                                Log(ex, "[Update] 获取启动器更新信息失败", LogLevel.Hint)
@@ -777,87 +774,55 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                            End Try
                        End Sub)
     End Sub
-    Private Sub RefreshUpdatesCache()
-        '更新源
-        For Each source In RemoteServer
-            Try
-                If Not source.IsAvailable() Then Throw New Exception("此更新源不可用")
-                source.EnsureLatestData()
-                LatestVersion = source.GetLatestVersion(If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable), If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                Exit For
-            Catch ex As Exception
-                Log(ex, $"[System] 更新：{source.SourceName} 不可用，换下一个")
-                Continue For
-            End Try
-        Next
-        If LatestVersion Is Nothing Then
-            Log("[System] 无法找到有效更新源……")
-            Throw New Exception("无法获取有效更新源")
-        End If
-    End Sub
-    Private Sub RefreshAnnouncementCache()
-        For Each source In RemoteServer
-            Try
-                If Not source.IsAvailable() OrElse source.SourceName = "MirrorChyan" Then Throw New Exception("此源无法获取公告")
-                source.EnsureLatestData()
-                LatestAnnouncement = source.GetAnnouncementList()
-                Exit For
-            Catch ex As Exception
-                Log(ex, $"[System] 公告：{source.SourceName} 不可用，换下一个")
-                Continue For
-            End Try
-        Next
-        If LatestAnnouncement Is Nothing Then
-            Log("[System] 无法找到有效公告源……")
-            Throw New Exception("无法获取有效公告源")
-        End If
-    End Sub
     Public Function IsVerisonLatest() As Boolean
-        If LatestVersion Is Nothing Then
-            Hint("无法获取最新版本信息，请检查网络连接", HintType.Critical)
+        Try
+            Return RemoteServer.IsLatest(
+            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
+            SemVer.Parse(VersionBaseName),
+            VersionCode)
+        Catch ex As Exception
+            Log(ex, "无法获取最新版本信息，请检查网络连接", LogLevel.Hint)
             Return False
-        End If
-        If LatestVersion.Source = "MirrorChyan" Then
-            Return SemVer.Parse(LatestVersion.version_name) <= SemVer.Parse(VersionBaseName)
-        Else
-            Return LatestVersion.version_code <= VersionCode
-        End If
+        End Try
     End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
         If Not IsVerisonLatest() Then
-            If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not LatestVersion.version_name.StartsWithF("2.9.") Then
-                If MyMsgBox($"发现了启动器更新（版本 {LatestVersion.version_name}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
+            Dim latest = RemoteServer.GetLatestVersion(
+                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+            If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
+                If MyMsgBox($"发现了启动器更新（版本 {latest.VersionName}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
                 Exit Sub
             End If
-            If MyMsgBox($"启动器有新版本可用（｛VersionBaseName｝ -> {LatestVersion.version_name}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{LatestVersion.Desc}", "启动器更新", "更新", "取消") = 1 Then
-                UpdateStart(LatestVersion, False)
+            If MyMsgBoxMarkdown($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "取消") = 1 Then
+                UpdateStart(False)
             End If
         Else
             If Not Silent Then Hint("启动器已是最新版 " + VersionBaseName + "，无须更新啦！", HintType.Finish)
         End If
     End Sub
 
-    Public Sub UpdateStart(Version As VersionDataModel, Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
+    Public Sub UpdateStart(Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
         Dim DlTargetPath As String = Path + "PCL\Plain Craft Launcher Community Edition.exe"
-        Dim DlTempPath As String = $"{PathTemp}Cache\CEUpdates.zip"
         RunInNewThread(Sub()
                            Try
-                               WriteFile($"{PathTemp}CEUpdateLog.md", Version.Desc)
+                               Dim version = RemoteServer.GetLatestVersion(
+                               If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                               If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                               WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
                                '构造步骤加载器
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
-                               Loaders.Add(New LoaderDownload("下载更新文件", New List(Of NetFile) From {New NetFile(Version.download_url, DlTempPath, New FileChecker(MinSize:=1024 * 64, Hash:=Version.sha256))}) With {.ProgressWeight = 15})
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压更新文件", Sub()
-                                                                                             If Not Version.IsArchive Then
-                                                                                                 File.Move(DlTempPath, DlTargetPath)
-                                                                                                 Exit Sub
-                                                                                             End If
-                                                                                             Using archive = New ZipArchive(New FileStream(DlTempPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), ZipArchiveMode.Read)
-                                                                                                 Dim entry As ZipArchiveEntry = archive.Entries.FirstOrDefault(Function(x) x.FullName.EndsWithF("Plain Craft Launcher Community Edition.exe"))
-                                                                                                 entry.ExtractToFile(DlTargetPath, True)
-                                                                                             End Using
-                                                                                             File.Delete(DlTempPath)
-                                                                                         End Sub))
+                               Loaders.AddRange(RemoteServer.GetDownloadLoader(
+                                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
+                                                                                           Dim curHash = GetFileSHA256(DlTargetPath)
+                                                                                           If curHash <> version.SHA256 Then
+                                                                                               Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
+                                                                                           End If
+                                                                                       End Sub))
                                If Not Slient Then
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
                                End If
@@ -961,34 +926,21 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Friend Sub DownloadLatestPCL(Optional LoaderToSyncProgress As LoaderBase = Nothing)
         '注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
         Dim LatestPCLPath As String = PathTemp & "CE-Latest.exe"
-        Dim LatestPCLTempPath As String = PathTemp & "CE-Latest.zip"
-        Dim target As VersionDataModel = Nothing
-        For Each source In RemoteServer
-            Try
-                If Not source.IsAvailable() Then Throw New Exception("不可用")
-                source.EnsureLatestData()
-                target = source.GetLatestVersion(UpdateChannel.stable, UpdateArch.x64)
-            Catch ex As Exception
-                Continue For
-            End Try
-        Next
+        Dim target = RemoteServer.GetLatestVersion(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
         If target Is Nothing Then Throw New Exception("无法获取更新")
-        If File.Exists(LatestPCLPath) AndAlso GetFileSHA256(LatestPCLPath) = target.sha256 Then
+        If File.Exists(LatestPCLPath) AndAlso GetFileSHA256(LatestPCLPath) = target.SHA256 Then
             Log("[System] 最新版 PCL 已存在，跳过下载")
             Exit Sub
         End If
-        If GetFileSHA256(PathWithName) = target.sha256 Then '正在使用的版本符合要求，直接拿来用
+        If GetFileSHA256(PathWithName) = target.SHA256 Then '正在使用的版本符合要求，直接拿来用
             CopyFile(PathWithName, LatestPCLPath)
             Exit Sub
         End If
-        NetDownloadByLoader(target.download_url, LatestPCLTempPath, LoaderToSyncProgress)
-        Using archive = New ZipArchive(New FileStream(LatestPCLTempPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), ZipArchiveMode.Read)
-            Dim entry As ZipArchiveEntry = archive.Entries.FirstOrDefault(Function(x) x.FullName.EndsWithF("Plain Craft Launcher Community Edition.exe"))
-            If entry IsNot Nothing Then
-                entry.ExtractToFile(LatestPCLPath, True)
-            End If
-        End Using
-        File.Delete(LatestPCLTempPath)
+
+        Dim loaders = RemoteServer.GetDownloadLoader(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), LatestPCLPath)
+        Dim loader As New LoaderCombo(Of Integer)("下载最新稳定版", loaders)
+        loader.Start()
+        loader.WaitForExit()
     End Sub
 
 #End Region
@@ -1000,16 +952,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Private Sub LoadOnlineInfo()
         Dim UpdateDesire = Setup.Get("SystemSystemUpdate")
         Dim AnnouncementDesire = Setup.Get("SystemSystemActivity")
-        If UpdateDesire <= 1 Then
-            RefreshUpdatesCache()
-        End If
-        If AnnouncementDesire <= 1 Then
-            RefreshAnnouncementCache()
-        End If
         Select Case UpdateDesire
             Case 0
                 If Not IsVerisonLatest() Then
-                    UpdateStart(LatestVersion, True) '静默更新
+                    UpdateStart(True) '静默更新
                 End If
             Case 1
                 NoticeUserUpdate(True)
@@ -1018,7 +964,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End Select
         If AnnouncementDesire <= 1 Then
             Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|").ToList()
-            Dim ShowAnnounce = LatestAnnouncement.content.Where(Function(x) Not ShowedAnnounced.Contains(x.id)).ToList()
+            Dim ShowAnnounce = RemoteServer.GetAnnouncementList().content.Where(Function(x) Not ShowedAnnounced.Contains(x.id)).ToList()
             Log("[System] 需要展示的公告数量：" + ShowAnnounce.Count.ToString())
             RunInNewThread(Sub()
                                For Each item In ShowAnnounce
@@ -1050,8 +996,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' 发送遥测数据，需要在非 UI 线程运行
     ''' </summary>
     Public Sub SendTelemetry()
+        If String.IsNullOrWhiteSpace(TelemetryKey) Then Exit Sub
         Dim NetResult = ModLink.NetTest()
         Dim Data = New JObject From {
+            {"Tag", "Telemetry"},
             {"Id", UniqueAddress},
             {"OS", Environment.OSVersion.Version.Build},
             {"Is64Bit", Not Is32BitSystem},
@@ -1065,9 +1013,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             {"NatType", NetResult(0)},
             {"IPv6Status", NetResult(1)}
         }
-        Dim SendData = New JObject From {
-            {"data", Data}
-        }
+        Dim SendData = New JObject From {{"data", Data}}
         Try
             Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
             If Result.Contains("数据已成功保存") Then
