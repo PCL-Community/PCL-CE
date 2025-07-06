@@ -1,10 +1,11 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
-
 Imports System.Net.Http
 Imports System.Threading.Tasks
 
 Imports LiteDB
+Imports CacheCow.Client
+Imports CacheCow.Common
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
@@ -42,6 +43,7 @@ Public Module ModNet
     Private _PreviousProxyLink As String
     Private _httpClient As HttpClient
     Private _httpClientHandler As HttpClientHandler
+    Private _httpCache As New NetCache
     Public Function GetHttpClient() As HttpClient
         If Setup.Get("SystemHttpProxy") <> _PreviousProxyLink Then
             _httpClient?.Dispose()
@@ -67,11 +69,108 @@ Public Module ModNet
                                             .UseCookies = True,
                                             .CookieContainer = New CookieContainer()
                                         }
-                                         _httpClient = New HttpClient(_httpClientHandler)
+                                         _httpClient = ClientExtensions.CreateClient(_httpCache, _httpClientHandler)
                                      End Sub)
         End If
         Return _httpInitTask
     End Function
+
+    Public Class NetCache
+        Implements ICacheStore, IDisposable
+
+        Sub New()
+            _netCacheDatabase = New LiteDatabase($"Filename={PathTemp}Cache\NetCache.db")
+        End Sub
+
+        Private _netCacheDatabase As LiteDatabase
+        Private disposedValue As Boolean
+
+        ' 可序列化的缓存数据结构
+        Private Class CachedResponse
+            Public Property StatusCode As HttpStatusCode
+            Public Property Headers As Dictionary(Of String, String())
+            Public Property ContentHeaders As Dictionary(Of String, String())
+            Public Property Content As Byte()
+        End Class
+
+        Private Class KeyData
+            Public Property ID As String
+            Public Property Data As CachedResponse ' 修改为可序列化类型
+        End Class
+
+        Public Async Function GetValueAsync(key As CacheKey) As Task(Of HttpResponseMessage) Implements ICacheStore.GetValueAsync
+            Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
+            Dim cached = entries.FindById(key.HashBase64)?.Data
+
+            If cached Is Nothing Then Return Nothing
+
+            ' 重建 HttpResponseMessage
+            Dim response = New HttpResponseMessage(cached.StatusCode) With {
+            .Content = New ByteArrayContent(cached.Content)
+            }
+
+            ' 添加头部
+            For Each header In cached.Headers
+                response.Headers.TryAddWithoutValidation(header.Key, header.Value)
+            Next
+
+            ' 添加内容头部
+            For Each header In cached.ContentHeaders
+                response.Content.Headers.TryAddWithoutValidation(header.Key, header.Value)
+            Next
+
+            Return response
+        End Function
+
+        Public Async Function AddOrUpdateAsync(key As CacheKey, response As HttpResponseMessage) As Task Implements ICacheStore.AddOrUpdateAsync
+            Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
+            Dim qu = Query.EQ("ID", key.HashBase64)
+
+            ' 创建可序列化的缓存对象
+            Dim cached As New CachedResponse With {
+            .StatusCode = response.StatusCode,
+            .Headers = response.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
+            .ContentHeaders = response.Content.Headers.ToDictionary(Function(h) h.Key, Function(h) h.Value.ToArray()),
+            .Content = Await response.Content.ReadAsByteArrayAsync()
+        }
+
+            Dim target = New KeyData() With {.ID = key.HashBase64, .Data = cached}
+
+            If entries.Find(qu).Any() Then
+                entries.Update(target)
+            Else
+                entries.Insert(target)
+            End If
+        End Function
+
+        Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
+            Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
+            Dim qu = Query.EQ("ID", key.HashBase64)
+            entries.DeleteMany(qu)
+        End Function
+
+        Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
+            Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
+            entries.DeleteAll()
+        End Function
+
+        Protected Overridable Sub Dispose(disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+                    _netCacheDatabase.Dispose()
+                End If
+
+                _netCacheDatabase = Nothing
+                disposedValue = True
+            End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            ' 不要更改此代码。请将清理代码放入“Dispose(disposing As Boolean)”方法中
+            Dispose(disposing:=True)
+            GC.SuppressFinalize(Me)
+        End Sub
+    End Class
 
     ''' <summary>
     ''' 测试 Ping。失败则返回 -1。
@@ -795,25 +894,6 @@ Retry:
 
     End Class
 
-    Private _eTagDatabase As LiteDatabase
-    Private ReadOnly _eTagDatabaseGetLock As New Object
-    Public ReadOnly Property ETagDatabase As LiteDatabase
-        Get
-            SyncLock (_eTagDatabaseGetLock)
-                If _eTagDatabase Is Nothing Then _eTagDatabase = New LiteDatabase($"Filename={PathAppdata}ETag.db")
-                Return _eTagDatabase
-            End SyncLock
-        End Get
-    End Property
-
-    Public Class ETagData
-        Public Property EID As String
-        Public Property Host As String
-        Public Property File As String
-        Public Property Hash As String
-        Public Property Length As Long
-    End Class
-
     ''' <summary>
     ''' 下载单个文件。
     ''' </summary>
@@ -882,8 +962,6 @@ Retry:
         ''' 存储在本地的文件名。
         ''' </summary>
         Public LocalName As String = Nothing
-
-        Private ETagStatus As ETagData
 
         ''' <summary>
         ''' 当前的下载状态。
@@ -1176,63 +1254,6 @@ StartThread:
                             Log($"[Download] {LocalName} {Info.Uuid}#：重定向至 {Redirected}")
                             Info.Source.Url = Redirected
                         End If
-                        ContentLength = response.Content.Headers.ContentLength.GetValueOrDefault(-1)
-                        'ETag Cache
-                        If Info.IsFirstThread Then
-                            Dim etag = response.Headers.ETag?.Tag
-                            Dim host = response.RequestMessage.RequestUri.Host & response.RequestMessage.RequestUri.AbsolutePath
-                            If Not String.IsNullOrEmpty(etag) Then
-                                '标记有 ETag
-                                Log($"[Net] 发现 ETag 信息 {host}:{etag}")
-                                ETagStatus = New ETagData With {
-                                            .Host = host,
-                                            .EID = etag
-                                        }
-                                '查询缓存
-                                Dim etags = ETagDatabase.GetCollection(Of ETagData)("ETag")
-                                Dim queryPa = Query.And(
-                                    Query.EQ("EID", New BsonValue(etag)),
-                                    Query.EQ("Host", New BsonValue(host))
-                                    )
-                                Dim etagCaches = etags.Find(queryPa)
-                                If etagCaches.Any() Then
-                                    Log($"[Net] 击中 ETag 缓存 {host}:{etag}")
-                                    Dim targetCache As ETagData
-                                    For Each etagCache In etagCaches
-                                        Dim fileInfo As New FileInfo(etagCache.File)
-                                        If Not fileInfo.Exists OrElse (ContentLength <> -1 AndAlso ContentLength <> etagCache.Length) OrElse fileInfo.Length <> etagCache.Length OrElse GetFileSHA256(fileInfo.FullName) <> etagCache.Hash Then
-                                            etags.DeleteMany(Query.EQ("File", New BsonValue(etagCache.File)))
-                                            Log($"[Net] 清空无效的缓存: {etagCache.Host}:{etagCache.EID} -> {etagCache.File}")
-                                            Continue For
-                                        End If
-                                        targetCache = etagCache
-                                        Exit For
-                                    Next
-                                    If targetCache Is Nothing Then
-                                        Log($"[Net] 本地缓存失效，继续进行下载任务")
-                                    Else
-                                        Log($"[Net] 使用本地缓存 {targetCache.File} 代替下载 {LocalName} 文件")
-                                        LocalPath = targetCache.File
-                                        Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomInteger(0, 999999)}.tmp"
-                                        Using cacheFile As New FileStream(targetCache.File, FileMode.Open, FileAccess.Read, FileShare.Read)
-                                            Using tempFile As New FileStream(Info.Temp, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                                                cacheFile.CopyTo(tempFile)
-                                                '告诉那破下载器，下载完成了
-                                                Info.DownloadDone = cacheFile.Length
-                                                DownloadDone = cacheFile.Length
-                                                FileSize = cacheFile.Length
-                                                IsUnknownSize = False
-                                            End Using
-                                        End Using
-                                        Info.State = NetState.Download
-                                        SyncLock LockState
-                                            State = NetState.Download
-                                        End SyncLock
-                                        GoTo SourceBreak
-                                    End If
-                                End If
-                            End If
-                        End If
                         ''从响应头获取文件名
                         'If Info.IsFirstThread Then
                         '    Dim FileName As String = GetFileNameFromResponse(HttpResponse)
@@ -1243,6 +1264,7 @@ StartThread:
                         '    End If
                         'End If
                         '文件大小校验
+                        ContentLength = response.Content.Headers.ContentLength.GetValueOrDefault(-1)
                         If ContentLength = -1 Then
                             If FileSize > 1 Then
                                 If Info.DownloadStart = 0 Then
@@ -1552,21 +1574,6 @@ Retry:
                             Log($"[Download]     {Th.Uuid}#，状态 {GetStringFromEnum(Th.State)}，范围 {Th.DownloadStart}~{Th.DownloadStart + Th.DownloadDone}，完成 {Th.DownloadDone}，剩余 {Th.DownloadUndone}")
                         Next
                         Throw New Exception(CheckResult)
-                    End If
-                    'ETag 缓存
-                    If ETagStatus IsNot Nothing Then
-                        Log($"[Net] 保存 ETag 状态 {ETagStatus.Host}:{ETagStatus.EID} -> {LocalPath}")
-                        Dim etags = ETagDatabase.GetCollection(Of ETagData)("ETag")
-                        Dim qu = Query.And(
-                            Query.EQ("Host", New BsonValue(ETagStatus.Host)),
-                            Query.EQ("EID", New BsonValue(ETagStatus.EID)),
-                            Query.EQ("File", New BsonValue(LocalPath)))
-                        If Not etags.Find(qu).Any() Then
-                            ETagStatus.Hash = GetFileSHA256(LocalPath)
-                            ETagStatus.File = LocalPath
-                            ETagStatus.Length = New FileInfo(LocalPath).Length
-                            etags.Insert(ETagStatus)
-                        End If
                     End If
                     '后处理
                     If IsNoSplit Then
