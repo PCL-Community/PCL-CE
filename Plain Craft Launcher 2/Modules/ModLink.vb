@@ -206,14 +206,14 @@ Public Module ModLink
                 Return ports
             End If
 
-            dwRetVal = GetExtendedTcpTable(IntPtr.Zero, dwSize, True, 2, 5, 0)
+            dwRetVal = GetExtendedTcpTable(IntPtr.Zero, dwSize, True, 2, 3, 0)
             If dwRetVal <> 0 AndAlso dwRetVal <> 122 Then ' 122 表示缓冲区不足
                 Return ports
             End If
 
             tcpTable = Marshal.AllocHGlobal(dwSize)
             Try
-                If GetExtendedTcpTable(tcpTable, dwSize, True, 2, 5, 0) <> 0 Then
+                If GetExtendedTcpTable(tcpTable, dwSize, True, 2, 3, 0) <> 0 Then
                     Return ports
                 End If
 

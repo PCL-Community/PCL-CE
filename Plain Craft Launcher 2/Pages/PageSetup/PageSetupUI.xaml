@@ -112,6 +112,7 @@
                             <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
+                        <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
                         <StackPanel x:Name="PanelBlur" Margin="0,0,0,7">
                             <local:MyCheckBox Text="高级材质" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="选中此功能后会在部分透明区域（例如卡片）实现高斯模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
                             <Grid x:Name="PanBlurValue" Margin="0,5,0,5" Height="35">

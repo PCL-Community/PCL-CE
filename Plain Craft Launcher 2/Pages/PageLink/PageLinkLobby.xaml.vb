@@ -240,7 +240,7 @@
     '检测本地 MC 局域网实例
     Private Sub DetectMcInstance() Handles BtnRefresh.Click
         ComboWorldList.Items.Clear()
-        ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+        ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
         ComboWorldList.SelectedIndex = 0
         BtnCreate.IsEnabled = False
         BtnRefresh.IsEnabled = False
@@ -250,11 +250,15 @@
                            RunInUi(Sub()
                                        ComboWorldList.Items.Clear()
                                        If Worlds.Count = 0 Then
-                                           ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = Nothing, .Content = "无可用实例", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                           ComboWorldList.Items.Add(New MyComboBoxItem With {
+                                                                    .Tag = Nothing,
+                                                                    .Content = "无可用实例"
+                                                                    })
                                        Else
                                            For Each World In Worlds
-                                               ComboWorldList.Items.Add(New ComboBoxItem With {.Tag = World, .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})",
-                                                                        .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
+                                               ComboWorldList.Items.Add(New MyComboBoxItem With {
+                                                                        .Tag = World,
+                                                                        .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})"})
                                            Next
                                            If IsEasyTierExist Then BtnCreate.IsEnabled = True
                                        End If

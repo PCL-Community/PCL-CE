@@ -26,7 +26,7 @@ Public Class PageVersionCompResource
             BtnManageDownload.Visibility = Visibility.Collapsed
             BtnHintDownload.Visibility = Visibility.Collapsed
         End If
-
+        
     End Sub
 
     Private Function GetRequireLoaderData() As CompLocalLoaderData
@@ -284,7 +284,20 @@ Public Class PageVersionCompResource
             End If
             '修改缓存
             ModItems.Clear()
-            For Each ModEntity As LocalCompFile In CompResourceListLoader.Output
+            Dim rootPath = PageVersionLeft.Version.PathIndie & If(PageVersionLeft.Version.Version.HasLabyMod, "labymod-neo\fabric\" & PageVersionLeft.Version.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            rootPath = System.IO.Path.GetFullPath(rootPath.TrimEnd("\"))
+
+            Dim itemsToShow = CompResourceListLoader.Output.Where(Function(item)
+                                                                      Dim itemPath = If(item.IsFolder, item.ActualPath, item.Path)
+                                                                      Dim parentDir = Directory.GetParent(itemPath)?.FullName
+                                                                      If String.IsNullOrEmpty(CurrentFolderPath) Then
+                                                                          Return parentDir.Equals(rootPath, StringComparison.OrdinalIgnoreCase)
+                                                                      Else
+                                                                          Return parentDir.Equals(CurrentFolderPath, StringComparison.OrdinalIgnoreCase)
+                                                                      End If
+                                                                  End Function).ToList()
+
+            For Each ModEntity As LocalCompFile In itemsToShow
                 ModItems(ModEntity.RawFileName) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
@@ -364,7 +377,7 @@ Public Class PageVersionCompResource
     ''' </summary>
     Public Sub RefreshUI()
         If PanList Is Nothing Then Return
-        Dim ShowingMods = If(IsSearching, SearchResult, If(CompResourceListLoader.Output, New List(Of LocalCompFile))).Where(Function(m) CanPassFilter(m)).ToList
+        Dim ShowingMods = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry)).Where(Function(m) CanPassFilter(m)).ToList
         '重新列出列表
         AniControlEnabled += 1
         If ShowingMods.Any() Then
@@ -400,7 +413,7 @@ Public Class PageVersionCompResource
         Dim DisabledCount As Integer = 0
         Dim UpdateCount As Integer = 0
         Dim UnavalialeCount As Integer = 0
-        Dim ItemSource = If(IsSearching, SearchResult, If(CompResourceListLoader.Output, New List(Of LocalCompFile)))
+        Dim ItemSource = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry))
         For Each ModItem In ItemSource
             AnyCount += 1
             If ModItem.CanUpdate Then UpdateCount += 1
@@ -435,6 +448,8 @@ Public Class PageVersionCompResource
         Else
             BtnManageBack.Visibility = Visibility.Collapsed
         End If
+        
+
 
         '-----------------
         ' 底部栏
@@ -533,6 +548,8 @@ Public Class PageVersionCompResource
             Log(ex, "打开 Mods 文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
+
+
 
     ''' <summary>
     ''' 全选。
@@ -1416,6 +1433,11 @@ Install:
                         If(PageVersionLeft.Version.Version.HasNeoForge, CompLoaderType.NeoForge,
                         If(PageVersionLeft.Version.Version.HasFabric OrElse ModdedLabyMod, CompLoaderType.Fabric, CompLoaderType.Any))), CurrentCompType}})
             Else
+                '对于原理图文件，使用异步加载避免UI卡顿
+                If ModEntry.Path.EndsWithF(".litematic", True) OrElse ModEntry.Path.EndsWithF(".schem", True) OrElse ModEntry.Path.EndsWithF(".schematic", True) OrElse ModEntry.Path.EndsWithF(".nbt", True) Then
+                    ShowSchematicInfoAsync(ModEntry)
+                    Return
+                End If
                 '获取信息
                 Dim ContentLines As New List(Of String)
                 
@@ -1461,109 +1483,7 @@ Install:
                     ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
                     
-                    '对于原理图文件，显示额外的 NBT 数据
-                    If ModEntry.Path.EndsWithF(".litematic", True) Then
-                        ContentLines.Add("")
-                        ContentLines.Add("详细信息：")
-                        
-                        If ModEntry.LitematicVersion.HasValue Then
-                            ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
-                        End If
-                        
-                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
-                        End If
-                         
-                        If ModEntry.LitematicTotalBlocks.HasValue Then
-                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-                        End If                       
-                        If ModEntry.LitematicTotalVolume.HasValue Then
-                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
-                        End If
-                        
-                        If ModEntry.LitematicRegionCount.HasValue Then
-                            ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
-                        End If
-                        
-                        If ModEntry.LitematicTimeCreated.HasValue Then
-                            Try
-                                Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).DateTime
-                                ContentLines.Add("创建时间：" & createdTime.ToString("yyyy-MM-dd HH:mm:ss"))
-                            Catch
-                                ' 如果时间转换失败，显示原始时间戳
-                                ContentLines.Add("创建时间：" & ModEntry.LitematicTimeCreated.Value)
-                            End Try
-                        End If
-                        
-                        If ModEntry.LitematicTimeModified.HasValue Then
-                            Try
-                                Dim modifiedTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeModified.Value).DateTime
-                                ContentLines.Add("修改时间：" & modifiedTime.ToString("yyyy-MM-dd HH:mm:ss"))
-                            Catch
-                                ' 如果时间转换失败，显示原始时间戳
-                                ContentLines.Add("修改时间：" & ModEntry.LitematicTimeModified.Value)
-                            End Try
-                        End If
-                    ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
-                        ContentLines.Add("")
-                        ContentLines.Add("详细信息：")
-                        
-                        If ModEntry.SchemOriginalName IsNot Nothing Then
-                            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
-                        End If
-                        
-                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
-                        End If
-                        
-                        If ModEntry.LitematicTotalBlocks.HasValue Then
-                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-                        End If
-                        
-                        If ModEntry.LitematicTotalVolume.HasValue Then
-                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
-                        End If
-                        
-                        If ModEntry.LitematicTimeCreated.HasValue Then
-                            Try
-                                Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).DateTime
-                                ContentLines.Add("创建日期：" & createdTime.ToString("yyyy-MM-dd HH:mm:ss"))
-                            Catch
-                                ' 如果时间转换失败，显示原始时间戳
-                                ContentLines.Add("创建日期：" & ModEntry.LitematicTimeCreated.Value)
-                            End Try
-                        End If
-                    ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
-                        ContentLines.Add("")
-                        ContentLines.Add("详细信息：")
-                        
-                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
-                        End If
-                        
-                        If ModEntry.LitematicTotalBlocks.HasValue Then
-                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-                        End If
-                        
-                        If ModEntry.LitematicTotalVolume.HasValue Then
-                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
-                        End If
-                    ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
-                        ContentLines.Add("")
-                        ContentLines.Add("详细信息：")
-                        
-                        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-                            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
-                        End If
-                        
-                        If ModEntry.LitematicTotalBlocks.HasValue Then
-                            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-                        End If
-                        
-                        If ModEntry.LitematicTotalVolume.HasValue Then
-                            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
-                        End If
-                    End If
+                    '原理图文件的详情信息已通过异步方法处理
                 End If
                 
                 '只有普通文件才显示调试信息
@@ -1653,6 +1573,224 @@ Install:
     Public Sub ED_Click(sender As MyIconButton, e As EventArgs)
         Dim ListItem As MyLocalCompItem = sender.Tag
         EDMods({ListItem.Entry}, ListItem.Entry.State = LocalCompFile.LocalFileStatus.Disabled)
+    End Sub
+
+    ''' <summary>
+    ''' 异步显示原理图详情信息，避免UI卡顿
+    ''' </summary>
+    Private Sub ShowSchematicInfoAsync(ModEntry As LocalCompFile)
+        '显示加载提示
+        Hint("正在加载详情....", HintType.Info)
+        
+        '在后台线程中加载NBT数据
+        RunInNewThread(Sub()
+            Try
+                '确保NBT数据已加载
+                ModEntry.LoadNbtDataIfNeeded()
+                
+                '在UI线程中显示详情
+                RunInUi(Sub()
+                    Try
+                        '构建详情信息
+                        Dim ContentLines As New List(Of String)
+                        
+                        If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
+                        If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
+                        ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                        If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
+                        
+                        '根据文件类型显示详细信息
+                        If ModEntry.Path.EndsWithF(".litematic", True) Then
+                            ShowLitematicDetails(ContentLines, ModEntry)
+                        ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
+                            ShowSchemDetails(ContentLines, ModEntry)
+                        ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
+                            ShowSchematicDetails(ContentLines, ModEntry)
+                        ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
+                            ShowNbtDetails(ContentLines, ModEntry)
+                        End If
+                        
+                        '显示调试信息
+                        ShowDebugInfo(ContentLines, ModEntry)
+                        
+                        '显示详情对话框
+                        ShowSchematicDialog(ContentLines, ModEntry)
+                        
+                    Catch ex As Exception
+                        Log(ex, "显示原理图详情失败", LogLevel.Feedback)
+                        MyMsgBox("显示原理图详情时发生错误：" & ex.Message, "错误")
+                    End Try
+                End Sub)
+                
+            Catch ex As Exception
+                '在UI线程中显示错误
+                RunInUi(Sub()
+                    Log(ex, "加载原理图NBT数据失败", LogLevel.Feedback)
+                    MyMsgBox("加载原理图详情时发生错误：" & ex.Message, "错误")
+                End Sub)
+            End Try
+        End Sub)
+    End Sub
+    
+    Private Sub ShowLitematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        ContentLines.Add("")
+        ContentLines.Add("详细信息：")
+        
+        If ModEntry.LitematicVersion.HasValue Then
+            ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
+        End If
+        
+        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+        End If
+         
+        If ModEntry.LitematicTotalBlocks.HasValue Then
+            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+        End If                       
+        If ModEntry.LitematicTotalVolume.HasValue Then
+            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicRegionCount.HasValue Then
+            ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
+        End If
+        
+        If ModEntry.LitematicTimeCreated.HasValue Then
+            Try
+                Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).ToLocalTime().DateTime
+                ContentLines.Add("创建时间：" & createdTime.ToString("yyyy-MM-dd HH:mm:ss"))
+            Catch
+                ContentLines.Add("创建时间：" & ModEntry.LitematicTimeCreated.Value)
+            End Try
+        End If
+        
+        If ModEntry.LitematicTimeModified.HasValue Then
+            Try
+                Dim modifiedTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeModified.Value).ToLocalTime().DateTime
+                ContentLines.Add("修改时间：" & modifiedTime.ToString("yyyy-MM-dd HH:mm:ss"))
+            Catch
+                ContentLines.Add("修改时间：" & ModEntry.LitematicTimeModified.Value)
+            End Try
+        End If
+    End Sub
+    
+    Private Sub ShowSchemDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        ContentLines.Add("")
+        ContentLines.Add("详细信息：")
+        
+        If ModEntry.StructureGameVersion IsNot Nothing Then
+            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
+        End If
+        
+        If ModEntry.StructureDataVersion.HasValue Then
+            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+        End If
+        
+        If ModEntry.SpongeVersion.HasValue Then
+            ContentLines.Add("Sponge版本：" & ModEntry.SpongeVersion.Value)
+        End If
+        
+        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+            ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
+        End If
+        
+        If ModEntry.LitematicTotalBlocks.HasValue Then
+            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicTotalVolume.HasValue Then
+            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicRegionCount.HasValue Then
+            ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
+        End If
+        
+        If ModEntry.SchemOriginalName IsNot Nothing Then
+            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
+        End If
+        
+        ContentLines.Add("文件类型：Sponge Schematic")
+    End Sub
+    
+    Private Sub ShowSchematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        ContentLines.Add("")
+        ContentLines.Add("详细信息：")
+        
+        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+        End If
+        
+        If ModEntry.LitematicTotalBlocks.HasValue Then
+            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicTotalVolume.HasValue Then
+            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+        End If
+    End Sub
+    
+    Private Sub ShowNbtDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        ContentLines.Add("")
+        ContentLines.Add("详细信息：")
+        
+        If ModEntry.StructureGameVersion IsNot Nothing Then
+            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
+        End If
+        
+        If ModEntry.StructureDataVersion.HasValue Then
+            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+        End If
+        
+        If ModEntry.LitematicEnclosingSize IsNot Nothing Then
+            ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
+        End If
+        
+        If ModEntry.LitematicTotalBlocks.HasValue Then
+            ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicTotalVolume.HasValue Then
+            ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
+        End If
+        
+        If ModEntry.LitematicRegionCount.HasValue Then
+            ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
+        End If
+        
+        If ModEntry.StructureAuthor IsNot Nothing Then
+            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
+        End If
+        
+        ContentLines.Add("文件类型：原版结构")
+    End Sub
+    
+    Private Sub ShowDebugInfo(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        Dim DebugInfo As New List(Of String)
+        If ModEntry.ModId IsNot Nothing Then
+            DebugInfo.Add("Mod ID：" & ModEntry.ModId)
+        End If
+        If ModEntry.Dependencies.Any Then
+            DebugInfo.Add("依赖于：")
+            For Each Dep In ModEntry.Dependencies
+                DebugInfo.Add(" - " & Dep.Key & If(Dep.Value Is Nothing, "", "，版本：" & Dep.Value))
+            Next
+        End If
+        If DebugInfo.Any Then
+            ContentLines.Add("")
+            ContentLines.AddRange(DebugInfo)
+        End If
+    End Sub
+    
+    Private Sub ShowSchematicDialog(ContentLines As List(Of String), ModEntry As LocalCompFile)
+        '投影原理图文件不显示百科搜索选项
+        If ModEntry.Url Is Nothing Then
+            MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "返回")
+        Else
+            If MyMsgBox(Join(ContentLines, vbCrLf), ModEntry.Name, "打开官网", "返回") = 1 Then
+                OpenWebsite(ModEntry.Url)
+            End If
+        End If
     End Sub
 
 #End Region
