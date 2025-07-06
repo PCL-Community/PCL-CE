@@ -7,7 +7,7 @@ Public Class UpdatesRandomModel '社区自己的更新系统格式
     Private _randIndex As Integer
     Public Sub New(Sources As IEnumerable(Of IUpdateSource))
         _sources = Sources
-        Dim rand As New Random()
+        Dim rand As New Random(DateTime.Now.Millisecond)
         _randIndex = rand.Next(0, _sources.Count() - 1)
     End Sub
 
