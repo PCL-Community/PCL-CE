@@ -348,16 +348,17 @@ Retry:
             For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
                 'Log("当前行：" & PlayerInfo)
                 If PlayerInfo.Contains("───────") OrElse PlayerInfo.ContainsF("hostname", True) OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
-                If PlayerInfo.Split("│")(2).Trim().Contains("PublicServer") Then Continue For '服务器
+                Dim s = PlayerInfo.Split("│")
+                If s(2).Trim().Contains("PublicServer") Then Continue For '服务器
                 Dim ETInfo As New ETPlayerInfo With {
-                    .IsHost = Not PlayerInfo.Split("│")(2).Trim().StartsWithF("J-", True),
-                    .Hostname = PlayerInfo.Split("│")(2).Trim(),
-                    .Cost = PlayerInfo.Split("│")(3).BeforeLast("(").Trim(),
-                    .Ping = Math.Round(Val(PlayerInfo.Split("│")(4).Trim())),
-                    .Loss = Math.Round(Val(PlayerInfo.Split("│")(5).Trim()) * 100, 1),
-                    .NatType = PlayerInfo.Split("│")(9).Trim(),
-                    .McName = If(PlayerInfo.Split("│")(2).Split("-").Length = 3, PlayerInfo.Split("│")(2).Split("-")(2).Trim(), Nothing),
-                    .NaidName = PlayerInfo.Split("│")(2).Trim().Split("-")(1).Trim()
+                    .IsHost = Not s(2).Trim().StartsWithF("J-", True),
+                    .Hostname = s(2).Trim(),
+                    .Cost = s(3).BeforeLast("(").Trim(),
+                    .Ping = Math.Round(Val(s(4).Trim())),
+                    .Loss = Math.Round(Val(s(5).Trim()) * 100, 1),
+                    .NatType = s(9).Trim(),
+                    .McName = If(s(2).Split("-").Length = 3, s(2).Split("-")(2).Trim(), Nothing),
+                    .NaidName = s(2).Trim().Split("-")(1).Trim()
                 }
                 If ETInfo.Cost.ContainsF("Local", True) Then LocalInfo = ETInfo
                 If ETInfo.IsHost Then
