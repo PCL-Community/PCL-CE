@@ -14,7 +14,7 @@ Class PageOtherLog
     End Sub
     Public Sub LoadList()
         PanList.Children.Clear()
-        For Each item In Directory.GetFiles("./PCL/Log")
+        For Each item In Directory.GetFiles(IO.Path.Combine(Path, "PCL/Log"))
             Dim ele As MyListItem = New MyListItem With {.Type = MyListItem.CheckType.Clickable, .Title = $"{IO.Path.GetFileName(item).Replace("Launch-", "").Replace(".log", "")} 的日志", .Info = IO.Path.GetFullPath(item)}
             AddHandler ele.Click, Sub()
                                       SaveLogFile(item)
@@ -39,7 +39,7 @@ Class PageOtherLog
 
             ' 4. 使用 File.WriteAllText 保存文件
             Try
-                File.WriteAllText(filePath, File.ReadAllText(srcFile))
+                File.Copy(filePath, srcFile)
                 Hint("日志文件保存成功！"， HintType.Finish)
             Catch ex As Exception
                 Hint($"保存失败: {ex.Message}"， HintType.Critical)
