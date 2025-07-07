@@ -1,5 +1,4 @@
 Imports System.IO.Compression
-Imports System.Net.Mail
 Imports System.Threading.Tasks
 Imports Microsoft.Identity.Client
 Imports Microsoft.Identity.Client.Broker
