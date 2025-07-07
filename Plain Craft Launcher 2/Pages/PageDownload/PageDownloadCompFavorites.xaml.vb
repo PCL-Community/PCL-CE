@@ -225,6 +225,7 @@ Public Class PageDownloadCompFavorites
         AddHandler Btn_EditNote.Click, Sub(sender As Object, e As EventArgs)
                                            CurrentFavTarget.Notes.TryGetValue(CompId, Notes)
                                            Dim DesiredNote = MyMsgBoxInput("修改备注", DefaultInput:=Notes)
+                                           '只有在用户确认时才更新备注，避免取消时清空原有备注
                                            If DesiredNote IsNot Nothing Then
                                                CurrentFavTarget.Notes(CompId) = DesiredNote
                                                NoteItem.Text = If(String.IsNullOrWhiteSpace(DesiredNote), "", $" ({DesiredNote})")
