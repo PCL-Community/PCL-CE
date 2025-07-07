@@ -297,7 +297,7 @@ Retry:
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
     End Sub
     'EasyTier Cli 信息获取
-    Private Sub GetETInfo(Optional RemainRetry As Integer = 3)
+    Private Sub GetETInfo(Optional RemainRetry As Integer = 5)
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
@@ -331,7 +331,11 @@ Retry:
                 If IsETFirstCheckFinished Then
                     Hint("大厅已被解散", HintType.Critical)
                 Else
-                    Hint("该大厅不存在", HintType.Critical)
+                    If IsHost Then
+                        Hint("大厅创建失败", HintType.Critical)
+                    Else
+                        Hint("该大厅不存在", HintType.Critical)
+                    End If
                 End If
                 RunInUi(Sub()
                             CardPlayerList.Title = "大厅成员列表（正在获取信息）"
