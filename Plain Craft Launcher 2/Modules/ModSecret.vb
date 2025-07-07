@@ -789,7 +789,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
         If Not IsVerisonLatest() Then
             Dim latest As VersionDataModel = Nothing
-            Dim checkUpdateEx As Exceptionn = Nothing
+            Dim checkUpdateEx As Exception = Nothing
             RunInThread(
                 Sub()
                     Try
@@ -802,7 +802,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 End Sub
             ).Join()
             If latest Is Nothing Then
-                Log(ex,"[Update] 检查更新失败",LogLevel.MsgBox)
+                Log(checkUpdateEx,"[Update] 检查更新失败",LogLevel.MsgBox)
                 Exit Sub
             End If
             If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
