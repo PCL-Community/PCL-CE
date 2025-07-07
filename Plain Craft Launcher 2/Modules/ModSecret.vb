@@ -790,7 +790,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         If Not IsVerisonLatest() Then
             Dim latest As VersionDataModel = Nothing
             Dim checkUpdateEx As Exception = Nothing
-            RunInThread(
+            RunInNewThread(
                 Sub()
                     Try
                         latest = RemoteServer.GetLatestVersion(
