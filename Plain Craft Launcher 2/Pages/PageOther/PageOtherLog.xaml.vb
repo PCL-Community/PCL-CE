@@ -27,7 +27,7 @@ Class PageOtherLog
         ' 1. 创建 SaveFileDialog 实例
         Dim saveDialog As New SaveFileDialog()
 
-        ' 2. 配置对话框选项
+        ' 2. 配置对话框
         saveDialog.Filter = "PCL2 日志文件 (*.log)|*.log" ' 文件类型筛选
         saveDialog.DefaultExt = ".log" ' 默认扩展名
         saveDialog.FileName = IO.Path.GetFileName(srcFile)
