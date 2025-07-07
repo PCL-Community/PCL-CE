@@ -650,7 +650,7 @@ Write:
         IsMsSkinChanging = True
         '开始实际获取
         RunInNewThread(
-        Async Sub()
+        Sub()
             Try
 Retry:
                 If McLoginMsLoader.State = LoadState.Loading Then McLoginMsLoader.WaitForExit() '等待登录结束

@@ -274,8 +274,10 @@ Retry:
                     If itemSkin("url") Is Nothing Then Continue For
                     Dim localFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}.png"
                     Dim capeFrontFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}-front.png"
-                    itemSkin("url") = capeFrontFile
-                    If File.Exists(localFile) AndAlso File.Exists(capeFrontFile) Then Continue For
+                    If File.Exists(localFile) AndAlso File.Exists(capeFrontFile) Then
+                        itemSkin("url") = capeFrontFile
+                        Continue For
+                    End If
                     NetDownloadByLoader(itemSkin("url").ToString(), localFile)
                     Dim capeFrontRegion As New Rectangle(0, 0, 11, 17)
                     Dim capeFront As New Bitmap(capeFrontRegion.Width, capeFrontRegion.Height)
@@ -283,6 +285,7 @@ Retry:
                     Dim gra = Graphics.FromImage(capeFront)
                     gra.DrawImage(capeImage, capeFrontRegion, capeFrontRegion, GraphicsUnit.Pixel)
                     capeFront.Save(capeFrontFile)
+                    itemSkin("url") = capeFrontFile
                 Next
                 '获取玩家的所有披风
                 Dim SelId As Integer? = Nothing

@@ -6,7 +6,7 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
-            <local:MyCard Margin="0,15" Title="Natayark ID" x:Name="CardLogged">
+            <local:MyCard Margin="0,10,0,0" Title="Natayark ID" x:Name="CardLogged">
                 <StackPanel Margin="25,40,25,20" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>

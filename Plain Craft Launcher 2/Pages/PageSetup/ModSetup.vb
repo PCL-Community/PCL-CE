@@ -147,6 +147,7 @@ Public Class ModSetup
         {"UiDarkMode", New SetupEntry(2, Source:=SetupSource.Registry)},
         {"UiDarkColor", New SetupEntry(1, Source:=SetupSource.Registry)},
         {"UiLightColor", New SetupEntry(1, Source:=SetupSource.Registry)},
+        {"UiLockWindowSize", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"UiLogoType", New SetupEntry(1)},
         {"UiLogoText", New SetupEntry("")},
         {"UiLogoLeft", New SetupEntry(False)},
@@ -592,6 +593,14 @@ Public Class ModSetup
     End Sub
     Public Sub UiBackgroundColorful(Value As Boolean)
         ThemeRefresh()
+    End Sub
+
+    Public Sub UiLockWindowSize(Value As Boolean)
+        If Value Then
+            FrmMain.RemoveResizer()
+        Else
+            FrmMain.AddResizer()
+        End If
     End Sub
 
     '背景图片

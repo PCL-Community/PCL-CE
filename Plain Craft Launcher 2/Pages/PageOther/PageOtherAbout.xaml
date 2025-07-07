@@ -440,6 +440,8 @@
                         <RowDefinition Height="60" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="60" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="60" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Java Launch Wrapper" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2022 00ll00&#xa;Licensed under the MIT License." TextWrapping="Wrap" />
@@ -578,6 +580,13 @@ EventType="打开网页" EventData="https://github.com/litedb-org/LiteDB/blob/ma
                 EventType="打开网页" EventData="https://github.com/Kryptos-FR/markdig.wpf" />
                     <local:MyButton Grid.Row="39" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md" />
+
+                    <TextBlock Grid.Row="40" Grid.Column="0" Text="CacheCow" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="40" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2013 Ali Kheyrollahi" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="41" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                EventType="打开网页" EventData="https://github.com/aliostad/CacheCow" />
+                    <local:MyButton Grid.Row="41" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+EventType="打开网页" EventData="https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt" />
                 </Grid>
             </local:MyCard>
         </StackPanel>

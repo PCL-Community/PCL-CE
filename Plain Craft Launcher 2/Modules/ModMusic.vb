@@ -493,7 +493,7 @@ Public Module ModMusic
                            End While
                            If Not CurrentWave.Equals(MusicNAudio) Then Exit Sub
                            SMTCTimelineUpdater(CurrentWave, Reader)
-                       End Sub)
+                       End Sub, "SMTC Updater")
     End Sub
 #End Region
 
