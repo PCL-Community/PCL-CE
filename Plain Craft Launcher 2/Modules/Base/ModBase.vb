@@ -3268,10 +3268,9 @@ Retry:
 
     End Sub
     Public Function Base64Decode(Text As String) As String
-
+        If String.IsNullOrWhiteSpace(Text) Then Return ""
         Dim decodedBytes As Byte() = Convert.FromBase64String(Text)
         Return System.Text.Encoding.UTF8.GetString(decodedBytes)
-
     End Function
     Public Function Base64Encode(Text As String) As String
         Dim bytes As Byte() = System.Text.Encoding.UTF8.GetBytes(Text)

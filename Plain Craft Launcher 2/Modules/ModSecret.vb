@@ -26,7 +26,7 @@ Friend Module ModSecret
     'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
     Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
     '联机服务根地址
-    Public LinkServerRoots As New List(Of String) From {If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), ""), If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT2"), "")}
+    Public LinkServerRoots As String() = {If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), ""), If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT2"), "")}
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
     Public Const OAuthClientId As String = ""
@@ -35,7 +35,7 @@ Friend Module ModSecret
     Public Const TelemetryKey As String = ""
     Public Const NatayarkClientId As String = ""
     Public Const NatayarkClientSecret As String = ""
-    Public LinkServerRoots As New List(Of String) From {"", ""}
+    Public LinkServerRoots As String() = Base64Decode("").Split(",")
 #End If
 
     Friend Sub SecretOnApplicationStart()
