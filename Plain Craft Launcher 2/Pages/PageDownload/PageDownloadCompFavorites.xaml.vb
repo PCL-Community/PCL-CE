@@ -225,8 +225,11 @@
         AddHandler Btn_EditNote.Click, Sub(sender As Object, e As EventArgs)
                                            CurrentFavTarget.Notes.TryGetValue(CompId, Notes)
                                            Dim DesiredNote = MyMsgBoxInput("修改备注", DefaultInput:=Notes)
-                                           CurrentFavTarget.Notes(CompId) = DesiredNote
-                                           NoteItem.Text = If(String.IsNullOrWhiteSpace(DesiredNote), "", $" ({DesiredNote})")
+                                           If Not String.IsNullOrWhiteSpace(DesiredNote) Then
+                                               CurrentFavTarget.Notes(CompId) = DesiredNote
+                                           End If
+                                           CurrentFavTarget.Notes.TryGetValue(CompId, Notes)
+                                           NoteItem.Text = If(String.IsNullOrWhiteSpace(Notes), "", $" ({Notes})")
                                            CompFavorites.Save()
                                        End Sub
         '删除按钮
