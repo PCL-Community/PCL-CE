@@ -27,7 +27,7 @@
         HintAnnounce.Theme = MyHint.Themes.Blue
         RunInNewThread(Sub()
                            If Not Setup.Get("LinkEula") Then
-                               Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
+                               Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我已知晓大厅功能使用途中可能需要提供管理员权限以用于必要的操作，并会确保 PCL CE 为从官方发布渠道下载的副本。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
                                                     "我已阅读并同意", "拒绝并返回", "查看相关隐私协议",
                                                     Button3Action:=Sub() OpenWebsite("https://www.pclc.cc/privacy/personal-info-brief.html"))
                                    Case 1
@@ -88,27 +88,30 @@
     Public Const AllowedVersion As Integer = 1
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
+                           RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
                            Try
+                               Dim ServerNumber As Integer = 0
                                Dim Jobj As JObject = Nothing
-                               Dim Cache As Integer = Val(NetRequestRetry($"{LinkServerRoot}/api/link/cache.ini", "GET", Nothing, "application/json"))
-                               If Cache = Setup.Get("LinkAnnounceCacheVer") Then
-                                   Log("[Link] 使用缓存的公告数据")
-                                   Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
-                               Else
-                                   Log("[Link] 尝试拉取公告数据")
-                                   Dim Received As String = NetRequestRetry($"{LinkServerRoot}/api/link/announce.json", "GET", Nothing, "application/json")
-                                   Jobj = JObject.Parse(Received)
-                                   Setup.Set("LinkAnnounceCache", Received)
-                                   Setup.Set("LinkAnnounceCacheVer", Cache)
-                               End If
-                               If Not Val(Jobj("version")) = AllowedVersion Then
-                                   IsLobbyAvailable = False
-                                   RunInUi(Sub()
-                                               HintAnnounce.Theme = MyHint.Themes.Red
-                                               HintAnnounce.Text = "请更新到最新版本 PCL CE 以继续使用大厅"
-                                           End Sub)
-                                   Exit Sub
-                               End If
+                               Dim Cache As Integer = Nothing
+Retry:
+                               Try
+                                   Cache = Val(NetRequestOnce($"{LinkServerRoots(ServerNumber)}/api/link/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
+                                   If Cache = Setup.Get("LinkAnnounceCacheVer") Then
+                                       Log("[Link] 使用缓存的公告数据")
+                                       Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                                   Else
+                                       Log("[Link] 尝试拉取公告数据")
+                                       Dim Received As String = NetRequestOnce($"{LinkServerRoots(ServerNumber)}/api/link/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
+                                       Jobj = JObject.Parse(Received)
+                                       Setup.Set("LinkAnnounceCache", Received)
+                                       Setup.Set("LinkAnnounceCacheVer", Cache)
+                                   End If
+                               Catch ex As Exception
+                                   Log(ex, $"[Link] 从服务器 {ServerNumber} 获取公告缓存失败")
+                                   ServerNumber += 1
+                                   If ServerNumber <= LinkServerRoots.Count - 1 Then GoTo Retry
+                               End Try
+                               If Jobj Is Nothing Then Throw New Exception("获取联机数据失败")
                                IsLobbyAvailable = Jobj("available")
                                RequiresRealname = Jobj("requireRealname")
                                '公告
@@ -143,8 +146,6 @@
                                            HintAnnounce.Text = "连接到大厅服务器失败"
                                        End Sub)
                                Log(ex, "[Link] 获取大厅公告失败")
-                           Finally
-                               RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
                            End Try
                        End Sub)
     End Sub
@@ -294,7 +295,7 @@
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
     End Sub
     'EasyTier Cli 信息获取
-    Private Sub GetETInfo(Optional RemainRetry As Integer = 3)
+    Private Sub GetETInfo(Optional RemainRetry As Integer = 5)
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
@@ -328,7 +329,11 @@
                 If IsETFirstCheckFinished Then
                     Hint("大厅已被解散", HintType.Critical)
                 Else
-                    Hint("该大厅不存在", HintType.Critical)
+                    If IsHost Then
+                        Hint("大厅创建失败", HintType.Critical)
+                    Else
+                        Hint("该大厅不存在", HintType.Critical)
+                    End If
                 End If
                 RunInUi(Sub()
                             CardPlayerList.Title = "大厅成员列表（正在获取信息）"
@@ -345,16 +350,17 @@
             For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
                 'Log("当前行：" & PlayerInfo)
                 If PlayerInfo.Contains("───────") OrElse PlayerInfo.ContainsF("hostname", True) OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
-                If PlayerInfo.Split("│")(2).Trim().Contains("PublicServer") Then Continue For '服务器
+                Dim s = PlayerInfo.Split("│")
+                If s(2).Trim().Contains("PublicServer") Then Continue For '服务器
                 Dim ETInfo As New ETPlayerInfo With {
-                    .IsHost = Not PlayerInfo.Split("│")(2).Trim().StartsWithF("J-", True),
-                    .Hostname = PlayerInfo.Split("│")(2).Trim(),
-                    .Cost = PlayerInfo.Split("│")(3).BeforeLast("(").Trim(),
-                    .Ping = Math.Round(Val(PlayerInfo.Split("│")(4).Trim())),
-                    .Loss = Math.Round(Val(PlayerInfo.Split("│")(5).Trim()) * 100, 1),
-                    .NatType = PlayerInfo.Split("│")(9).Trim(),
-                    .McName = If(PlayerInfo.Split("│")(2).Split("-").Length = 3, PlayerInfo.Split("│")(2).Split("-")(2).Trim(), Nothing),
-                    .NaidName = PlayerInfo.Split("│")(2).Trim().Split("-")(1).Trim()
+                    .IsHost = Not s(2).Trim().StartsWithF("J-", True),
+                    .Hostname = s(2).Trim(),
+                    .Cost = s(3).BeforeLast("(").Trim(),
+                    .Ping = Math.Round(Val(s(4).Trim())),
+                    .Loss = Math.Round(Val(s(5).Trim()) * 100, 1),
+                    .NatType = s(9).Trim(),
+                    .McName = If(s(2).Split("-").Length = 3, s(2).Split("-")(2).Trim(), Nothing),
+                    .NaidName = s(2).Trim().Split("-")(1).Trim()
                 }
                 If ETInfo.Cost.ContainsF("Local", True) Then LocalInfo = ETInfo
                 If ETInfo.IsHost Then

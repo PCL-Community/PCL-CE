@@ -330,7 +330,10 @@ Public Module ModLink
         Dim res As New List(Of WorldInfo)
         Try
             If Not PIDLookupResult.Any Then Return res
-            Dim ports = PortFinder.GetProcessPort(Integer.Parse(PIDLookupResult.First))
+            Dim ports As New List(Of Integer)
+            For Each pid In PIDLookupResult
+                ports.AddRange(PortFinder.GetProcessPort(Integer.Parse(pid)))
+            Next
             Log($"[MCDetect] 获取到端口数量 {ports.Count}")
             For Each port In ports
                 Log($"[MCDetect] 找到疑似端口，开始验证：{port}")

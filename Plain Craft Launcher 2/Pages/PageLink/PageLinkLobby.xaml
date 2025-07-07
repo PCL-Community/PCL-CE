@@ -86,7 +86,7 @@
                         <TextBlock Grid.Row="1" Text="创建大厅" Margin="0,0,0,25" FontSize="20" Foreground="{DynamicResource ColorBrush3}" HorizontalAlignment="Center" />
                         <TextBlock Grid.RowSpan="2" Grid.Column="2" Grid.ColumnSpan="5" LineHeight="23" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,10"
                                    Text="1、在游戏菜单中选择【对局域网开放】&#xa;2、在下方选择要进行联机的实例&#xa;3、将大厅编号发送给你的朋友" />
-                        <local:MyComboBox x:Name="ComboWorldList" Grid.Row="1" Grid.Column="2" Height="25" Margin="0,10,0,0"/>
+                        <local:MyComboBox x:Name="ComboWorldList" Grid.Row="1" Grid.Column="2" Height="25" Margin="0,10,0,0" DropDownWidthSync="False"/>
                         <local:MyButton x:Name="BtnRefresh" Text="刷新" ColorType="Normal" Grid.Row="1" Grid.Column="4" Height="25" Width="50" Margin="0,10,0,0"/>
                         <local:MyButton x:Name="BtnCreate" Text="创建" ColorType="Highlight" Grid.Row="1" Grid.Column="6" Height="25" Width="50" Margin="0,10,0,0"/>
                     </Grid>
