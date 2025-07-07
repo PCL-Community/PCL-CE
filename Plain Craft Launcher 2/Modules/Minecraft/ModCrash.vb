@@ -980,7 +980,7 @@ NextStack:
 
         '根据不同原因判断
         Dim Results As New List(Of String)
-        Const LoaderIncompatibleResultText = "Mod 加载器版本与 Mod 不兼容，请前往版本修改页面更换加载器版本。\n\n详细信息：\n"
+        Const LoaderIncompatibleResultText = "Mod 加载器版本与 Mod 不兼容，请前往版本修改页面更换加载器的最新版本。\n\n详细信息：\n"
         For Each Reason In CrashReasons
             Dim Additional As List(Of String) = Reason.Value
             Select Case Reason.Key
@@ -1012,7 +1012,7 @@ NextStack:
                         If PatternIncompatibleModLoader.IsMatch(info) Then
                             Results.Add(LoaderIncompatibleResultText & info)
                         Else
-                            Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
+                            Results.Add("Mod 加载器版本与 Mod 不兼容，请前往版本修改页面更换加载器的最新版本。\n\n详细信息：\n - " & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
                         End If
                     Else
                         Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h")
