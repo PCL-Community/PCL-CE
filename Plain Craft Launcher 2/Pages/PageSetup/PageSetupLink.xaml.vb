@@ -61,7 +61,7 @@
                                End While
                                RunInUi(Sub()
                                            TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
-                                           TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
+                                           TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")}{If(NaidProfile.IsRealname, " / 已完成实名验证", If(RequiresRealname, " / 未完成实名验证", Nothing))}"
                                            CardLogged.Visibility = Visibility.Visible
                                            CardNotLogged.Visibility = Visibility.Collapsed
                                        End Sub)
