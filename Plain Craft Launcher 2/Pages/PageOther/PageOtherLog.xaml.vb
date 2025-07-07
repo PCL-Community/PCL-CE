@@ -33,7 +33,7 @@ Class PageOtherLog
         saveDialog.FileName = IO.Path.GetFileName(srcFile)
         saveDialog.OverwritePrompt = True ' 如果文件已存在，提示是否覆盖
 
-        ' 3. 显示对话框，并检查用户是否点击了"保存"
+        ' 3. 显示对话框，并检查用户是否点击"保存"
         If saveDialog.ShowDialog() = DialogResult.OK Then
             Dim filePath As String = saveDialog.FileName
 
