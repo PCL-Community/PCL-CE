@@ -2745,12 +2745,19 @@ NextElement:
             If Not Url.StartsWithF("http", True) AndAlso Not Url.StartsWithF("minecraft://", True) Then
                 Throw New Exception(Url & " 不是一个有效的网址，它必须以 http 开头！")
             End If
-            Log("[System] 正在打开网页：" & Url)
-            Process.Start(Url)
+            Log("[System] 正在使用 WebView 打开网页：" & Url)
+            Dim webViewWindow As New System.Windows.Window()
+            Dim webView As New Microsoft.Web.WebView2.Wpf.WebView2()
+            webViewWindow.Content = webView
+            webViewWindow.Title = "网页预览"
+            webViewWindow.Width = 800
+            webViewWindow.Height = 600
+            webView.Source = New Uri(Url)
+            webViewWindow.Show()
         Catch ex As Exception
-            Log(ex, "无法打开网页（" & Url & "）")
+            Log(ex, "无法使用 WebView 打开网页（" & Url & "）")
             ClipboardSet(Url, False)
-            MyMsgBox("可能由于浏览器未正确配置，PCL 无法为你打开网页。" & vbCrLf & "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" & vbCrLf &
+            MyMsgBox("可能由于未安装 WebView2 运行时，PCL 无法为你打开网页。" & vbCrLf & "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" & vbCrLf &
                      $"网址：{Url}", "无法打开网页")
         End Try
     End Sub
