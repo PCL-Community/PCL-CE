@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using static PCL.Core.Utils.ToastNotification;
+using static PCL.Core.Helper.ToastNotification;
 
 namespace PCL.Test;
 
