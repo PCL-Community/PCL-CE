@@ -419,13 +419,12 @@ Public Module ModLink
             Dim Arguments As String = Nothing
 
             '大厅设置
+            Secret = ETNetworkDefaultSecret & Secret
+            Name = ETNetworkDefaultName & Name
             If IsHost Then
-                Secret = ETNetworkDefaultSecret & Name
-                Name = ETNetworkDefaultName & Name
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
-                Name = ETNetworkDefaultName & Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
             End If
@@ -470,7 +469,7 @@ Public Module ModLink
             '启动
             Log($"[Link] 启动 EasyTier")
             'Log($"[Link] EasyTier 参数: {Arguments}")
-            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
+            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, "") & Secret.Replace(ETNetworkDefaultSecret, ""))
             PromoteService.Append($"start {ETPath}\easytier-core.exe. ; {Arguments}", Sub(s As String) ETProcessPid = s, False)
             IsETRunning = PromoteService.Activate()
             Return 0
