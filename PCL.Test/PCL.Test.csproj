@@ -103,6 +103,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SemVerTest.cs" />
     <Compile Include="SnapLiteTest.cs" />
+    <Compile Include="ToastTest.cs" />
     <Compile Include="WebServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
