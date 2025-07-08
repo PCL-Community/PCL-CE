@@ -380,22 +380,9 @@ Public Class PageVersionCompResource
         Dim ShowingMods = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry)).Where(Function(m) CanPassFilter(m)).ToList
         '重新列出列表
         AniControlEnabled += 1
-        ' 确保控件不在其他父级中
-        For Each item In PanList.Children.OfType(Of MyLocalCompItem)()
-            If item.Parent IsNot Nothing Then
-                Try
-                    Dim parent = TryCast(item.Parent, Panel)
-                    If parent IsNot Nothing Then
-                        parent.Children.Remove(item)
-                    End If
-                Catch ex As Exception
-                    Log(ex, "移除控件时出错", LogLevel.Debug)
-                End Try
-            End If
-        Next
-        PanList.Children.Clear()
         If ShowingMods.Any() Then
             PanList.Visibility = Visibility.Visible
+            PanList.Children.Clear()
             For Each TargetMod In ShowingMods
                 If Not ModItems.ContainsKey(TargetMod.RawFileName) Then Continue For
                 Dim Item As MyLocalCompItem = ModItems(TargetMod.RawFileName)
