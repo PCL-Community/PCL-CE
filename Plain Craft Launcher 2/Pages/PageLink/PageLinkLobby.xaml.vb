@@ -492,8 +492,10 @@ Retry:
                                        BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabFinishTitle.Text = "大厅创建中..."
-                                       LabFinishDesc.Text = $"您是大厅创建者，使用 {NaidProfile.Username} 的身份进行联机"
+                                       PanConnectingTip.Visibility = Visibility.Visible
+                                       PanOperation.Visibility = Visibility.Collapsed
+                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserType.Text = "创建者"
                                    End Sub)
                            Dim id As String = Nothing
                            For i = 1 To 8 '生成 8 位随机编号
@@ -519,7 +521,9 @@ Retry:
                            RunInUi(Sub()
                                        BtnCreate.IsEnabled = True
                                        CurrentSubpage = Subpages.PanFinish
-                                       LabFinishTitle.Text = "大厅已创建"
+                                       PanConnectingTip.Visibility = Visibility.Collapsed
+                                       PanOperation.Visibility = Visibility.Visible
+                                       BtnFinishExit.Text = "关闭大厅"
                                        BtnCreate.IsEnabled = True
                                    End Sub)
                            Thread.Sleep(1000)
@@ -549,8 +553,10 @@ Retry:
                                        LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabFinishTitle.Text = "加入大厅中..."
-                                       LabFinishDesc.Text = $"您是加入者，使用 {NaidProfile.Username} 的身份进行联机"
+                                       PanConnectingTip.Visibility = Visibility.Visible
+                                       PanOperation.Visibility = Visibility.Collapsed
+                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserType.Text = "加入者"
                                    End Sub)
                            Dim status As Integer = 1
                            status = LaunchLink(False, JoinedLobbyId, JoinedLobbyId.Substring(JoinedLobbyId.Length - 2))
@@ -572,8 +578,12 @@ Retry:
                            While IsWatcherStarted AndAlso RemotePort Is Nothing
                                Thread.Sleep(500)
                            End While
-                           If status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
-                           RunInUi(Sub() LabFinishTitle.Text = $"已加入 {Hostname} 的大厅")
+                           If Status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
+                           RunInUi(Sub()
+                                       PanConnectingTip.Visibility = Visibility.Collapsed
+                                       PanOperation.Visibility = Visibility.Visible
+                                       BtnFinishExit.Text = $"退出 {Hostname} 的大厅"
+                                   End Sub)
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
     End Sub
