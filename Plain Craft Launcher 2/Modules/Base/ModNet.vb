@@ -69,7 +69,7 @@ Public Module ModNet
                                             .UseCookies = True,
                                             .CookieContainer = New CookieContainer()
                                         }
-                                         _httpClient = ClientExtensions.CreateClient(_httpCache, _httpClientHandler)
+                                         _httpClient = New HttpClient(_httpClientHandler)
                                      End Sub)
         End If
         Return _httpInitTask
@@ -78,76 +78,69 @@ Public Module ModNet
     Public Class NetCache
         Implements ICacheStore, IDisposable
 
+        Private _cacheFolder As String
+        Private disposedValue As Boolean
+        Private _serializer As New MessageContentHttpMessageSerializer()
         Sub New()
-            _netCacheDatabase = New LiteDatabase($"Filename={PathTemp}Cache\NetCache.db")
+            _cacheFolder = IO.Path.Combine(PathTemp, "Cache", "NetCache")
+            Dim dir As New DirectoryInfo(_cacheFolder)
+            If Not dir.Exists Then dir.Create()
         End Sub
 
-        Private _netCacheDatabase As LiteDatabase
-        Private disposedValue As Boolean
-
-        Private Class KeyData
-            Public Property ID As String
-            Public Property Data As Byte() ' 修改为可序列化类型
-        End Class
-
         Public Async Function GetValueAsync(key As CacheKey) As Task(Of HttpResponseMessage) Implements ICacheStore.GetValueAsync
-            Try
-                'Log($"[NetCache] 尝试获取缓存 {key.ResourceUri}:{key.HashBase64}", LogLevel.Debug)
-                Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
-                Dim cached = entries.FindById(New BsonValue(GetDatabaseIdByCacheKey(key)))?.Data
-
-                If cached Is Nothing Then Return Nothing
-                Log($"[NetCache] 击中缓存 {key.ResourceUri}:{key.HashBase64}")
-                Dim seContent As New MemoryStream(cached)
-                Return Await New MessageContentHttpMessageSerializer().DeserializeToResponseAsync(seContent)
-            Catch ex As Exception
-                Log(ex, $"[NetCache] 获取 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                Throw
-            End Try
+            Dim cacheName = GetDatabaseIdByCacheKey(key)
+            Using _lock As New Mutex(True, $"NetCache-{cacheName}")
+                _lock.WaitOne()
+                Try
+                    'Log($"[NetCache] 尝试获取缓存 {key.ResourceUri}:{key.HashBase64}", LogLevel.Debug)
+                    Dim target = IO.Path.Combine(_cacheFolder, cacheName)
+                    If Not File.Exists(target) Then Return Nothing
+                    Log($"[NetCache] 击中缓存 {key.ResourceUri}:{key.HashBase64}")
+                    Dim fs As New FileStream(target, FileMode.Open, FileAccess.Read, FileShare.Read)
+                    Return Await _serializer.DeserializeToResponseAsync(fs)
+                Catch ex As Exception
+                    Log(ex, $"[NetCache] 获取 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
+                    Return Nothing
+                End Try
+                _lock.ReleaseMutex()
+            End Using
         End Function
 
         Public Async Function AddOrUpdateAsync(key As CacheKey, response As HttpResponseMessage) As Task Implements ICacheStore.AddOrUpdateAsync
             Try
                 If response Is Nothing Then Return
+                If Not response.IsSuccessStatusCode Then Return
+                Dim target = IO.Path.Combine(_cacheFolder, GetDatabaseIdByCacheKey(key))
+                Using fs As New FileStream(target, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                    fs.SetLength(0)
+                    Await _serializer.SerializeAsync(response, fs)
+                End Using
                 Log($"[NetCache] 已更新 {key.ResourceUri}:{key.HashBase64} 的缓存")
-                Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
-
-                Dim content As New MemoryStream()
-                Await New MessageContentHttpMessageSerializer().SerializeAsync(response, content)
-                Dim indexId = GetDatabaseIdByCacheKey(key)
-                Dim target = New KeyData() With {.ID = indexId, .Data = content.ToArray()}
-
-                Dim quRes = entries.FindById(New BsonValue(indexId))
-                If quRes Is Nothing Then
-                    entries.Insert(target)
-                Else
-                    entries.Update(target)
-                End If
             Catch ex As Exception
                 Log(ex, $"[NetCache] 更新 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                Throw
+                Return
             End Try
         End Function
 
         Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
             Try
-                Log($"[NetCache] 已移除 {key.ResourceUri}:{key.HashBase64} 的缓存")
-                Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
-                Return entries.Delete(New BsonValue(GetDatabaseIdByCacheKey(key)))
+                Dim target = IO.Path.Combine(_cacheFolder, GetDatabaseIdByCacheKey(key))
+                Dim fileInfo As New FileInfo(target)
+                If Not fileInfo.Exists Then Return False
+                Await Task.Run(Sub() fileInfo.Delete())
+                Return Not fileInfo.Exists
             Catch ex As Exception
                 Log(ex, $"[NetCache] 移除 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                Throw
+                Return False
             End Try
         End Function
 
         Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
             Try
                 Log($"[NetCache] 缓存已清空")
-                Dim entries = _netCacheDatabase.GetCollection(Of KeyData)("Cache")
-                entries.DeleteAll()
+                Await Task.Run(Sub() Directory.Delete(_cacheFolder, True))
             Catch ex As Exception
                 Log(ex, $"[NetCache] 清空缓存信息失败")
-                Throw
             End Try
         End Function
 
@@ -158,10 +151,8 @@ Public Module ModNet
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposedValue Then
                 If disposing Then
-                    _netCacheDatabase.Dispose()
                 End If
 
-                _netCacheDatabase = Nothing
                 disposedValue = True
             End If
         End Sub

@@ -796,5 +796,7 @@ Refresh:
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
     End Sub
-
+    Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
+        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket}）
+    End Sub
 End Class

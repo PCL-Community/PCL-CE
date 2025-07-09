@@ -304,6 +304,14 @@
                             <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
                         </local:MyComboBox>
                     </Grid>
+                    <Grid Grid.Row="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Grid.Column="0" Margin="0,10,0,0" HorizontalAlignment="Left" Text="获取更多主页"/>
+                        <local:MyIconTextButton x:Name="BtnGotoHomepageMarket" Grid.Column="1" Margin="10,10,0,0" HorizontalAlignment="Left" Text="前往主页市场" Logo="M857.856 0H55.296a53.248 53.248 0 0 0-51.2 53.248V230.4a51.2 51.2 0 0 0 102.4 0V106.496h708.352a102.4 102.4 0 0 1 102.4 102.4v606.464a102.4 102.4 0 0 1-102.4 102.4H105.984v-120.32a51.2 51.2 0 0 0-102.4 0V972.8a53.248 53.248 0 0 0 51.2 51.2h803.072A166.4 166.4 0 0 0 1024 858.368v-691.2A166.4 166.4 0 0 0 857.856 0z M91.136 512a57.344 57.344 0 0 0 57.088 57.088h380.672l-103.68 103.68a53.248 53.248 0 0 0 75.264 75.264l198.144-198.4a52.992 52.992 0 0 0 0-75.264l-198.4-198.4a53.248 53.248 0 1 0-75.264 75.264l103.68 103.68H148.224A57.344 57.344 0 0 0 91.136 512z"/>
+                    </Grid>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="功能隐藏">

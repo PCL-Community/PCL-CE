@@ -26,7 +26,7 @@ Friend Module ModSecret
     'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
     Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
     '联机服务根地址
-    Public LinkServerRoots As New List(Of String) From {If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), ""), If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT2"), "")}
+    Public LinkServerRoots As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
     Public Const OAuthClientId As String = ""
@@ -35,8 +35,9 @@ Friend Module ModSecret
     Public Const TelemetryKey As String = ""
     Public Const NatayarkClientId As String = ""
     Public Const NatayarkClientSecret As String = ""
-    Public LinkServerRoots As New List(Of String) From {"", ""}
+    Public Const LinkServerRoots As String = ""
 #End If
+    Public LinkServers As String() = LinkServerRoots.Split(";")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -788,9 +789,23 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
         If Not IsVerisonLatest() Then
-            Dim latest = RemoteServer.GetLatestVersion(
-                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+            Dim latest As VersionDataModel = Nothing
+            Dim checkUpdateEx As Exception = Nothing
+            RunInNewThread(
+                Sub()
+                    Try
+                        latest = RemoteServer.GetLatestVersion(
+                            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                    Catch ex As Exception
+                        checkUpdateEx = ex
+                    End Try
+                End Sub
+            ).Join()
+            If latest Is Nothing Then
+                Log(checkUpdateEx,"[Update] 检查更新失败",LogLevel.MsgBox)
+                Exit Sub
+            End If
             If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
                 If MyMsgBox($"发现了启动器更新（版本 {latest.VersionName}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
                 Exit Sub

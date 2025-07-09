@@ -113,6 +113,7 @@
                         FrmLinkLeft.PageChange(FormMain.PageSubType.LinkLobby)
                         FrmLinkLeft.ItemLobby.SetChecked(True, False, False)
                         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                        FrmLinkLobby = Nothing
                     End Sub)
             Hint("联机功能已停用！")
         End If

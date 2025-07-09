@@ -33,7 +33,10 @@
                                    Case 1
                                        Setup.Set("LinkEula", True)
                                    Case 2
-                                       RunInUi(Sub() FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch}))
+                                       RunInUi(Sub()
+                                                   FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                                                   FrmLinkLobby = Nothing
+                                               End Sub)
                                End Select
                            End If
                        End Sub)
@@ -95,13 +98,13 @@
                                Dim Cache As Integer = Nothing
 Retry:
                                Try
-                                   Cache = Val(NetRequestOnce($"{LinkServerRoots(ServerNumber)}/api/link/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
+                                   Cache = Val(NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
                                    If Cache = Setup.Get("LinkAnnounceCacheVer") Then
                                        Log("[Link] 使用缓存的公告数据")
                                        Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
                                    Else
                                        Log("[Link] 尝试拉取公告数据")
-                                       Dim Received As String = NetRequestOnce($"{LinkServerRoots(ServerNumber)}/api/link/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
+                                       Dim Received As String = NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
                                        Jobj = JObject.Parse(Received)
                                        Setup.Set("LinkAnnounceCache", Received)
                                        Setup.Set("LinkAnnounceCacheVer", Cache)
@@ -109,7 +112,7 @@ Retry:
                                Catch ex As Exception
                                    Log(ex, $"[Link] 从服务器 {ServerNumber} 获取公告缓存失败")
                                    ServerNumber += 1
-                                   If ServerNumber <= LinkServerRoots.Count - 1 Then GoTo Retry
+                                   If ServerNumber <= LinkServers.Count - 1 Then GoTo Retry
                                End Try
                                If Jobj Is Nothing Then Throw New Exception("获取联机数据失败")
                                IsLobbyAvailable = Jobj("available")
@@ -389,7 +392,7 @@ Retry:
             Hostname = HostInfo.NaidName
             If IsHost Then '确认创建者实例存活状态
                 Dim test As New MCPing("127.0.0.1", LocalPort)
-                Dim info = test.GetInfo().GetAwaiter().GetResult()
+                Dim info = test.GetInfo(False).GetAwaiter().GetResult()
                 If info Is Nothing Then
                     Log($"[MCDetect] 本地 MC 局域网实例疑似已关闭，关闭大厅")
                     RunInUi(Sub()
@@ -489,30 +492,34 @@ Retry:
                                        BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabFinishTitle.Text = "大厅创建中..."
-                                       LabFinishDesc.Text = $"您是大厅创建者，使用 {NaidProfile.Username} 的身份进行联机"
+                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserType.Text = "创建者"
                                    End Sub)
-                           Dim Id As String = Nothing
-                           For index = 1 To 8 '生成 8 位随机编号
-                               Id += RandomInteger(0, 9).ToString()
+                           Dim id As String = Nothing
+                           For i = 1 To 8 '生成 8 位随机编号
+                               id += RandomInteger(0, 9).ToString()
                            Next
-                           LaunchLink(True, Id, LocalPort:=LocalPort)
-                           Dim RetryCount As Integer = 0
+                           Dim secret As String = Nothing
+                           For i = 1 To 2
+                               secret += RandomInteger(0, 9).ToString()
+                           Next
+                           LaunchLink(True, id, secret, LocalPort)
+                           Dim retryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
-                               If RetryCount > 10 Then
+                               If retryCount > 10 Then
                                    Hint("EasyTier 启动失败", HintType.Critical)
                                    RunInUi(Sub() BtnCreate.IsEnabled = True)
                                    ExitEasyTier()
                                    Exit Sub
                                End If
-                               RetryCount += 1
+                               retryCount += 1
                            End While
                            RunInUi(Sub()
                                        BtnCreate.IsEnabled = True
                                        CurrentSubpage = Subpages.PanFinish
-                                       LabFinishTitle.Text = "大厅已创建"
+                                       BtnFinishExit.Text = "关闭大厅"
                                        BtnCreate.IsEnabled = True
                                    End Sub)
                            Thread.Sleep(1000)
@@ -526,7 +533,7 @@ Retry:
         If Not LobbyPrecheck() Then Exit Sub
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：01509230")
         If JoinedLobbyId = Nothing Then Exit Sub
-        If JoinedLobbyId.Length < 8 Then
+        If JoinedLobbyId.Length < 10 Then
             Hint("大厅编号不合法", HintType.Critical)
             Exit Sub
         End If
@@ -542,22 +549,22 @@ Retry:
                                        LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabFinishTitle.Text = "加入大厅中..."
-                                       LabFinishDesc.Text = $"您是加入者，使用 {NaidProfile.Username} 的身份进行联机"
+                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserType.Text = "加入者"
                                    End Sub)
-                           Dim Status As Integer = 1
-                           Status = LaunchLink(False, JoinedLobbyId, ETNetworkDefaultSecret & JoinedLobbyId)
-                           Dim RetryCount As Integer = 0
+                           Dim status As Integer = 1
+                           status = LaunchLink(False, JoinedLobbyId.Remove(JoinedLobbyId.Length - 2), JoinedLobbyId.Substring(JoinedLobbyId.Length - 2))
+                           Dim retryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
-                               If RetryCount > 10 Then
+                               If retryCount > 10 Then
                                    Hint("EasyTier 启动失败", HintType.Critical)
                                    RunInUi(Sub() BtnCreate.IsEnabled = True)
                                    ExitEasyTier()
                                    Exit Sub
                                End If
-                               RetryCount += 1
+                               retryCount += 1
                            End While
                            Thread.Sleep(1000)
                            StartWatcherThread()
@@ -566,7 +573,9 @@ Retry:
                                Thread.Sleep(500)
                            End While
                            If Status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
-                           RunInUi(Sub() LabFinishTitle.Text = $"已加入 {Hostname} 的大厅")
+                           RunInUi(Sub()
+                                       BtnFinishExit.Text = $"退出 {Hostname} 的大厅"
+                                   End Sub)
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
     End Sub

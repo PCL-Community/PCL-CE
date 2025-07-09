@@ -70,24 +70,27 @@ Public Module ModLink
                         latency.Start()
                         Dim packetLength = VarInt.ReadFromStream(stream)
                         latency.Stop()
-                        Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
 
                         ' 读取剩余数据包
                         Dim totalBytes = 0
-                        Do
-                            Dim bytesRead = Await stream.ReadAsync(buffer, 0, buffer.Length)
-                            If bytesRead = 0 Then Exit Do
-                            res.AddRange(buffer.Take(bytesRead))
-                            totalBytes += bytesRead
-                            If DoLog Then Log($"[MCPing] Received part ({bytesRead})", LogLevel.Debug)
-                        Loop While totalBytes < packetLength
+                        Using cts As New CancellationTokenSource
+                            cts.CancelAfter(TimeSpan.FromSeconds(5))
+                            Do
+                                Dim bytesRead = Await stream.ReadAsync(buffer, 0, buffer.Length, cts.Token)
+                                If bytesRead = 0 Then Exit Do
+                                res.AddRange(buffer.Take(bytesRead))
+                                totalBytes += bytesRead
+                                If DoLog Then Log($"[MCPing] Received part ({bytesRead})", LogLevel.Debug)
+                            Loop While totalBytes < packetLength
+                        End Using
 
-                        Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
+                        If DoLog Then Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
                         Dim response As String = Encoding.UTF8.GetString(res.ToArray(), 0, res.Count)
                         Dim startIndex = response.IndexOf("{""", StringComparison.Ordinal)
                         If startIndex > 10 Then Return Nothing
                         response = response.Substring(startIndex)
-                        Log("[MCPing] Server Response: " & response, LogLevel.Debug)
+                        If DoLog Then Log("[MCPing] Server Response: " & response, LogLevel.Debug)
 
                         '查找并截取第一段 JSON
                         '有些 mod 或是整合包定制服务端会在返回的 JSON 后面添加新的内容，比如 Better MC
@@ -335,15 +338,16 @@ Public Module ModLink
                 ports.AddRange(PortFinder.GetProcessPort(Integer.Parse(pid)))
             Next
             Log($"[MCDetect] 获取到端口数量 {ports.Count}")
-            For Each port In ports
-                Log($"[MCDetect] 找到疑似端口，开始验证：{port}")
-                Dim test As New MCPing("127.0.0.1", port)
-                Dim info = Await test.GetInfo()
-                If Not String.IsNullOrWhiteSpace(info.VersionName) Then
-                    Log($"[MCDetect] 端口 {port} 为有效 Minecraft 世界")
-                    res.Add(info)
-                End If
-            Next
+            Dim checkTasks = ports.Select(Function(port) Task.Run(Async Function()
+                                                                      Log($"[MCDetect] 找到疑似端口，开始验证：{port}")
+                                                                      Dim test As New MCPing("127.0.0.1", port)
+                                                                      Dim info = Await test.GetInfo()
+                                                                      If Not String.IsNullOrWhiteSpace(info.VersionName) Then
+                                                                          Log($"[MCDetect] 端口 {port} 为有效 Minecraft 世界")
+                                                                          res.Add(info)
+                                                                      End If
+                                                                  End Function)).ToArray()
+            Await Task.WhenAll(checkTasks)
         Catch ex As Exception
             Log(ex, "[MCDetect] 获取端口信息错误", LogLevel.Debug)
         End Try
@@ -415,13 +419,12 @@ Public Module ModLink
             Dim Arguments As String = Nothing
 
             '大厅设置
+            Secret = ETNetworkDefaultSecret & Secret
+            Name = ETNetworkDefaultName & Name
             If IsHost Then
-                Name = ETNetworkDefaultName & Name
-                Secret = ETNetworkDefaultSecret & Name
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
-                Name = ETNetworkDefaultName & Name
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-d --network-name {Name} --network-secret {Secret} --dev-name ""PCLCELobby"" --relay-network-whitelist ""{Name}"" --private-mode true" '加入者
             End If
@@ -466,8 +469,8 @@ Public Module ModLink
             '启动
             Log($"[Link] 启动 EasyTier")
             'Log($"[Link] EasyTier 参数: {Arguments}")
-            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, ""))
-            PromoteService.Append($"start {ETPath}\easytier-core.exe. ; ", Sub(s As String) ETProcessPid = s, False)
+            RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = Name.Replace(ETNetworkDefaultName, "") & Secret.Replace(ETNetworkDefaultSecret, ""))
+            PromoteService.Append($"start {ETPath}\easytier-core.exe. ; {Arguments}", Sub(s As String) ETProcessPid = s, False)
             IsETRunning = PromoteService.Activate()
             Return 0
         Catch ex As Exception
