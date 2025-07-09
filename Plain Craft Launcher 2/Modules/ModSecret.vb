@@ -176,6 +176,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
 #Region "网络鉴权"
 
+    Public CustomDownloadUserAgent As String = ""
+
     Friend Function SecretCdnSign(UrlWithMark As String)
         If Not UrlWithMark.EndsWithF("{CDN}") Then Return UrlWithMark
         Return UrlWithMark.Replace("{CDN}", "").Replace(" ", "%20")
@@ -185,14 +187,16 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Friend Sub SecretHeadersSign(Url As String, ByRef Client As HttpRequestMessage, Optional UseBrowserUserAgent As Boolean = False)
         If Url.Contains("api.curseforge.com") Then Client.Headers.Add("x-api-key", CurseForgeAPIKey)
-        Client.Headers.Add("User-Agent",
-        If(Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com"),
-                "LogStatistic",
-                If(UseBrowserUserAgent,
-                    $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
-                    $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode}"
-                )
-            ))
+        Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomDownloadUserAgent),
+                                     CustomDownloadUserAgent,
+                                     If(Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com"),
+                                         "LogStatistic",
+                                         If(UseBrowserUserAgent,
+                                             $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+                                             $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode}"
+                                         )
+                                     ))
+        Client.Headers.Add("User-Agent", userAgent)
 
         Client.Headers.Add("Referer", "http://" & VersionCode & ".ce.open.pcl2.server/")
         If Url.Contains("pcl2ce.pysio.online/post") AndAlso Not String.IsNullOrEmpty(TelemetryKey) Then Client.Headers.Add("Authorization", TelemetryKey)

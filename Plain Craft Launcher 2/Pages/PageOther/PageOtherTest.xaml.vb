@@ -51,7 +51,8 @@ Public Class PageOtherTest
         End Try
     End Sub
 
-    Public Shared Sub StartCustomDownload(Url As String, FileName As String, Optional Folder As String = Nothing)
+    Public Shared Sub StartCustomDownload(Url As String, FileName As String, Optional Folder As String = Nothing, Optional UserAgent As String = "")
+        ModSecret.CustomDownloadUserAgent = UserAgent.Trim()
         Try
             If String.IsNullOrWhiteSpace(Folder) Then
                 Folder = SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
@@ -383,7 +384,7 @@ Public Class PageOtherTest
     End Sub
 
     Private Sub BtnDownloadStart_Click(sender As Object, e As MouseButtonEventArgs)
-        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text)
+        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text, TextUserAgent.Text)
         TextDownloadUrl.Text = ""
         TextDownloadUrl.Validate()
         TextDownloadUrl.ForceShowAsSuccess()
