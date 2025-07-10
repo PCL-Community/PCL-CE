@@ -23,7 +23,7 @@ Public Class PageOtherTest
 
         TextDownloadFolder.Validate()
         TextDownloadName.Validate()
-        TextUserAgent.Text = ModSetup.Get("CustomUserAgent")
+        TextUserAgent.Text = Setup.Get("ToolDownloadCustomUserAgent")
     End Sub
     Private Sub StartButtonRefresh()
         BtnDownloadStart.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) AndAlso
@@ -37,8 +37,7 @@ Public Class PageOtherTest
         TextDownloadName.Validate()
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
-        ModSetup.Set("CustomUserAgent", TextUserAgent.Text)
-        
+        Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text)
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
         Try
