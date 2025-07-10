@@ -1,4 +1,6 @@
-﻿Public Class PageLinkLobby
+﻿Imports PCL.Core.Helper
+
+Public Class PageLinkLobby
     '记录的启动情况
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
@@ -273,7 +275,7 @@ Retry:
                        End Sub)
     End Sub
     'EasyTier Cli 轮询
-    Private Sub StartWatcherThread()
+    Public Sub StartETWatcher()
         RunInNewThread(Sub()
                            If IsHost Then
                                Log($"[Link] 本机角色：大厅创建者")
@@ -282,6 +284,11 @@ Retry:
                            End If
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
+                           Dim retryCount As Integer = 0
+                           While ETProcessPid Is Nothing AndAlso retryCount < 10
+                               Thread.Sleep(1000)
+                               retryCount += 1
+                           End While
                            While ETProcessPid IsNot Nothing
                                GetETInfo()
                                Thread.Sleep(15000)
@@ -289,7 +296,6 @@ Retry:
                            If ETProcessPid Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
-                                           If Not IsHost Then StopMcPortForward()
                                            Log("[Link] EasyTier 已退出")
                                        End Sub)
                            End If
@@ -331,6 +337,7 @@ Retry:
                 End If
                 If IsETFirstCheckFinished Then
                     Hint("大厅已被解散", HintType.Critical)
+                    ToastNotification.SendToast("大厅已被解散", "PCL CE 大厅")
                 Else
                     If IsHost Then
                         Hint("大厅创建失败", HintType.Critical)
@@ -422,7 +429,6 @@ Retry:
             IsETFirstCheckFinished = True
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
-            IsWatcherStarted = False
         End Try
     End Sub
 #End Region
@@ -523,7 +529,7 @@ Retry:
                                        BtnCreate.IsEnabled = True
                                    End Sub)
                            Thread.Sleep(1000)
-                           StartWatcherThread()
+                           StartETWatcher()
                        End Sub)
     End Sub
 
@@ -567,12 +573,12 @@ Retry:
                                retryCount += 1
                            End While
                            Thread.Sleep(1000)
-                           StartWatcherThread()
+                           StartETWatcher()
                            Thread.Sleep(500)
-                           While IsWatcherStarted AndAlso RemotePort Is Nothing
+                           While Not IsWatcherStarted OrElse RemotePort Is Nothing
                                Thread.Sleep(500)
                            End While
-                           If Status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
+                           If status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
                            RunInUi(Sub()
                                        BtnFinishExit.Text = $"退出 {Hostname} 的大厅"
                                    End Sub)

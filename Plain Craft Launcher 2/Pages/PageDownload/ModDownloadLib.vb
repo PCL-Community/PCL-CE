@@ -746,9 +746,9 @@ Retry:
                     Try
                         McDownloadOptiFineInstall(BaseMcFolderHome, Target, Task, UseJavaWrapper)
                     Catch ex As Exception
-                        If UseJavaWrapper Then
-                            Log(ex, "使用 JavaWrapper 安装 OptiFine 失败，将不使用 JavaWrapper 并重试")
-                            UseJavaWrapper = False
+                        If Not UseJavaWrapper Then
+                            Log(ex, "不使用 JavaWrapper 安装 OptiFine 失败，将使用 JavaWrapper 并重试")
+                            UseJavaWrapper = True
                             GoTo Retry
                         Else
                             Throw New Exception("运行 OptiFine 安装器失败", ex)
@@ -1551,7 +1551,7 @@ Retry:
                     McFolderLauncherProfilesJsonCreate(McFolder)
                     Task.Progress = 0.05
                     '运行 Forge 安装器
-                    Dim UseJavaWrapper As Boolean = True
+                    Dim UseJavaWrapper As Boolean = IsUtf8CodePage()
 Retry:
                     Try
                         '释放 Forge 注入器
@@ -1561,9 +1561,9 @@ Retry:
                         ForgelikeInjector(InstallerAddress, Task, McFolder, UseJavaWrapper, ForgeType)
                         Task.Progress = 0.97
                     Catch ex As Exception
-                        If UseJavaWrapper Then
-                            Log(ex, $"使用 JavaWrapper 安装 {LoaderName} 失败，将不使用 JavaWrapper 并重试")
-                            UseJavaWrapper = False
+                        If Not UseJavaWrapper Then
+                            Log(ex, $"不使用 JavaWrapper 安装 {LoaderName} 失败，将使用 JavaWrapper 并重试")
+                            UseJavaWrapper = True
                             GoTo Retry
                         Else
                             Throw New Exception($"运行 {LoaderName} 安装器失败", ex)

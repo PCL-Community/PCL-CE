@@ -5,15 +5,15 @@
     xmlns:System="clr-namespace:System;assembly=mscorlib" 
     mc:Ignorable="d" x:Class="PageHomePageMarket"
     PanScroll="{Binding ElementName=PanBack}">
-    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack" Margin="15,5,15,5">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <Grid>
             <StackPanel>
-            <StackPanel x:Name="PanCustom">
+                <StackPanel x:Name="PanCustom" Margin="15,5,15,5">
                 <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="40,50">
                     <local:MyLoading Text="正在加载主页市场" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </local:MyCard>
             </StackPanel>
-            <StackPanel x:Name="PanMain" Visibility="Collapsed">
+                <StackPanel x:Name="PanMain" Visibility="Collapsed" Margin="15,5,15,5">
                 <local:MyCard>
                     <StackPanel Orientation="Vertical" Margin="20,15,20,15">
                         <TextBlock Text="以下是一些预设主页的信息" TextWrapping="Wrap"/>
