@@ -20,17 +20,7 @@ Namespace My
     Partial Friend NotInheritable Class MySettings
         Inherits Global.System.Configuration.ApplicationSettingsBase
 
-        <Global.System.Configuration.UserScopedSettingAttribute(), _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
-         Global.System.Configuration.DefaultSettingValueAttribute("")> _
-        Public Property CustomUserAgent() As String
-            Get
-                Return CType(Me("CustomUserAgent"), String)
-            End Get
-            Set(value As String)
-                Me("CustomUserAgent") = value
-            End Set
-        End Property
+
         
         Private Shared defaultInstance As MySettings = CType(Global.System.Configuration.ApplicationSettingsBase.Synchronized(New MySettings()),MySettings)
         
