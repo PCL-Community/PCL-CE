@@ -3,9 +3,4 @@
   <Profiles>
     <Profile Name="(Default)" />
   </Profiles>
-  <Settings>
-    <Setting Name="CustomUserAgent" Type="System.String" Scope="User">
-      <Value Profile="(Default)"></Value>
-    </Setting>
-  </Settings>
 </SettingsFile>
