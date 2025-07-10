@@ -23,7 +23,7 @@ Public Class PageOtherTest
 
         TextDownloadFolder.Validate()
         TextDownloadName.Validate()
-        TextUserAgent.Text = Setup.Get("CustomUserAgent")
+        TextUserAgent.Text = ModSetup.Get("CustomUserAgent")
     End Sub
     Private Sub StartButtonRefresh()
         BtnDownloadStart.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) AndAlso
@@ -37,7 +37,7 @@ Public Class PageOtherTest
         TextDownloadName.Validate()
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
-        Setup.Set("CustomUserAgent", TextUserAgent.Text)
+        ModSetup.Set("CustomUserAgent", TextUserAgent.Text)
         
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
