@@ -52,7 +52,7 @@ Public Class PageOtherTest
     End Sub
 
     Public Shared Sub StartCustomDownload(Url As String, FileName As String, Optional Folder As String = Nothing, Optional UserAgent As String = "")
-        ModSecret.CustomDownloadUserAgent = UserAgent.Trim()
+
         Try
             If String.IsNullOrWhiteSpace(Folder) Then
                 Folder = SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
@@ -74,7 +74,7 @@ Public Class PageOtherTest
             Log("[Download] 自定义下载文件名：" + FileName, LogLevel.Normal, "出现错误")
             Log("[Download] 自定义下载文件目标：" + Folder, ModBase.LogLevel.Normal, "出现错误")
             Dim uuid As Integer = GetUuid()
-            Dim loaderDownload As LoaderDownload = New ModNet.LoaderDownload("自定义下载文件：" + FileName + " ", New List(Of NetFile)() From {New NetFile(New String() {Url}, Folder + FileName, Nothing, True)})
+            Dim loaderDownload As LoaderDownload = New ModNet.LoaderDownload("自定义下载文件：" + FileName + " ", New List(Of NetFile)() From {New NetFile(New String() {Url}, Folder + FileName, Nothing, True, UserAgent)})
             Dim loaderCombo As LoaderCombo(Of Integer) = New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)

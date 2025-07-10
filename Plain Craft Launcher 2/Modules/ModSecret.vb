@@ -176,7 +176,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
 #Region "网络鉴权"
 
-    Public CustomDownloadUserAgent As String = ""
+
 
     Friend Function SecretCdnSign(UrlWithMark As String)
         If Not UrlWithMark.EndsWithF("{CDN}") Then Return UrlWithMark
@@ -185,10 +185,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' <summary>
     ''' 设置 Headers 的 UA、Referer。
     ''' </summary>
-    Friend Sub SecretHeadersSign(Url As String, ByRef Client As HttpRequestMessage, Optional UseBrowserUserAgent As Boolean = False)
+    Friend Sub SecretHeadersSign(Url As String, ByRef Client As HttpRequestMessage, Optional UseBrowserUserAgent As Boolean = False, Optional CustomUserAgent As String = "")
         If Url.Contains("api.curseforge.com") Then Client.Headers.Add("x-api-key", CurseForgeAPIKey)
-        Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomDownloadUserAgent),
-                                     CustomDownloadUserAgent,
+        Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomUserAgent),
+                                     CustomUserAgent,
                                      If(Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com"),
                                          "LogStatistic",
                                          If(UseBrowserUserAgent,

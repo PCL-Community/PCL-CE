@@ -1006,6 +1006,11 @@ Retry:
         Public UseBrowserUserAgent As Boolean
 
         ''' <summary>
+        ''' 自定义User-Agent
+        ''' </summary>
+        Public CustomUserAgent As String = ""
+
+        ''' <summary>
         ''' 上次记速时的时间。
         ''' </summary>
         Private SpeedLastTime As Long = GetTimeTick()
@@ -1101,7 +1106,7 @@ Retry:
         ''' 新建一个需要下载的文件。
         ''' </summary>
         ''' <param name="LocalPath">包含文件名的本地地址。</param>
-        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Check As FileChecker = Nothing, Optional UseBrowserUserAgent As Boolean = False)
+        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Check As FileChecker = Nothing, Optional UseBrowserUserAgent As Boolean = False, Optional CustomUserAgent As String = "")
             Dim Sources As New List(Of NetSource)
             Dim Count As Integer = 0
             Urls = Urls.Distinct.ToArray
@@ -1113,6 +1118,7 @@ Retry:
             Me.LocalPath = LocalPath
             Me.Check = Check
             Me.UseBrowserUserAgent = UseBrowserUserAgent
+            Me.CustomUserAgent = CustomUserAgent
             Me.LocalName = GetFileNameFromPath(LocalPath)
         End Sub
 
@@ -1234,7 +1240,7 @@ StartThread:
                 If SourcesOnce.Contains(Info.Source) AndAlso Not Info.Equals(Info.Source.Thread) Then GoTo SourceBreak
                 ' 使用 HttpClient 替代 HttpWebRequest
                 Dim request As New HttpRequestMessage(HttpMethod.Get, Info.Source.Url)
-                SecretHeadersSign(Info.Source.Url, request, UseBrowserUserAgent)
+                SecretHeadersSign(Info.Source.Url, request, UseBrowserUserAgent, Me.CustomUserAgent)
                 If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
