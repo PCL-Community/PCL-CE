@@ -37,7 +37,7 @@ Public Class PageOtherTest
         TextDownloadName.Validate()
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
-        ModSetup.Set("CustomUserAgent", TextUserAgent.Text)
+        Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text)
         
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
