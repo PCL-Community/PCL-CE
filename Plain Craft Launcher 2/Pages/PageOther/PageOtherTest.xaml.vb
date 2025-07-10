@@ -38,6 +38,7 @@ Public Class PageOtherTest
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
         Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text)
+        
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
         Try
