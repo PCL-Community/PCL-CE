@@ -123,9 +123,11 @@
         Try
             Setup.Reset("LinkRelayServer")
             Setup.Reset("LinkRelayType")
+            Setup.Reset("LinkServerType")
 
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)
+            Reload()
         Catch ex As Exception
             Log(ex, "初始化联机页设置失败", LogLevel.Msgbox)
         End Try

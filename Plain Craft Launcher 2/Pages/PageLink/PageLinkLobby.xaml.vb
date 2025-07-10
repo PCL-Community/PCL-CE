@@ -5,7 +5,6 @@ Public Class PageLinkLobby
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
     Public Shared Hostname As String = Nothing
-    Public Shared IsLoading As Boolean = False
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
     Public Shared HostInfo As ETPlayerInfo = Nothing
@@ -21,9 +20,11 @@ Public Class PageLinkLobby
     End Sub
 
     Public IsLoad As Boolean = False
+    Private IsLoading As Boolean = False
     Public Sub Reload() Handles Me.Loaded
-        If IsLoad Then Exit Sub
+        If IsLoad OrElse IsLoading Then Exit Sub
         IsLoad = True
+        IsLoading = True
         HintAnnounce.Visibility = Visibility.Visible
         HintAnnounce.Text = "正在连接到大厅服务器..."
         HintAnnounce.Theme = MyHint.Themes.Blue
@@ -54,6 +55,7 @@ Public Class PageLinkLobby
         End If
         DetectMcInstance()
         CheckEasyTier()
+        IsLoading = False
     End Sub
     Private Sub OnPageExit() Handles Me.PageExit
         IsMcWatcherRunning = False
@@ -484,7 +486,6 @@ Retry:
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
         If Not LobbyPrecheck() Then Exit Sub
         BtnCreate.IsEnabled = False
-        IsLoading = True
         LocalPort = ComboWorldList.SelectedItem.Tag.Port.ToString()
         Log("[Link] 创建大厅，端口：" & LocalPort)
         IsHost = True
