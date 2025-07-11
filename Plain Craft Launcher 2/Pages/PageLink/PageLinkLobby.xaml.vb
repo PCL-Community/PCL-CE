@@ -53,8 +53,8 @@ Public Class PageLinkLobby
                 GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
             End If
         End If
-        DetectMcInstance()
         CheckEasyTier()
+        DetectMcInstance()
         IsLoading = False
     End Sub
     Private Sub OnPageExit() Handles Me.PageExit
@@ -245,8 +245,11 @@ Retry:
     Private IsWatcherStarted As Boolean = False
     Private IsMcWatcherRunning As Boolean = False
     Public Shared IsETFirstCheckFinished As Boolean = False
+    Private IsDetectingMc As Boolean = False
     '检测本地 MC 局域网实例
     Private Sub DetectMcInstance() Handles BtnRefresh.Click
+        If IsDetectingMc Then Exit Sub
+        IsDetectingMc = True
         ComboWorldList.Items.Clear()
         ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
         ComboWorldList.SelectedIndex = 0
@@ -270,11 +273,12 @@ Retry:
                                            Next
                                            If IsEasyTierExist Then BtnCreate.IsEnabled = True
                                        End If
+                                       IsDetectingMc = False
                                        ComboWorldList.SelectedIndex = 0
                                        BtnRefresh.IsEnabled = True
                                        ComboWorldList.IsEnabled = True
                                    End Sub)
-                       End Sub)
+                       End Sub, "Minecraft Port Detect")
     End Sub
     'EasyTier Cli 轮询
     Public Sub StartETWatcher()
