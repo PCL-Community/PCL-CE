@@ -81,7 +81,7 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继行为"/>
                         <local:MyComboBox x:Name="ComboRelayType" Tag="LinkRelayType" Grid.Row="4" Grid.Column="2">
                             <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 无法连接时尝试中继。"/>
-                            <local:MyComboBoxItem Content="优先通过中继连接" ToolTip="优先通过中继节点建立网络连接。&#xa;不能确保流量经服务器中继，且仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
+                            <local:MyComboBoxItem Content="优先通过中继连接" ToolTip="优先通过中继节点建立网络连接，可能需要联机双方均开启才能生效。&#xa;不能确保流量经服务器中继，且仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
                         </local:MyComboBox>
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="节点行为"/>
                         <local:MyComboBox x:Name="ComboServerType" Tag="LinkServerType" Grid.Row="6" Grid.Column="2">
