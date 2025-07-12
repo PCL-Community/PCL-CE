@@ -1,9 +1,11 @@
 ﻿Imports PCL.Core.Helper
+Imports PCL.Core.Extension
 
 Public Class PageLinkLobby
     '记录的启动情况
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
+    Public Shared JoinerLocalPort As Integer = Nothing
     Public Shared Hostname As String = Nothing
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
@@ -291,15 +293,15 @@ Retry:
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount As Integer = 0
-                           While ETProcessPid Is Nothing AndAlso retryCount < 10
+                           While ETProcess Is Nothing AndAlso retryCount < 10
                                Thread.Sleep(1000)
                                retryCount += 1
                            End While
-                           While ETProcessPid IsNot Nothing
+                           While ETProcess IsNot Nothing
                                GetETInfo()
                                Thread.Sleep(15000)
                            End While
-                           If ETProcessPid Is Nothing Then
+                           If ETProcess Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
                                            Log("[Link] EasyTier 已退出")
@@ -401,7 +403,6 @@ Retry:
                 Quality -= 1
             End If
             RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
-            RemotePort = HostInfo.Hostname.Split("-")(0)
             Hostname = HostInfo.NaidName
             If IsHost Then '确认创建者实例存活状态
                 Dim test As New MCPing("127.0.0.1", LocalPort)
@@ -442,50 +443,6 @@ Retry:
 #Region "PanSelect | 种类选择页面"
 
     Public LocalPort As String = Nothing
-    Public Sub CheckFirewall()
-        '检查防火墙
-        Dim CheckFirewall As New Process With {
-             .StartInfo = New ProcessStartInfo With {
-                 .Verb = "runas",
-                 .FileName = "cmd",
-                 .CreateNoWindow = True,
-                 .UseShellExecute = False,
-                 .Arguments = "/c netsh advfirewall show currentprofile state",
-                 .RedirectStandardOutput = True,
-                 .RedirectStandardError = True
-             }
-        }
-        CheckFirewall.Start()
-        Dim Output As String = CheckFirewall.StandardOutput.ReadToEnd()
-        Output &= CheckFirewall.StandardError.ReadToEnd()
-        If Output.ContainsF("关闭", True) OrElse Output.ContainsF("off", True) OrElse Output.ContainsF("disable", True) Then
-            Dim Choice As Integer = MyMsgBox($"Windows 防火墙当前处于关闭状态，这可能带来安全风险。{vbCrLf}是否要开启防火墙？", "防火墙未开启", "开启防火墙并继续", "不开启防火墙并继续", "取消操作并返回", ForceWait:=True, IsWarn:=True)
-            Select Case Choice
-                Case 1
-                    '开启防火墙
-                    Dim EnableFirewall As New Process With {
-                        .StartInfo = New ProcessStartInfo With {
-                            .Verb = "runas",
-                            .FileName = "cmd",
-                            .CreateNoWindow = True,
-                            .UseShellExecute = False,
-                            .Arguments = "/c netsh advfirewall set currentprofile state on",
-                            .RedirectStandardOutput = True,
-                            .RedirectStandardError = True
-                        }
-                    }
-                    EnableFirewall.Start()
-                    EnableFirewall.WaitForExit()
-                    Log("[Link] 已开启 Windows 防火墙")
-                Case 2
-                    Log("[Link] 不更改 Windows 防火墙配置，继续操作")
-                Case 3
-                    Log("[Link] 不更改 Windows 防火墙配置，中止流程")
-                    RunInUi(Sub() BtnCreate.IsEnabled = True)
-                    Exit Sub
-            End Select
-        End If
-    End Sub
     '创建房间
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
         If Not LobbyPrecheck() Then Exit Sub
@@ -495,7 +452,6 @@ Retry:
         IsHost = True
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
-                           CheckFirewall()
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Collapsed
                                        BtnFinishPing.Visibility = Visibility.Collapsed
@@ -544,13 +500,12 @@ Retry:
         If Not LobbyPrecheck() Then Exit Sub
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：0150923014")
         If JoinedLobbyId = Nothing Then Exit Sub
-        If JoinedLobbyId.Length < 10 Then
+        If JoinedLobbyId.Length < 9 Then
             Hint("大厅编号不合法", HintType.Critical)
             Exit Sub
         End If
         IsHost = False
         RunInNewThread(Sub()
-                           CheckFirewall()
                            RunInUi(Sub()
                                        SplitLineBeforePing.Visibility = Visibility.Visible
                                        BtnFinishPing.Visibility = Visibility.Visible
@@ -563,8 +518,9 @@ Retry:
                                        LabConnectUserName.Text = NaidProfile.Username
                                        LabConnectUserType.Text = "加入者"
                                    End Sub)
-                           Dim status As Integer = 1
-                           status = LaunchLink(False, JoinedLobbyId.Remove(JoinedLobbyId.Length - 2), JoinedLobbyId.Substring(JoinedLobbyId.Length - 2))
+                           Dim processedId As String = JoinedLobbyId.FromB36ToB10()
+                           RemotePort = JoinedLobbyId.Substring(10)
+                           LaunchLink(False, JoinedLobbyId.Substring(0, 8), JoinedLobbyId.Substring(8, 2), remotePort:=RemotePort)
                            Dim retryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
@@ -580,10 +536,10 @@ Retry:
                            Thread.Sleep(1000)
                            StartETWatcher()
                            Thread.Sleep(500)
-                           While Not IsWatcherStarted OrElse RemotePort Is Nothing
+                           While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing
                                Thread.Sleep(500)
                            End While
-                           If status = 0 Then McPortForward("10.114.51.41", RemotePort, "§ePCL CE 大厅 - " & Hostname)
+                           McPortForward("10.114.51.41", JoinerLocalPort, "§ePCL CE 大厅 - " & Hostname)
                            RunInUi(Sub()
                                        BtnFinishExit.Text = $"退出 {Hostname} 的大厅"
                                    End Sub)
