@@ -4,8 +4,6 @@ Imports System.Net.Http
 Imports System.Threading.Tasks
 
 Imports LiteDB
-Imports CacheCow.Client
-Imports CacheCow.Common
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
@@ -43,126 +41,29 @@ Public Module ModNet
     Private _PreviousProxyLink As String
     Private _httpClient As HttpClient
     Private _httpClientHandler As HttpClientHandler
-    Private _httpCache As New NetCache
+    Private ReadOnly _httpClientLock As New Object
     Public Function GetHttpClient() As HttpClient
-        If Setup.Get("SystemHttpProxy") <> _PreviousProxyLink Then
-            _httpClient?.Dispose()
-            _httpClient = Nothing
-            _httpClientHandler?.Dispose()
-            _httpClientHandler = Nothing
-        End If
-        If _httpClient Is Nothing Then
-            InitHttpClient().GetAwaiter().GetResult()
-        End If
-        Return _httpClient
-    End Function
-
-    Private _httpInitTask As Task
-    Private Function InitHttpClient() As Task
-        If _httpInitTask Is Nothing Then
-            _httpInitTask = Task.Run(Sub()
-                                         _httpClientHandler = New HttpClientHandler() With {
-                                            .Proxy = GetProxy(),
-                                            .MaxConnectionsPerServer = 1024,
-                                            .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
-                                            .AllowAutoRedirect = True,
-                                            .UseCookies = True,
-                                            .CookieContainer = New CookieContainer()
-                                        }
-                                         _httpClient = New HttpClient(_httpClientHandler)
-                                     End Sub)
-        End If
-        Return _httpInitTask
-    End Function
-
-    Public Class NetCache
-        Implements ICacheStore, IDisposable
-
-        Private _cacheFolder As String
-        Private disposedValue As Boolean
-        Private _serializer As New MessageContentHttpMessageSerializer()
-        Sub New()
-            _cacheFolder = IO.Path.Combine(PathTemp, "Cache", "NetCache")
-            Dim dir As New DirectoryInfo(_cacheFolder)
-            If Not dir.Exists Then dir.Create()
-        End Sub
-
-        Public Async Function GetValueAsync(key As CacheKey) As Task(Of HttpResponseMessage) Implements ICacheStore.GetValueAsync
-            Dim cacheName = GetDatabaseIdByCacheKey(key)
-            Using _lock As New Mutex(True, $"NetCache-{cacheName}")
-                _lock.WaitOne()
-                Try
-                    'Log($"[NetCache] 尝试获取缓存 {key.ResourceUri}:{key.HashBase64}", LogLevel.Debug)
-                    Dim target = IO.Path.Combine(_cacheFolder, cacheName)
-                    If Not File.Exists(target) Then Return Nothing
-                    Log($"[NetCache] 击中缓存 {key.ResourceUri}:{key.HashBase64}")
-                    Dim fs As New FileStream(target, FileMode.Open, FileAccess.Read, FileShare.Read)
-                    Return Await _serializer.DeserializeToResponseAsync(fs)
-                Catch ex As Exception
-                    Log(ex, $"[NetCache] 获取 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                    Return Nothing
-                End Try
-                _lock.ReleaseMutex()
-            End Using
-        End Function
-
-        Public Async Function AddOrUpdateAsync(key As CacheKey, response As HttpResponseMessage) As Task Implements ICacheStore.AddOrUpdateAsync
-            Try
-                If response Is Nothing Then Return
-                If Not response.IsSuccessStatusCode Then Return
-                Dim target = IO.Path.Combine(_cacheFolder, GetDatabaseIdByCacheKey(key))
-                Using fs As New FileStream(target, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                    fs.SetLength(0)
-                    Await _serializer.SerializeAsync(response, fs)
-                End Using
-                Log($"[NetCache] 已更新 {key.ResourceUri}:{key.HashBase64} 的缓存")
-            Catch ex As Exception
-                Log(ex, $"[NetCache] 更新 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                Return
-            End Try
-        End Function
-
-        Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
-            Try
-                Dim target = IO.Path.Combine(_cacheFolder, GetDatabaseIdByCacheKey(key))
-                Dim fileInfo As New FileInfo(target)
-                If Not fileInfo.Exists Then Return False
-                Await Task.Run(Sub() fileInfo.Delete())
-                Return Not fileInfo.Exists
-            Catch ex As Exception
-                Log(ex, $"[NetCache] 移除 {key.ResourceUri}:{key.HashBase64} 缓存信息失败")
-                Return False
-            End Try
-        End Function
-
-        Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
-            Try
-                Log($"[NetCache] 缓存已清空")
-                Await Task.Run(Sub() Directory.Delete(_cacheFolder, True))
-            Catch ex As Exception
-                Log(ex, $"[NetCache] 清空缓存信息失败")
-            End Try
-        End Function
-
-        Private Function GetDatabaseIdByCacheKey(key As CacheKey) As String
-            Return Core.Helper.Hash.SHA256Provider.Instance.ComputeHash(key.HashBase64 & key.ResourceUri)
-        End Function
-
-        Protected Overridable Sub Dispose(disposing As Boolean)
-            If Not disposedValue Then
-                If disposing Then
-                End If
-
-                disposedValue = True
+        SyncLock (_httpClientLock)
+            If Setup.Get("SystemHttpProxy") <> _PreviousProxyLink Then
+                _httpClient?.Dispose()
+                _httpClient = Nothing
+                _httpClientHandler?.Dispose()
+                _httpClientHandler = Nothing
             End If
-        End Sub
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-            ' 不要更改此代码。请将清理代码放入“Dispose(disposing As Boolean)”方法中
-            Dispose(disposing:=True)
-            GC.SuppressFinalize(Me)
-        End Sub
-    End Class
+            If _httpClient Is Nothing Then
+                _httpClientHandler = New HttpClientHandler() With {
+                                                .Proxy = GetProxy(),
+                                                .MaxConnectionsPerServer = 1024,
+                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .AllowAutoRedirect = True,
+                                                .UseCookies = True,
+                                                .CookieContainer = New CookieContainer()
+                                            }
+                _httpClient = New HttpClient(_httpClientHandler)
+            End If
+            Return _httpClient
+        End SyncLock
+    End Function
 
     ''' <summary>
     ''' 测试 Ping。失败则返回 -1。
@@ -242,36 +143,29 @@ Public Module ModNet
         Dim RetryCount As Integer = 0
         Dim RetryException As Exception = Nothing
         Dim StartTime As Long = GetTimeTick()
-        Try
-Retry:
-            Select Case RetryCount
-                Case 0 '正常尝试
-                    Return NetGetCodeByClient(Url, Encoding, 10000, Accept, UseBrowserUserAgent)
-                Case 1 '慢速重试
-                    Thread.Sleep(500)
-                    Return NetGetCodeByClient(Url, Encoding, 30000, Accept, UseBrowserUserAgent)
-                Case Else '快速重试
-                    If GetTimeTick() - StartTime > 5500 Then
-                        '若前两次加载耗费 5 秒以上，才进行重试
+        While RetryCount <= 3
+            RetryCount += 1
+            Try
+                Select Case RetryCount
+                    Case 0 '正常尝试
+                        Return NetGetCodeByClient(Url, Encoding, 10000, Accept, UseBrowserUserAgent)
+                    Case 1 '慢速重试
                         Thread.Sleep(500)
-                        Return NetGetCodeByClient(Url, Encoding, 4000, Accept, UseBrowserUserAgent)
-                    Else
-                        Throw RetryException
-                    End If
-            End Select
-        Catch ex As Exception
-            Select Case RetryCount
-                Case 0
-                    RetryException = ex
-                    RetryCount += 1
-                    GoTo Retry
-                Case 1
-                    RetryCount += 1
-                    GoTo Retry
-                Case Else
-                    Throw
-            End Select
-        End Try
+                        Return NetGetCodeByClient(Url, Encoding, 30000, Accept, UseBrowserUserAgent)
+                    Case Else '快速重试
+                        If GetTimeTick() - StartTime > 5500 Then
+                            '若前两次加载耗费 5 秒以上，才进行重试
+                            Thread.Sleep(500)
+                            Return NetGetCodeByClient(Url, Encoding, 4000, Accept, UseBrowserUserAgent)
+                        Else
+                            Throw RetryException
+                        End If
+                End Select
+            Catch ex As Exception
+                RetryException = ex
+            End Try
+        End While
+        Throw RetryException
     End Function
     Public Function NetGetCodeByClient(Url As String, Encoding As Encoding, Timeout As Integer, Accept As String, Optional UseBrowserUserAgent As Boolean = False) As String
         Try
@@ -318,86 +212,31 @@ Retry:
         Dim RetryCount As Integer = 0
         Dim RetryException As Exception = Nothing
         Dim StartTime As Long = GetTimeTick()
-        Try
-Retry:
-            Select Case RetryCount
-                Case 0 '正常尝试
-                    Return NetGetCodeByRequestOnce(Url, Encode, 10000, IsJson, Accept, UseBrowserUserAgent)
-                Case 1 '慢速重试
-                    Thread.Sleep(500)
-                    Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 30000, IsJson, Accept, UseBrowserUserAgent)
-                Case Else '快速重试
-                    If GetTimeTick() - StartTime > 5500 Then
-                        '若前两次加载耗费 5 秒以上，才进行重试
+        While RetryCount <= 3
+            RetryCount += 1
+            Try
+                Select Case RetryCount
+                    Case 0 '正常尝试
+                        Return NetGetCodeByRequestOnce(Url, Encode, 10000, IsJson, Accept, UseBrowserUserAgent)
+                    Case 1 '慢速重试
                         Thread.Sleep(500)
-                        Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 4000, IsJson, Accept, UseBrowserUserAgent)
-                    Else
-                        Throw RetryException
-                    End If
-            End Select
-        Catch ex As ThreadInterruptedException
-            Throw
-        Catch ex As Exception
-            Select Case RetryCount
-                Case 0
-                    RetryException = ex
-                    RetryCount += 1
-                    GoTo Retry
-                Case 1
-                    RetryCount += 1
-                    GoTo Retry
-                Case Else
-                    Throw
-            End Select
-        End Try
-    End Function
-    ''' <summary>
-    ''' 以 WebRequest 获取网页源代码或 Json。会逐渐生成 4 个尝试线程，并在 60s 后超时。
-    ''' </summary>
-    ''' <param name="Url">网页的 Url。</param>
-    ''' <param name="Encode">网页的编码，通常为 UTF-8。</param>
-    Public Function NetGetCodeByRequestMultiple(Url As String, Optional Encode As Encoding = Nothing, Optional Accept As String = "", Optional IsJson As Boolean = False)
-        Dim Threads As New List(Of Thread)
-        Dim RequestResult = Nothing
-        Dim RequestEx As Exception = Nothing
-        Dim FailCount As Integer = 0
-        For i = 1 To 4
-            Dim th As New Thread(
-            Sub()
-                Try
-                    RequestResult = NetGetCodeByRequestOnce(Url, Encode, 30000, IsJson, Accept)
-                Catch ex As Exception
-                    FailCount += 1
-                    RequestEx = ex
-                End Try
-            End Sub)
-            th.Start()
-            Threads.Add(th)
-            Thread.Sleep(i * 250)
-            If RequestResult IsNot Nothing Then GoTo RequestFinished
-        Next
-        Do While True
-            If RequestResult IsNot Nothing Then
-RequestFinished:
-                Try
-                    For Each th In Threads
-                        If th.IsAlive Then th.Interrupt()
-                    Next
-                Catch
-                End Try
-                Return RequestResult
-            ElseIf FailCount = 4 Then
-                Try
-                    For Each th In Threads
-                        If th.IsAlive Then th.Interrupt()
-                    Next
-                Catch
-                End Try
-                Throw RequestEx
-            End If
-            Thread.Sleep(20)
-        Loop
-        Throw New Exception("未知错误")
+                        Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 30000, IsJson, Accept, UseBrowserUserAgent)
+                    Case Else '快速重试
+                        If GetTimeTick() - StartTime > 5500 Then
+                            '若前两次加载耗费 5 秒以上，才进行重试
+                            Thread.Sleep(500)
+                            Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 4000, IsJson, Accept, UseBrowserUserAgent)
+                        Else
+                            Throw RetryException
+                        End If
+                End Select
+            Catch ex As ThreadInterruptedException
+                Throw
+            Catch ex As Exception
+                RetryException = ex
+            End Try
+        End While
+        Throw RetryException
     End Function
     Public Function NetGetCodeByRequestOnce(Url As String, Optional Encode As Encoding = Nothing, Optional Timeout As Integer = 30000, Optional IsJson As Boolean = False, Optional Accept As String = "", Optional UseBrowserUserAgent As Boolean = False)
         If RunInUi() AndAlso Not Url.Contains("//127.") Then Throw New Exception("在 UI 线程执行了网络请求")
@@ -538,41 +377,33 @@ RequestFinished:
         Dim RetryCount As Integer = 0
         Dim RetryException As Exception = Nothing
         Dim StartTime As Long = GetTimeTick()
-        Try
-Retry:
-            Select Case RetryCount
-                Case 0 '正常尝试
-                    Return NetRequestOnce(Url, Method, Data, ContentType, 15000, Headers)
-                Case 1 '慢速重试
-                    Thread.Sleep(500)
-                    Return NetRequestOnce(Url, Method, Data, ContentType, 25000, Headers)
-                Case Else '快速重试
-                    If GetTimeTick() - StartTime > 5500 Then
-                        '若前两次加载耗费 5 秒以上，才进行重试
+        While RetryCount <= 3
+            RetryCount += 1
+            Try
+                Select Case RetryCount
+                    Case 0 '正常尝试
+                        Return NetRequestOnce(Url, Method, Data, ContentType, 15000, Headers)
+                    Case 1 '慢速重试
                         Thread.Sleep(500)
-                        Return NetRequestOnce(Url, Method, Data, ContentType, 4000, Headers)
-                    Else
-                        Throw RetryException
-                    End If
-            End Select
-        Catch ex As ThreadInterruptedException
-            Throw
-        Catch ex As Exception
-            If ex.InnerException IsNot Nothing AndAlso ex.InnerException.Message.Contains("(40") AndAlso DontRetryOnRefused Then Throw
-            Select Case RetryCount
-                Case 0
-                    If ModeDebug Then Log(ex, "[Net] 网络请求第一次失败（" & Url & "）")
-                    RetryException = ex
-                    RetryCount += 1
-                    GoTo Retry
-                Case 1
-                    If ModeDebug Then Log(ex, "[Net] 网络请求第二次失败（" & Url & "）")
-                    RetryCount += 1
-                    GoTo Retry
-                Case Else
-                    Throw
-            End Select
-        End Try
+                        Return NetRequestOnce(Url, Method, Data, ContentType, 25000, Headers)
+                    Case Else '快速重试
+                        If GetTimeTick() - StartTime > 5500 Then
+                            '若前两次加载耗费 5 秒以上，才进行重试
+                            Thread.Sleep(500)
+                            Return NetRequestOnce(Url, Method, Data, ContentType, 4000, Headers)
+                        Else
+                            Throw RetryException
+                        End If
+                End Select
+            Catch ex As ThreadInterruptedException
+                Throw
+            Catch ex As Exception
+                If ex.InnerException IsNot Nothing AndAlso TypeOf ex.InnerException Is HttpRequestFailedException AndAlso CInt(CType(ex.InnerException, HttpRequestFailedException).StatusCode).ToString().StartsWithF("40") AndAlso DontRetryOnRefused Then Throw
+                RetryException = ex
+                If ModeDebug Then Log(ex, $"[Net] 网络请求第 {RetryCount} 次失败（{Url}）")
+            End Try
+        End While
+        Throw RetryException
     End Function
     ''' <summary>
     ''' 发送一次网络请求并获取返回内容。
@@ -1006,6 +837,11 @@ Retry:
         Public UseBrowserUserAgent As Boolean
 
         ''' <summary>
+        ''' 自定义User-Agent
+        ''' </summary>
+        Public CustomUserAgent As String = ""
+
+        ''' <summary>
         ''' 上次记速时的时间。
         ''' </summary>
         Private SpeedLastTime As Long = GetTimeTick()
@@ -1101,7 +937,7 @@ Retry:
         ''' 新建一个需要下载的文件。
         ''' </summary>
         ''' <param name="LocalPath">包含文件名的本地地址。</param>
-        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Check As FileChecker = Nothing, Optional UseBrowserUserAgent As Boolean = False)
+        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Check As FileChecker = Nothing, Optional UseBrowserUserAgent As Boolean = False, Optional CustomUserAgent As String = "")
             Dim Sources As New List(Of NetSource)
             Dim Count As Integer = 0
             Urls = Urls.Distinct.ToArray
@@ -1113,6 +949,7 @@ Retry:
             Me.LocalPath = LocalPath
             Me.Check = Check
             Me.UseBrowserUserAgent = UseBrowserUserAgent
+            Me.CustomUserAgent = CustomUserAgent
             Me.LocalName = GetFileNameFromPath(LocalPath)
         End Sub
 
@@ -1226,7 +1063,7 @@ StartThread:
             Dim ResultStream As Stream = Nothing
             '部分下载源真的特别慢，并且只需要一个请求，例如 Ping 为 20s，如果增长太慢，就会造成类似 2.5s 5s 7.5s 10s 12.5s... 的极大延迟
             '延迟过长会导致某些特别慢的链接迟迟不被掐死
-            Dim Timeout As Integer = Math.Min(Math.Max(ConnectAverage, 6000) * (1 + Info.Source.FailCount), 30000)
+            Dim Timeout As Integer = Math.Min(Math.Max(ConnectAverage, 6000) * (1 + Info.Source.FailCount), 25000)
             Dim ContentLength As Long = 0
             Info.State = NetState.Connect
             Try
@@ -1234,7 +1071,7 @@ StartThread:
                 If SourcesOnce.Contains(Info.Source) AndAlso Not Info.Equals(Info.Source.Thread) Then GoTo SourceBreak
                 ' 使用 HttpClient 替代 HttpWebRequest
                 Dim request As New HttpRequestMessage(HttpMethod.Get, Info.Source.Url)
-                SecretHeadersSign(Info.Source.Url, request, UseBrowserUserAgent)
+                SecretHeadersSign(Info.Source.Url, request, UseBrowserUserAgent, Me.CustomUserAgent)
                 If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
@@ -1325,13 +1162,14 @@ NotSupportRange:
                         '开始下载
                         Using HttpStream = response.Content.ReadAsStreamAsync().Result
                             If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomInteger(50, 3000))
-                            Dim HttpData As Byte() = New Byte(16384) {}
-                            HttpDataCount = HttpStream.Read(HttpData, 0, 16384)
+                            Const bufferSize As Integer = 16384
+                            Dim HttpData As Byte() = New Byte(bufferSize) {}
+                            HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
                             While (IsUnknownSize OrElse Info.DownloadUndone > 0) AndAlso '判断是否下载完成
                                 HttpDataCount > 0 AndAlso Not IsProgramEnded AndAlso State < NetState.Merge AndAlso (Not Info.Source.IsFailed OrElse Info.Equals(Info.Source.Thread))
                                 '限速
                                 While NetTaskSpeedLimitHigh > 0 AndAlso NetTaskSpeedLimitLeft <= 0
-                                    Threading.Thread.Sleep(16)
+                                    Threading.Thread.Sleep(8)
                                 End While
                                 Dim RealDataCount As Integer = If(IsUnknownSize, HttpDataCount, Math.Min(HttpDataCount, Info.DownloadUndone))
                                 SyncLock NetTaskSpeedLimitLeftLock
@@ -1389,7 +1227,7 @@ NotSupportRange:
                                     '无数据，且已超时
                                     Throw New TimeoutException("操作超时，无数据。")
                                 End If
-                                HttpDataCount = HttpStream.Read(HttpData, 0, 16384)
+                                HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
                             End While
                         End Using
                     End Using
@@ -1417,7 +1255,8 @@ SourceBreak:
                 End SyncLock
                 Dim IsTimeoutString As String = GetExceptionSummary(ex).ToLower.Replace(" ", "")
                 Dim IsTimeout As Boolean = IsTimeoutString.Contains("由于连接方在一段时间后没有正确答复或连接的主机没有反应") OrElse
-                                           IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout") OrElse ex.GetType() = GetType(AggregateException)
+                                           IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout") OrElse
+                                           ex.GetType() = GetType(TimeoutException) OrElse ex.GetType() = GetType(TaskCanceledException) OrElse (ex.GetType() = GetType(AggregateException) AndAlso CType(ex, AggregateException).InnerExceptions.Any(Function(x) x.GetType() = GetType(TaskCanceledException) OrElse x.GetType() = GetType(TimeoutException)))
                 Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & GetExceptionDetail(ex)))
                 Info.State = NetState.Error
                 ''使用该下载源的线程是否没有速度
@@ -1907,7 +1746,7 @@ Retry:
                 If State > LoadState.Loading Then Return
                 If ExList Is Nothing OrElse Not ExList.Any() Then ExList = New List(Of Exception) From {New Exception("未知错误！")}
                 '寻找第一个不是 404 的下载源
-                Dim UsefulExs = ExList.Where(Function(e) Not e.Message.Contains("(404)")).ToList
+                Dim UsefulExs = ExList.Where(Function(e) Not e.Message.Contains("404 (")).ToList
                 [Error] = If(UsefulExs.Any, UsefulExs(0), ExList(0))
                 '获取实际失败的文件
                 For Each File In Files

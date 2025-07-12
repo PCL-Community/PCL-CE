@@ -496,6 +496,7 @@ EndHint:
     Public FrmOtherTest As PageOtherTest
     Public FrmOtherFeedback As PageOtherFeedback
     Public FrmOtherVote As PageOtherVote
+    Public FrmOtherLog As PageOtherLog
 
     '登录页面声明
     Public FrmLoginAuth As PageLoginAuth

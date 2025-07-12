@@ -38,14 +38,15 @@ Public Module ModBase
     ''' 主窗口句柄。
     ''' </summary>
     Public Handle As IntPtr
+    '龙猫味石山小记: 用最不靠谱的实现写出能跑的代码 (AppDomain.CurrentDomain.SetupInformation.ApplicationBase 获取到的是当前工作目录而不是可执行文件所在目录)
     ''' <summary>
-    ''' 程序的启动路径，以“\”结尾。
+    ''' 程序可执行文件所在目录，以“\”结尾。
     ''' </summary>
-    Public Path As String = AppDomain.CurrentDomain.SetupInformation.ApplicationBase
+    Public Path As String =If(NativeInterop.ExecutableDirectory.EndsWith("\"), NativeInterop.ExecutableDirectory, NativeInterop.ExecutableDirectory & "\")
     ''' <summary>
-    ''' 包含程序名的完整路径。
+    ''' 程序可执行文件完整路径。
     ''' </summary>
-    Public PathWithName As String = Path & AppDomain.CurrentDomain.SetupInformation.ApplicationName
+    Public PathWithName As String = NativeInterop.ExecutablePath
     ''' <summary>
     ''' 程序内嵌图片文件夹路径，以“/”结尾。
     ''' </summary>

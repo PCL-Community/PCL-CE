@@ -1,23 +1,13 @@
 {
   "types": {
-    "feat": {
-      "title": "🚀 新功能"
-    },
-    "fix": {
-      "title": "🐛 修复"
-    },
-    "perf": {
-      "title": "⚡ 优化"
-    },
-    "docs": {
-      "title": "📚 文档"
-    },
-    "style": {
-      "title": "🎨 代码样式"
-    },
-    "refactor": {
-      "title": "🔧 重构"
-    }
+    "feat": { "title": "🚀 新功能" },
+    "fix": { "title": "🐛 修复" },
+    "imp": { "title": "🛠️ 改进" },
+    "perf": { "title": "⚡ 性能优化" },
+    "docs": { "title": "📚 文档" },
+    "style": { "title": "🎨 代码样式" },
+    "refactor": { "title": "🔧 重构" },
+    "chore": { "title": "🏡 杂项" }
   },
   "titles": {
     "breakingChanges": "🚨 破坏性改动"
