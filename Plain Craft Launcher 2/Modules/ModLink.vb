@@ -463,9 +463,18 @@ Public Module ModLink
             If Setup.Get("LinkRelayType") = 1 Then
                 Arguments += " --disable-p2p"
             End If
+            '数据处理设置
+            Dim proxyType As Integer = Setup.Get("LinkProxyType")
+            If proxyType = 0 Then
+                Arguments += " --enable-quic-proxy"
+            ElseIf proxyType = 1 Then
+                Arguments += " --enable-kcp-proxy"
+            Else
+                Arguments += " --enable-quic-proxy --enable-kcp-proxy"
+            End If
 
             '用户名与其他参数
-            Arguments += $" --latency-first --enable-quic-proxy"
+            Arguments += $" --latency-first"
             Dim Hostname As String = Nothing
             Hostname = If(IsHost, "H-", "J-") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then

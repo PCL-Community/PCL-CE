@@ -443,10 +443,14 @@ Retry:
 #Region "PanSelect | 种类选择页面"
 
     Public LocalPort As String = Nothing
-    '创建房间
+    '创建大厅
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
         If Not LobbyPrecheck() Then Exit Sub
         BtnCreate.IsEnabled = False
+        If ComboWorldList.SelectedItem.ToString() = "无可用实例" OrElse ComboWorldList.SelectedItem.ToString() = "正在检测本地游戏..." Then
+            Hint("请先启动并选择一个可用的 MC 联机实例！", HintType.Critical)
+            Exit Sub
+        End If
         LocalPort = ComboWorldList.SelectedItem.Tag.Port.ToString()
         Log("[Link] 创建大厅，端口：" & LocalPort)
         IsHost = True
@@ -495,7 +499,7 @@ Retry:
     End Sub
 
     Public JoinedLobbyId As String = Nothing
-    '加入房间
+    '加入大厅
     Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
         If Not LobbyPrecheck() Then Exit Sub
         JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：0150923014")

@@ -67,6 +67,8 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="8" />
                             <RowDefinition Height="28" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义节点" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkRelayServer" Grid.Column="2" HintText="应以 tcp:// 或 udp:// 开头；若有多个，请使用英文分号分割">
@@ -85,9 +87,15 @@
                         </local:MyComboBox>
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="节点行为"/>
                         <local:MyComboBox x:Name="ComboServerType" Tag="LinkServerType" Grid.Row="6" Grid.Column="2">
-                            <local:MyComboBoxItem Content="仅自有节点（默认）" ToolTip="仅通过 PCL CE 自有节点通信。&#xa;自有节点由 PCL CE 开发者部署，数据将不会经过第三方。"/>
+                            <local:MyComboBoxItem Content="仅自有节点" ToolTip="仅通过 PCL CE 自有节点通信。&#xa;自有节点由 PCL CE 开发者部署，数据将不会经过第三方。"/>
                             <local:MyComboBoxItem Content="自有节点 + 社区节点" ToolTip="除自有节点外，添加由 PCL CE 挑选的部分 EasyTier 社区提供的节点。&#xa;这些节点由社区志愿者部署，可能可以提供更快的连接速度，但数据将会由其中继。"/>
                             <local:MyComboBoxItem Content="不使用预设节点" ToolTip="不使用任何预设节点。&#xa;虽然 EasyTier 仍会尝试建立 P2P 连接，但你可能必须手动添加一个节点才能使用大厅。"/>
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="数据处理行为"/>
+                        <local:MyComboBox x:Name="ComboProxyType" Tag="LinkProxyType" Grid.Row="8" Grid.Column="2" ToolTip="选择 EasyTier 进行数据处理的方式，可能可以降低延迟或提升传输带宽。&#xa;需要联机双方都配置方可生效。">
+                            <local:MyComboBoxItem Content="使用 QUIC（推荐）" ToolTip="使用 QUIC 协议代理 TCP 流，对提升传输带宽较有帮助。&#xa;QUIC 总体稳定性较好，但可能不是最优方案。"/>
+                            <local:MyComboBoxItem Content="使用 KCP" ToolTip="使用 KCP 协议代理 TCP 流，对降低延迟较有帮助。&#xa;KCP 速度较快，但稳定性相比 QUIC 可能较差。在中国大陆，一般只推荐同省份 / 同运营商用户选择。"/>
+                            <local:MyComboBoxItem Content="使用 KCP + QUIC" ToolTip="同时允许 KCP 和 QUIC 协议。&#xa;需要注意，KCP 优先级大于 QUIC，因此在联机双方的设置均允许使用 KCP 的情况下不会尝试使用 QUIC。"/>
                         </local:MyComboBox>
                     </Grid>
                 </StackPanel>
