@@ -60,7 +60,7 @@ Class PageVersionSavesInfo
                             Hintversion1_9.Text = $"1.9 以下的版本无法获取存档版本"
                         Else
                             Hintversion1_8.Visibility = Visibility.Visible
-                            Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和困难度"
+                            Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
                         End If
                     Else
                         AddInfoTable("存档版本", $"{versionName} ({versionId})")
