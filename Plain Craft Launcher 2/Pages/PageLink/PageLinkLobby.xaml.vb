@@ -297,9 +297,13 @@ Retry:
                                Thread.Sleep(1000)
                                retryCount += 1
                            End While
+                           While Not IsETReady
+                               GetETInfo()
+                               Thread.Sleep(1000)
+                           End While
                            While ETProcess IsNot Nothing
                                GetETInfo()
-                               Thread.Sleep(15000)
+                               Thread.Sleep(10000)
                            End While
                            If ETProcess Is Nothing Then
                                RunInUi(Sub()
@@ -404,7 +408,8 @@ Retry:
             End If
             RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
             Hostname = HostInfo.NaidName
-            If IsHost Then '确认创建者实例存活状态
+            '确认创建者实例存活状态
+            If IsHost Then
                 Dim test As New MCPing("127.0.0.1", LocalPort)
                 Dim info = test.GetInfo(False).GetAwaiter().GetResult()
                 If info Is Nothing Then
@@ -418,20 +423,26 @@ Retry:
                     MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
                 End If
             End If
+            '加入方刷新连接信息
+            RunInUi(Sub()
+                        If Not IsETReady AndAlso Not HostInfo.Ping = 200 Then
+                            IsETReady = True
+                        ElseIf Not IsETReady AndAlso HostInfo.Ping = 200 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                            HostInfo.Ping = 0
+                        End If
+                        LabFinishPing.Text = HostInfo.Ping.ToString() & "ms"
+                        LabConnectType.Text = GetConnectTypeChinese(HostInfo.Cost)
+                    End Sub)
             '刷新大厅成员列表 UI
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
                         StackPlayerList.Children.Add(PlayerInfoItem(HostInfo, AddressOf PlayerInfoClick))
                         For Each Player In PlayerList
+                            If Not IsETReady AndAlso Player.Ping = 200 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
                             Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(NewItem)
                         Next
                         CardPlayerList.Title = $"大厅成员列表（共 {PlayerNum} 人）"
-                    End Sub)
-            '加入方刷新连接信息
-            RunInUi(Sub()
-                        LabFinishPing.Text = HostInfo.Ping.ToString() & "ms"
-                        LabConnectType.Text = GetConnectTypeChinese(HostInfo.Cost)
                     End Sub)
             IsETFirstCheckFinished = True
         Catch ex As Exception

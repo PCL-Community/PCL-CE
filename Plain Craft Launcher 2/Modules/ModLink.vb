@@ -408,6 +408,7 @@ Public Module ModLink
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
     Public ETProcess As Process = Nothing
+    Public IsETReady As Boolean = False
     Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
         Try
             ETProcess = New Process With {
@@ -543,6 +544,7 @@ Public Module ModLink
                 ETProcess.Kill()
                 ETProcess.WaitForExit(200)
                 IsETRunning = False
+                IsETReady = False
                 ETProcess = Nothing
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.JoinerLocalPort = Nothing
@@ -552,13 +554,17 @@ Public Module ModLink
             Catch ex As InvalidOperationException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
                 IsETRunning = False
+                IsETReady = False
                 ETProcess = Nothing
             Catch ex As NullReferenceException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
                 IsETRunning = False
+                IsETReady = False
                 ETProcess = Nothing
             Catch ex As Exception
                 Log("[Link] 尝试停止 EasyTier 进程时遇到问题: " + ex.ToString())
+                IsETRunning = False
+                IsETReady = False
                 ETProcess = Nothing
             End Try
         End If
