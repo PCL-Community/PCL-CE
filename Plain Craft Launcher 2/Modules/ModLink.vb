@@ -450,7 +450,7 @@ Public Module ModLink
                 If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
             Next
             If Not Setup.Get("LinkServerType") = 2 Then
-                Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 2
+                Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 1
                 For Each Server In ETServerDefList
                     If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
                     Servers.Add(Server.Url)
@@ -465,7 +465,7 @@ Public Module ModLink
             End If
 
             '用户名与其他参数
-            Arguments += $" --enable-kcp-proxy --latency-first --enable-quic-proxy"
+            Arguments += $" --latency-first --enable-quic-proxy"
             Dim Hostname As String = Nothing
             Hostname = If(IsHost, "H-", "J-") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
