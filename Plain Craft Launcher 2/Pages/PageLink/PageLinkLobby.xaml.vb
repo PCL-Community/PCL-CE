@@ -199,7 +199,7 @@ Retry:
         Return NewItem
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
-        MyMsgBox($"Natayark ID：{sender.Tag.NaidName}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
+        MyMsgBox($"{If(sender.Tag.NaidName IsNot Nothing, "Natayark ID：" & sender.Tag.NaidName, "来自其他启动器")}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
                  $"玩家 {sender.Tag.NaidName} 的详细信息")
     End Sub
 #End Region
@@ -321,7 +321,7 @@ Retry:
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
                                        .WorkingDirectory = ETPath,
-                                       .Arguments = "peer",
+                                       .Arguments = "-o json peer",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
                                        .WindowStyle = ProcessWindowStyle.Hidden,
@@ -340,7 +340,7 @@ Retry:
             Dim ETCliOutput As String = Nothing
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
             'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
-            If Not ETCliOutput.Contains("10.114.51.41/24") Then
+            If Not ETCliOutput.Contains("10.114.51.41") Then
                 If Not IsETFirstCheckFinished AndAlso RemainRetry > 0 Then
                     Log($"[Link] 未找到大厅创建者 IP，可能是并不存在该大厅，放弃前再重试 {RemainRetry} 次")
                     Thread.Sleep(1000)
@@ -368,27 +368,25 @@ Retry:
             '查询大厅成员信息
             Dim PlayerNum As Integer = 0
             Dim PlayerList As New List(Of ETPlayerInfo)
-            'e.g. │ ipv4 │ hostname │ cost │ lat_ms │ loss_rate │ rx_bytes │ tx_bytes │ tunnel_proto │ nat_type │ id │ version │
-            For Each PlayerInfo In ETCliOutput.Split(New String(vbLf))
-                'Log("当前行：" & PlayerInfo)
-                If PlayerInfo.Contains("───────") OrElse PlayerInfo.ContainsF("hostname", True) OrElse String.IsNullOrWhiteSpace(PlayerInfo) Then Continue For
-                Dim s = PlayerInfo.Split("│")
-                If s(2).Trim().Contains("PublicServer") Then Continue For '服务器
-                Dim ETInfo As New ETPlayerInfo With {
-                    .IsHost = Not s(2).Trim().StartsWithF("J-", True),
-                    .Hostname = s(2).Trim(),
-                    .Cost = s(3).BeforeLast("(").Trim(),
-                    .Ping = Math.Round(Val(s(4).Trim())),
-                    .Loss = Math.Round(Val(s(5).Trim()) * 100, 1),
-                    .NatType = s(9).Trim(),
-                    .McName = If(s(2).Split("-").Length = 3, s(2).Split("-")(2).Trim(), Nothing),
-                    .NaidName = s(2).Trim().Split("-")(1).Trim()
+            Dim cliJson As JArray = JArray.Parse(ETCliOutput)
+            For Each p In cliJson
+                If p("hostname").Contains("PublicServer") Then Continue For '服务器
+                Dim hostnameStatus As Integer = p("hostname").ToString().Split("-").Length
+                Dim info As New ETPlayerInfo With {
+                    .IsHost = Not p("hostname").ToString().StartsWithF("J-", True),
+                    .Hostname = p("hostname"),
+                    .Cost = p("cost").ToString().BeforeLast("("),
+                    .Ping = Math.Round(Val(p("lat_ms"))),
+                    .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
+                    .NatType = p("nat_type"),
+                    .McName = If(hostnameStatus = 3, p("hostname").ToString().Split("-")(2), Nothing),
+                    .NaidName = If(hostnameStatus = 3 OrElse hostnameStatus = 2, p("hostname").ToString().Split("-")(1), Nothing)
                 }
-                If ETInfo.Cost.ContainsF("Local", True) Then LocalInfo = ETInfo
-                If ETInfo.IsHost Then
-                    HostInfo = ETInfo
+                If info.Cost = "Local" Then LocalInfo = info
+                If info.IsHost Then
+                    HostInfo = info
                 Else
-                    PlayerList.Add(ETInfo)
+                    PlayerList.Add(info)
                 End If
                 PlayerNum += 1
             Next
