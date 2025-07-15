@@ -79,8 +79,13 @@ Public Class PageOtherTest
             Log("[Download] 自定义下载文件名：" + FileName, LogLevel.Normal, "出现错误")
             Log("[Download] 自定义下载文件目标：" + Folder, ModBase.LogLevel.Normal, "出现错误")
             Dim uuid As Integer = GetUuid()
-            Dim loaderDownload As LoaderDownload = New ModNet.LoaderDownload("自定义下载文件：" + FileName + " ", New List(Of NetFile)() From {New NetFile(New String() {Url}, Folder + FileName, Nothing, True, UserAgent)})
-            Dim loaderCombo As LoaderCombo(Of Integer) = New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
+            Dim loaderdownload As LoaderBase
+            If String.IsNullOrEmpty(New ValidateHttp().Validate(Url)) Then
+                loaderdownload = New LoaderDownload("自定义下载文件：" + FileName + " ", New List(Of NetFile)() From {New NetFile(New String() {Url}, Folder + FileName, Nothing, True, UserAgent)})
+            Else 'UNC 路径
+                loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))
+            End If
+            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)
             FrmMain.BtnExtraDownload.ShowRefresh()

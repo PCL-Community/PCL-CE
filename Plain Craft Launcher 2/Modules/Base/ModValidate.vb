@@ -105,6 +105,25 @@ Public Class ValidateHttp
 End Class
 
 ''' <summary>
+''' 必须是一个完整网址或 UNC 路径。
+''' </summary>
+Public Class ValidateHttpOrUnc
+    Inherits Validate
+    Public Property AllowsNullOrEmpty As Boolean = False
+    Public Sub New()
+    End Sub '用于 XAML 初始化
+    Public Sub New(Optional AllowsNullOrEmpty As Boolean = False)
+        Me.AllowsNullOrEmpty = AllowsNullOrEmpty
+    End Sub
+    Public Overrides Function Validate(Str As String) As String
+        If AllowsNullOrEmpty AndAlso String.IsNullOrEmpty(Str) Then Return ""
+        If Str.EndsWithF("/") OrElse Str.EndsWithF("\") Then Str = Str.Substring(0, Str.Length - 1)
+        If Not (RegexCheck(Str, "^(http[s]?)\://") OrElse Str.StartsWithF("\\")) Then Return "输入的网址无效！"
+        Return ""
+    End Function
+End Class
+
+''' <summary>
 ''' 必须为整数。
 ''' </summary>
 Public Class ValidateInteger

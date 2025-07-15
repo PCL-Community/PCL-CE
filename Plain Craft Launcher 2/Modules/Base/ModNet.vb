@@ -1,8 +1,7 @@
 Imports System.ComponentModel
-Imports System.Runtime.InteropServices
 Imports System.Net.Http
+Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
-
 Imports LiteDB
 
 Public Module ModNet
@@ -84,7 +83,7 @@ Public Module ModNet
             Return -1
         End If
     End Function
-    
+
     ''' <summary>
     ''' 当调用 <see cref="EnsureSuccessStatusCode"/> 时，若给定响应的 <c>IsSuccessStatusCode</c> 属性不为 <c>True</c> 则抛出该异常。
     ''' </summary>
@@ -103,7 +102,7 @@ Public Module ModNet
             ReasonPhrase = response.ReasonPhrase
         End Sub
     End Class
-    
+
     ''' <summary>
     ''' <see cref="HttpRequestFailedException"/> 的套壳，包含 <c>StatusCode</c> 属性。<br/>
     ''' 在此，向龙猫的石山代码致敬。
@@ -121,7 +120,7 @@ Public Module ModNet
             InnerHttpException = ex
         End Sub
     End Class
-    
+
     ''' <summary>
     ''' <see cref="HttpResponseMessage.EnsureSuccessStatusCode"/> 的改进版，将抛出附带 <c>StatusCode</c> 和 <c>ReasonPhrase</c> 属性的异常。
     ''' 这个改进已经在 .NET 5 官方实装，鬼知道为什么 .NET Framework 连最新的 4.8.1 都这么原始。
@@ -1784,6 +1783,73 @@ Retry:
 
     End Class
 
+    ''' <summary>
+    ''' 下载单个 UNC 文件的加载器。
+    ''' </summary>
+    Public Class LoaderDownloadUnc
+        Inherits LoaderBase
+        ''' <summary>
+        ''' UNC 路径。
+        ''' </summary>
+        Public Unc As String
+        ''' <summary>
+        ''' 保存路径。
+        ''' </summary>
+        Public SavePath As String
+        ''' <summary>
+        ''' 下载线程。
+        ''' </summary>
+        Private DlThread As Thread
+        Public Sub New(Name As String, File As Tuple(Of String, String))
+            Me.Name = Name
+            Unc = File.Item1
+            SavePath = File.Item2
+        End Sub
+        Public Overrides Sub Start(Optional Input As Object = Nothing, Optional IsForceRestart As Boolean = False)
+            If Input IsNot Nothing Then
+                Unc = Input.Item1
+                SavePath = Input.Item2
+            End If
+            State = LoadState.Loading
+            Directory.CreateDirectory(GetPathFromFullPath(SavePath))
+            DlThread = RunInNewThread(AddressOf DownloadThread, "Download UNC File")
+        End Sub
+        Private Sub DownloadThread()
+            Try
+                Dim fileInfo As New FileInfo(Unc)
+                Dim totalBytes As Long = fileInfo.Length
+                Dim bytesRead As Long = 0
+
+                Dim tempFile As String = PathTemp & Uuid & "\" & GetFileNameFromPath(SavePath)
+                Directory.CreateDirectory(GetPathFromFullPath(tempFile))
+                If File.Exists(tempFile) Then File.Delete(tempFile)
+                Using sourceStream As New FileStream(Unc, FileMode.Open, FileAccess.Read)
+                    Using destStream As New FileStream(tempFile, FileMode.Create, FileAccess.Write)
+                        Dim buffer(81920) As Byte '80KB 缓冲区
+                        Dim currentBytesRead As Integer
+
+                        Do
+                            currentBytesRead = sourceStream.Read(buffer, 0, buffer.Length)
+                            destStream.Write(buffer, 0, currentBytesRead)
+                            bytesRead += currentBytesRead
+
+                            Progress = bytesRead / totalBytes
+                        Loop While currentBytesRead > 0 AndAlso State = LoadState.Loading
+                    End Using
+                End Using
+                If State > LoadState.Loading Then Return
+                CopyFile(tempFile, SavePath)
+                If State = LoadState.Loading Then State = LoadState.Finished
+            Catch ex As ThreadAbortException
+            End Try
+        End Sub
+
+        Public Overrides Sub Abort()
+            If State >= LoadState.Finished Then Return
+            State = LoadState.Aborted
+            Log("[Download] " & Name & " 已取消！")
+        End Sub
+    End Class
     Public NetManager As New NetManagerClass
     ''' <summary>
     ''' 下载文件管理。

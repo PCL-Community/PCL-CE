@@ -43,7 +43,7 @@
                         <TextBlock  Grid.Column="0" Grid.Row="0" Text="下载地址"/>
                         <local:MyTextBox x:Name="TextDownloadUrl" Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" TextChanged="TextDownloadUrl_TextChanged">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateHttp/>
+                                <local:ValidateHttpOrUnc/>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         
