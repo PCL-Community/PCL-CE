@@ -54,6 +54,7 @@
             CheckAdvanceRunWait.Checked = Setup.Get("LaunchAdvanceRunWait")
             CheckAdvanceDisableRW.Checked = Setup.Get("LaunchAdvanceDisableRW")
             CheckAdvanceGraphicCard.Checked = Setup.Get("LaunchAdvanceGraphicCard")
+            CheckAdvanceNoJavaw.Checked = Setup.Get("LaunchAdvanceNoJavaw")
             If IsArm64System Then
                 CheckAdvanceDisableJLW.Checked = True
                 CheckAdvanceDisableJLW.IsEnabled = False
@@ -91,6 +92,7 @@
             Setup.Reset("LaunchAdvanceRunWait")
             Setup.Reset("LaunchAdvanceDisableJLW")
             Setup.Reset("LaunchAdvanceGraphicCard")
+            Setup.Reset("LaunchAdvanceNoJavaw")
             Setup.Reset("LoginMsAuthType")
             Setup.Reset("LaunchArgumentJavaUser")
             Setup.Reset("LaunchArgumentJavaSelect")
@@ -117,7 +119,7 @@
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged, ComboArgumentVisibie.SelectionChanged, ComboArgumentWindowType.SelectionChanged, ComboArgumentPriority.SelectionChanged, ComboMsAuthType.SelectionChanged, ComboPreferredIpStack.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change, CheckAdvanceNoJavaw.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 

@@ -89,6 +89,7 @@ Public Class ModSetup
         {"LaunchAdvanceDisableJLW", New SetupEntry(False)},
         {"LaunchAdvanceDisableRW", New SetupEntry(False)},
         {"LaunchAdvanceGraphicCard", New SetupEntry(True, Source:=SetupSource.Registry)},
+        {"LaunchAdvanceNoJavaw", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LaunchRamType", New SetupEntry(0)},
         {"LaunchRamCustom", New SetupEntry(15)},
         {"LaunchUuid", New SetupEntry(String.Empty, Source:=SetupSource.Registry)},
