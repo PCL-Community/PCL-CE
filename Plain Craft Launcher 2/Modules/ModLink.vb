@@ -4,177 +4,14 @@ Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
 Imports System.Threading.Tasks
-Imports PCL.Core.Helper
+Imports PCL.Core.Model
+Imports PCL.Core.Utils.Minecraft
 Imports PCL.Core.Service
 
 Public Module ModLink
 
     Public IsLobbyAvailable As Boolean = False
     Public RequiresRealname As Boolean = True
-
-#Region "MCPing"
-    Public Class WorldInfo
-        Public Property Port As Integer
-        Public Property VersionName As String
-        Public Property PlayerMax As Integer
-        Public Property PlayerOnline As Integer
-        Public Property Description As String
-        Public Property Favicon As String
-        Public Property Latency As Integer = -1
-
-        Public Overrides Function ToString() As String
-            Return $"[MCPing] Version: {VersionName}, Players: {PlayerOnline}/{PlayerMax}, Description: {Description}"
-        End Function
-    End Class
-
-    Public Class MCPing
-
-
-        Sub New(IP As String, Optional Port As UInt16 = 25565)
-            _IP = IP
-            _Port = Port
-        End Sub
-
-        Private _IP As String
-        Private _Port As UInt16
-
-        ''' <summary>
-        ''' 对疑似 MC 端口进行 MCPing，并返回相关信息
-        ''' </summary>
-        Public Async Function GetInfo(Optional DoLog As Boolean = True) As Tasks.Task(Of WorldInfo)
-            Try
-                ' 创建 TCP 客户端并连接到服务器
-                Using client As New TcpClient(_IP, _Port)
-                    If DoLog Then Log($"[MCPing] Established connection ({_IP}:{_Port})", LogLevel.Debug)
-                    ' 向服务器发送握手数据包
-                    Using stream = client.GetStream()
-                        If Not stream.CanWrite OrElse Not stream.CanRead Then Return Nothing
-                        Dim latency As New Stopwatch
-
-                        Dim handshake As Byte() = BuildHandshake(_IP, _Port)
-                        If DoLog Then Log($"[MCPing] Sending {String.Join(" ", handshake)}", LogLevel.Debug)
-                        Await stream.WriteAsync(handshake, 0, handshake.Length)
-                        If DoLog Then Log($"[MCPing] Sended handshake", LogLevel.Debug)
-
-                        ' 向服务器发送查询状态信息的数据包
-                        Dim statusRequest As Byte() = BuildStatusRequest()
-                        If DoLog Then Log($"[MCPing] Sending {String.Join(" ", statusRequest)}")
-                        Await stream.WriteAsync(statusRequest, 0, statusRequest.Length)
-                        If DoLog Then Log($"[MCPing] Sended statusrequest", LogLevel.Debug)
-
-                        ' 读取服务器响应的数据
-                        Dim res As New List(Of Byte)
-                        Dim buffer(4096) As Byte
-
-                        ' 读取varInt头部
-                        latency.Start()
-                        Dim packetLength = VarInt.ReadFromStream(stream)
-                        latency.Stop()
-                        If DoLog Then Log($"[MCPing] Got packet length ({packetLength})", LogLevel.Debug)
-
-                        ' 读取剩余数据包
-                        Dim totalBytes = 0
-                        Using cts As New CancellationTokenSource
-                            cts.CancelAfter(TimeSpan.FromSeconds(5))
-                            Do
-                                Dim bytesRead = Await stream.ReadAsync(buffer, 0, buffer.Length, cts.Token)
-                                If bytesRead = 0 Then Exit Do
-                                res.AddRange(buffer.Take(bytesRead))
-                                totalBytes += bytesRead
-                                If DoLog Then Log($"[MCPing] Received part ({bytesRead})", LogLevel.Debug)
-                            Loop While totalBytes < packetLength
-                        End Using
-
-                        If DoLog Then Log($"[MCPing] Received ({res.Count})", LogLevel.Debug)
-                        Dim response As String = Encoding.UTF8.GetString(res.ToArray(), 0, res.Count)
-                        Dim startIndex = response.IndexOf("{""", StringComparison.Ordinal)
-                        If startIndex > 10 Then Return Nothing
-                        response = response.Substring(startIndex)
-                        If DoLog Then Log("[MCPing] Server Response: " & response, LogLevel.Debug)
-
-                        '查找并截取第一段 JSON
-                        '有些 mod 或是整合包定制服务端会在返回的 JSON 后面添加新的内容，比如 Better MC
-                        '这时候需要把第一段合法的 JSON 截出来，否则下面解析 JSON 会炸掉
-                        '但是它们完全可以在返回的 JSON 内部添加自定义内容，添加在后面估计就是为了图 mixin 省事
-                        '不守规范一时爽，第三方解析火葬场
-                        Dim stack = 0, index = 0, stackStr = False, length = response.Length
-                        While index < length
-                            Select Case response(index)
-                                Case "\"c
-                                    If stackStr Then index += 1
-                                Case """"c
-                                    stackStr = Not stackStr
-                                Case "{"c
-                                    If Not stackStr Then stack += 1
-                                Case "}"c
-                                    stack -= 1
-                                    If stack = 0 Then
-                                        response = response.Substring(0, index + 1)
-                                        If DoLog Then Log("[MCPing] Correct Response: " & response, LogLevel.Debug)
-                                        Exit While
-                                    End If
-                            End Select
-                            index += 1
-                        End While
-
-                        '解析返回的 JSON 文本
-                        Dim j = JObject.Parse(response)
-
-                        Dim world As New WorldInfo With {
-                        .VersionName = j("version")("name"),
-                        .PlayerMax = j("players")("max"),
-                        .PlayerOnline = j("players")("online"),
-                        .Favicon = If(j("favicon"), ""),
-                        .Port = _Port,
-                        .Latency = Math.Round(latency.ElapsedMilliseconds)
-                        }
-                        Dim descObj = j("description")
-                        world.Description = ""
-                        If descObj.Type = JTokenType.Object AndAlso descObj("extra") IsNot Nothing Then
-                            If DoLog Then Log("[MCPing] 获取到的内容为 extra 形式", LogLevel.Debug)
-                            world.Description = MinecraftFormatter.ConvertToMinecraftFormat(descObj)
-                        ElseIf descObj.Type = JTokenType.Object AndAlso descObj("text") IsNot Nothing Then
-                            If DoLog Then Log("[MCPing] 获取到的内容为 text 形式", LogLevel.Debug)
-                            world.Description = descObj("text").ToString()
-                        ElseIf descObj.Type = JTokenType.String Then
-                            If DoLog Then Log("[MCPing] 获取到的内容为 string 形式", LogLevel.Debug)
-                            world.Description = descObj.ToString()
-                        End If
-                        Return world
-                    End Using
-                End Using
-            Catch ex As Exception
-                Log(ex, "[MCPing] Error: " & ex.Message)
-            End Try
-            Return Nothing
-        End Function
-
-
-        Function BuildHandshake(serverIp As String, serverPort As Integer) As Byte()
-            ' 构建握手数据包
-            Dim handshake As New List(Of Byte)
-            handshake.AddRange(VarInt.Encode(0)) ' 数据包 ID 握手包
-            handshake.AddRange(VarInt.Encode(578)) ' 协议
-            Dim encodedIP = Encoding.UTF8.GetBytes(serverIp)
-            handshake.AddRange(VarInt.Encode(CULng(encodedIP.Length))) ' 服务器地址长度
-            handshake.AddRange(encodedIP) ' 服务器地址
-            handshake.AddRange(BitConverter.GetBytes(CUShort(serverPort)).Reverse()) ' 服务器端口
-            handshake.AddRange(VarInt.Encode(1)) ' 下一个状态 获取服务器状态
-
-            handshake.InsertRange(0, VarInt.Encode(CULng(handshake.Count)))
-
-            Return handshake.ToArray()
-        End Function
-
-        Function BuildStatusRequest() As Byte()
-            ' 构建状态请求数据包
-            Dim packet As New List(Of Byte)
-            packet.AddRange(VarInt.Encode(1))
-            packet.AddRange(VarInt.Encode(0))
-            Return packet.ToArray() ' 状态请求数据包
-        End Function
-    End Class
-#End Region
 
 #Region "端口查找"
     Public Class PortFinder
@@ -309,7 +146,7 @@ Public Module ModLink
 #End Region
 
 #Region "Minecraft 实例探测"
-    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of WorldInfo))
+    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of Tuple(Of Integer, McPingResult)))
         'Java 进程 PID 查询
         Dim PIDLookupResult As New List(Of String)
         Dim JavaNames As New List(Of String)
@@ -330,7 +167,7 @@ Public Module ModLink
             End If
         Next
 
-        Dim res As New List(Of WorldInfo)
+        Dim res As New List(Of Tuple(Of Integer, McPingResult))
         Try
             If Not PIDLookupResult.Any Then Return res
             Dim ports As New List(Of Integer)
@@ -340,11 +177,11 @@ Public Module ModLink
             Log($"[MCDetect] 获取到端口数量 {ports.Count}")
             Dim checkTasks = ports.Select(Function(port) Task.Run(Async Function()
                                                                       Log($"[MCDetect] 找到疑似端口，开始验证：{port}")
-                                                                      Dim test As New MCPing("127.0.0.1", port)
-                                                                      Dim info = Await test.GetInfo()
-                                                                      If Not String.IsNullOrWhiteSpace(info.VersionName) Then
+                                                                      Dim test As New McPing("127.0.0.1", port)
+                                                                      Dim info = Await test.PingAsync()
+                                                                      If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
                                                                           Log($"[MCDetect] 端口 {port} 为有效 Minecraft 世界")
-                                                                          res.Add(info)
+                                                                          res.Add(New Tuple(Of Integer, McPingResult)(port, info))
                                                                       End If
                                                                   End Function)).ToArray()
             Await Task.WhenAll(checkTasks)

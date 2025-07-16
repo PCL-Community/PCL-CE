@@ -1657,18 +1657,18 @@ Finished:
                     '加载 McMod 对象
                     ModEntry.Load()
                 End If
-                
-                Dim DumpMod As LocalCompFile = ModList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName AndAlso Not m.IsFolder)
-                If DumpMod IsNot Nothing AndAlso DumpMod IsNot ModEntry Then
-                    Dim DisabledMod As LocalCompFile = If(DumpMod.State = LocalCompFile.LocalFileStatus.Disabled, DumpMod, ModEntry)
-                    Log($"[Mod] 重复的 Mod 文件：{DumpMod.FileName} 与 {ModEntry.FileName}，已忽略 {DisabledMod.FileName}", LogLevel.Debug)
-                    If DisabledMod Is ModEntry Then
-                        Continue For
-                    Else
-                        ModList.Remove(DisabledMod)
-                        ModUpdateList.Remove(DisabledMod)
-                    End If
-                End If
+
+                'Dim DumpMod As LocalCompFile = ModList.FirstOrDefault(Function(m) m.RawFileName = ModEntry.RawFileName AndAlso Not m.IsFolder)
+                'If DumpMod IsNot Nothing AndAlso DumpMod IsNot ModEntry Then
+                '    Dim DisabledMod As LocalCompFile = If(DumpMod.State = LocalCompFile.LocalFileStatus.Disabled, DumpMod, ModEntry)
+                '    Log($"[Mod] 重复的 Mod 文件：{DumpMod.FileName} 与 {ModEntry.FileName}，已忽略 {DisabledMod.FileName}", LogLevel.Debug)
+                '    If DisabledMod Is ModEntry Then
+                '        Continue For
+                '    Else
+                '        ModList.Remove(DisabledMod)
+                '        ModUpdateList.Remove(DisabledMod)
+                '    End If
+                'End If
                 '读取 Comp 缓存
                 If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
                 Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.McName & Loader.Input.Loaders.Join("")

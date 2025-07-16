@@ -89,6 +89,7 @@ Public Class ModSetup
         {"LaunchAdvanceDisableJLW", New SetupEntry(False)},
         {"LaunchAdvanceDisableRW", New SetupEntry(False)},
         {"LaunchAdvanceGraphicCard", New SetupEntry(True, Source:=SetupSource.Registry)},
+        {"LaunchAdvanceNoJavaw", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LaunchRamType", New SetupEntry(0)},
         {"LaunchRamCustom", New SetupEntry(15)},
         {"LaunchUuid", New SetupEntry(String.Empty, Source:=SetupSource.Registry)},
@@ -106,7 +107,7 @@ Public Class ModSetup
         {"LinkFirstTimeNetTest", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LoginLegacyName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LoginMsJson", New SetupEntry("{}", Source:=SetupSource.Registry, Encoded:=True)}, '{UserName: OAuthToken, ...}
-        {"LoginMsAuthType", New SetupEntry("0", Source:=SetupSource.Registry)},
+        {"LoginMsAuthType", New SetupEntry(1, Source:=SetupSource.Registry)},
         {"ToolHelpChinese", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"ToolDownloadThread", New SetupEntry(63, Source:=SetupSource.Registry)},
         {"ToolDownloadSpeed", New SetupEntry(42, Source:=SetupSource.Registry)},

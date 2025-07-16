@@ -1,4 +1,6 @@
 ﻿Imports PCL.Core.Helper
+Imports PCL.Core.Utils.Minecraft
+Imports PCL.Core.Model
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -252,7 +254,7 @@ Retry:
         BtnRefresh.IsEnabled = False
         ComboWorldList.IsEnabled = False
         RunInNewThread(Sub()
-                           Dim Worlds As List(Of WorldInfo) = MCInstanceFinding.GetAwaiter().GetResult()
+                           Dim Worlds As List(Of Tuple(Of Integer, McPingResult)) = MCInstanceFinding.GetAwaiter().GetResult()
                            RunInUi(Sub()
                                        ComboWorldList.Items.Clear()
                                        If Worlds.Count = 0 Then
@@ -264,7 +266,7 @@ Retry:
                                            For Each World In Worlds
                                                ComboWorldList.Items.Add(New MyComboBoxItem With {
                                                                         .Tag = World,
-                                                                        .Content = $"{World.Description} ({World.VersionName} / 端口 {World.Port})"})
+                                                                        .Content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1})"})
                                            Next
                                            If IsEasyTierExist Then BtnCreate.IsEnabled = True
                                        End If
@@ -398,8 +400,8 @@ Retry:
             RemotePort = HostInfo.Hostname.Split("-")(0)
             Hostname = HostInfo.NaidName
             If IsHost Then '确认创建者实例存活状态
-                Dim test As New MCPing("127.0.0.1", LocalPort)
-                Dim info = test.GetInfo(False).GetAwaiter().GetResult()
+                Dim test As New McPing("127.0.0.1", LocalPort)
+                Dim info = test.PingAsync().GetAwaiter().GetResult()
                 If info Is Nothing Then
                     Log($"[MCDetect] 本地 MC 局域网实例疑似已关闭，关闭大厅")
                     RunInUi(Sub()
@@ -485,7 +487,7 @@ Retry:
         If Not LobbyPrecheck() Then Exit Sub
         BtnCreate.IsEnabled = False
         IsLoading = True
-        LocalPort = ComboWorldList.SelectedItem.Tag.Port.ToString()
+        LocalPort = CType(ComboWorldList.SelectedItem.Tag, Tuple(Of Integer, McPingResult)).Item1.ToString()
         Log("[Link] 创建大厅，端口：" & LocalPort)
         IsHost = True
         RunInNewThread(Sub()

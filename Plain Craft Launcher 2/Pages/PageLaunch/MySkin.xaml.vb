@@ -279,7 +279,7 @@ Retry:
                         Continue For
                     End If
                     NetDownloadByLoader(itemSkin("url").ToString(), localFile)
-                    Dim capeFrontRegion As New Rectangle(0, 0, 11, 17)
+                    Dim capeFrontRegion As New Rectangle(1, 0, 11, 17)
                     Dim capeFront As New Bitmap(capeFrontRegion.Width, capeFrontRegion.Height)
                     Dim capeImage = Image.FromFile(localFile)
                     Dim gra = Graphics.FromImage(capeFront)
@@ -317,7 +317,7 @@ Retry:
                                                      .Checked = active,
                                                      .Type = MyListItem.CheckType.RadioBox,
                                                      .Logo = Cape("url"),
-                                                     .LogoScale = 0.6
+                                                     .LogoScale = 0.8
                                                  })
                         Next
                         SelId = MyMsgBoxSelect(SelectionControl, "选择披风", "确定", "取消")

@@ -381,7 +381,12 @@ Write:
         If Type = 1 Then '导入
             Hint("正在导入，请稍后...", HintType.Info)
             RunInNewThread(Sub()
-                               Dim ImportList As JArray = JArray.Parse(ReadFile(OutsidePath))
+                               Dim ImportList As JArray
+                               Try
+                                   ImportList = JArray.Parse(ReadFile(OutsidePath))
+                               Catch ex As Exception
+                                   ImportList = New JArray
+                               End Try
                                Dim OutputList As New List(Of McProfile)
                                Dim ImportNum As Integer = 0
                                For Each Profile In ImportList
@@ -452,7 +457,12 @@ Write:
                            End Sub, "Profile Import")
         Else '导出
             Hint("正在导出，请稍后...", HintType.Info)
-            Dim ExistList As JArray = JArray.Parse(ReadFile(OutsidePath))
+            Dim ExistList As JArray
+            Try
+                ExistList = JArray.Parse(ReadFile(OutsidePath))
+            Catch ex As Exception
+                ExistList = New JArray
+            End Try
             Dim OutputList As JArray = New JArray
             Dim OutputNum As Integer = 0
             For Each Profile In ProfileList
@@ -596,9 +606,13 @@ Write:
                 }
             ElseIf AuthType = McLoginType.Ms Then
                 If McLoginMsLoader.State = LoadState.Finished Then
-                    Return New McLoginMs With {.OAuthId = SelectedProfile.IdentityId,
-                        .UserName = SelectedProfile.Username, .AccessToken = SelectedProfile.AccessToken,
-                        .Uuid = SelectedProfile.Uuid, .ProfileJson = SelectedProfile.RawJson}
+                    Return New McLoginMs With {
+                        .OAuthId = SelectedProfile.IdentityId,
+                        .UserName = SelectedProfile.Username,
+                        .AccessToken = SelectedProfile.AccessToken,
+                        .Uuid = SelectedProfile.Uuid,
+                        .ProfileJson = SelectedProfile.RawJson
+                    }
                 Else
                     Return New McLoginMs With {.OAuthId = SelectedProfile.IdentityId, .UserName = SelectedProfile.Name}
                 End If
