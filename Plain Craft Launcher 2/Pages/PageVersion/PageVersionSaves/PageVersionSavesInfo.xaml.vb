@@ -111,10 +111,14 @@ Class PageVersionSavesInfo
                     Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
                     Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
                     AddInfoTable("游戏时长", formattedPlayTime)
+                    PanContent.Visibility = Visibility.Visible
                 End Using
             End Using
         Catch ex As Exception
             Log(ex, $"获取存档信息失败", LogLevel.Msgbox)
+            PanContent.Visibility = Visibility.Collapsed
+            Hintversion1_9.Visibility = Visibility.Collapsed
+            Hintversion1_8.Visibility = Visibility.Collapsed
         End Try
     End Sub
 
