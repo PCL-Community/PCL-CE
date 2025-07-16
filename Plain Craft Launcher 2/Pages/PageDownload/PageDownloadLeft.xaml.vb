@@ -11,7 +11,7 @@
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemInstall.Check, ItemClient.Check, ItemOptiFine.Check, ItemForge.Check, ItemNeoForge.Check, ItemLiteLoader.Check, ItemMod.Check, ItemFabric.Check, ItemQuilt.Check, ItemLabyMod.Check, ItemPack.Check, ItemResourcePack.Check, ItemShader.Check, ItemDataPack.Check, ItemCleanroom.Check, ItemFavorites.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemInstall.Check, ItemClient.Check, ItemOptiFine.Check, ItemForge.Check, ItemNeoForge.Check, ItemLiteLoader.Check, ItemMod.Check, ItemFabric.Check, ItemLegacyFabric.Check, ItemQuilt.Check, ItemLabyMod.Check, ItemPack.Check, ItemResourcePack.Check, ItemShader.Check, ItemDataPack.Check, ItemCleanroom.Check, ItemFavorites.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -65,6 +65,9 @@
             Case FormMain.PageSubType.DownloadCompFavorites
                 If FrmDownloadCompFavorites Is Nothing Then FrmDownloadCompFavorites = New PageDownloadCompFavorites
                 Return FrmDownloadCompFavorites
+            Case FormMain.PageSubType.DownloadLegacyFabric
+                If FrmDownloadLegacyFabric Is Nothing Then FrmDownloadLegacyFabric = New PageDownloadLegacyFabric
+                Return FrmDownloadLegacyFabric
             Case FormMain.PageSubType.DownloadDataPack
                 If FrmDownloadDataPack Is Nothing Then FrmDownloadDataPack = New PageDownloadDataPack
                 Return FrmDownloadDataPack
@@ -128,7 +131,9 @@
                 DlCleanroomListLoader.Start(IsForceRestart:=True)
                 DlLiteLoaderListLoader.Start(IsForceRestart:=True)
                 DlFabricListLoader.Start(IsForceRestart:=True)
+                DlLegacyFabricListLoader.Start(IsForceRestart:=True)
                 DlFabricApiLoader.Start(IsForceRestart:=True)
+                DlLegacyFabricApiLoader.Start(IsForceRestart:=True)
                 DlQuiltListLoader.Start(IsForceRestart:=True)
                 DlQSLLoader.Start(IsForceRestart:=True)
                 DlOptiFabricLoader.Start(IsForceRestart:=True)
@@ -206,6 +211,9 @@
             Case FormMain.PageSubType.DownloadLabyMod
                 DlLabyModListLoader.Start(IsForceRestart:=True)
                 ItemLabyMod.Checked = True
+            Case FormMain.PageSubType.DownloadLegacyFabric
+                DlLegacyFabricListLoader.Start(IsForceRestart:=True)
+                ItemLegacyFabric.Checked = True
             Case FormMain.PageSubType.DownloadCompFavorites
                 If FrmDownloadCompFavorites IsNot Nothing Then FrmDownloadCompFavorites.PageLoaderRestart()
                 ItemFavorites.Checked = True
@@ -239,6 +247,7 @@
         ItemClient.Visibility = Visibility.Visible
         ItemOptiFine.Visibility = Visibility.Visible
         ItemFabric.Visibility = Visibility.Visible
+        ItemLegacyFabric.Visibility = Visibility.Visible
         ItemQuilt.Visibility = Visibility.Visible
         ItemForge.Visibility = Visibility.Visible
         ItemNeoForge.Visibility = Visibility.Visible
@@ -264,6 +273,7 @@
         ItemNeoForge.Visibility = Visibility.Collapsed
         ItemCleanroom.Visibility = Visibility.Collapsed
         ItemFabric.Visibility = Visibility.Collapsed
+        ItemLegacyFabric.Visibility = Visibility.Collapsed
         ItemQuilt.Visibility = Visibility.Collapsed
         ItemForge.Visibility = Visibility.Collapsed
         ItemLiteLoader.Visibility = Visibility.Collapsed

@@ -1623,5 +1623,64 @@
     End Sub
 
 #End Region
+#Region "DlLegacyFabricList | LegacyFabric 列表"
 
+    Public Structure DlLegacyFabricListResult
+        ''' <summary>
+        ''' 数据来源名称，如“Official”，“BMCLAPI”。
+        ''' </summary>
+        Public SourceName As String
+        ''' <summary>
+        ''' 是否为官方的实时数据。
+        ''' </summary>
+        Public IsOfficial As Boolean
+        ''' <summary>
+        ''' 获取到的数据。
+        ''' </summary>
+        Public Value As JObject
+    End Structure
+
+    ''' <summary>
+    ''' LegacyFabric 列表，主加载器。
+    ''' </summary>
+    Public DlLegacyFabricListLoader As New LoaderTask(Of Integer, DlLegacyFabricListResult)("DlLegacyFabricList Main", AddressOf DlLegacyFabricListMain)
+    Private Sub DlLegacyFabricListMain(Loader As LoaderTask(Of Integer, DlLegacyFabricListResult))
+        Select Case Setup.Get("ToolDownloadVersion")
+            Case 0
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 30)
+                }, Loader.IsForceRestarting)
+            Case 1
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 5)
+                }, Loader.IsForceRestarting)
+            Case Else
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 60)
+                }, Loader.IsForceRestarting)
+        End Select
+    End Sub
+
+    ''' <summary>
+    ''' LegacyFabric 列表，官方源。
+    ''' </summary>
+    Public DlLegacyFabricListOfficialLoader As New LoaderTask(Of Integer, DlLegacyFabricListResult)("DlLegacyFabricList Official", AddressOf DlLegacyFabricListOfficialMain)
+    Private Sub DlLegacyFabricListOfficialMain(Loader As LoaderTask(Of Integer, DlLegacyFabricListResult))
+        Dim Result As JObject = NetGetCodeByRequestRetry("https://meta.legacyfabric.net/v2/versions", IsJson:=True)
+        Try
+            Dim Output = New DlLegacyFabricListResult With {.IsOfficial = True, .SourceName = "LegacyFabric 官方源", .Value = Result}
+            If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
+            Loader.Output = Output
+        Catch ex As Exception
+            Throw New Exception("LegacyFabric 官方源版本列表解析失败（" & Result.ToString & "）", ex)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Legacy Fabric API 列表，官方源。
+    ''' </summary>
+    Public DlLegacyFabricApiLoader As New LoaderTask(Of Integer, List(Of CompFile))("Legacy Fabric API List Loader",
+        Sub(Task As LoaderTask(Of Integer, List(Of CompFile))) Task.Output = CompFilesGet("legacy-fabric-api", False))
+
+#End Region
 End Module
