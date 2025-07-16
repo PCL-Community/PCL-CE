@@ -1,7 +1,7 @@
 ﻿Public Class PageDownloadLegacyFabric
 
     Private Sub LoaderInit() Handles Me.Initialized
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlFabricListLoader, AddressOf Load_OnFinish)
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlLegacyFabricListLoader, AddressOf Load_OnFinish)
     End Sub
     Private Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()
