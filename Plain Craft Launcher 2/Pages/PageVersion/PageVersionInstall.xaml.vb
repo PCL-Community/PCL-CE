@@ -863,7 +863,7 @@ Public Class PageVersionInstall
             Info += ", Fabric " & SelectedFabric.Replace("+build", "")
         End If
         If SelectedLegacyFabric IsNot Nothing Then
-            Info += ", LegacyFabric " & SelectedLegacyFabric
+            Info += ", Legacy Fabric " & SelectedLegacyFabric
         End If
         If SelectedQuilt IsNot Nothing Then
             Info += ", Quilt " & SelectedQuilt
@@ -968,7 +968,22 @@ Public Class PageVersionInstall
         End If
         Return result
     End Function
-    
+
+    Private _currentLegacyFabricApi As CompFile = Nothing '加载完成后直接调用以提高性能
+    Private _currentLegacyFabricApiPath As String = Nothing
+    Private Function GetCurrentLegacyFabricApi() '进入页面和联网加载时调用
+        Dim loaderOutput = DlLegacyFabricApiLoader.Output
+        If loaderOutput Is Nothing Then Return Nothing '确保联网信息已加载
+        Dim localComp = GetModLocalCompByKeywords({"legacy-fabric-api", "legacy-fabric"}, "legacy-fabric", "api")
+        If localComp Is Nothing Then Return Nothing
+        Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
+        If result IsNot Nothing Then
+            _currentLegacyFabricApi = result
+            _currentLegacyFabricApiPath = localComp.Path
+        End If
+        Return result
+    End Function
+
     Private _currentQsl As CompFile = Nothing
     Private _currentQslPath As String = Nothing
     Private Function GetCurrentQsl()
@@ -1004,6 +1019,10 @@ Public Class PageVersionInstall
         ElseIf CurrentVersion.HasForge Then
             SelectedLoaderName = "Forge"
             SelectedForge = New DlForgeVersionEntry(CurrentVersion.ForgeVersion, Nothing, CurrentVersion.McName) With {.Category = "installer", .ForgeType = DlForgelikeEntry.ForgelikeType.Forge, .Inherit = CurrentVersion.McName}
+        ElseIf CurrentVersion.HasLegacyFabric Then
+            SelectedLoaderName = "LegacyFabric"
+            SelectedLegacyFabric = CurrentVersion.LegacyFabricVersion
+            SelectedLegacyFabricApi = GetCurrentLegacyFabricApi()
         ElseIf CurrentVersion.HasFabric Then
             SelectedLoaderName = "Fabric"
             SelectedFabric = CurrentVersion.FabricVersion
@@ -2269,6 +2288,7 @@ Public Class PageVersionInstall
         End If
         '确认独立 API (如 Fabric API 等) 是否需要被修改
         If SelectedFabricApi?.Equals(_currentFabricApi) Then SelectedFabricApi = Nothing
+        If SelectedLegacyFabricApi?.Equals(_currentLegacyFabricApi) Then SelectedLegacyFabricApi = Nothing
         If SelectedQSL?.Equals(_currentQsl) Then SelectedQSL = Nothing
         '提交安装申请
         Dim Request As New McInstallRequest With {
@@ -2297,6 +2317,7 @@ Public Class PageVersionInstall
         If Not McInstall(Request, BtnSelectStart.Text.AfterFirst("开始")) Then Exit Sub
         '删除旧的独立 API 文件
         If SelectedFabricApi IsNot Nothing And _currentFabricApiPath IsNot Nothing Then File.Delete(_currentFabricApiPath)
+        If SelectedLegacyFabricApi IsNot Nothing And _currentLegacyFabricApiPath IsNot Nothing Then File.Delete(_currentLegacyFabricApiPath)
         If SelectedQSL IsNot Nothing And _currentQslPath IsNot Nothing Then File.Delete(_currentQslPath)
         '返回主页
         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
