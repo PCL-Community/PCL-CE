@@ -260,7 +260,7 @@
             Dim CacheFilePath As String = PathTemp & "Cache\uvmc-download.json"
             If Not File.Exists(CacheFilePath) Then
                 Try
-                    Dim UnlistedJson As JObject = NetGetCodeByRequestRetry("https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main/version_manifest.json", IsJson:=True)
+                    Dim UnlistedJson As JObject = NetGetCodeByRequestRetry("https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT/version_manifest.json", IsJson:=True)
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString())
                 Catch ex As Exception
                     Log("[Download] 未列出的版本镜像源下载失败: " & ex.Message)
@@ -1502,12 +1502,12 @@
                     Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/maven").
                     Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/maven").
                     Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven").
-                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main"),
+                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT"),
                 Original.
                     Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries").
-                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main")
+                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT")
             }
         Else
             Return DlSourceOrder(
@@ -1516,12 +1516,12 @@
                     Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/maven").
                     Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/maven").
                     Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven").
-                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main"),
+                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT"),
                 Original.
                     Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries").
-                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main"),
+                    Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT"),
                 Original
             })
         End If
@@ -1539,7 +1539,7 @@
                 Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com").
                 Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").
                 Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com").
-                Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://raw.gitcode.com/zkitefly/unlisted-versions-of-minecraft/raw/main"),
+                Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", "https://alist.8mi.tech/d/unlisted-versions-of-minecraft/CT"),
             Original
         })
     End Function
