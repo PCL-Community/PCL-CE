@@ -1,5 +1,3 @@
-Imports System.ComponentModel
-Imports System.Management
 Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
@@ -584,4 +582,21 @@ Public Class PageOtherTest
                                "（是百分制哦）"))))))
         End If
     End Function
+
+    Private Sub BtnCreateShortcut_Click(sender As Object, e As MouseButtonEventArgs)
+        Const shortcutName = "PCL 社区版.lnk"
+        Const desktopName = "桌面"
+        Const startName = "开始菜单"
+        Dim desktop = Service.FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
+        Dim start = Service.FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
+        Dim choice = MyMsgBox(
+            "这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。" & vbCrLf & vbCrLf &
+            desktopName & "位置: " & desktop & vbCrLf & startName & "位置: " & start,
+            "选择快捷方式位置", "取消", desktopName, startName)
+        If choice = 1 Then Exit Sub
+        Dim shortcutPath = If(choice = 2, desktop, start)
+        Dim locationName = If(choice = 2, desktopName, startName)
+        Helper.Files.CreateShortcut(shortcutPath, Helper.NativeInterop.ExecutablePath)
+        Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
+    End Sub
 End Class
