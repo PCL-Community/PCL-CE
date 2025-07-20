@@ -24,8 +24,10 @@
                             <local:MyTextBox Margin="93,0,16,0" Padding="-1,0" MinHeight="30" FontSize="15" VerticalAlignment="Center" x:Name="TextSelectName" MaxLength="70" HasBackground="False" />
                         </local:MyCard>
                         <local:MyHint Text="如果不安装 Fabric API，大多数 Mod 都会无法使用！" Margin="0,10,0,0" x:Name="HintFabricAPI" Theme="Red" />
+                        <local:MyHint Text="如果不安装 Legacy Fabric API，大多数 Mod 都会无法使用！" Margin="0,10,0,0" x:Name="HintLegacyFabricAPI" Theme="Red" />
                         <local:MyHint Text="必须安装 OptiFabric 才能正常使用 OptiFine！" Margin="0,10,0,0" x:Name="HintOptiFabric" Theme="Red" />
                         <local:MyHint Text="安装结束后，请在 Mod 下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！" Margin="0,10,0,0" x:Name="HintOptiFabricOld" Theme="Yellow" />
+                        <local:MyHint Text="安装结束后，请在 Mod 下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！" Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Theme="Yellow" />
                         <local:MyHint Text="OptiFine 与一部分 Mod 的兼容性不佳，请谨慎安装。" Margin="0,10,0,0" x:Name="HintModOptiFine" Theme="Yellow" />
                         <local:MyHint Text="如果不安装 QFAPI / QSL，大多数 Mod 都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。" Margin="0,1,0,7" x:Name="HintQSL" Theme="Red" />
                         <local:MyHint Text="你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。" Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" Theme="Yellow" />
@@ -101,6 +103,24 @@
                                 Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                         </Grid>
                     </local:MyCard>
+                        <local:MyCard Title="Legacy Fabric" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric" IsSwaped="True" CanSwap="True" SwapLogoRight="True">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabric" />
+                            <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top" Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLegacyFabric" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18" RenderOptions.BitmapScalingMode="Linear" Source="pack://application:,,,/images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabLegacyFabric" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLegacyFabricClear" Height="30" Width="30" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,32,0" Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLegacyFabricClearInner" Height="10" Width="10" Stretch="Uniform" Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </local:MyCard>
                         <local:MyCard Title="Fabric API" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi" IsSwaped="True" CanSwap="True" SwapLogoRight="True">
                         <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabricApi" />
                         <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top" Tag="True">
@@ -119,7 +139,25 @@
                                         Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                         </Grid>
                     </local:MyCard>
-                    <local:MyCard Title="Quilt" Height="40" Margin="0,15,0,0" x:Name="CardQuilt" IsSwaped="True" CanSwap="True" SwapLogoRight="True">
+                        <local:MyCard Title="Legacy Fabric API" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabricApi" IsSwaped="True" CanSwap="True" SwapLogoRight="True">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabricApi" />
+                            <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top" Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLegacyFabricApi" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18" RenderOptions.BitmapScalingMode="Linear" Source="pack://application:,,,/images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabLegacyFabricApi" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLegacyFabricApiClear" Height="30" Width="30" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,32,0" Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLegacyFabricApiClearInner" Height="10" Width="10" Stretch="Uniform" Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </local:MyCard>
+                        <local:MyCard Title="Quilt" Height="40" Margin="0,15,0,0" x:Name="CardQuilt" IsSwaped="True" CanSwap="True" SwapLogoRight="True">
                         <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQuilt" />
                             <Grid x:Name="PanQuiltInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top" Tag="True">
                             <Grid.RenderTransform>
@@ -244,7 +282,9 @@ Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" /
             <local:MyLoading Visibility="Collapsed" x:Name="LoadCleanroom" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadLiteLoader" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadFabric" HasAnimation="False" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabric" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadFabricApi" HasAnimation="False" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabricApi" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadQuilt" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadQSL" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadLabyMod" HasAnimation="False" />

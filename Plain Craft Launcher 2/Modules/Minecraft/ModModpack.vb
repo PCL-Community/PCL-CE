@@ -255,9 +255,24 @@ Retry:
             '获取 Mod 下载信息
             ModDownloadLoaders.Add(New LoaderTask(Of Integer, JArray)("获取 Mod 下载信息",
             Sub(Task As LoaderTask(Of Integer, JArray))
-                Task.Output = GetJson(DlModRequest("https://api.curseforge.com/v1/mods/files", "POST", "{""fileIds"": [" & Join(ModList, ",") & "]}", "application/json"))("data")
-                '如果文件已被删除，则 API 会跳过那一项
-                If ModList.Count > Task.Output.Count Then Throw New Exception("整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题")
+                Dim allowMirror As Boolean = True
+                Dim ret As JArray
+                Dim tryCount As Integer = 0
+                Do
+                    tryCount += 1
+                    ret = GetJson(DlModRequest("https://api.curseforge.com/v1/mods/files", "POST", "{""fileIds"": [" & Join(ModList, ",") & "]}", "application/json", allowMirror))("data")
+                    If ModList.Count <= ret.Count Then
+                        Log($"[Modpack] 已获取到的模组数量足够，开始进行下一步")
+                        Exit Do
+                    Else
+                        allowMirror = False
+                        Log($"[Modpack] 获取模组数量不达标，设置镜像源允许状态为: {allowMirror}")
+                    End If
+                    If tryCount > 3 Then
+                        Throw New Exception("整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题")
+                    End If
+                Loop
+                Task.Output = ret
             End Sub) With {.ProgressWeight = ModList.Count / 10}) '每 10 Mod 需要 1s
             '构造 NetFile
             ModDownloadLoaders.Add(New LoaderTask(Of JArray, List(Of NetFile))("构造 Mod 下载信息",
@@ -436,9 +451,9 @@ Retry:
                 End Select
             End If
             '添加下载文件
-            Dim Urls = File("downloads").SelectMany(Function(x) CompFile.HandleCurseForgeDownloadUrls(x.ToString())).ToList()
-            Urls.AddRange(Urls.Select(Function(u) DlSourceModGet(u)).ToList)
-            Urls = Urls.Distinct.ToList()
+            Dim Urls = File("downloads").Select(Function(x) CompFile.HandleCurseForgeDownloadUrls(x.ToString())).ToList()
+            '镜像源
+            Urls = Urls.SelectMany(Function(x) DlSourceModDownloadGet(x))
             Dim TargetPath As String = $"{PathMcFolder}versions\{VersionName}\{File("path")}"
             If Not IO.Path.GetFullPath(TargetPath).StartsWithF($"{PathMcFolder}versions\{VersionName}\", True) Then
                 MyMsgBox($"整合包的文件路径超出了版本文件夹，请向整合包作者反馈此问题！" & vbCrLf & "错误的文件：" & TargetPath, "文件路径校验失败", IsWarn:=True)

@@ -479,6 +479,7 @@ EndHint:
     Public FrmDownloadShader As PageDownloadShader
     Public FrmDownloadResourcePack As PageDownloadResourcePack
     Public FrmDownloadCompFavorites As PageDownloadCompFavorites
+    Public FrmDownloadLegacyFabric As PageDownloadLegacyFabric
 
     '设置页面声明
     Public FrmSetupLeft As PageSetupLeft

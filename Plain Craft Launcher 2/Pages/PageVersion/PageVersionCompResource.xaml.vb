@@ -65,6 +65,15 @@ Public Class PageVersionCompResource
         '非重复加载部分
         If IsLoad Then Return
         IsLoad = True
+        
+        '检查是否为原理图管理界面且首次打开
+        If CurrentCompType = CompType.Schematic AndAlso Not Setup.Get("UiSchematicFirstTimeHintShown") Then
+            '显示首次打开提示
+            RunInUi(Sub()
+                        MyMsgBox("现改为双击文件夹进入子文件夹。", "操作提示", "我知道了")
+                        Setup.Set("UiSchematicFirstTimeHintShown", True)
+                    End Sub, True)
+        End If
 
         AddHandler FrmMain.KeyDown, AddressOf FrmMain_KeyDown
         '调整按钮边距（这玩意儿没法从 XAML 改）
@@ -263,8 +272,16 @@ Public Class PageVersionCompResource
                 
                 '根据组件类型设置PanEmpty的文本内容
                 If CurrentCompType = CompType.Schematic Then
-                    TxtEmptyTitle.Text = "尚未安装资源"
-                    TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                    '检查是否在子文件夹中
+                    If Not String.IsNullOrEmpty(CurrentFolderPath) Then
+                        '子文件夹为空的提示
+                        TxtEmptyTitle.Text = "该文件夹为空"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源"
+                    Else
+                        '根目录为空的提示
+                        TxtEmptyTitle.Text = "尚未安装资源"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                    End If
                 Else
                     TxtEmptyTitle.Text = "尚未安装资源"
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
@@ -333,8 +350,22 @@ Public Class PageVersionCompResource
         '点击事件
         AddHandler sender.Changed, AddressOf CheckChanged
         If sender.Entry.IsFolder Then
-            '文件夹项的点击事件：进入文件夹
-            AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs) EnterFolderWithCheck(ss.Entry.ActualPath)
+            '文件夹项的点击事件：双击进入文件夹，单击切换选中状态
+            Dim lastClickTime As DateTime = DateTime.MinValue
+            AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs)
+                                         Dim currentTime = DateTime.Now
+                                         Dim timeDiff = (currentTime - lastClickTime).TotalMilliseconds
+                                         
+                                         If timeDiff <= 300 Then
+                                             '300ms内双击，进入文件夹
+                                             EnterFolderWithCheck(ss.Entry.ActualPath)
+                                         Else
+                                             '单击切换选中状态
+                                             ss.Checked = Not ss.Checked
+                                         End If
+                                         
+                                         lastClickTime = currentTime
+                                     End Sub
         Else
             '文件项的点击事件：切换选中状态
             AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs) ss.Checked = Not ss.Checked
@@ -477,6 +508,17 @@ Public Class PageVersionCompResource
             BtnSelectDisable.IsEnabled = HasEnabled
             BtnSelectEnable.IsEnabled = HasDisabled
             BtnSelectUpdate.IsEnabled = HasUpdate
+            
+            '针对投影原理图隐藏分享 更新 收藏按钮
+            If CurrentCompType = CompType.Schematic Then
+                BtnSelectUpdate.Visibility = Visibility.Collapsed
+                BtnSelectFavorites.Visibility = Visibility.Collapsed
+                BtnSelectShare.Visibility = Visibility.Collapsed
+            Else
+                BtnSelectUpdate.Visibility = Visibility.Visible
+                BtnSelectFavorites.Visibility = Visibility.Visible
+                BtnSelectShare.Visibility = Visibility.Visible
+            End If
         End If
         '更新显示状态
         If AniControlEnabled = 0 Then
@@ -1632,29 +1674,45 @@ Install:
         End Sub)
     End Sub
     
+#Region "原理图文件详细信息显示"
+
+    ''' <summary>
+    ''' 显示 Litematic 文件的详细信息
+    ''' </summary>
     Private Sub ShowLitematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示原始名称（从 NBT Metadata/Name 读取）
+        If ModEntry.LitematicOriginalName IsNot Nothing Then
+            ContentLines.Add("原始名称：" & ModEntry.LitematicOriginalName)
+        End If
+        
+        ' 显示版本信息
         If ModEntry.LitematicVersion.HasValue Then
             ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
         End If
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+            ContentLines.Add("包围盒大小：" & ModEntry.LitematicEnclosingSize)
         End If
          
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-        End If                       
+        End If
+        
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
         
+        ' 显示时间信息
         If ModEntry.LitematicTimeCreated.HasValue Then
             Try
                 Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).ToLocalTime().DateTime
@@ -1674,26 +1732,37 @@ Install:
         End If
     End Sub
     
+    ''' <summary>
+    ''' 显示 Schem 文件的详细信息
+    ''' </summary>
     Private Sub ShowSchemDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
-        If ModEntry.StructureGameVersion IsNot Nothing Then
-            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
+        ' 显示原始名称（从 NBT Metadata/Name 读取）
+        If ModEntry.SchemOriginalName IsNot Nothing Then
+            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
         
-        If ModEntry.StructureDataVersion.HasValue Then
-            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+        ' 显示版本信息
+        If ModEntry.StructureGameVersion IsNot Nothing Then
+            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
         
         If ModEntry.SpongeVersion.HasValue Then
             ContentLines.Add("Sponge版本：" & ModEntry.SpongeVersion.Value)
         End If
         
+        If ModEntry.StructureDataVersion.HasValue Then
+            ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
+        End If
+        
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1702,25 +1771,27 @@ Install:
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
-        End If
-        
-        If ModEntry.SchemOriginalName IsNot Nothing Then
-            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
         
         ContentLines.Add("文件类型：Sponge Schematic")
     End Sub
     
+    ''' <summary>
+    ''' 显示 Schematic 文件的详细信息
+    ''' </summary>
     Private Sub ShowSchematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1728,24 +1799,37 @@ Install:
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
+        
+        ContentLines.Add("文件类型：MCEdit/WorldEdit Schematic")
     End Sub
     
+    ''' <summary>
+    ''' 显示 NBT 结构文件的详细信息
+    ''' </summary>
     Private Sub ShowNbtDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示作者信息
+        If ModEntry.StructureAuthor IsNot Nothing Then
+            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
+        End If
+        
+        ' 显示版本信息
         If ModEntry.StructureGameVersion IsNot Nothing Then
             ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
         
         If ModEntry.StructureDataVersion.HasValue Then
-            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+            ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
         End If
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1754,16 +1838,15 @@ Install:
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
         
-        If ModEntry.StructureAuthor IsNot Nothing Then
-            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
-        End If
-        
         ContentLines.Add("文件类型：原版结构")
     End Sub
+
+#End Region
     
     Private Sub ShowDebugInfo(ContentLines As List(Of String), ModEntry As LocalCompFile)
         Dim DebugInfo As New List(Of String)

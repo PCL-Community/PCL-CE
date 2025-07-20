@@ -182,6 +182,7 @@ Public Class ModSetup
         {"UiHiddenVersionResourcePack", New SetupEntry(False)},
         {"UiHiddenVersionShader", New SetupEntry(False)},
         {"UiHiddenVersionSchematic", New SetupEntry(False)},
+        {"UiSchematicFirstTimeHintShown", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"UiAniFPS", New SetupEntry(59, Source:=SetupSource.Registry)},
         {"UiFont", New SetupEntry("")},
         {"VersionAdvanceJvm", New SetupEntry("", Source:=SetupSource.Version)},

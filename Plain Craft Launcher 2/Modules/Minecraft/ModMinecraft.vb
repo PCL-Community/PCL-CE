@@ -262,7 +262,7 @@ Public Module ModMinecraft
         Public ReadOnly Property Modable As Boolean
             Get
                 If Not IsLoaded Then Load()
-                Return Version.HasFabric OrElse Version.HasQuilt OrElse Version.HasForge OrElse Version.HasLiteLoader OrElse Version.HasNeoForge OrElse Version.HasCleanroom OrElse
+                Return Version.HasFabric OrElse Version.HasLegacyFabric OrElse Version.HasQuilt OrElse Version.HasForge OrElse Version.HasLiteLoader OrElse Version.HasNeoForge OrElse Version.HasCleanroom OrElse
                     DisplayType = McVersionCardType.API '#223
             End Get
         End Property
@@ -356,8 +356,8 @@ Public Module ModMinecraft
                             _Version.McName = Regex
                             GoTo VersionSearchFinish
                         End If
-                        '从 Fabric / Quilt 版本中获取版本号
-                        Regex = RegexSeek(LibrariesString, "(?<=((fabricmc)|(quiltmc)):intermediary:)[^""]*")
+                        '从 Fabric / Quilt / Legacy Fabric 版本中获取版本号
+                        Regex = RegexSeek(LibrariesString, "(?<=((fabricmc)|(quiltmc)|(legacyfabric)):intermediary:)[^""]*")
                         If Regex IsNot Nothing Then
                             _Version.McName = Regex
                             GoTo VersionSearchFinish
@@ -703,11 +703,15 @@ Recheck:
                             State = McVersionState.LiteLoader
                             Version.HasLiteLoader = True
                         End If
-                        'Fabric、Forge、Quilt、LabyMod
+                        'Fabric、Forge、Quilt、LabyMod、Legacy Fabric
                         If RealJson.Contains("labymod_data") Then
                             State = McVersionState.LabyMod
                             Version.HasLabyMod = True
                             Version.LabyModVersion = JsonObject("labymod_data")("version")
+                        ElseIf RealJson.Contains("net.legacyfabric:intermediary") Then
+                            State = McVersionState.LegacyFabric
+                            Version.HasLegacyFabric = True
+                            Version.LegacyFabricVersion = If(RegexSeek(RealJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
                         ElseIf RealJson.Contains("net.fabricmc:fabric-loader") Then
                             State = McVersionState.Fabric
                             Version.HasFabric = True
@@ -755,6 +759,8 @@ ExitDataLoad:
                             Logo = PathImage & "Blocks/Cleanroom.png"
                         Case McVersionState.Fabric
                             Logo = PathImage & "Blocks/Fabric.png"
+                        Case McVersionState.LegacyFabric
+                            Logo = PathImage & "Blocks/Fabric.png"
                         Case McVersionState.Quilt
                             Logo = PathImage & "Blocks/Quilt.png"
                         Case McVersionState.OptiFine
@@ -785,6 +791,7 @@ ExitDataLoad:
                 If State <> McVersionState.Error Then
                     WriteIni(Path & "PCL\Setup.ini", "ReleaseTime", ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm"))
                     WriteIni(Path & "PCL\Setup.ini", "VersionFabric", Version.FabricVersion)
+                    WriteIni(Path & "PCL\Setup.ini", "VersionLegacyFabric", Version.LegacyFabricVersion)
                     WriteIni(Path & "PCL\Setup.ini", "VersionQuilt", Version.QuiltVersion)
                     WriteIni(Path & "PCL\Setup.ini", "VersionLabyMod", Version.LabyModVersion)
                     WriteIni(Path & "PCL\Setup.ini", "VersionOptiFine", Version.OptiFineVersion)
@@ -825,7 +832,7 @@ ExitDataLoad:
                     End If
                 Case McVersionState.Old
                     Info = "远古版本"
-                Case McVersionState.Original, McVersionState.Forge, McVersionState.NeoForge, McVersionState.Fabric, McVersionState.Quilt, McVersionState.LabyMod, McVersionState.OptiFine, McVersionState.LiteLoader, McVersionState.Cleanroom
+                Case McVersionState.Original, McVersionState.Forge, McVersionState.NeoForge, McVersionState.Fabric, McVersionState.LegacyFabric, McVersionState.Quilt, McVersionState.LabyMod, McVersionState.OptiFine, McVersionState.LiteLoader, McVersionState.Cleanroom
                     Info = Version.ToString
                 Case McVersionState.Fool
                     Info = GetMcFoolName(Version.McName)
@@ -864,6 +871,7 @@ ExitDataLoad:
         NeoForge
         LiteLoader
         Fabric
+        LegacyFabric
         Quilt
         Cleanroom
         LabyMod
@@ -967,6 +975,18 @@ ExitDataLoad:
         ''' </summary>
         Public FabricVersion As String = ""
 
+        'LegacyFabric
+
+        ''' <summary>
+        ''' 该版本是否安装了 Fabric。
+        ''' </summary>
+        Public HasLegacyFabric As Boolean = False
+        ''' <summary>
+        ''' Fabric 版本号，如 0.7.2.175。
+        ''' </summary>
+        Public LegacyFabricVersion As String = ""
+
+
         'Quilt
 
         ''' <summary>
@@ -1007,6 +1027,7 @@ ExitDataLoad:
             If HasNeoForge Then ToString += ", NeoForge" & If(NeoForgeVersion = "未知版本", "", " " & NeoForgeVersion)
             If HasCleanroom Then ToString += ", Cleanroom" & If(CleanroomVersion = "未知版本", "", " " & CleanroomVersion)
             If HasFabric Then ToString += ", Fabric" & If(FabricVersion = "未知版本", "", " " & FabricVersion)
+            If HasLegacyFabric Then ToString += ", LegacyFabric" & If(LegacyFabricVersion = "未知版本", "", " " & LegacyFabricVersion)
             If HasQuilt Then ToString += ", Quilt" & If(QuiltVersion = "未知版本", "", " " & QuiltVersion)
             If HasLabyMod Then ToString += ", LabyMod" & If(LabyModVersion = "未知版本", "", " " & LabyModVersion)
             If HasOptiFine Then ToString += ", OptiFine" & If(OptiFineVersion = "未知版本", "", " " & OptiFineVersion)
@@ -1026,7 +1047,15 @@ ExitDataLoad:
                 If _SortCode = -2 Then
                     '初始化
                     Try
-                        If HasFabric Then
+                        If HasLegacyFabric Then
+                            If LegacyFabricVersion = "未知版本" Then Return 0
+                            Dim SubVersions = FabricVersion.Split(".")
+                            If SubVersions.Length >= 3 Then
+                                _SortCode = Val(SubVersions(0)) * 10000 + Val(SubVersions(1)) * 100 + Val(SubVersions(2))
+                            Else
+                                Throw New Exception("无效的 LegacyFabric 版本：" & LegacyFabricVersion)
+                            End If
+                        ElseIf HasFabric Then
                             If FabricVersion = "未知版本" Then Return 0
                             Dim SubVersions = FabricVersion.Split(".")
                             If SubVersions.Length >= 3 Then
@@ -1291,6 +1320,7 @@ OnLoaded:
                            ReadIni(Version.Path & "PCL\Setup.ini", "VersionOriginal", "Unknown") <> "Unknown" Then '旧版本可能没有这一项，导致 Version 不加载（#643）
                             Dim VersionInfo As New McVersionInfo With {
                                 .FabricVersion = ReadIni(Version.Path & "PCL\Setup.ini", "VersionFabric", ""),
+                                .LegacyFabricVersion = ReadIni(Version.Path & "PCL\Setup.ini", "VersionLegacyFabric", ""),
                                 .QuiltVersion = ReadIni(Version.Path & "PCL\Setup.ini", "VersionQuilt", ""),
                                 .ForgeVersion = ReadIni(Version.Path & "PCL\Setup.ini", "VersionForge", ""),
                                 .LabyModVersion = ReadIni(Version.Path & "PCL\Setup.ini", "VersionLabyMod", ""),
@@ -1305,6 +1335,7 @@ OnLoaded:
                                 .IsApiLoaded = True
                             }
                             VersionInfo.HasFabric = VersionInfo.FabricVersion.Any()
+                            VersionInfo.HasLegacyFabric = VersionInfo.LegacyFabricVersion.Any()
                             VersionInfo.HasQuilt = VersionInfo.QuiltVersion.Any()
                             VersionInfo.HasForge = VersionInfo.ForgeVersion.Any()
                             VersionInfo.HasNeoForge = VersionInfo.NeoForgeVersion.Any()
@@ -1403,7 +1434,7 @@ OnLoaded:
             McVersionFilter(VersionList, VersionListOriginal, {McVersionState.Fool}, McVersionCardType.Fool)
 
             '筛选 API 版本
-            McVersionFilter(VersionList, VersionListOriginal, {McVersionState.Forge, McVersionState.NeoForge, McVersionState.LiteLoader, McVersionState.Fabric, McVersionState.Quilt, McVersionState.Cleanroom, McVersionState.LabyMod}, McVersionCardType.API)
+            McVersionFilter(VersionList, VersionListOriginal, {McVersionState.Forge, McVersionState.NeoForge, McVersionState.LiteLoader, McVersionState.Fabric, McVersionState.LegacyFabric, McVersionState.Quilt, McVersionState.Cleanroom, McVersionState.LabyMod}, McVersionCardType.API)
 
             '将老版本预先分类入不常用，只剩余原版、快照、OptiFine
             Dim VersionUseful As New List(Of McVersion)
@@ -1537,7 +1568,7 @@ OnLoaded:
             End Function)
         End If
 
-        'API 版本：优先按版本排序，此后【先放 Fabric / Quilt，再放 Neo/Forge（按版本号从高到低排序），然后放 Cleanroom / LabyMod，最后放 LiteLoader（按名称排序）】
+        'API 版本：优先按版本排序，此后【先放 Fabric / Quilt / Legacy Fabric，再放 Neo/Forge（按版本号从高到低排序），然后放 Cleanroom / LabyMod，最后放 LiteLoader（按名称排序）】
         If ResultVersionList.ContainsKey(McVersionCardType.API) Then
             ResultVersionList(McVersionCardType.API) = ResultVersionList(McVersionCardType.API).Sort(
             Function(Left As McVersion, Right As McVersion)
@@ -1548,6 +1579,8 @@ OnLoaded:
                     If Left.Version.HasFabric Xor Right.Version.HasFabric Then
                         Return Left.Version.HasFabric
                     ElseIf Left.Version.HasQuilt Xor Right.Version.HasQuilt Then
+                        Return Left.Version.HasQuilt
+                    ElseIf Left.Version.HasLegacyFabric Xor Right.Version.HasLegacyFabric Then
                         Return Left.Version.HasQuilt
                     ElseIf Left.Version.HasNeoForge Xor Right.Version.HasNeoForge Then
                         Return Left.Version.HasNeoForge

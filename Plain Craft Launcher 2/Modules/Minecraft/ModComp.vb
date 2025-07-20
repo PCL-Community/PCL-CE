@@ -1497,11 +1497,10 @@ Retry:
                     If Hash Is Nothing Then Hash = CType(Data("hashes"), JArray).ToList.FirstOrDefault(Function(s) s("algo").ToObject(Of Integer) = 2)?("value")
                     'DownloadAddress
                     Dim Url = Data("downloadUrl").ToString
-                    If Url = "" Then Url = $"https://media.forgecdn.net/files/{CInt(Id.ToString.Substring(0, 4))}/{CInt(Id.ToString.Substring(4))}/{FileName}"
+                    'TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
+                    If String.IsNullOrWhiteSpace(Url) Then Url = $"https://edge.forgecdn.net/files/{CInt(Id.ToString.Substring(0, 4))}/{CInt(Id.ToString.Substring(4))}/{FileName}"
                     Url = Url.Replace(FileName, Net.WebUtility.UrlEncode(FileName)) '对文件名进行编码
-                    DownloadUrls = HandleCurseForgeDownloadUrls(Url) '对脑残 CurseForge 的下载地址进行多种修正
-                    DownloadUrls.AddRange(DownloadUrls.Select(Function(u) DlSourceModGet(u)).ToList) '添加镜像源，这个写法是为了让镜像源排在后面
-                    DownloadUrls = DownloadUrls.Distinct.ToList '最终去重
+                    DownloadUrls = DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)) '添加镜像源
                     'Dependencies
                     If Data.ContainsKey("dependencies") Then
                         RawDependencies = Data("dependencies").
@@ -1538,7 +1537,7 @@ Retry:
                     If CType(Data("files"), JArray).Any() Then '可能为空
                         Dim File As JToken = Data("files")(0)
                         FileName = File("filename")
-                        DownloadUrls = New List(Of String) From {File("url"), DlSourceModGet(File("url"))}.Distinct.ToList '同时添加了镜像源
+                        DownloadUrls = DlSourceModDownloadGet(File("url").ToString()) '同时添加了镜像源
                         Hash = File("hashes")("sha1")
                     End If
                     'ModLoaders
@@ -1588,18 +1587,13 @@ Retry:
         End Sub
 
         ''' <summary>
-        ''' 重新整理 CurseForge 的下载地址。
+        ''' 对之前错误的 CurseForge 的下载地址进行修正。
         ''' </summary>
-        Public Shared Function HandleCurseForgeDownloadUrls(Url As String) As List(Of String)
-            Return {
-                Url.Replace("://media.", "://edge."),
-                Url.Replace("://media.", "://mediafilez."),
-                Url.Replace("://edge.", "://mediafilez."),
-                Url,
-                Url.Replace("-service.overwolf.wtf", ".forgecdn.net").Replace("://media.", "://edge."),
-                Url.Replace("-service.overwolf.wtf", ".forgecdn.net").Replace("://media.", "://edge.").Replace("://edge.", "://mediafilez."),
-                Url.Replace("-service.overwolf.wtf", ".forgecdn.net")
-            }.Distinct.ToList
+        Public Shared Function HandleCurseForgeDownloadUrls(Url As String) As String
+            Return Url.
+                Replace("-service.overwolf.wtf", ".forgecdn.net").
+                Replace("://media.", "://edge.").
+                Replace("://mediafilez.", "://edge.")
         End Function
 
         ''' <summary>

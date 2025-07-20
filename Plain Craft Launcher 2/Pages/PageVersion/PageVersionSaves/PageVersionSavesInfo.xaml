@@ -6,6 +6,8 @@
      PanScroll="{Binding ElementName=PanBack}">
      <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Margin="25,10,25,10" x:Name="PanMain">
+            <local:MyHint x:Name="Hintversion1_9" Theme="Yellow" Grid.Row="0" Visibility="Collapsed" Margin="0,5,0,0"/>
+            <local:MyHint x:Name="Hintversion1_8" Theme="Yellow" Grid.Row="0" Visibility="Collapsed" Margin="0,5,0,0"/>
             <local:MyCard Margin="0,15,0,0" Title="存档详细信息" x:Name="PanContent">
                 <Grid Margin="15,35,15,15" x:Name="PanList">
                     <Grid.RowDefinitions>

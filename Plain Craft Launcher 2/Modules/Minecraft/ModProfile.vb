@@ -261,8 +261,12 @@ Public Module ModProfile
             RunInUiWait(Sub() NewUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
                                                           ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
-            If MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn:=True) = 2 Then Exit Sub
             If NewUsername = Nothing Then Exit Sub
+            If String.IsNullOrWhiteSpace(NewUsername) Then
+                Hint("欲设置的玩家名称为空")
+                Exit Sub
+            End If
+            If MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn:=True) = 2 Then Exit Sub
             RunInNewThread(Sub()
                                Try
                                    Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}/available", "GET", Nothing, Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))

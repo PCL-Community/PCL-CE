@@ -73,7 +73,6 @@
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateNullable />
                                 <local:ValidateNullOrWhiteSpace />
-                                <local:ValidateLength Max="20" />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="预设节点"/>

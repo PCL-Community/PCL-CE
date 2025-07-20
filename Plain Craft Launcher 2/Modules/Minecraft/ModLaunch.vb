@@ -1009,7 +1009,6 @@ LoginFinish:
             Data:=RequestData.ToString(0),
             Headers:=New Dictionary(Of String, String) From {{"Accept-Language", "zh-CN"}},
             ContentType:="application/json") '没有返回值的
-        Log(RequestData.ToString(0))
         '将登录结果输出
         Data.Output.AccessToken = AccessToken
         Data.Output.ClientToken = ClientToken

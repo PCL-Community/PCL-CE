@@ -993,6 +993,7 @@ Retry:
         DownloadQuilt = 10
         DownloadLiteLoader = 9
         DownloadLabyMod = 20
+        DownloadLegacyFabric = 21
         DownloadMod = 11
         DownloadPack = 12
         DownloadDataPack = 13

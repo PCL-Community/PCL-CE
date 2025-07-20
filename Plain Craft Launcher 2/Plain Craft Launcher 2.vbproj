@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -309,6 +309,9 @@
     <Compile Include="Modules\Updates\UpdatesWrapperModel.vb" />
     <Compile Include="Modules\Updates\VersionAnnouncementDataModel.vb" />
     <Compile Include="Modules\Updates\VersionDataModel.vb" />
+    <Compile Include="Pages\PageDownload\PageDownloadLegacyFabric.xaml.vb">
+      <DependentUpon>PageDownloadLegacyFabric.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageLaunch\PageLoginOffline.xaml.vb">
       <DependentUpon>PageLoginOffline.xaml</DependentUpon>
     </Compile>
@@ -661,6 +664,10 @@
     <Page Include="Pages\PageDownload\Comp\PageComp.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PageDownload\PageDownloadLegacyFabric.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\PageDownload\PageDownloadQuilt.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -1135,6 +1142,7 @@
   <ItemGroup>
     <Resource Include="Images\Icons\Disabled.png" />
     <Resource Include="Images\Icons\Unavailable.png" />
+    <Resource Include="Images\Icons\Folder.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Heads\MCBBS.png" />

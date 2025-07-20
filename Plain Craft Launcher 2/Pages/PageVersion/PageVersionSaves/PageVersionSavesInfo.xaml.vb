@@ -33,6 +33,10 @@ Class PageVersionSavesInfo
                     Dim xData = saveInfo.ReadNbtAsXml(outRes)
                     Dim levelData = xData.XPathSelectElement("//TCompound[@Name='Data']")
                     ClearInfoTable()
+
+                    Hintversion1_9.Visibility = Visibility.Collapsed
+                    Hintversion1_8.Visibility = Visibility.Collapsed
+
                     Dim GetDataInfoByPath = Function(path As String) As String
                                                 Dim element = levelData.XPathSelectElement(path)
                                                 Return If(element IsNot Nothing, element.Value, "获取失败")
@@ -49,13 +53,18 @@ Class PageVersionSavesInfo
                     Dim versionId As String = "获取失败"
                     versionName = GetDataInfoByPath("//TCompound[@Name='Version']/TString[@Name='Name']")
                     versionId = GetDataInfoByPath("//TCompound[@Name='Version']/TInt32[@Name='Id']")
+                    Dim hasDifficulty = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']") IsNot Nothing
                     If versionName = "获取失败" Then
-                        versionId = GetDataInfoByPathWithFallback("//TInt32[@Name='version']", "//TInt32[@Name='Version']")
-                        If versionId <> "获取失败" Then
-                            versionName = "1.9 以下的版本无法获取版本名"
+                        If hasDifficulty Then
+                            Hintversion1_9.Visibility = Visibility.Visible
+                            Hintversion1_9.Text = $"1.9 以下的版本无法获取存档版本"
+                        Else
+                            Hintversion1_8.Visibility = Visibility.Visible
+                            Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
                         End If
+                    Else
+                        AddInfoTable("存档版本", $"{versionName} ({versionId})")
                     End If
-                    AddInfoTable("存档版本", $"{versionName} ({versionId})")
                     Dim seed As String = GetDataInfoByPathWithFallback("//TCompound[@Name='WorldGenSettings']/TInt64[@Name='seed']", "//TInt64[@Name='RandomSeed']")
                     AddInfoTable("种子", seed, True, versionName, True)
                     Dim allowCommandValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='allowCommands']"))
@@ -72,36 +81,44 @@ Class PageVersionSavesInfo
                     Dim spawnY = GetDataInfoByPath("//TInt32[@Name='SpawnY']")
                     Dim spawnZ = GetDataInfoByPath("//TInt32[@Name='SpawnZ']")
                     AddInfoTable("出生点 (X/Y/Z)", $"{spawnX} / {spawnY} / {spawnZ}")
-                    Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
-                    Dim difficultyName As String = "获取失败"
-                    If difficultyElement IsNot Nothing Then
-                        Dim difficultyValue As Integer
-                        If Integer.TryParse(difficultyElement.Value, difficultyValue) Then
-                            Select Case difficultyValue
-                                Case 0
-                                    difficultyName = "和平"
-                                Case 1
-                                    difficultyName = "简单"
-                                Case 2
-                                    difficultyName = "普通"
-                                Case 3
-                                    difficultyName = "困难"
-                            End Select
+                    If hasDifficulty Then
+                        Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
+                        Dim difficultyName As String = "获取失败"
+                        If difficultyElement IsNot Nothing Then
+                            Dim difficultyValue As Integer
+                            If Integer.TryParse(difficultyElement.Value, difficultyValue) Then
+                                Select Case difficultyValue
+                                    Case 0
+                                        difficultyName = "和平"
+                                    Case 1
+                                        difficultyName = "简单"
+                                    Case 2
+                                        difficultyName = "普通"
+                                    Case 3
+                                        difficultyName = "困难"
+                                End Select
+                            End If
+                        End If
+                        Dim lockedElement = levelData.XPathSelectElement("//TInt8[@Name='DifficultyLocked']")
+                        Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
+                        If Hintversion1_8.Visibility <> Visibility.Visible Then
+                            AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
                         End If
                     End If
-                    Dim lockedElement = levelData.XPathSelectElement("//TInt8[@Name='DifficultyLocked']")
-                    Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
-                    AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
                     Dim totalTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='Time']"))
                     Dim dayTimeTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='DayTime']"))
                     Dim totalSeconds As Double = totalTicks / 20.0
                     Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
                     Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
                     AddInfoTable("游戏时长", formattedPlayTime)
+                    PanContent.Visibility = Visibility.Visible
                 End Using
             End Using
         Catch ex As Exception
             Log(ex, $"获取存档信息失败", LogLevel.Msgbox)
+            PanContent.Visibility = Visibility.Collapsed
+            Hintversion1_9.Visibility = Visibility.Collapsed
+            Hintversion1_8.Visibility = Visibility.Collapsed
         End Try
     End Sub
 
@@ -140,11 +157,6 @@ Class PageVersionSavesInfo
 
             AddHandler BtnChunkbase.Click, Sub()
                                                Try
-                                                   If versionName = "1.9 以下的版本无法获取版本名" Then
-                                                       Log($"当前存档版本无法确定，因为 1.9 以下的版本无法获取版本名，所以无法跳转到 Chunkbase", LogLevel.Hint)
-                                                       Return
-                                                   End If
-
                                                    If versionName = "获取失败" Then
                                                        Log($"当前存档版本无法确定，因此无法跳转到 Chunkbase", LogLevel.Hint)
                                                        Return
@@ -156,7 +168,14 @@ Class PageVersionSavesInfo
                                                    End If
 
                                                    Dim versionParts = versionName.Split("."c)
-                                                   Dim usedVersion = If(versionParts.Length >= 2, $"{versionParts(0)}_{versionParts(1)}", versionName.Replace(".", "_"))
+                                                   Dim usedVersion As String
+                                                   If versionName.StartsWith("1.21") Then
+                                                           usedVersion = versionName.Replace(".", "_")
+                                                       ElseIf versionName.Contains(".") Then
+                                                           usedVersion = String.Join("_", versionName.Split("."c).Take(2))
+                                                       Else
+                                                       usedVersion = versionName.Replace(".", "_")
+                                                   End If
 
                                                    Dim cbUri = $"https://www.chunkbase.com/apps/seed-map#seed={content}&platform=java_{usedVersion}&dimension=overworld"
                                                    OpenWebsite(cbUri)

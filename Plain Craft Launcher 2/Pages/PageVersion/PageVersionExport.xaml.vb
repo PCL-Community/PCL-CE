@@ -599,9 +599,7 @@ Public Class PageVersionExport
                         Dim ModFile As LocalCompFile = Loader.Input.FirstOrDefault(Function(m) m.CurseForgeHash = File("fileFingerprint").ToObject(Of UInteger))
                         If ModFile Is Nothing Then Continue For
                         '写入下载地址
-                        For Each Address In CompFile.HandleCurseForgeDownloadUrls(File("downloadUrl").ToString)
-                            Loader.Output.AddToList(ModFile, Address)
-                        Next
+                        Loader.Output.AddToList(ModFile, CompFile.HandleCurseForgeDownloadUrls(File("downloadUrl").ToString()))
                     Next
                     Log($"[Export] 从 CurseForge 获取到 {CurseForgeRaw.Count} 个本地资源项的对应信息")
                 Catch ex As Exception
