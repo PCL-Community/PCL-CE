@@ -242,7 +242,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETVersion As String = "2.3.2"
-    Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier") + $"\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
+    Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
     Public ETProcess As Process = Nothing
@@ -270,7 +270,7 @@ Public Module ModLink
             Dim Arguments As String = Nothing
 
             '大厅设置
-            Dim lobbyId As String = StringExtension.FromB10ToB32(Name & Secret & If(IsHost, LocalPort, remotePort).ToString())
+            Dim lobbyId As String = (Name & Secret & If(IsHost, LocalPort, remotePort).ToString()).FromB10ToB32()
             If IsHost Then PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
             Secret = ETNetworkDefaultSecret & Secret
             Name = ETNetworkDefaultName & Name
@@ -349,7 +349,7 @@ Public Module ModLink
                                       'Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
 
                                       Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                                      Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier") & "\" & ETVersion)))
+                                      Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion))))
                                       Loaders.Add(New LoaderTask(Of Integer, Integer)("清理文件", Sub() File.Delete(DlTargetPath)))
                                       If LaunchAfterDownload Then
                                           Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Function() LaunchEasyTier(IsHost, Name, Secret, True)))
