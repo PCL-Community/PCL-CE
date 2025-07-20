@@ -355,7 +355,6 @@ Public Module ModLink
                                           Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Function() LaunchEasyTier(IsHost, Name, Secret, True)))
                                       End If
                                       Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
-                                                                                                                PageLinkLobby.IsEasyTierExist = True
                                                                                                                 FrmLinkLobby.BtnCreate.IsEnabled = True
                                                                                                                 FrmLinkLobby.BtnSelectJoin.IsEnabled = True
                                                                                                                 Hint("联机组件下载完成！", HintType.Finish)
@@ -443,6 +442,14 @@ Public Module ModLink
         End If
         If Not NaidProfile.Status = 0 Then
             Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
+            Return False
+        End If
+        If DlEasyTierLoader.State = LoadState.Loading Then
+            Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！")
+            Return False
+        ElseIf DlEasyTierLoader.State = LoadState.Failed OrElse DlEasyTierLoader.State = LoadState.Aborted Then
+            Hint("正在下载 EasyTier，请稍后...")
+            DownloadEasyTier()
             Return False
         End If
         Return True

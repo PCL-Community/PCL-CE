@@ -12,7 +12,6 @@ Public Class PageLinkLobby
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
     Public Shared HostInfo As ETPlayerInfo = Nothing
-    Public Shared IsEasyTierExist As Boolean = False
 
 #Region "初始化"
 
@@ -57,25 +56,15 @@ Public Class PageLinkLobby
                 GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
             End If
         End If
-        CheckEasyTier()
         DetectMcInstance()
         IsLoading = False
     End Sub
     Private Sub OnPageExit() Handles Me.PageExit
         IsMcWatcherRunning = False
     End Sub
-    Private Sub CheckEasyTier()
-        If (Not File.Exists(ETPath & "\easytier-core.exe")) OrElse (Not File.Exists(ETPath & "\easytier-cli.exe")) OrElse (Not File.Exists(ETPath & "\wintun.dll")) Then
-            Log("[Link] EasyTier 不存在，开始下载")
-            Hint("正在下载联机所需组件...")
-            IsEasyTierExist = False
-            BtnCreate.IsEnabled = False
-            BtnSelectJoin.IsEnabled = False
-            DownloadEasyTier(False)
-        Else
-            IsEasyTierExist = True
-        End If
-    End Sub
+    Private Function IsEasyTierExists()
+        Return File.Exists(ETPath & "\easytier-core.exe") AndAlso File.Exists(ETPath & "\easytier-cli.exe") AndAlso File.Exists(ETPath & "\wintun.dll")
+    End Function
 #End Region
 
 #Region "加载步骤"
@@ -275,7 +264,6 @@ Retry:
                                                                         .Tag = World,
                                                                         .Content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1})"})
                                            Next
-                                           If IsEasyTierExist Then BtnCreate.IsEnabled = True
                                        End If
                                        IsDetectingMc = False
                                        ComboWorldList.SelectedIndex = 0
@@ -310,7 +298,7 @@ Retry:
                            If ETProcess Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
-                                           Log("[Link] EasyTier 已退出")
+                                           Log("[Link] [ETWatcher] ETProcess 为 null，EasyTier 可能已退出")
                                        End Sub)
                            End If
                            Log("[Link] EasyTier 轮询已结束")
@@ -363,6 +351,7 @@ Retry:
                             CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                             StackPlayerList.Children.Clear()
                             CurrentSubpage = Subpages.PanSelect
+                            Log("[Link] [ETInfo] 大厅不存在或已被解散，返回选择界面")
                         End Sub)
                 ExitEasyTier()
                 Exit Sub
@@ -455,8 +444,11 @@ Retry:
     Public LocalPort As String = Nothing
     '创建大厅
     Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
-        If Not LobbyPrecheck() Then Exit Sub
         BtnCreate.IsEnabled = False
+        If Not LobbyPrecheck() Then
+            BtnCreate.IsEnabled = True
+            Exit Sub
+        End If
         If ComboWorldList.SelectedItem.ToString() = "无可用实例" OrElse ComboWorldList.SelectedItem.ToString() = "正在检测本地游戏..." Then
             Hint("请先启动并选择一个可用的 MC 联机实例！", HintType.Critical)
             Exit Sub
