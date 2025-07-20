@@ -1,14 +1,14 @@
 ﻿Imports System.Security.Principal
 Imports Imazen.WebP.Extern
 
-Public Class PageVersionScreenshot
+Public Class PageInstanceScreenshot
     Implements IRefreshable
     Private Sub RefreshSelf() Implements IRefreshable.Refresh
         Refresh()
     End Sub
     Public Shared Async Sub Refresh()
-        If FrmVersionScreenshot IsNot Nothing Then Await FrmVersionScreenshot.Reload()
-        FrmVersionLeft.ItemScreenshot.Checked = True
+        If FrmInstanceScreenshot IsNot Nothing Then Await FrmInstanceScreenshot.Reload()
+        FrmInstanceLeft.ItemScreenshot.Checked = True
         Hint("正在刷新……", Log:=False)
     End Sub
 
@@ -17,7 +17,7 @@ Public Class PageVersionScreenshot
 
         '重复加载部分
         PanBack.ScrollToHome()
-        ScreenshotPath = PageVersionLeft.Version.PathIndie + "screenshots\"
+        ScreenshotPath = PageInstanceLeft.Instance.PathIndie + "screenshots\"
         If Not Directory.Exists(ScreenshotPath) Then Directory.CreateDirectory(ScreenshotPath)
         Await Reload()
 

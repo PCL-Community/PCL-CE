@@ -669,9 +669,9 @@ Refresh:
                 FrmMain.BtnTitleSelect4.Text = "更多"
             End If
             '各个页面的入口
-            If FrmMain.PageCurrent = FormMain.PageType.VersionSelect Then FrmSelectRight.BtnEmptyDownload_Loaded()
+            If FrmMain.PageCurrent = FormMain.PageType.InstanceSelect Then FrmSelectRight.BtnEmptyDownload_Loaded()
             If FrmMain.PageCurrent = FormMain.PageType.Launch Then FrmLaunchLeft.RefreshButtonsUI()
-            If FrmMain.PageCurrent = FormMain.PageType.VersionSetup AndAlso FrmVersionModDisabled IsNot Nothing Then FrmVersionModDisabled.BtnDownload_Loaded()
+            If FrmMain.PageCurrent = FormMain.PageType.InstanceSetup AndAlso FrmInstanceModDisabled IsNot Nothing Then FrmInstanceModDisabled.BtnDownload_Loaded()
             '备注
             If FrmSetupUI IsNot Nothing Then FrmSetupUI.CardSwitch.Title = If(HiddenForceShow, "功能隐藏（已暂时关闭，按 F12 以重新启用）", "功能隐藏")
         Catch ex As Exception

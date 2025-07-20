@@ -1,13 +1,13 @@
-Public Class PageVersionLeft
+Public Class PageInstanceLeft
     Implements IRefreshable
 
     ''' <summary>
     ''' 当前显示设置的 MC 实例。
     ''' </summary>
-    Public Shared Version As McInstance = Nothing
+    Public Shared Instance As McInstance = Nothing
 
     Public Sub RefreshModDisabled() Handles Me.Loaded
-        If Version IsNot Nothing AndAlso Version.Modable Then
+        If Instance IsNot Nothing AndAlso Instance.Modable Then
             ItemMod.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionMod"), Visibility.Collapsed, Visibility.Visible)
             ItemModDisabled.Visibility = Visibility.Collapsed
         Else
@@ -60,38 +60,38 @@ Public Class PageVersionLeft
         If ID = -1 Then ID = PageID
         Select Case ID
             Case FormMain.PageSubType.VersionOverall
-                If FrmVersionOverall Is Nothing Then FrmVersionOverall = New PageVersionOverall
-                Return FrmVersionOverall
+                If FrmInstanceOverall Is Nothing Then FrmInstanceOverall = New PageInstanceOverall
+                Return FrmInstanceOverall
             Case FormMain.PageSubType.VersionMod
-                If FrmVersionMod Is Nothing Then FrmVersionMod = New PageVersionCompResource(CompType.Mod)
-                Return FrmVersionMod
+                If FrmInstanceMod Is Nothing Then FrmInstanceMod = New PageInstanceCompResource(CompType.Mod)
+                Return FrmInstanceMod
             Case FormMain.PageSubType.VersionModDisabled
-                If FrmVersionModDisabled Is Nothing Then FrmVersionModDisabled = New PageVersionModDisabled
-                Return FrmVersionModDisabled
+                If FrmInstanceModDisabled Is Nothing Then FrmInstanceModDisabled = New PageInstanceModDisabled
+                Return FrmInstanceModDisabled
             Case FormMain.PageSubType.VersionSetup
-                If IsNothing(FrmVersionSetup) Then FrmVersionSetup = New PageVersionSetup
-                Return FrmVersionSetup
+                If IsNothing(FrmInstanceSetup) Then FrmInstanceSetup = New PageInstanceSetup
+                Return FrmInstanceSetup
             Case FormMain.PageSubType.VersionWorld
-                If FrmVersionSaves Is Nothing Then FrmVersionSaves = New PageVersionSaves
-                Return FrmVersionSaves
+                If FrmInstanceSaves Is Nothing Then FrmInstanceSaves = New PageInstanceSaves
+                Return FrmInstanceSaves
             Case FormMain.PageSubType.VersionScreenshot
-                If FrmVersionScreenshot Is Nothing Then FrmVersionScreenshot = New PageVersionScreenshot
-                Return FrmVersionScreenshot
+                If FrmInstanceScreenshot Is Nothing Then FrmInstanceScreenshot = New PageInstanceScreenshot
+                Return FrmInstanceScreenshot
             Case FormMain.PageSubType.VersionResourcePack
-                If FrmVersionResourcePack Is Nothing Then FrmVersionResourcePack = New PageVersionCompResource(CompType.ResourcePack)
-                Return FrmVersionResourcePack
+                If FrmInstanceResourcePack Is Nothing Then FrmInstanceResourcePack = New PageInstanceCompResource(CompType.ResourcePack)
+                Return FrmInstanceResourcePack
             Case FormMain.PageSubType.VersionShader
-                If FrmVersionShader Is Nothing Then FrmVersionShader = New PageVersionCompResource(CompType.Shader)
-                Return FrmVersionShader
+                If FrmInstanceShader Is Nothing Then FrmInstanceShader = New PageInstanceCompResource(CompType.Shader)
+                Return FrmInstanceShader
             Case FormMain.PageSubType.VersionSchematic
-                If FrmVersionSchematic Is Nothing Then FrmVersionSchematic = New PageVersionCompResource(CompType.Schematic)
-                Return FrmVersionSchematic
+                If FrmInstanceSchematic Is Nothing Then FrmInstanceSchematic = New PageInstanceCompResource(CompType.Schematic)
+                Return FrmInstanceSchematic
             Case FormMain.PageSubType.VersionInstall
-                If FrmVersionInstall Is Nothing Then FrmVersionInstall = New PageVersionInstall
-                Return FrmVersionInstall
+                If FrmInstanceInstall Is Nothing Then FrmInstanceInstall = New PageInstanceInstall
+                Return FrmInstanceInstall
             Case FormMain.PageSubType.VersionExport
-                If FrmVersionExport Is Nothing Then FrmVersionExport = New PageVersionExport
-                Return FrmVersionExport
+                If FrmInstanceExport Is Nothing Then FrmInstanceExport = New PageInstanceExport
+                Return FrmInstanceExport
             Case Else
                 Throw New Exception("未知的实例设置子页面种类：" & ID)
         End Select
@@ -142,17 +142,17 @@ Public Class PageVersionLeft
     Public Sub Refresh(SubType As FormMain.PageSubType)
         Select Case SubType
             Case FormMain.PageSubType.VersionMod
-                PageVersionCompResource.Refresh(CompType.Mod)
+                PageInstanceCompResource.Refresh(CompType.Mod)
             Case FormMain.PageSubType.VersionScreenshot
-                PageVersionScreenshot.Refresh()
+                PageInstanceScreenshot.Refresh()
             Case FormMain.PageSubType.VersionWorld
-                PageVersionSaves.Refresh()
+                PageInstanceSaves.Refresh()
             Case FormMain.PageSubType.VersionResourcePack
-                PageVersionCompResource.Refresh(CompType.ResourcePack)
+                PageInstanceCompResource.Refresh(CompType.ResourcePack)
             Case FormMain.PageSubType.VersionShader
-                PageVersionCompResource.Refresh(CompType.Shader)
+                PageInstanceCompResource.Refresh(CompType.Shader)
             Case FormMain.PageSubType.VersionSchematic
-                PageVersionCompResource.Refresh(CompType.Schematic)
+                PageInstanceCompResource.Refresh(CompType.Schematic)
             Case FormMain.PageSubType.VersionInstall
                 DlClientListLoader.Start(IsForceRestart:=True)
                 DlOptiFineListLoader.Start(IsForceRestart:=True)
@@ -166,17 +166,17 @@ Public Class PageVersionLeft
                 DlOptiFabricLoader.Start(IsForceRestart:=True)
                 DlLabyModListLoader.Start(IsForceRestart:=True)
                 ItemInstall.Checked = True
-                FrmVersionInstall.GetCurrentInfo()
+                FrmInstanceInstall.GetCurrentInfo()
             Case FormMain.PageSubType.VersionExport
-                If FrmVersionExport IsNot Nothing Then FrmVersionExport.RefreshAll()
+                If FrmInstanceExport IsNot Nothing Then FrmInstanceExport.RefreshAll()
                 ItemExport.Checked = True
         End Select
     End Sub
 
     Public Sub Reset(sender As Object, e As EventArgs)
         If MyMsgBox("是否要初始化该实例的实例独立设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
-            If IsNothing(FrmVersionSetup) Then FrmVersionSetup = New PageVersionSetup
-            FrmVersionSetup.Reset()
+            If IsNothing(FrmInstanceSetup) Then FrmInstanceSetup = New PageInstanceSetup
+            FrmInstanceSetup.Reset()
             ItemSetup.Checked = True
         End If
     End Sub

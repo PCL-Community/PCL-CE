@@ -267,7 +267,7 @@
     Public Shared Function GetRam(Version As McInstance, UseVersionJavaSetup As Boolean, Optional Is32BitJava As Boolean? = Nothing) As Double
 
         '------------------------------------------
-        ' 修改下方代码时需要一并修改 PageVersionSetup
+        ' 修改下方代码时需要一并修改 PageInstanceSetup
         '------------------------------------------
 
         Dim RamGive As Double
@@ -416,7 +416,7 @@ PreFin:
     '切换到实例独立设置
     Private Sub BtnSwitch_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSwitch.Click
         McInstanceCurrent.Load()
-        PageVersionLeft.Version = McInstanceCurrent
+        PageInstanceLeft.Instance = McInstanceCurrent
         FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup)
     End Sub
 

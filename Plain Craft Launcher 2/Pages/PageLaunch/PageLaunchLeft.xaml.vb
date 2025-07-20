@@ -516,7 +516,7 @@ ExitRefresh:
     Private Sub BtnMore_Click(sender As Object, e As EventArgs) Handles BtnMore.Click
         If McLaunchLoader.State = LoadState.Loading Then Return
         McInstanceCurrent.Load()
-        PageVersionLeft.Version = McInstanceCurrent
+        PageInstanceLeft.Instance = McInstanceCurrent
         If File.Exists(McInstanceCurrent.Path + ".pclignore") Then
             Hint("当前实例正在安装，暂无法进行实例设置！", HintType.Critical)
             Exit Sub

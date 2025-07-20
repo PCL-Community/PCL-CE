@@ -308,13 +308,13 @@ Public Class PageSelectRight
             ToolTipService.SetHorizontalOffset(BtnCont, 2)
             AddHandler BtnCont.Click,
             Sub()
-                PageVersionLeft.Version = Version
-                FrmMain.PageChange(FormMain.PageType.VersionSetup, 0)
+                PageInstanceLeft.Instance = Version
+                FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
             End Sub
             AddHandler sender.MouseRightButtonUp,
             Sub()
-                PageVersionLeft.Version = Version
-                FrmMain.PageChange(FormMain.PageType.VersionSetup, 0)
+                PageInstanceLeft.Instance = Version
+                FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
             End Sub
             sender.Buttons = {BtnStar, BtnDel, BtnCont}
         Else
@@ -323,8 +323,8 @@ Public Class PageSelectRight
             ToolTipService.SetPlacement(BtnCont, Primitives.PlacementMode.Center)
             ToolTipService.SetVerticalOffset(BtnCont, 30)
             ToolTipService.SetHorizontalOffset(BtnCont, 2)
-            AddHandler BtnCont.Click, Sub() PageVersionOverall.OpenVersionFolder(Version)
-            AddHandler sender.MouseRightButtonUp, Sub() PageVersionOverall.OpenVersionFolder(Version)
+            AddHandler BtnCont.Click, Sub() PageInstanceOverall.OpenVersionFolder(Version)
+            AddHandler sender.MouseRightButtonUp, Sub() PageInstanceOverall.OpenVersionFolder(Version)
             sender.Buttons = {BtnStar, BtnDel, BtnCont}
         End If
     End Sub
@@ -343,7 +343,7 @@ Public Class PageSelectRight
             FrmMain.PageBack()
         Else
             '错误实例
-            PageVersionOverall.OpenVersionFolder(instance)
+            PageInstanceOverall.OpenVersionFolder(instance)
         End If
     End Sub
 
@@ -351,7 +351,7 @@ Public Class PageSelectRight
         FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall)
     End Sub
 
-    '修改此代码时，同时修改 PageVersionOverall 中的代码
+    '修改此代码时，同时修改 PageInstanceOverall 中的代码
     Public Shared Sub DeleteVersion(Item As MyListItem, Version As McInstance)
         Try
             Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown

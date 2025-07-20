@@ -167,8 +167,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
         End Select
         McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
-        DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
-        DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent) * 1024) & "m")
+        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
+        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024) & "m")
         If Not DataList.Any(Function(d) d.Contains("-Dlog4j2.formatMsgNoLookups=true")) Then DataList.Add("-Dlog4j2.formatMsgNoLookups=true")
     End Sub
 

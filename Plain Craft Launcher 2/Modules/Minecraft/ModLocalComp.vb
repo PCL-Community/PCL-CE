@@ -1543,7 +1543,7 @@ Finished:
     Public Class CompLocalLoaderData
         Public GameVersion As McInstance
         Public Loaders As List(Of CompLoaderType)
-        Public Frm As PageVersionCompResource
+        Public Frm As PageInstanceCompResource
         Public CompPath As String
         Public CompType As CompType
 
@@ -1557,11 +1557,11 @@ Finished:
             RunInUiWait(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.ShowProgress = False)
 
             '等待 Mod 更新完成
-            If PageVersionCompResource.UpdatingVersions.Contains(Loader.Input.CompPath) Then
+            If PageInstanceCompResource.UpdatingVersions.Contains(Loader.Input.CompPath) Then
                 Log($"[Mod] 等待资源更新完成后才能继续加载资源列表：" & Loader.Input.CompPath)
                 Try
                     RunInUiWait(Sub() If Loader.Input.Frm IsNot Nothing Then Loader.Input.Frm.Load.Text = "正在更新资源")
-                    Do Until Not PageVersionCompResource.UpdatingVersions.Contains(Loader.Input.CompPath)
+                    Do Until Not PageInstanceCompResource.UpdatingVersions.Contains(Loader.Input.CompPath)
                         If Loader.IsAborted Then Return
                         Thread.Sleep(100)
                     Loop
@@ -1604,9 +1604,9 @@ Finished:
                         For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
                             Try
                                 If File.DirectoryName.ToLower & "\" <> RawName Then
-                                    If Not (PageVersionLeft.Version IsNot Nothing AndAlso PageVersionLeft.Version.Version.HasForge AndAlso
-                                            PageVersionLeft.Version.Version.McCodeMain < 13 AndAlso
-                                            File.Directory.Name = $"1.{PageVersionLeft.Version.Version.McCodeMain}.{PageVersionLeft.Version.Version.McCodeSub}") Then
+                                    If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Version.HasForge AndAlso
+                                            PageInstanceLeft.Instance.Version.McCodeMain < 13 AndAlso
+                                            File.Directory.Name = $"1.{PageInstanceLeft.Instance.Version.McCodeMain}.{PageInstanceLeft.Instance.Version.McCodeSub}") Then
                                         Continue For
                                     End If
                                 End If
@@ -1908,20 +1908,20 @@ Finished:
         Next
         WriteFile(PathTemp & "Cache\LocalComp.json", Cache.ToString(If(ModeDebug, Newtonsoft.Json.Formatting.Indented, Newtonsoft.Json.Formatting.None)))
         '刷新边栏
-        If FrmVersionMod?.Filter = PageVersionCompResource.FilterType.CanUpdate Then
-            RunInUi(Sub() FrmVersionMod?.RefreshUI()) '同步 “可更新” 列表 (#4677)
+        If FrmInstanceMod?.Filter = PageInstanceCompResource.FilterType.CanUpdate Then
+            RunInUi(Sub() FrmInstanceMod?.RefreshUI()) '同步 “可更新” 列表 (#4677)
         Else
-            RunInUi(Sub() FrmVersionMod?.RefreshBars())
+            RunInUi(Sub() FrmInstanceMod?.RefreshBars())
         End If
     End Sub
 
     Public Function GetCurrentVersionModLoader() As List(Of CompLoaderType)
         Dim ModLoaders As New List(Of CompLoaderType)
-        If PageVersionLeft.Version.Version.HasForge Then ModLoaders.Add(CompLoaderType.Forge)
-        If PageVersionLeft.Version.Version.HasNeoForge Then ModLoaders.Add(CompLoaderType.NeoForge)
-        If PageVersionLeft.Version.Version.HasFabric Then ModLoaders.Add(CompLoaderType.Fabric)
-        If PageVersionLeft.Version.Version.HasQuilt Then ModLoaders.AddRange({CompLoaderType.Fabric, CompLoaderType.Quilt})
-        If PageVersionLeft.Version.Version.HasLiteLoader Then ModLoaders.Add(CompLoaderType.LiteLoader)
+        If PageInstanceLeft.Instance.Version.HasForge Then ModLoaders.Add(CompLoaderType.Forge)
+        If PageInstanceLeft.Instance.Version.HasNeoForge Then ModLoaders.Add(CompLoaderType.NeoForge)
+        If PageInstanceLeft.Instance.Version.HasFabric Then ModLoaders.Add(CompLoaderType.Fabric)
+        If PageInstanceLeft.Instance.Version.HasQuilt Then ModLoaders.AddRange({CompLoaderType.Fabric, CompLoaderType.Quilt})
+        If PageInstanceLeft.Instance.Version.HasLiteLoader Then ModLoaders.Add(CompLoaderType.LiteLoader)
         If Not ModLoaders.Any() Then ModLoaders.AddRange({CompLoaderType.Forge, CompLoaderType.NeoForge, CompLoaderType.Fabric, CompLoaderType.LiteLoader, CompLoaderType.Quilt})
         Return ModLoaders
     End Function

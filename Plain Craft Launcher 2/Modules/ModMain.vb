@@ -507,22 +507,22 @@ EndHint:
     Public FrmLoginOffline As PageLoginOffline
 
     '实例设置页面声明
-    Public FrmVersionLeft As PageVersionLeft
-    Public FrmVersionOverall As PageVersionOverall
-    Public FrmVersionMod As PageVersionCompResource
-    Public FrmVersionModDisabled As PageVersionModDisabled
-    Public FrmVersionScreenshot As PageVersionScreenshot
-    Public FrmVersionSaves As PageVersionSaves
-    Public FrmVersionShader As PageVersionCompResource
-    Public FrmVersionSchematic As PageVersionCompResource
-    Public FrmVersionResourcePack As PageVersionCompResource
-    Public FrmVersionSetup As PageVersionSetup
-    Public FrmVersionInstall As PageVersionInstall
-    Public FrmVersionExport As PageVersionExport
+    Public FrmInstanceLeft As PageInstanceLeft
+    Public FrmInstanceOverall As PageInstanceOverall
+    Public FrmInstanceMod As PageInstanceCompResource
+    Public FrmInstanceModDisabled As PageInstanceModDisabled
+    Public FrmInstanceScreenshot As PageInstanceScreenshot
+    Public FrmInstanceSaves As PageInstanceSaves
+    Public FrmInstanceShader As PageInstanceCompResource
+    Public FrmInstanceSchematic As PageInstanceCompResource
+    Public FrmInstanceResourcePack As PageInstanceCompResource
+    Public FrmInstanceSetup As PageInstanceSetup
+    Public FrmInstanceInstall As PageInstanceInstall
+    Public FrmInstanceExport As PageInstanceExport
     '实例存档页面
-    Public FrmVersionSavesLeft As PageVersionSavesLeft
-    Public FrmVersionSavesInfo As PageVersionSavesInfo
-    Public FrmVersionSavesBackup As PageVersionSavesBackup
+    Public FrmInstanceSavesLeft As PageInstanceSavesLeft
+    Public FrmInstanceSavesInfo As PageInstanceSavesInfo
+    Public FrmInstanceSavesBackup As PageInstanceSavesBackup
 
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail

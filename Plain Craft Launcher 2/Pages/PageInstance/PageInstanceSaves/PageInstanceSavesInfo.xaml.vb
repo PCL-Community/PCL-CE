@@ -1,7 +1,7 @@
 ﻿Imports System.Xml.XPath
 Imports PlainNamedBinaryTag
 
-Class PageVersionSavesInfo
+Class PageInstanceSavesInfo
     Implements IRefreshable
 
     Private levelData As XElement
@@ -25,7 +25,7 @@ Class PageVersionSavesInfo
 
     Private Sub RefreshInfo()
         Try
-            Dim saveDatPath = IO.Path.Combine(PageVersionSavesLeft.CurrentSave, "level.dat")
+            Dim saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
             Dim isCompressed As Boolean
             Using fs As New FileStream(saveDatPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                 Using saveInfo = VbNbtReaderCreator.FromStreamAutoDetect(fs, isCompressed)

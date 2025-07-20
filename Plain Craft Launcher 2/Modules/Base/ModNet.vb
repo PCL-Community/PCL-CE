@@ -1626,7 +1626,7 @@ NextElement:
                         Dim DirPath As String = New FileInfo(File.LocalPath).Directory.FullName
                         If Not Directory.Exists(DirPath) Then Directory.CreateDirectory(DirPath)
                     Next
-                    '接入下载管理器
+                    '接入任务管理器
                     NetManager.Start(Me)
                     '将文件分配给多个线程以进行已存在查找
                     Dim Folders As New List(Of String) '可能会用于已存在查找的文件夹列表
@@ -1850,7 +1850,7 @@ Retry:
 #End Region
 
         ''' <summary>
-        ''' 进度与下载速度由下载管理线程每隔约 0.1 秒刷新一次。
+        ''' 进度与下载速度由任务管理线程每隔约 0.1 秒刷新一次。
         ''' </summary>
         Private Sub RefreshStat()
             Try
@@ -1945,7 +1945,7 @@ Retry:
                         Next
                     End While
                 Catch ex As Exception
-                    Log(ex, $"下载管理启动线程 {Id} 出错", LogLevel.Critical)
+                    Log(ex, $"任务管理启动线程 {Id} 出错", LogLevel.Critical)
                 End Try
             End Sub
             RunInNewThread(Sub() ThreadStarter(0), "NetManager ThreadStarter 0")
@@ -1969,7 +1969,7 @@ Retry:
                         Loop
                     End While
                 Catch ex As Exception
-                    Log(ex, "下载管理刷新线程出错", LogLevel.Critical)
+                    Log(ex, "任务管理刷新线程出错", LogLevel.Critical)
                 End Try
             End Sub, "NetManager StatRefresher")
         End Sub
@@ -2034,7 +2034,7 @@ Retry:
     End Class
 
     ''' <summary>
-    ''' 是否有正在进行中、需要在下载管理页面显示的下载任务？
+    ''' 是否有正在进行中、需要在任务管理页面显示的下载任务？
     ''' </summary>
     Public Function HasDownloadingTask(Optional IgnoreCustomDownload As Boolean = False) As Boolean
         For Each Task In LoaderTaskbar.ToList()

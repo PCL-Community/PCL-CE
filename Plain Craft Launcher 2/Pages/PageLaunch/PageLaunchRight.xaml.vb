@@ -57,7 +57,7 @@ Download:
                     Log("[Page] 主页自定义数据来源：联网全新下载")
                     Hint("正在加载主页……")
                     RunInUiWait(Sub() LoadContent("")) '在加载结束前清空页面
-                    Setup.Set("CacheSavedPageVersion", "")
+                    Setup.Set("CacheSavedPageInstance", "")
                     OnlineLoader.Start(Url) '下载完成后将会再次触发更新
                     Return
                 End If
@@ -152,7 +152,7 @@ Download:
             Try
                 Version = NetGetCodeByRequestOnce(VersionAddress, Timeout:=10000)
                 If Version.Length > 1000 Then Throw New Exception($"获取的主页版本过长（{Version.Length} 字符）")
-                Dim CurrentVersion As String = Setup.Get("CacheSavedPageVersion")
+                Dim CurrentVersion As String = Setup.Get("CacheSavedPageInstance")
                 If Version <> "" AndAlso CurrentVersion <> "" AndAlso Version = CurrentVersion Then
                     Log($"[Page] 当前缓存的主页已为最新，当前版本：{Version}，检查源：{VersionAddress}")
                     NeedDownload = False
@@ -168,7 +168,7 @@ Download:
                 Dim FileContent As String = NetGetCodeByRequestRetry(Address)
                 Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}")
                 Setup.Set("CacheSavedPageUrl", Address)
-                Setup.Set("CacheSavedPageVersion", Version)
+                Setup.Set("CacheSavedPageInstance", Version)
                 WriteFile(PathTemp & "Cache\Custom.xaml", FileContent)
             End If
             '要求刷新
@@ -201,7 +201,7 @@ Download:
         LoadedContentHash = -1
         OnlineLoader.Input = ""
         Setup.Set("CacheSavedPageUrl", "")
-        Setup.Set("CacheSavedPageVersion", "")
+        Setup.Set("CacheSavedPageInstance", "")
         Log("[Page] 已清空主页缓存")
     End Sub
 

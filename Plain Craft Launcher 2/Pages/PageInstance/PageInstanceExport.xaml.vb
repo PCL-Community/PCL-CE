@@ -15,27 +15,27 @@ Public Class ExportOption
     Public Property RequireModLoaderOrOptiFine As Boolean = False
 End Class
 
-Public Class PageVersionExport
+Public Class PageInstanceExport
     Implements IRefreshable
 
     Private CurrentVersion As String = ""
-    Private Sub PageVersionExport_Loaded() Handles Me.Loaded
+    Private Sub PageInstanceExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
-        If CurrentVersion <> PageVersionLeft.Version.Path Then RefreshAll() '切换到了另一个实例，重置页面
+        If CurrentVersion <> PageInstanceLeft.Instance.Path Then RefreshAll() '切换到了另一个实例，重置页面
         BtnAdvancedHelp.EventData = "指南/整合包制作.json"
         AniControlEnabled -= 1
     End Sub
     Public Sub RefreshAll() Implements IRefreshable.Refresh
         Log($"[Export] 刷新导出页面")
-        HintOptiFine.Visibility = If(PageVersionLeft.Version.Version.HasOptiFine, Visibility.Visible, Visibility.Collapsed)
-        CurrentVersion = PageVersionLeft.Version.Path
+        HintOptiFine.Visibility = If(PageInstanceLeft.Instance.Version.HasOptiFine, Visibility.Visible, Visibility.Collapsed)
+        CurrentVersion = PageInstanceLeft.Instance.Path
         TextExportName.Text = ""
-        TextExportName.HintText = PageVersionLeft.Version.Name
+        TextExportName.HintText = PageInstanceLeft.Instance.Name
         TextExportVersion.Text = ""
         TextExportVersion.HintText = "1.0.0"
         CheckAdvancedInclude.Checked = False
         CheckAdvancedModrinth.Checked = False
-        GetExportOption(CheckOptionsBasic).Description = PageVersionLeft.Version.GetDefaultDescription()
+        GetExportOption(CheckOptionsBasic).Description = PageInstanceLeft.Instance.GetDefaultDescription()
         ResetConfigOverrides()
         ReloadAllSubOptions()
         RefreshAllOptionsUI()
@@ -57,7 +57,7 @@ Public Class PageVersionExport
     Private Sub ReloadSubOptions(Panel As StackPanel, AcceptCompressedFile As Boolean, AcceptFolder As Boolean, ParamArray Folders As String())
         Panel.Children.Clear()
         For Each Folder In Folders
-            Dim TargetFolder As New DirectoryInfo(PageVersionLeft.Version.PathIndie & Folder)
+            Dim TargetFolder As New DirectoryInfo(PageInstanceLeft.Instance.PathIndie & Folder)
             If Not TargetFolder.Exists() Then Continue For
             '查找文件夹下的对应项
             If AcceptCompressedFile Then
@@ -99,7 +99,7 @@ Public Class PageVersionExport
                 Return False
             End Try
         End Function
-        Dim PathInfo As New DirectoryInfo(PageVersionLeft.Version.PathIndie)
+        Dim PathInfo As New DirectoryInfo(PageInstanceLeft.Instance.PathIndie)
         AllEntries.AddRange(PathInfo.EnumerateFiles().Select(Function(f) f.Name))
         For Each SubFolder In PathInfo.EnumerateDirectories().Where(IsValidDirectory)
             AllEntries.Add($"{SubFolder.Name}\")
@@ -111,9 +111,9 @@ Public Class PageVersionExport
         Dim IsVisible =
         Function(TargetOption As ExportOption) As Boolean
             '检查需要 OptiFine 或 Mod 加载器
-            If TargetOption.RequireOptiFine AndAlso Not PageVersionLeft.Version.Version.HasOptiFine Then Return False
-            If TargetOption.RequireModLoader AndAlso Not PageVersionLeft.Version.Modable Then Return False
-            If TargetOption.RequireModLoaderOrOptiFine AndAlso Not PageVersionLeft.Version.Version.HasOptiFine AndAlso Not PageVersionLeft.Version.Modable Then Return False
+            If TargetOption.RequireOptiFine AndAlso Not PageInstanceLeft.Instance.Version.HasOptiFine Then Return False
+            If TargetOption.RequireModLoader AndAlso Not PageInstanceLeft.Instance.Modable Then Return False
+            If TargetOption.RequireModLoaderOrOptiFine AndAlso Not PageInstanceLeft.Instance.Version.HasOptiFine AndAlso Not PageInstanceLeft.Instance.Modable Then Return False
             '粗略检查是否可能有符合规则的文件/文件夹
             Return StandardizeLines(If(TargetOption.Rules, TargetOption.ShowRules).Split("|"c), True).Any(
             Function(Rule As String)
@@ -129,9 +129,9 @@ Public Class PageVersionExport
                 Rule = Rule.Trim("*?".ToCharArray)
                 If Rule.Split({"\"c}, StringSplitOptions.RemoveEmptyEntries).Count >= 3 Then
                     If Rule.EndsWithF("\") Then
-                        Return IsValidDirectory(New DirectoryInfo(PageVersionLeft.Version.PathIndie & Rule)) '文件夹有效
+                        Return IsValidDirectory(New DirectoryInfo(PageInstanceLeft.Instance.PathIndie & Rule)) '文件夹有效
                     Else
-                        Return File.Exists(PageVersionLeft.Version.PathIndie & Rule) '文件有效
+                        Return File.Exists(PageInstanceLeft.Instance.PathIndie & Rule) '文件有效
                     End If
                 Else
                     Return False
@@ -434,7 +434,7 @@ Public Class PageVersionExport
         '缓存所需参数
         Dim CacheFolder = RequestTaskTempFolder()
         Dim OverridesFolder = CacheFolder & "modpack\overrides\"
-        Dim McInstance = PageVersionLeft.Version
+        Dim McInstance = PageInstanceLeft.Instance
         Dim PathIndie As String = McInstance.PathIndie
         Dim CheckHostedAssets As Boolean = Not CheckAdvancedInclude.Checked
         Dim ModrinthUploadMode As Boolean = CheckAdvancedModrinth.Checked

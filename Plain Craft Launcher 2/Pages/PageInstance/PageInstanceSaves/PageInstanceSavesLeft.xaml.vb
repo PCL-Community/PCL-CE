@@ -1,6 +1,6 @@
 ﻿Imports System.Threading.Tasks
 
-Public Class PageVersionSavesLeft
+Public Class PageInstanceSavesLeft
     Implements IRefreshable
 
 #Region "龙猫牌 页面管理"
@@ -22,11 +22,11 @@ Public Class PageVersionSavesLeft
         If ID = -1 Then ID = PageID
         Select Case ID
             Case FormMain.PageSubType.VersionSavesInfo
-                If FrmVersionSavesInfo Is Nothing Then FrmVersionSavesInfo = New PageVersionSavesInfo
-                Return FrmVersionSavesInfo
+                If FrmInstanceSavesInfo Is Nothing Then FrmInstanceSavesInfo = New PageInstanceSavesInfo
+                Return FrmInstanceSavesInfo
             Case FormMain.PageSubType.VersionSavesBackup
-                If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
-                Return FrmVersionSavesBackup
+                If FrmInstanceSavesBackup Is Nothing Then FrmInstanceSavesBackup = New PageInstanceSavesBackup
+                Return FrmInstanceSavesBackup
             Case Else
                 Throw New Exception("未知的实例设置子页面种类：" & ID)
         End Select
@@ -75,9 +75,9 @@ Public Class PageVersionSavesLeft
     Public Sub Refresh(SubType As FormMain.PageSubType)
         Select Case SubType
             Case FormMain.PageSubType.VersionSavesBackup
-                If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
+                If FrmInstanceSavesBackup Is Nothing Then FrmInstanceSavesBackup = New PageInstanceSavesBackup
                 If ItemBackup.Checked Then
-                    FrmVersionSavesBackup.Refresh()
+                    FrmInstanceSavesBackup.Refresh()
                 Else
                     ItemBackup.Checked = True
                 End If

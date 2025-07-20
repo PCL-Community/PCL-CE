@@ -324,7 +324,7 @@
     <Compile Include="Pages\PageSetup\PageSetupJava.xaml.vb">
       <DependentUpon>PageSetupJava.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\MyLocalModItem.xaml.vb">
+    <Compile Include="Pages\PageInstance\MyLocalModItem.xaml.vb">
       <DependentUpon>MyLocalModItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="Modules\ModEvent.vb" />
@@ -444,41 +444,41 @@
     <Compile Include="Pages\PageLogRight.xaml.vb">
       <DependentUpon>PageLogRight.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionInstall.xaml.vb">
-      <DependentUpon>PageVersionInstall.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceInstall.xaml.vb">
+      <DependentUpon>PageInstanceInstall.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionExport.xaml.vb">
-      <DependentUpon>PageVersionExport.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceExport.xaml.vb">
+      <DependentUpon>PageInstanceExport.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionLeft.xaml.vb">
-      <DependentUpon>PageVersionLeft.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceLeft.xaml.vb">
+      <DependentUpon>PageInstanceLeft.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionCompResource.xaml.vb">
-      <DependentUpon>PageVersionCompResource.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceCompResource.xaml.vb">
+      <DependentUpon>PageInstanceCompResource.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionModDisabled.xaml.vb">
-      <DependentUpon>PageVersionModDisabled.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceModDisabled.xaml.vb">
+      <DependentUpon>PageInstanceModDisabled.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionSaves.xaml.vb">
-      <DependentUpon>PageVersionSaves.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceSaves.xaml.vb">
+      <DependentUpon>PageInstanceSaves.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml.vb">
-      <DependentUpon>PageVersionSavesInfo.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesInfo.xaml.vb">
+      <DependentUpon>PageInstanceSavesInfo.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml.vb">
-      <DependentUpon>PageVersionSavesBackup.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesBackup.xaml.vb">
+      <DependentUpon>PageInstanceSavesBackup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml.vb">
-      <DependentUpon>PageVersionSavesLeft.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesLeft.xaml.vb">
+      <DependentUpon>PageInstanceSavesLeft.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionScreenshot.xaml.vb">
-      <DependentUpon>PageVersionScreenshot.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceScreenshot.xaml.vb">
+      <DependentUpon>PageInstanceScreenshot.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionOverall.xaml.vb">
-      <DependentUpon>PageVersionOverall.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceOverall.xaml.vb">
+      <DependentUpon>PageInstanceOverall.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageVersion\PageVersionSetup.xaml.vb">
-      <DependentUpon>PageVersionSetup.xaml</DependentUpon>
+    <Compile Include="Pages\PageInstance\PageInstanceSetup.xaml.vb">
+      <DependentUpon>PageInstanceSetup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MyDropShadow.vb" />
     <Compile Include="Modules\Base\ModLoader.vb" />
@@ -787,31 +787,31 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\MyLocalModItem.xaml">
+    <Page Include="Pages\PageInstance\MyLocalModItem.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionInstall.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceInstall.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionSaves.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceSaves.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesInfo.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesInfo.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesBackup.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesBackup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionSaves\PageVersionSavesLeft.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesLeft.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionScreenshot.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceScreenshot.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -819,7 +819,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionExport.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceExport.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -907,23 +907,23 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionLeft.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceLeft.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionCompResource.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceCompResource.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionModDisabled.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceModDisabled.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionOverall.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceOverall.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageVersion\PageVersionSetup.xaml">
+    <Page Include="Pages\PageInstance\PageInstanceSetup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

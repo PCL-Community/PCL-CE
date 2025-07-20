@@ -1,4 +1,4 @@
-﻿Class PageVersionModDisabled
+﻿Class PageInstanceModDisabled
 
     Private Sub BtnDownload_Click(sender As Object, e As EventArgs) Handles BtnDownload.Click
         FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall)

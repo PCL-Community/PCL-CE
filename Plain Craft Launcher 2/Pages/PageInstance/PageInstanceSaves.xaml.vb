@@ -1,6 +1,6 @@
 ﻿Imports System.Security.Principal
 
-Public Class PageVersionSaves
+Public Class PageInstanceSaves
     Implements IRefreshable
 
     Private QuickPlayFeature = False
@@ -10,8 +10,8 @@ Public Class PageVersionSaves
         CheckQuickPlay()
     End Sub
     Public Shared Sub Refresh()
-        If FrmVersionSaves IsNot Nothing Then FrmVersionSaves.Reload()
-        FrmVersionLeft.ItemWorld.Checked = True
+        If FrmInstanceSaves IsNot Nothing Then FrmInstanceSaves.Reload()
+        FrmInstanceLeft.ItemWorld.Checked = True
         Hint("正在刷新……", Log:=False)
     End Sub
     Private IsLoad As Boolean = False
@@ -19,7 +19,7 @@ Public Class PageVersionSaves
 
         '重复加载部分
         PanBack.ScrollToHome()
-        WorldPath = PageVersionLeft.Version.PathIndie + "saves\"
+        WorldPath = PageInstanceLeft.Instance.PathIndie + "saves\"
         If Not Directory.Exists(WorldPath) Then Directory.CreateDirectory(WorldPath)
         Reload()
 
@@ -57,7 +57,7 @@ Public Class PageVersionSaves
 
     Private Sub CheckQuickPlay()
         Try
-            Dim cur As New LaunchArgument(PageVersionLeft.Version)
+            Dim cur As New LaunchArgument(PageInstanceLeft.Instance)
             QuickPlayFeature = cur.HasArguments("--quickPlaySingleplayer")
         Catch ex As Exception
             Log(ex, "检查存档快捷启动失败", LogLevel.Hint)
@@ -84,7 +84,7 @@ Public Class PageVersionSaves
             For Each curFolder In saveFolders
                 Dim saveLogo = curFolder + "\icon.png"
                 If File.Exists(saveLogo) Then
-                    Dim target = $"{PageVersionLeft.Version.Path}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
+                    Dim target = $"{PageInstanceLeft.Instance.Path}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
                     CopyFile(saveLogo, target)
                     saveLogo = target
                 Else
@@ -204,9 +204,9 @@ Public Class PageVersionSaves
                                                                               End Try
                                                                           Next
                                                                           If Copied > 0 Then Hint("已粘贴 " & Copied & " 个文件夹", HintType.Finish)
-                                                                          RunInUi(Sub() FrmVersionSaves?.RefreshUI())
+                                                                          RunInUi(Sub() FrmInstanceSaves?.RefreshUI())
                                                                       End Sub))
-        Dim loader As New LoaderCombo(Of Integer)($"{PageVersionLeft.Version.Name} - 复制存档", loaders) With {
+        Dim loader As New LoaderCombo(Of Integer)($"{PageInstanceLeft.Instance.Name} - 复制存档", loaders) With {
             .OnStateChanged = AddressOf LoaderStateChangedHintOnly
         }
         loader.Start(1)

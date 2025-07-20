@@ -2706,7 +2706,7 @@ Retry:
         Dim TempMcFolder As String = RequestTaskTempFolder(Request.OptiFineEntry IsNot Nothing OrElse Request.ForgeEntry IsNot Nothing OrElse Request.NeoForgeEntry IsNot Nothing)
 
         '获取参数
-        Dim VersionFolder As String = PathMcFolder & "versions\" & Request.TargetInstanceName & "\"
+        Dim InstanceFolder As String = PathMcFolder & "versions\" & Request.TargetInstanceName & "\"
         If Directory.Exists(TempMcFolder) Then DeleteDirectory(TempMcFolder)
         Dim OptiFineFolder As String = Nothing
         If Request.OptiFineVersion IsNot Nothing Then
@@ -2763,14 +2763,14 @@ Retry:
         Log("[Download] 对应的原版版本：" & Request.MinecraftName)
 
         '重复实例检查
-        If File.Exists(VersionFolder & Request.TargetInstanceName & ".json") AndAlso Not IgnoreDump Then
+        If File.Exists(InstanceFolder & Request.TargetInstanceName & ".json") AndAlso Not IgnoreDump Then
             Hint("实例 " & Request.TargetInstanceName & " 已经存在！", HintType.Critical)
             Throw New CancelledException
         End If
 
         Dim LoaderList As New List(Of LoaderBase)
         '添加忽略标识
-        LoaderList.Add(New LoaderTask(Of Integer, Integer)("添加忽略标识", Sub() WriteFile(VersionFolder & ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。")) With {.Show = False, .Block = False})
+        LoaderList.Add(New LoaderTask(Of Integer, Integer)("添加忽略标识", Sub() WriteFile(InstanceFolder & ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。")) With {.Show = False, .Block = False})
         'Fabric API
         If Request.FabricApi IsNot Nothing Then
             LoaderList.Add(New LoaderDownload("下载 Fabric API", New List(Of NetFile) From {Request.FabricApi.ToNetFile(ModsTempFolder)}) With {.ProgressWeight = 3, .Block = False})
@@ -2794,7 +2794,7 @@ Retry:
         End If
         '原版
         Dim ClientLoader = New LoaderCombo(Of String)("下载原版 " & Request.MinecraftName, McDownloadClientLoader(Request.MinecraftName, Request.MinecraftJson, Request.TargetInstanceName)) With {.Show = False, .ProgressWeight = 39,
-            .Block = Request.ForgeVersion Is Nothing AndAlso Request.NeoForgeVersion Is Nothing AndAlso Request.OptiFineEntry Is Nothing AndAlso Request.FabricVersion Is Nothing AndAlso Request.LiteLoaderEntry Is Nothing AndAlso Request.QuiltVersion Is Nothing AndAlso Request.CleanroomEntry Is Nothing}
+            .Block = Request.ForgeVersion Is Nothing AndAlso Request.NeoForgeVersion Is Nothing AndAlso Request.OptiFineEntry Is Nothing AndAlso Request.FabricVersion Is Nothing AndAlso Request.LiteLoaderEntry Is Nothing AndAlso Request.QuiltVersion Is Nothing AndAlso Request.CleanroomEntry Is Nothing AndAlso Request.LegacyFabricVersion Is Nothing}
         LoaderList.Add(ClientLoader)
         'OptiFine
         If Request.OptiFineEntry IsNot Nothing Then
@@ -2842,20 +2842,20 @@ LabyModSkip:
         LoaderList.Add(New LoaderTask(Of String, String)("安装游戏",
         Sub(Task As LoaderTask(Of String, String))
             '合并 JSON
-            MergeJson(VersionFolder, VersionFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo, LegacyFabricFolder)
+            MergeJson(InstanceFolder, InstanceFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo, LegacyFabricFolder)
             Task.Progress = 0.2
             '迁移文件
             If Directory.Exists(TempMcFolder & "libraries") Then CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
             Task.Progress = 0.8
             '创建 Mod 和资源包文件夹
-            Dim ModsFolder = New McInstance(VersionFolder).PathIndie & "mods\" '版本隔离信息在此时被决定
+            Dim ModsFolder = New McInstance(InstanceFolder).PathIndie & "mods\" '版本隔离信息在此时被决定
             If Directory.Exists(ModsTempFolder) Then
                 CopyDirectory(ModsTempFolder, ModsFolder)
             ElseIf Modable Then
                 Directory.CreateDirectory(ModsFolder)
                 Log("[Download] 自动创建 Mod 文件夹：" & ModsFolder)
             End If
-            Dim ResourcepacksFolder = New McInstance(VersionFolder).PathIndie & "resourcepacks\"
+            Dim ResourcepacksFolder = New McInstance(InstanceFolder).PathIndie & "resourcepacks\"
             Directory.CreateDirectory(ResourcepacksFolder)
             Log("[Download] 自动创建资源包文件夹：" & ResourcepacksFolder)
         End Sub) With {.ProgressWeight = 2, .Block = True})
@@ -2867,13 +2867,13 @@ LabyModSkip:
                 Dim LabyModClientLoader = New LoaderCombo(Of String)("下载原版 " & Request.MinecraftName, McDownloadLabyModClientLoader(Request.MinecraftName, Request.LabyModChannel, Request.LabyModCommitRef, Request.TargetInstanceName)) With {.Show = False, .ProgressWeight = 39, .Block = False}
                 LoaderList.Add(LabyModClientLoader)
             Else
-                LoadersLib.Add(New LoaderTask(Of String, List(Of NetFile))("分析游戏支持库文件（副加载器）", Sub(Task As LoaderTask(Of String, List(Of NetFile))) Task.Output = McLibFix(New McInstance(VersionFolder))) With {.ProgressWeight = 1, .Show = False})
+                LoadersLib.Add(New LoaderTask(Of String, List(Of NetFile))("分析游戏支持库文件（副加载器）", Sub(Task As LoaderTask(Of String, List(Of NetFile))) Task.Output = McLibFix(New McInstance(InstanceFolder))) With {.ProgressWeight = 1, .Show = False})
                 LoadersLib.Add(New LoaderDownload("下载游戏支持库文件（副加载器）", New List(Of NetFile)) With {.ProgressWeight = 7, .Show = False})
                 LoaderList.Add(New LoaderCombo(Of String)("下载游戏支持库文件", LoadersLib) With {.ProgressWeight = 8})
             End If
         End If
         '删除忽略标识
-        LoaderList.Add(New LoaderTask(Of Integer, Integer)("删除忽略标识", Sub() File.Delete(VersionFolder & ".pclignore")) With {.Show = False})
+        LoaderList.Add(New LoaderTask(Of Integer, Integer)("删除忽略标识", Sub() File.Delete(InstanceFolder & ".pclignore")) With {.Show = False})
         '总加载器
         Return LoaderList
     End Function

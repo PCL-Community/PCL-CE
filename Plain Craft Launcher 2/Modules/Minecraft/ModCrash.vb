@@ -890,7 +890,7 @@ NextStack:
             End Sub))
             Case 2
                 '弹窗选择：前往修改
-                PageVersionLeft.Version = _version
+                PageInstanceLeft.Instance = _version
                 RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall))
             Case 3
                 '弹窗选择：导出错误报告

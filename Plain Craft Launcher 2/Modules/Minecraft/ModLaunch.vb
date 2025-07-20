@@ -1566,8 +1566,8 @@ LoginFinish:
         If Not ArgumentJvm.Contains("-Dlog4j2.formatMsgNoLookups=true") Then ArgumentJvm += " -Dlog4j2.formatMsgNoLookups=true"
         ArgumentJvm = ArgumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", "") '#3511 的清理
         DataList.Insert(0, ArgumentJvm) '可变 JVM 参数
-        DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
-        DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
+        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
+        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
         DataList.Add("""-Djava.library.path=" & GetNativesFolder() & """")
         DataList.Add("-cp ${classpath}") '把支持库添加进启动参数表
 
@@ -2259,7 +2259,7 @@ NextVersion:
         McLaunchLog("游戏版本：" & McInstanceCurrent.Version.ToString & "（识别为 1." & McInstanceCurrent.Version.McCodeMain & "." & McInstanceCurrent.Version.McCodeSub & "）")
         McLaunchLog("资源版本：" & McAssetsGetIndexName(McInstanceCurrent))
         McLaunchLog("实例继承：" & If(McInstanceCurrent.InheritInstance = "", "无", McInstanceCurrent.InheritInstance))
-        McLaunchLog("分配的内存：" & PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
+        McLaunchLog("分配的内存：" & PageInstanceSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageInstanceSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
         McLaunchLog("MC 文件夹：" & PathMcFolder)
         McLaunchLog("实例文件夹：" & McInstanceCurrent.Path)
         McLaunchLog("版本隔离：" & (McInstanceCurrent.PathIndie = McInstanceCurrent.Path))

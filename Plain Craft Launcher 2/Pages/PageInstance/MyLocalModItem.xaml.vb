@@ -137,7 +137,7 @@ Public Class MyLocalCompItem
             End Set
         End Property
         Public Property SwipeToState As Boolean
-        Public Property TargetFrm As PageVersionCompResource
+        Public Property TargetFrm As PageInstanceCompResource
     End Class
 
     Public Property CurrentSwipe As SwipeSelect
@@ -524,9 +524,9 @@ Public Class MyLocalCompItem
         Select Case MyMsgBox($"是否要更新 {Entry.Name}？{vbCrLf}{vbCrLf}{GetUpdateCompareDescription()}", "更新确认", "更新", "查看更新日志", "取消")
             Case 1 '更新
                 Select Case Entry.Comp.Type
-                    Case CompType.Mod : FrmVersionMod.UpdateResource({Entry})
-                    Case CompType.ResourcePack : FrmVersionResourcePack.UpdateResource({Entry})
-                    Case CompType.Shader : FrmVersionShader.UpdateResource({Entry})
+                    Case CompType.Mod : FrmInstanceMod.UpdateResource({Entry})
+                    Case CompType.ResourcePack : FrmInstanceResourcePack.UpdateResource({Entry})
+                    Case CompType.Shader : FrmInstanceShader.UpdateResource({Entry})
                 End Select
             Case 2 '查看更新日志
                 ShowUpdateLog()

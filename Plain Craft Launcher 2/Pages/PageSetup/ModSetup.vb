@@ -56,7 +56,7 @@ Public Class ModSetup
         {"SystemMaxLog", New SetupEntry(13, Source:=SetupSource.Registry)},
         {"CacheExportConfig", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheSavedPageUrl", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"CacheSavedPageVersion", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"CacheSavedPageInstance", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheDownloadFolder", New SetupEntry("", Source:=SetupSource.Registry)},
         {"ToolDownloadCustomUserAgent", New SetupEntry("", Source:=SetupSource.Registry)},
         {"CacheJavaListVersion", New SetupEntry(0, Source:=SetupSource.Registry)},
@@ -899,17 +899,17 @@ Public Class ModSetup
 
     '游戏内存
     Public Sub VersionRamType(Type As Integer)
-        If FrmVersionSetup Is Nothing Then Return
-        FrmVersionSetup.RamType(Type)
+        If FrmInstanceSetup Is Nothing Then Return
+        FrmInstanceSetup.RamType(Type)
     End Sub
 
     '服务器
     Public Sub VersionServerLogin(Type As Integer)
-        If FrmVersionSetup Is Nothing Then Return
+        If FrmInstanceSetup Is Nothing Then Return
         '为第三方登录清空缓存以更新描述
         WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "")
-        If PageVersionLeft.Version Is Nothing Then Return
-        PageVersionLeft.Version = New McInstance(PageVersionLeft.Version.Name).Load()
+        If PageInstanceLeft.Instance Is Nothing Then Return
+        PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
         LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
 

@@ -1,5 +1,5 @@
 ﻿Imports PCL.Core.Utils.FileVersionControl
-Class PageVersionSavesBackup
+Class PageInstanceSavesBackup
     Implements IRefreshable
 
     Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
@@ -24,7 +24,7 @@ Class PageVersionSavesBackup
         Try
             PanList.Children.Clear()
             Dim versions As List(Of VersionData)
-            Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+            Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                 versions = snap.GetVersions()
                 If versions.Any() Then
                     PanDisplay.Visibility = Visibility.Visible
@@ -54,7 +54,7 @@ Class PageVersionSavesBackup
                                                    Dim loaders As New List(Of LoaderBase)
                                                    loaders.Add(New LoaderTask(Of Integer, Integer)("搜寻并应用文件", Sub(load As LoaderTask(Of Integer, Integer))
                                                                                                                   load.Progress = 0.2
-                                                                                                                  Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+                                                                                                                  Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                                                                                                                       snap.ApplyPastVersion(item.NodeId).GetAwaiter().GetResult()
                                                                                                                   End Using
                                                                                                                   load.Progress = 1
@@ -86,7 +86,7 @@ Class PageVersionSavesBackup
                                                     Dim loaders As New List(Of LoaderBase)
                                                     loaders.Add(New LoaderTask(Of Integer, Integer)("制作压缩包", Sub(load As LoaderTask(Of Integer, Integer))
                                                                                                                  load.Progress = 0.2
-                                                                                                                 Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+                                                                                                                 Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                                                                                                                      snap.Export(item.NodeId, savePath).GetAwaiter().GetResult()
                                                                                                                  End Using
                                                                                                                  load.Progress = 1
@@ -109,7 +109,7 @@ Class PageVersionSavesBackup
                 AddHandler btnDelete.Click, Sub()
                                                 Try
                                                     If MyMsgBox($"你确定要删除备份 {item.Name} 吗？{vbCrLf}描述：{item.Desc}{vbCrLf}创建时间：{item.Created}", "删除确认", "确认", "取消") = 2 Then Return
-                                                    Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+                                                    Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                                                         snap.DeleteVersion(item.NodeId)
                                                     End Using
                                                     RefreshList()
@@ -141,7 +141,7 @@ Class PageVersionSavesBackup
             Dim loaders As New List(Of LoaderBase)
             loaders.Add(New LoaderTask(Of Integer, Integer)("搜寻并制作备份", Sub(load As LoaderTask(Of Integer, Integer))
                                                                            load.Progress = 0.2
-                                                                           Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+                                                                           Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                                                                                snap.CreateNewVersion(input).GetAwaiter().GetResult()
                                                                            End Using
                                                                            load.Progress = 1
@@ -163,12 +163,12 @@ Class PageVersionSavesBackup
         Dim loaders As New List(Of LoaderBase)
         loaders.Add(New LoaderTask(Of Integer, Integer)("寻找并清理备份文件", Sub(load As LoaderTask(Of Integer, Integer))
                                                                          load.Progress = 0.2
-                                                                         Using snap As New SnapLiteVersionControl(PageVersionSavesLeft.CurrentSave)
+                                                                         Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
                                                                              snap.CleanUnrecordObjects().GetAwaiter().GetResult()
                                                                          End Using
                                                                          load.Progress = 1
                                                                      End Sub))
-        Dim loader As New LoaderCombo(Of Integer)($"{GetFolderNameFromPath(PageVersionSavesLeft.CurrentSave)} - 备份清理", loaders) With {.OnStateChanged = AddressOf LoaderStateChangedHintOnly}
+        Dim loader As New LoaderCombo(Of Integer)($"{GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - 备份清理", loaders) With {.OnStateChanged = AddressOf LoaderStateChangedHintOnly}
         loader.Start(1)
         LoaderTaskbarAdd(loader)
         FrmMain.BtnExtraDownload.ShowRefresh()

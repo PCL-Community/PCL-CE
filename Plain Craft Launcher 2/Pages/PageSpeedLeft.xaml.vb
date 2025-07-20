@@ -34,7 +34,7 @@ Public Class PageSpeedLeft
     '定时器任务
     Private ReadOnly RightCards As New Dictionary(Of String, MyCard)
     Private Sub Watcher()
-        If Not FrmMain.PageCurrent = FormMain.PageType.DownloadManager Then Return
+        If Not FrmMain.PageCurrent = FormMain.PageType.TaskManager Then Return
         Try
 
 #Region "更新左边栏"
@@ -57,7 +57,7 @@ Public Class PageSpeedLeft
 #End Region
 
         Catch ex As Exception
-            Log(ex, "下载管理左栏监视出错", LogLevel.Feedback)
+            Log(ex, "任务管理左栏监视出错", LogLevel.Feedback)
         End Try
         If FrmSpeedRight Is Nothing OrElse FrmSpeedRight.PanMain Is Nothing Then Return
         Try
@@ -65,7 +65,7 @@ Public Class PageSpeedLeft
                 TaskRefresh(Loader)
             Next
         Catch ex As Exception
-            Log(ex, "下载管理右栏监视出错", LogLevel.Feedback)
+            Log(ex, "任务管理右栏监视出错", LogLevel.Feedback)
         End Try
     End Sub
     Public Sub TaskRefresh(Loader As LoaderBase)
@@ -108,7 +108,7 @@ Public Class PageSpeedLeft
 #Region "进度不同，更新卡片"
                             Try
                                 If Card.Children.Count < LoaderList.Count * 2 Then
-                                    Log($"[Watcher] 刷新下载管理卡片 {Loader.Name} 失败：卡片中仅有 {Card.Children.Count} 个子项，要求至少有 {LoaderList.Count * 2} 个子项", LogLevel.Debug)
+                                    Log($"[Watcher] 刷新任务管理卡片 {Loader.Name} 失败：卡片中仅有 {Card.Children.Count} 个子项，要求至少有 {LoaderList.Count * 2} 个子项", LogLevel.Debug)
                                     Exit Try
                                 End If
                                 Dim Row As Integer = 0
@@ -135,12 +135,12 @@ Public Class PageSpeedLeft
                                     Row += 1
                                 Next
                             Catch ex As Exception
-                                Log(ex, $"刷新下载管理卡片 {Loader.Name} 失败", LogLevel.Feedback)
+                                Log(ex, $"刷新任务管理卡片 {Loader.Name} 失败", LogLevel.Feedback)
                             End Try
 #End Region
                     End Select
                 Catch ex As Exception
-                    Log(ex, "更新下载管理显示失败（" & Loader.State.ToString & "）", LogLevel.Feedback)
+                    Log(ex, "更新任务管理显示失败（" & Loader.State.ToString & "）", LogLevel.Feedback)
                 End Try
             ElseIf Not (Loader.State = LoadState.Aborted OrElse Loader.State = LoadState.Finished) Then
                 Try
@@ -179,23 +179,23 @@ Public Class PageSpeedLeft
                     Try
                         Card = GetObjectFromXML(CardXAML)
                     Catch ex As Exception
-                        Log(ex, "新建下载管理卡片失败")
+                        Log(ex, "新建任务管理卡片失败")
                         Log("出错的卡片内容：" & vbCrLf & CardXAML)
                         Throw
                     End Try
                     FrmSpeedRight.PanMain.Children.Insert(0, Card)
                     RightCards.Add(Loader.Name, Card)
-                    Log($"[Watcher] 新建下载管理卡片：{Loader.Name}")
+                    Log($"[Watcher] 新建任务管理卡片：{Loader.Name}")
                     '添加取消按钮
                     Dim Cancel As New MyIconButton With {.Name = "BtnCancel", .Logo = "F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z", .Height = 20, .Margin = New Thickness(0, 10, 10, 0), .LogoScale = 1.1, .HorizontalAlignment = HorizontalAlignment.Right, .VerticalAlignment = VerticalAlignment.Top}
                     Card.Children.Add(Cancel)
                     AddHandler Cancel.Click,
                     Sub(sender As MyIconButton, e As EventArgs)
                         AniDispose(sender, False)
-                        AniDispose(Card, True, Sub() If FrmSpeedRight.PanMain.Children.Count = 0 AndAlso FrmMain.PageCurrent = FormMain.PageType.DownloadManager Then FrmMain.PageBack())
+                        AniDispose(Card, True, Sub() If FrmSpeedRight.PanMain.Children.Count = 0 AndAlso FrmMain.PageCurrent = FormMain.PageType.TaskManager Then FrmMain.PageBack())
                         RightCards.Remove(Loader.Name)
                         LoaderTaskbar.Remove(Loader)
-                        Log($"[Taskbar] 关闭下载管理卡片：{Loader.Name}，且移出任务列表")
+                        Log($"[Taskbar] 关闭任务管理卡片：{Loader.Name}，且移出任务列表")
                         RunInThread(Sub() Loader.Abort())
                     End Sub
                     '如果已经失败，再刷新一次，修改成失败的控件
@@ -205,11 +205,11 @@ Public Class PageSpeedLeft
                     End If
 #End Region
                 Catch ex As Exception
-                    Log(ex, "添加下载管理卡片失败", LogLevel.Feedback)
+                    Log(ex, "添加任务管理卡片失败", LogLevel.Feedback)
                 End Try
             End If
         Catch ex As Exception
-            Log(ex, "刷新下载管理显示失败", LogLevel.Feedback)
+            Log(ex, "刷新任务管理显示失败", LogLevel.Feedback)
         End Try
     End Sub
     Public Sub TaskRemove(Loader As Object)
@@ -220,7 +220,7 @@ Public Class PageSpeedLeft
                 Dim Card As Grid = RightCards(Loader.Name)
                 FrmSpeedRight.PanMain.Children.Remove(Card)
                 RightCards.Remove(Loader.Name)
-                Log($"[Watcher] 移除下载管理卡片：{Loader.Name}")
+                Log($"[Watcher] 移除任务管理卡片：{Loader.Name}")
             End Sub)
         End If
     End Sub
@@ -229,7 +229,7 @@ Public Class PageSpeedLeft
     ''' 若没有任务，尝试返回主页。
     ''' </summary>
     Private Sub TryReturnToHome()
-        If FrmSpeedRight.PanMain.Children.Count = 0 AndAlso FrmMain.PageCurrent = FormMain.PageType.DownloadManager Then
+        If FrmSpeedRight.PanMain.Children.Count = 0 AndAlso FrmMain.PageCurrent = FormMain.PageType.TaskManager Then
             FrmMain.PageBack()
         End If
     End Sub
