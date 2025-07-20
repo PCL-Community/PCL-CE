@@ -837,6 +837,11 @@ Public Module ModNet
         Public UseBrowserUserAgent As Boolean
 
         ''' <summary>
+        ''' 是否允许多线程下载
+        ''' </summary>
+        Public AllowMuiltThread As Boolean = True
+
+        ''' <summary>
         ''' 自定义User-Agent
         ''' </summary>
         Public CustomUserAgent As String = ""
@@ -1006,7 +1011,7 @@ Capture:
                     Next
                     '是否禁用多线程，以及规定碎片大小
                     Dim TargetUrl As String = GetSource().Url
-                    If TargetUrl.Contains("pcl2-server") OrElse TargetUrl.Contains("bmclapi") OrElse TargetUrl.Contains("github.com") OrElse
+                    If Not AllowMuiltThread OrElse TargetUrl.Contains("pcl2-server") OrElse TargetUrl.Contains("bmclapi") OrElse TargetUrl.Contains("github.com") OrElse
                        TargetUrl.Contains("optifine.net") OrElse TargetUrl.Contains("modrinth") OrElse TargetUrl.Contains("gitcode") OrElse
                        TargetUrl.Contains("pysio.online") OrElse TargetUrl.Contains("mirrorchyan.com") OrElse TargetUrl.Contains("naids.com") Then Return Nothing
                     '寻找最大碎片

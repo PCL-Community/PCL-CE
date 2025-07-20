@@ -65,6 +65,15 @@ Public Class PageVersionCompResource
         '非重复加载部分
         If IsLoad Then Return
         IsLoad = True
+        
+        '检查是否为原理图管理界面且首次打开
+        If CurrentCompType = CompType.Schematic AndAlso Not Setup.Get("UiSchematicFirstTimeHintShown") Then
+            '显示首次打开提示
+            RunInUi(Sub()
+                        MyMsgBox("现改为双击文件夹进入子文件夹。", "操作提示", "我知道了")
+                        Setup.Set("UiSchematicFirstTimeHintShown", True)
+                    End Sub, True)
+        End If
 
         AddHandler FrmMain.KeyDown, AddressOf FrmMain_KeyDown
         '调整按钮边距（这玩意儿没法从 XAML 改）
@@ -236,7 +245,7 @@ Public Class PageVersionCompResource
 #Region "UI 化"
 
     ''' <summary>
-    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 RawFileName。
+    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 FileName。
     ''' </summary>
     Public ModItems As New Dictionary(Of String, MyLocalCompItem)
     ''' <summary>
@@ -263,8 +272,16 @@ Public Class PageVersionCompResource
                 
                 '根据组件类型设置PanEmpty的文本内容
                 If CurrentCompType = CompType.Schematic Then
-                    TxtEmptyTitle.Text = "尚未安装资源"
-                    TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                    '检查是否在子文件夹中
+                    If Not String.IsNullOrEmpty(CurrentFolderPath) Then
+                        '子文件夹为空的提示
+                        TxtEmptyTitle.Text = "该文件夹为空"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源"
+                    Else
+                        '根目录为空的提示
+                        TxtEmptyTitle.Text = "尚未安装资源"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                    End If
                 Else
                     TxtEmptyTitle.Text = "尚未安装资源"
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
@@ -298,7 +315,7 @@ Public Class PageVersionCompResource
                                                                   End Function).ToList()
 
             For Each ModEntity As LocalCompFile In itemsToShow
-                ModItems(ModEntity.RawFileName) = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.FileName) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
             RunInUi(Sub()
@@ -315,7 +332,7 @@ Public Class PageVersionCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawFileName)}
+                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.FileName)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -325,7 +342,7 @@ Public Class PageVersionCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log(ex, $"创建UI项失败：{Entry.RawFileName}", LogLevel.Debug)
+            Log(ex, $"创建UI项失败：{Entry.FileName}", LogLevel.Debug)
             Throw
         End Try
     End Function
@@ -333,8 +350,22 @@ Public Class PageVersionCompResource
         '点击事件
         AddHandler sender.Changed, AddressOf CheckChanged
         If sender.Entry.IsFolder Then
-            '文件夹项的点击事件：进入文件夹
-            AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs) EnterFolderWithCheck(ss.Entry.ActualPath)
+            '文件夹项的点击事件：双击进入文件夹，单击切换选中状态
+            Dim lastClickTime As DateTime = DateTime.MinValue
+            AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs)
+                                         Dim currentTime = DateTime.Now
+                                         Dim timeDiff = (currentTime - lastClickTime).TotalMilliseconds
+                                         
+                                         If timeDiff <= 300 Then
+                                             '300ms内双击，进入文件夹
+                                             EnterFolderWithCheck(ss.Entry.ActualPath)
+                                         Else
+                                             '单击切换选中状态
+                                             ss.Checked = Not ss.Checked
+                                         End If
+                                         
+                                         lastClickTime = currentTime
+                                     End Sub
         Else
             '文件项的点击事件：切换选中状态
             AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs) ss.Checked = Not ss.Checked
@@ -384,18 +415,18 @@ Public Class PageVersionCompResource
             PanList.Visibility = Visibility.Visible
             PanList.Children.Clear()
             For Each TargetMod In ShowingMods
-                If Not ModItems.ContainsKey(TargetMod.RawFileName) Then Continue For
-                Dim Item As MyLocalCompItem = ModItems(TargetMod.RawFileName)
+                If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
+                Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo)
-                Item.Checked = SelectedMods.Contains(TargetMod.RawFileName) '更新选中状态
+                Item.Checked = SelectedMods.Contains(TargetMod.FileName) '更新选中状态
                 PanList.Children.Add(Item)
             Next
         Else
             PanList.Visibility = Visibility.Collapsed
         End If
         AniControlEnabled -= 1
-        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.RawFileName = m)).ToList '取消选中已经不显示的 Mod
+        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.FileName = m)).ToList '取消选中已经不显示的 Mod
         RefreshBars()
     End Sub
 
@@ -465,7 +496,7 @@ Public Class PageVersionCompResource
             Dim HasEnabled As Boolean = False
             Dim HasDisabled As Boolean = False
             For Each ModEntity In CompResourceListLoader.Output
-                If SelectedMods.Contains(ModEntity.RawFileName) Then
+                If SelectedMods.Contains(ModEntity.FileName) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
                     If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
                         HasEnabled = True
@@ -477,6 +508,17 @@ Public Class PageVersionCompResource
             BtnSelectDisable.IsEnabled = HasEnabled
             BtnSelectEnable.IsEnabled = HasDisabled
             BtnSelectUpdate.IsEnabled = HasUpdate
+            
+            '针对投影原理图隐藏分享 更新 收藏按钮
+            If CurrentCompType = CompType.Schematic Then
+                BtnSelectUpdate.Visibility = Visibility.Collapsed
+                BtnSelectFavorites.Visibility = Visibility.Collapsed
+                BtnSelectShare.Visibility = Visibility.Collapsed
+            Else
+                BtnSelectUpdate.Visibility = Visibility.Visible
+                BtnSelectFavorites.Visibility = Visibility.Visible
+                BtnSelectShare.Visibility = Visibility.Visible
+            End If
         End If
         '更新显示状态
         If AniControlEnabled = 0 Then
@@ -838,7 +880,7 @@ Install:
     Public Sub CheckChanged(sender As MyLocalCompItem, e As RouteEventArgs)
         If AniControlEnabled <> 0 Then Return
         '更新选择了的内容
-        Dim SelectedKey As String = sender.Entry.RawFileName
+        Dim SelectedKey As String = sender.Entry.FileName
         If sender.Checked Then
             If Not SelectedMods.Contains(SelectedKey) Then SelectedMods.Add(SelectedKey)
         Else
@@ -855,7 +897,7 @@ Install:
             '#4992，Mod 从过滤器看可能不应在列表中，但因为刚切换状态所以依然保留在列表中，所以应该从列表 UI 判断，而非从过滤器判断
             Dim ShouldSelected As Boolean = Value AndAlso PanList.Children.Contains(Item)
             Item.Checked = ShouldSelected
-            If ShouldSelected Then SelectedMods.Add(Item.Entry.RawFileName)
+            If ShouldSelected Then SelectedMods.Add(Item.Entry.FileName)
         Next
         AniControlEnabled -= 1
         RefreshBars()
@@ -1084,7 +1126,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawFileName)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub
@@ -1143,13 +1185,13 @@ Install:
             '更改 UI 中的列表
             Try
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ModItems(ModEntity.RawFileName) = NewItem
+                ModItems(ModEntity.FileName) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
                 PanList.Children.Insert(IndexOfUi, NewItem)
             Catch ex As Exception
-                Log(ex, $"更新 UI 列表项失败：{ModEntity.RawFileName}", LogLevel.Hint)
+                Log(ex, $"更新 UI 列表项失败：{ModEntity.FileName}", LogLevel.Hint)
                 Continue For
             End Try
         Next
@@ -1164,7 +1206,7 @@ Install:
 
     '更新
     Private Sub BtnSelectUpdate_Click() Handles BtnSelectUpdate.Click
-        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawFileName) AndAlso m.CanUpdate).ToList()
+        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.CanUpdate).ToList()
         If Not UpdateList.Any() Then Return
         UpdateResource(UpdateList)
         ChangeAllSelected(False)
@@ -1302,7 +1344,7 @@ Install:
 
     '删除
     Private Sub BtnSelectDelete_Click() Handles BtnSelectDelete.Click
-        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawFileName)))
+        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)))
         ChangeAllSelected(False)
     End Sub
     Private Sub DeleteMods(ModList As IEnumerable(Of LocalCompFile))
@@ -1349,11 +1391,11 @@ Install:
                     IsSuccessful = False
                 End Try
                 '取消选中
-                SelectedMods.Remove(ModEntity.RawFileName)
+                SelectedMods.Remove(ModEntity.FileName)
                 '更改 Loader 和 UI 中的列表
                 CompResourceListLoader.Output.Remove(ModEntity)
                 SearchResult?.Remove(ModEntity)
-                ModItems.Remove(ModEntity.RawFileName)
+                ModItems.Remove(ModEntity.FileName)
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry.Equals(ModEntity)))
                 If IndexOfUi >= 0 Then PanList.Children.RemoveAt(IndexOfUi)
             Next
@@ -1398,13 +1440,13 @@ Install:
 
     '收藏
     Private Sub BtnSelectFavorites_Click(sender As Object, e As RouteEventArgs) Handles BtnSelectFavorites.Click
-        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawFileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
+        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
         CompFavorites.ShowMenu(Selected, sender)
     End Sub
 
     '分享
     Private Sub BtnSelectShare_Click() Handles BtnSelectShare.Click
-        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawFileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
+        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
         ClipboardSet(CompFavorites.GetShareCode(ShareList))
         ChangeAllSelected(False)
     End Sub
@@ -1632,29 +1674,45 @@ Install:
         End Sub)
     End Sub
     
+#Region "原理图文件详细信息显示"
+
+    ''' <summary>
+    ''' 显示 Litematic 文件的详细信息
+    ''' </summary>
     Private Sub ShowLitematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示原始名称（从 NBT Metadata/Name 读取）
+        If ModEntry.LitematicOriginalName IsNot Nothing Then
+            ContentLines.Add("原始名称：" & ModEntry.LitematicOriginalName)
+        End If
+        
+        ' 显示版本信息
         If ModEntry.LitematicVersion.HasValue Then
             ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
         End If
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
-            ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
+            ContentLines.Add("包围盒大小：" & ModEntry.LitematicEnclosingSize)
         End If
          
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
-        End If                       
+        End If
+        
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
         
+        ' 显示时间信息
         If ModEntry.LitematicTimeCreated.HasValue Then
             Try
                 Dim createdTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value).ToLocalTime().DateTime
@@ -1674,26 +1732,37 @@ Install:
         End If
     End Sub
     
+    ''' <summary>
+    ''' 显示 Schem 文件的详细信息
+    ''' </summary>
     Private Sub ShowSchemDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
-        If ModEntry.StructureGameVersion IsNot Nothing Then
-            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
+        ' 显示原始名称（从 NBT Metadata/Name 读取）
+        If ModEntry.SchemOriginalName IsNot Nothing Then
+            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
         
-        If ModEntry.StructureDataVersion.HasValue Then
-            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+        ' 显示版本信息
+        If ModEntry.StructureGameVersion IsNot Nothing Then
+            ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
         
         If ModEntry.SpongeVersion.HasValue Then
             ContentLines.Add("Sponge版本：" & ModEntry.SpongeVersion.Value)
         End If
         
+        If ModEntry.StructureDataVersion.HasValue Then
+            ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
+        End If
+        
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1702,25 +1771,27 @@ Install:
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
-        End If
-        
-        If ModEntry.SchemOriginalName IsNot Nothing Then
-            ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
         
         ContentLines.Add("文件类型：Sponge Schematic")
     End Sub
     
+    ''' <summary>
+    ''' 显示 Schematic 文件的详细信息
+    ''' </summary>
     Private Sub ShowSchematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1728,24 +1799,37 @@ Install:
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
+        
+        ContentLines.Add("文件类型：MCEdit/WorldEdit Schematic")
     End Sub
     
+    ''' <summary>
+    ''' 显示 NBT 结构文件的详细信息
+    ''' </summary>
     Private Sub ShowNbtDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
         
+        ' 显示作者信息
+        If ModEntry.StructureAuthor IsNot Nothing Then
+            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
+        End If
+        
+        ' 显示版本信息
         If ModEntry.StructureGameVersion IsNot Nothing Then
             ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
         
         If ModEntry.StructureDataVersion.HasValue Then
-            ContentLines.Add("原理图版本：" & ModEntry.StructureDataVersion.Value)
+            ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
         End If
         
+        ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
         
+        ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
@@ -1754,16 +1838,15 @@ Install:
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
         
+        ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
         
-        If ModEntry.StructureAuthor IsNot Nothing Then
-            ContentLines.Add("作者：" & ModEntry.StructureAuthor)
-        End If
-        
         ContentLines.Add("文件类型：原版结构")
     End Sub
+
+#End Region
     
     Private Sub ShowDebugInfo(ContentLines As List(Of String), ModEntry As LocalCompFile)
         Dim DebugInfo As New List(Of String)

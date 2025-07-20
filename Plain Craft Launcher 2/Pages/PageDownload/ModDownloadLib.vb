@@ -2077,6 +2077,80 @@ Retry:
 
 #End Region
 
+#Region "LegacyFabric 下载"
+
+    Public Sub McDownloadLegacyFabricLoaderSave(DownloadInfo As JObject)
+        Try
+            Dim Url As String = DownloadInfo("url").ToString
+            Dim FileName As String = GetFileNameFromPath(Url)
+            Dim Version As String = GetFileNameFromPath(DownloadInfo("version").ToString)
+            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar")
+            If Not Target.Contains("\") Then Return
+
+            '重复任务检查
+            For Each OngoingLoader In LoaderTaskbar.ToList()
+                If OngoingLoader.Name <> $"Legacy Fabric {Version} 安装器下载" Then Continue For
+                Hint("该版本正在下载中！", HintType.Critical)
+                Return
+            Next
+
+            '构造步骤加载器
+            Dim Loaders As New List(Of LoaderBase)
+            '下载
+            Dim Address As New List(Of String)
+            Address.Add(Url)
+            Loaders.Add(New LoaderDownload("下载主文件", New List(Of NetFile) From {New NetFile(Address.ToArray, Target, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
+            '启动
+            Dim Loader As New LoaderCombo(Of JObject)("Legacy Fabric " & Version & " 安装器下载", Loaders) With {.OnStateChanged = AddressOf LoaderStateChangedHintOnly}
+            Loader.Start(DownloadInfo)
+            LoaderTaskbarAdd(Loader)
+            FrmMain.BtnExtraDownload.ShowRefresh()
+            FrmMain.BtnExtraDownload.Ribble()
+
+        Catch ex As Exception
+            Log(ex, "开始 Legacy Fabric 安装器下载失败", LogLevel.Feedback)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 获取下载某个 LegacyFabric 版本的加载器列表。
+    ''' </summary>
+    Private Function McDownloadLegacyFabricLoader(LegacyFabricVersion As String, MinecraftName As String, Optional McFolder As String = Nothing, Optional FixLibrary As Boolean = True) As List(Of LoaderBase)
+
+        '参数初始化
+        McFolder = If(McFolder, PathMcFolder)
+        Dim IsCustomFolder As Boolean = McFolder <> PathMcFolder
+        Dim Id As String = "legacy-fabric-loader-" & LegacyFabricVersion & "-" & MinecraftName
+        Dim VersionFolder As String = McFolder & "versions\" & Id & "\"
+        Dim Loaders As New List(Of LoaderBase)
+
+        '下载 Json
+        Loaders.Add(New LoaderTask(Of String, List(Of NetFile))("获取 Legacy Fabric 主文件下载地址",
+        Sub(Task As LoaderTask(Of String, List(Of NetFile)))
+            '启动依赖版本的下载
+            If FixLibrary Then
+                McDownloadClient(NetPreDownloadBehaviour.ExitWhileExistsOrDownloading, MinecraftName)
+            End If
+            Task.Progress = 0.5
+            '构造文件请求
+            Task.Output = New List(Of NetFile) From {New NetFile({
+                "https://meta.legacyfabric.net/v2/versions/loader/" & MinecraftName & "/" & LegacyFabricVersion & "/profile/json"
+            }, VersionFolder & Id & ".json", New FileChecker(IsJson:=True))}
+        End Sub) With {.ProgressWeight = 0.5})
+        Loaders.Add(New LoaderDownload("下载 Legacy Fabric 主文件", New List(Of NetFile)) With {.ProgressWeight = 2.5})
+
+        '下载支持库
+        If FixLibrary Then
+            Loaders.Add(New LoaderTask(Of String, List(Of NetFile))("分析 Legacy Fabric 支持库文件",
+                Sub(Task) Task.Output = McLibFix(New McVersion(VersionFolder))) With {.ProgressWeight = 1, .Show = False})
+            Loaders.Add(New LoaderDownload("下载 Legacy Fabric 支持库文件", New List(Of NetFile)) With {.ProgressWeight = 8})
+        End If
+
+        Return Loaders
+    End Function
+
+#End Region
+
 #Region "Fabric 下载菜单"
 
     Public Function FabricDownloadListItem(Entry As JObject, OnClick As MyListItem.ClickEventHandler) As MyListItem
@@ -2107,6 +2181,33 @@ Retry:
             .Title = Entry.DisplayName.ToLower.Replace("optifabric-", "").Replace(".jar", "").Trim.TrimStart("v"), .SnapsToDevicePixels = True, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry,
             .Info = Entry.StatusDescription & "，发布于 " & Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
             .Logo = PathImage & "Blocks/OptiFabric.png"
+        }
+        AddHandler NewItem.Click, OnClick
+        '结束
+        Return NewItem
+    End Function
+
+#End Region
+
+#Region "LegacyFabric 下载菜单"
+
+    Public Function LegacyFabricDownloadListItem(Entry As JObject, OnClick As MyListItem.ClickEventHandler) As MyListItem
+        '建立控件
+        Dim NewItem As New MyListItem With {
+            .Title = Entry("version").ToString, .SnapsToDevicePixels = True, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry,
+            .Info = If(Entry("stable").ToObject(Of Boolean), "稳定版", "测试版"),
+            .Logo = PathImage & "Blocks/Fabric.png"
+        }
+        AddHandler NewItem.Click, OnClick
+        '结束
+        Return NewItem
+    End Function
+    Public Function LegacyFabricApiDownloadListItem(Entry As CompFile, OnClick As MyListItem.ClickEventHandler) As MyListItem
+        '建立控件
+        Dim NewItem As New MyListItem With {
+            .Title = Entry.DisplayName.Replace("Legacy Fabric API ", ""), .SnapsToDevicePixels = True, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry,
+            .Info = Entry.StatusDescription & "，发布于 " & Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
+            .Logo = PathImage & "Blocks/Fabric.png"
         }
         AddHandler NewItem.Click, OnClick
         '结束
@@ -2465,6 +2566,16 @@ Retry:
         Public FabricApi As CompFile = Nothing
 
         ''' <summary>
+        ''' 欲下载的 Legacy Fabric Loader 版本名。
+        ''' </summary>
+        Public LegacyFabricVersion As String = Nothing
+
+        ''' <summary>
+        ''' 欲下载的 Legacy Fabric API 信息。
+        ''' </summary>
+        Public LegacyFabricApi As CompFile = Nothing
+
+        ''' <summary>
         ''' 欲下载的 Quilt Loader 版本名。
         ''' </summary>
         Public QuiltVersion As String = Nothing
@@ -2621,6 +2732,8 @@ Retry:
         If Request.CleanroomVersion IsNot Nothing Then CleanroomFolder = TempMcFolder & "versions\cleanroom-" & Request.CleanroomVersion
         Dim FabricFolder As String = Nothing
         If Request.FabricVersion IsNot Nothing Then FabricFolder = TempMcFolder & "versions\fabric-loader-" & Request.FabricVersion & "-" & Request.MinecraftName
+        Dim LegacyFabricFolder As String = Nothing
+        If Request.LegacyFabricVersion IsNot Nothing Then LegacyFabricFolder = TempMcFolder & "versions\legacy-fabric-loader-" & Request.LegacyFabricVersion & "-" & Request.MinecraftName
         Dim QuiltFolder As String = Nothing
         If Request.QuiltVersion IsNot Nothing Then QuiltFolder = TempMcFolder & "versions\quilt-loader-" & Request.QuiltVersion & "-" & Request.MinecraftName
         Dim LabyModFolder As String = Nothing
@@ -2629,7 +2742,7 @@ Retry:
         If Request.LiteLoaderEntry IsNot Nothing Then LiteLoaderFolder = TempMcFolder & "versions\" & Request.MinecraftName & "-LiteLoader"
 
         '判断 OptiFine 是否作为 Mod 进行下载
-        Dim Modable As Boolean = Request.FabricVersion IsNot Nothing OrElse Request.ForgeEntry IsNot Nothing OrElse Request.NeoForgeEntry IsNot Nothing OrElse Request.LiteLoaderEntry IsNot Nothing
+        Dim Modable As Boolean = Request.FabricVersion IsNot Nothing OrElse Request.LegacyFabricVersion IsNot Nothing OrElse Request.ForgeEntry IsNot Nothing OrElse Request.NeoForgeEntry IsNot Nothing OrElse Request.LiteLoaderEntry IsNot Nothing
         Dim ModsTempFolder As String = TempMcFolder & "mods\"
         Dim OptiFineAsMod As Boolean = Request.OptiFineEntry IsNot Nothing AndAlso Modable '选择了 OptiFine 与任意 Mod 加载器
         If OptiFineAsMod Then
@@ -2643,6 +2756,7 @@ Retry:
         If NeoForgeFolder IsNot Nothing Then Log("[Download] NeoForge 缓存：" & NeoForgeFolder)
         If CleanroomFolder IsNot Nothing Then Log("[Download] Cleanroom 缓存：" & CleanroomFolder)
         If FabricFolder IsNot Nothing Then Log("[Download] Fabric 缓存：" & FabricFolder)
+        If LegacyFabricFolder IsNot Nothing Then Log("[Download] LegacyFabric 缓存：" & LegacyFabricFolder)
         If QuiltFolder IsNot Nothing Then Log("[Download] Quilt 缓存：" & QuiltFolder)
         If LabyModFolder IsNot Nothing Then Log("[Download] LabyMod 缓存：" & LabyModFolder)
         If LiteLoaderFolder IsNot Nothing Then Log("[Download] LiteLoader 缓存：" & LiteLoaderFolder)
@@ -2660,6 +2774,10 @@ Retry:
         'Fabric API
         If Request.FabricApi IsNot Nothing Then
             LoaderList.Add(New LoaderDownload("下载 Fabric API", New List(Of NetFile) From {Request.FabricApi.ToNetFile(ModsTempFolder)}) With {.ProgressWeight = 3, .Block = False})
+        End If
+        'LegacyFabric API
+        If Request.LegacyFabricApi IsNot Nothing Then
+            LoaderList.Add(New LoaderDownload("下载 Legacy Fabric API", New List(Of NetFile) From {Request.LegacyFabricApi.ToNetFile(ModsTempFolder)}) With {.ProgressWeight = 3, .Block = False})
         End If
         'Quilted Fabric API (QFAPI) / Quilt Standard Libraries (QSL)
         If Request.QSL IsNot Nothing Then
@@ -2710,6 +2828,11 @@ Retry:
             LoaderList.Add(New LoaderCombo(Of String)("下载 Fabric " & Request.FabricVersion, McDownloadFabricLoader(Request.FabricVersion, Request.MinecraftName, TempMcFolder, False)) With {.Show = False, .ProgressWeight = 2,
                 .Block = True})
         End If
+        'LegacyFabric
+        If Request.LegacyFabricVersion IsNot Nothing Then
+            LoaderList.Add(New LoaderCombo(Of String)("下载 Legacy Fabric " & Request.LegacyFabricVersion, McDownloadLegacyFabricLoader(Request.LegacyFabricVersion, Request.MinecraftName, TempMcFolder, False)) With {.Show = False, .ProgressWeight = 2,
+                .Block = True})
+        End If
         'Quilt
         If Request.QuiltVersion IsNot Nothing Then
             LoaderList.Add(New LoaderCombo(Of String)("下载 Quilt " & Request.QuiltVersion, McDownloadQuiltLoader(Request.QuiltVersion, Request.MinecraftName, TempMcFolder, False)) With {.Show = False, .ProgressWeight = 2, .Block = True})
@@ -2719,7 +2842,7 @@ LabyModSkip:
         LoaderList.Add(New LoaderTask(Of String, String)("安装游戏",
         Sub(Task As LoaderTask(Of String, String))
             '合并 JSON
-            MergeJson(VersionFolder, VersionFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo)
+            MergeJson(VersionFolder, VersionFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo, LegacyFabricFolder)
             Task.Progress = 0.2
             '迁移文件
             If Directory.Exists(TempMcFolder & "libraries") Then CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
@@ -2758,7 +2881,7 @@ LabyModSkip:
     ''' <summary>
     ''' 将多个版本 JSON 进行合并，如果目标已存在则直接覆盖。失败会抛出异常。
     ''' </summary>
-    Private Sub MergeJson(OutputFolder As String, MinecraftFolder As String, Optional OptiFineFolder As String = Nothing, Optional OptiFineAsMod As Boolean = False, Optional ForgeFolder As String = Nothing, Optional ForgeVersion As String = Nothing, Optional NeoForgeFolder As String = Nothing, Optional NeoForgeVersion As String = Nothing, Optional CleanroomFolder As String = Nothing, Optional CleanroomVersion As String = Nothing, Optional FabricFolder As String = Nothing, Optional QuiltFolder As String = Nothing, Optional LabyModFolder As String = Nothing, Optional LabyModChannel As String = Nothing, Optional LiteLoaderFolder As String = Nothing, Optional MMCPackInfo As MMCPackInfo = Nothing)
+    Private Sub MergeJson(OutputFolder As String, MinecraftFolder As String, Optional OptiFineFolder As String = Nothing, Optional OptiFineAsMod As Boolean = False, Optional ForgeFolder As String = Nothing, Optional ForgeVersion As String = Nothing, Optional NeoForgeFolder As String = Nothing, Optional NeoForgeVersion As String = Nothing, Optional CleanroomFolder As String = Nothing, Optional CleanroomVersion As String = Nothing, Optional FabricFolder As String = Nothing, Optional QuiltFolder As String = Nothing, Optional LabyModFolder As String = Nothing, Optional LabyModChannel As String = Nothing, Optional LiteLoaderFolder As String = Nothing, Optional MMCPackInfo As MMCPackInfo = Nothing, Optional LegacyFabricFolder As String = Nothing)
         Log("[Download] 开始进行版本合并，输出：" & OutputFolder & "，Minecraft：" & MinecraftFolder &
             If(OptiFineFolder IsNot Nothing, "，OptiFine：" & OptiFineFolder, "") &
             If(ForgeFolder IsNot Nothing, "，Forge：" & ForgeFolder, "") &
@@ -2766,13 +2889,14 @@ LabyModSkip:
             If(CleanroomFolder IsNot Nothing, "，Cleanroom：" & CleanroomFolder, "") &
             If(LiteLoaderFolder IsNot Nothing, "，LiteLoader：" & LiteLoaderFolder, "") &
             If(FabricFolder IsNot Nothing, "，Fabric：" & FabricFolder, "") &
+            If(LegacyFabricFolder IsNot Nothing, "，LegacyFabric：" & LegacyFabricFolder, "") &
             If(QuiltFolder IsNot Nothing, "，Quilt：" & QuiltFolder, "") &
             If(LabyModFolder IsNot Nothing, "，LabyMod：" & LabyModFolder, ""))
         Directory.CreateDirectory(OutputFolder)
 
-        Dim HasOptiFine As Boolean = OptiFineFolder IsNot Nothing AndAlso Not OptiFineAsMod, HasForge As Boolean = ForgeFolder IsNot Nothing, HasNeoForge As Boolean = NeoForgeFolder IsNot Nothing, HasCleanroom As Boolean = CleanroomFolder IsNot Nothing, HasLiteLoader As Boolean = LiteLoaderFolder IsNot Nothing, HasFabric As Boolean = FabricFolder IsNot Nothing, HasQuilt As Boolean = QuiltFolder IsNot Nothing, HasLabyMod As Boolean = LabyModFolder IsNot Nothing
-        Dim OutputName As String, MinecraftName As String, OptiFineName As String, ForgeName As String, NeoForgeName As String, CleanroomName As String, LiteLoaderName As String, FabricName As String, QuiltName As String, LabyModName As String
-        Dim OutputJsonPath As String, MinecraftJsonPath As String, OptiFineJsonPath As String = Nothing, ForgeJsonPath As String = Nothing, NeoForgeJsonPath As String = Nothing, CleanroomJsonPath As String = Nothing, LiteLoaderJsonPath As String = Nothing, FabricJsonPath As String = Nothing, QuiltJsonPath As String = Nothing, LabyModJsonPath As String = Nothing
+        Dim HasOptiFine As Boolean = OptiFineFolder IsNot Nothing AndAlso Not OptiFineAsMod, HasForge As Boolean = ForgeFolder IsNot Nothing, HasLegacyFabric As Boolean = LegacyFabricFolder IsNot Nothing, HasNeoForge As Boolean = NeoForgeFolder IsNot Nothing, HasCleanroom As Boolean = CleanroomFolder IsNot Nothing, HasLiteLoader As Boolean = LiteLoaderFolder IsNot Nothing, HasFabric As Boolean = FabricFolder IsNot Nothing, HasQuilt As Boolean = QuiltFolder IsNot Nothing, HasLabyMod As Boolean = LabyModFolder IsNot Nothing
+        Dim OutputName As String, MinecraftName As String, OptiFineName As String, ForgeName As String, NeoForgeName As String, CleanroomName As String, LiteLoaderName As String, FabricName As String, LegacyFabricName As String, QuiltName As String, LabyModName As String
+        Dim OutputJsonPath As String, MinecraftJsonPath As String, OptiFineJsonPath As String = Nothing, ForgeJsonPath As String = Nothing, NeoForgeJsonPath As String = Nothing, CleanroomJsonPath As String = Nothing, LiteLoaderJsonPath As String = Nothing, FabricJsonPath As String = Nothing, QuiltJsonPath As String = Nothing, LabyModJsonPath As String = Nothing, LegacyFabricJsonPath As String = Nothing
         Dim OutputJar As String, MinecraftJar As String
 #Region "初始化路径信息"
         If Not OutputFolder.EndsWithF("\") Then OutputFolder += "\"
@@ -2821,6 +2945,12 @@ LabyModSkip:
             FabricJsonPath = FabricFolder & FabricName & ".json"
         End If
 
+        If HasLegacyFabric Then
+            If Not LegacyFabricFolder.EndsWithF("\") Then LegacyFabricFolder += "\"
+            LegacyFabricName = GetFolderNameFromPath(LegacyFabricFolder)
+            LegacyFabricJsonPath = LegacyFabricFolder & LegacyFabricName & ".json"
+        End If
+
         If HasQuilt Then
             If Not QuiltFolder.EndsWithF("\") Then QuiltFolder += "\"
             QuiltName = GetFolderNameFromPath(QuiltFolder)
@@ -2834,7 +2964,7 @@ LabyModSkip:
         End If
 #End Region
 
-        Dim OutputJson As JObject, MinecraftJson As JObject = Nothing, OptiFineJson As JObject = Nothing, ForgeJson As JObject = Nothing, NeoForgeJson As JObject = Nothing, CleanroomJson As JObject = Nothing, LiteLoaderJson As JObject = Nothing, FabricJson As JObject = Nothing, QuiltJson As JObject = Nothing, LabyModJson As JObject = Nothing
+        Dim OutputJson As JObject, MinecraftJson As JObject = Nothing, OptiFineJson As JObject = Nothing, ForgeJson As JObject = Nothing, NeoForgeJson As JObject = Nothing, LegacyFabricJson As JObject = Nothing, CleanroomJson As JObject = Nothing, LiteLoaderJson As JObject = Nothing, FabricJson As JObject = Nothing, QuiltJson As JObject = Nothing, LabyModJson As JObject = Nothing
 #Region "读取文件并检查文件是否合规"
         Dim MinecraftJsonText As String = ReadFile(MinecraftJsonPath)
         If Not HasLabyMod Then
@@ -2876,6 +3006,12 @@ LabyModSkip:
             Dim FabricJsonText As String = ReadFile(FabricJsonPath)
             If Not FabricJsonText.StartsWithF("{") Then Throw New Exception("Fabric Json 有误，地址：" & FabricJsonPath & "，前段内容：" & FabricJsonText.Substring(0, Math.Min(FabricJsonText.Length, 1000)))
             FabricJson = GetJson(FabricJsonText)
+        End If
+
+        If HasLegacyFabric Then
+            Dim LegacyFabricJsonText As String = ReadFile(LegacyFabricJsonPath)
+            If Not LegacyFabricJsonText.StartsWithF("{") Then Throw New Exception("Legacy Fabric Json 有误，地址：" & FabricJsonPath & "，前段内容：" & LegacyFabricJsonText.Substring(0, Math.Min(LegacyFabricJsonText.Length, 1000)))
+            LegacyFabricJson = GetJson(LegacyFabricJsonText)
         End If
 
         If HasQuilt Then
@@ -2971,6 +3107,14 @@ LabyModSkip:
                 FabricJson.Remove("releaseTime")
                 FabricJson.Remove("time")
                 OutputJson.Merge(FabricJson)
+            End If
+        End If
+        If HasLegacyFabric Then
+            If MMCPackInfo Is Nothing OrElse Not MMCPackInfo.IsFabricOverrided Then
+                '合并 Fabric
+                LegacyFabricJson.Remove("releaseTime")
+                LegacyFabricJson.Remove("time")
+                OutputJson.Merge(LegacyFabricJson)
             End If
         End If
         If HasQuilt Then

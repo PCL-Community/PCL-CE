@@ -363,7 +363,7 @@
                         '加载器
                         If Not AllowedLoaders.Any() Then Return True '无要求
                         If AllowedLoaders.Contains(CompLoaderType.Forge) AndAlso Version.Version.HasForge Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Version.HasFabric Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Version.HasFabric OrElse Version.Version.HasLegacyFabric Then Return True
                         If AllowedLoaders.Contains(CompLoaderType.NeoForge) AndAlso Version.Version.HasNeoForge Then Return True
                         If AllowedLoaders.Contains(CompLoaderType.LiteLoader) AndAlso Version.Version.HasLiteLoader Then Return True
                         Return False

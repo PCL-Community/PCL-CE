@@ -4,6 +4,8 @@ Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
 
+Imports PCL.Core
+
 Public Class PageOtherTest
     Public Sub New()
         AddHandler Loaded, Sub(sender As Object, e As RoutedEventArgs)
@@ -464,47 +466,48 @@ Public Class PageOtherTest
                                    End Try
                                End If
                                '查询信息
-                               Dim query As New ModLink.MCPing(ip.ToString(), port)
-                               Dim ret = query.GetInfo().Result
-                               If ret Is Nothing Then Throw New Exception("没有查询到信息")
-                               'Base64 图像转换
-                               Dim base64String = ret.Favicon
-                               If base64String.Contains(",") Then
-                                   base64String = base64String.Split(","c)(1)
-                               End If
-                               Dim imageBytes As Byte() = Convert.FromBase64String(base64String)
-                               '延迟颜色
-                               Dim latencyColor As String
-                               If ret.Latency < 150 Then
-                                   latencyColor = "a"
-                               ElseIf ret.Latency < 400 Then
-                                   latencyColor = "6"
-                               Else
-                                   latencyColor = "c"
-                               End If
-                               '设置 UI
-                               RunInUi(Sub()
-                                           MinecraftFormatter.SetColorfulTextLab($"Minecraft 服务器{vbCrLf}{ret.Description}", LabServerDesc)
-                                           MinecraftFormatter.SetColorfulTextLab($"{ret.PlayerOnline}/{ret.PlayerMax}{vbCrLf}§{latencyColor}{ret.Latency}ms", LabServerPlayer)
-                                           ServerInfo.Visibility = Visibility.Visible
-                                           If Not String.IsNullOrEmpty(base64String) Then
-                                               Dim bitmapImage As New BitmapImage()
-                                               Using ms As New MemoryStream(imageBytes)
-                                                   bitmapImage.BeginInit()
-                                                   bitmapImage.CacheOption = BitmapCacheOption.OnLoad ' 加载后关闭流
-                                                   bitmapImage.StreamSource = ms
-                                                   bitmapImage.EndInit()
-                                               End Using
-                                               ImgServerLogo.Source = bitmapImage
-                                           Else
-                                               Dim defaultImage As New BitmapImage()
-                                               defaultImage.BeginInit()
-                                               defaultImage.UriSource = New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
-                                               defaultImage.EndInit()
-                                               ImgServerLogo.Source = defaultImage
-                                           End If
-                                       End Sub)
-                               Hint("查询完成", HintType.Finish)
+                               Using query As New Utils.Minecraft.McPing(ip.ToString(), port)
+                                   Dim ret = query.PingAsync().Result
+                                   If ret Is Nothing Then Throw New Exception("没有查询到信息")
+                                   'Base64 图像转换
+                                   Dim base64String = ret.Favicon
+                                   If base64String.Contains(",") Then
+                                       base64String = base64String.Split(","c)(1)
+                                   End If
+                                   Dim imageBytes As Byte() = Convert.FromBase64String(base64String)
+                                   '延迟颜色
+                                   Dim latencyColor As String
+                                   If ret.Latency < 150 Then
+                                       latencyColor = "a"
+                                   ElseIf ret.Latency < 400 Then
+                                       latencyColor = "6"
+                                   Else
+                                       latencyColor = "c"
+                                   End If
+                                   '设置 UI
+                                   RunInUi(Sub()
+                                               MinecraftFormatter.SetColorfulTextLab($"Minecraft 服务器{vbCrLf}{ret.Description}", LabServerDesc)
+                                               MinecraftFormatter.SetColorfulTextLab($"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms", LabServerPlayer)
+                                               ServerInfo.Visibility = Visibility.Visible
+                                               If Not String.IsNullOrEmpty(base64String) Then
+                                                   Dim bitmapImage As New BitmapImage()
+                                                   Using ms As New MemoryStream(imageBytes)
+                                                       bitmapImage.BeginInit()
+                                                       bitmapImage.CacheOption = BitmapCacheOption.OnLoad ' 加载后关闭流
+                                                       bitmapImage.StreamSource = ms
+                                                       bitmapImage.EndInit()
+                                                   End Using
+                                                   ImgServerLogo.Source = bitmapImage
+                                               Else
+                                                   Dim defaultImage As New BitmapImage()
+                                                   defaultImage.BeginInit()
+                                                   defaultImage.UriSource = New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
+                                                   defaultImage.EndInit()
+                                                   ImgServerLogo.Source = defaultImage
+                                               End If
+                                           End Sub)
+                                   Hint("查询完成", HintType.Finish)
+                               End Using
                            Catch ex As Exception
                                Log(ex, "查询失败", LogLevel.Hint)
                            Finally

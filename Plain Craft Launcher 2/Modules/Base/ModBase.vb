@@ -2071,37 +2071,64 @@ RetryDir:
     ''' <param name="MaxBlurCount">返回的最大模糊结果数。</param>
     ''' <param name="MinBlurSimilarity">返回结果要求的最低相似度。</param>
     Public Function Search(Of T)(Entries As List(Of SearchEntry(Of T)), Query As String, Optional MaxBlurCount As Integer = 5, Optional MinBlurSimilarity As Double = 0.1) As List(Of SearchEntry(Of T))
-        '初始化
         Dim ResultList As New List(Of SearchEntry(Of T))
-        If Not Entries.Any() Then Return ResultList
-        '进行搜索，获取相似信息
+
+        If Entries Is Nothing OrElse Not Entries.Any() Then
+            Return ResultList
+        End If
+
+        ' Preprocess query into parts
+        Dim queryParts As String() = Query.Split(New Char() {" "c}, StringSplitOptions.RemoveEmptyEntries)
+        If queryParts.Length = 0 Then
+            ResultList.AddRange(Entries)
+            Return ResultList
+        End If
+
+        ' Precompute query parts in lowercase for case-insensitive comparison
+        Dim queryPartsLower As String() = queryParts.Select(Function(q) q.ToLower()).ToArray()
+
+        ' Process each entry to compute similarity and absolute match status
         For Each Entry In Entries
             Entry.Similarity = SearchSimilarityWeighted(Entry.SearchSource, Query)
-            Entry.AbsoluteRight =
-                Query.Split(" ").All( '对于按空格分割的每一段
-                Function(QueryPart) Entry.SearchSource.Any( '若与任意一个搜索源完全匹配，则标记为完全匹配项
-                Function(Source) Source.Key.Replace(" ", "").ContainsF(QueryPart, True)))
+
+            ' Preprocess search source keys: remove spaces and convert to lowercase
+            Dim processedSources = Entry.SearchSource.Select(Function(s) s.Key.Replace(" ", "").ToLower()).ToList()
+
+            ' Check if all query parts are matched exactly by at least one source
+            Dim isAbsoluteRight As Boolean = True
+            For Each qp In queryPartsLower
+                Dim found = False
+                For Each ps In processedSources
+                    If ps.Contains(qp) Then
+                        found = True
+                        Exit For
+                    End If
+                Next
+                If Not found Then
+                    isAbsoluteRight = False
+                    Exit For
+                End If
+            Next
+            Entry.AbsoluteRight = isAbsoluteRight
         Next
-        '按照相似度进行排序
-        Entries = Entries.Sort(
-        Function(Left, Right) As Boolean
-            If Left.AbsoluteRight Xor Right.AbsoluteRight Then
-                Return Left.AbsoluteRight
-            Else
-                Return Left.Similarity > Right.Similarity
-            End If
-        End Function)
-        '返回结果
-        Dim BlurCount As Integer = 0
-        For Each Entry In Entries
+
+        ' Sort by absolute match (descending), then by similarity (descending)
+        Dim sortedEntries = Entries.OrderByDescending(Function(e) e.AbsoluteRight).ThenByDescending(Function(e) e.Similarity).ToList()
+
+        ' Build the final result list
+        Dim blurCount As Integer = 0
+        For Each Entry In sortedEntries
             If Entry.AbsoluteRight Then
-                ResultList.Add(Entry) '完全匹配，直接加入
-            Else
-                If Entry.Similarity < MinBlurSimilarity OrElse BlurCount = MaxBlurCount Then Exit For '模糊结果边界条件
                 ResultList.Add(Entry)
-                BlurCount += 1 '模糊结果计数
+            Else
+                If Entry.Similarity < MinBlurSimilarity OrElse blurCount >= MaxBlurCount Then
+                    Exit For
+                End If
+                ResultList.Add(Entry)
+                blurCount += 1
             End If
         Next
+
         Return ResultList
     End Function
 

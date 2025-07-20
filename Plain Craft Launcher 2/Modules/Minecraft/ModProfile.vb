@@ -261,8 +261,12 @@ Public Module ModProfile
             RunInUiWait(Sub() NewUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
                                                           ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
-            If MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn:=True) = 2 Then Exit Sub
             If NewUsername = Nothing Then Exit Sub
+            If String.IsNullOrWhiteSpace(NewUsername) Then
+                Hint("欲设置的玩家名称为空")
+                Exit Sub
+            End If
+            If MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn:=True) = 2 Then Exit Sub
             RunInNewThread(Sub()
                                Try
                                    Dim CheckResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{NewUsername}/available", "GET", Nothing, Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
@@ -381,7 +385,12 @@ Write:
         If Type = 1 Then '导入
             Hint("正在导入，请稍后...", HintType.Info)
             RunInNewThread(Sub()
-                               Dim ImportList As JArray = JArray.Parse(ReadFile(OutsidePath))
+                               Dim ImportList As JArray
+                               Try
+                                   ImportList = JArray.Parse(ReadFile(OutsidePath))
+                               Catch ex As Exception
+                                   ImportList = New JArray
+                               End Try
                                Dim OutputList As New List(Of McProfile)
                                Dim ImportNum As Integer = 0
                                For Each Profile In ImportList
@@ -452,7 +461,12 @@ Write:
                            End Sub, "Profile Import")
         Else '导出
             Hint("正在导出，请稍后...", HintType.Info)
-            Dim ExistList As JArray = JArray.Parse(ReadFile(OutsidePath))
+            Dim ExistList As JArray
+            Try
+                ExistList = JArray.Parse(ReadFile(OutsidePath))
+            Catch ex As Exception
+                ExistList = New JArray
+            End Try
             Dim OutputList As JArray = New JArray
             Dim OutputNum As Integer = 0
             For Each Profile In ProfileList
@@ -596,9 +610,13 @@ Write:
                 }
             ElseIf AuthType = McLoginType.Ms Then
                 If McLoginMsLoader.State = LoadState.Finished Then
-                    Return New McLoginMs With {.OAuthId = SelectedProfile.IdentityId,
-                        .UserName = SelectedProfile.Username, .AccessToken = SelectedProfile.AccessToken,
-                        .Uuid = SelectedProfile.Uuid, .ProfileJson = SelectedProfile.RawJson}
+                    Return New McLoginMs With {
+                        .OAuthId = SelectedProfile.IdentityId,
+                        .UserName = SelectedProfile.Username,
+                        .AccessToken = SelectedProfile.AccessToken,
+                        .Uuid = SelectedProfile.Uuid,
+                        .ProfileJson = SelectedProfile.RawJson
+                    }
                 Else
                     Return New McLoginMs With {.OAuthId = SelectedProfile.IdentityId, .UserName = SelectedProfile.Name}
                 End If

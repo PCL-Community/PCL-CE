@@ -1411,11 +1411,11 @@
     ''' 对可能涉及 Mod 镜像源的请求进行处理。
     ''' 调用 NetRequest，会进行重试。
     ''' </summary>
-    Public Function DlModRequest(Url As String, Method As String, Data As String, ContentType As String) As String
+    Public Function DlModRequest(Url As String, Method As String, Data As String, ContentType As String, Optional allowMirror As Boolean = False) As String
         Dim Urls As New List(Of KeyValuePair(Of String, Integer))
         Dim McimUrl As String = DlSourceModGet(Url)
         If McimUrl <> Url Then
-            Select Case Setup.Get("ToolDownloadMod")
+            Select Case If(allowMirror, Setup.Get("ToolDownloadMod"), 2)
                 Case 0
                     Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 5))
                     Urls.Add(New KeyValuePair(Of String, Integer)(McimUrl, 10))
@@ -1544,13 +1544,43 @@
         })
     End Function
 
-    'Mod 下载源
+    ''' <summary>
+    ''' Mod Api 镜像源
+    ''' </summary>
+    ''' <param name="Original"></param>
+    ''' <returns></returns>
     Public Function DlSourceModGet(Original As String) As String
         Return Original.
                 Replace("https://api.modrinth.com", "https://mod.mcimirror.top/modrinth").
                 Replace("https://api.curseforge.com", "https://mod.mcimirror.top/curseforge")
     End Function
-
+    ''' <summary>
+    ''' Mod 下载镜像源
+    ''' </summary>
+    ''' <param name="original"></param>
+    ''' <returns></returns>
+    Public Function DlSourceModDownloadGet(original As String) As List(Of String)
+        Dim res As New List(Of String)
+        Dim mirrorDl = original.
+                Replace("https://cdn.modrinth.com", "https://mod.mcimirror.top"). 'like https://cdn.modrinth.com/data/P7dR8mSH/versions/X2hTodix/fabric-api-0.129.0%2B1.21.8.jar
+                Replace("https://edge.forgecdn.net", "https://mod.mcimirror.top") 'like https://edge.forgecdn.net/files/6767/951/jei-1.21.5-neoforge-21.4.0.27.jar
+        Select Case Setup.Get("ToolDownloadMod")
+            Case 0 '镜像源
+                res.Add(mirrorDl)
+                res.Add(mirrorDl)
+            Case 1 '平衡
+                res.Add(original)
+                res.Add(mirrorDl)
+            Case 2 '官方源
+                res.Add(original)
+                res.Add(original)
+            Case Else '错误
+                Setup.Reset("ToolDownloadMod")
+                res.Add(original)
+        End Select
+        res.Add(original)
+        Return res
+    End Function
     'Loader 自动切换
     Private Sub DlSourceLoader(Of InputType, OutputType)(MainLoader As LoaderTask(Of InputType, OutputType),
                                                          LoaderList As List(Of KeyValuePair(Of LoaderTask(Of InputType, OutputType), Integer)),
@@ -1623,5 +1653,64 @@
     End Sub
 
 #End Region
+#Region "DlLegacyFabricList | LegacyFabric 列表"
 
+    Public Structure DlLegacyFabricListResult
+        ''' <summary>
+        ''' 数据来源名称，如“Official”，“BMCLAPI”。
+        ''' </summary>
+        Public SourceName As String
+        ''' <summary>
+        ''' 是否为官方的实时数据。
+        ''' </summary>
+        Public IsOfficial As Boolean
+        ''' <summary>
+        ''' 获取到的数据。
+        ''' </summary>
+        Public Value As JObject
+    End Structure
+
+    ''' <summary>
+    ''' LegacyFabric 列表，主加载器。
+    ''' </summary>
+    Public DlLegacyFabricListLoader As New LoaderTask(Of Integer, DlLegacyFabricListResult)("DlLegacyFabricList Main", AddressOf DlLegacyFabricListMain)
+    Private Sub DlLegacyFabricListMain(Loader As LoaderTask(Of Integer, DlLegacyFabricListResult))
+        Select Case Setup.Get("ToolDownloadVersion")
+            Case 0
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 30)
+                }, Loader.IsForceRestarting)
+            Case 1
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 5)
+                }, Loader.IsForceRestarting)
+            Case Else
+                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)) From {
+                    New KeyValuePair(Of LoaderTask(Of Integer, DlLegacyFabricListResult), Integer)(DlLegacyFabricListOfficialLoader, 60)
+                }, Loader.IsForceRestarting)
+        End Select
+    End Sub
+
+    ''' <summary>
+    ''' LegacyFabric 列表，官方源。
+    ''' </summary>
+    Public DlLegacyFabricListOfficialLoader As New LoaderTask(Of Integer, DlLegacyFabricListResult)("DlLegacyFabricList Official", AddressOf DlLegacyFabricListOfficialMain)
+    Private Sub DlLegacyFabricListOfficialMain(Loader As LoaderTask(Of Integer, DlLegacyFabricListResult))
+        Dim Result As JObject = NetGetCodeByRequestRetry("https://meta.legacyfabric.net/v2/versions", IsJson:=True)
+        Try
+            Dim Output = New DlLegacyFabricListResult With {.IsOfficial = True, .SourceName = "LegacyFabric 官方源", .Value = Result}
+            If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
+            Loader.Output = Output
+        Catch ex As Exception
+            Throw New Exception("LegacyFabric 官方源版本列表解析失败（" & Result.ToString & "）", ex)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Legacy Fabric API 列表，官方源。
+    ''' </summary>
+    Public DlLegacyFabricApiLoader As New LoaderTask(Of Integer, List(Of CompFile))("Legacy Fabric API List Loader",
+        Sub(Task As LoaderTask(Of Integer, List(Of CompFile))) Task.Output = CompFilesGet("legacy-fabric-api", False))
+
+#End Region
 End Module
