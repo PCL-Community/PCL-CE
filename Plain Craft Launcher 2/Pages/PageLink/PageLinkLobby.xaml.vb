@@ -96,7 +96,7 @@ Public Class PageLinkLobby
 #End Region
 
 #Region "公告"
-    Public Const AllowedVersion As Integer = 1
+    Public Const AllowedVersion As Integer = 2
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
                            RunInUi(Sub() HintAnnounce.Visibility = Visibility.Visible)
@@ -532,7 +532,7 @@ Retry:
                                        LabConnectUserName.Text = NaidProfile.Username
                                        LabConnectUserType.Text = "加入者"
                                    End Sub)
-                           Dim processedId As String = JoinedLobbyId.FromB36ToB10()
+                           Dim processedId As String = JoinedLobbyId.FromB32ToB10()
                            RemotePort = JoinedLobbyId.Substring(10)
                            LaunchLink(False, JoinedLobbyId.Substring(0, 8), JoinedLobbyId.Substring(8, 2), remotePort:=RemotePort)
                            Dim retryCount As Integer = 0

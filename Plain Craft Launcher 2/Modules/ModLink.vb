@@ -8,6 +8,7 @@ Imports PCL.Core.Model
 Imports PCL.Core.Utils.Minecraft
 Imports PCL.Core.Service
 Imports PCL.Core.Extension
+Imports PCL.Core.Helper
 
 Public Module ModLink
 
@@ -241,7 +242,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
     Public ETVersion As String = "2.3.2"
-    Public ETPath As String = PathAppdataConfig + $"EasyTier\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
+    Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier") + $"\{ETVersion}\easytier-windows-{If(IsArm64System, "arm64", "x86_64")}"
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
     Public ETProcess As Process = Nothing
@@ -269,13 +270,13 @@ Public Module ModLink
             Dim Arguments As String = Nothing
 
             '大厅设置
-            Dim lobbyId As String = StringExtension.FromB10ToB36(Name & Secret & If(IsHost, LocalPort, remotePort).ToString())
+            Dim lobbyId As String = StringExtension.FromB10ToB32(Name & Secret & If(IsHost, LocalPort, remotePort).ToString())
             If IsHost Then PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
             Secret = ETNetworkDefaultSecret & Secret
             Name = ETNetworkDefaultName & Name
             If IsHost Then
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --acl allow,any,10.114.51.41,tcp,{LocalPort};deny,any,any,any,any" '创建者
+                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
             Else
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --port-forward tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" '加入者
@@ -345,10 +346,10 @@ Public Module ModLink
                                       '下载
                                       Dim Address As New List(Of String)
                                       Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
-                                      Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
+                                      'Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
 
                                       Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                                      Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, PathAppdataConfig + "EasyTier\" + ETVersion)))
+                                      Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier") & "\" & ETVersion)))
                                       Loaders.Add(New LoaderTask(Of Integer, Integer)("清理文件", Sub() File.Delete(DlTargetPath)))
                                       If LaunchAfterDownload Then
                                           Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Function() LaunchEasyTier(IsHost, Name, Secret, True)))
