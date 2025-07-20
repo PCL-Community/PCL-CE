@@ -25,7 +25,7 @@
         AniControlEnabled += 1
 
         '刷新设置项目
-        ComboDisplayType.SelectedIndex = ReadIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McVersionCardType.Auto)
+        ComboDisplayType.SelectedIndex = ReadIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McInstanceCardType.Auto)
         BtnDisplayStar.Text = If(PageVersionLeft.Version.IsStar, "从收藏夹中移除", "加入收藏夹")
         BtnFolderMods.Visibility = If(PageVersionLeft.Version.Modable, Visibility.Visible, Visibility.Collapsed)
         '刷新版本显示
@@ -60,11 +60,11 @@
             Try
                 '若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
                 WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", ComboDisplayType.SelectedIndex)
-                PageVersionLeft.Version.DisplayType = ReadIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McVersionCardType.Auto)
+                PageVersionLeft.Version.DisplayType = ReadIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McInstanceCardType.Auto)
                 FrmVersionLeft.RefreshModDisabled()
 
-                WriteIni(PathMcFolder & "PCL.ini", "VersionCache", "") '要求刷新缓存
-                LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "修改版本分类失败（" & PageVersionLeft.Version.Name & "）", LogLevel.Feedback)
             End Try
@@ -79,9 +79,9 @@
                     End If
                     Setup.Set("HintHide", True)
                 End If
-                WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McVersionCardType.Hidden)
-                WriteIni(PathMcFolder & "PCL.ini", "VersionCache", "") '要求刷新缓存
-                LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "DisplayType", McInstanceCardType.Hidden)
+                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "隐藏版本 " & PageVersionLeft.Version.Name & " 失败", LogLevel.Feedback)
             End Try
@@ -94,9 +94,9 @@
             Dim OldInfo As String = ReadIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "CustomInfo")
             Dim NewInfo As String = MyMsgBoxInput("更改描述", "修改版本的描述文本，留空则使用 PCL 的默认描述。", OldInfo, New ObjectModel.Collection(Of Validate), "默认描述")
             If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "CustomInfo", NewInfo)
-            PageVersionLeft.Version = New McVersion(PageVersionLeft.Version.Name).Load()
+            PageVersionLeft.Version = New McInstance(PageVersionLeft.Version.Name).Load()
             Reload()
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "版本 " & PageVersionLeft.Version.Name & " 描述更改失败", LogLevel.Msgbox)
         End Try
@@ -170,10 +170,10 @@
             End If
             '刷新与提示
             Hint("重命名成功！", HintType.Finish)
-            PageVersionLeft.Version = New McVersion(NewName).Load()
-            If Not IsNothing(McVersionCurrent) AndAlso McVersionCurrent.Equals(PageVersionLeft.Version) Then WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
+            PageVersionLeft.Version = New McInstance(NewName).Load()
+            If Not IsNothing(McInstanceCurrent) AndAlso McInstanceCurrent.Equals(PageVersionLeft.Version) Then WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
             Reload()
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "重命名版本失败", LogLevel.Msgbox)
         End Try
@@ -203,10 +203,10 @@
             WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "Logo", NewLogo)
             WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "LogoCustom", Not NewLogo = "")
             '刷新显示
-            WriteIni(PathMcFolder & "PCL.ini", "VersionCache", "") '要求刷新缓存
-            PageVersionLeft.Version = New McVersion(PageVersionLeft.Version.Name).Load()
+            WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+            PageVersionLeft.Version = New McInstance(PageVersionLeft.Version.Name).Load()
             Reload()
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "更改版本图标失败（" & PageVersionLeft.Version.Name & "）", LogLevel.Feedback)
         End Try
@@ -216,10 +216,10 @@
     Private Sub BtnDisplayStar_Click(sender As Object, e As EventArgs) Handles BtnDisplayStar.Click
         Try
             WriteIni(PageVersionLeft.Version.Path & "PCL\Setup.ini", "IsStar", Not PageVersionLeft.Version.IsStar)
-            PageVersionLeft.Version = New McVersion(PageVersionLeft.Version.Name).Load()
+            PageVersionLeft.Version = New McInstance(PageVersionLeft.Version.Name).Load()
             Reload()
-            McVersionListForceRefresh = True
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            McInstanceListForceRefresh = True
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "版本 " & PageVersionLeft.Version.Name & " 收藏状态更改失败", LogLevel.Msgbox)
         End Try
@@ -233,7 +233,7 @@
     Private Sub BtnFolderVersion_Click() Handles BtnFolderVersion.Click
         OpenVersionFolder(PageVersionLeft.Version)
     End Sub
-    Public Shared Sub OpenVersionFolder(Version As McVersion)
+    Public Shared Sub OpenVersionFolder(Version As McInstance)
         OpenExplorer(Version.Path)
     End Sub
 
@@ -324,23 +324,25 @@
                 Exit Sub
             End If
             '确认操作
-            If MyMsgBox("你确定要重置版本 " & PageVersionLeft.Version.Name & " 吗？" & vbCrLf & "PCL 将会尝试重新从互联网获取此版本的资源文件信息，并重新执行自动安装。" & vbCrLf & vbCrLf & "本功能尚处于测试阶段，可能不稳定。", "版本重置确认", "确认", "取消") = 2 Then Exit Sub
+            If MyMsgBox("你确定要重置版本 " & PageVersionLeft.Version.Name & " 吗？" & vbCrLf & "PCL 将会尝试重新从互联网获取此版本的资源文件信息，并重新执行自动安装。", "版本重置确认", "确认", "取消") = 2 Then Exit Sub
 
             '备份版本核心文件
             CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".json", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".json")
             CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".jar", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".jar")
             '提交安装申请
             Dim Request As New McInstallRequest With {
-                .TargetVersionName = PageVersionLeft.Version.Name,
-                .TargetVersionFolder = $"{PathMcFolder}versions\{PageVersionLeft.Version.Name}\",
+                .TargetInstanceName = PageVersionLeft.Version.Name,
+                .TargetInstanceFolder = $"{PathMcFolder}versions\{PageVersionLeft.Version.Name}\",
                 .MinecraftName = CurrentVersion.McName,
                 .OptiFineEntry = If(CurrentVersion.HasOptiFine, New DlOptiFineListEntry With {.Inherit = CurrentVersion.McName, .NameDisplay = CurrentVersion.McName + " " + CurrentVersion.OptiFineVersion}, Nothing),
                 .ForgeEntry = If(CurrentVersion.HasForge, New DlForgeVersionEntry(CurrentVersion.ForgeVersion, Nothing, Inherit:=CurrentVersion.McName) With {.Category = "installer"}, Nothing),
-                .NeoForgeEntry = If(CurrentVersion.HasNeoForge, New DlNeoForgeListEntry(CurrentVersion.NeoForgeVersion) With {.ForgeType = 1, .VersionName = CurrentVersion.NeoForgeVersion, .Inherit = CurrentVersion.McName}, Nothing),
-                .CleanroomEntry = If(CurrentVersion.HasCleanroom, New DlCleanroomListEntry(CurrentVersion.CleanroomVersion) With {.ForgeType = 2, .VersionName = CurrentVersion.CleanroomVersion, .Inherit = CurrentVersion.McName}, Nothing),
+                .ForgeVersion = If(CurrentVersion.HasForge, CurrentVersion.ForgeVersion, Nothing),
+                .NeoForgeVersion = If(CurrentVersion.HasNeoForge, CurrentVersion.NeoForgeVersion, Nothing),
+                .CleanroomVersion = If(CurrentVersion.HasCleanroom, CurrentVersion.CleanroomVersion, Nothing),
                 .FabricVersion = If(CurrentVersion.HasFabric, CurrentVersion.FabricVersion, Nothing),
                 .QuiltVersion = If(CurrentVersion.HasQuilt, CurrentVersion.QuiltVersion, Nothing),
-                .LiteLoaderEntry = If(CurrentVersion.HasLiteLoader, New DlLiteLoaderListEntry With {.Inherit = CurrentVersion.McName}, Nothing)
+                .LiteLoaderEntry = If(CurrentVersion.HasLiteLoader, New DlLiteLoaderListEntry With {.Inherit = CurrentVersion.McName}, Nothing),
+                .LegacyFabricVersion = If(CurrentVersion.HasLegacyFabric, CurrentVersion.LegacyFabricVersion, Nothing)
             }
             '.MinecraftJson = CurrentVersion.McName,
             If Not McInstall(Request, "重置") Then Exit Sub
@@ -366,7 +368,7 @@
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
             Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
-            Dim IsHintIndie As Boolean = PageVersionLeft.Version.State <> McVersionState.Error AndAlso PageVersionLeft.Version.PathIndie <> PathMcFolder
+            Dim IsHintIndie As Boolean = PageVersionLeft.Version.State <> McInstanceState.Error AndAlso PageVersionLeft.Version.PathIndie <> PathMcFolder
             Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除版本 {PageVersionLeft.Version.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该版本开启了版本隔离，删除版本时该版本对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "版本删除确认", , "取消",, IsHintIndie OrElse IsShiftPressed)
@@ -383,7 +385,7 @@
                 Case 2
                     Return
             End Select
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             FrmMain.PageBack()
         Catch ex As OperationCanceledException
             Log(ex, "删除版本 " & PageVersionLeft.Version.Name & " 被主动取消")

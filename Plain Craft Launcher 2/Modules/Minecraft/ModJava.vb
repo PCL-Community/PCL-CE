@@ -88,7 +88,7 @@ Public Module ModJava
     Public Function JavaSelect(CancelException As String,
                                Optional MinVersion As Version = Nothing,
                                Optional MaxVersion As Version = Nothing,
-                               Optional RelatedVersion As McVersion = Nothing) As Java
+                               Optional RelatedVersion As McInstance = Nothing) As Java
         Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedVersion IsNot Nothing, RelatedVersion.Name, "未指定")}")
         Dim IsVersionSuit = Function(ver As Version)
                                 Return ver >= MinVersion AndAlso ver <= MaxVersion
@@ -97,7 +97,7 @@ Public Module ModJava
             Dim userVersionJava = GetVersionUserSetJava(RelatedVersion)
             If userVersionJava IsNot Nothing Then
                 If Not IsVersionSuit(userVersionJava.Version) Then
-                    Hint("当前版本所指定的 Java 可能不合适，容易导致游戏崩溃")
+                    Hint("当前实例所指定的 Java 可能不合适，容易导致游戏崩溃")
                 End If
                 Log($"[Java] 返回实例 {RelatedVersion.Name} 指定的 Java {userVersionJava.ToString()}")
                 Return userVersionJava
@@ -129,7 +129,7 @@ Public Module ModJava
     ''' </summary>
     ''' <param name="Mc">实例</param>
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
-    Public Function GetVersionUserSetJava(Mc As McVersion) As Java
+    Public Function GetVersionUserSetJava(Mc As McInstance) As Java
         If Mc Is Nothing Then Return Nothing
         Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=Mc)
         If UserSetupVersion = "使用全局设置" Then
@@ -142,7 +142,7 @@ Public Module ModJava
     ''' <summary>
     ''' 是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
     ''' </summary>
-    Public Function IsGameSet64BitJava(Optional RelatedVersion As McVersion = Nothing) As Boolean
+    Public Function IsGameSet64BitJava(Optional RelatedVersion As McInstance = Nothing) As Boolean
         Try
             '检查强制指定
             Dim UserSetup As String = Setup.Get("LaunchArgumentJavaSelect")

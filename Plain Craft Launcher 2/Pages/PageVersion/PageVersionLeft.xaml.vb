@@ -4,7 +4,7 @@ Public Class PageVersionLeft
     ''' <summary>
     ''' 当前显示设置的 MC 版本。
     ''' </summary>
-    Public Shared Version As McVersion = Nothing
+    Public Shared Version As McInstance = Nothing
 
     Public Sub RefreshModDisabled() Handles Me.Loaded
         If Version IsNot Nothing AndAlso Version.Modable Then

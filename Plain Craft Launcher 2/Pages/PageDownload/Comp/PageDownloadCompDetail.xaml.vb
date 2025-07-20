@@ -279,20 +279,20 @@
             Dim File As CompFile = sender.Tag
             Dim LoaderName As String = $"{If(Project.FromCurseForge, "CurseForge", "Modrinth")} 整合包下载：{Project.TranslatedName} "
 
-            '获取版本名
+            '获取实例名
             Dim PackName As String = Project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "").Replace("\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("""", "").Replace("： ", "：")
             Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
             If Validate.Validate(PackName) <> "" Then PackName = ""
-            Dim VersionName As String = MyMsgBoxInput("输入版本名称", "", PackName, New ObjectModel.Collection(Of Validate) From {Validate})
-            If String.IsNullOrEmpty(VersionName) Then Return
+            Dim InstanceName As String = MyMsgBoxInput("输入实例名称", "", PackName, New ObjectModel.Collection(Of Validate) From {Validate})
+            If String.IsNullOrEmpty(InstanceName) Then Return
 
             '构造步骤加载器
             Dim Loaders As New List(Of LoaderBase)
-            Dim Target As String = $"{PathMcFolder}versions\{VersionName}\原始整合包.{If(Project.FromCurseForge, "zip", "mrpack")}"
+            Dim Target As String = $"{PathMcFolder}versions\{InstanceName}\原始整合包.{If(Project.FromCurseForge, "zip", "mrpack")}"
             Dim LogoFileAddress As String = MyImage.GetTempPath(CompItem.Logo)
             Loaders.Add(New LoaderDownload("下载整合包文件", New List(Of NetFile) From {File.ToNetFile(Target)}) With {.ProgressWeight = 10, .Block = True})
             Loaders.Add(New LoaderTask(Of Integer, Integer)("准备安装整合包",
-            Sub() ModpackInstall(Target, VersionName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing))) With {.ProgressWeight = 0.1})
+            Sub() ModpackInstall(Target, InstanceName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing))) With {.ProgressWeight = 0.1})
 
             '启动
             Dim Loader As New LoaderCombo(Of String)(LoaderName, Loaders) With {.OnStateChanged =
@@ -307,7 +307,7 @@
                 End Select
                 McInstallFailedClearFolder(MyLoader)
             End Sub}
-            Loader.Start(PathMcFolder & "versions\" & VersionName & "\")
+            Loader.Start(PathMcFolder & "versions\" & InstanceName & "\")
             LoaderTaskbarAdd(Loader)
             FrmMain.BtnExtraDownload.ShowRefresh()
             FrmMain.BtnExtraDownload.Ribble()
@@ -341,7 +341,7 @@
                         Case CompType.Shader : SubFolder = "shaderpacks\"
                         Case CompType.DataPack : SubFolder = "" '导航到版本根目录
                     End Select
-                    Dim IsVersionSuitable As Func(Of McVersion, Boolean) = Nothing
+                    Dim IsVersionSuitable As Func(Of McInstance, Boolean) = Nothing
                     '获取资源所需的加载器
                     Dim AllowedLoaders As New List(Of CompLoaderType)
                     If File.ModLoaders.Any Then
@@ -370,20 +370,20 @@
                     End Function
                     '获取常规资源默认下载位置
                     If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McVersionCurrent?.PathIndie, Path))
+                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, Path))
                         Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
-                    ElseIf McVersionCurrent IsNot Nothing AndAlso IsVersionSuitable(McVersionCurrent) Then
-                        DefaultFolder = $"{McVersionCurrent.PathIndie}{SubFolder}"
+                    ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
+                        DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"
                         Directory.CreateDirectory(DefaultFolder)
-                        Log($"[Comp] 使用当前版本作为默认下载位置：{DefaultFolder}")
+                        Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}")
                     Else
-                        '查找所有可能的版本
-                        Dim NeedLoad As Boolean = McVersionListLoader.State <> LoadState.Finished
+                        '查找所有可能的实例
+                        Dim NeedLoad As Boolean = McInstanceListLoader.State <> LoadState.Finished
                         If NeedLoad Then
-                            Hint("正在查找适合的游戏版本……")
-                            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\", WaitForExit:=True)
+                            Hint("正在查找适合的游戏实例……")
+                            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\", WaitForExit:=True)
                         End If
-                        Dim SuitableVersions = McVersionList.Values.SelectMany(Function(l) l).Where(Function(v) IsVersionSuitable(v)).
+                        Dim SuitableVersions = McInstanceList.Values.SelectMany(Function(l) l).Where(Function(v) IsVersionSuitable(v)).
                             Select(Function(v) New DirectoryInfo($"{v.PathIndie}{SubFolder}"))
                         If SuitableVersions.Any Then
                             Dim SelectedVersion = SuitableVersions.
@@ -392,13 +392,13 @@
                                 First()
                             DefaultFolder = SelectedVersion.FullName
                             Directory.CreateDirectory(DefaultFolder)
-                            Log($"[Comp] 使用适合的游戏版本作为默认下载位置：{DefaultFolder}")
+                            Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}")
                         Else
                             DefaultFolder = PathMcFolder
                             If NeedLoad Then
-                                Hint("当前 MC 文件夹中没有找到适合此资源文件的版本！")
+                                Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！")
                             Else
-                                Log("[Comp] 由于当前版本不兼容，使用当前的 MC 文件夹作为默认下载位置")
+                                Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置")
                             End If
                         End If
                     End If

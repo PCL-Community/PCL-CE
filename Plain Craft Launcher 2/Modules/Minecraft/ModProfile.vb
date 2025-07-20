@@ -635,8 +635,8 @@ Write:
             Case McLoginType.Legacy
                 If SelectedProfile.Username.Trim = "" Then Return "玩家名不能为空！"
                 If SelectedProfile.Username.Contains("""") Then Return "玩家名不能包含英文引号！"
-                If McVersionCurrent IsNot Nothing AndAlso
-                   ((McVersionCurrent.Version.McCodeMain = 20 AndAlso McVersionCurrent.Version.McCodeSub >= 3) OrElse McVersionCurrent.Version.McCodeMain > 20) AndAlso
+                If McInstanceCurrent IsNot Nothing AndAlso
+                   ((McInstanceCurrent.Version.McCodeMain = 20 AndAlso McInstanceCurrent.Version.McCodeSub >= 3) OrElse McInstanceCurrent.Version.McCodeMain > 20) AndAlso
                    SelectedProfile.Username.Trim.Length > 16 Then
                     Return "自 1.20.3 起，玩家名至多只能包含 16 个字符！"
                 End If

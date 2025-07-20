@@ -91,15 +91,15 @@
     End Sub
     Private Sub Btn_Click(sender As Object, e As EventArgs) Handles BtnLink.Click
         If BtnLink.Content = "注册账号" Then
-            OpenWebsite(If(McVersionCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McVersionCurrent), ""))
+            OpenWebsite(If(McInstanceCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McInstanceCurrent), ""))
         Else
-            Dim Website As String = If(McVersionCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McVersionCurrent), "")
+            Dim Website As String = If(McInstanceCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McInstanceCurrent), "")
             OpenWebsite(Website.Replace("/auth/register", "/auth/forgot"))
         End If
     End Sub
     '切换注册按钮可见性
     Private Sub ReloadRegisterButton() Handles Me.Loaded
-        Dim Address As String = If(McVersionCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McVersionCurrent), "")
+        Dim Address As String = If(McInstanceCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", Version:=McInstanceCurrent), "")
         BtnLink.Visibility = If(String.IsNullOrEmpty(New ValidateHttp().Validate(Address)), Visibility.Visible, Visibility.Collapsed)
     End Sub
 End Class

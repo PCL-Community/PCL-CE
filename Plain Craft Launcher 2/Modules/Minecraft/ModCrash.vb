@@ -382,7 +382,7 @@ Extracted:
         Fabric报错并给出解决方案
         Forge报错
         低版本Forge与高版本Java不兼容
-        版本Json中存在多个Forge
+        实例Json中存在多个Forge
         Mod过多导致超出ID限制
         NightConfig的Bug
         ShadersMod与OptiFine同时安装
@@ -390,15 +390,15 @@ Extracted:
         Mod需要Java11
         Mod缺少前置或MC版本错误
     End Enum
-    
-    '暂存分析的版本供特殊用途
-    '龙猫味石山代码小记: CrashAnalyze 猛一顿分析不知道自己在分析啥版本
-    Private _version As McVersion = Nothing
-    
+
+    '暂存分析的实例供特殊用途
+    '龙猫味石山代码小记: CrashAnalyze 猛一顿分析不知道自己在分析啥实例
+    Private _version As McInstance = Nothing
+
     ''' <summary>
-    ''' 根据 AnalyzeLogs 与可能的版本信息分析崩溃原因。
+    ''' 根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
     ''' </summary>
-    Public Sub Analyze(Optional version As McVersion = Nothing)
+    Public Sub Analyze(Optional version As McInstance = Nothing)
         _version = version
         Log("[Crash] 步骤 3：分析崩溃原因")
         LogAll = If(LogMc, If(LogMcDebug, "")) & If(LogHs, "") & If(LogCrash, "")
@@ -497,7 +497,7 @@ Done:
 
         '游戏日志分析
         If LogMc IsNot Nothing Then
-            If LogMc.Contains("Found multiple arguments for option fml.forgeVersion, but you asked for only one") Then AppendReason(CrashReason.版本Json中存在多个Forge)
+            If LogMc.Contains("Found multiple arguments for option fml.forgeVersion, but you asked for only one") Then AppendReason(CrashReason.实例Json中存在多个Forge)
             If LogMc.Contains("The driver does not appear to support OpenGL") Then AppendReason(CrashReason.显卡不支持OpenGL)
             If LogMc.Contains("java.lang.ClassCastException: java.base/jdk") Then AppendReason(CrashReason.使用JDK)
             If LogMc.Contains("java.lang.ClassCastException: class jdk.") Then AppendReason(CrashReason.使用JDK)
@@ -891,7 +891,7 @@ NextStack:
             Case 2
                 '弹窗选择：前往修改
                 PageVersionLeft.Version = _version
-                RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.VersionSetup, FormMain.PageSubType.VersionInstall))
+                RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall))
             Case 3
                 '弹窗选择：导出错误报告
                 Dim FileAddress As String = Nothing
@@ -980,7 +980,7 @@ NextStack:
 
         '根据不同原因判断
         Dim Results As New List(Of String)
-        Const LoaderIncompatibleResultText = "Mod 加载器版本与 Mod 不兼容，请前往版本修改页面更换加载器版本。\n\n详细信息：\n"
+        Const LoaderIncompatibleResultText = "Mod 加载器版本与 Mod 不兼容，请前往 实例设置 - 修改 更换加载器版本。\n\n详细信息：\n"
         For Each Reason In CrashReasons
             Dim Additional As List(Of String) = Reason.Value
             Select Case Reason.Key
@@ -1079,8 +1079,8 @@ NextStack:
                     Results.Add("无需同时安装 OptiFine 和 Shaders Mod，OptiFine 已经集成了 Shaders Mod 的功能。\n在删除 Shaders Mod 后，游戏即可正常运行。")
                 Case CrashReason.低版本Forge与高版本Java不兼容
                     Results.Add("由于低版本 Forge 与当前 Java 不兼容，导致了游戏崩溃。\n\n请尝试以下解决方案：\n - 更新 Forge 到 36.2.26 或更高版本\n - 换用版本低于 1.8.0.320 的 Java")
-                Case CrashReason.版本Json中存在多个Forge
-                    Results.Add("可能由于其他启动器修改了 Forge 版本，当前版本的文件存在异常，导致了游戏崩溃。\n请尝试重新全新安装 Forge，而非使用其他启动器修改 Forge 版本。")
+                Case CrashReason.实例Json中存在多个Forge
+                    Results.Add("可能由于其他启动器修改了 Forge 版本，当前实例的文件存在异常，导致了游戏崩溃。\n请尝试重新全新安装 Forge，而非使用其他启动器修改 Forge 版本。")
                 Case CrashReason.玩家手动触发调试崩溃
                     Results.Add("* 事实上，你的游戏没有任何问题，这是你自己触发的崩溃。\n* 你难道没有更重要的事要做吗？")
                 Case CrashReason.Mod需要Java11
@@ -1106,7 +1106,7 @@ NextStack:
                 Case CrashReason.文件或内容校验失败
                     Results.Add("部分文件或内容校验失败，导致游戏出现了问题。\n\n请尝试删除游戏（包括 Mod）并重新下载，或尝试在重新下载时使用 VPN。\h")
                 Case CrashReason.Forge安装不完整
-                    Results.Add("由于安装的 Forge 文件丢失，导致游戏无法正常运行。\n请重新安装一次相同版本的 Forge，然后再启动游戏。\n在打包游戏时删除 libraries 文件夹可能导致此错误。\h")
+                    Results.Add("由于安装的 Forge 文件丢失，导致游戏无法正常运行。\n请前往实例设置重置该实例，然后再启动游戏。\n在打包游戏时删除 libraries 文件夹可能导致此错误。\h")
                 Case CrashReason.Fabric报错
                     If Additional.Count = 1 Then
                         Results.Add("Fabric 提供了以下错误信息：\n" & Additional.First & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")

@@ -67,7 +67,7 @@ Public Class PageComp
     ''' <summary>
     ''' 在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     ''' </summary>
-    Public Shared TargetVersion As McVersion = Nothing
+    Public Shared TargetVersion As McInstance = Nothing
 
     '在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     Public Loader As New LoaderTask(Of CompProjectRequest, Integer)("社区资源获取：XXX", AddressOf CompProjectsGet, AddressOf LoaderInput) With {.ReloadTimeout = 60 * 1000}

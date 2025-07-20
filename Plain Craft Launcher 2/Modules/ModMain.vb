@@ -506,7 +506,7 @@ EndHint:
     Public FrmLoginProfileSkin As PageLoginProfileSkin
     Public FrmLoginOffline As PageLoginOffline
 
-    '版本设置页面声明
+    '实例设置页面声明
     Public FrmVersionLeft As PageVersionLeft
     Public FrmVersionOverall As PageVersionOverall
     Public FrmVersionMod As PageVersionCompResource
@@ -519,7 +519,7 @@ EndHint:
     Public FrmVersionSetup As PageVersionSetup
     Public FrmVersionInstall As PageVersionInstall
     Public FrmVersionExport As PageVersionExport
-    '版本存档页面
+    '实例存档页面
     Public FrmVersionSavesLeft As PageVersionSavesLeft
     Public FrmVersionSavesInfo As PageVersionSavesInfo
     Public FrmVersionSavesBackup As PageVersionSavesBackup

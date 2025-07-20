@@ -1541,7 +1541,7 @@ Finished:
     End Function
 
     Public Class CompLocalLoaderData
-        Public GameVersion As McVersion
+        Public GameVersion As McInstance
         Public Loaders As List(Of CompLoaderType)
         Public Frm As PageVersionCompResource
         Public CompPath As String
@@ -1716,9 +1716,9 @@ Finished:
         '获取作为检查目标的加载器和版本
         '此处不应向下扩展检查的 MC 小版本，例如 Mod 在更新 1.16.5 后，对早期的 1.16.2 版本发布了修补补丁，这会导致 PCL 将 1.16.5 版本的 Mod 降级到 1.16.2
         Dim ModLoaders = Loader.Input.Loaders
-        Dim McVersion = Loader.Input.GameVersion.Version.McName
+        Dim McInstance = Loader.Input.GameVersion.Version.McName
         '开始网络获取
-        Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McVersion}")
+        Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McInstance}")
         Dim EndedThreadCount As Integer = 0, IsFailed As Boolean = False
         Dim CurrentThread As Thread = Thread.CurrentThread
         '从 Modrinth 获取信息
@@ -1761,7 +1761,7 @@ Finished:
                     '步骤 4：获取更新信息
                     Dim ModrinthUpdate = CType(GetJson(DlModRequest("https://api.modrinth.com/v2/version_files/update", "POST",
                         $"{{""hashes"": [""{ModrinthMapping.SelectMany(Function(l) l.Value.Select(Function(m) m.ModrinthHash)).Join(""",""")}""], ""algorithm"": ""sha1"", 
-                    ""loaders"": [""{ModLoaders.Join(""",""").ToLower}""],""game_versions"": [""{McVersion}""]}}", "application/json")), JObject)
+                    ""loaders"": [""{ModLoaders.Join(""",""").ToLower}""],""game_versions"": [""{McInstance}""]}}", "application/json")), JObject)
                     For Each Entry In Mods
                         If Not ModrinthUpdate.ContainsKey(Entry.ModrinthHash) OrElse Entry.CompFile Is Nothing Then Continue For
                         Dim UpdateFile As New CompFile(ModrinthUpdate(Entry.ModrinthHash), CompType.Mod)
@@ -1770,11 +1770,11 @@ Finished:
                         If Entry.CompFile.ReleaseDate >= UpdateFile.ReleaseDate OrElse Entry.CompFile.Hash = UpdateFile.Hash Then Continue For
                         '设置更新日志与更新文件
                         If Entry.UpdateFile IsNot Nothing AndAlso UpdateFile.Hash = Entry.UpdateFile.Hash Then '合并
-                            Entry.ChangelogUrls.Add($"https://modrinth.com/mod/{ModrinthUpdate(Entry.ModrinthHash)("project_id")}/changelog?g={McVersion}")
+                            Entry.ChangelogUrls.Add($"https://modrinth.com/mod/{ModrinthUpdate(Entry.ModrinthHash)("project_id")}/changelog?g={McInstance}")
                             UpdateFile.DownloadUrls.AddRange(Entry.UpdateFile.DownloadUrls) '合并下载源
                             Entry.UpdateFile = UpdateFile '优先使用 Modrinth 的文件
                         ElseIf Entry.UpdateFile Is Nothing OrElse UpdateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate Then '替换
-                            Entry.ChangelogUrls = New List(Of String) From {$"https://modrinth.com/mod/{ModrinthUpdate(Entry.ModrinthHash)("project_id")}/changelog?g={McVersion}"}
+                            Entry.ChangelogUrls = New List(Of String) From {$"https://modrinth.com/mod/{ModrinthUpdate(Entry.ModrinthHash)("project_id")}/changelog?g={McInstance}"}
                             Entry.UpdateFile = UpdateFile
                         End If
                     Next
@@ -1841,7 +1841,7 @@ Finished:
                             For Each IndexEntry In ProjectJson("latestFilesIndexes")
                                 If IndexEntry("modLoader") Is Nothing OrElse ModLoaders.Single <> IndexEntry("modLoader").ToObject(Of Integer) Then Continue For 'ModLoader 唯一且匹配
                                 Dim IndexVersion As String = IndexEntry("gameVersion")
-                                If IndexVersion <> McVersion Then Continue For 'MC 版本匹配
+                                If IndexVersion <> McInstance Then Continue For 'MC 版本匹配
                                 '由于 latestFilesIndexes 是按时间从新到老排序的，所以只需取第一个；如果需要检查多个 releaseType 下的文件，将 > -1 改为 = 1，但这应当并不会获取到更新的文件
                                 If NewestVersion IsNot Nothing AndAlso VersionSortInteger(NewestVersion, IndexVersion) > -1 Then Continue For '只保留最新 MC 版本
                                 If NewestVersion <> IndexVersion Then
@@ -1904,7 +1904,7 @@ Finished:
         If Not Mods.Any() Then Return
         For Each Entry In Mods
             Entry.CompLoaded = Not IsFailed
-            Cache(Entry.ModrinthHash & McVersion & ModLoaders.Join("")) = Entry.ToJson()
+            Cache(Entry.ModrinthHash & McInstance & ModLoaders.Join("")) = Entry.ToJson()
         Next
         WriteFile(PathTemp & "Cache\LocalComp.json", Cache.ToString(If(ModeDebug, Newtonsoft.Json.Formatting.Indented, Newtonsoft.Json.Formatting.None)))
         '刷新边栏
@@ -1940,7 +1940,7 @@ Finished:
     ''' <summary>
     ''' 检查 Mod 列表中存在的错误，返回错误信息的集合。
     ''' </summary>
-    Public Function McModCheck(Version As McVersion, Mods As List(Of McMod)) As List(Of String)
+    Public Function McModCheck(Version As McInstance, Mods As List(Of McMod)) As List(Of String)
         Dim Result As New List(Of String)
         '令所有 Mod 进行基础检查，并归纳需要检查的 Mod
         Dim CurrentModList As New List(Of McMod)
@@ -1953,7 +1953,7 @@ Finished:
         Next
         '添加默认依赖
         Dim CurrentDependencies As New Dictionary(Of String, String()) '{DependencyVersion, Path}
-        If Version.State = McVersionState.Forge Then CurrentDependencies.Add("forge", {Version.Version.ForgeVersion, "Forge"})
+        If Version.State = McInstanceState.Forge Then CurrentDependencies.Add("forge", {Version.Version.ForgeVersion, "Forge"})
         CurrentDependencies.Add("minecraft", {Version.Version.McName, "Minecraft"})
         '检查重复的 Mod，并添加对应的依赖
         For Each ModEntity In CurrentModList

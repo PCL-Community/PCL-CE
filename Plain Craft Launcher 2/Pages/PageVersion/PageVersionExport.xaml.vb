@@ -21,7 +21,7 @@ Public Class PageVersionExport
     Private CurrentVersion As String = ""
     Private Sub PageVersionExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
-        If CurrentVersion <> PageVersionLeft.Version.Path Then RefreshAll() '切换到了另一个版本，重置页面
+        If CurrentVersion <> PageVersionLeft.Version.Path Then RefreshAll() '切换到了另一个实例，重置页面
         BtnAdvancedHelp.EventData = "指南/整合包制作.json"
         AniControlEnabled -= 1
     End Sub
@@ -404,7 +404,7 @@ Public Class PageVersionExport
         Dim LoaderName As String = $"导出整合包：" & PackName
         For Each OngoingLoader In LoaderTaskbar
             If OngoingLoader.Name <> LoaderName Then Continue For
-            FrmMain.PageChange(FormMain.PageType.DownloadManager)
+            FrmMain.PageChange(FormMain.PageType.TaskManager)
             Return
         Next
 
@@ -434,8 +434,8 @@ Public Class PageVersionExport
         '缓存所需参数
         Dim CacheFolder = RequestTaskTempFolder()
         Dim OverridesFolder = CacheFolder & "modpack\overrides\"
-        Dim McVersion = PageVersionLeft.Version
-        Dim PathIndie As String = McVersion.PathIndie
+        Dim McInstance = PageVersionLeft.Version
+        Dim PathIndie As String = McInstance.PathIndie
         Dim CheckHostedAssets As Boolean = Not CheckAdvancedInclude.Checked
         Dim ModrinthUploadMode As Boolean = CheckAdvancedModrinth.Checked
         Dim IncludePCL As Boolean = CheckOptionsPcl.Checked
@@ -466,7 +466,7 @@ Public Class PageVersionExport
         Loaders.Add(New LoaderTask(Of Integer, List(Of LocalCompFile))("复制导出内容",
         Sub(Loader As LoaderTask(Of Integer, List(Of LocalCompFile)))
             Loader.Output = New List(Of LocalCompFile)
-            '复制版本文件
+            '复制实例文件
             Dim Progress As Integer = 0
             Dim SearchFolder As Action(Of DirectoryInfo)
             SearchFolder =
@@ -528,8 +528,8 @@ Public Class PageVersionExport
                 End If
             Next
             Loader.Progress = 0.97
-            '复制 PCL 版本设置
-            CopyDirectory(McVersion.Path & "PCL\", OverridesFolder & "PCL\")
+            '复制 PCL 实例设置
+            CopyDirectory(McInstance.Path & "PCL\", OverridesFolder & "PCL\")
 #If RELEASE Then
             '复制 PCL 本体
             If IncludePCL Then CopyFile(PathWithName, CacheFolder & "Plain Craft Launcher.exe")
@@ -651,16 +651,16 @@ Public Class PageVersionExport
             Next
             Loader.Progress = 0.2
             '导出最终 JSON 文件
-            Dim Dependencies As New JObject From {{"minecraft", McVersion.Version.McName}}
-            If McVersion.Version.HasForge Then Dependencies.Add("forge", McVersion.Version.ForgeVersion)
-            If McVersion.Version.HasFabric Then Dependencies.Add("fabric-loader", McVersion.Version.FabricVersion)
-            If McVersion.Version.HasNeoForge Then Dependencies.Add("neoforge", McVersion.Version.NeoForgeVersion)
+            Dim Dependencies As New JObject From {{"minecraft", McInstance.Version.McName}}
+            If McInstance.Version.HasForge Then Dependencies.Add("forge", McInstance.Version.ForgeVersion)
+            If McInstance.Version.HasFabric Then Dependencies.Add("fabric-loader", McInstance.Version.FabricVersion)
+            If McInstance.Version.HasNeoForge Then Dependencies.Add("neoforge", McInstance.Version.NeoForgeVersion)
             Dim ResultJson As New JObject From {
                 {"game", "minecraft"},
                 {"formatVersion", 1},
                 {"versionId", PackVersion},
                 {"name", PackName},
-                {"summary", McVersion.Info},
+                {"summary", McInstance.Info},
                 {"files", Files},
                 {"dependencies", Dependencies}
             }
@@ -694,7 +694,7 @@ Public Class PageVersionExport
         LoaderTaskbarAdd(MainLoader)
         FrmMain.BtnExtraDownload.ShowRefresh()
         FrmMain.BtnExtraDownload.Ribble()
-        FrmMain.PageChange(FormMain.PageType.DownloadManager)
+        FrmMain.PageChange(FormMain.PageType.TaskManager)
     End Sub
 
 #End Region

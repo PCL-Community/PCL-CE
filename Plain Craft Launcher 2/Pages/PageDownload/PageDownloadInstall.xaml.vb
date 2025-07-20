@@ -823,7 +823,7 @@ Public Class PageDownloadInstall
     End Sub
 
     ''' <summary>
-    ''' 获取版本图标。
+    ''' 获取实例图标。
     ''' </summary>
     Private Function GetSelectLogo() As String
         If SelectedFabric IsNot Nothing Then
@@ -849,9 +849,9 @@ Public Class PageDownloadInstall
         End If
     End Function
 
-    '版本名处理
+    '实例名处理
     ''' <summary>
-    ''' 获取默认版本名。
+    ''' 获取默认实例名。
     ''' </summary>
     Private Function GetSelectName() As String
         Dim Name As String = SelectedMinecraftId
@@ -2114,8 +2114,8 @@ Public Class PageDownloadInstall
         '确认版本隔离
         If SelectedLoaderName IsNot Nothing AndAlso
            (Setup.Get("LaunchArgumentIndieV2") = 0 OrElse Setup.Get("LaunchArgumentIndieV2") = 2) Then
-            If MyMsgBox("你尚未开启版本隔离，多个 MC 版本会共用同一个 Mod 文件夹。" & vbCrLf &
-                        "因此，游戏可能会因为读取到与当前版本不符的 Mod 而崩溃。" & vbCrLf &
+            If MyMsgBox("你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。" & vbCrLf &
+                        "因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。" & vbCrLf &
                         "推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！", "版本隔离提示", "取消下载", "继续") = 1 Then
                 Return
             End If
@@ -2123,8 +2123,8 @@ Public Class PageDownloadInstall
         '提交安装申请
         Dim VersionName As String = TextSelectName.Text
         Dim Request As New McInstallRequest With {
-            .TargetVersionName = VersionName,
-            .TargetVersionFolder = $"{PathMcFolder}versions\{VersionName}\",
+            .TargetInstanceName = VersionName,
+            .TargetInstanceFolder = $"{PathMcFolder}versions\{VersionName}\",
             .MinecraftJson = SelectedMinecraftJsonUrl,
             .MinecraftName = SelectedMinecraftId,
             .OptiFineEntry = SelectedOptiFine,
@@ -2143,7 +2143,7 @@ Public Class PageDownloadInstall
             .LegacyFabricApi = SelectedLegacyFabricApi
         }
         If Not McInstall(Request) Then Return
-        '返回，这样在再次进入安装页面时这个版本就会显示文件夹已重复
+        '返回，这样在再次进入安装页面时这个实例就会显示文件夹已重复
         ExitSelectPage()
     End Sub
 

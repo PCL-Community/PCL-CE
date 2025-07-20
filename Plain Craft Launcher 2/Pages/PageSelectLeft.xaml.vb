@@ -140,7 +140,7 @@
         Catch ex As Exception
             Log(ex, "构建 Minecraft 文件夹列表 UI 出错", LogLevel.Feedback)
         Finally
-            LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新版本列表
+            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
         End Try
     End Sub
     Private McFolderListLast As List(Of McFolder)
@@ -231,15 +231,15 @@
                 '1. 根目录中存在数个 Mod
                 Dim ModFolder As New DirectoryInfo(FolderPath & "mods\")
                 If Not (ModFolder.Exists AndAlso ModFolder.EnumerateFiles.Count >= 3) Then Return
-                '2. 版本数较少，可能为整合包
+                '2. 实例数较少，可能为整合包
                 Dim VersionFolder As New DirectoryInfo(FolderPath & "versions\")
                 If Not (VersionFolder.Exists AndAlso VersionFolder.EnumerateDirectories.Count <= 3) Then Return
-                '3. 能够找到可安装 Mod 的版本
+                '3. 能够找到可安装 Mod 的实例
                 For Each VersionPath In VersionFolder.EnumerateDirectories
-                    Dim Version As New McVersion(VersionPath.FullName)
+                    Dim Version As New McInstance(VersionPath.FullName)
                     Version.Load()
                     If Not Version.Modable Then Continue For
-                    '4. 该版本的隔离文件夹下不存在 mods
+                    '4. 该实例的隔离文件夹下不存在 mods
                     Dim ModIndieFolder As New DirectoryInfo(Version.Path & "mods\")
                     If ModIndieFolder.Exists AndAlso ModIndieFolder.EnumerateFiles.Any Then Return
                     '满足以上全部条件则视为根目录整合包
@@ -277,7 +277,7 @@
             Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
             '若为 “移除”，则提醒是否删除 PCL 的配置文件
             If Folder.Type = McFolderType.Custom Then
-                Select Case MyMsgBox("是否需要清理 PCL 在该文件夹中的配置文件？" & vbCrLf & "这包括各个版本的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。", "配置文件清理", "删除", "保留", "取消")
+                Select Case MyMsgBox("是否需要清理 PCL 在该文件夹中的配置文件？" & vbCrLf & "这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。", "配置文件清理", "删除", "保留", "取消")
                     Case 1
                         '删除配置文件
                         If File.Exists(Folder.Path & "PCL.ini") Then File.Delete(Folder.Path & "PCL.ini")
@@ -359,8 +359,8 @@
         RefreshCurrent(PathMcFolder)
     End Sub
     Public Shared Sub RefreshCurrent(Folder As String)
-        WriteIni(Folder & "PCL.ini", "VersionCache", "") '删除缓存以强制要求下一次加载时更新列表
-        If Folder = PathMcFolder Then LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+        WriteIni(Folder & "PCL.ini", "InstanceCache", "") '删除缓存以强制要求下一次加载时更新列表
+        If Folder = PathMcFolder Then LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
     Public Sub Rename_Click(sender As Object, e As RoutedEventArgs)
         Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
@@ -410,7 +410,7 @@
         '更换
         Setup.Set("LaunchFolderSelect", CType(sender.Tag, McFolder).Path.Replace(Path, "$"))
         McFolderListLoader.Start(IsForceRestart:=True)
-        LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新版本列表
+        LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
     End Sub
 
 End Class

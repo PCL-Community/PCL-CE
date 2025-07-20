@@ -3,21 +3,21 @@
 #Region "DlClient* | Minecraft 客户端"
 
     ''' <summary>
-    ''' 返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖版本已存在。
+    ''' 返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
     ''' 失败则抛出异常，不需要下载则返回 Nothing。
     ''' </summary>
-    Public Function DlClientJarGet(Version As McVersion, ReturnNothingOnFileUseable As Boolean) As NetFile
-        '获取底层继承版本
+    Public Function DlClientJarGet(Version As McInstance, ReturnNothingOnFileUseable As Boolean) As NetFile
+        '获取底层继承实例
         Try
-            Do While Not String.IsNullOrEmpty(Version.InheritVersion)
-                Version = New McVersion(Version.InheritVersion)
+            Do While Not String.IsNullOrEmpty(Version.InheritInstance)
+                Version = New McInstance(Version.InheritInstance)
             Loop
         Catch ex As Exception
-            Log(ex, "获取底层继承版本失败")
+            Log(ex, "获取底层继承实例失败")
         End Try
         '检查 Json 是否标准
         If Version.JsonObject("downloads") Is Nothing OrElse Version.JsonObject("downloads")("client") Is Nothing OrElse Version.JsonObject("downloads")("client")("url") Is Nothing Then
-            Throw New Exception("底层版本 " & Version.Name & " 中无 Jar 文件下载信息")
+            Throw New Exception("底层实例 " & Version.Name & " 中无 Jar 文件下载信息")
         End If
         '检查文件
         Dim Checker As New FileChecker(MinSize:=1024, ActualSize:=If(Version.JsonObject("downloads")("client")("size"), -1), Hash:=Version.JsonObject("downloads")("client")("sha1"))
@@ -28,18 +28,18 @@
     End Function
 
     ''' <summary>
-    ''' 返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖版本已存在。
+    ''' 返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
     ''' 若未找到，则会返回 Legacy 资源文件或 Nothing。
     ''' </summary>
-    Public Function DlClientAssetIndexGet(Version As McVersion) As NetFile
-        '获取底层继承版本
-        Do While Not String.IsNullOrEmpty(Version.InheritVersion)
-            Version = New McVersion(Version.InheritVersion)
+    Public Function DlClientAssetIndexGet(Version As McInstance) As NetFile
+        '获取底层继承实例
+        Do While Not String.IsNullOrEmpty(Version.InheritInstance)
+            Version = New McInstance(Version.InheritInstance)
         Loop
         '获取信息
         Dim IndexInfo = McAssetsGetIndex(Version, True, True)
         Dim IndexAddress As String = PathMcFolder & "assets\indexes\" & IndexInfo("id").ToString & ".json"
-        Log("[Download] 版本 " & Version.Name & " 对应的资源文件索引为 " & IndexInfo("id").ToString)
+        Log("[Download] 实例 " & Version.Name & " 对应的资源文件索引为 " & IndexInfo("id").ToString)
         Dim IndexUrl As String = If(IndexInfo("url"), "")
         If IndexUrl = "" Then
             Return Nothing
@@ -51,7 +51,7 @@
     ''' <summary>
     ''' 构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。
     ''' </summary>
-    Public Function DlClientFix(Version As McVersion, CheckAssetsHash As Boolean, AssetsIndexBehaviour As AssetsIndexExistsBehaviour) As List(Of LoaderBase)
+    Public Function DlClientFix(Version As McInstance, CheckAssetsHash As Boolean, AssetsIndexBehaviour As AssetsIndexExistsBehaviour) As List(Of LoaderBase)
         Dim Loaders As New List(Of LoaderBase)
 
 #Region "下载支持库文件"
@@ -1653,6 +1653,7 @@
     End Sub
 
 #End Region
+
 #Region "DlLegacyFabricList | LegacyFabric 列表"
 
     Public Structure DlLegacyFabricListResult
@@ -1713,4 +1714,5 @@
         Sub(Task As LoaderTask(Of Integer, List(Of CompFile))) Task.Output = CompFilesGet("legacy-fabric-api", False))
 
 #End Region
+
 End Module

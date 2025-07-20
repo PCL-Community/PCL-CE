@@ -280,7 +280,7 @@ Public Class PageVersionSetup
     ''' <summary>
     ''' 获取当前设置的 RAM 值。单位为 GB。
     ''' </summary>
-    Public Shared Function GetRam(Version As McVersion, Optional Is32BitJava As Boolean? = Nothing) As Double
+    Public Shared Function GetRam(Version As McInstance, Optional Is32BitJava As Boolean? = Nothing) As Double
         '跟随全局设置
         If Setup.Get("VersionRamType", Version:=Version) = 2 Then
             Return PageSetupLaunch.GetRam(Version, True, Is32BitJava)

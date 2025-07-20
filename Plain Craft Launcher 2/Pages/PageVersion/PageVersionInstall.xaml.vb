@@ -854,7 +854,7 @@ Public Class PageVersionInstall
 
     '显示信息获取
     ''' <summary>
-    ''' 获取版本描述信息。
+    ''' 获取实例描述信息。
     ''' </summary>
     Private Function GetSelectInfo() As String
         Dim Info As String = ""
@@ -893,7 +893,7 @@ Public Class PageVersionInstall
         Return Info.TrimStart(", ".ToCharArray())
     End Function
     ''' <summary>
-    ''' 获取版本图标。
+    ''' 获取实例图标。
     ''' </summary>
     Private Function GetSelectLogo() As String
         If SelectedFabric IsNot Nothing Then
@@ -919,14 +919,14 @@ Public Class PageVersionInstall
         End If
     End Function
 
-    '版本名处理
+    '实例名处理
     Private IsSelectNameEdited As Boolean = False
     Private IsSelectNameChanging As Boolean = False
     
     Private Shared ReadOnly RegexIsJarFile As New Regex("\.jar(\.disabled)?$")
-    
+
     ''' <summary>
-    ''' 通过文件名关键字和 mod id 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定版本 mods 目录中某个 mod 的 <see cref="LocalCompFile"/> 对象
+    ''' 通过文件名关键字和 mod id 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 mod 的 <see cref="LocalCompFile"/> 对象
     ''' <br />
     ''' <b>为了不浪费性能，关键字统一用小写</b> 
     ''' </summary>
@@ -940,7 +940,7 @@ Public Class PageVersionInstall
     
     Private Shared Function GetModLocalCompByKeywords(modIds As String(), mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
         Dim version = PageVersionLeft.Version
-        If Not version.Modable Then Return Nothing '跳过不可安装 mod 版本
+        If Not version.Modable Then Return Nothing '跳过不可安装 Mod 实例
         Dim modFolder = $"{version.Path}mods"
         If Not Directory.Exists(modFolder) Then Return Nothing '确保 mods 目录存在
         For Each file In Directory.EnumerateFiles(modFolder, $"*{mainKeyword}*")
@@ -1001,6 +1001,21 @@ Public Class PageVersionInstall
         Return result
     End Function
 
+    Private _currentOptiFabric As CompFile = Nothing
+    Private _currentOptiFabricPath As String = Nothing
+    Private Function GetCurrentOptiFabric()
+        Dim loaderOutput = DlOptiFabricLoader.Output
+        If loaderOutput Is Nothing Then Return Nothing
+        Dim localComp = GetModLocalCompByKeywords("optifabric", "optifabric", "opti")
+        If localComp Is Nothing Then Return Nothing
+        Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
+        If result IsNot Nothing Then
+            _currentOptiFabric = result
+            _currentOptiFabricPath = localComp.Path
+        End If
+        Return result
+    End Function
+
     '当前信息获取
     Public Sub GetCurrentInfo()
         SelectClear()
@@ -1026,7 +1041,7 @@ Public Class PageVersionInstall
         ElseIf CurrentVersion.HasFabric Then
             SelectedLoaderName = "Fabric"
             SelectedFabric = CurrentVersion.FabricVersion
-            SelectedFabricApi = GetCurrentFabricApi() '检测已有 Fabric API
+            SelectedFabricApi = GetCurrentFabricApi()
         ElseIf CurrentVersion.HasLabyMod Then
             SelectedLoaderName = "LabyMod"
             SelectedLabyModVersion = CurrentVersion.LabyModVersion
@@ -1036,11 +1051,11 @@ Public Class PageVersionInstall
         ElseIf CurrentVersion.HasQuilt Then
             SelectedLoaderName = "Quilt"
             SelectedQuilt = CurrentVersion.QuiltVersion
-            SelectedQSL = GetCurrentQsl() '检测已有 QSL
-            SelectedFabricApi = GetCurrentFabricApi() '检测已有 Fabric API
+            SelectedQSL = GetCurrentQsl()
+            SelectedFabricApi = GetCurrentFabricApi()
         End If
         If (CurrentVersion.HasFabric OrElse CurrentVersion.HasQuilt) AndAlso CurrentVersion.HasOptiFine Then
-            SelectedOptiFabric = Nothing 'TODO: 检测已有 OptiFabric
+            SelectedOptiFabric = GetCurrentOptiFabric()
         End If
         SelectedMinecraftIcon = "pack://application:,,,/images/Blocks/Grass.png" 'TODO: 需要判断 Icon
         CurrentInfo = GetSelectInfo()
@@ -1741,6 +1756,7 @@ Public Class PageVersionInstall
     End Sub
 
 #End Region
+
 #Region "LegacyFabric 列表"
 
     ''' <summary>
@@ -2265,15 +2281,15 @@ Public Class PageVersionInstall
         If SelectedLoaderName IsNot Nothing AndAlso
            (Setup.Get("LaunchArgumentIndieV2") = 0 OrElse Setup.Get("LaunchArgumentIndieV2") = 2) Then
             If MyMsgBox("你尚未开启版本隔离，这会导致多个 MC 共用同一个 Mod 文件夹。" & vbCrLf &
-                        "因此在切换 MC 版本时，MC 会因为读取到与当前版本不符的 Mod 而崩溃。" & vbCrLf &
+                        "因此在切换 MC 实例时，MC 会因为读取到与当前实例不符的 Mod 而崩溃。" & vbCrLf &
                         "PCL 推荐你在开始下载前，在 设置 → 版本隔离 中开启版本隔离选项！", "版本隔离提示", "取消下载", "继续") = 1 Then
                 Exit Sub
             End If
         End If
         If BtnSelectStart.Text = "开始重置" Then
-            If MyMsgBox("你正在重置当前版本。" & vbCrLf &
-                        "PCL 将会重新联网下载该版本所需的文件，并重新安装 Mod 加载器（如有）。" & vbCrLf &
-                        "此操作不会丢失你的存档、Mod、资源包等。", "重置此版本", "继续", "取消") = 2 Then
+            If MyMsgBox("你正在重置当前实例。" & vbCrLf &
+                        "PCL 将会重新联网下载该实例所需的文件，并重新安装 Mod 加载器（如有）。" & vbCrLf &
+                        "此操作不会丢失你的存档、Mod、资源包等。", "重置此实例", "继续", "取消") = 2 Then
                 Exit Sub
             End If
         End If
@@ -2281,7 +2297,7 @@ Public Class PageVersionInstall
         If PageVersionLeft.Version.PathIndie <> PageVersionLeft.Version.Path AndAlso PageVersionLeft.Version.Version.HasLabyMod Then
             Directory.Delete(PageVersionLeft.Version.PathIndie & "labymod-neo", True)
         End If
-        '备份版本核心文件
+        '备份实例核心文件
         CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".json", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".json")
         If File.Exists(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".jar") Then
             CopyFile(PageVersionLeft.Version.Path + PageVersionLeft.Version.Name + ".jar", PageVersionLeft.Version.Path + "PCLInstallBackups\" + PageVersionLeft.Version.Name + ".jar")
@@ -2292,8 +2308,8 @@ Public Class PageVersionInstall
         If SelectedQSL?.Equals(_currentQsl) Then SelectedQSL = Nothing
         '提交安装申请
         Dim Request As New McInstallRequest With {
-            .TargetVersionName = PageVersionLeft.Version.Name,
-            .TargetVersionFolder = $"{PathMcFolder}versions\{PageVersionLeft.Version.Name}\",
+            .TargetInstanceName = PageVersionLeft.Version.Name,
+            .TargetInstanceFolder = $"{PathMcFolder}versions\{PageVersionLeft.Version.Name}\",
             .MinecraftJson = SelectedMinecraftJsonUrl,
             .MinecraftName = SelectedMinecraftId,
             .OptiFineEntry = SelectedOptiFine,

@@ -56,15 +56,15 @@
 
                 Case "启动游戏"
                     If Data(0) = "\current" Then
-                        If McVersionCurrent Is Nothing Then
-                            Hint("请先选择一个 Minecraft 版本！", HintType.Critical)
+                        If McInstanceCurrent Is Nothing Then
+                            Hint("请先选择一个 Minecraft 实例！", HintType.Critical)
                             Return
                         Else
-                            Data(0) = McVersionCurrent.Name
+                            Data(0) = McInstanceCurrent.Name
                         End If
                     End If
                     If McLaunchStart(New McLaunchOptions With
-                                     {.ServerIp = If(Data.Length >= 2, Data(1), Nothing), .Version = New McVersion(Data(0))}) Then
+                                     {.ServerIp = If(Data.Length >= 2, Data(1), Nothing), .Version = New McInstance(Data(0))}) Then
                         Hint("正在启动 " & Data(0) & "……")
                     End If
 

@@ -66,7 +66,7 @@ Public Class ModSetup
         {"CacheAuthPass", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"CacheAuthServerServer", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"CompFavorites", New SetupEntry("[]", Source:=SetupSource.Registry)},
-        {"LaunchVersionSelect", New SetupEntry("")},
+        {"LaunchInstanceSelect", New SetupEntry("")},
         {"LaunchFolderSelect", New SetupEntry("")},
         {"LaunchFolders", New SetupEntry("", Source:=SetupSource.Registry)},
         {"LaunchArgumentTitle", New SetupEntry("")},
@@ -344,10 +344,10 @@ Public Class ModSetup
     ''' <summary>
     ''' 改变某个设置项的值。
     ''' </summary>
-    Public Sub [Set](Key As String, Value As Object, Optional ForceReload As Boolean = False, Optional Version As McVersion = Nothing)
+    Public Sub [Set](Key As String, Value As Object, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
         [Set](Key, Value, SetupDict(Key), ForceReload, Version)
     End Sub
-    Private Sub [Set](Key As String, Value As Object, E As SetupEntry, ForceReload As Boolean, Version As McVersion)
+    Private Sub [Set](Key As String, Value As Object, E As SetupEntry, ForceReload As Boolean, Version As McInstance)
         Try
 
             Value = CTypeDynamic(Value, E.Type)
@@ -391,10 +391,10 @@ Public Class ModSetup
     ''' <summary>
     ''' 应用某个设置项的值。
     ''' </summary>
-    Public Function Load(Key As String, Optional ForceReload As Boolean = False, Optional Version As McVersion = Nothing)
+    Public Function Load(Key As String, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
         Return Load(Key, SetupDict(Key), ForceReload, Version)
     End Function
-    Private Function Load(Key As String, E As SetupEntry, ForceReload As Boolean, Version As McVersion)
+    Private Function Load(Key As String, E As SetupEntry, ForceReload As Boolean, Version As McInstance)
         '如果已经应用过，则什么也不干
         If E.State = 2 AndAlso Not ForceReload Then Return E.Value
         '读取，应用并设置状态
@@ -408,11 +408,11 @@ Public Class ModSetup
     ''' <summary>
     ''' 获取某个设置项的值。
     ''' </summary>
-    Public Function [Get](Key As String, Optional Version As McVersion = Nothing)
+    Public Function [Get](Key As String, Optional Version As McInstance = Nothing)
         If Not SetupDict.ContainsKey(Key) Then Throw New KeyNotFoundException("未找到设置项：" & Key) With {.Source = Key}
         Return [Get](Key, SetupDict(Key), Version)
     End Function
-    Private Function [Get](Key As String, E As SetupEntry, Version As McVersion)
+    Private Function [Get](Key As String, E As SetupEntry, Version As McInstance)
         '获取强制值
         Dim Force As String = ForceValue(Key)
         If Force IsNot Nothing Then
@@ -431,7 +431,7 @@ Public Class ModSetup
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
-    Public Sub Reset(Key As String, Optional ForceReload As Boolean = False, Optional Version As McVersion = Nothing)
+    Public Sub Reset(Key As String, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
         Dim E As SetupEntry = SetupDict(Key)
         [Set](Key, E.DefaultValue, E, ForceReload, Version)
         Select Case SetupDict(Key).Source
@@ -454,7 +454,7 @@ Public Class ModSetup
     ''' <summary>
     ''' 某个设置项是否从未被设置过。
     ''' </summary>
-    Public Function IsUnset(Key As String, Optional Version As McVersion = Nothing) As Boolean
+    Public Function IsUnset(Key As String, Optional Version As McInstance = Nothing) As Boolean
         Select Case SetupDict(Key).Source
             Case SetupSource.Normal
                 Return Not HasIniKey("Setup", Key)
@@ -469,7 +469,7 @@ Public Class ModSetup
     ''' <summary>
     ''' 读取设置。
     ''' </summary>
-    Private Sub Read(Key As String, ByRef E As SetupEntry, Version As McVersion)
+    Private Sub Read(Key As String, ByRef E As SetupEntry, Version As McInstance)
         Try
             If Not E.State = 0 Then Return
             Dim SourceValue As String = Nothing '先用 String 储存，避免类型转换
@@ -533,9 +533,9 @@ Public Class ModSetup
 #Region "Launch"
 
     '切换选择
-    Public Sub LaunchVersionSelect(Value As String)
+    Public Sub LaunchInstanceSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 版本：" & Value)
-        WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McVersionCurrent), "", McVersionCurrent.Name))
+        WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
     End Sub
     Public Sub LaunchFolderSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", Path))
@@ -907,10 +907,10 @@ Public Class ModSetup
     Public Sub VersionServerLogin(Type As Integer)
         If FrmVersionSetup Is Nothing Then Return
         '为第三方登录清空缓存以更新描述
-        WriteIni(PathMcFolder & "PCL.ini", "VersionCache", "")
+        WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "")
         If PageVersionLeft.Version Is Nothing Then Return
-        PageVersionLeft.Version = New McVersion(PageVersionLeft.Version.Name).Load()
-        LoaderFolderRun(McVersionListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+        PageVersionLeft.Version = New McInstance(PageVersionLeft.Version.Name).Load()
+        LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
 
 #End Region

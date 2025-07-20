@@ -13,12 +13,12 @@ Public Module ModLaunch
     Public Class McLaunchOptions
         ''' <summary>
         ''' 强制指定在启动后进入的服务器 IP。
-        ''' 默认值：Nothing。使用版本设置的值。
+        ''' 默认值：Nothing。使用实例设置的值。
         ''' </summary>
         Public ServerIp As String = Nothing
         ''' <summary>
         ''' 指定在启动之后进入的存档名称。
-        ''' 默认值：Nothing。使用版本设置的值。
+        ''' 默认值：Nothing。使用实例设置的值。
         ''' </summary>
         Public WorldName As String = Nothing
         ''' <summary>
@@ -27,10 +27,10 @@ Public Module ModLaunch
         ''' </summary>
         Public SaveBatch As String = Nothing
         ''' <summary>
-        ''' 强行指定启动的 MC 版本。
-        ''' 默认值：Nothing。使用 McVersionCurrent。
+        ''' 强行指定启动的 MC 实例。
+        ''' 默认值：Nothing。使用 McInstanceCurrent。
         ''' </summary>
-        Public Version As McVersion = Nothing
+        Public Version As McInstance = Nothing
         ''' <summary>
         ''' 额外的启动参数。
         ''' </summary>
@@ -55,25 +55,25 @@ Public Module ModLaunch
             IsLaunching = False
             Return False
         End If
-        '强制切换需要启动的版本
-        If CurrentLaunchOptions.Version IsNot Nothing AndAlso McVersionCurrent <> CurrentLaunchOptions.Version Then
-            McLaunchLog("在启动前切换到版本 " & CurrentLaunchOptions.Version.Name)
-            '检查版本
+        '强制切换需要启动的实例
+        If CurrentLaunchOptions.Version IsNot Nothing AndAlso McInstanceCurrent <> CurrentLaunchOptions.Version Then
+            McLaunchLog("在启动前切换到实例 " & CurrentLaunchOptions.Version.Name)
+            '检查实例
             CurrentLaunchOptions.Version.Load()
-            If CurrentLaunchOptions.Version.State = McVersionState.Error Then
+            If CurrentLaunchOptions.Version.State = McInstanceState.Error Then
                 Hint("无法启动 Minecraft：" & CurrentLaunchOptions.Version.Info, HintType.Critical)
                 IsLaunching = False
                 Return False
             End If
-            '切换版本
-            McVersionCurrent = CurrentLaunchOptions.Version
-            Setup.Set("LaunchVersionSelect", McVersionCurrent.Name)
+            '切换实例
+            McInstanceCurrent = CurrentLaunchOptions.Version
+            Setup.Set("LaunchInstanceSelect", McInstanceCurrent.Name)
             FrmLaunchLeft.RefreshButtonsUI()
             FrmLaunchLeft.RefreshPage(False)
         End If
         FrmMain.AprilGiveup()
-        '禁止进入版本选择页面（否则就可以在启动中切换 McVersionCurrent 了）
-        FrmMain.PageStack = FrmMain.PageStack.Where(Function(p) p.Page <> FormMain.PageType.VersionSelect).ToList
+        '禁止进入实例选择页面（否则就可以在启动中切换 McInstanceCurrent 了）
+        FrmMain.PageStack = FrmMain.PageStack.Where(Function(p) p.Page <> FormMain.PageType.InstanceSelect).ToList
         '实际启动加载器
         McLaunchLoader.Start(Options, IsForceRestart:=True)
         Return True
@@ -125,7 +125,7 @@ Public Module ModLaunch
             Dim Loaders As New List(Of LoaderBase) From {
                 New LoaderTask(Of Integer, Integer)("获取 Java", AddressOf McLaunchJava) With {.ProgressWeight = 4, .Block = False},
                 McLoginLoader, '.ProgressWeight = 15, .Block = False
-                New LoaderCombo(Of String)("补全文件", DlClientFix(McVersionCurrent, False, AssetsIndexExistsBehaviour.DownloadInBackground)) With {.ProgressWeight = 15, .Show = False},
+                New LoaderCombo(Of String)("补全文件", DlClientFix(McInstanceCurrent, False, AssetsIndexExistsBehaviour.DownloadInBackground)) With {.ProgressWeight = 15, .Show = False},
                 New LoaderTask(Of String, List(Of McLibToken))("获取启动参数", AddressOf McLaunchArgumentMain) With {.ProgressWeight = 2},
                 New LoaderTask(Of List(Of McLibToken), Integer)("解压文件", AddressOf McLaunchNatives) With {.ProgressWeight = 2},
                 New LoaderTask(Of Integer, Integer)("预启动处理", AddressOf McLaunchPrerun) With {.ProgressWeight = 1},
@@ -135,7 +135,7 @@ Public Module ModLaunch
                 New LoaderTask(Of Integer, Integer)("结束处理", AddressOf McLaunchEnd) With {.ProgressWeight = 1}
             }
             '内存优化
-            Select Case Setup.Get("VersionRamOptimize", Version:=McVersionCurrent)
+            Select Case Setup.Get("VersionRamOptimize", Version:=McInstanceCurrent)
                 Case 0 '全局
                     If Setup.Get("LaunchArgumentRam") Then '使用全局设置
                         CType(Loaders(2), LoaderCombo(Of String)).Block = False
@@ -162,7 +162,7 @@ Public Module ModLaunch
             '成功与失败处理
             Select Case LaunchLoader.State
                 Case LoadState.Finished
-                    Hint(McVersionCurrent.Name & " 启动成功！", HintType.Finish)
+                    Hint(McInstanceCurrent.Name & " 启动成功！", HintType.Finish)
                 Case LoadState.Aborted
                     If AbortHint Is Nothing Then
                         Hint(If(CurrentLaunchOptions?.SaveBatch Is Nothing, "已取消启动！", "已取消导出启动脚本！"), HintType.Info)
@@ -227,11 +227,11 @@ NextInner:
     Private Sub McLaunchPrecheck()
         If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(100, 2000))
         '检查路径
-        If McVersionCurrent.PathIndie.Contains("!") OrElse McVersionCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.PathIndie & "）")
-        If McVersionCurrent.Path.Contains("!") OrElse McVersionCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McVersionCurrent.Path & "）")
-        If IsUtf8CodePage() AndAlso Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McVersionCurrent.Path.IsASCII() Then
+        If McInstanceCurrent.PathIndie.Contains("!") OrElse McInstanceCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.PathIndie & "）")
+        If McInstanceCurrent.Path.Contains("!") OrElse McInstanceCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.Path & "）")
+        If IsUtf8CodePage() AndAlso Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McInstanceCurrent.Path.IsASCII() Then
             Dim userChoice = MyMsgBox(
-                $"欲启动版本 ""{McVersionCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
+                $"欲启动实例 ""{McInstanceCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
                 "游戏路径检查",
                 "继续",
                 "返回处理",
@@ -243,29 +243,29 @@ NextInner:
                 Setup.Set("HintDisableGamePathCheckTip", True)
             End If
         End If
-        '检查版本
-        If McVersionCurrent Is Nothing Then Throw New Exception("未选择 Minecraft 版本！")
-        McVersionCurrent.Load()
-        If McVersionCurrent.State = McVersionState.Error Then Throw New Exception("Minecraft 存在问题：" & McVersionCurrent.Info)
+        '检查实例
+        If McInstanceCurrent Is Nothing Then Throw New Exception("未选择 Minecraft 实例！")
+        McInstanceCurrent.Load()
+        If McInstanceCurrent.State = McInstanceState.Error Then Throw New Exception("Minecraft 存在问题：" & McInstanceCurrent.Info)
         '检查输入信息
         Dim CheckResult As String = ""
         RunInUiWait(Sub() CheckResult = IsProfileVaild())
         If SelectedProfile Is Nothing Then '没选档案
             CheckResult = "请先选择一个档案再启动游戏！"
-        ElseIf McVersionCurrent.Version.HasLabyMod OrElse Setup.Get("VersionServerLoginRequire", McVersionCurrent) = 1 Then '要求正版验证
+        ElseIf McInstanceCurrent.Version.HasLabyMod OrElse Setup.Get("VersionServerLoginRequire", McInstanceCurrent) = 1 Then '要求正版验证
             If Not SelectedProfile.Type = McLoginType.Ms Then
                 CheckResult = "当前实例要求使用正版验证，请使用正版验证档案启动游戏！"
             End If
-        ElseIf Setup.Get("VersionServerLoginRequire", McVersionCurrent) = 2 Then '要求第三方验证
+        ElseIf Setup.Get("VersionServerLoginRequire", McInstanceCurrent) = 2 Then '要求第三方验证
             If Not SelectedProfile.Type = McLoginType.Auth Then
                 CheckResult = "当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！"
-            ElseIf Not SelectedProfile.Server.BeforeLast("/authserver") = Setup.Get("VersionServerAuthServer", McVersionCurrent) Then
+            ElseIf Not SelectedProfile.Server.BeforeLast("/authserver") = Setup.Get("VersionServerAuthServer", McInstanceCurrent) Then
                 CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！"
             End If
-        ElseIf Setup.Get("VersionServerLoginRequire", McVersionCurrent) = 3 Then '要求正版验证或第三方验证
+        ElseIf Setup.Get("VersionServerLoginRequire", McInstanceCurrent) = 3 Then '要求正版验证或第三方验证
             If SelectedProfile.Type = McLoginType.Legacy Then
                 CheckResult = "当前实例要求使用正版验证或第三方验证，请使用符合要求的档案启动游戏！"
-            ElseIf SelectedProfile.Type = McLoginType.Auth AndAlso Not SelectedProfile.Server.BeforeLast("/authserver") = Setup.Get("VersionServerAuthServer", McVersionCurrent) Then
+            ElseIf SelectedProfile.Type = McLoginType.Auth AndAlso Not SelectedProfile.Server.BeforeLast("/authserver") = Setup.Get("VersionServerAuthServer", McInstanceCurrent) Then
                 CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！"
             End If
         End If
@@ -1207,97 +1207,97 @@ LoginFinish:
         Dim MinVer As New Version(0, 0, 0, 0), MaxVer As New Version(999, 999, 999, 999)
 
         'MC 大版本检测
-        If (Not McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.ReleaseTime >= New Date(2024, 4, 2)) OrElse
-           (McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.Version.McVersion >= New Version(1, 20, 5)) Then
+        If (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2024, 4, 2)) OrElse
+           (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 20, 5)) Then
             '1.20.5+（24w14a+）：至少 Java 21
             MinVer = New Version(21, 0, 0, 0)
-        ElseIf (Not McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.ReleaseTime >= New Date(2021, 11, 16)) OrElse
-            (McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.Version.McVersion >= New Version(1, 18)) Then
+        ElseIf (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2021, 11, 16)) OrElse
+            (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 18)) Then
             '1.18 pre2+：至少 Java 17
             MinVer = New Version(17, 0, 0, 0)
-        ElseIf (Not McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.ReleaseTime >= New Date(2021, 5, 11)) OrElse
-           (McVersionCurrent.Version.IsStandardVersion AndAlso McVersionCurrent.Version.McVersion >= New Version(1, 17)) Then
+        ElseIf (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2021, 5, 11)) OrElse
+           (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 17)) Then
             '1.17+ (21w19a+)：至少 Java 16
             MinVer = New Version(16, 0, 0, 0)
-        ElseIf McVersionCurrent.ReleaseTime.Year >= 2017 Then 'Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
+        ElseIf McInstanceCurrent.ReleaseTime.Year >= 2017 Then 'Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
             '1.12+：至少 Java 8
             MinVer = New Version(1, 8, 0, 0)
-        ElseIf McVersionCurrent.ReleaseTime <= New Date(2013, 5, 1) AndAlso McVersionCurrent.ReleaseTime.Year >= 2001 Then '避免某些版本写个 1960 年
+        ElseIf McInstanceCurrent.ReleaseTime <= New Date(2013, 5, 1) AndAlso McInstanceCurrent.ReleaseTime.Year >= 2001 Then '避免某些版本写个 1960 年
             '1.5.2-：最高 Java 12
             MaxVer = New Version(12, 999, 999, 999)
         End If
-        If McVersionCurrent.JsonVersion?("java_version") IsNot Nothing Then
-            Dim RecommendedJava As Integer = McVersionCurrent.JsonVersion("java_version").ToObject(Of Integer)
+        If McInstanceCurrent.JsonVersion?("java_version") IsNot Nothing Then
+            Dim RecommendedJava As Integer = McInstanceCurrent.JsonVersion("java_version").ToObject(Of Integer)
             McLaunchLog("Mojang 推荐使用 Java " & RecommendedJava)
             If RecommendedJava >= 22 Then MinVer = New Version(RecommendedJava, 0, 0, 0) '潜在的向后兼容
         End If
 
         'OptiFine 检测
-        If McVersionCurrent.Version.HasOptiFine AndAlso McVersionCurrent.Version.IsStandardVersion Then '不管非标准版本
-            If McVersionCurrent.Version.McVersion < New Version(1, 7) Then
+        If McInstanceCurrent.Version.HasOptiFine AndAlso McInstanceCurrent.Version.IsStandardVersion Then '不管非标准版本
+            If McInstanceCurrent.Version.McInstance < New Version(1, 7) Then
                 '<1.7：至多 Java 8
                 MaxVer = New Version(8, 999, 999, 999)
-            ElseIf McVersionCurrent.Version.McVersion >= New Version(1, 8) AndAlso McVersionCurrent.Version.McVersion < New Version(1, 12) Then
+            ElseIf McInstanceCurrent.Version.McInstance >= New Version(1, 8) AndAlso McInstanceCurrent.Version.McInstance < New Version(1, 12) Then
                 '1.8 - 1.11：必须恰好 Java 8
                 MinVer = New Version(1, 8, 0, 0) : MaxVer = New Version(8, 999, 999, 999)
-            ElseIf McVersionCurrent.Version.McCodeMain = 12 Then
+            ElseIf McInstanceCurrent.Version.McCodeMain = 12 Then
                 '1.12：最高 Java 8
                 MaxVer = New Version(8, 999, 999, 999)
             End If
         End If
 
         'Forge 检测
-        If McVersionCurrent.Version.HasForge Then
-            If McVersionCurrent.Version.McVersion >= New Version(1, 6, 1) AndAlso McVersionCurrent.Version.McVersion <= New Version(1, 7, 2) Then
+        If McInstanceCurrent.Version.HasForge Then
+            If McInstanceCurrent.Version.McInstance >= New Version(1, 6, 1) AndAlso McInstanceCurrent.Version.McInstance <= New Version(1, 7, 2) Then
                 '1.6.1 - 1.7.2：必须 Java 7
                 MinVer = If(New Version(1, 7, 0, 0) > MinVer, New Version(1, 7, 0, 0), MinVer)
                 MaxVer = If(New Version(1, 7, 999, 999) < MaxVer, New Version(1, 7, 999, 999), MaxVer)
-            ElseIf McVersionCurrent.Version.McCodeMain <= 12 OrElse Not McVersionCurrent.Version.IsStandardVersion Then '非标准版本
+            ElseIf McInstanceCurrent.Version.McCodeMain <= 12 OrElse Not McInstanceCurrent.Version.IsStandardVersion Then '非标准版本
                 '<=1.12：Java 8
                 MaxVer = New Version(8, 999, 999, 999)
-            ElseIf McVersionCurrent.Version.McCodeMain <= 14 Then
+            ElseIf McInstanceCurrent.Version.McCodeMain <= 14 Then
                 '1.13 - 1.14：Java 8 - 10
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
                 MaxVer = If(New Version(10, 999, 999, 999) < MaxVer, New Version(10, 999, 999, 999), MaxVer)
-            ElseIf McVersionCurrent.Version.McCodeMain = 15 Then
+            ElseIf McInstanceCurrent.Version.McCodeMain = 15 Then
                 '1.15：Java 8 - 15
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
                 MaxVer = If(New Version(15, 999, 999, 999) < MaxVer, New Version(15, 999, 999, 999), MaxVer)
-            ElseIf VersionSortBoolean(McVersionCurrent.Version.ForgeVersion, "34.0.0") AndAlso VersionSortBoolean("36.2.25", McVersionCurrent.Version.ForgeVersion) Then
+            ElseIf VersionSortBoolean(McInstanceCurrent.Version.ForgeVersion, "34.0.0") AndAlso VersionSortBoolean("36.2.25", McInstanceCurrent.Version.ForgeVersion) Then
                 '1.16，Forge 34.X ~ 36.2.25：最高 Java 8u320
                 MaxVer = If(New Version(1, 8, 0, 320) < MaxVer, New Version(1, 8, 0, 320), MaxVer)
-            ElseIf McVersionCurrent.Version.McCodeMain >= 18 AndAlso McVersionCurrent.Version.McCodeMain < 19 AndAlso McVersionCurrent.Version.HasOptiFine Then '#305
+            ElseIf McInstanceCurrent.Version.McCodeMain >= 18 AndAlso McInstanceCurrent.Version.McCodeMain < 19 AndAlso McInstanceCurrent.Version.HasOptiFine Then '#305
                 '1.18：若安装了 OptiFine，最高 Java 18
                 MaxVer = If(New Version(18, 999, 999, 999) < MaxVer, New Version(18, 999, 999, 999), MaxVer)
             End If
         End If
 
         'Cleanroom 检测
-        If McVersionCurrent.Version.HasCleanroom Then
+        If McInstanceCurrent.Version.HasCleanroom Then
             '需要至少 Java 21
             MinVer = If(New Version(21, 0, 0, 0) > MinVer, New Version(21, 0, 0, 0), MinVer)
         End If
 
         'Fabric 检测
-        If McVersionCurrent.Version.HasFabric AndAlso McVersionCurrent.Version.IsStandardVersion Then '不管非标准版本
-            If McVersionCurrent.Version.McCodeMain >= 15 AndAlso McVersionCurrent.Version.McCodeMain <= 16 Then
+        If McInstanceCurrent.Version.HasFabric AndAlso McInstanceCurrent.Version.IsStandardVersion Then '不管非标准版本
+            If McInstanceCurrent.Version.McCodeMain >= 15 AndAlso McInstanceCurrent.Version.McCodeMain <= 16 Then
                 '1.15 - 1.16：Java 8+
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
-            ElseIf McVersionCurrent.Version.McCodeMain >= 18 Then
+            ElseIf McInstanceCurrent.Version.McCodeMain >= 18 Then
                 '1.18+：Java 17+
                 MinVer = If(New Version(17, 0, 0, 0) > MinVer, New Version(17, 0, 0, 0), MinVer)
             End If
         End If
 
         'LabyMod 检测
-        If McVersionCurrent.Version.HasLabyMod Then
+        If McInstanceCurrent.Version.HasLabyMod Then
             MinVer = If(New Version(21, 0, 0, 0) > MinVer, New Version(21, 0, 0, 0), MinVer)
             MaxVer = New Version(999, 999, 999, 999)
         End If
 
         'JSON 中要求的版本
-        If McVersionCurrent.JsonObject("javaVersion") IsNot Nothing Then
-            MinVer = If(New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0) > MinVer, New Version(McVersionCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0), MinVer)
+        If McInstanceCurrent.JsonObject("javaVersion") IsNot Nothing Then
+            MinVer = If(New Version(McInstanceCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0) > MinVer, New Version(McInstanceCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0), MinVer)
             If MaxVer < MinVer Then MaxVer = New Version(999, 999, 999, 999)
         End If
 
@@ -1305,7 +1305,7 @@ LoginFinish:
 
             '选择 Java
             McLaunchLog("Java 版本需求：最低 " & MinVer.ToString & "，最高 " & MaxVer.ToString)
-            McLaunchJavaSelected = JavaSelect("$$", MinVer, MaxVer, McVersionCurrent)
+            McLaunchJavaSelected = JavaSelect("$$", MinVer, MaxVer, McInstanceCurrent)
             If Task.IsAborted Then Return
             If McLaunchJavaSelected IsNot Nothing Then
                 McLaunchLog("选择的 Java：" & McLaunchJavaSelected.ToString)
@@ -1327,7 +1327,7 @@ LoginFinish:
                 If Not JavaDownloadConfirm("Java 17") Then Throw New Exception("$$")
             ElseIf MaxVer < New Version(1, 8) Then
                 JavaCode = 7
-                If McVersionCurrent.Version.HasForge Then
+                If McInstanceCurrent.Version.HasForge Then
                     MyMsgBox("你需要先安装 LegacyJavaFixer Mod，或自行安装 Java 7，然后才能启动该版本。", "未找到 Java")
                 Else
                     If Not JavaDownloadConfirm("Java 7", True) Then Throw New Exception("$$")
@@ -1359,7 +1359,7 @@ LoginFinish:
             End Try
 
             '检查下载结果
-            McLaunchJavaSelected = JavaSelect("$$", MinVer, MaxVer, McVersionCurrent)
+            McLaunchJavaSelected = JavaSelect("$$", MinVer, MaxVer, McInstanceCurrent)
             If Task.IsAborted Then Return
             If McLaunchJavaSelected IsNot Nothing Then
                 McLaunchLog("选择的 Java：" & McLaunchJavaSelected.ToString())
@@ -1377,7 +1377,7 @@ LoginFinish:
 
     Public Class LaunchArgument
         Private _features As New List(Of String)
-        Public Sub New(Minecraft As McVersion)
+        Public Sub New(Minecraft As McInstance)
             Dim curArgu As String = String.Empty
             If Minecraft.IsOldJson Then
                 _features = Minecraft.JsonObject("minecraftArguments").ToString.Split(" "c).ToList()
@@ -1462,7 +1462,7 @@ LoginFinish:
     ''' <summary>
     ''' 判断是否使用 RetroWrapper。
     ''' </summary>
-    Private Function McLaunchNeedsRetroWrapper(Mc As McVersion) As Boolean
+    Private Function McLaunchNeedsRetroWrapper(Mc As McInstance) As Boolean
         Return (Mc.ReleaseTime >= New Date(2013, 6, 25) AndAlso Mc.Version.McCodeMain = 99) OrElse
             (Mc.Version.McCodeMain < 6 AndAlso Mc.Version.McCodeMain <> 99) AndAlso
             Not Setup.Get("LaunchAdvanceDisableRW") AndAlso
@@ -1475,25 +1475,25 @@ LoginFinish:
         McLaunchLog("开始获取 Minecraft 启动参数")
         '获取基准字符串与参数信息
         Dim Arguments As String
-        If McVersionCurrent.JsonObject("arguments") IsNot Nothing AndAlso McVersionCurrent.JsonObject("arguments")("jvm") IsNot Nothing Then
+        If McInstanceCurrent.JsonObject("arguments") IsNot Nothing AndAlso McInstanceCurrent.JsonObject("arguments")("jvm") IsNot Nothing Then
             McLaunchLog("获取新版 JVM 参数")
-            Arguments = McLaunchArgumentsJvmNew(McVersionCurrent)
+            Arguments = McLaunchArgumentsJvmNew(McInstanceCurrent)
             McLaunchLog("新版 JVM 参数获取成功：")
             McLaunchLog(Arguments)
         Else
             McLaunchLog("获取旧版 JVM 参数")
-            Arguments = McLaunchArgumentsJvmOld(McVersionCurrent)
+            Arguments = McLaunchArgumentsJvmOld(McInstanceCurrent)
             McLaunchLog("旧版 JVM 参数获取成功：")
             McLaunchLog(Arguments)
         End If
-        If Not String.IsNullOrEmpty(McVersionCurrent.JsonObject("minecraftArguments")) Then '有的版本是空字符串
+        If Not String.IsNullOrEmpty(McInstanceCurrent.JsonObject("minecraftArguments")) Then '有的实例 JSON 中是空字符串
             McLaunchLog("获取旧版 Game 参数")
-            Arguments += " " & McLaunchArgumentsGameOld(McVersionCurrent)
+            Arguments += " " & McLaunchArgumentsGameOld(McInstanceCurrent)
             McLaunchLog("旧版 Game 参数获取成功")
         End If
-        If McVersionCurrent.JsonObject("arguments") IsNot Nothing AndAlso McVersionCurrent.JsonObject("arguments")("game") IsNot Nothing Then
+        If McInstanceCurrent.JsonObject("arguments") IsNot Nothing AndAlso McInstanceCurrent.JsonObject("arguments")("game") IsNot Nothing Then
             McLaunchLog("获取新版 Game 参数")
-            Arguments += " " & McLaunchArgumentsGameNew(McVersionCurrent)
+            Arguments += " " & McLaunchArgumentsGameNew(McInstanceCurrent)
             McLaunchLog("新版 Game 参数获取成功")
         End If
         '编码参数（#4700、#5892、#5909）
@@ -1505,7 +1505,7 @@ LoginFinish:
             If Not Arguments.Contains("-Dfile.encoding=") Then Arguments = "-Dfile.encoding=COMPAT " & Arguments
         End If
         '替换参数
-        Dim ReplaceArguments = McLaunchArgumentsReplace(McVersionCurrent, Loader)
+        Dim ReplaceArguments = McLaunchArgumentsReplace(McInstanceCurrent, Loader)
         If String.IsNullOrWhiteSpace(ReplaceArguments("${version_type}")) Then
             '若自定义信息为空，则去掉该部分
             Arguments = Arguments.Replace(" --versionType ${version_type}", "")
@@ -1528,9 +1528,9 @@ LoginFinish:
             Arguments += $" --quickPlaySingleplayer ""{WorldName}"""
         End If
         '进服
-        Dim Server As String = If(String.IsNullOrEmpty(CurrentLaunchOptions.ServerIp), Setup.Get("VersionServerEnter", McVersionCurrent), CurrentLaunchOptions.ServerIp)
+        Dim Server As String = If(String.IsNullOrEmpty(CurrentLaunchOptions.ServerIp), Setup.Get("VersionServerEnter", McInstanceCurrent), CurrentLaunchOptions.ServerIp)
         If String.IsNullOrWhiteSpace(WorldName) AndAlso Not String.IsNullOrWhiteSpace(Server) Then
-            If McVersionCurrent.ReleaseTime > New Date(2023, 4, 4) Then
+            If McInstanceCurrent.ReleaseTime > New Date(2023, 4, 4) Then
                 'QuickPlay
                 Arguments += $" --quickPlayMultiplayer ""{Server}"""
             Else
@@ -1542,11 +1542,11 @@ LoginFinish:
                     '不包含端口号
                     Arguments += " --server " & Server & " --port 25565"
                 End If
-                If McVersionCurrent.Version.HasOptiFine Then Hint("OptiFine 与自动进入服务器可能不兼容，有概率导致材质丢失甚至游戏崩溃！", HintType.Critical)
+                If McInstanceCurrent.Version.HasOptiFine Then Hint("OptiFine 与自动进入服务器可能不兼容，有概率导致材质丢失甚至游戏崩溃！", HintType.Critical)
             End If
         End If
         '自定义
-        Dim ArgumentGame As String = Setup.Get("VersionAdvanceGame", Version:=McVersionCurrent)
+        Dim ArgumentGame As String = Setup.Get("VersionAdvanceGame", Version:=McInstanceCurrent)
         Arguments += " " & If(ArgumentGame = "", Setup.Get("LaunchAdvanceGame"), ArgumentGame)
         '输出
         McLaunchLog("Minecraft 启动参数：")
@@ -1555,19 +1555,19 @@ LoginFinish:
     End Sub
 
     'Jvm 部分（第一段）
-    Private Function McLaunchArgumentsJvmOld(Version As McVersion) As String
+    Private Function McLaunchArgumentsJvmOld(Version As McInstance) As String
         '存储以空格为间隔的启动参数列表
         Dim DataList As New List(Of String)
 
         '输出固定参数
         DataList.Add("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump")
-        Dim ArgumentJvm As String = Setup.Get("VersionAdvanceJvm", Version:=McVersionCurrent)
+        Dim ArgumentJvm As String = Setup.Get("VersionAdvanceJvm", Version:=McInstanceCurrent)
         If ArgumentJvm = "" Then ArgumentJvm = Setup.Get("LaunchAdvanceJvm")
         If Not ArgumentJvm.Contains("-Dlog4j2.formatMsgNoLookups=true") Then ArgumentJvm += " -Dlog4j2.formatMsgNoLookups=true"
         ArgumentJvm = ArgumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", "") '#3511 的清理
         DataList.Insert(0, ArgumentJvm) '可变 JVM 参数
-        DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
-        DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McVersionCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
+        DataList.Add("-Xmn" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
+        DataList.Add("-Xmx" & Math.Floor(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
         DataList.Add("""-Djava.library.path=" & GetNativesFolder() & """")
         DataList.Add("-cp ${classpath}") '把支持库添加进启动参数表
 
@@ -1585,13 +1585,13 @@ LoginFinish:
         End If
 
         '设置代理
-        If Setup.Get("VersionAdvanceUseProxyV2", Version:=McVersionCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
+        If Setup.Get("VersionAdvanceUseProxyV2", Version:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
             Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
         End If
         '添加 Java Wrapper 作为主 Jar
-        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McVersionCurrent) Then
+        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
@@ -1599,18 +1599,18 @@ LoginFinish:
 
         '添加 MainClass
         If Version.JsonObject("mainClass") Is Nothing Then
-            Throw New Exception("版本 json 中没有 mainClass 项！")
+            Throw New Exception("实例 JSON 中没有 mainClass 项！")
         Else
             DataList.Add(Version.JsonObject("mainClass"))
         End If
 
         Return Join(DataList, " ")
     End Function
-    Private Function McLaunchArgumentsJvmNew(Version As McVersion) As String
+    Private Function McLaunchArgumentsJvmNew(Version As McInstance) As String
         Dim DataList As New List(Of String)
 
         '获取 Json 中的 DataList
-        Dim CurrentVersion As McVersion = Version
+        Dim CurrentVersion As McInstance = Version
 NextVersion:
         If CurrentVersion.JsonObject("arguments") IsNot Nothing AndAlso CurrentVersion.JsonObject("arguments")("jvm") IsNot Nothing Then
             For Each SubJson As JToken In CurrentVersion.JsonObject("arguments")("jvm")
@@ -1632,8 +1632,8 @@ NextVersion:
                 End If
             Next
         End If
-        If CurrentVersion.InheritVersion <> "" Then
-            CurrentVersion = New McVersion(CurrentVersion.InheritVersion)
+        If CurrentVersion.InheritInstance <> "" Then
+            CurrentVersion = New McInstance(CurrentVersion.InheritInstance)
             GoTo NextVersion
         End If
 
@@ -1654,7 +1654,7 @@ NextVersion:
         End If
 
         '设置代理
-        If Setup.Get("VersionAdvanceUseProxyV2", Version:=McVersionCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
+        If Setup.Get("VersionAdvanceUseProxyV2", Version:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
             Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
@@ -1665,7 +1665,7 @@ NextVersion:
             DataList.Add("-Dretrowrapper.doUpdateCheck=false")
         End If
         '添加 Java Wrapper 作为主 Jar
-        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McVersionCurrent) Then
+        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
@@ -1698,7 +1698,7 @@ NextVersion:
 
         '添加 MainClass
         If Version.JsonObject("mainClass") Is Nothing Then
-            Throw New Exception("版本 json 中没有 mainClass 项！")
+            Throw New Exception("实例 JSON 中没有 mainClass 项！")
         Else
             Result += " " & Version.JsonObject("mainClass").ToString
         End If
@@ -1707,7 +1707,7 @@ NextVersion:
     End Function
 
     'Game 部分（第二段）
-    Private Function McLaunchArgumentsGameOld(Version As McVersion) As String
+    Private Function McLaunchArgumentsGameOld(Version As McInstance) As String
         Dim DataList As New List(Of String)
 
         '添加 RetroWrapper 相关参数
@@ -1742,11 +1742,11 @@ NextVersion:
 
         Return Result
     End Function
-    Private Function McLaunchArgumentsGameNew(Version As McVersion) As String
+    Private Function McLaunchArgumentsGameNew(Version As McInstance) As String
         Dim DataList As New List(Of String)
 
         '获取 Json 中的 DataList
-        Dim CurrentVersion As McVersion = Version
+        Dim CurrentVersion As McInstance = Version
 NextVersion:
         If CurrentVersion.JsonObject("arguments") IsNot Nothing AndAlso CurrentVersion.JsonObject("arguments")("game") IsNot Nothing Then
             For Each SubJson As JToken In CurrentVersion.JsonObject("arguments")("game")
@@ -1768,8 +1768,8 @@ NextVersion:
                 End If
             Next
         End If
-        If CurrentVersion.InheritVersion <> "" Then
-            CurrentVersion = New McVersion(CurrentVersion.InheritVersion)
+        If CurrentVersion.InheritInstance <> "" Then
+            CurrentVersion = New McInstance(CurrentVersion.InheritInstance)
             GoTo NextVersion
         End If
 
@@ -1813,7 +1813,7 @@ NextVersion:
     End Function
 
     '替换 Arguments
-    Private Function McLaunchArgumentsReplace(Version As McVersion, ByRef Loader As LoaderTask(Of String, List(Of McLibToken))) As Dictionary(Of String, String)
+    Private Function McLaunchArgumentsReplace(Version As McInstance, ByRef Loader As LoaderTask(Of String, List(Of McLibToken))) As Dictionary(Of String, String)
         Dim GameArguments As New Dictionary(Of String, String)
 
         '基础参数
@@ -1824,9 +1824,9 @@ NextVersion:
         GameArguments.Add("${launcher_name}", "PCL")
         GameArguments.Add("${launcher_version}", VersionCode)
         GameArguments.Add("${version_name}", Version.Name)
-        Dim ArgumentInfo As String = Setup.Get("VersionArgumentInfo", Version:=McVersionCurrent)
+        Dim ArgumentInfo As String = Setup.Get("VersionArgumentInfo", Version:=McInstanceCurrent)
         GameArguments.Add("${version_type}", If(ArgumentInfo = "", Setup.Get("LaunchArgumentInfo"), ArgumentInfo))
-        GameArguments.Add("${game_directory}", ShortenPath(Left(McVersionCurrent.PathIndie, McVersionCurrent.PathIndie.Count - 1)))
+        GameArguments.Add("${game_directory}", ShortenPath(Left(McInstanceCurrent.PathIndie, McInstanceCurrent.PathIndie.Count - 1)))
         GameArguments.Add("${assets_root}", ShortenPath(PathMcFolder & "assets"))
         GameArguments.Add("${user_properties}", "{}")
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name)
@@ -1849,9 +1849,9 @@ NextVersion:
             Case Else
                 GameSize = New Size(854, 480)
         End Select
-        If McVersionCurrent.Version.McCodeMain <= 12 AndAlso
+        If McInstanceCurrent.Version.McCodeMain <= 12 AndAlso
             McLaunchJavaSelected.JavaMajorVersion <= 8 AndAlso McLaunchJavaSelected.Version.Revision >= 200 AndAlso McLaunchJavaSelected.Version.Revision <= 321 AndAlso
-            Not McVersionCurrent.Version.HasOptiFine AndAlso Not McVersionCurrent.Version.HasForge Then
+            Not McInstanceCurrent.Version.HasOptiFine AndAlso Not McInstanceCurrent.Version.HasForge Then
             '修复 #3463：1.12.2-，JRE 8u200~321 下窗口大小为设置大小的 DPI% 倍
             McLaunchLog($"已应用窗口大小过大修复（{McLaunchJavaSelected.Version.Revision}）")
             GameSize.Width /= DPI / 96
@@ -1968,7 +1968,7 @@ NextVersion:
     ''' 获取 Natives 文件夹路径，不以 \ 结尾。
     ''' </summary>
     Private Function GetNativesFolder() As String
-        Dim Result As String = McVersionCurrent.Path & McVersionCurrent.Name & "-natives"
+        Dim Result As String = McInstanceCurrent.Path & McInstanceCurrent.Name & "-natives"
         If IsGBKEncoding OrElse Result.IsASCII() Then Return Result
         Result = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\bin\natives"
         If Result.IsASCII() Then Return Result
@@ -2068,10 +2068,10 @@ NextVersion:
         End Try
 
         '更新 options.txt
-        Dim SetupFileAddress As String = McVersionCurrent.PathIndie & "options.txt"
+        Dim SetupFileAddress As String = McInstanceCurrent.PathIndie & "options.txt"
         If Not File.Exists(SetupFileAddress) Then
             'Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
-            Dim YosbrFileAddress As String = McVersionCurrent.PathIndie & "config\yosbr\options.txt"
+            Dim YosbrFileAddress As String = McInstanceCurrent.PathIndie & "config\yosbr\options.txt"
             If File.Exists(YosbrFileAddress) Then
                 McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
                 SetupFileAddress = YosbrFileAddress
@@ -2086,9 +2086,9 @@ NextVersion:
             '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
             '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
             Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
-            Dim RequiredLang As String = If(CurrentLang = "none" OrElse Not Directory.Exists(McVersionCurrent.PathIndie & "saves"), '#3844，整合包可能已经自带了 options.txt
+            Dim RequiredLang As String = If(CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves"), '#3844，整合包可能已经自带了 options.txt
                 If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us"), CurrentLang.ToLower)
-            If McVersionCurrent.Version.McCodeMain < 12 Then '注意老版本（包含 MC 1.1）的 McCodeMain 可能为 -1
+            If McInstanceCurrent.Version.McCodeMain < 12 Then '注意老版本（包含 MC 1.1）的 McCodeMain 可能为 -1
                 '将最后两位改为大写，前面的部分保留
                 RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
             End If
@@ -2100,7 +2100,7 @@ NextVersion:
                 McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
             End If
             ''如果是初次设置，一并修改 forceUnicodeFont
-            'If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McVersionCurrent.PathIndie & "saves")) Then
+            'If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves")) Then
             '    WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
             '    McLaunchLog("已开启 forceUnicodeFont")
             'End If
@@ -2122,7 +2122,7 @@ NextVersion:
         '获取自定义命令
         Dim CustomCommandGlobal As String = Setup.Get("LaunchAdvanceRun")
         If CustomCommandGlobal <> "" Then CustomCommandGlobal = ArgumentReplace(CustomCommandGlobal, True)
-        Dim CustomCommandVersion As String = Setup.Get("VersionAdvanceRun", Version:=McVersionCurrent)
+        Dim CustomCommandVersion As String = Setup.Get("VersionAdvanceRun", Version:=McInstanceCurrent)
         If CustomCommandVersion <> "" Then CustomCommandVersion = ArgumentReplace(CustomCommandVersion, True)
 
         '输出 bat
@@ -2130,9 +2130,9 @@ NextVersion:
             Dim CmdString As String =
                 $"{If(McLaunchJavaSelected.JavaMajorVersion > 8, "chcp 65001>nul" & vbCrLf, "")}" &
                 "@echo off" & vbCrLf &
-                $"title 启动 - {McVersionCurrent.Name}" & vbCrLf &
+                $"title 启动 - {McInstanceCurrent.Name}" & vbCrLf &
                 "echo 游戏正在启动，请稍候。" & vbCrLf &
-                $"cd /D ""{ShortenPath(McVersionCurrent.PathIndie)}""" & vbCrLf &
+                $"cd /D ""{ShortenPath(McInstanceCurrent.PathIndie)}""" & vbCrLf &
                 CustomCommandGlobal & vbCrLf &
                 CustomCommandVersion & vbCrLf &
                 $"""{McLaunchJavaSelected.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
@@ -2178,7 +2178,7 @@ NextVersion:
             End Try
         End If
         If CustomCommandVersion <> "" Then
-            McLaunchLog("正在执行版本自定义命令：" & CustomCommandVersion)
+            McLaunchLog("正在执行实例自定义命令：" & CustomCommandVersion)
             Dim CustomProcess As New Process
             Try
                 CustomProcess.StartInfo.FileName = "cmd.exe"
@@ -2187,13 +2187,13 @@ NextVersion:
                 CustomProcess.StartInfo.UseShellExecute = False
                 CustomProcess.StartInfo.CreateNoWindow = True
                 CustomProcess.Start()
-                If Setup.Get("VersionAdvanceRunWait", Version:=McVersionCurrent) Then
+                If Setup.Get("VersionAdvanceRunWait", Version:=McInstanceCurrent) Then
                     Do Until CustomProcess.HasExited OrElse Loader.IsAborted
                         Thread.Sleep(10)
                     Loop
                 End If
             Catch ex As Exception
-                Log(ex, "执行版本自定义命令失败", LogLevel.Hint)
+                Log(ex, "执行实例自定义命令失败", LogLevel.Hint)
             Finally
                 If Not CustomProcess.HasExited AndAlso Loader.IsAborted Then
                     McLaunchLog("由于取消启动，已强制结束自定义命令 CMD 进程") '#1183
@@ -2217,7 +2217,7 @@ NextVersion:
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(PathMcFolder)
 
         '设置其他参数
-        StartInfo.WorkingDirectory = ShortenPath(McVersionCurrent.PathIndie)
+        StartInfo.WorkingDirectory = ShortenPath(McInstanceCurrent.PathIndie)
         StartInfo.UseShellExecute = False
         StartInfo.RedirectStandardOutput = True
         StartInfo.RedirectStandardError = True
@@ -2256,36 +2256,36 @@ NextVersion:
         McLaunchLog("")
         McLaunchLog("~ 基础参数 ~")
         McLaunchLog("PCL 版本：" & VersionBaseName & " (" & VersionCode & ")")
-        McLaunchLog("游戏版本：" & McVersionCurrent.Version.ToString & "（识别为 1." & McVersionCurrent.Version.McCodeMain & "." & McVersionCurrent.Version.McCodeSub & "）")
-        McLaunchLog("资源版本：" & McAssetsGetIndexName(McVersionCurrent))
-        McLaunchLog("版本继承：" & If(McVersionCurrent.InheritVersion = "", "无", McVersionCurrent.InheritVersion))
-        McLaunchLog("分配的内存：" & PageVersionSetup.GetRam(McVersionCurrent, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageVersionSetup.GetRam(McVersionCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
+        McLaunchLog("游戏版本：" & McInstanceCurrent.Version.ToString & "（识别为 1." & McInstanceCurrent.Version.McCodeMain & "." & McInstanceCurrent.Version.McCodeSub & "）")
+        McLaunchLog("资源版本：" & McAssetsGetIndexName(McInstanceCurrent))
+        McLaunchLog("实例继承：" & If(McInstanceCurrent.InheritInstance = "", "无", McInstanceCurrent.InheritInstance))
+        McLaunchLog("分配的内存：" & PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageVersionSetup.GetRam(McInstanceCurrent, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
         McLaunchLog("MC 文件夹：" & PathMcFolder)
-        McLaunchLog("版本文件夹：" & McVersionCurrent.Path)
-        McLaunchLog("版本隔离：" & (McVersionCurrent.PathIndie = McVersionCurrent.Path))
-        McLaunchLog("HMCL 格式：" & McVersionCurrent.IsHmclFormatJson)
+        McLaunchLog("实例文件夹：" & McInstanceCurrent.Path)
+        McLaunchLog("版本隔离：" & (McInstanceCurrent.PathIndie = McInstanceCurrent.Path))
+        McLaunchLog("HMCL 格式：" & McInstanceCurrent.IsHmclFormatJson)
         McLaunchLog("Java 信息：" & If(McLaunchJavaSelected IsNot Nothing, McLaunchJavaSelected.ToString, "无可用 Java"))
         'McLaunchLog("环境变量：" & If(McLaunchJavaSelected IsNot Nothing, If(McLaunchJavaSelected.HasEnvironment, "已设置", "未设置"), "未设置"))
         McLaunchLog("Natives 文件夹：" & GetNativesFolder())
         McLaunchLog("")
-        McLaunchLog("~ 登录参数 ~")
+        McLaunchLog("~ 档案参数 ~")
         McLaunchLog("玩家用户名：" & McLoginLoader.Output.Name)
         McLaunchLog("AccessToken：" & McLoginLoader.Output.AccessToken)
         McLaunchLog("ClientToken：" & McLoginLoader.Output.ClientToken)
         McLaunchLog("UUID：" & McLoginLoader.Output.Uuid)
-        McLaunchLog("登录方式：" & McLoginLoader.Output.Type)
+        McLaunchLog("验证方式：" & McLoginLoader.Output.Type)
         McLaunchLog("")
 
         '获取窗口标题
-        Dim WindowTitle As String = Setup.Get("VersionArgumentTitle", Version:=McVersionCurrent)
-        If WindowTitle = "" AndAlso Not Setup.Get("VersionArgumentTitleEmpty", Version:=McVersionCurrent) Then WindowTitle = Setup.Get("LaunchArgumentTitle")
+        Dim WindowTitle As String = Setup.Get("VersionArgumentTitle", Version:=McInstanceCurrent)
+        If WindowTitle = "" AndAlso Not Setup.Get("VersionArgumentTitleEmpty", Version:=McInstanceCurrent) Then WindowTitle = Setup.Get("LaunchArgumentTitle")
         WindowTitle = ArgumentReplace(WindowTitle, False)
 
         'JStack 路径
         Dim JStackPath As String = McLaunchJavaSelected.JavaFolder & "\jstack.exe"
 
         '初始化等待
-        Dim Watcher As New Watcher(Loader, McVersionCurrent, WindowTitle, If(File.Exists(JStackPath), JStackPath, ""), CurrentLaunchOptions.Test)
+        Dim Watcher As New Watcher(Loader, McInstanceCurrent, WindowTitle, If(File.Exists(JStackPath), JStackPath, ""), CurrentLaunchOptions.Test)
         McLaunchWatcher = Watcher
 
         '显示实时日志
@@ -2350,8 +2350,8 @@ NextVersion:
         If Raw Is Nothing Then Return Nothing
         '路径替换
         Raw = Raw.Replace("{minecraft}", PathMcFolder)
-        Raw = Raw.Replace("{verpath}", McVersionCurrent.Path)
-        Raw = Raw.Replace("{verindie}", McVersionCurrent.PathIndie)
+        Raw = Raw.Replace("{verpath}", McInstanceCurrent.Path)
+        Raw = Raw.Replace("{verindie}", McInstanceCurrent.PathIndie)
         Raw = Raw.Replace("{java}", McLaunchJavaSelected.JavaFolder)
         '普通替换
         Raw = Raw.Replace("{user}", McLoginLoader.Output.Name)
@@ -2368,11 +2368,11 @@ NextVersion:
             Case McLoginType.Auth
                 Raw = Raw.Replace("{login}", "Authlib-Injector")
         End Select
-        Raw = Raw.Replace("{name}", McVersionCurrent.Name)
-        If {"unknown", "old", "pending"}.Contains(McVersionCurrent.Version.McName.ToLower) Then
-            Raw = Raw.Replace("{version}", McVersionCurrent.Name)
+        Raw = Raw.Replace("{name}", McInstanceCurrent.Name)
+        If {"unknown", "old", "pending"}.Contains(McInstanceCurrent.Version.McName.ToLower) Then
+            Raw = Raw.Replace("{version}", McInstanceCurrent.Name)
         Else
-            Raw = Raw.Replace("{version}", McVersionCurrent.Version.McName)
+            Raw = Raw.Replace("{version}", McInstanceCurrent.Version.McName)
         End If
         Raw = Raw.Replace("{path}", Path)
         Return Raw

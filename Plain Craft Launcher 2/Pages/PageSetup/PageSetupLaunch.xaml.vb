@@ -7,7 +7,7 @@
         '重复加载部分
         PanBack.ScrollToHome()
         RefreshRam(False)
-        If McVersionCurrent Is Nothing Then
+        If McInstanceCurrent Is Nothing Then
             BtnSwitch.Visibility = Visibility.Collapsed
         Else
             BtnSwitch.Visibility = Visibility.Visible
@@ -136,7 +136,7 @@
     Public Sub RefreshRam(ShowAnim As Boolean)
         If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.Setup OrElse FrmSetupLeft.PageID <> FormMain.PageSubType.SetupLaunch Then Return
         '获取内存情况
-        Dim RamGame As Double = Math.Round(GetRam(McVersionCurrent, False), 5)
+        Dim RamGame As Double = Math.Round(GetRam(McInstanceCurrent, False), 5)
         Dim RamTotal As Double = Math.Round(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024 / 1024, 1)
         Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024, 1)
         Dim RamGameActual As Double = Math.Round(Math.Min(RamGame, RamAvailable), 5)
@@ -264,7 +264,7 @@
     ''' <summary>
     ''' 获取当前设置的 RAM 值。单位为 GB。
     ''' </summary>
-    Public Shared Function GetRam(Version As McVersion, UseVersionJavaSetup As Boolean, Optional Is32BitJava As Boolean? = Nothing) As Double
+    Public Shared Function GetRam(Version As McInstance, UseVersionJavaSetup As Boolean, Optional Is32BitJava As Boolean? = Nothing) As Double
 
         '------------------------------------------
         ' 修改下方代码时需要一并修改 PageVersionSetup
@@ -281,7 +281,7 @@
             Dim RamTarget3 As Double '放一百万个材质和 Mod 和光影需要的内存
             If Version IsNot Nothing AndAlso Not Version.IsLoaded Then Version.Load()
             If Version IsNot Nothing AndAlso Version.Modable Then
-                '可安装 Mod 的版本
+                '可安装 Mod 的实例
                 Dim ModDir As New DirectoryInfo(Version.PathIndie & "mods\")
                 Dim ModCount As Integer = If(ModDir.Exists, ModDir.GetFiles.Length, 0)
                 RamMininum = 0.5 + ModCount / 150
@@ -289,13 +289,13 @@
                 RamTarget2 = 2.7 + ModCount / 50
                 RamTarget3 = 4.5 + ModCount / 25
             ElseIf Version IsNot Nothing AndAlso Version.Version.HasOptiFine Then
-                'OptiFine 版本
+                'OptiFine 实例
                 RamMininum = 0.5
                 RamTarget1 = 1.5
                 RamTarget2 = 3
                 RamTarget3 = 5
             Else
-                '普通版本
+                '普通实例
                 RamMininum = 0.5
                 RamTarget1 = 1.5
                 RamTarget2 = 2.5
@@ -383,10 +383,10 @@ PreFin:
         End If
     End Sub
 
-    '版本隔离提示
+    '实例隔离提示
     Private Sub ComboArgumentIndie_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboArgumentIndieV2.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
-        MyMsgBox("默认策略只会对今后新安装的版本生效。" & vbCrLf & "已有版本的隔离策略需要在它的版本设置中调整。")
+        MyMsgBox("默认策略只会对今后新安装的实例生效。" & vbCrLf & "已有实例的隔离策略需要在它的设置中调整。")
     End Sub
 
     'Java 管理跳转
@@ -413,11 +413,11 @@ PreFin:
 
 #End Region
 
-    '切换到版本独立设置
+    '切换到实例独立设置
     Private Sub BtnSwitch_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSwitch.Click
-        McVersionCurrent.Load()
-        PageVersionLeft.Version = McVersionCurrent
-        FrmMain.PageChange(FormMain.PageType.VersionSetup, FormMain.PageSubType.VersionSetup)
+        McInstanceCurrent.Load()
+        PageVersionLeft.Version = McInstanceCurrent
+        FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup)
     End Sub
 
 End Class

@@ -106,12 +106,12 @@
 
         '初始化
         Public GameProcess As Process
-        Public Version As McVersion
+        Public Version As McInstance
         Private WindowTitle As String = ""
         Private PID As Integer
         Public JStackPath As String
         Public Loader As LoaderTask(Of Process, Integer)
-        Public Sub New(Loader As LoaderTask(Of Process, Integer), Version As McVersion, WindowTitle As String, JStackPath As String, Optional OutputRealTime As Boolean = False)
+        Public Sub New(Loader As LoaderTask(Of Process, Integer), Version As McInstance, WindowTitle As String, JStackPath As String, Optional OutputRealTime As Boolean = False)
             Me.Loader = Loader
             Me.Version = Version
             Me.WindowTitle = WindowTitle

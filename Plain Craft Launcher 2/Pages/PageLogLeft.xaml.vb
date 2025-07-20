@@ -22,13 +22,13 @@
             '创建 UI
             FrmLogLeft.PanList.Children.Clear()
 
-            '测试核心列表
+            '测试实例列表
             'TODO(i18n): 文本 @ PageLog 左侧 - 列表标题
-            FrmLogLeft.PanList.Children.Add(New TextBlock With {.Text = "测试版本列表", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
+            FrmLogLeft.PanList.Children.Add(New TextBlock With {.Text = "测试实例列表", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
             For Each item In ShownLogs
                 '添加控件
                 Dim Uuid As Integer = item.Key
-                Dim Version As McVersion = item.Value.Version
+                Dim Version As McInstance = item.Value.Version
                 Dim Proc As Process = item.Value.GameProcess
                 Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Version.Name, .Info = $"{Version.Version} - {Proc.StartTime:HH:mm:ss}", .Height = 40, .Tag = Uuid}
                 AddHandler NewItem.Changed, AddressOf FrmLogLeft.Version_Change
