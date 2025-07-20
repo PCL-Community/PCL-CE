@@ -10,7 +10,7 @@ Public Class PageVersionSetup
         PanBack.ScrollToHome()
         RefreshRam(False)
 
-        '由于各个版本不同，每次都需要重新加载
+        '由于各个实例不同，每次都需要重新加载
         AniControlEnabled += 1
         Reload()
         AniControlEnabled -= 1
@@ -74,7 +74,7 @@ Public Class PageVersionSetup
             End If
 
         Catch ex As Exception
-            Log(ex, "重载版本独立设置时出错", LogLevel.Feedback)
+            Log(ex, "重载实例独立设置时出错", LogLevel.Feedback)
         End Try
     End Sub
 
@@ -107,10 +107,10 @@ Public Class PageVersionSetup
 
             Setup.Reset("VersionArgumentJavaSelect", Version:=PageVersionLeft.Version)
 
-            Log("[Setup] 已初始化版本独立设置")
-            Hint("已初始化版本独立设置！", HintType.Finish, False)
+            Log("[Setup] 已初始化实例独立设置")
+            Hint("已初始化实例独立设置！", HintType.Finish, False)
         Catch ex As Exception
-            Log(ex, "初始化版本独立设置失败", LogLevel.Msgbox)
+            Log(ex, "初始化实例独立设置失败", LogLevel.Msgbox)
         End Try
 
         Reload()
@@ -290,7 +290,7 @@ Public Class PageVersionSetup
         ' 修改下方代码时需要一并修改 PageSetupLaunch
         '------------------------------------------
 
-        '使用当前版本的设置
+        '使用当前实例的设置
         Dim RamGive As Double
         If Setup.Get("VersionRamType", Version:=Version) = 0 Then
             '自动配置
@@ -302,7 +302,7 @@ Public Class PageVersionSetup
             Dim RamTarget3 As Double '安装过多附加组件需要的内存
             If Version IsNot Nothing AndAlso Not Version.IsLoaded Then Version.Load()
             If Version IsNot Nothing AndAlso Version.Modable Then
-                '可安装 Mod 的版本
+                '可安装 Mod 的实例
                 Dim ModDir As New DirectoryInfo(Version.PathIndie & "mods\")
                 Dim ModCount As Integer = If(ModDir.Exists, ModDir.GetFiles.Length, 0)
                 RamMininum = 0.5 + ModCount / 150
@@ -310,13 +310,13 @@ Public Class PageVersionSetup
                 RamTarget2 = 2.7 + ModCount / 50
                 RamTarget3 = 4.5 + ModCount / 25
             ElseIf Version IsNot Nothing AndAlso Version.Version.HasOptiFine Then
-                'OptiFine 版本
+                'OptiFine 实例
                 RamMininum = 0.5
                 RamTarget1 = 1.5
                 RamTarget2 = 3
                 RamTarget3 = 5
             Else
-                '普通版本
+                '普通实例
                 RamMininum = 0.5
                 RamTarget1 = 1.5
                 RamTarget2 = 2.5
@@ -508,7 +508,7 @@ PreFin:
             Next
         Catch ex As Exception
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageVersionLeft.Version)
-            Log(ex, "更新版本设置 Java 下拉框失败", LogLevel.Feedback)
+            Log(ex, "更新实例设置 Java 下拉框失败", LogLevel.Feedback)
         End Try
         '更新选择项
         If SelectedItem Is Nothing AndAlso Javas.JavaList.Any Then
@@ -543,15 +543,15 @@ PreFin:
         If "使用全局设置".Equals(SelectedJava) Then
             '选择 “自动”
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageVersionLeft.Version)
-            Log("[Java] 修改版本 Java 选择设置：跟随全局设置")
+            Log("[Java] 修改实例 Java 选择设置：跟随全局设置")
         ElseIf "自动选择".Equals(SelectedJava) Then
             '选择 “自动”
             Setup.Set("VersionArgumentJavaSelect", "", Version:=PageVersionLeft.Version)
-            Log("[Java] 修改版本 Java 选择设置：自动选择")
+            Log("[Java] 修改实例 Java 选择设置：自动选择")
         Else
             '选择指定项
             Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, Java).JavaExePath, Version:=PageVersionLeft.Version)
-            Log("[Java] 修改版本 Java 选择设置：" & SelectedJava.ToString)
+            Log("[Java] 修改实例 Java 选择设置：" & SelectedJava.ToString)
         End If
         RefreshRam(True)
     End Sub

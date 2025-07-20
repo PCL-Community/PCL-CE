@@ -75,9 +75,9 @@ Public Class PageVersionSaves
 
             If ModeDebug Then
                 If QuickPlayFeature Then
-                    Log("[World] 该版本支持存档快捷启动", LogLevel.Debug)
+                    Log("[World] 该实例支持存档快捷启动", LogLevel.Debug)
                 Else
-                    Log("[World] 该版本不支持存档快捷启动", LogLevel.Debug)
+                    Log("[World] 该实例不支持存档快捷启动", LogLevel.Debug)
                 End If
             End If
 

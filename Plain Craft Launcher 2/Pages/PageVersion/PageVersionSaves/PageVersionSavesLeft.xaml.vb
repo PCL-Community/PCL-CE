@@ -28,7 +28,7 @@ Public Class PageVersionSavesLeft
                 If FrmVersionSavesBackup Is Nothing Then FrmVersionSavesBackup = New PageVersionSavesBackup
                 Return FrmVersionSavesBackup
             Case Else
-                Throw New Exception("未知的版本设置子页面种类：" & ID)
+                Throw New Exception("未知的实例设置子页面种类：" & ID)
         End Select
     End Function
 

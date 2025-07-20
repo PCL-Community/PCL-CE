@@ -73,17 +73,17 @@
 <local:MyCard Title="事件 2：启动游戏" Margin="0,0,0,15" CanSwap="True" IsSwaped="True">
     <StackPanel Margin="25,40,23,15">
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,4"
-                    Text="将 EventType 设置为 启动游戏，EventData 设置为具体的游戏版本，即可通过点击按钮启动游戏。如果当前游戏文件夹没有该版本，则无法启动。" />
+                    Text="将 EventType 设置为 启动游戏，EventData 设置为具体的游戏实例，即可通过点击按钮启动游戏。如果当前游戏文件夹没有该实例，则无法启动。" />
         <local:MyButton Margin="0,4,0,10" Width="250" Height="35"
                     Text="启动 Minecraft 1.12.2" EventType="启动游戏" EventData="1.12.2" />
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,4"
-                    Text="在 EventData 后面添加一条竖线（|），竖线后填写服务器 IP，即可在启动该版本的同时自动进入服务器。" />
+                    Text="在 EventData 后面添加一条竖线（|），竖线后填写服务器 IP，即可在启动该实例的同时自动进入服务器。" />
         <local:MyButton Margin="0,4,0,0" Width="250" Height="35"
                     Text="启动 1.20.1 并进入 Hypixel" EventType="启动游戏" EventData="1.20.1|mc.hypixel.net" ToolTip="服务器 IP：mc.hypixel.net" />
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,4"
-                    Text="在 EventData 中填写 \current，表示启动当前被选中的游戏版本，同样可以在后面填写服务器 IP。" />
+                    Text="在 EventData 中填写 \current，表示启动当前被选中的游戏实例，同样可以在后面填写服务器 IP。" />
         <local:MyButton Margin="0,4,0,10" Width="250" Height="35"
-                    Text="启动当前选中版本并进入 Hypixel" EventType="启动游戏" EventData="\current|mc.hypixel.net" ToolTip="启动当前版本" />
+                    Text="启动当前选中实例并进入 Hypixel" EventType="启动游戏" EventData="\current|mc.hypixel.net" ToolTip="启动当前实例" />
     </StackPanel>
 </local:MyCard>
 
