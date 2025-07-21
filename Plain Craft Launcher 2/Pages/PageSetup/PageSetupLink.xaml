@@ -92,8 +92,8 @@
                         </local:MyComboBox>
                         <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="数据处理行为"/>
                         <local:MyComboBox x:Name="ComboProxyType" Tag="LinkProxyType" Grid.Row="8" Grid.Column="2" ToolTip="选择 EasyTier 进行数据处理的方式，可能可以降低延迟或提升传输带宽。&#xa;需要联机双方都配置方可生效。">
-                            <local:MyComboBoxItem Content="使用 QUIC（推荐）" ToolTip="使用 QUIC 协议代理 TCP 流，对提升传输带宽较有帮助。&#xa;QUIC 总体稳定性较好，但可能不是最优方案。"/>
-                            <local:MyComboBoxItem Content="使用 KCP" ToolTip="使用 KCP 协议代理 TCP 流，对降低延迟较有帮助。&#xa;KCP 速度较快，但稳定性相比 QUIC 可能较差。在中国大陆，一般只推荐同省份 / 同运营商用户选择。"/>
+                            <local:MyComboBoxItem Content="使用 QUIC" ToolTip="使用 QUIC 协议代理 TCP 流，对提升传输带宽较有帮助。&#xa;此设置暂时无效。"/>
+                            <local:MyComboBoxItem Content="使用 KCP" ToolTip="使用 KCP 协议代理 TCP 流，对降低延迟较有帮助。"/>
                             <local:MyComboBoxItem Content="使用 KCP + QUIC" ToolTip="同时允许 KCP 和 QUIC 协议。&#xa;需要注意，KCP 优先级大于 QUIC，因此在联机双方的设置均允许使用 KCP 的情况下不会尝试使用 QUIC。"/>
                         </local:MyComboBox>
                     </Grid>
