@@ -8,7 +8,6 @@ Public Class PageLinkLobby
     Public Shared IsHost As Boolean = False
     Public Shared RemotePort As String = Nothing
     Public Shared JoinerLocalPort As Integer = Nothing
-    Public Shared Hostname As String = Nothing
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
     Public Shared HostInfo As ETPlayerInfo = Nothing
@@ -257,7 +256,6 @@ Retry:
         ComboWorldList.Items.Clear()
         ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
         ComboWorldList.SelectedIndex = 0
-        BtnCreate.IsEnabled = False
         BtnRefresh.IsEnabled = False
         ComboWorldList.IsEnabled = False
         RunInNewThread(Sub()
@@ -302,7 +300,7 @@ Retry:
                                GetETInfo()
                                Thread.Sleep(1000)
                            End While
-                           While ETProcess IsNot Nothing
+                           While ETProcess IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(NaidProfile.AccessToken)
                                GetETInfo()
                                Thread.Sleep(10000)
                            End While
@@ -312,6 +310,7 @@ Retry:
                                            Log("[Link] [ETWatcher] ETProcess 为 null，EasyTier 可能已退出")
                                        End Sub)
                            End If
+                           ExitEasyTier()
                            Log("[Link] EasyTier 轮询已结束")
                            IsWatcherStarted = False
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
@@ -372,10 +371,10 @@ Retry:
             Dim PlayerList As New List(Of ETPlayerInfo)
             Dim cliJson As JArray = JArray.Parse(ETCliOutput)
             For Each p In cliJson
-                If p("hostname").Contains("PublicServer") Then Continue For '服务器
+                If p("hostname").ToString().Contains("PublicServer") Then Continue For '服务器
                 Dim hostnameStatus As Integer = p("hostname").ToString().Split("-").Length
                 Dim info As New ETPlayerInfo With {
-                    .IsHost = Not p("hostname").ToString().StartsWithF("J-", True),
+                    .IsHost = p("hostname").ToString().StartsWithF("H-", True),
                     .Hostname = p("hostname"),
                     .Cost = p("cost").ToString().BeforeLast("("),
                     .Ping = Math.Round(Val(p("lat_ms"))),
@@ -407,7 +406,6 @@ Retry:
                 Quality -= 1
             End If
             RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(Quality))
-            Hostname = HostInfo.NaidName
             If IsHost Then '确认创建者实例存活状态
                 Dim test As New McPing("127.0.0.1", LocalPort)
                 Dim info = test.PingAsync().GetAwaiter().GetResult()
@@ -537,8 +535,9 @@ Retry:
                                        LabConnectUserType.Text = "加入者"
                                    End Sub)
                            Dim processedId As String = JoinedLobbyId.FromB32ToB10()
-                           RemotePort = JoinedLobbyId.Substring(10)
-                           LaunchLink(False, JoinedLobbyId.Substring(0, 8), JoinedLobbyId.Substring(8, 2), remotePort:=RemotePort)
+                           RemotePort = processedId.Substring(10)
+                           Log("[Link] 远程端口解析结果: " & RemotePort)
+                           LaunchLink(False, processedId.Substring(0, 8), processedId.Substring(8, 2), remotePort:=RemotePort)
                            Dim retryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
@@ -554,12 +553,12 @@ Retry:
                            Thread.Sleep(1000)
                            StartETWatcher()
                            Thread.Sleep(500)
-                           While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing OrElse RemotePort = Nothing OrElse HostInfo Is Nothing
+                           While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing OrElse HostInfo Is Nothing
                                Thread.Sleep(500)
                            End While
                            McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & HostInfo.NaidName)
                            RunInUi(Sub()
-                                       BtnFinishExit.Text = $"退出 {Hostname} 的大厅"
+                                       BtnFinishExit.Text = $"退出 {HostInfo.NaidName} 的大厅"
                                    End Sub)
                        End Sub)
         CurrentSubpage = Subpages.PanFinish
@@ -630,8 +629,6 @@ Retry:
             CurrentSubpage = Subpages.PanSelect
             ExitEasyTier()
             'RemoveNATTranversal()
-            'ModLink.RemoveUPnPMapping()
-            'LocalPort = Nothing
             Exit Sub
         End If
     End Sub
