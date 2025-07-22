@@ -179,11 +179,6 @@ Public Class PageInstanceCompResource
     ''' </summary>
     Private Sub EnterFolderWithCheck(folderPath As String)
         Try
-            If String.IsNullOrEmpty(folderPath) OrElse Not Directory.Exists(folderPath) Then
-                Hint("文件夹不存在或已被删除", HintType.Critical)
-                Return
-            End If
-            
             EnterFolder(folderPath)
         Catch ex As Exception
             Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
@@ -1524,10 +1519,10 @@ Install:
                     If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
                     ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
-                    
+
                     '原理图文件的详情信息已通过异步方法处理
                 End If
-                
+
                 '只有普通文件才显示调试信息
                 If Not ModEntry.IsFolder Then
                     Dim DebugInfo As New List(Of String)
@@ -1545,7 +1540,7 @@ Install:
                         ContentLines.AddRange(DebugInfo)
                     End If
                 End If
-                
+
                 '显示详情信息
                 If ModEntry.IsFolder Then
                     '文件夹只显示基本信息，不提供搜索功能
@@ -1623,55 +1618,51 @@ Install:
     Private Sub ShowSchematicInfoAsync(ModEntry As LocalCompFile)
         '显示加载提示
         Hint("正在加载详情....", HintType.Info)
-        
+
         '在后台线程中加载NBT数据
         RunInNewThread(Sub()
-            Try
-                '确保NBT数据已加载
-                ModEntry.LoadNbtDataIfNeeded()
-                
-                '在UI线程中显示详情
-                RunInUi(Sub()
-                    Try
-                        '构建详情信息
-                        Dim ContentLines As New List(Of String)
-                        
-                        If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
-                        If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                        ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
-                        If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
-                        
-                        '根据文件类型显示详细信息
-                        If ModEntry.Path.EndsWithF(".litematic", True) Then
-                            ShowLitematicDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
-                            ShowSchemDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
-                            ShowSchematicDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
-                            ShowNbtDetails(ContentLines, ModEntry)
-                        End If
-                        
-                        '显示调试信息
-                        ShowDebugInfo(ContentLines, ModEntry)
-                        
-                        '显示详情对话框
-                        ShowSchematicDialog(ContentLines, ModEntry)
-                        
-                    Catch ex As Exception
-                        Log(ex, "显示原理图详情失败", LogLevel.Feedback)
-                        MyMsgBox("显示原理图详情时发生错误：" & ex.Message, "错误")
-                    End Try
-                End Sub)
-                
-            Catch ex As Exception
-                '在UI线程中显示错误
-                RunInUi(Sub()
-                    Log(ex, "加载原理图NBT数据失败", LogLevel.Feedback)
-                    MyMsgBox("加载原理图详情时发生错误：" & ex.Message, "错误")
-                End Sub)
-            End Try
-        End Sub)
+                           Try
+                               '确保NBT数据已加载
+                               ModEntry.LoadNbtDataIfNeeded()
+
+                               '在UI线程中显示详情
+                               RunInUi(Sub()
+                                           Try
+                                               '构建详情信息
+                                               Dim ContentLines As New List(Of String)
+
+                                               If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
+                                               If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
+                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                                               If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
+
+                                               '根据文件类型显示详细信息
+                                               If ModEntry.Path.EndsWithF(".litematic", True) Then
+                                                   ShowLitematicDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
+                                                   ShowSchemDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
+                                                   ShowSchematicDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
+                                                   ShowNbtDetails(ContentLines, ModEntry)
+                                               End If
+
+                                               '显示调试信息
+                                               ShowDebugInfo(ContentLines, ModEntry)
+
+                                               '显示详情对话框
+                                               ShowSchematicDialog(ContentLines, ModEntry)
+
+                                           Catch ex As Exception
+                                               Log(ex, "显示原理图详情失败", LogLevel.Feedback)
+                                           End Try
+                                       End Sub)
+
+                           Catch ex As Exception
+                               '记录错误日志但不显示错误提示，因为通用的文件状态检查已经处理了
+                               Log(ex, "加载原理图NBT数据失败", LogLevel.Feedback)
+                           End Try
+                       End Sub)
     End Sub
     
 #Region "原理图文件详细信息显示"
