@@ -953,7 +953,7 @@ SkipLogin:
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
-                    Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
+                    Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
                 End If
             End Try
             Data.Progress = 0.25
@@ -975,7 +975,7 @@ Refresh:
             NeedRefresh = McLoginRequestLogin(Data)
         Catch ex As Exception
             ProfileLog("验证失败：" & GetExceptionDetail(ex))
-            Throw New Exception("$第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
+            Throw New Exception("$第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
         End Try
         If NeedRefresh Then
             ProfileLog("重新进行刷新登录")
@@ -1161,7 +1161,7 @@ LoginFinish:
                         '密码错误，退出登录 (#5090)
                         ProfileLog("第三方验证档案密码错误")
                     End If
-                    Throw New Exception("$登录失败：" & ErrorMessage & vbCrLf & "详细信息：" & ex.ToString())
+                    Throw New Exception("$登录失败：" & ErrorMessage & vbCrLf & "详细信息：" & ex.Data.ToString())
                 End If
             End If
             '通用关键字检测
@@ -1171,7 +1171,7 @@ LoginFinish:
                                             " - 登录尝试过于频繁，导致被暂时屏蔽。请不要操作，等待 10 分钟后再试。" & vbCrLf &
                                             " - 只注册了账号，但没有在皮肤站新建角色。" & vbCrLf & "详细信息：" & ex.ToString())
             ElseIf AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout") OrElse AllMessage.Contains("网络请求失败") Then
-                Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
+                Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
             ElseIf ex.Message.StartsWithF("$") Then
                 Throw
             Else

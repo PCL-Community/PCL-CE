@@ -96,7 +96,6 @@ Public Class ModSetup
         {"ToolFixAuthlib", New SetupEntry(True, Source:=SetupSource.Registry)},
         {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
         {"LinkLastTestDate", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LinkAvailable", New SetupEntry(False, Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkAnnounceCache", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
         {"LinkAnnounceCacheVer", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"LinkRelayType", New SetupEntry(0, Source:=SetupSource.Registry)},
