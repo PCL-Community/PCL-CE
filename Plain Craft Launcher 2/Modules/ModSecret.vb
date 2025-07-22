@@ -869,7 +869,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Exit Sub
             End If
             ' id old new restart
-            Dim text As String = String.Concat(New String() {"update ", Process.GetCurrentProcess().Id, " """, PathWithName, """ """, fileName, """ true"})
+            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{PathWithName}"" ""{fileName}"" true"
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If TriggerRestartAndByEnd Then

@@ -302,6 +302,10 @@ Retry:
                            End While
                            While ETProcess IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(NaidProfile.AccessToken)
                                GetETInfo()
+                               If String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
+                                   Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
+                                   ExitEasyTier()
+                               End If
                                Thread.Sleep(10000)
                            End While
                            If ETProcess Is Nothing Then

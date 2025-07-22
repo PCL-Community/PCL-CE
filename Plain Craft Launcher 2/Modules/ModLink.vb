@@ -272,7 +272,7 @@ Public Module ModLink
             '大厅设置
             Dim lobbyId As String = (Name & Secret & If(IsHost, LocalPort, remotePort).ToString()).FromB10ToB32()
             If Not IsHost Then
-                PageLinkLobby.JoinerLocalPort = 25565
+                PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
                 Log("[Link] ET 本地端口转发端口: " & PageLinkLobby.JoinerLocalPort)
             End If
             Secret = ETNetworkDefaultSecret & Secret
@@ -712,7 +712,7 @@ PortRetry:
 
         UdpThread = New Thread(Async Sub()
                                    Try
-                                       Log("[Link] 开始进行 MC 局域网广播")
+                                       Log($"[Link] 开始进行 MC 局域网广播, 广播的本地端口: {localPort}")
                                        ChatClient = New UdpClient("224.0.2.60", 4445)
                                        ChatClientV6 = New UdpClient("ff02::1:ff00:60", 4445)
                                        Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]{desc}[/MOTD][AD]{localPort}[/AD]")
@@ -778,7 +778,7 @@ PortRetry:
                                            Log($"[Link] Minecraft TCP 转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
                                            McPortForward(remoteIp, remotePort, desc, True)
                                        Else
-                                           Log(ex, "[Link] Minecraft 端口转发线程异常", LogLevel.Hint)
+                                           Log(ex, "[Link] Minecraft TCP 转发线程异常", LogLevel.Hint)
                                            IsMcPortForwardRunning = False
                                        End If
                                    End Try
