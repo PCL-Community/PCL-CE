@@ -271,7 +271,7 @@ Public Module ModLink
 
             '大厅设置
             Dim lobbyId As String = (Name & Secret & If(IsHost, LocalPort, remotePort).ToString()).FromB10ToB32()
-            If IsHost Then PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
+            If Not IsHost Then PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
             Secret = ETNetworkDefaultSecret & Secret
             Name = ETNetworkDefaultName & Name
             '此处 no tun 有点 Buggy
@@ -388,7 +388,6 @@ Public Module ModLink
                 ETProcess = Nothing
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.JoinerLocalPort = Nothing
-                PageLinkLobby.Hostname = Nothing
                 PageLinkLobby.IsETFirstCheckFinished = False
                 StopMcPortForward()
             Catch ex As InvalidOperationException
@@ -447,13 +446,15 @@ Public Module ModLink
             Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
             Return False
         End If
-        If DlEasyTierLoader.State = LoadState.Loading Then
-            Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！")
-            Return False
-        ElseIf DlEasyTierLoader.State = LoadState.Failed OrElse DlEasyTierLoader.State = LoadState.Aborted Then
-            Hint("正在下载 EasyTier，请稍后...")
-            DownloadEasyTier()
-            Return False
+        If DlEasyTierLoader IsNot Nothing Then
+            If DlEasyTierLoader.State = LoadState.Loading Then
+                Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！")
+                Return False
+            ElseIf DlEasyTierLoader.State = LoadState.Failed OrElse DlEasyTierLoader.State = LoadState.Aborted Then
+                Hint("正在下载 EasyTier，请稍后...")
+                DownloadEasyTier()
+                Return False
+            End If
         End If
         Return True
     End Function
@@ -704,12 +705,13 @@ PortRetry:
         ServerSocket = New Socket(SocketType.Stream, ProtocolType.Tcp)
         ServerSocket.Bind(New IPEndPoint(IPAddress.Any, 0))
         ServerSocket.Listen(-1)
+        Dim localPort As Integer = CType(ServerSocket.LocalEndPoint, IPEndPoint).Port
 
         IsMcPortForwardRunning = True
 
         UdpThread = New Thread(Async Sub()
                                    Try
-                                       Log("[Link] 开始进行 MC 局域网广播")
+                                       Log($"[Link] 开始进行 MC 局域网广播, 广播的本地端口: {localPort}")
                                        ChatClient = New UdpClient("224.0.2.60", 4445)
                                        ChatClientV6 = New UdpClient("ff02::1:ff00:60", 4445)
                                        Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]{desc}[/MOTD][AD]{CType(ServerSocket.LocalEndPoint, IPEndPoint).Port}[/AD]")
@@ -718,9 +720,14 @@ PortRetry:
                                                ChatClient.EnableBroadcast = True
                                                ChatClient.MulticastLoopback = True
                                            End If
+                                           If ChatClientV6 IsNot Nothing Then
+                                               ChatClientV6.EnableBroadcast = True
+                                               ChatClientV6.MulticastLoopback = True
+                                           End If
 
                                            If IsMcPortForwardRunning AndAlso ChatClient IsNot Nothing Then
                                                Await ChatClient.SendAsync(Buffer, Buffer.Length)
+                                               Await ChatClientV6.SendAsync(Buffer, Buffer.Length)
                                                If IsMcPortForwardRunning Then Await Task.Delay(1500)
                                            End If
                                        End While
@@ -732,7 +739,7 @@ PortRetry:
                                            McPortForward(remoteIp, remotePort, desc, True)
                                        Else
                                            Log(ex, "[Link] Minecraft 端口转发线程异常", LogLevel.Hint)
-                                       IsMcPortForwardRunning = False
+                                           IsMcPortForwardRunning = False
                                        End If
                                    End Try
                                End Sub)
@@ -769,7 +776,7 @@ PortRetry:
                                            Log($"[Link] Minecraft TCP 转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
                                            McPortForward(remoteIp, remotePort, desc, True)
                                        Else
-                                           Log(ex, "[Link] Minecraft 端口转发线程异常", LogLevel.Hint)
+                                           Log(ex, "[Link] Minecraft TCP 转发线程异常", LogLevel.Hint)
                                            IsMcPortForwardRunning = False
                                        End If
                                    End Try
@@ -808,6 +815,10 @@ PortRetry:
         If ChatClient IsNot Nothing Then
             ChatClient.Close()
             ChatClient = Nothing
+        End If
+        If ChatClientV6 IsNot Nothing Then
+            ChatClientV6.Close()
+            ChatClientV6 = Nothing
         End If
         If ServerSocket IsNot Nothing Then
             ServerSocket.Close()

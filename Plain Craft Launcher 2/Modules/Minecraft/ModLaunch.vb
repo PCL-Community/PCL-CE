@@ -635,7 +635,7 @@ SkipLogin:
                 ErrorMsg = "你关闭了验证弹窗..."
             Else
                 If Setup.Get("LoginMsAuthType") = 0 Then
-                    ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为⌈设备代码流⌋再试！" & ex.ToString().Replace(OAuthClientId, "")
+                    ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为 ⌈设备代码流⌋ 再试！" & ex.ToString().Replace(OAuthClientId, "")
                 Else
                     ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "")
                 End If
@@ -666,7 +666,7 @@ SkipLogin:
         If Not String.IsNullOrWhiteSpace(ErrorMsg) Then
             RunInUiWait(Sub()
                             If Not IsLaunching Then Exit Sub
-                            If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                            If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。{vbCrLf}{ErrorMsg}", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                         End Sub)
         End If
         If IsIgnore Then
