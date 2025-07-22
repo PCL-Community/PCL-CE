@@ -1,3 +1,4 @@
+Imports System.Diagnostics.Eventing.Reader
 Imports System.IO.Compression
 Imports System.Threading.Tasks
 Imports Microsoft.Identity.Client
@@ -384,9 +385,9 @@ NextInner:
         Inherits McLoginData
 
         ''' <summary>
-        ''' 缓存的 OAuth Identity Id。若没有则为空字符串。
+        ''' 缓存的 OAuth RefreshToken。若没有则为空字符串。
         ''' </summary>
-        Public OAuthId As String = ""
+        Public OAuthRefreshToken As String = ""
         Public AccessToken As String = ""
         Public Uuid As String = ""
         Public UserName As String = ""
@@ -396,7 +397,7 @@ NextInner:
             Type = McLoginType.Ms
         End Sub
         Public Overrides Function GetHashCode() As Integer
-            Return GetHash(OAuthId & AccessToken & Uuid & UserName & ProfileJson) Mod Integer.MaxValue
+            Return GetHash(OAuthRefreshToken & AccessToken & Uuid & UserName & ProfileJson) Mod Integer.MaxValue
         End Function
     End Class
 #End Region
@@ -503,12 +504,19 @@ NextInner:
         End If
         '尝试登录
         Dim IsSkipAuth As Boolean = False
+        Dim OAuthTokens As String()
         Dim OAuthAccessToken As String
-        Dim OAuthId As String
-        Dim OAuthResult = MsLoginStep1(Data).GetAwaiter().GetResult() 'Step 1
-        If OAuthResult Is Nothing Then GoTo SkipLogin
-        OAuthAccessToken = OAuthResult.AccessToken
-        OAuthId = OAuthResult.Account.HomeAccountId.Identifier
+        Dim OAuthRefreshToken As String
+        If Input.OAuthRefreshToken = "" Then
+Relogin:
+            OAuthTokens = MsLoginStep1New(Data)
+        Else
+            OAuthTokens = MsLoginStep1Refresh(Input.OAuthRefreshToken)
+            If OAuthTokens(0) = "Relogin" Then GoTo Relogin
+        End If
+        If OAuthTokens(0) = "Ignore" Then GoTo SkipLogin
+        OAuthAccessToken = OAuthTokens(0)
+        OAuthRefreshToken = OAuthTokens(1)
         If Data.IsAborted Then Throw New ThreadInterruptedException
         Data.Progress = 0.25
         If Data.IsAborted Then Throw New ThreadInterruptedException
@@ -543,7 +551,7 @@ NextInner:
                     Dim ProfileIndex = ProfileList.IndexOf(Profile)
                     ProfileList(ProfileIndex).Username = Result(1)
                     ProfileList(ProfileIndex).AccessToken = AccessToken
-                    ProfileList(ProfileIndex).IdentityId = OAuthId
+                    ProfileList(ProfileIndex).RefreshToken = OAuthRefreshToken
                     Hint("你已经添加了这个档案...")
                     GoTo SkipLogin
                 End If
@@ -556,7 +564,7 @@ NextInner:
                 .Uuid = Result(0),
                 .Username = Result(1),
                 .AccessToken = AccessToken,
-                .IdentityId = OAuthId,
+                .RefreshToken = OAuthRefreshToken,
                 .Expires = 1743779140286,
                 .Desc = "",
                 .RawJson = Result(2)
@@ -568,7 +576,7 @@ NextInner:
             Dim ProfileIndex = ProfileList.IndexOf(SelectedProfile)
             ProfileList(ProfileIndex).Username = Result(1)
             ProfileList(ProfileIndex).AccessToken = AccessToken
-            ProfileList(ProfileIndex).IdentityId = OAuthId
+            ProfileList(ProfileIndex).RefreshToken = OAuthRefreshToken
         End If
         SaveProfile()
         Data.Output = New McLoginResult With {
@@ -591,144 +599,75 @@ SkipLogin:
             Exit Sub
         End If
     End Sub
-    Private MsLoginStep1Scopes As String() = {"XboxLive.signin", "offline_access"}.ToArray()
     ''' <summary>
-    ''' 正版验证步骤 1：使用 MSAL 获取账号信息
+    ''' 正版验证步骤 1：通过设备代码流获取账号信息
     ''' </summary>
     ''' <returns>OAuth 验证完成的返回结果</returns>
-    Private Async Function MsLoginStep1(Data As LoaderTask(Of McLoginMs, McLoginResult)) As Task(Of AuthenticationResult)
-        '参考：https://learn.microsoft.com/zh-cn/entra/msal/dotnet/
-        ProfileLog("开始正版验证 Step 1/6: 获取账号信息")
-        '构建 MsalApp
-        Dim Options As New BrokerOptions(BrokerOptions.OperatingSystems.Windows) With {
-            .Title = "Plain Craft Launcher Community Edition 微软账户登录",
-            .ListOperatingSystemAccounts = True
-        }
+    Private Function MsLoginStep1New(Data As LoaderTask(Of McLoginMs, McLoginResult)) As String()
+        '参考：https://learn.microsoft.com/zh-cn/entra/identity-platform/v2-oauth2-device-code
 
-        Dim App As IPublicClientApplication = PublicClientApplicationBuilder.Create(OAuthClientId).
-            WithAuthority(AzureCloudInstance.AzurePublic, "consumers").
-            WithDefaultRedirectUri().
-            WithParentActivityOrWindow(Function() As IntPtr
-                                           Return Handle
-                                       End Function).
-            WithBroker(Options).
-            Build()
+        '初始请求
+Retry:
+        McLaunchLog("开始正版验证 Step 1/6（原始登录）")
+        Dim PrepareJson As JObject = GetJson(NetRequestRetry("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", "POST",
+            $"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded"))
+        McLaunchLog("网页登录地址：" & PrepareJson("verification_uri").ToString)
 
-        '控制流程
-        Try
-            If String.IsNullOrEmpty(Data.Input.OAuthId) Then
-                ProfileLog("没有账号信息，直接进行全新登录流程")
+        '弹窗
+        Dim Converter As New MyMsgBoxConverter With {.Content = PrepareJson, .ForceWait = True, .Type = MyMsgBoxType.Login}
+        WaitingMyMsgBox.Add(Converter)
+        While Converter.Result Is Nothing
+            Thread.Sleep(100)
+        End While
+        If TypeOf Converter.Result Is RestartException Then
+            If MyMsgBox($"请在登录时选择 {vbLQ}其他登录方法{vbRQ}，然后选择 {vbLQ}使用我的密码{vbRQ}。{vbCrLf}如果没有该选项，请选择 {vbLQ}设置密码{vbRQ}，设置完毕后再登录。",
+                "需要使用密码登录", "重新登录", "设置密码", "取消",
+                Button2Action:=Sub() OpenWebsite("https://account.live.com/password/Change")) = 1 Then
+                GoTo Retry
             Else
-                Return Await MsLoginStep1TrySilentLogin(App, Data)
+                Throw New Exception("$$")
             End If
-        Catch ex As MsalUiRequiredException
-            ProfileLog("不存在缓存的账号信息，进行全新登录流程")
-        Catch ex As Exception
-            ProfileLog("静默登录出现异常" & ex.ToString().Replace(OAuthClientId, ""))
-            Hint("静默登录不成功！", HintType.Critical)
-        End Try
-        Dim ErrorMsg As String = String.Empty
-        Try
-            Return Await MsLoginStep1HandleInteractiveLogin(App)
-        Catch ex As MsalClientException
-            If ex.Message.Contains("User canceled authentication") Then
-                ErrorMsg = "你关闭了验证弹窗..."
-            Else
-                If Setup.Get("LoginMsAuthType") = 0 Then
-                    ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为⌈设备代码流⌋再试！" & ex.ToString().Replace(OAuthClientId, "")
-                Else
-                    ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "")
-                End If
-            End If
-        Catch ex As MsalServiceException
-            If ex.Message.Contains("authorization_declined") Or ex.Message.Contains("access_denied") Then
-                ErrorMsg = ErrorMsg = "你拒绝了 PCL 申请的权限……"
-            ElseIf ex.Message.Contains("expired_token") Then
-                ErrorMsg = "登录用时太长啦，重新试试吧！"
-            ElseIf ex.Message.Contains("service abuse") Then
-                ErrorMsg = "非常抱歉，该账号已被微软封禁，无法登录"
-            Else
-                If Setup.Get("LoginMsAuthType") = 0 Then
-                    ErrorMsg = "正版验证出错，你可以前往启动器 设置 -> 启动 -> 启动选项 -> 正版验证方式 中将其改为 ⌈设备代码流⌋ 后再试！" & vbCrLf & ex.ToString().Replace(OAuthClientId, "")
-                Else
-                    ErrorMsg = "正版验证出错，请重新尝试：" & vbCrLf & ex.ToString().Replace(OAuthClientId, "")
-                End If
-            End If
-        Catch ex As Exception
-            If Setup.Get("LoginMsAuthType") = 0 Then
-                ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为⌈设备代码流⌋再试！" & ex.ToString().Replace(OAuthClientId, "")
-            Else
-                ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "")
-            End If
-        End Try
-        FrmMain.ShowWindowToTop()
-        Dim IsIgnore As Boolean = False
-        If Not String.IsNullOrWhiteSpace(ErrorMsg) Then
-            RunInUiWait(Sub()
-                            If Not IsLaunching Then Exit Sub
-                            If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
-                        End Sub)
-        End If
-        If IsIgnore Then
-            Return Nothing
+        ElseIf TypeOf Converter.Result Is Exception Then
+            Throw CType(Converter.Result, Exception)
         Else
-            Throw New Exception("$$")
+            Return Converter.Result
         End If
     End Function
-    Private Async Function MsLoginStep1TrySilentLogin(app As IPublicClientApplication, data As LoaderTask(Of McLoginMs, McLoginResult)) As Task(Of AuthenticationResult)
-        If String.IsNullOrEmpty(data.Input.OAuthId) Then Throw New MsalUiRequiredException(-1, "无法使用静默登录，要求用户选择指定账户")
-        ProfileLog("使用缓存的账号信息进行静默登录")
-        Dim account = Await app.GetAccountAsync(data.Input.OAuthId)
-        Return Await app.AcquireTokenSilent(MsLoginStep1Scopes, account).ExecuteAsync()
-    End Function
-    Private Async Function MsLoginStep1HandleInteractiveLogin(app As IPublicClientApplication) As Task(Of AuthenticationResult)
-        Select Case Setup.Get("LoginMsAuthType")
-            Case 0 : Return Await app.AcquireTokenInteractive(MsLoginStep1Scopes).ExecuteAsync()
-            Case 1 : Return Await MsLoginStep1RunDeviceCodeFlow(app)
-            Case Else
-                Setup.Reset("LoginMsAuthType")
-                Throw New Exception($"配置项文件错误，已重置登录选项配置，请重新完成登录操作")
-        End Select
-    End Function
-    Private Async Function MsLoginStep1RunDeviceCodeFlow(app As IPublicClientApplication) As Task(Of AuthenticationResult)
-        Dim result = Await app.AcquireTokenWithDeviceCode(MsLoginStep1Scopes,
-        Async Function(deviceCodeResult) As Task
-            While True
-                ProfileLog("要求设备代码流登录")
-                Dim Jobj As New JObject From
-                {
-                    {"device_code", deviceCodeResult.DeviceCode},
-                    {"user_code", deviceCodeResult.UserCode},
-                    {"verification_uri", deviceCodeResult.VerificationUrl},
-                    {"expires_in", deviceCodeResult.ExpiresOn},
-                    {"interval", deviceCodeResult.Interval}
-                }
-                '弹窗
-                Dim Converter As New MyMsgBoxConverter With {.Content = Jobj, .ForceWait = True, .Type = MyMsgBoxType.Login}
-                WaitingMyMsgBox.Add(Converter)
-                While Converter.Result Is Nothing
-                    Await Task.Delay(200)
-                    If DateTimeOffset.Now > deviceCodeResult.ExpiresOn Then
-                        Throw New Exception("登录已超时，请重新发起登录请求")
-                    End If
-                End While
-                ProfileLog("设备代码流已返回结果")
-                If TypeOf Converter.Result Is RestartException Then
-                    If MyMsgBox($"请在登录时选择 {vbLQ}其他登录方法{vbRQ}，然后选择 {vbLQ}使用我的密码{vbRQ}。{vbCrLf}如果没有该选项，请选择 {vbLQ}设置密码{vbRQ}，设置完毕后再登录。", "需要使用密码登录", "重新登录", "设置密码", "取消",
-                                      Button2Action:=Sub() OpenWebsite("https://account.live.com/password/Change")) = 1 Then
-                        Continue While
-                    Else
-                        Throw New Exception("$$")
-                    End If
-                ElseIf TypeOf Converter.Result Is Exception Then
-                    Throw CType(Converter.Result, Exception)
-                Else
-                    Return
+    ''' <summary>
+    ''' 正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth AccessToken, OAuth RefreshToken}
+    ''' </summary>
+    ''' <param name="Code"></param>
+    ''' <returns></returns>
+    Private Function MsLoginStep1Refresh(Code As String) As String()
+        McLaunchLog("开始正版验证 Step 1/6（刷新登录）")
+
+        Dim Result As String = Nothing
+        Try
+            Result = NetRequestRetry("https://login.live.com/oauth20_token.srf", "POST",
+                $"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access",
+                "application/x-www-form-urlencoded", 2)
+        Catch ex As Exception
+            If ex.Message.ContainsF("must sign in again", True) OrElse ex.Message.ContainsF("password expired", True) OrElse
+               (ex.Message.Contains("refresh_token") AndAlso ex.Message.Contains("is not valid")) Then '#269
+                Return {"Relogin", ""}
+            Else
+                ProfileLog("正版验证 Step 1/6 获取 OAuth Token 失败：" & ex.ToString())
+                Dim IsIgnore As Boolean = False
+                RunInUiWait(Sub()
+                                If Not IsLaunching Then Exit Sub
+                                If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                            End Sub)
+                If IsIgnore Then
+                    Return {"Ignore", ""}
+                    Exit Function
                 End If
-            End While
-        End Function).ExecuteAsync()
-        Hint("登录成功！", HintType.Finish)
-        Return result
+            End If
+        End Try
+
+        Dim ResultJson As JObject = GetJson(Result)
+        Dim AccessToken As String = ResultJson("access_token").ToString
+        Dim RefreshToken As String = ResultJson("refresh_token").ToString
+        Return {AccessToken, RefreshToken}
     End Function
 
     ''' <summary>
@@ -752,6 +691,7 @@ SkipLogin:
         Try
             Result = NetRequestRetry("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", False)
         Catch ex As Exception
+            ProfileLog("正版验证 Step 2/6 获取 XBLToken 失败：" & ex.ToString())
             Dim IsIgnore As Boolean = False
             RunInUiWait(Sub()
                             If Not IsLaunching Then Exit Sub
@@ -810,6 +750,7 @@ SkipLogin:
                 End If
                 Throw New Exception("$$")
             Else
+                ProfileLog("正版验证 Step 3/6 获取 XSTSToken 失败：" & ex.ToString())
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
@@ -849,6 +790,7 @@ SkipLogin:
                 Log(ex, "正版验证 Step 4 汇报 403")
                 Throw New Exception("$当前 IP 的登录尝试异常。" & vbCrLf & "如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！")
             Else
+                ProfileLog("正版验证 Step 4/6 获取 MC AccessToken 失败：" & ex.ToString())
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
@@ -915,7 +857,7 @@ SkipLogin:
                 End Sub, "Login Failed: Create Profile")
                 Throw New Exception("$$")
             Else
-                Log(ex, "正版验证 Step 6 出现错误")
+                ProfileLog("正版验证 Step 6/6 获取玩家档案信息失败：" & ex.ToString())
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
