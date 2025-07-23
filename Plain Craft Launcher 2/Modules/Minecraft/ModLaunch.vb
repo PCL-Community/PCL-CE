@@ -1834,7 +1834,7 @@ NextVersion:
         GameArguments.Add("${natives_directory}", ShortenPath(GetNativesFolder()))
         GameArguments.Add("${library_directory}", ShortenPath(PathMcFolder & "libraries"))
         GameArguments.Add("${libraries_directory}", ShortenPath(PathMcFolder & "libraries"))
-        GameArguments.Add("${launcher_name}", "PCL")
+        GameArguments.Add("${launcher_name}", "PCLCE")
         GameArguments.Add("${launcher_version}", VersionCode)
         GameArguments.Add("${version_name}", Version.Name)
         Dim ArgumentInfo As String = Setup.Get("VersionArgumentInfo", Version:=McInstanceCurrent)

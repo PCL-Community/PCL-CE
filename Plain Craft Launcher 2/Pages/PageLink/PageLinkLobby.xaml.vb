@@ -259,7 +259,7 @@ Retry:
         BtnRefresh.IsEnabled = False
         ComboWorldList.IsEnabled = False
         RunInNewThread(Sub()
-                           Dim Worlds As List(Of Tuple(Of Integer, McPingResult)) = MCInstanceFinding.GetAwaiter().GetResult()
+                           Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
                            RunInUi(Sub()
                                        ComboWorldList.Items.Clear()
                                        If Worlds.Count = 0 Then
@@ -271,7 +271,7 @@ Retry:
                                            For Each World In Worlds
                                                ComboWorldList.Items.Add(New MyComboBoxItem With {
                                                                         .Tag = World,
-                                                                        .Content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1})"})
+                                                                        .Content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1}{If(Not String.IsNullOrWhiteSpace(World.Item3), $" / 由 {World.Item3} 启动", Nothing)})"})
                                            Next
                                        End If
                                        IsDetectingMc = False

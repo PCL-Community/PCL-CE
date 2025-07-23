@@ -148,7 +148,7 @@ Public Module ModLink
 #End Region
 
 #Region "Minecraft 实例探测"
-    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of Tuple(Of Integer, McPingResult)))
+    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of Tuple(Of Integer, McPingResult, String)))
         'Java 进程 PID 查询
         Dim PIDLookupResult As New List(Of String)
         Dim JavaNames As New List(Of String)
@@ -169,28 +169,43 @@ Public Module ModLink
             End If
         Next
 
-        Dim res As New List(Of Tuple(Of Integer, McPingResult))
+        Dim res As New List(Of Tuple(Of Integer, McPingResult, String))
         Try
             If Not PIDLookupResult.Any Then Return res
-            Dim ports As New List(Of Integer)
+            Dim lookupList As New List(Of Tuple(Of Integer, Integer))
             For Each pid In PIDLookupResult
-                ports.AddRange(PortFinder.GetProcessPort(Integer.Parse(pid)))
+                Dim infos As New List(Of Tuple(Of Integer, Integer))
+                Dim ports = PortFinder.GetProcessPort(Integer.Parse(pid))
+                For Each port In ports
+                    infos.Add(New Tuple(Of Integer, Integer)(port, pid))
+                Next
+                lookupList.AddRange(infos)
             Next
-            Log($"[MCDetect] 获取到端口数量 {ports.Count}")
-            Dim checkTasks = ports.Select(Function(port) Task.Run(Async Function()
-                                                                      Log($"[MCDetect] 找到疑似端口，开始验证：{port}")
-                                                                      Dim test As New McPing("127.0.0.1", port)
-                                                                      Dim info = Await test.PingAsync()
-                                                                      If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
-                                                                          Log($"[MCDetect] 端口 {port} 为有效 Minecraft 世界")
-                                                                          res.Add(New Tuple(Of Integer, McPingResult)(port, info))
-                                                                      End If
-                                                                  End Function)).ToArray()
+            Log($"[MCDetect] 获取到端口数量 {lookupList.Count}")
+            Dim checkTasks = lookupList.Select(Function(lookup) Task.Run(Async Function()
+                                                                             Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}")
+                                                                             Dim test As New McPing("127.0.0.1", lookup.Item1)
+                                                                             Dim info = Await test.PingAsync()
+                                                                             Dim launcher = GetLauncherBrand(lookup.Item2)
+                                                                             If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
+                                                                                 Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界")
+                                                                                 res.Add(New Tuple(Of Integer, McPingResult, String)(lookup.Item1, info, launcher))
+                                                                             End If
+                                                                         End Function)).ToArray()
             Await Task.WhenAll(checkTasks)
         Catch ex As Exception
             Log(ex, "[MCDetect] 获取端口信息错误", LogLevel.Debug)
         End Try
         Return res
+    End Function
+    Public Function GetLauncherBrand(pid As Integer) As String
+        Try
+            Dim cmd = CmdLineHelper.GetCommandLine(pid)
+            Return cmd.AfterFirst("-Dminecraft.launcher.brand=").BeforeFirst("-").TrimEnd("'", " ")
+        Catch ex As Exception
+            Log(ex, $"[MCDetect] 检测 PID {pid} 进程的启动参数失败")
+            Return ""
+        End Try
     End Function
 #End Region
 
