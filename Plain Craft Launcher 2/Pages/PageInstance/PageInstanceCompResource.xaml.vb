@@ -578,7 +578,16 @@ Public Class PageInstanceCompResource
 
     Private Sub BtnManageOpen_Click(sender As Object, e As EventArgs) Handles BtnManageOpen.Click, BtnHintOpen.Click
         Try
-            Dim CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Dim CompFilePath As String
+
+            ' 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
+            If String.IsNullOrEmpty(CurrentFolderPath) Then
+                ' 打开根目录
+                CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Else
+                ' 打开当前子文件夹
+                CompFilePath = If(CurrentFolderPath.EndsWith("\"), CurrentFolderPath, CurrentFolderPath & "\")
+            End If
             Directory.CreateDirectory(CompFilePath)
             OpenExplorer(CompFilePath)
         Catch ex As Exception
@@ -1034,7 +1043,7 @@ Install:
                 Dim Method = GetSortMethod(CurrentSortMethod)
 
                 ' 分离有效和无效项（保持原始相对顺序）
-                Dim invalid = items.Where(Function(i) i.Entry Is Nothing OrElse (CurrentSortMethod = SortMethod.TagNums AndAlso i.Entry.Comp Is Nothing)).ToList()
+                Dim invalid = items.Where(Function(i) i.Entry Is Nothing OrElse (CurrentSortMethod = SortMethod.TagNums AndAlso i.Entry.Comp Is Nothing AndAlso Not i.Entry.IsFolder)).ToList()
                 Dim valid = items.Except(invalid).ToList()
                 ' 仅对有效项进行排序
                 valid.Sort(Function(x, y) Method(x.Entry, y.Entry))
@@ -1052,64 +1061,92 @@ Install:
     End Sub
 
     Private Function GetSortMethod(Method As SortMethod) As Func(Of LocalCompFile, LocalCompFile, Integer)
+        ' 通用的文件夹置顶比较函数
+        Dim folderFirstCompare = Function(a As LocalCompFile, b As LocalCompFile) As Integer
+                                     If a.IsFolder AndAlso Not b.IsFolder Then Return -1
+                                     If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                                     Return 0 ' 相同类型，需要进一步比较
+                                 End Function
+
         Select Case Method
             Case SortMethod.FileName
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按文件名排序
                            Return String.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.CompName
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按资源名称排序
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.TagNums
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹，则按名称排序；如果都是文件，则按标签数量排序
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹，则按名称排序
                            If a.IsFolder AndAlso b.IsFolder Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           Else
-                               Return b.Comp.Tags.Count - a.Comp.Tags.Count
                            End If
+                           ' 如果都是文件，则按标签数量排序（标签多的在前）
+                           If Not a.IsFolder AndAlso Not b.IsFolder Then
+                               ' 安全检查，确保Comp不为空
+                               Dim aTagCount = If(a.Comp?.Tags?.Count, 0)
+                               Dim bTagCount = If(b.Comp?.Tags?.Count, 0)
+                               Return bTagCount.CompareTo(aTagCount)
+                           End If
+                           ' 理论上不会到达这里，但为了安全起见
+                           Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.CreateTime
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹或都是文件，则按创建时间排序
-                           Dim aDate = New FileInfo(If(a.IsFolder, a.ActualPath, a.Path)).CreationTime
-                           Dim bDate = New FileInfo(If(b.IsFolder, b.ActualPath, b.Path)).CreationTime
-                           Return If(aDate = bDate, 0, If(aDate > bDate, -1, 1))
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
+                           Try
+                               Dim aDate = New FileInfo(If(a.IsFolder, a.ActualPath, a.Path)).CreationTime
+                               Dim bDate = New FileInfo(If(b.IsFolder, b.ActualPath, b.Path)).CreationTime
+                               Return bDate.CompareTo(aDate)
+                           Catch ex As Exception
+                               ' 如果获取时间失败，则按名称排序
+                               Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+                           End Try
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹，则按名称排序；如果都是文件，则按文件大小排序
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹，则按名称排序
                            If a.IsFolder AndAlso b.IsFolder Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           Else
-                               Dim aSize As Long = (New FileInfo(a.ActualPath)).Length
-                               Dim bSize As Long = (New FileInfo(b.ActualPath)).Length
-                               Return bSize.CompareTo(aSize)
                            End If
+                           ' 如果都是文件，则按文件大小排序（大的在前）
+                           If Not a.IsFolder AndAlso Not b.IsFolder Then
+                               Try
+                                   Dim aSize As Long = (New FileInfo(a.ActualPath)).Length
+                                   Dim bSize As Long = (New FileInfo(b.ActualPath)).Length
+                                   Return bSize.CompareTo(aSize)
+                               Catch ex As Exception
+                                   ' 如果获取大小失败，则按名称排序
+                                   Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+                               End Try
+                           End If
+                           ' 理论上不会到达这里，但为了安全起见
+                           Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case Else
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按名称排序
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
