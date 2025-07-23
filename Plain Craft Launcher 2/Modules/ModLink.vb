@@ -388,6 +388,7 @@ Public Module ModLink
                 IsETRunning = False
                 IsETReady = False
                 ETProcess = Nothing
+                PageLinkLobby.HostInfo = Nothing
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.JoinerLocalPort = Nothing
                 PageLinkLobby.IsETFirstCheckFinished = False

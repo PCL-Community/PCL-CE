@@ -306,7 +306,7 @@ Retry:
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
                                    ExitEasyTier()
                                End If
-                               Thread.Sleep(10000)
+                               Thread.Sleep(2000)
                            End While
                            If ETProcess Is Nothing Then
                                RunInUi(Sub()
@@ -631,6 +631,7 @@ Retry:
     Private Sub BtnFinishExit_Click(sender As Object, e As EventArgs) Handles BtnFinishExit.Click
         If MyMsgBox($"你确定要退出大厅吗？{If(IsHost, vbCrLf & "由于你是大厅创建者，退出后此大厅将会自动解散。", "")}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
+            BtnFinishExit.Text = "退出大厅"
             ExitEasyTier()
             'RemoveNATTranversal()
             Exit Sub

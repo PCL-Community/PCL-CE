@@ -948,13 +948,17 @@ SkipLogin:
                 If Data.IsAborted Then Throw New ThreadInterruptedException
                 McLoginRequestValidate(Data)
                 GoTo LoginFinish
-            Catch ex As Exception
+            Catch ex As HttpWebException
                 Dim AllMessage = GetExceptionDetail(ex)
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
-                    Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
+                    Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
                 End If
+            Catch ex As Exception
+                Dim AllMessage = GetExceptionDetail(ex)
+                ProfileLog("验证登录失败：" & AllMessage)
+                Throw
             End Try
             Data.Progress = 0.25
             '尝试刷新登录
@@ -973,9 +977,12 @@ Refresh:
         Try
             If Data.IsAborted Then Throw New ThreadInterruptedException
             NeedRefresh = McLoginRequestLogin(Data)
+        Catch ex As HttpWebException
+            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            Throw New Exception("$第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
         Catch ex As Exception
             ProfileLog("验证失败：" & GetExceptionDetail(ex))
-            Throw New Exception("$第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
+            Throw New Exception("$第三方验证登录失败" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
         End Try
         If NeedRefresh Then
             ProfileLog("重新进行刷新登录")
@@ -1146,33 +1153,39 @@ LoginFinish:
             SaveProfile()
             ProfileLog("登录成功（Login, Authlib）")
             Return NeedRefresh
-        Catch ex As Exception
-            Dim AllMessage As String = GetExceptionSummary(ex)
-            Log(ex, "登录失败原始错误信息", LogLevel.Normal)
-            '读取服务器返回的错误
-            If TypeOf ex Is ResponsedWebException Then
-                Dim ErrorMessage As String = Nothing
-                Try
-                    ErrorMessage = GetJson(DirectCast(ex, ResponsedWebException).Response)("errorMessage")
-                Catch
-                End Try
-                If Not String.IsNullOrWhiteSpace(ErrorMessage) Then
-                    If ErrorMessage.Contains("密码错误") OrElse ErrorMessage.ContainsF("Incorrect username or password", True) Then
-                        '密码错误，退出登录 (#5090)
-                        ProfileLog("第三方验证档案密码错误")
-                    End If
-                    Throw New Exception("$登录失败：" & ErrorMessage & vbCrLf & "详细信息：" & ex.Data.ToString())
-                End If
-            End If
-            '通用关键字检测
-            If AllMessage.Contains("403") Then
+        Catch ex As HttpWebException
+            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            Dim message As String = ex.InnerHttpException.WebResponse
+            If message.Contains("403") Then
                 Throw New Exception("$登录失败，以下为可能的原因：" & vbCrLf &
                                             " - 输入的账号或密码错误。" & vbCrLf &
                                             " - 登录尝试过于频繁，导致被暂时屏蔽。请不要操作，等待 10 分钟后再试。" & vbCrLf &
                                             " - 只注册了账号，但没有在皮肤站新建角色。" & vbCrLf & "详细信息：" & ex.ToString())
-            ElseIf AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout") OrElse AllMessage.Contains("网络请求失败") Then
+            ElseIf message.Contains("超时") OrElse message.Contains("imeout") OrElse message.Contains("网络请求失败") Then
                 Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.Data.ToString())
-            ElseIf ex.Message.StartsWithF("$") Then
+            Else
+                Throw New Exception("$第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & message)
+            End If
+            Return False
+        Catch ex As ResponsedWebException
+            Dim ErrorMessage As String = Nothing
+            Try
+                ErrorMessage = GetJson(ex.Response)("errorMessage")
+            Catch
+            End Try
+            If Not String.IsNullOrWhiteSpace(ErrorMessage) Then
+                ProfileLog("第三方验证失败：" & ErrorMessage)
+                If ErrorMessage.Contains("密码错误") OrElse ErrorMessage.ContainsF("Incorrect username or password", True) Then
+                    '密码错误，退出登录 (#5090)
+                    ProfileLog("第三方验证档案密码错误")
+                End If
+                Throw New Exception("$登录失败：" & ErrorMessage & vbCrLf & "详细信息：" & ex.Data.ToString())
+            End If
+            Return False
+        Catch ex As Exception
+            Dim AllMessage As String = GetExceptionSummary(ex)
+            ProfileLog("第三方验证失败: " & ex.ToString())
+            If ex.Message.StartsWithF("$") Then
                 Throw
             Else
                 Throw New Exception("登录失败：" & ex.Message, ex)

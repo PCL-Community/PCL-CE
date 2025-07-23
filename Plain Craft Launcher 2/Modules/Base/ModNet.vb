@@ -99,11 +99,16 @@ Public Module ModNet
         ''' 不要尝试读取 <c>Content</c> 属性的内容，它已经被 dispose 了
         ''' </summary>
         Public ReadOnly Property Response As HttpResponseMessage
-        Public Sub New(response As HttpResponseMessage)
+        ''' <summary>
+        ''' 站点的原始返回内容
+        ''' </summary>
+        Public ReadOnly Property WebResponse As String
+        Public Sub New(response As HttpResponseMessage, Optional webResponse As String = Nothing)
             MyBase.New($"HTTP 响应失败: {response.ReasonPhrase} ({CType(response.StatusCode, Integer)})")
             Me.Response = response
             StatusCode = response.StatusCode
             ReasonPhrase = response.ReasonPhrase
+            Me.WebResponse = webResponse
         End Sub
     End Class
 
@@ -132,8 +137,9 @@ Public Module ModNet
     ''' <exception cref="HttpRequestFailedException">HTTP 响应失败</exception>
     Private Sub EnsureSuccessStatusCode(response As HttpResponseMessage)
         If Not response.IsSuccessStatusCode Then
+            Dim content As String = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
             response.Content?.Dispose()
-            Throw New HttpRequestFailedException(response)
+            Throw New HttpRequestFailedException(response, content)
         End If
     End Sub
 
