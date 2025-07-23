@@ -2,11 +2,15 @@
     Inherits AdornerDecorator
     Public PageUuid As Integer = GetUuid()
 
+    Private _panScrollNullWarned As Boolean = False
     '“返回顶部” 按钮检测的滚动区域
     Public Property PanScroll As MyScrollViewer
         Get
             Dim res = GetValue(PanScrollProperty)
-            If res Is Nothing Then Log($"[MyPageRight] 获取到 PanScroll 的值为 null", LogLevel.Debug)
+            If res Is Nothing AndAlso Not _panScrollNullWarned Then
+                _panScrollNullWarned = True
+                Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", LogLevel.Debug)
+            End If
             Return res
         End Get
         Set(value As MyScrollViewer)

@@ -411,6 +411,15 @@ Public Module ModNet
     ''' <summary>
     ''' 发送一次网络请求并获取返回内容。
     ''' </summary>
+    ''' <param name="Url"></param>
+    ''' <param name="Method"></param>
+    ''' <param name="Data"></param>
+    ''' <param name="ContentType">仅 Data 为 string 时可用</param>
+    ''' <param name="Timeout"></param>
+    ''' <param name="Headers"></param>
+    ''' <param name="MakeLog"></param>
+    ''' <param name="UseBrowserUserAgent"></param>
+    ''' <returns></returns>
     Public Function NetRequestOnce(Url As String, Method As String, Data As Object, ContentType As String, Optional Timeout As Integer = 25000, Optional Headers As Dictionary(Of String, String) = Nothing, Optional MakeLog As Boolean = True, Optional UseBrowserUserAgent As Boolean = False) As String
         If RunInUi() AndAlso Not Url.Contains("//127.") Then Throw New Exception("在 UI 线程执行了网络请求")
         Url = SecretCdnSign(Url)
@@ -448,6 +457,11 @@ Public Module ModNet
                     End If
                     If Headers IsNot Nothing Then
                         For Each Pair In Headers
+                            If String.IsNullOrWhiteSpace(Pair.Key) OrElse String.IsNullOrWhiteSpace(Pair.Value) Then Continue For
+                            '标头覆盖
+                            If request.Headers.Contains(Pair.Key) Then
+                                request.Headers.Remove(Pair.Key)
+                            End If
                             request.Headers.Add(Pair.Key, Pair.Value)
                         Next
                     End If

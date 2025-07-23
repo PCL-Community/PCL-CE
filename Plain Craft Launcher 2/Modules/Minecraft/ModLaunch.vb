@@ -666,7 +666,7 @@ SkipLogin:
         If Not String.IsNullOrWhiteSpace(ErrorMsg) Then
             RunInUiWait(Sub()
                             If Not IsLaunching Then Exit Sub
-                            If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。{vbCrLf}{ErrorMsg}", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                            If MyMsgBox($"{ErrorMsg}{vbCrLf}{vbCrLf}当然，你可以尝试继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                         End Sub)
         End If
         If IsIgnore Then
@@ -750,7 +750,12 @@ SkipLogin:
                                 ).ToString(Newtonsoft.Json.Formatting.None)
         Dim Result As String = Nothing
         Try
-            Result = NetRequestRetry("https://user.auth.xboxlive.com/user/authenticate", "POST", Request, "application/json", False)
+            Result = NetRequestRetry(
+                "https://user.auth.xboxlive.com/user/authenticate",
+                "POST",
+                Request,
+                "application/json",
+                False)
         Catch ex As Exception
             Dim IsIgnore As Boolean = False
             RunInUiWait(Sub()
@@ -783,7 +788,12 @@ SkipLogin:
                             ).ToString(Newtonsoft.Json.Formatting.None)
         Dim Result As String
         Try
-            Result = NetRequestRetry("https://xsts.auth.xboxlive.com/xsts/authorize", "POST", Request, "application/json", False)
+            Result = NetRequestRetry(
+                "https://xsts.auth.xboxlive.com/xsts/authorize",
+                "POST",
+                Request,
+                "application/json",
+                False)
         Catch ex As WebException
             '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
             If ex.Message.Contains("2148916227") Then
@@ -839,7 +849,12 @@ SkipLogin:
         Dim Request As String = New JObject(New JProperty("identityToken", $"XBL3.0 x={Tokens(1)};{Tokens(0)}")).ToString(0)
         Dim Result As String
         Try
-            Result = NetRequestRetry("https://api.minecraftservices.com/authentication/login_with_xbox", "POST", Request, "application/json")
+            Result = NetRequestRetry(
+                "https://api.minecraftservices.com/authentication/login_with_xbox",
+                "POST",
+                Request,
+                "application/json",
+                False)
         Catch ex As PCL.ModNet.HttpWebException
             Dim Message As String = GetExceptionSummary(ex)
             If CType(ex.StatusCode, Integer) = 429 Then
@@ -864,6 +879,7 @@ SkipLogin:
 
         Dim ResultJson As JObject = GetJson(Result)
         Dim AccessToken As String = ResultJson("access_token").ToString()
+        If String.IsNullOrWhiteSpace(AccessToken) Then Throw New Exception("获取到的 Minecraft AccessToken 为空，登录流程异常！")
         Return AccessToken
     End Function
     ''' <summary>
@@ -873,7 +889,13 @@ SkipLogin:
     Private Sub MsLoginStep5(AccessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
 
-        Dim Result As String = NetRequestRetry("https://api.minecraftservices.com/entitlements", "GET", Nothing, "application/json", False, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+        Dim Result As String = NetRequestRetry(
+            "https://api.minecraftservices.com/entitlements",
+            "GET",
+            Nothing,
+            "application/json",
+            False,
+            New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
         Try
             Dim ResultJson As JObject = GetJson(Result)
             If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any(Function(x) x("name")?.ToString() = "product_minecraft" OrElse x("name")?.ToString() = "game_minecraft")) Then
@@ -898,7 +920,13 @@ SkipLogin:
 
         Dim Result As String
         Try
-            Result = NetRequestRetry("https://api.minecraftservices.com/minecraft/profile", "GET", "", "application/json", False, New Dictionary(Of String, String) From {{"Authorization", "Bearer " & AccessToken}})
+            Result = NetRequestRetry(
+                "https://api.minecraftservices.com/minecraft/profile",
+                "GET",
+                "",
+                "application/json",
+                False,
+                New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
         Catch ex As PCL.ModNet.HttpWebException
             Dim Message As String = GetExceptionSummary(ex)
             If CType(ex.StatusCode, Integer) = 429 Then '微软！我的 TooManyRequests 枚举呢？
