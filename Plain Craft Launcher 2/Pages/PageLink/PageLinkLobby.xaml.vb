@@ -84,7 +84,7 @@ Public Class PageLinkLobby
 #End Region
 
 #Region "公告"
-    Public Const AllowedVersion As Integer = 2
+    Public Const AllowedVersion As Integer = 3
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
                            RunInUi(Sub()
