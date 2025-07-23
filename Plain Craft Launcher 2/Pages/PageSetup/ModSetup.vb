@@ -137,6 +137,7 @@ Public Class ModSetup
         {"UiLauncherThemeHide2", New SetupEntry("0|1|2|3|4", Source:=SetupSource.Registry, Encoded:=True)},
         {"UiLauncherLogo", New SetupEntry(True)},
         {"UiLauncherCEHint", New SetupEntry(True, Source:=SetupSource.Registry)},
+        {"UiLauncherCEHintCount", New SetupEntry(0, Source:=SetupSource.Registry)},
         {"UiBlur", New SetupEntry(False)},
         {"UiBlurValue", New SetupEntry(16)},
         {"UiBackgroundColorful", New SetupEntry(True)},

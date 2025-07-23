@@ -481,15 +481,10 @@ Retry:
                                        StackPlayerList.Children.Clear()
                                        LabConnectUserName.Text = NaidProfile.Username
                                        LabConnectUserType.Text = "创建者"
+                                       BtnFinishCopyIp.Visibility = Visibility.Collapsed
                                    End Sub)
-                           Dim id As String = Nothing
-                           For i = 1 To 8 '生成 8 位随机编号
-                               id += RandomInteger(0, 9).ToString()
-                           Next
-                           Dim secret As String = Nothing
-                           For i = 1 To 2
-                               secret += RandomInteger(0, 9).ToString()
-                           Next
+                           Dim id As String = RandomInteger(10000000, 99999999).ToString()
+                           Dim secret As String = RandomInteger(10, 99).ToString()
                            LaunchLink(True, id, secret, LocalPort)
                            Dim retryCount As Integer = 0
                            While Not IsETRunning
@@ -518,7 +513,7 @@ Retry:
     '加入大厅
     Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
         If Not LobbyPrecheck() Then Exit Sub
-        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：0150923014")
+        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E")
         If JoinedLobbyId = Nothing Then Exit Sub
         If JoinedLobbyId.Length < 9 Then
             Hint("大厅编号不合法", HintType.Critical)
@@ -537,6 +532,7 @@ Retry:
                                        StackPlayerList.Children.Clear()
                                        LabConnectUserName.Text = NaidProfile.Username
                                        LabConnectUserType.Text = "加入者"
+                                       BtnFinishCopyIp.Visibility = Visibility.Visible
                                    End Sub)
                            Dim processedId As String = JoinedLobbyId.FromB32ToB10()
                            RemotePort = processedId.Substring(10)

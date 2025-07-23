@@ -69,7 +69,14 @@ Friend Module ModSecret
             Environment.[Exit](ProcessReturnValues.Cancel)
         End If
         '社区版提示
-        If Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce()
+        If Setup.Get("UiLauncherCEHint") Then
+            Dim count As Integer = Setup.Get("UiLauncherCEHintCount")
+            If count <= 0 Then
+                ShowCEAnnounce()
+                count = 11
+            End If
+            Setup.Set("UiLauncherCEHintCount", count - 1)
+        End If
     End Sub
     ''' <summary>
     ''' 展示社区版提示

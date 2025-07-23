@@ -407,6 +407,10 @@ Public Module ModLink
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.JoinerLocalPort = Nothing
                 PageLinkLobby.IsETFirstCheckFinished = False
+                RunInUi(Sub()
+                            FrmLinkLobby.LabFinishId.Text = ""
+                            FrmLinkLobby.BtnFinishExit.Text = "退出大厅"
+                        End Sub)
                 StopMcPortForward()
             Catch ex As InvalidOperationException
                 Log("[Link] EasyTier 进程不存在，可能已退出")
