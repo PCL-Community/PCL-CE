@@ -467,7 +467,7 @@ Retry:
             BtnCreate.IsEnabled = True
             Exit Sub
         End If
-        LocalPort = CType(ComboWorldList.SelectedItem.Tag, Tuple(Of Integer, McPingResult)).Item1.ToString()
+        LocalPort = CType(ComboWorldList.SelectedItem.Tag, Tuple(Of Integer, McPingResult, String)).Item1.ToString()
         Log("[Link] 创建大厅，端口：" & LocalPort)
         IsHost = True
         RunInNewThread(Sub()
