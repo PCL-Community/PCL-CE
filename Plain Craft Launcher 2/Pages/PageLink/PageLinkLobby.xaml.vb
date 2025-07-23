@@ -376,16 +376,16 @@ Retry:
             Dim cliJson As JArray = JArray.Parse(ETCliOutput)
             For Each p In cliJson
                 If p("hostname").ToString().Contains("PublicServer") Then Continue For '服务器
-                Dim hostnameStatus As Integer = p("hostname").ToString().Split("-").Length
+                Dim hostnameSplit As String() = p("hostname").ToString().Split("|")
                 Dim info As New ETPlayerInfo With {
-                    .IsHost = p("hostname").ToString().StartsWithF("H-", True),
+                    .IsHost = p("hostname").ToString().StartsWithF("H|", True),
                     .Hostname = p("hostname"),
                     .Cost = p("cost").ToString().BeforeLast("("),
                     .Ping = Math.Round(Val(p("lat_ms"))),
                     .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
                     .NatType = p("nat_type"),
-                    .McName = If(hostnameStatus = 3, p("hostname").ToString().Split("-")(2), Nothing),
-                    .NaidName = If(hostnameStatus = 3 OrElse hostnameStatus = 2, p("hostname").ToString().Split("-")(1), Nothing)
+                    .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
+                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), Nothing)
                 }
                 If info.Cost = "Local" Then LocalInfo = info
                 If info.IsHost Then
