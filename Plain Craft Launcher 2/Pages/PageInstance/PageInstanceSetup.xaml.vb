@@ -29,48 +29,48 @@ Public Class PageInstanceSetup
         Try
 
             '启动参数
-            TextArgumentTitle.Text = Setup.Get("VersionArgumentTitle", Version:=PageInstanceLeft.Instance)
-            CheckArgumentTitleEmpty.Checked = Setup.Get("VersionArgumentTitleEmpty", Version:=PageInstanceLeft.Instance)
-            TextArgumentInfo.Text = Setup.Get("VersionArgumentInfo", Version:=PageInstanceLeft.Instance)
+            TextArgumentTitle.Text = Setup.Get("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
+            CheckArgumentTitleEmpty.Checked = Setup.Get("VersionArgumentTitleEmpty", instance:=PageInstanceLeft.Instance)
+            TextArgumentInfo.Text = Setup.Get("VersionArgumentInfo", instance:=PageInstanceLeft.Instance)
             Dim _unused = PageInstanceLeft.Instance.PathIndie '触发自动判定
-            ComboArgumentIndieV2.SelectedIndex = If(Setup.Get("VersionArgumentIndieV2", Version:=PageInstanceLeft.Instance), 0, 1)
+            ComboArgumentIndieV2.SelectedIndex = If(Setup.Get("VersionArgumentIndieV2", instance:=PageInstanceLeft.Instance), 0, 1)
             CheckArgumentTitleEmpty.Visibility = If(TextArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
             TextArgumentTitle.HintText = If(CheckArgumentTitleEmpty.Checked, "默认", "跟随全局设置")
             RefreshJavaComboBox()
 
             '游戏内存
-            CType(FindName("RadioRamType" & Setup.Load("VersionRamType", Version:=PageInstanceLeft.Instance)), MyRadioBox).Checked = True
-            SliderRamCustom.Value = Setup.Get("VersionRamCustom", Version:=PageInstanceLeft.Instance)
-            ComboRamOptimize.SelectedIndex = Setup.Get("VersionRamOptimize", Version:=PageInstanceLeft.Instance)
+            CType(FindName("RadioRamType" & Setup.Load("VersionRamType", instance:=PageInstanceLeft.Instance)), MyRadioBox).Checked = True
+            SliderRamCustom.Value = Setup.Get("VersionRamCustom", instance:=PageInstanceLeft.Instance)
+            ComboRamOptimize.SelectedIndex = Setup.Get("VersionRamOptimize", instance:=PageInstanceLeft.Instance)
 
             '服务器
-            TextServerEnter.Text = Setup.Get("VersionServerEnter", Version:=PageInstanceLeft.Instance)
-            ComboServerLoginRequire.SelectedIndex = Setup.Get("VersionServerLoginRequire", Version:=PageInstanceLeft.Instance)
+            TextServerEnter.Text = Setup.Get("VersionServerEnter", instance:=PageInstanceLeft.Instance)
+            ComboServerLoginRequire.SelectedIndex = Setup.Get("VersionServerLoginRequire", instance:=PageInstanceLeft.Instance)
             ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex
             ServerLogin(ComboServerLoginRequire.SelectedIndex)
-            TextServerAuthServer.Text = Setup.Get("VersionServerAuthServer", Version:=PageInstanceLeft.Instance)
-            TextServerAuthName.Text = Setup.Get("VersionServerAuthName", Version:=PageInstanceLeft.Instance)
-            TextServerAuthRegister.Text = Setup.Get("VersionServerAuthRegister", Version:=PageInstanceLeft.Instance)
+            TextServerAuthServer.Text = Setup.Get("VersionServerAuthServer", instance:=PageInstanceLeft.Instance)
+            TextServerAuthName.Text = Setup.Get("VersionServerAuthName", instance:=PageInstanceLeft.Instance)
+            TextServerAuthRegister.Text = Setup.Get("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
 
             '高级设置
-            TextAdvanceJvm.Text = Setup.Get("VersionAdvanceJvm", Version:=PageInstanceLeft.Instance)
-            TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", Version:=PageInstanceLeft.Instance)
-            TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", Version:=PageInstanceLeft.Instance)
-            CheckAdvanceRunWait.Checked = Setup.Get("VersionAdvanceRunWait", Version:=PageInstanceLeft.Instance)
-            If Setup.Get("VersionAdvanceAssets", Version:=PageInstanceLeft.Instance) = 2 Then
+            TextAdvanceJvm.Text = Setup.Get("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
+            TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
+            TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
+            CheckAdvanceRunWait.Checked = Setup.Get("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
+            If Setup.Get("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance) = 2 Then
                 Log("[Setup] 已迁移老版本的关闭文件校验设置")
-                Setup.Reset("VersionAdvanceAssets", Version:=PageInstanceLeft.Instance)
-                Setup.Set("VersionAdvanceAssetsV2", True, Version:=PageInstanceLeft.Instance)
+                Setup.Reset("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance)
+                Setup.Set("VersionAdvanceAssetsV2", True, instance:=PageInstanceLeft.Instance)
             End If
-            CheckAdvanceAssetsV2.Checked = Setup.Get("VersionAdvanceAssetsV2", Version:=PageInstanceLeft.Instance)
-            CheckAdvanceUseProxyV2.Checked = Setup.Get("VersionAdvanceUseProxyV2", Version:=PageInstanceLeft.Instance)
-            CheckAdvanceJava.Checked = Setup.Get("VersionAdvanceJava", Version:=PageInstanceLeft.Instance)
+            CheckAdvanceAssetsV2.Checked = Setup.Get("VersionAdvanceAssetsV2", instance:=PageInstanceLeft.Instance)
+            CheckAdvanceUseProxyV2.Checked = Setup.Get("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
+            CheckAdvanceJava.Checked = Setup.Get("VersionAdvanceJava", instance:=PageInstanceLeft.Instance)
             If IsArm64System Then
                 CheckAdvanceDisableJLW.Checked = True
                 CheckAdvanceDisableJLW.IsEnabled = False
                 CheckAdvanceDisableJLW.ToolTip = "在启动游戏时不使用 Java Wrapper 进行包装。&#xa;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。"
             Else
-                CheckAdvanceDisableJLW.Checked = Setup.Get("VersionAdvanceDisableJLW", Version:=PageInstanceLeft.Instance)
+                CheckAdvanceDisableJLW.Checked = Setup.Get("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             End If
 
         Catch ex As Exception
@@ -82,30 +82,30 @@ Public Class PageInstanceSetup
     Public Sub Reset()
         Try
             If Not Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance) Then
-                Setup.Reset("VersionServerLoginRequire", Version:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthServer", Version:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthRegister", Version:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthName", Version:=PageInstanceLeft.Instance)
+                Setup.Reset("VersionServerLoginRequire", instance:=PageInstanceLeft.Instance)
+                Setup.Reset("VersionServerAuthServer", instance:=PageInstanceLeft.Instance)
+                Setup.Reset("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
+                Setup.Reset("VersionServerAuthName", instance:=PageInstanceLeft.Instance)
             End If
-            Setup.Reset("VersionServerEnter", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentTitle", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentInfo", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentIndieV2", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamType", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamCustom", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamOptimize", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJvm", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceGame", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssets", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssetsV2", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJava", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJlw", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRun", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRunWait", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJLW", Version:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceUseProxyV2", Version:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionServerEnter", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionArgumentInfo", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionArgumentIndieV2", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionRamType", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionRamCustom", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionRamOptimize", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceAssetsV2", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceJava", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceDisableJlw", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
 
-            Setup.Reset("VersionArgumentJavaSelect", Version:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
 
             Log("[Setup] 已初始化实例独立设置")
             Hint("已初始化实例独立设置！", HintType.Finish, False)
@@ -118,27 +118,27 @@ Public Class PageInstanceSetup
 
     '将控件改变路由到设置改变
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioRamType0.Check, RadioRamType1.Check, RadioRamType2.Check
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)), Version:=PageInstanceLeft.Instance)
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)), instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextArgumentTitle.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
         If AniControlEnabled = 0 Then
             '#3194，不能删减 /
             'Dim HandledText As String = sender.Text
             'If sender.Tag = "VersionServerAuthServer" OrElse sender.Tag = "VersionServerAuthRegister" Then HandledText = HandledText.TrimEnd("/")
-            Setup.Set(sender.Tag, sender.Text, Version:=PageInstanceLeft.Instance)
+            Setup.Set(sender.Tag, sender.Text, instance:=PageInstanceLeft.Instance)
         End If
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value, Version:=PageInstanceLeft.Instance)
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex, Version:=PageInstanceLeft.Instance)
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex = 0, Version:=PageInstanceLeft.Instance)
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex = 0, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change, CheckAdvanceRunWait.Change, CheckAdvanceAssetsV2.Change, CheckAdvanceJava.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceUseProxyV2.Change, CheckAdvanceDisableRW.Change
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked, Version:=PageInstanceLeft.Instance)
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked, instance:=PageInstanceLeft.Instance)
     End Sub
 
 #Region "游戏内存"
@@ -282,7 +282,7 @@ Public Class PageInstanceSetup
     ''' </summary>
     Public Shared Function GetRam(Version As McInstance, Optional Is32BitJava As Boolean? = Nothing) As Double
         '跟随全局设置
-        If Setup.Get("VersionRamType", Version:=Version) = 2 Then
+        If Setup.Get("VersionRamType", instance:=Version) = 2 Then
             Return PageSetupLaunch.GetRam(Version, True, Is32BitJava)
         End If
 
@@ -292,7 +292,7 @@ Public Class PageInstanceSetup
 
         '使用当前实例的设置
         Dim RamGive As Double
-        If Setup.Get("VersionRamType", Version:=Version) = 0 Then
+        If Setup.Get("VersionRamType", instance:=Version) = 0 Then
             '自动配置
             Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10
             '确定需求的内存值
@@ -348,7 +348,7 @@ PreFin:
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1)
         Else
             '手动配置
-            Dim Value As Integer = Setup.Get("VersionRamCustom", Version:=Version)
+            Dim Value As Integer = Setup.Get("VersionRamCustom", instance:=Version)
             If Value <= 12 Then
                 RamGive = Value * 0.1 + 0.3
             ElseIf Value <= 25 Then
@@ -468,7 +468,7 @@ PreFin:
     '锁定设置
     Private Sub BtnServerAuthLock_Click() Handles BtnServerAuthLock.Click
         If MyMsgBox($"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{vbCrLf}此功能可能会帮助一些服主吧。{vbCrLf}是否继续？", "锁定验证方式确认", "确定", "取消", IsWarn:=True) = 1 Then
-            Setup.Set("VersionServerLoginLock", True, Version:=PageInstanceLeft.Instance)
+            Setup.Set("VersionServerLoginLock", True, instance:=PageInstanceLeft.Instance)
             Reload()
         End If
     End Sub
@@ -496,7 +496,7 @@ PreFin:
         ComboArgumentJava.Items.Add(New MyComboBoxItem With {.Content = "自动选择合适的 Java", .Tag = "自动选择"})
         '更新列表
         Dim SelectedItem As MyComboBoxItem = Nothing
-        Dim SelectedBySetup As String = Setup.Get("VersionArgumentJavaSelect", Version:=PageInstanceLeft.Instance)
+        Dim SelectedBySetup As String = Setup.Get("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
         Try
             For Each CurJava In Javas.JavaList
                 Dim ListItem = New MyComboBoxItem With {.Content = CurJava.ToString, .ToolTip = CurJava.JavaFolder, .Tag = CurJava}
@@ -507,7 +507,7 @@ PreFin:
                 If SelectedBySetup = CurJava.JavaExePath Then SelectedItem = ListItem
             Next
         Catch ex As Exception
-            Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance:=PageInstanceLeft.Instance)
             Log(ex, "更新实例设置 Java 下拉框失败", LogLevel.Feedback)
         End Try
         '更新选择项
@@ -542,15 +542,15 @@ PreFin:
         Dim SelectedJava = ComboArgumentJava.SelectedItem.Tag
         If "使用全局设置".Equals(SelectedJava) Then
             '选择 “自动”
-            Setup.Set("VersionArgumentJavaSelect", "使用全局设置", Version:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance:=PageInstanceLeft.Instance)
             Log("[Java] 修改实例 Java 选择设置：跟随全局设置")
         ElseIf "自动选择".Equals(SelectedJava) Then
             '选择 “自动”
-            Setup.Set("VersionArgumentJavaSelect", "", Version:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", "", instance:=PageInstanceLeft.Instance)
             Log("[Java] 修改实例 Java 选择设置：自动选择")
         Else
             '选择指定项
-            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, Java).JavaExePath, Version:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, Java).JavaExePath, instance:=PageInstanceLeft.Instance)
             Log("[Java] 修改实例 Java 选择设置：" & SelectedJava.ToString)
         End If
         RefreshRam(True)

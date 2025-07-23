@@ -185,15 +185,15 @@ Public Module ModMinecraft
         ''' </summary>
         Public ReadOnly Property PathIndie As String
             Get
-                If Setup.IsUnset("VersionArgumentIndieV2", Version:=Me) Then
+                If Setup.IsUnset("VersionArgumentIndieV2", instance:=Me) Then
                     If Not IsLoaded Then Load()
                     '决定该实例是否应该被隔离
                     Dim ShouldBeIndie =
                     Function() As Boolean
                         '从老的实例独立设置中迁移：-1 未决定，0 使用全局设置，1 手动开启，2 手动关闭
-                        If Not Setup.IsUnset("VersionArgumentIndie", Version:=Me) AndAlso Setup.Get("VersionArgumentIndie", Version:=Me) > 0 Then
+                        If Not Setup.IsUnset("VersionArgumentIndie", instance:=Me) AndAlso Setup.Get("VersionArgumentIndie", instance:=Me) > 0 Then
                             Log($"[Minecraft] 版本隔离初始化（{Name}）：从老的实例独立设置中迁移")
-                            Return Setup.Get("VersionArgumentIndie", Version:=Me) = 1
+                            Return Setup.Get("VersionArgumentIndie", instance:=Me) = 1
                         End If
                         '若实例文件夹下包含 mods 或 saves 文件夹，则自动开启版本隔离
                         Dim ModFolder As New DirectoryInfo(Path & "mods\")
@@ -218,10 +218,10 @@ Public Module ModMinecraft
                                 Return True
                         End Select
                     End Function
-                    Setup.Set("VersionArgumentIndieV2", ShouldBeIndie(), Version:=Me)
+                    Setup.Set("VersionArgumentIndieV2", ShouldBeIndie(), instance:=Me)
                 End If
 
-                Return If(Setup.Get("VersionArgumentIndieV2", Version:=Me), Path, PathMcFolder)
+                Return If(Setup.Get("VersionArgumentIndieV2", instance:=Me), Path, PathMcFolder)
             End Get
         End Property
 
@@ -1908,48 +1908,49 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Instance.Name)
-        McLibListGet = McLibListGetWithJson(Instance.JsonObject, TargetInstance:=Instance)
-        If Not IncludeInstanceJar Then Return McLibListGet
+        Dim result = McLibListGetWithJson(Instance.JsonObject)
 
         '需要添加原版 Jar
-        Dim RealInstance As McInstance
-        Dim RequiredJar As String = Instance.JsonObject("jar")?.ToString
-        If Instance.IsHmclFormatJson OrElse RequiredJar Is Nothing Then
-            'HMCL 项直接使用自身的 Jar
-            '根据 Inherit 获取最深层实例
-            Dim OriginalInstance As McInstance = Instance
-            '1.17+ 的 Forge 不寻找 Inherit
-            If Not ((Instance.Version.HasForge OrElse Instance.Version.HasNeoForge) AndAlso Instance.Version.McCodeMain >= 17) Then
-                Do Until OriginalInstance.InheritInstance = ""
-                    If OriginalInstance.InheritInstance = OriginalInstance.Name Then Exit Do
-                    OriginalInstance = New McInstance(PathMcFolder & "versions\" & OriginalInstance.InheritInstance & "\")
-                Loop
+        If IncludeInstanceJar Then
+            Dim RealInstance As McInstance
+            Dim RequiredJar As String = Instance.JsonObject("jar")?.ToString
+            If Instance.IsHmclFormatJson OrElse RequiredJar Is Nothing Then
+                'HMCL 项直接使用自身的 Jar
+                '根据 Inherit 获取最深层实例
+                Dim OriginalInstance As McInstance = Instance
+                '1.17+ 的 Forge 不寻找 Inherit
+                If Not ((Instance.Version.HasForge OrElse Instance.Version.HasNeoForge) AndAlso Instance.Version.McCodeMain >= 17) Then
+                    Do Until OriginalInstance.InheritInstance = ""
+                        If OriginalInstance.InheritInstance = OriginalInstance.Name Then Exit Do
+                        OriginalInstance = New McInstance(PathMcFolder & "versions\" & OriginalInstance.InheritInstance & "\")
+                    Loop
+                End If
+                '需要新建对象，否则后面的 Check 会导致 McInstanceCurrent 的 State 变回 Original
+                '复现：启动一个 Snapshot 实例
+                RealInstance = New McInstance(OriginalInstance.Path)
+            Else
+                'Json 已提供 Jar 字段，使用该字段的信息
+                RealInstance = New McInstance(RequiredJar)
             End If
-            '需要新建对象，否则后面的 Check 会导致 McInstanceCurrent 的 State 变回 Original
-            '复现：启动一个 Snapshot 实例
-            RealInstance = New McInstance(OriginalInstance.Path)
-        Else
-            'Json 已提供 Jar 字段，使用该字段的信息
-            RealInstance = New McInstance(RequiredJar)
+            Dim ClientUrl As String, ClientSHA1 As String
+            '判断需求的实例是否存在
+            '不能调用 RealVersion.Check()，可能会莫名其妙地触发 CheckPermission 正被另一进程使用，导致误判前置不存在
+            If Not File.Exists(RealInstance.Path & RealInstance.Name & ".json") Then
+                RealInstance = Instance
+                Log("[Minecraft] 可能缺少前置实例 " & RealInstance.Name & "，找不到对应的 JSON 文件", LogLevel.Debug)
+            End If
+            '获取详细下载信息
+            If RealInstance.JsonObject("downloads") IsNot Nothing AndAlso RealInstance.JsonObject("downloads")("client") IsNot Nothing Then
+                ClientUrl = RealInstance.JsonObject("downloads")("client")("url")
+                ClientSHA1 = RealInstance.JsonObject("downloads")("client")("sha1")
+            Else
+                ClientUrl = Nothing
+                ClientSHA1 = Nothing
+            End If
+            '把所需的原版 Jar 添加进去
+            result.Add(New McLibToken With {.LocalPath = RealInstance.Path & RealInstance.Name & ".jar", .Size = 0, .IsNatives = False, .Url = ClientUrl, .SHA1 = ClientSHA1})
         End If
-        Dim ClientUrl As String, ClientSHA1 As String
-        '判断需求的实例是否存在
-        '不能调用 RealVersion.Check()，可能会莫名其妙地触发 CheckPermission 正被另一进程使用，导致误判前置不存在
-        If Not File.Exists(RealInstance.Path & RealInstance.Name & ".json") Then
-            RealInstance = Instance
-            Log("[Minecraft] 可能缺少前置实例 " & RealInstance.Name & "，找不到对应的 JSON 文件", LogLevel.Debug)
-        End If
-        '获取详细下载信息
-        If RealInstance.JsonObject("downloads") IsNot Nothing AndAlso RealInstance.JsonObject("downloads")("client") IsNot Nothing Then
-            ClientUrl = RealInstance.JsonObject("downloads")("client")("url")
-            ClientSHA1 = RealInstance.JsonObject("downloads")("client")("sha1")
-        Else
-            ClientUrl = Nothing
-            ClientSHA1 = Nothing
-        End If
-        '把所需的原版 Jar 添加进去
-        McLibListGet.Add(New McLibToken With {.LocalPath = RealInstance.Path & RealInstance.Name & ".jar", .Size = 0, .IsNatives = False, .Url = ClientUrl, .SHA1 = ClientSHA1})
-
+        Return result
     End Function
     ''' <summary>
     ''' 获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。
@@ -2246,7 +2247,7 @@ OnLoaded:
     ''' 检查设置，是否应当忽略文件检查？
     ''' </summary>
     Public Function ShouldIgnoreFileCheck(Version As McInstance)
-        Return Setup.Get("VersionAdvanceAssetsV2", Version:=Version) OrElse (Setup.Get("VersionAdvanceAssets", Version:=Version) = 2)
+        Return Setup.Get("VersionAdvanceAssetsV2", instance:=Version) OrElse (Setup.Get("VersionAdvanceAssets", instance:=Version) = 2)
     End Function
 
 #End Region

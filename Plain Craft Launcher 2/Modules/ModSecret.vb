@@ -165,7 +165,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Function
 
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
-        Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", Version:=McInstanceCurrent)
+        Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", instance:=McInstanceCurrent)
         DataList.Insert(0, If(DataJvmCustom = "", Setup.Get("LaunchAdvanceJvm"), DataJvmCustom)) '可变 JVM 参数
         Select Case Setup.Get("LaunchPreferredIpStack")
             Case 0
