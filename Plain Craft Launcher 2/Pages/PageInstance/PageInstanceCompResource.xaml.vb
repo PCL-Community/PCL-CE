@@ -1622,10 +1622,10 @@ Install:
         '在后台线程中加载NBT数据
         RunInNewThread(Sub()
                            Try
-                               '确保NBT数据已加载
+                               '确保 NBT 数据已加载
                                ModEntry.LoadNbtDataIfNeeded()
 
-                               '在UI线程中显示详情
+                               '在 UI 线程中显示详情
                                RunInUi(Sub()
                                            Try
                                                '构建详情信息
@@ -1660,7 +1660,7 @@ Install:
 
                            Catch ex As Exception
                                '记录错误日志但不显示错误提示，因为通用的文件状态检查已经处理了
-                               Log(ex, "加载原理图NBT数据失败", LogLevel.Feedback)
+                               Log(ex, "加载原理图 NBT 数据失败", LogLevel.Feedback)
                            End Try
                        End Sub)
     End Sub
