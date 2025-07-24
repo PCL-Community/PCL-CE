@@ -1,10 +1,7 @@
-'由于包含加解密等安全信息，本文件中的部分代码已被删除
-
 Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
-Imports System.IO.Compression
 Imports PCL.Core.Helper
 
 Friend Module ModSecret
@@ -750,6 +747,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     })
     Public ReadOnly Property IsUpdBetaChannel
         Get
+            If VersionBaseName.Contains("beta") Then Return True
             Return Setup.Get("SystemSystemUpdateBranch") = 1
         End Get
     End Property
