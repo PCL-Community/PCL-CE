@@ -915,7 +915,7 @@ NextStack:
                                 FileName = "游戏崩溃前的输出.txt"
                                 FileEncoding = Encoding.UTF8
                         End Select
-                        If Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last() = FileName Then
+                        If Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last().AfterLast("\") = FileName Then
                             FileName = "PCL 启动器日志.txt"
                             FileEncoding = Encoding.UTF8
                         End If
@@ -936,7 +936,7 @@ NextStack:
                     EnvInfo += $"PCL CE 版本：{VersionBaseName} {vbCrLf}"
                     EnvInfo += $"识别码：{UniqueAddress}{vbCrLf}"
                     EnvInfo += $"{vbCrLf}- 档案信息 -{vbCrLf}"
-                    EnvInfo += $"启动档案：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd("[").Trim()}（验证方式：{McLauncherLog.Between("登录方式：", "[").TrimEnd("[").Trim()}）{vbCrLf}"
+                    EnvInfo += $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd("[").Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd("[").Trim()}){vbCrLf}"
                     EnvInfo += $"{vbCrLf}- 实例信息 -{vbCrLf}"
                     EnvInfo += $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd("[").Trim()}{vbCrLf}"
                     EnvInfo += $"Log4j2 NoLookups：{Not LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}{vbCrLf}"
@@ -944,9 +944,10 @@ NextStack:
                     EnvInfo += $"{vbCrLf}- 环境信息 -{vbCrLf}"
                     EnvInfo += $"操作系统：{OSInfo}（64 位：{Not Is32BitSystem}, ARM64: {IsArm64System}）{vbCrLf}"
                     EnvInfo += $"CPU：{CPUName}{vbCrLf}"
-                    EnvInfo += $"内存分配（分配的内存 / 已安装物理内存）：{McLauncherLog.Between("分配的内存：", "[").TrimEnd("[").Trim()} / {SystemMemorySize / 1024} GB （{SystemMemorySize} MB){vbCrLf}"
+                    EnvInfo += $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd("[").Trim()} / {Math.Round(SystemMemorySize / 1024, 2)} GB ({SystemMemorySize} MB){vbCrLf}"
                     For Each GPU In GPUs
-                        EnvInfo += $"显卡 {GPUs.IndexOf(GPU)}：{GPU.Name}（{GPU.Memory} MB, {GPU.DriverVersion}）"
+                        EnvInfo += $"显卡 {GPUs.IndexOf(GPU)}：{GPU.Name} ({If(GPU.Memory >= 4095, ">= " & GPU.Memory, GPU.Memory)} MB, {GPU.DriverVersion})"
+                        EnvInfo += vbCrLf
                     Next
                     File.CreateText(TempFolder & "Report\环境与启动信息.txt").Close()
                     WriteFile(TempFolder & "Report\环境与启动信息.txt", EnvInfo, Encoding:=Encoding.UTF8)

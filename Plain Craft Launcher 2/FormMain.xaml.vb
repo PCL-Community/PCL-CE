@@ -176,13 +176,13 @@ Public Class FormMain
 #If DEBUG Or DEBUGCI Then
             If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
 #If DEBUG Then
-                Const hint = "当前运行的 PCL2 社区版为 Debug 版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
                              "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
                              vbCrLf &
                              "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
                              "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
 #Else
-                Const hint = "当前运行的 PCL2 社区版为 CI 自动构建版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
                              "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
                              vbCrLf &
                              "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
@@ -271,7 +271,7 @@ Retry:
         Setup.Set("SystemCount", Setup.Get("SystemCount") + 1)
         If Setup.Get("SystemCount") >= 99 Then
             If ThemeUnlock(6, False) Then
-                MyMsgBox("你已经打开了 99 次 PCL2 社区版啦，感谢你长期以来的支持！" & vbCrLf &
+                MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" & vbCrLf &
                          "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！", "提示")
             End If
         End If

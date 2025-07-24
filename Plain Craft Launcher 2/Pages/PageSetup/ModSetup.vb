@@ -43,7 +43,7 @@ Public Class ModSetup
         {"SystemDebugSkipCopy", New SetupEntry(False, source:=SetupSource.AppData)},
         {"SystemSystemCache", New SetupEntry("", source:=SetupSource.AppData)},
         {"SystemSystemUpdate", New SetupEntry(0)},
-        {"SystemSystemUpdateBranch", New SetupEntry(0)},
+        {"SystemSystemUpdateBranch", New SetupEntry(If(VersionBaseName.Contains("beta"), 1, 0))},
         {"SystemSystemActivity", New SetupEntry(0)},
         {"SystemSystemAnnouncement", New SetupEntry("", source:=SetupSource.AppData)},
         {"SystemHttpProxy", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
