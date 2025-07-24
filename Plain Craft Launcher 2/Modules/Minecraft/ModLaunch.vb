@@ -1289,7 +1289,7 @@ LoginFinish:
 
         If McInstanceCurrent.Version.HasLiteLoader AndAlso McInstanceCurrent.Version.IsStandardVersion Then
             '最高 Java 8
-            MaxVer = If(New Version(1, 8, 999, 999) < MaxVer, New Version(1, 8, 999, 999), MaxVer)
+            MaxVer = If(New Version(8, 999, 999, 999) < MaxVer, New Version(8, 999, 999, 999), MaxVer)
         End If
 
         'Forge 检测
