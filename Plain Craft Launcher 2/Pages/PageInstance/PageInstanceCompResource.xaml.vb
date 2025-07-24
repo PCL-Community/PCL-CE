@@ -264,7 +264,7 @@ Public Class PageInstanceCompResource
                         Return
                     End If
                 End If
-                
+
                 '根据组件类型设置PanEmpty的文本内容
                 If CurrentCompType = CompType.Schematic Then
                     '检查是否在子文件夹中
@@ -281,14 +281,14 @@ Public Class PageInstanceCompResource
                     TxtEmptyTitle.Text = "尚未安装资源"
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
                 End If
-                
+
                 '如果当前在子文件夹中，显示返回上一级按钮
                 If Not String.IsNullOrEmpty(CurrentFolderPath) Then
                     BtnHintBack.Visibility = Visibility.Visible
                 Else
                     BtnHintBack.Visibility = Visibility.Collapsed
                 End If
-                
+
                 PanEmpty.Visibility = Visibility.Visible
                 PanBack.Visibility = Visibility.Collapsed
                 PanSchematicEmpty.Visibility = Visibility.Collapsed
@@ -420,7 +420,7 @@ Public Class PageInstanceCompResource
                 If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
                 Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
 
-                ' 确保元素没有父容器，避免重复添加异常
+                  ' 确保元素没有父容器，避免重复添加异常
                 If Item.Parent IsNot Nothing Then
                     CType(Item.Parent, Panel).Children.Remove(Item)
                 End If
@@ -1927,50 +1927,36 @@ Install:
         End Get
     End Property
     Private SearchResult As List(Of LocalCompFile)
-    Private SearchTimer As Threading.Timer
-
     Public Sub SearchRun() Handles SearchBox.TextChanged
-        ' 使用防抖机制，避免过于频繁的搜索调用
-        If SearchTimer IsNot Nothing Then
-            SearchTimer.Dispose()
-        End If
-
-        SearchTimer = New Threading.Timer(AddressOf performSearch, Nothing, 300, Threading.Timeout.Infinite)
-    End Sub
-
-    Private Sub performSearch(state As Object)
-        ' 在 UI 线程中执行搜索
-        RunInUi(Sub()
-                    Try
-                        If IsSearching Then
-                            '构造请求
-                            Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
-                            For Each Entry As LocalCompFile In CompResourceListLoader.Output
-                                Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
-                                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
-                                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
-                                If Entry.Version IsNot Nothing Then
-                                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
-                                End If
-                                If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
-                                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
-                                End If
-                                If Entry.Comp IsNot Nothing Then
-                                    If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
-                                    If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
-                                    If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
-                                    SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
-                                End If
-                                QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
-                            Next
-                            '进行搜索
-                            SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
-                        End If
-                        RefreshUI()
-                    Catch ex As Exception
-                        Log(ex, "搜索过程中发生异常", LogLevel.Debug)
-                    End Try
-                End Sub)
+        Try
+            If IsSearching Then
+                '构造请求
+                Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
+                For Each Entry As LocalCompFile In CompResourceListLoader.Output
+                    Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
+                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
+                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
+                    If Entry.Version IsNot Nothing Then
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
+                    End If
+                    If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
+                    End If
+                    If Entry.Comp IsNot Nothing Then
+                        If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
+                        If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
+                        If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
+                    End If
+                    QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+                Next
+                '进行搜索
+                SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+            End If
+            RefreshUI()
+        Catch ex As Exception
+            Log(ex, "搜索过程中发生异常", LogLevel.Debug)
+        End Try
     End Sub
 
 #End Region
