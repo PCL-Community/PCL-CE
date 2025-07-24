@@ -1500,6 +1500,7 @@ Retry:
                     'TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
                     If String.IsNullOrWhiteSpace(Url) Then Url = $"https://edge.forgecdn.net/files/{CInt(Id.ToString.Substring(0, 4))}/{CInt(Id.ToString.Substring(4))}/{FileName}"
                     Url = Url.Replace(FileName, Net.WebUtility.UrlEncode(FileName)) '对文件名进行编码
+                    Url = Url.Replace("+", "%20") '修正被编码成 + 的空格，CurseForge 会对 + 号也进行编码
                     DownloadUrls = DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)) '添加镜像源
                     'Dependencies
                     If Data.ContainsKey("dependencies") Then

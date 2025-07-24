@@ -1,5 +1,3 @@
-Imports PCL.Core.Helper
-
 Public Class ModSetup
 
     ''' <summary>
@@ -10,134 +8,134 @@ Public Class ModSetup
     ''' 设置列表。
     ''' </summary>
     Private ReadOnly SetupDict As New Dictionary(Of String, SetupEntry) From {
-        {"Identify", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"Identify", New SetupEntry("", source:=SetupSource.AppData)},
         {"WindowHeight", New SetupEntry(550)},
         {"WindowWidth", New SetupEntry(900)},
-        {"HintDownloadThread", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintNotice", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"HintDownload", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"HintInstallBack", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintHide", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintHandInstall", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintBuy", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintClearRubbish", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"HintUpdateMod", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintCustomCommand", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintCustomWarn", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintMoreAdvancedSetup", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintIndieSetup", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintProfileSelect", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintExportConfig", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintMaxLog", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"HintDisableGamePathCheckTip", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemEula", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemLaunchCount", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemLastVersionReg", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemHighestSavedBetaVersionReg", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemHighestBetaVersionReg", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemHighestAlphaVersionReg", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemSetupVersionReg", New SetupEntry(VersionSetup, Source:=SetupSource.Registry)},
+        {"HintDownloadThread", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintNotice", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"HintDownload", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"HintInstallBack", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintHide", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintHandInstall", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintBuy", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintClearRubbish", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"HintUpdateMod", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintCustomCommand", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintCustomWarn", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintMoreAdvancedSetup", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintIndieSetup", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintProfileSelect", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintExportConfig", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintMaxLog", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"HintDisableGamePathCheckTip", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemEula", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemCount", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemLaunchCount", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemLastVersionReg", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemHighestSavedBetaVersionReg", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemHighestBetaVersionReg", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemHighestAlphaVersionReg", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"SystemSetupVersionReg", New SetupEntry(VersionSetup, source:=SetupSource.AppData)},
         {"SystemSetupVersionIni", New SetupEntry(VersionSetup)},
-        {"SystemDebugMode", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemDebugAnim", New SetupEntry(9, Source:=SetupSource.Registry)},
-        {"SystemDebugDelay", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemDebugSkipCopy", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemSystemCache", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"SystemDebugMode", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemDebugAnim", New SetupEntry(9, source:=SetupSource.AppData)},
+        {"SystemDebugDelay", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemDebugSkipCopy", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemSystemCache", New SetupEntry("", source:=SetupSource.AppData)},
         {"SystemSystemUpdate", New SetupEntry(0)},
         {"SystemSystemUpdateBranch", New SetupEntry(0)},
         {"SystemSystemActivity", New SetupEntry(0)},
-        {"SystemSystemAnnouncement", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"SystemHttpProxy", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemUseDefaultProxy", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"SystemDisableHardwareAcceleration", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"SystemTelemetry", New SetupEntry(Nothing, Source:=SetupSource.Registry)},
-        {"SystemMirrorChyanKey", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"SystemMaxLog", New SetupEntry(13, Source:=SetupSource.Registry)},
-        {"CacheExportConfig", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"CacheSavedPageUrl", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"CacheSavedPageInstance", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"CacheDownloadFolder", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"ToolDownloadCustomUserAgent", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"CacheJavaListVersion", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"CacheAuthUuid", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"CacheAuthName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"CacheAuthUsername", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"CacheAuthPass", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"CacheAuthServerServer", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"CompFavorites", New SetupEntry("[]", Source:=SetupSource.Registry)},
+        {"SystemSystemAnnouncement", New SetupEntry("", source:=SetupSource.AppData)},
+        {"SystemHttpProxy", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"SystemUseDefaultProxy", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"SystemDisableHardwareAcceleration", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"SystemTelemetry", New SetupEntry(Nothing, source:=SetupSource.AppData)},
+        {"SystemMirrorChyanKey", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"SystemMaxLog", New SetupEntry(13, source:=SetupSource.AppData)},
+        {"CacheExportConfig", New SetupEntry("", source:=SetupSource.AppData)},
+        {"CacheSavedPageUrl", New SetupEntry("", source:=SetupSource.AppData)},
+        {"CacheSavedPageInstance", New SetupEntry("", source:=SetupSource.AppData)},
+        {"CacheDownloadFolder", New SetupEntry("", source:=SetupSource.AppData)},
+        {"ToolDownloadCustomUserAgent", New SetupEntry("", source:=SetupSource.AppData)},
+        {"CacheJavaListVersion", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"CacheAuthUuid", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"CacheAuthName", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"CacheAuthUsername", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"CacheAuthPass", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"CacheAuthServerServer", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"CompFavorites", New SetupEntry("[]", source:=SetupSource.AppData)},
         {"LaunchInstanceSelect", New SetupEntry("")},
         {"LaunchFolderSelect", New SetupEntry("")},
-        {"LaunchFolders", New SetupEntry("", Source:=SetupSource.Registry)},
+        {"LaunchFolders", New SetupEntry("", source:=SetupSource.AppData)},
         {"LaunchArgumentTitle", New SetupEntry("")},
         {"LaunchArgumentInfo", New SetupEntry("PCL")},
-        {"LaunchArgumentJavaSelect", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"LaunchArgumentJavaUser", New SetupEntry("[]", Source:=SetupSource.Registry)},
+        {"LaunchArgumentJavaSelect", New SetupEntry("", source:=SetupSource.AppData)},
+        {"LaunchArgumentJavaUser", New SetupEntry("[]", source:=SetupSource.AppData)},
         {"LaunchArgumentIndie", New SetupEntry(0)},
         {"LaunchArgumentIndieV2", New SetupEntry(4)},
-        {"LaunchArgumentVisible", New SetupEntry(5, Source:=SetupSource.Registry)},
-        {"LaunchArgumentPriority", New SetupEntry(1, Source:=SetupSource.Registry)},
+        {"LaunchArgumentVisible", New SetupEntry(5, source:=SetupSource.AppData)},
+        {"LaunchArgumentPriority", New SetupEntry(1, source:=SetupSource.AppData)},
         {"LaunchArgumentWindowWidth", New SetupEntry(854)},
         {"LaunchArgumentWindowHeight", New SetupEntry(480)},
         {"LaunchArgumentWindowType", New SetupEntry(1)},
-        {"LaunchPreferredIpStack", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"LaunchArgumentRam", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"LaunchPreferredIpStack", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"LaunchArgumentRam", New SetupEntry(False, source:=SetupSource.AppData)},
         {"LaunchAdvanceJvm", New SetupEntry("-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")},
         {"LaunchAdvanceGame", New SetupEntry("")},
         {"LaunchAdvanceRun", New SetupEntry("")},
         {"LaunchAdvanceRunWait", New SetupEntry(True)},
         {"LaunchAdvanceDisableJLW", New SetupEntry(False)},
         {"LaunchAdvanceDisableRW", New SetupEntry(False)},
-        {"LaunchAdvanceGraphicCard", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"LaunchAdvanceNoJavaw", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"LaunchAdvanceGraphicCard", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"LaunchAdvanceNoJavaw", New SetupEntry(False, source:=SetupSource.AppData)},
         {"LaunchRamType", New SetupEntry(0)},
         {"LaunchRamCustom", New SetupEntry(15)},
-        {"LaunchUuid", New SetupEntry(String.Empty, Source:=SetupSource.Registry)},
-        {"ToolFixAuthlib", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"LinkEula", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"LinkLastTestDate", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LinkAnnounceCache", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LinkAnnounceCacheVer", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"LinkRelayType", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"LinkServerType", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"LinkProxyType", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"LinkRelayServer", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"LinkNaidRefreshToken", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LinkNaidRefreshExpiresAt", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LinkFirstTimeNetTest", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"LoginLegacyName", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"LoginMsJson", New SetupEntry("{}", Source:=SetupSource.Registry, Encoded:=True)}, '{UserName: OAuthToken, ...}
-        {"LoginMsAuthType", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"ToolHelpChinese", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"ToolDownloadThread", New SetupEntry(63, Source:=SetupSource.Registry)},
-        {"ToolDownloadSpeed", New SetupEntry(42, Source:=SetupSource.Registry)},
-        {"ToolDownloadSource", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"ToolDownloadVersion", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"ToolDownloadTranslate", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"ToolDownloadTranslateV2", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"ToolDownloadIgnoreQuilt", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"ToolDownloadClipboard", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"ToolDownloadCert", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"ToolDownloadMod", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"ToolModLocalNameStyle", New SetupEntry(0, Source:=SetupSource.Registry)},
-        {"ToolUpdateAlpha", New SetupEntry(0, Source:=SetupSource.Registry, Encoded:=True)},
-        {"ToolUpdateRelease", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"ToolUpdateSnapshot", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"ToolUpdateReleaseLast", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"ToolUpdateSnapshotLast", New SetupEntry("", Source:=SetupSource.Registry)},
-        {"ToolDownloadAutoSelectVersion", New SetupEntry(True, Source:=SetupSource.Registry)},
+        {"LaunchUuid", New SetupEntry(String.Empty, source:=SetupSource.AppData)},
+        {"ToolFixAuthlib", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"LinkEula", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"LinkLastTestDate", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"LinkAnnounceCache", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"LinkAnnounceCacheVer", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"LinkRelayType", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"LinkServerType", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"LinkProxyType", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"LinkRelayServer", New SetupEntry("", source:=SetupSource.AppData)},
+        {"LinkNaidRefreshToken", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"LinkNaidRefreshExpiresAt", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"LinkFirstTimeNetTest", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"LoginLegacyName", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"LoginMsJson", New SetupEntry("{}", source:=SetupSource.AppData, encoded:=True)}, '{UserName: OAuthToken, ...}
+        {"LoginMsAuthType", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"ToolHelpChinese", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"ToolDownloadThread", New SetupEntry(63, source:=SetupSource.AppData)},
+        {"ToolDownloadSpeed", New SetupEntry(42, source:=SetupSource.AppData)},
+        {"ToolDownloadSource", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"ToolDownloadVersion", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"ToolDownloadTranslate", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"ToolDownloadTranslateV2", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"ToolDownloadIgnoreQuilt", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"ToolDownloadClipboard", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"ToolDownloadCert", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"ToolDownloadMod", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"ToolModLocalNameStyle", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"ToolUpdateAlpha", New SetupEntry(0, source:=SetupSource.AppData, encoded:=True)},
+        {"ToolUpdateRelease", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"ToolUpdateSnapshot", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"ToolUpdateReleaseLast", New SetupEntry("", source:=SetupSource.AppData)},
+        {"ToolUpdateSnapshotLast", New SetupEntry("", source:=SetupSource.AppData)},
+        {"ToolDownloadAutoSelectVersion", New SetupEntry(True, source:=SetupSource.AppData)},
         {"UiLauncherTransparent", New SetupEntry(600)}, '避免与 PCL1 设置冲突（UiLauncherOpacity）
         {"UiLauncherHue", New SetupEntry(180)},
         {"UiLauncherSat", New SetupEntry(80)},
         {"UiLauncherDelta", New SetupEntry(90)},
         {"UiLauncherLight", New SetupEntry(20)},
         {"UiLauncherTheme", New SetupEntry(0)},
-        {"UiLauncherThemeGold", New SetupEntry("", Source:=SetupSource.Registry, Encoded:=True)},
-        {"UiLauncherThemeHide", New SetupEntry("0|1|2|3|4", Source:=SetupSource.Registry, Encoded:=True)},
-        {"UiLauncherThemeHide2", New SetupEntry("0|1|2|3|4", Source:=SetupSource.Registry, Encoded:=True)},
+        {"UiLauncherThemeGold", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
+        {"UiLauncherThemeHide", New SetupEntry("0|1|2|3|4", source:=SetupSource.AppData, encoded:=True)},
+        {"UiLauncherThemeHide2", New SetupEntry("0|1|2|3|4", source:=SetupSource.AppData, encoded:=True)},
         {"UiLauncherLogo", New SetupEntry(True)},
-        {"UiLauncherCEHint", New SetupEntry(True, Source:=SetupSource.Registry)},
-        {"UiLauncherCEHintCount", New SetupEntry(0, Source:=SetupSource.Registry)},
+        {"UiLauncherCEHint", New SetupEntry(True, source:=SetupSource.AppData)},
+        {"UiLauncherCEHintCount", New SetupEntry(0, source:=SetupSource.AppData)},
         {"UiBlur", New SetupEntry(False)},
         {"UiBlurValue", New SetupEntry(16)},
         {"UiBackgroundColorful", New SetupEntry(True)},
@@ -147,10 +145,10 @@ Public Class ModSetup
         {"UiCustomType", New SetupEntry(0)},
         {"UiCustomPreset", New SetupEntry(0)},
         {"UiCustomNet", New SetupEntry("")},
-        {"UiDarkMode", New SetupEntry(2, Source:=SetupSource.Registry)},
-        {"UiDarkColor", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"UiLightColor", New SetupEntry(1, Source:=SetupSource.Registry)},
-        {"UiLockWindowSize", New SetupEntry(False, Source:=SetupSource.Registry)},
+        {"UiDarkMode", New SetupEntry(2, source:=SetupSource.AppData)},
+        {"UiDarkColor", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"UiLightColor", New SetupEntry(1, source:=SetupSource.AppData)},
+        {"UiLockWindowSize", New SetupEntry(False, source:=SetupSource.AppData)},
         {"UiLogoType", New SetupEntry(1)},
         {"UiLogoText", New SetupEntry("")},
         {"UiLogoLeft", New SetupEntry(False)},
@@ -183,35 +181,35 @@ Public Class ModSetup
         {"UiHiddenVersionResourcePack", New SetupEntry(False)},
         {"UiHiddenVersionShader", New SetupEntry(False)},
         {"UiHiddenVersionSchematic", New SetupEntry(False)},
-        {"UiSchematicFirstTimeHintShown", New SetupEntry(False, Source:=SetupSource.Registry)},
-        {"UiAniFPS", New SetupEntry(59, Source:=SetupSource.Registry)},
+        {"UiSchematicFirstTimeHintShown", New SetupEntry(False, source:=SetupSource.AppData)},
+        {"UiAniFPS", New SetupEntry(59, source:=SetupSource.AppData)},
         {"UiFont", New SetupEntry("")},
-        {"VersionAdvanceJvm", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionAdvanceGame", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionAdvanceAssets", New SetupEntry(0, Source:=SetupSource.Version)},
-        {"VersionAdvanceAssetsV2", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionAdvanceJava", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionAdvanceDisableJlw", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionAdvanceRun", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionAdvanceRunWait", New SetupEntry(True, Source:=SetupSource.Version)},
-        {"VersionAdvanceDisableJLW", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionAdvanceUseProxyV2", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionAdvanceDisableRW", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionRamType", New SetupEntry(2, Source:=SetupSource.Version)},
-        {"VersionRamCustom", New SetupEntry(15, Source:=SetupSource.Version)},
-        {"VersionRamOptimize", New SetupEntry(0, Source:=SetupSource.Version)},
-        {"VersionArgumentTitle", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionArgumentTitleEmpty", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionArgumentInfo", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionArgumentIndie", New SetupEntry(-1, Source:=SetupSource.Version)},
-        {"VersionArgumentIndieV2", New SetupEntry(False, Source:=SetupSource.Version)},
-        {"VersionArgumentJavaSelect", New SetupEntry("使用全局设置", Source:=SetupSource.Version)},
-        {"VersionServerEnter", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionServerLoginRequire", New SetupEntry(0, Source:=SetupSource.Version)},
-        {"VersionServerAuthRegister", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionServerAuthName", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionServerAuthServer", New SetupEntry("", Source:=SetupSource.Version)},
-        {"VersionServerLoginLock", New SetupEntry(False, Source:=SetupSource.Version)}}
+        {"VersionAdvanceJvm", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionAdvanceGame", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionAdvanceAssets", New SetupEntry(0, source:=SetupSource.Instance)},
+        {"VersionAdvanceAssetsV2", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionAdvanceJava", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionAdvanceDisableJlw", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionAdvanceRun", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionAdvanceRunWait", New SetupEntry(True, source:=SetupSource.Instance)},
+        {"VersionAdvanceDisableJLW", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionAdvanceUseProxyV2", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionAdvanceDisableRW", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionRamType", New SetupEntry(2, source:=SetupSource.Instance)},
+        {"VersionRamCustom", New SetupEntry(15, source:=SetupSource.Instance)},
+        {"VersionRamOptimize", New SetupEntry(0, source:=SetupSource.Instance)},
+        {"VersionArgumentTitle", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionArgumentTitleEmpty", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionArgumentInfo", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionArgumentIndie", New SetupEntry(-1, source:=SetupSource.Instance)},
+        {"VersionArgumentIndieV2", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionArgumentJavaSelect", New SetupEntry("使用全局设置", source:=SetupSource.Instance)},
+        {"VersionServerEnter", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionServerLoginRequire", New SetupEntry(0, source:=SetupSource.Instance)},
+        {"VersionServerAuthRegister", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionServerAuthName", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionServerAuthServer", New SetupEntry("", source:=SetupSource.Instance)},
+        {"VersionServerLoginLock", New SetupEntry(False, source:=SetupSource.Instance)}}
 
 #Region "Register 存储"
 
@@ -309,8 +307,8 @@ Public Class ModSetup
 
     Private Enum SetupSource
         Normal
-        Registry
-        Version
+        AppData
+        Instance
     End Enum
     Private Class SetupEntry
 
@@ -327,14 +325,14 @@ Public Class ModSetup
         Public State As Byte = 0
         Public Type As Type
 
-        Public Sub New(Value, Optional Source = SetupSource.Normal, Optional Encoded = False)
+        Public Sub New(value, Optional source = SetupSource.Normal, Optional encoded = False)
             Try
-                Me.DefaultValue = Value
-                Me.Encoded = Encoded
-                Me.Value = Value
-                Me.Source = Source
-                Me.Type = If(Value, New Object).GetType
-                Me.DefaultValueEncoded = If(Encoded, SecretEncrypt(Value), Value)
+                Me.DefaultValue = value
+                Me.Encoded = encoded
+                Me.Value = value
+                Me.Source = source
+                Me.Type = If(value, New Object).GetType
+                Me.DefaultValueEncoded = If(encoded, SecretEncrypt(value), value)
             Catch ex As Exception
                 Log(ex, "初始化 SetupEntry 失败", LogLevel.Feedback) '#5095 的 fallback
             End Try
@@ -345,184 +343,184 @@ Public Class ModSetup
     ''' <summary>
     ''' 改变某个设置项的值。
     ''' </summary>
-    Public Sub [Set](Key As String, Value As Object, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
-        [Set](Key, Value, SetupDict(Key), ForceReload, Version)
+    Public Sub [Set](key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
+        [Set](key, value, SetupDict(key), forceReload, instance)
     End Sub
-    Private Sub [Set](Key As String, Value As Object, E As SetupEntry, ForceReload As Boolean, Version As McInstance)
+    Private Sub [Set](key As String, value As Object, e As SetupEntry, forceReload As Boolean, instance As McInstance)
         Try
 
-            Value = CTypeDynamic(Value, E.Type)
-            If E.State = 2 Then
+            value = CTypeDynamic(value, e.Type)
+            If e.State = 2 Then
                 '如果已应用，且值相同，则无需再次更改
-                If E.Value = Value AndAlso Not ForceReload Then Return
+                If e.Value = value AndAlso Not forceReload Then Return
             Else
                 '如果未应用，则直接更改并应用
-                If E.Source <> SetupSource.Version Then E.State = 2
+                If e.Source <> SetupSource.Instance Then e.State = 2
             End If
             '设置新值
-            E.Value = Value
+            e.Value = value
             '写入值
-            If E.Encoded Then
+            If e.Encoded Then
                 Try
-                    If Value Is Nothing Then Value = ""
-                    Value = SecretEncrypt(Value)
+                    If value Is Nothing Then value = ""
+                    value = SecretEncrypt(value)
                 Catch ex As Exception
-                    Log(ex, "加密设置失败：" & Key, LogLevel.Developer)
+                    Log(ex, "加密设置失败：" & key, LogLevel.Developer)
                 End Try
             End If
-            Select Case E.Source
+            Select Case e.Source
                 Case SetupSource.Normal
-                    WriteIni("Setup", Key, Value)
-                Case SetupSource.Registry
-                    LocalRegisterData.Set(Key, Value)
-                Case SetupSource.Version
-                    If Version Is Nothing Then Throw New Exception($"更改版本设置 {Key} 时未提供目标版本")
-                    WriteIni(Version.Path & "PCL\Setup.ini", Key, Value)
+                    WriteIni("Setup", key, value)
+                Case SetupSource.AppData
+                    LocalRegisterData.Set(key, value)
+                Case SetupSource.Instance
+                    If instance Is Nothing Then Throw New Exception($"更改版本设置 {key} 时未提供目标版本")
+                    WriteIni(instance.Path & "PCL\Setup.ini", key, value)
             End Select
             '应用
             '例如 VersionServerLoginRequire 要求在设置之后再引发事件
-            Dim Method As Reflection.MethodInfo = GetType(ModSetup).GetMethod(Key)
-            If Method IsNot Nothing Then Method.Invoke(Me, {Value})
+            Dim Method As Reflection.MethodInfo = GetType(ModSetup).GetMethod(key)
+            If Method IsNot Nothing Then Method.Invoke(Me, {value})
 
         Catch ex As Exception
-            Log(ex, "设置设置项时出错（" & Key & ", " & Value & "）", LogLevel.Feedback)
+            Log(ex, "设置设置项时出错（" & key & ", " & value & "）", LogLevel.Feedback)
         End Try
     End Sub
 
     ''' <summary>
     ''' 应用某个设置项的值。
     ''' </summary>
-    Public Function Load(Key As String, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
-        Return Load(Key, SetupDict(Key), ForceReload, Version)
+    Public Function Load(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
+        Return Load(key, SetupDict(key), forceReload, instance)
     End Function
-    Private Function Load(Key As String, E As SetupEntry, ForceReload As Boolean, Version As McInstance)
+    Private Function Load(key As String, e As SetupEntry, forceReload As Boolean, instance As McInstance)
         '如果已经应用过，则什么也不干
-        If E.State = 2 AndAlso Not ForceReload Then Return E.Value
+        If e.State = 2 AndAlso Not forceReload Then Return e.Value
         '读取，应用并设置状态
-        Read(Key, E, Version)
-        If E.Source <> SetupSource.Version Then E.State = 2
-        Dim Method As Reflection.MethodInfo = GetType(ModSetup).GetMethod(Key)
-        If Method IsNot Nothing Then Method.Invoke(Me, {E.Value})
-        Return E.Value
+        Read(key, e, instance)
+        If e.Source <> SetupSource.Instance Then e.State = 2
+        Dim Method As Reflection.MethodInfo = GetType(ModSetup).GetMethod(key)
+        If Method IsNot Nothing Then Method.Invoke(Me, {e.Value})
+        Return e.Value
     End Function
 
     ''' <summary>
     ''' 获取某个设置项的值。
     ''' </summary>
-    Public Function [Get](Key As String, Optional Version As McInstance = Nothing)
-        If Not SetupDict.ContainsKey(Key) Then Throw New KeyNotFoundException("未找到设置项：" & Key) With {.Source = Key}
-        Return [Get](Key, SetupDict(Key), Version)
+    Public Function [Get](key As String, Optional instance As McInstance = Nothing)
+        If Not SetupDict.ContainsKey(key) Then Throw New KeyNotFoundException("未找到设置项：" & key) With {.Source = key}
+        Return [Get](key, SetupDict(key), instance)
     End Function
-    Private Function [Get](Key As String, E As SetupEntry, Version As McInstance)
+    Private Function [Get](key As String, e As SetupEntry, instance As McInstance)
         '获取强制值
-        Dim Force As String = ForceValue(Key)
+        Dim Force As String = ForceValue(key)
         If Force IsNot Nothing Then
-            E.Value = CTypeDynamic(Force, E.Type)
-            E.State = 1
+            e.Value = CTypeDynamic(Force, e.Type)
+            e.State = 1
         End If
         '如果尚未读取过，则读取
-        If E.State = 0 Then
-            Read(Key, E, Version)
-            If E.Source <> SetupSource.Version Then E.State = 1
+        If e.State = 0 Then
+            Read(key, e, instance)
+            If e.Source <> SetupSource.Instance Then e.State = 1
         End If
         '返回现在的值
-        Return E.Value
+        Return e.Value
     End Function
 
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
-    Public Sub Reset(Key As String, Optional ForceReload As Boolean = False, Optional Version As McInstance = Nothing)
-        Dim E As SetupEntry = SetupDict(Key)
-        [Set](Key, E.DefaultValue, E, ForceReload, Version)
-        Select Case SetupDict(Key).Source
+    Public Sub Reset(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
+        Dim E As SetupEntry = SetupDict(key)
+        [Set](key, E.DefaultValue, E, forceReload, instance)
+        Select Case SetupDict(key).Source
             Case SetupSource.Normal
-                DeleteIniKey("Setup", Key)
-            Case SetupSource.Registry
-                DeleteReg(Key)
-                LocalRegisterData.Remove(Key)
-            Case Else 'SetupSource.Version
-                If Version Is Nothing Then Throw New Exception($"重置版本设置 {Key} 时未提供目标版本")
-                DeleteIniKey(Version.Path & "PCL\Setup.ini", Key)
+                DeleteIniKey("Setup", key)
+            Case SetupSource.AppData
+                DeleteReg(key)
+                LocalRegisterData.Remove(key)
+            Case Else 'SetupSource.Instance
+                If instance Is Nothing Then Throw New Exception($"重置实例设置 {key} 时未提供目标实例")
+                DeleteIniKey(instance.Path & "PCL\Setup.ini", key)
         End Select
     End Sub
     ''' <summary>
     ''' 获取某个设置项的默认值。
     ''' </summary>
-    Public Function GetDefault(Key As String) As String
-        Return SetupDict(Key).DefaultValue
+    Public Function GetDefault(key As String) As String
+        Return SetupDict(key).DefaultValue
     End Function
     ''' <summary>
     ''' 某个设置项是否从未被设置过。
     ''' </summary>
-    Public Function IsUnset(Key As String, Optional Version As McInstance = Nothing) As Boolean
-        Select Case SetupDict(Key).Source
+    Public Function IsUnset(key As String, Optional instance As McInstance = Nothing) As Boolean
+        Select Case SetupDict(key).Source
             Case SetupSource.Normal
-                Return Not HasIniKey("Setup", Key)
-            Case SetupSource.Registry
-                Return Not HasReg(Key) AndAlso Not LocalRegisterData.Contains(Key)
-            Case Else 'SetupSource.Version
-                If Version Is Nothing Then Throw New Exception($"判断版本设置 {Key} 是否存在时未提供目标版本")
-                Return Not HasIniKey(Version.Path & "PCL\Setup.ini", Key)
+                Return Not HasIniKey("Setup", key)
+            Case SetupSource.AppData
+                Return Not HasReg(key) AndAlso Not LocalRegisterData.Contains(key)
+            Case Else 'SetupSource.Instance
+                If instance Is Nothing Then Throw New Exception($"判断实例设置 {key} 是否存在时未提供目标实例")
+                Return Not HasIniKey(instance.Path & "PCL\Setup.ini", key)
         End Select
     End Function
 
     ''' <summary>
     ''' 读取设置。
     ''' </summary>
-    Private Sub Read(Key As String, ByRef E As SetupEntry, Version As McInstance)
+    Private Sub Read(key As String, ByRef e As SetupEntry, instance As McInstance)
         Try
-            If Not E.State = 0 Then Return
+            If Not e.State = 0 Then Return
             Dim SourceValue As String = Nothing '先用 String 储存，避免类型转换
-            Select Case E.Source
+            Select Case e.Source
                 Case SetupSource.Normal
-                    SourceValue = ReadIni("Setup", Key, E.DefaultValueEncoded)
-                Case SetupSource.Registry
-                    Dim OldSourceData = ReadReg(Key)
+                    SourceValue = ReadIni("Setup", key, e.DefaultValueEncoded)
+                Case SetupSource.AppData
+                    Dim OldSourceData = ReadReg(key)
                     If Not String.IsNullOrWhiteSpace(OldSourceData) Then
-                        If LocalRegisterData.Contains(Key) Then '如果本地配置文件中已经存在该项，则不覆盖
-                            OldSourceData = LocalRegisterData.Get(Key)
+                        If LocalRegisterData.Contains(key) Then '如果本地配置文件中已经存在该项，则不覆盖
+                            OldSourceData = LocalRegisterData.Get(key)
                         Else
-                            If E.Encoded Then OldSourceData = SecretEncrypt(SecretDecrptyOld(OldSourceData))
-                            LocalRegisterData.Set(Key, OldSourceData)
-                            DeleteReg(Key)
+                            If e.Encoded Then OldSourceData = SecretEncrypt(SecretDecrptyOld(OldSourceData))
+                            LocalRegisterData.Set(key, OldSourceData)
+                            DeleteReg(key)
                         End If
                         SourceValue = OldSourceData
                     Else
-                        SourceValue = LocalRegisterData.Get(Key)
+                        SourceValue = LocalRegisterData.Get(key)
                     End If
                     If String.IsNullOrEmpty(SourceValue) Then
-                        SourceValue = E.DefaultValueEncoded
+                        SourceValue = e.DefaultValueEncoded
                     End If
-                Case SetupSource.Version
-                    If Version Is Nothing Then
-                        Throw New Exception("读取版本设置 " & Key & " 时未提供目标版本")
+                Case SetupSource.Instance
+                    If instance Is Nothing Then
+                        Throw New Exception("读取实例设置 " & key & " 时未提供目标实例")
                     Else
-                        SourceValue = ReadIni(Version.Path & "PCL\Setup.ini", Key, E.DefaultValueEncoded)
+                        SourceValue = ReadIni(instance.Path & "PCL\Setup.ini", key, e.DefaultValueEncoded)
                     End If
             End Select
-            If E.Encoded Then
-                If SourceValue.Equals(E.DefaultValueEncoded) Then
-                    SourceValue = E.DefaultValue
+            If e.Encoded Then
+                If SourceValue.Equals(e.DefaultValueEncoded) Then
+                    SourceValue = e.DefaultValue
                 Else
                     Try
                         SourceValue = SecretDecrypt(SourceValue)
                     Catch ex As Exception
-                        Log(ex, "解密设置失败：" & Key, LogLevel.Developer)
-                        SourceValue = E.DefaultValue
-                        Setup.Set(Key, E.DefaultValue, True)
+                        Log(ex, "解密设置失败：" & key, LogLevel.Developer)
+                        SourceValue = e.DefaultValue
+                        Setup.Set(key, e.DefaultValue, True)
                     End Try
                 End If
             End If
-            E.Value = CTypeDynamic(SourceValue, E.Type)
+            e.Value = CTypeDynamic(SourceValue, e.Type)
         Catch ex As Exception
-            Log(ex, "读取设置失败：" & Key, LogLevel.Hint)
-            E.Value = CTypeDynamic(E.DefaultValue, E.Type)
+            Log(ex, "读取设置失败：" & key, LogLevel.Hint)
+            e.Value = CTypeDynamic(e.DefaultValue, e.Type)
         End Try
     End Sub
 
     '对部分设置强制赋值
-    Private Function ForceValue(Key As String) As String
+    Private Function ForceValue(key As String) As String
 #If RELEASE Or BETA Then
         If Key = "UiLauncherTheme" Then Return "0"
 #End If

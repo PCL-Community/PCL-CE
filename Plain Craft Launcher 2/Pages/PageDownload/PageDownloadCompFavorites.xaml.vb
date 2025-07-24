@@ -515,6 +515,7 @@ Public Class PageDownloadCompFavorites
             If SearchResult.Contains(Item) Then SearchResult.Remove(Item)
             CurrentFavTarget.Favs.Remove(Item.Tag.Id)
             CompFavorites.Save()
+            If Not CompItemList.Any Then FrmDownloadCompFavorites.PageLoaderRestart()
         Catch ex As Exception
             Log(ex, "[CompFavourites] 移除收藏时发生错误")
         End Try

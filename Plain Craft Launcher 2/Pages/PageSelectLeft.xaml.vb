@@ -243,8 +243,8 @@
                     Dim ModIndieFolder As New DirectoryInfo(Version.Path & "mods\")
                     If ModIndieFolder.Exists AndAlso ModIndieFolder.EnumerateFiles.Any Then Return
                     '满足以上全部条件则视为根目录整合包
-                    Setup.Set("VersionArgumentIndie", 2, Version:=Version)
-                    Setup.Set("VersionArgumentIndieV2", False, Version:=Version)
+                    Setup.Set("VersionArgumentIndie", 2, instance:=Version)
+                    Setup.Set("VersionArgumentIndieV2", False, instance:=Version)
                     Log("[Setup] 已自动关闭单版本隔离：" & Version.Name, LogLevel.Debug)
                 Next
             Catch ex As Exception

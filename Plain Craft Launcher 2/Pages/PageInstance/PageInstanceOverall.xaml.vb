@@ -130,27 +130,26 @@
             '清理 ini 缓存
             IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
             IniClearCache(PageInstanceLeft.Instance.Path & "PCL\Setup.ini")
-            '遍历重命名所有文件与文件夹
-            For Each Entry As DirectoryInfo In New DirectoryInfo(NewPath).EnumerateDirectories
-                If Not Entry.Name.Contains(OldName) Then Continue For
+            '重命名 Jar 文件与 natives 文件夹
+            '不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
+            If Directory.Exists($"{NewPath}{OldName}-natives") Then
                 If IsCaseChangedOnly Then
-                    My.Computer.FileSystem.RenameDirectory(Entry.FullName, Entry.Name & "_temp")
-                    My.Computer.FileSystem.RenameDirectory(Entry.FullName & "_temp", Entry.Name.Replace(OldName, NewName))
+                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp")
+                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives")
                 Else
-                    DeleteDirectory(NewPath & Entry.Name.Replace(OldName, NewName))
-                    My.Computer.FileSystem.RenameDirectory(Entry.FullName, Entry.Name.Replace(OldName, NewName))
+                    DeleteDirectory($"{NewPath}{NewName}-natives")
+                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives")
                 End If
-            Next
-            For Each Entry As FileInfo In New DirectoryInfo(NewPath).EnumerateFiles
-                If Not Entry.Name.Contains(OldName) Then Continue For
+            End If
+            If File.Exists($"{NewPath}{OldName}.jar") Then
                 If IsCaseChangedOnly Then
-                    My.Computer.FileSystem.RenameFile(Entry.FullName, Entry.Name & "_temp")
-                    My.Computer.FileSystem.RenameFile(Entry.FullName & "_temp", Entry.Name.Replace(OldName, NewName))
+                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{OldName}_temp.jar")
+                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}_temp.jar", $"{NewName}.jar")
                 Else
-                    If File.Exists(NewPath & Entry.Name.Replace(OldName, NewName)) Then File.Delete(NewPath & Entry.Name.Replace(OldName, NewName))
-                    My.Computer.FileSystem.RenameFile(Entry.FullName, Entry.Name.Replace(OldName, NewName))
+                    File.Delete($"{NewPath}{NewName}.jar")
+                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{NewName}.jar")
                 End If
-            Next
+            End If
             '替换实例设置文件中的路径
             If File.Exists(NewPath & "PCL\Setup.ini") Then
                 WriteFile(NewPath & "PCL\Setup.ini", ReadFile(NewPath & "PCL\Setup.ini").Replace(OldPath, NewPath))
@@ -159,15 +158,13 @@
             If ReadIni(PathMcFolder & "PCL.ini", "Version") = OldName Then
                 WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
             End If
-            '更改实例 Json
-            If File.Exists(NewPath & NewName & ".json") Then
-                Try
-                    JsonObject("id") = NewName
-                    WriteFile(NewPath & NewName & ".json", JsonObject.ToString)
-                Catch ex As Exception
-                    Log(ex, "重命名实例 Json 失败")
-                End Try
-            End If
+            '写入实例 Json
+            Try
+                JsonObject("id") = NewName
+                WriteFile(NewPath & NewName & ".json", JsonObject.ToString)
+            Catch ex As Exception
+                Log(ex, "重命名实例 Json 失败")
+            End Try
             '刷新与提示
             Hint("重命名成功！", HintType.Finish)
             PageInstanceLeft.Instance = New McInstance(NewName).Load()

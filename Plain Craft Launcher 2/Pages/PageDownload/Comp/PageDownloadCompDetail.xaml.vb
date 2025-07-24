@@ -75,6 +75,8 @@
         Dim Results As List(Of CompFile) = CompFileLoader.Output
         If PageType = CompType.Any Then
             Results = Results.Where(Function(r) r.Type <> CompType.Plugin).ToList
+        ElseIf PageType = CompType.Shader OrElse PageType = CompType.ResourcePack Then
+            '不筛选光影和资源包，否则原版光影会因为是资源包格式而被过滤（Meloong-Git/#6473）
         Else
             Results = Results.Where(Function(r) r.Type = PageType).ToList
         End If
