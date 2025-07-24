@@ -42,7 +42,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序可执行文件所在目录，以“\”结尾。
     ''' </summary>
-    Public Path As String =If(NativeInterop.ExecutableDirectory.EndsWith("\"), NativeInterop.ExecutableDirectory, NativeInterop.ExecutableDirectory & "\")
+    Public Path As String = If(NativeInterop.ExecutableDirectory.EndsWith("\"), NativeInterop.ExecutableDirectory, NativeInterop.ExecutableDirectory & "\")
     ''' <summary>
     ''' 程序可执行文件完整路径。
     ''' </summary>

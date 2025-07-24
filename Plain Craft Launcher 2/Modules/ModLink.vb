@@ -248,6 +248,41 @@ Public Module ModLink
     End Sub
 #End Region
 
+#Region "跨启动器联机"
+    Public Class TerracottaInfo
+        Public Code As String
+        Public NetworkName As String
+        Public NetworkSecret As String
+        Public Port As Integer
+    End Class
+    Public TcInfo As TerracottaInfo = Nothing
+    Public Function ParseTerracottaCode(code As String)
+        code = code.ToUpper()
+        Dim matches = RegexSearch(code, "([0-9A-Z]{5}-){4}[0-9A-Z]{5}")
+        If matches.Count = 0 Then
+            Log("[Link] 无效的 Terracotta 联机代码")
+            Return Nothing
+        End If
+        For Each match In matches
+            Dim codeString = match.Replace("I", "1").Replace("O", "0").Replace("-", "")
+            Dim value As Numerics.BigInteger = 0
+            Dim checking As Integer = 0
+            Dim baseChars = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+            For i As Integer = 0 To 23
+                Dim j As Integer = baseChars.IndexOf(codeString(i))
+                value += Numerics.BigInteger.Parse(j.ToString()) * Numerics.BigInteger.Pow(34, i)
+                checking = (j + checking) Mod 34
+            Next
+
+            If checking <> baseChars.IndexOf(codeString(24)) Then Return Nothing
+            Dim port As Integer = CInt(value Mod 65536)
+            If port < 100 Then Return Nothing
+            Return New TerracottaInfo With {.Code = code, .NetworkName = codeString.Substring(0, 15).ToLower(), .NetworkSecret = codeString.Substring(15, 10).ToLower(), .Port = port}
+        Next
+        Return Nothing
+    End Function
+#End Region
+
 #Region "EasyTier"
     Public Class ETRelay
         Public Url As String
@@ -285,34 +320,53 @@ Public Module ModLink
             Dim Arguments As String = Nothing
 
             '大厅设置
-            Dim lobbyId As String = (Name & Secret & If(IsHost, LocalPort, remotePort).ToString()).FromB10ToB32()
+            Dim lobbyId As String
+            If TcInfo IsNot Nothing Then
+                lobbyId = TcInfo.Code
+                Name = "terracotta-mc-" & Name
+            Else
+                lobbyId = (Name & Secret & If(IsHost, LocalPort, remotePort).ToString()).FromB10ToB32()
+                Name = ETNetworkDefaultName & Name
+                Secret = ETNetworkDefaultSecret & Secret
+            End If
             If Not IsHost Then
                 PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
                 Log("[Link] ET 本地端口转发端口: " & PageLinkLobby.JoinerLocalPort)
             End If
-            Secret = ETNetworkDefaultSecret & Secret
-            Name = ETNetworkDefaultName & Name
-            If IsHost Then
+            If IsHost Then '创建者
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true" '创建者
-            Else
+                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true"
+            Else '加入者
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" '加入者
+                Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true"
+                If TcInfo Is Nothing Then
+                    Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort} --port-forward=tcp://[::1]:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}"
+                Else
+                    Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.144.144.1:{remotePort} --port-forward=tcp://[::1]:{PageLinkLobby.JoinerLocalPort}/10.144.144.1:{remotePort}"
+                End If
             End If
 
             '节点设置
             Dim ServerList As String = Setup.Get("LinkRelayServer")
             Dim Servers As New List(Of String)
-            For Each Server In ServerList.Split(";")
-                If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
-            Next
-            If Not Setup.Get("LinkServerType") = 2 Then
-                Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 1
-                For Each Server In ETServerDefList
-                    If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
-                    Servers.Add(Server.Url)
+            If TcInfo IsNot Nothing Then
+                ServerList = "tcp://public.easytier.top:11010;tcp://8.138.6.53:11010;tcp://119.23.65.180:11010;tcp://ah.nkbpal.cn:11010;tcp://gz.minebg.top:11010;tcp://39.108.52.138:11010;tcp://turn.hb.629957.xyz:11010;tcp://turn.sc.629957.xyz:11010;tcp://8.148.29.206:11010;tcp://turn.js.629957.xyz:11012;tcp://103.194.107.246:11010;tcp://sh.993555.xyz:11010;tcp://et.993555.xyz:11010;tcp://turn.bj.629957.xyz:11010;tcp://et.sh.suhoan.cn:11010;tcp://96.9.229.212:11010;tcp://et-hk.clickor.click:11010;tcp://47.113.227.73:11010;tcp://et.01130328.xyz:11010;tcp://et.ie12vps.xyz:11010;tcp://103.40.14.90:35971;tcp://154.9.255.133:11010;tcp://47.103.35.100:11010;tcp://et.gbc.moe:11011;tcp://116.206.178.250:11010"
+                For Each Server In ServerList.Split(";")
+                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
                 Next
+            Else
+                For Each Server In ServerList.Split(";")
+                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
+                Next
+                If Not Setup.Get("LinkServerType") = 2 Then
+                    Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 1
+                    For Each Server In ETServerDefList
+                        If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
+                        Servers.Add(Server.Url)
+                    Next
+                End If
             End If
+
             '中继行为设置
             For Each Server In Servers
                 Arguments += $" -p {Server}"
@@ -331,7 +385,7 @@ Public Module ModLink
             End If
 
             '用户名与其他参数
-            Arguments += $" --latency-first"
+            Arguments += $" --latency-first --compression=zstd --multi-thread"
             Dim Hostname As String = Nothing
             Hostname = If(IsHost, "H|", "J|") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
@@ -403,6 +457,7 @@ Public Module ModLink
                 IsETRunning = False
                 IsETReady = False
                 ETProcess = Nothing
+                TcInfo = Nothing
                 PageLinkLobby.HostInfo = Nothing
                 PageLinkLobby.RemotePort = Nothing
                 PageLinkLobby.JoinerLocalPort = Nothing
