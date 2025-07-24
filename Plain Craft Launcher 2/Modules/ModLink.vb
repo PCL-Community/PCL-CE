@@ -333,9 +333,9 @@ Public Module ModLink
             '用户名与其他参数
             Arguments += $" --latency-first"
             Dim Hostname As String = Nothing
-            Hostname = If(IsHost, "H-", "J-") & NaidProfile.Username
+            Hostname = If(IsHost, "H|", "J|") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
-                Hostname += $"-{SelectedProfile.Username}"
+                Hostname += $"|{SelectedProfile.Username}"
             End If
             Arguments += $" --hostname ""{Hostname}"""
 
@@ -442,6 +442,12 @@ Public Module ModLink
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return False
+        End If
+        If SelectedProfile IsNot Nothing Then
+            If SelectedProfile.Username.Contains("|") Then
+                Hint("MC 玩家 ID 不可包含分隔符 (|) ！")
+                Return False
+            End If
         End If
         Try
             GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)

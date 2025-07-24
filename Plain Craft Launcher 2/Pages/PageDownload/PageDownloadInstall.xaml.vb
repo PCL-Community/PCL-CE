@@ -1042,6 +1042,8 @@ Public Class PageDownloadInstall
             VersionSortInteger(SelectedMinecraftId, "1.13") >= 0 AndAlso VersionSortInteger("1.14.3", SelectedMinecraftId) >= 0 Then
             Return "与 Forge 不兼容"
         End If
+        '检查 Fabric 1.20.5+: 全部不兼容
+        If SelectedFabric IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 Fabric 不兼容"
         '检查 Forge 版本
         Dim HasAny As Boolean = False
         Dim HasRequiredVersion As Boolean = False
@@ -1413,6 +1415,8 @@ Public Class PageDownloadInstall
     Private Function LoadFabricGetError() As String
         If LoadFabric Is Nothing OrElse LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
         If LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadFabric.State, Object).Error.Message
+        '检查 OptiFine 1.20.5+: 没有 OptiFabric 故全部不兼容
+        If SelectedOptiFine IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 OptiFine 不兼容"
         For Each Version As JObject In DlFabricListLoader.Output.Value("game")
             If Version("version").ToString = SelectedMinecraftId.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"

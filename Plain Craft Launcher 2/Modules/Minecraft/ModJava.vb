@@ -131,7 +131,7 @@ Public Module ModJava
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
     Public Function GetVersionUserSetJava(Mc As McInstance) As Java
         If Mc Is Nothing Then Return Nothing
-        Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=Mc)
+        Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=Mc)
         If UserSetupVersion = "使用全局设置" Then
             Return Nothing
         Else
@@ -152,13 +152,13 @@ Public Module ModJava
                 Setup.Set("LaunchArgumentJavaSelect", UserSetup)
             End If
             If RelatedVersion IsNot Nothing Then
-                Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=RelatedVersion)
+                Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
                         Dim k = Java.Parse(UserSetupVersion)
                         Return k IsNot Nothing AndAlso k.Is64Bit
                     Else
-                        Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
+                        Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
                     End If
                 End If
             End If
@@ -173,7 +173,7 @@ Public Module ModJava
             Return j IsNot Nothing AndAlso j.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
-            If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
+            If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
             Setup.Set("LaunchArgumentJavaSelect", "")
         End Try
         Return True

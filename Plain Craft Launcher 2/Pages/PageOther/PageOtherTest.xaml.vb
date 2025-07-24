@@ -96,7 +96,18 @@ Public Class PageOtherTest
         End Try
     End Sub
     Public Shared Sub Jrrp()
-        Hint("为便于维护，社区版中不包含百宝箱功能……")
+        Dim random As New Random(GenerateDailySeed())
+        Dim luckValue = random.Next(0, 101)
+        Dim rating = GetRating(luckValue)
+        Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
+        Dim title = $"今日人品 - {currentDate}"
+
+        If (luckValue >= 60) Then
+            MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title)
+        Else
+            MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn:=luckValue <= 30)
+        End If
+
     End Sub
     Public Shared Sub RubbishClear()
         RunInUi(
@@ -553,28 +564,17 @@ Public Class PageOtherTest
 
     '今日人品
     Private Sub BtnLuck_Click(sender As Object, e As MouseButtonEventArgs)
-        Dim random As New Random(GenerateDailySeed())
-        Dim luckValue = random.Next(0, 101)
-        Dim rating = GetRating(luckValue)
-        Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
-        Dim title = $"今日人品 - {currentDate}"
-
-        If (luckValue >= 60) Then
-            MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title)
-        Else
-            MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn:=luckValue <= 30)
-        End If
-
+        Jrrp()
     End Sub
 
-    Private Function GenerateDailySeed() As Integer
+    Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
         Dim secretCode As String = SecretGetRawCode()
 
         Return (datePart & secretCode).GetHashCode()
     End Function
 
-    Private Function GetRating(luckValue As Integer) As String
+    Public Shared Function GetRating(luckValue As Integer) As String
         If luckValue = 100 Then
             Return "100！100！\n隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
         Else
