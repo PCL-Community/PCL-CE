@@ -137,6 +137,9 @@ Public Class MyCompItem
                     Case FormMain.PageSubType.DownloadShader
                         TargetType = CompType.Shader
                         TargetVersion = FrmDownloadShader.Content.Loader.Input.GameVersion
+                    Case FormMain.PageSubType.DownloadWorld
+                        TargetType = CompType.World
+                        TargetVersion = FrmDownloadWorld.Content.Loader.Input.GameVersion
                 End Select
             End If
         Else

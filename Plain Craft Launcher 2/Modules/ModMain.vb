@@ -473,13 +473,14 @@ EndHint:
     Public FrmDownloadFabric As PageDownloadFabric
     Public FrmDownloadQuilt As PageDownloadQuilt
     Public FrmDownloadLabyMod As PageDownloadLabyMod
+    Public FrmDownloadLegacyFabric As PageDownloadLegacyFabric
     Public FrmDownloadMod As PageDownloadMod
     Public FrmDownloadPack As PageDownloadPack
     Public FrmDownloadDataPack As PageDownloadDataPack
     Public FrmDownloadShader As PageDownloadShader
     Public FrmDownloadResourcePack As PageDownloadResourcePack
+    Public FrmDownloadWorld As PageDownloadWorld
     Public FrmDownloadCompFavorites As PageDownloadCompFavorites
-    Public FrmDownloadLegacyFabric As PageDownloadLegacyFabric
 
     '设置页面声明
     Public FrmSetupLeft As PageSetupLeft

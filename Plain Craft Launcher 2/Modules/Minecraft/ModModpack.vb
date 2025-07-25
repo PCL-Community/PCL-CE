@@ -298,6 +298,8 @@ Retry:
                             TargetFolder = "mods" : Type = CompType.Mod
                         ElseIf ModuleNames.Contains("pack.mcmeta") Then
                             TargetFolder = "resourcepacks" : Type = CompType.ResourcePack
+                        ElseIf ModuleNames.Contains("level.dat") Then
+                            TargetFolder = "saves" : Type = CompType.World
                         Else
                             TargetFolder = "shaderpacks" : Type = CompType.Shader
                         End If
