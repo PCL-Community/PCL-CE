@@ -8,7 +8,7 @@
       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Orientation="Vertical" Margin="25">
         <StackPanel x:Name="PanAlways">
-            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" HintText="搜索XXX 在输入框中按下 Enter 以进行搜索"/>
+            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" HintText="搜索资源" SearchButtonVisibility="Visible"/>
             <local:MyCard Margin="0,0,0,15">
                 <Grid Margin="7" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
