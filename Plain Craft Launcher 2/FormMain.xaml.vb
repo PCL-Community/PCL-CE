@@ -232,28 +232,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
-            '联机摇号
-            Try
-                Dim DateNow As String = Now.ToString("yyyyMMdd")
-                If Not Setup.Get("LinkAvailable") AndAlso Not DateNow = Setup.Get("LinkLastTestDate") Then
-                    Dim Chance As Double = 0
-                    Dim ServerNumber As Integer = 0
-Retry:
-                    Try
-                        Chance = Val(NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/lottery.ini", "GET", Nothing, "application/json", Timeout:=7000))
-                    Catch ex As Exception
-                        Log(ex, $"[Link] 从服务器 {ServerNumber} 获取摇号数据失败")
-                        ServerNumber += 1
-                        If ServerNumber <= LinkServers.Count - 1 Then GoTo Retry
-                    End Try
-                    Dim Num As Integer = RandomInteger(0, 100)
-                    If Num > 1 - (Chance * 100) Then Setup.Set("LinkAvailable", True)
-                    Setup.Set("LinkLastTestDate", DateNow)
-                    Log($"[Link] 摇号 {Num} ({DateNow})")
-                End If
-            Catch ex As Exception
-                Log(ex, "联机摇号失败")
-            End Try
             '清理自动更新文件
             Try
                 If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")

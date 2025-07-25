@@ -93,7 +93,6 @@ Public Class ModSetup
         {"LaunchUuid", New SetupEntry(String.Empty, source:=SetupSource.AppData)},
         {"ToolFixAuthlib", New SetupEntry(True, source:=SetupSource.AppData)},
         {"LinkEula", New SetupEntry(False, source:=SetupSource.AppData)},
-        {"LinkLastTestDate", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"LinkAnnounceCache", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"LinkAnnounceCacheVer", New SetupEntry(0, source:=SetupSource.AppData)},
         {"LinkRelayType", New SetupEntry(0, source:=SetupSource.AppData)},
