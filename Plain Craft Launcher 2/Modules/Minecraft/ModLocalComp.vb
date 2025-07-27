@@ -972,7 +972,7 @@ Got:
                 Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Debug)
             End Try
 #End Region
-#Region "尝试识别材质包图标"
+#Region "尝试识别资源包图标"
             Try
                 '检查并提取材质包的 pack.png 图标
                 Dim packPngEntry = Jar.GetEntry("pack.png")
@@ -984,13 +984,13 @@ Got:
                                 entryStream.CopyTo(fileStream)
                             End Using
                         End Using
-                        Log("成功提取材质包图标：" & Path, LogLevel.Debug)
+                        Log("成功提取材资源包图标：" & Path, LogLevel.Debug)
                     Catch logoEx As Exception
                         Log(logoEx, "提取 pack.png 图标失败（" & Path & "）", LogLevel.Developer)
                     End Try
                 End If
             Catch ex As Exception
-                Log(ex, "识别材质包图标时出现未知错误（" & Path & "）", LogLevel.Developer)
+                Log(ex, "识别资源包图标时出现未知错误（" & Path & "）", LogLevel.Developer)
             End Try
 #End Region
 Finished:
