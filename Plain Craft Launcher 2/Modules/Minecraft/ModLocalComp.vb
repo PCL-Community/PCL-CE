@@ -974,7 +974,7 @@ Got:
 #End Region
 #Region "尝试识别资源包图标"
             Try
-                '检查并提取材质包的 pack.png 图标
+                '检查并提取资源包的 pack.png 图标
                 Dim packPngEntry = Jar.GetEntry("pack.png")
                 If packPngEntry IsNot Nothing Then
                     Try
@@ -984,7 +984,7 @@ Got:
                                 entryStream.CopyTo(fileStream)
                             End Using
                         End Using
-                        Log("成功提取材资源包图标：" & Path, LogLevel.Debug)
+                        Log("成功提取资源包图标：" & Path, LogLevel.Debug)
                     Catch logoEx As Exception
                         Log(logoEx, "提取 pack.png 图标失败（" & Path & "）", LogLevel.Developer)
                     End Try
