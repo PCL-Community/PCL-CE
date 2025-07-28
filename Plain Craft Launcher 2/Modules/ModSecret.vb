@@ -565,8 +565,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End If
 
         If GrayProfile Is Nothing Then
-            Dim result As AnyType = Nothing
-            FileService.TryGetResult(PredefinedFileItems.GrayProfile, result)
+            Dim result As AnyType = FileService.WaitForResult(PredefinedFileItems.GrayProfile)
             If result Is Nothing Then
                 Log("[Theme] 无法获取灰阶配置", LogLevel.Debug)
             Else If result.Type.IsSubclassOf(GetType(Exception)) Then

@@ -28,10 +28,6 @@ Public Class FormMain
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
         ApplicationStartTick = GetTimeTick()
-        '窗体参数初始化
-        FrmMain = Me
-        FrmLaunchLeft = New PageLaunchLeft
-        FrmLaunchRight = New PageLaunchRight
         '版本号改变
         Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
         If LastVersion < VersionCode Then
@@ -56,6 +52,20 @@ Public Class FormMain
         End If
         '刷新主题
         ThemeCheckAll(False)
+        Dim dark As Int32 = Setup.Get("UiDarkMode")
+        Select Case dark
+            Case 0
+                IsDarkMode = False
+            Case 1
+                IsDarkMode = True
+            Case 2
+                IsDarkMode = IsSystemInDarkMode()
+        End Select
+        ThemeRefreshColor()
+        '窗体参数初始化
+        FrmMain = Me
+        FrmLaunchLeft = New PageLaunchLeft
+        FrmLaunchRight = New PageLaunchRight
         Setup.Load("UiLauncherTheme")
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
@@ -115,15 +125,6 @@ Public Class FormMain
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
         End If
         '加载窗口
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = IsSystemInDarkMode()
-        End Select
 
         ThemeRefresh()
 
