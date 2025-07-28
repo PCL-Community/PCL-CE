@@ -60,6 +60,17 @@ Class PageLoginProfile
         SelectedProfile = CType(sender, MyListItem).Tag
         Log($"[Profile] 选定档案: {sender.Tag.Username}, 以 {sender.Tag.Type} 方式验证")
         LastUsedProfile = ProfileList.IndexOf(sender.Tag) '获取当前档案的序号
+        SaveProfile() '保存档案配置，确保切换后的档案被正确保存
+        
+        '清除登录验证缓存，确保使用新档案的验证信息
+        Try
+            McLoginMsLoader?.Abort()
+            McLoginAuthLoader?.Abort()
+            McLoginLegacyLoader?.Abort()
+        Catch ex As Exception
+            Log(ex, "清除登录验证缓存时出现异常", LogLevel.Debug)
+        End Try
+        
         RunInUi(Sub()
                     FrmLaunchLeft.RefreshPage(True)
                     FrmLaunchLeft.BtnLaunch.IsEnabled = True

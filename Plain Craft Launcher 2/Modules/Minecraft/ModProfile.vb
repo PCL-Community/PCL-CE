@@ -16,7 +16,6 @@ Public Module ModProfile
     ''' 档案列表
     ''' </summary>
     Public ProfileList As New List(Of McProfile)
-    Private IsFirstLoad As Boolean = True
     Public IsCreatingProfile As Boolean = False
     ''' <summary>
     ''' 档案操作日志
@@ -138,9 +137,9 @@ Public Module ModProfile
                 ProfileList.Add(NewProfile)
             Next
             ProfileLog($"获取到 {ProfileList.Count} 个档案")
-            If IsFirstLoad Then
-                If Not ProfileList.Count = 0 Then SelectedProfile = ProfileList(LastUsedProfile)
-                IsFirstLoad = False
+            '确保根据 LastUsedProfile 设置当前选定的档案
+            If Not ProfileList.Count = 0 AndAlso LastUsedProfile >= 0 AndAlso LastUsedProfile < ProfileList.Count Then
+                SelectedProfile = ProfileList(LastUsedProfile)
             End If
         Catch ex As Exception
             Log(ex, "读取档案列表失败", LogLevel.Feedback)
