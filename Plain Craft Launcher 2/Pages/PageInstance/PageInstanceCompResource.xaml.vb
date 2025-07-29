@@ -892,6 +892,7 @@ Install:
     ''' 实例选择按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicVersionSelect_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicVersionSelect.Click
+        FrmMain.PageChange(FormMain.PageType.Launch)
         FrmMain.PageChange(FormMain.PageType.InstanceSelect)
     End Sub
 
