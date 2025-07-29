@@ -1163,6 +1163,12 @@
     <None Include="Resources\libwebp64.dll" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CacheCow.Client">
+      <Version>2.13.1</Version>
+    </PackageReference>
+    <PackageReference Include="CacheCow.Client.FileStore">
+      <Version>2.13.1</Version>
+    </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>6.0.0</Version>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -1183,10 +1189,10 @@
       <Version>0.5.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client">
-      <Version>4.74.0</Version>
+      <Version>4.74.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client.Broker">
-      <Version>4.74.0</Version>
+      <Version>4.74.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts">
       <Version>10.0.19041.2</Version>
@@ -1245,6 +1251,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
+    <Resource Include="Images\Icons\DefaultServer.png" />
     <Content Include="Resources\linkd.exe" />
     <Resource Include="Resources\oauth-complete.html" />
   </ItemGroup>

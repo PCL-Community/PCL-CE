@@ -972,6 +972,27 @@ Got:
                 Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" & Path & "）", LogLevel.Debug)
             End Try
 #End Region
+#Region "尝试识别资源包图标"
+            Try
+                '检查并提取资源包的 pack.png 图标
+                Dim packPngEntry = Jar.GetEntry("pack.png")
+                If packPngEntry IsNot Nothing Then
+                    Try
+                        Logo = PathTemp & "MyImage\" & GetStringMD5(packPngEntry.Length.ToString & packPngEntry.CompressedLength.ToString & Path) & ".png"
+                        Using entryStream As Stream = packPngEntry.Open()
+                            Using fileStream As FileStream = File.Create(Logo)
+                                entryStream.CopyTo(fileStream)
+                            End Using
+                        End Using
+                        Log("成功提取资源包图标：" & Path, LogLevel.Debug)
+                    Catch logoEx As Exception
+                        Log(logoEx, "提取 pack.png 图标失败（" & Path & "）", LogLevel.Developer)
+                    End Try
+                End If
+            Catch ex As Exception
+                Log(ex, "识别资源包图标时出现未知错误（" & Path & "）", LogLevel.Developer)
+            End Try
+#End Region
 Finished:
 #Region "将 Version 代号转换为 META-INF 中的版本"
             If _Version = "version" Then

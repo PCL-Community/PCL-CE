@@ -28,10 +28,6 @@ Public Class FormMain
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
         ApplicationStartTick = GetTimeTick()
-        '窗体参数初始化
-        FrmMain = Me
-        FrmLaunchLeft = New PageLaunchLeft
-        FrmLaunchRight = New PageLaunchRight
         '版本号改变
         Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
         If LastVersion < VersionCode Then
@@ -56,6 +52,20 @@ Public Class FormMain
         End If
         '刷新主题
         ThemeCheckAll(False)
+        Dim dark As Int32 = Setup.Get("UiDarkMode")
+        Select Case dark
+            Case 0
+                IsDarkMode = False
+            Case 1
+                IsDarkMode = True
+            Case 2
+                IsDarkMode = IsSystemInDarkMode()
+        End Select
+        ThemeRefreshColor()
+        '窗体参数初始化
+        FrmMain = Me
+        FrmLaunchLeft = New PageLaunchLeft
+        FrmLaunchRight = New PageLaunchRight
         Setup.Load("UiLauncherTheme")
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
@@ -115,15 +125,6 @@ Public Class FormMain
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
         End If
         '加载窗口
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = IsSystemInDarkMode()
-        End Select
 
         ThemeRefresh()
 
@@ -176,13 +177,13 @@ Public Class FormMain
 #If DEBUG Or DEBUGCI Then
             If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
 #If DEBUG Then
-                Const hint = "当前运行的 PCL2 社区版为 Debug 版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
                              "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
                              vbCrLf &
                              "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
                              "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
 #Else
-                Const hint = "当前运行的 PCL2 社区版为 CI 自动构建版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
                              "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
                              vbCrLf &
                              "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
@@ -232,28 +233,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
-            '联机摇号
-            Try
-                Dim DateNow As String = Now.ToString("yyyyMMdd")
-                If Not Setup.Get("LinkAvailable") AndAlso Not DateNow = Setup.Get("LinkLastTestDate") Then
-                    Dim Chance As Double = 0
-                    Dim ServerNumber As Integer = 0
-Retry:
-                    Try
-                        Chance = Val(NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/lottery.ini", "GET", Nothing, "application/json", Timeout:=7000))
-                    Catch ex As Exception
-                        Log(ex, $"[Link] 从服务器 {ServerNumber} 获取摇号数据失败")
-                        ServerNumber += 1
-                        If ServerNumber <= LinkServers.Count - 1 Then GoTo Retry
-                    End Try
-                    Dim Num As Integer = RandomInteger(0, 100)
-                    If Num > 1 - (Chance * 100) Then Setup.Set("LinkAvailable", True)
-                    Setup.Set("LinkLastTestDate", DateNow)
-                    Log($"[Link] 摇号 {Num} ({DateNow})")
-                End If
-            Catch ex As Exception
-                Log(ex, "联机摇号失败")
-            End Try
             '清理自动更新文件
             Try
                 If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")
@@ -271,7 +250,7 @@ Retry:
         Setup.Set("SystemCount", Setup.Get("SystemCount") + 1)
         If Setup.Get("SystemCount") >= 99 Then
             If ThemeUnlock(6, False) Then
-                MyMsgBox("你已经打开了 99 次 PCL2 社区版啦，感谢你长期以来的支持！" & vbCrLf &
+                MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" & vbCrLf &
                          "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！", "提示")
             End If
         End If

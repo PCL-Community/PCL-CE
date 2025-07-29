@@ -38,12 +38,12 @@
                         </local:MyComboBox>
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最大线程数" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderDownloadThread" Grid.Row="4" Tag="ToolDownloadThread" MaxValue="255" Value="63" Grid.Column="1"
-                                        ToolTip="线程数越多，限速的文件下载越快，但过高的线程数会造成下载时非常严重的卡顿。&#xa;一般而言，64 线程已可以保证足够的下载速度。" />
+                                        ToolTip="线程数越多，限速的文件下载越快，但过高的线程数可能会造成下载时非常严重的卡顿。&#xa;一般而言，64 线程已可以保证足够的下载速度。" />
                         <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left" Text="速度限制" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderDownloadSpeed" Grid.Row="5" Tag="ToolDownloadSpeed" MaxValue="42" Value="42" Grid.Column="1"
                                         ToolTip="设置下载的速度上限，以避免在下载时导致其他需要联网的程序卡死" />
                         <TextBlock VerticalAlignment="Top" Grid.Row="6" HorizontalAlignment="Left" Text="目标文件夹" Margin="0,5,25,5" />
-                        <TextBlock Margin="0,5" HorizontalAlignment="Left" Text="请在 启动 → 实例选择 → 文件夹列表 中更改下载目标文件夹。&#xa;在某个文件夹或游戏版本上右键，即可选择打开对应文件夹。" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Opacity="0.5" />
+                        <TextBlock Margin="0,5" HorizontalAlignment="Left" Text="请在 启动 → 实例选择 → 文件夹列表 中更改下载目标文件夹。&#xa;在某个文件夹或游戏实例上右键，即可选择打开对应文件夹。" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" Opacity="0.5" />
                         <TextBlock Margin="0,5" Grid.Row="7" Text="安装行为" />
                         <local:MyCheckBox Grid.Row="7" Grid.Column="1" Text="安装新实例后自动选定该实例" x:Name="CheckDownloadAutoSelectVersion" Tag="ToolDownloadAutoSelectVersion" />
                         <local:MyCheckBox Grid.Row="7" Grid.Column="1" Margin="230,0,0,0" Text="升级部分版本的 Authlib" x:Name="CheckFixAuthlib" Tag="ToolFixAuthlib" ToolTip="部分 MC 版本（如 1.16.5）存在 Bug，可能导致使用离线验证时多人游戏被禁用。&#xa;PCL 可尝试升级这些版本的 Authlib 支持库以解决问题。&#xa;此设置仅对新安装的实例有效。"/>
@@ -144,7 +144,7 @@
                     </local:MyComboBox>
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器更新通道" Margin="0,0,25,0" Grid.Row="2"/>
                     <local:MyComboBox x:Name="ComboSystemUpdateBranch" Tag="SystemSystemUpdateBranch" Grid.Column="1" Grid.Row="2" 
-                        ToolTip="PCL2 社区版提供了两种更新通道：&#xa;Slow Ring：较为稳定，功能通常已经过测试。&#xa;Fast Ring：更新较快，但可能包含未经充分测试的功能，可能不稳定。&#xa;&#xa;Fast Ring 仅推荐具有一定基础知识和能力的用户使用，且不适合用于制作整合包。&#xa;在升级到 Fast Ring 版本后，只能通过手动重新下载启动器切换回 Slow Ring。&#xa;&#xa;如果你不知道你在干什么，请选择 Slow Ring。">
+                        ToolTip="PCL 社区版提供了两种更新通道：&#xa;Slow Ring：较为稳定，功能通常已经过测试。&#xa;Fast Ring：更新较快，但可能包含未经充分测试的功能，可能不稳定。&#xa;&#xa;Fast Ring 仅推荐具有一定基础知识和能力的用户使用，且不适合用于制作整合包。&#xa;在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。&#xa;&#xa;如果你不知道你在干什么，请选择 Slow Ring。">
                         <local:MyComboBoxItem Content="Slow Ring" />
                         <local:MyComboBoxItem Content="Fast Ring" />
                     </local:MyComboBox>
@@ -163,7 +163,7 @@
                     </local:MyTextBox>
                     <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最高动画帧率" Margin="0,0,25,0" />
                     <local:MySlider x:Name="SliderAniFPS" Grid.Row="8" Tag="UiAniFPS" MaxValue="59" Value="59" Grid.Column="1"
-ToolTip="如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用" />
+                                    ToolTip="如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用" />
                     <TextBlock Grid.Row="10" VerticalAlignment="Center" HorizontalAlignment="Left" Text="实时日志行数" Margin="0,0,25,0" />
                     <local:MySlider x:Name="SliderMaxLog" Grid.Row="10" Tag="SystemMaxLog" MaxValue="29" Value="13" Grid.Column="1"
                                     ToolTip="实时日志功能中最大显示行数，超过该值会自动删除旧的日志。" />

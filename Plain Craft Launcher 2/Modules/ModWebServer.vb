@@ -176,7 +176,11 @@ Public Module ModWebServer
                     server.Route("/assets/icon", Function() RoutedResponse.Input(GetResourceStream("Images/icon.ico")))
                     server.Route("/complete", Function() RoutedResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html"))
                     '开始响应请求
-                    StartWebServer($"oauth/{serviceName}", server)
+                    Dim webServiceName = $"oauth/{serviceName}"
+                    If DisposeWebServer(webServiceName) Then
+                        Log("[OAuth] 已关闭先前认证服务服务端")
+                    End If
+                    StartWebServer(webServiceName, server)
                     Log($"[OAuth] {serviceName}: 初始化完成，开始响应 HTTP 请求")
                 End SyncLock
                 '打开 OAuth URL

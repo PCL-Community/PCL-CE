@@ -2550,12 +2550,10 @@ NextEntry:
     ''' 打码字符串中的 Windows 用户名。
     ''' </summary>
     Public Function FilterUserName(Raw As String, FilterChar As Char) As String
-        If Raw.Contains(":\Users\") Then
-            For Each Token In RegexSearch(Raw, "(?<=:\\Users\\)[^\\]+")
-                Raw = Raw.Replace(Token, New String(FilterChar, Token.Count))
-            Next
-        End If
-        Return Raw
+        Dim UserProfile As String = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        Dim UserName As String = UserProfile.Split("\").Last
+        Dim MaskedProfile = UserProfile.Replace(UserName, New String(FilterChar, UserName.Length))
+        Return Raw.Replace(UserProfile, MaskedProfile)
     End Function
 
 End Module

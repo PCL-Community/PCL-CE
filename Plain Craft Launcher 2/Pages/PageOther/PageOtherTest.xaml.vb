@@ -502,6 +502,12 @@ Public Class PageOtherTest
                                    RunInUi(Sub()
                                                MinecraftFormatter.SetColorfulTextLab($"Minecraft 服务器{vbCrLf}{ret.Description}", LabServerDesc)
                                                MinecraftFormatter.SetColorfulTextLab($"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms", LabServerPlayer)
+                                               If ret.Players.Samples.Any Then
+                                                   LabServerPlayer.ToolTip = ret.Players.Samples.Select(Function(x) x.Name).Join(vbCrLf)
+                                                   ToolTipService.SetPlacement(LabServerPlayer, Primitives.PlacementMode.Mouse)
+                                               Else
+                                                   LabServerPlayer.ToolTip = Nothing
+                                               End If
                                                ServerInfo.Visibility = Visibility.Visible
                                                If Not String.IsNullOrEmpty(base64String) Then
                                                    Dim bitmapImage As New BitmapImage()

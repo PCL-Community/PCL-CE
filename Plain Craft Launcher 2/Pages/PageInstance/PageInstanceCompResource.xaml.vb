@@ -502,6 +502,8 @@ Public Class PageInstanceCompResource
             Dim HasUpdate As Boolean = False
             Dim HasEnabled As Boolean = False
             Dim HasDisabled As Boolean = False
+            Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
+            
             For Each ModEntity In CompResourceListLoader.Output
                 If SelectedMods.Contains(ModEntity.RawPath) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
@@ -510,8 +512,14 @@ Public Class PageInstanceCompResource
                     ElseIf ModEntity.State = LocalCompFile.LocalFileStatus.Disabled Then
                         HasDisabled = True
                     End If
+                    
+                    ' 检查是否所有选中的资源都有有效的项目信息（即已完成联网更新）
+                    If ModEntity.Comp Is Nothing OrElse String.IsNullOrEmpty(ModEntity.Comp.Id) Then
+                        CanFavoriteAndShare = False
+                    End If
                 End If
             Next
+            
             BtnSelectDisable.IsEnabled = HasEnabled
             BtnSelectEnable.IsEnabled = HasDisabled
             BtnSelectUpdate.IsEnabled = HasUpdate
@@ -525,6 +533,10 @@ Public Class PageInstanceCompResource
                 BtnSelectUpdate.Visibility = Visibility.Visible
                 BtnSelectFavorites.Visibility = Visibility.Visible
                 BtnSelectShare.Visibility = Visibility.Visible
+                
+                ' 根据是否已加载项目信息来启用/禁用收藏和分享按钮
+                BtnSelectFavorites.IsEnabled = CanFavoriteAndShare
+                BtnSelectShare.IsEnabled = CanFavoriteAndShare
             End If
         End If
         '更新显示状态

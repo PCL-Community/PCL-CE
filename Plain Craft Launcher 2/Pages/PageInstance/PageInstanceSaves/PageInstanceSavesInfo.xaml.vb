@@ -36,6 +36,7 @@ Class PageInstanceSavesInfo
 
                     Hintversion1_9.Visibility = Visibility.Collapsed
                     Hintversion1_8.Visibility = Visibility.Collapsed
+                    HintVersion1_3.Visibility = Visibility.Collapsed
 
                     Dim GetDataInfoByPath = Function(path As String) As String
                                                 Dim element = levelData.XPathSelectElement(path)
@@ -54,59 +55,69 @@ Class PageInstanceSavesInfo
                     versionName = GetDataInfoByPath("//TCompound[@Name='Version']/TString[@Name='Name']")
                     versionId = GetDataInfoByPath("//TCompound[@Name='Version']/TInt32[@Name='Id']")
                     Dim hasDifficulty = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']") IsNot Nothing
+                    Dim hasAllowCommands = levelData.XPathSelectElement("//TInt8[@Name='allowCommands']") IsNot Nothing
+                    
                     If versionName = "获取失败" Then
                         If hasDifficulty Then
                             Hintversion1_9.Visibility = Visibility.Visible
                             Hintversion1_9.Text = $"1.9 以下的版本无法获取存档版本"
                         Else
-                            Hintversion1_8.Visibility = Visibility.Visible
-                            Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
+                            If hasAllowCommands Then
+                                Hintversion1_8.Visibility = Visibility.Visible
+                                Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
+                            Else
+                                HintVersion1_3.Visibility = Visibility.Visible
+                                HintVersion1_3.Text = $"1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊"
+                            End If
                         End If
                     Else
                         AddInfoTable("存档版本", $"{versionName} ({versionId})")
                     End If
+                    
                     Dim seed As String = GetDataInfoByPathWithFallback("//TCompound[@Name='WorldGenSettings']/TInt64[@Name='seed']", "//TInt64[@Name='RandomSeed']")
                     AddInfoTable("种子", seed, True, versionName, True)
-                    Dim allowCommandValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='allowCommands']"))
-                    Dim allowCommandName As String = "获取失败"
-                    Select Case allowCommandValue
-                        Case 0
-                            allowCommandName = "不允许"
-                        Case 1
-                            allowCommandName = "允许"
-                    End Select
-                    AddInfoTable("是否允许作弊", allowCommandName)
+                    
+                    If hasAllowCommands Then
+                        Dim allowCommandValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='allowCommands']"))
+                        Dim allowCommandName As String = "获取失败"
+                        Select Case allowCommandValue
+                            Case 0
+                                allowCommandName = "不允许"
+                            Case 1
+                                allowCommandName = "允许"
+                        End Select
+                        AddInfoTable("是否允许作弊", allowCommandName)
+                    End If
+                    
                     AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(GetDataInfoByPath("//TInt64[@Name='LastPlayed']"))).ToLocalTime().ToString())
+                    
                     Dim spawnX = GetDataInfoByPath("//TInt32[@Name='SpawnX']")
                     Dim spawnY = GetDataInfoByPath("//TInt32[@Name='SpawnY']")
                     Dim spawnZ = GetDataInfoByPath("//TInt32[@Name='SpawnZ']")
                     AddInfoTable("出生点 (X/Y/Z)", $"{spawnX} / {spawnY} / {spawnZ}")
+                    
                     If hasDifficulty Then
                         Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
                         Dim difficultyName As String = "获取失败"
-                        If difficultyElement IsNot Nothing Then
-                            Dim difficultyValue As Integer
-                            If Integer.TryParse(difficultyElement.Value, difficultyValue) Then
-                                Select Case difficultyValue
-                                    Case 0
-                                        difficultyName = "和平"
-                                    Case 1
-                                        difficultyName = "简单"
-                                    Case 2
-                                        difficultyName = "普通"
-                                    Case 3
-                                        difficultyName = "困难"
-                                End Select
-                            End If
-                        End If
+                        Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value, difficultyValue)
+                        Select Case difficultyValue
+                            Case 0
+                                difficultyName = "和平"
+                            Case 1
+                                difficultyName = "简单"
+                            Case 2
+                                difficultyName = "普通"
+                            Case 3
+                                difficultyName = "困难"
+                        End Select
                         Dim lockedElement = levelData.XPathSelectElement("//TInt8[@Name='DifficultyLocked']")
                         Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
                         If Hintversion1_8.Visibility <> Visibility.Visible Then
                             AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
                         End If
                     End If
+                    
                     Dim totalTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='Time']"))
-                    Dim dayTimeTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='DayTime']"))
                     Dim totalSeconds As Double = totalTicks / 20.0
                     Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
                     Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
@@ -119,6 +130,7 @@ Class PageInstanceSavesInfo
             PanContent.Visibility = Visibility.Collapsed
             Hintversion1_9.Visibility = Visibility.Collapsed
             Hintversion1_8.Visibility = Visibility.Collapsed
+            HintVersion1_3.Visibility = Visibility.Collapsed
         End Try
     End Sub
 

@@ -44,7 +44,7 @@ Public Class MyHint
             Case Themes.Yellow
                 hue = 40
         End Select
-        Dim s As ThemeStyle = CurrentStyle
+        Dim s = CurrentProfile
         Background = New MyColor().FromHSL2(hue, 90, s.L7)
         BorderBrush = New MyColor().FromHSL2(hue, 90, s.L2)
         LabText.Foreground = New MyColor().FromHSL2(hue, 90, s.L2)

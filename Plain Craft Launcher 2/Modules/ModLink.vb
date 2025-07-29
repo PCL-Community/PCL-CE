@@ -182,15 +182,25 @@ Public Module ModLink
                 lookupList.AddRange(infos)
             Next
             Log($"[MCDetect] 获取到端口数量 {lookupList.Count}")
+            '并行查找本地，超时 3s 自动放弃
             Dim checkTasks = lookupList.Select(Function(lookup) Task.Run(Async Function()
-                                                                             Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}")
-                                                                             Dim test As New McPing("127.0.0.1", lookup.Item1)
-                                                                             Dim info = Await test.PingAsync()
-                                                                             Dim launcher = GetLauncherBrand(lookup.Item2)
-                                                                             If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
-                                                                                 Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界")
-                                                                                 res.Add(New Tuple(Of Integer, McPingResult, String)(lookup.Item1, info, launcher))
-                                                                             End If
+                                                                             Try
+                                                                                 Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}")
+                                                                                 Using test As New McPing("127.0.0.1", lookup.Item1, 3000)
+                                                                                     Dim info = Await test.PingAsync()
+                                                                                     Dim launcher = GetLauncherBrand(lookup.Item2)
+                                                                                     If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
+                                                                                         Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界")
+                                                                                         res.Add(New Tuple(Of Integer, McPingResult, String)(lookup.Item1, info, launcher))
+                                                                                     End If
+                                                                                 End Using
+                                                                             Catch ex As Exception
+                                                                                 If TypeOf ex.InnerException Is ObjectDisposedException Then
+                                                                                     Log($"[McDetect] {lookup} 验证超时，已强制断开连接")
+                                                                                 Else
+                                                                                     Log(ex, $"[McDetect] {lookup} 验证出错")
+                                                                                 End If
+                                                                             End Try
                                                                          End Function)).ToArray()
             Await Task.WhenAll(checkTasks)
         Catch ex As Exception
@@ -600,10 +610,13 @@ Public Module ModLink
     End Class
     Public NaidProfile As New NaidUser()
     Public NaidProfileException As Exception
+    Public NaidIsGettingInfo As Boolean
     Public Sub GetNaidData(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False)
         RunInNewThread(Sub() GetNaidDataSync(Token, IsRefresh, IsRetry, IsSilent))
     End Sub
     Public Function GetNaidDataSync(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False) As Boolean
+        If NaidIsGettingInfo Then Return False
+        NaidIsGettingInfo = True
         Try
             '获取 AccessToken 和 RefreshToken
             Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=http://localhost:29992/callback"
@@ -655,6 +668,8 @@ Public Module ModLink
             End If
             NaidProfileException = ex
             Return False
+        Finally
+            NaidIsGettingInfo = False
         End Try
     End Function
 #End Region
@@ -775,8 +790,7 @@ PortRetry:
     Private UdpThread As Thread = Nothing
     Private TcpThread As Thread = Nothing
     Private ServerSocket As Socket = Nothing
-    Private ChatClient As UdpClient = Nothing
-    Private ChatClientV6 As UdpClient = Nothing
+    Private BoardcastClient As Socket
     Private IsMcPortForwardRunning As Boolean = False
     Private PortForwardRetryTimes As Integer = 0
     Public Async Sub McPortForward(remoteIp As String, Optional remotePort As Integer = 25565, Optional desc As String = "§ePCL CE 局域网广播", Optional isRetry As Boolean = False)
@@ -790,27 +804,21 @@ PortRetry:
         ServerSocket.Listen(-1)
         Dim localPort As Integer = CType(ServerSocket.LocalEndPoint, IPEndPoint).Port
         IsMcPortForwardRunning = True
-
         UdpThread = New Thread(Async Sub()
                                    Try
                                        Log($"[Link] 开始进行 MC 局域网广播, 广播的本地端口: {localPort}")
-                                       ChatClient = New UdpClient("224.0.2.60", 4445)
-                                       ChatClientV6 = New UdpClient("ff02::1:ff00:60", 4445)
+                                       BoardcastClient = New Socket(SocketType.Dgram, ProtocolType.Udp)
+                                       BoardcastClient.DualMode = True
+                                       'ChatClient = New UdpClient("224.0.2.60", 4445)
+                                       'ChatClientV6 = New UdpClient("ff02::1:ff00:60", 4445)
                                        Dim Buffer As Byte() = Encoding.UTF8.GetBytes($"[MOTD]{desc}[/MOTD][AD]{localPort}[/AD]")
+                                       Dim boardcastEndpoint = New IPEndPoint(IPAddress.Parse("127.0.0.1"), 4445)
+                                       'Dim boardcastEndpointv6 = New IPEndPoint(IPAddress.Parse("::1"), 4445)
                                        Log($"[Link] 端口转发: {remoteIp}:{remotePort} -> 本地 {localPort}")
                                        While IsMcPortForwardRunning
-                                           If ChatClient IsNot Nothing Then
-                                               ChatClient.EnableBroadcast = True
-                                               ChatClient.MulticastLoopback = True
-                                           End If
-                                           If ChatClientV6 IsNot Nothing Then
-                                               ChatClientV6.EnableBroadcast = True
-                                               ChatClientV6.MulticastLoopback = True
-                                           End If
-
-                                           If IsMcPortForwardRunning AndAlso ChatClient IsNot Nothing AndAlso ChatClientV6 IsNot Nothing Then
-                                               Await ChatClient.SendAsync(Buffer, Buffer.Length)
-                                               Await ChatClientV6.SendAsync(Buffer, Buffer.Length)
+                                           If IsMcPortForwardRunning AndAlso BoardcastClient IsNot Nothing Then
+                                               BoardcastClient.SendTo(Buffer, boardcastEndpoint)
+                                               'BoardcastClient.SendTo(Buffer, boardcastEndpointv6)
                                                If IsMcPortForwardRunning Then Await Task.Delay(1500)
                                            End If
                                        End While
@@ -895,13 +903,9 @@ PortRetry:
             TcpThread.Abort()
             TcpThread = Nothing
         End If
-        If ChatClient IsNot Nothing Then
-            ChatClient.Close()
-            ChatClient = Nothing
-        End If
-        If ChatClientV6 IsNot Nothing Then
-            ChatClientV6.Close()
-            ChatClientV6 = Nothing
+        If BoardcastClient IsNot Nothing Then
+            BoardcastClient.Close()
+            BoardcastClient = Nothing
         End If
         If ServerSocket IsNot Nothing Then
             ServerSocket.Close()

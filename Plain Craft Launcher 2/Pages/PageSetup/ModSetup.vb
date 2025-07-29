@@ -43,7 +43,7 @@ Public Class ModSetup
         {"SystemDebugSkipCopy", New SetupEntry(False, source:=SetupSource.AppData)},
         {"SystemSystemCache", New SetupEntry("", source:=SetupSource.AppData)},
         {"SystemSystemUpdate", New SetupEntry(0)},
-        {"SystemSystemUpdateBranch", New SetupEntry(0)},
+        {"SystemSystemUpdateBranch", New SetupEntry(If(VersionBaseName.Contains("beta"), 1, 0))},
         {"SystemSystemActivity", New SetupEntry(0)},
         {"SystemSystemAnnouncement", New SetupEntry("", source:=SetupSource.AppData)},
         {"SystemHttpProxy", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
@@ -93,7 +93,6 @@ Public Class ModSetup
         {"LaunchUuid", New SetupEntry(String.Empty, source:=SetupSource.AppData)},
         {"ToolFixAuthlib", New SetupEntry(True, source:=SetupSource.AppData)},
         {"LinkEula", New SetupEntry(False, source:=SetupSource.AppData)},
-        {"LinkLastTestDate", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"LinkAnnounceCache", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"LinkAnnounceCacheVer", New SetupEntry(0, source:=SetupSource.AppData)},
         {"LinkRelayType", New SetupEntry(0, source:=SetupSource.AppData)},
@@ -890,6 +889,14 @@ Public Class ModSetup
     End Sub
     Public Sub SystemDebugAnim(Value As Integer)
         AniSpeed = If(Value >= 30, 200, MathClamp(Value * 0.1 + 0.1, 0.1, 3))
+    End Sub
+
+    Public Sub SystemHttpProxy(value As String)
+        Core.Model.Net.HttpProxyManager.Instance.ProxyAddress = value
+    End Sub
+
+    Public Sub SystemUseDefaultProxy(value As Boolean)
+        Core.Model.Net.HttpProxyManager.Instance.DisableProxy = value
     End Sub
 
 #End Region

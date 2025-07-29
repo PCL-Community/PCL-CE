@@ -614,7 +614,7 @@ SkipLogin:
             WithBroker(Options).
             Build()
 
-        '控制流程
+        '静默登录尝试
         Try
             If String.IsNullOrEmpty(Data.Input.OAuthId) Then
                 ProfileLog("没有账号信息，直接进行全新登录流程")
@@ -625,55 +625,57 @@ SkipLogin:
             ProfileLog("不存在缓存的账号信息，进行全新登录流程")
         Catch ex As Exception
             ProfileLog("静默登录出现异常" & ex.ToString().Replace(OAuthClientId, ""))
-            Hint("静默登录不成功！", HintType.Critical)
+            Hint("静默登录不成功，请手动完成登录操作！", HintType.Critical)
         End Try
+        '交互登录尝试
         Dim ErrorMsg As String = String.Empty
         Try
             Return Await MsLoginStep1HandleInteractiveLogin(App)
         Catch ex As MsalClientException
-            If ex.Message.Contains("User canceled authentication") Then
-                ErrorMsg = "你关闭了验证弹窗..."
+            If ex.ErrorCode = MsalError.AuthenticationCanceledError Then
+                ErrorMsg = "登录认证已被取消！"
             Else
                 If Setup.Get("LoginMsAuthType") = 0 Then
-                    ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为 ⌈设备代码流⌋ 再试！" & ex.ToString().Replace(OAuthClientId, "")
+                    ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为 ⌈设备代码流⌋ 再试！" & ex.ToString().Replace(OAuthClientId, "***")
                 Else
-                    ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "")
+                    ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "***")
                 End If
             End If
         Catch ex As MsalServiceException
-            If ex.Message.Contains("authorization_declined") Or ex.Message.Contains("access_denied") Then
-                ErrorMsg = ErrorMsg = "你拒绝了 PCL 申请的权限……"
-            ElseIf ex.Message.Contains("expired_token") Then
+            If ex.ErrorCode = MsalError.AccessDenied Then
+                ErrorMsg = "你拒绝了 PCL 申请的权限……"
+            ElseIf ex.ErrorCode = MsalError.CodeExpired Then
                 ErrorMsg = "登录用时太长啦，重新试试吧！"
+            ElseIf ex.ErrorCode = MsalError.AuthenticationFailed Then
+                ErrorMsg = "你的用户名或者密码输入错误导致登录失败"
+            ElseIf ex.ErrorCode = MsalError.AuthenticationUiFailed OrElse ex.ErrorCode = MsalError.AuthenticationUiFailedError Then
+                ErrorMsg = "MSAL 初始化登录 UI 错误"
             ElseIf ex.Message.Contains("service abuse") Then
                 ErrorMsg = "非常抱歉，该账号已被微软封禁，无法登录"
             Else
                 If Setup.Get("LoginMsAuthType") = 0 Then
-                    ErrorMsg = "正版验证出错，你可以前往启动器 设置 -> 启动 -> 启动选项 -> 正版验证方式 中将其改为 ⌈设备代码流⌋ 后再试！" & vbCrLf & ex.ToString().Replace(OAuthClientId, "")
+                    ErrorMsg = "正版验证出错，你可以前往启动器 设置 -> 启动 -> 启动选项 -> 正版验证方式 中将其改为 ⌈设备代码流⌋ 后再试！" & vbCrLf & ex.ToString().Replace(OAuthClientId, "***")
                 Else
-                    ErrorMsg = "正版验证出错，请重新尝试：" & vbCrLf & ex.ToString().Replace(OAuthClientId, "")
+                    ErrorMsg = "正版验证出错，请重新尝试：" & vbCrLf & ex.ToString().Replace(OAuthClientId, "***")
                 End If
             End If
+            ProfileLog($"正版验证出现异常，错误代码：{ex.ErrorCode}")
         Catch ex As Exception
             If Setup.Get("LoginMsAuthType") = 0 Then
-                ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为⌈设备代码流⌋再试！" & ex.ToString().Replace(OAuthClientId, "")
+                ErrorMsg = "正版验证出错，你可以前往启动器设置 - 启动，将正版验证方式改为⌈设备代码流⌋再试！" & ex.ToString().Replace(OAuthClientId, "***")
             Else
-                ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "")
+                ErrorMsg = "正版验证出错，请重新尝试：" & ex.ToString().Replace(OAuthClientId, "***")
             End If
         End Try
+        '错误提示 (上方如果执行正确则不会到这)
         FrmMain.ShowWindowToTop()
-        Dim IsIgnore As Boolean = False
         If Not String.IsNullOrWhiteSpace(ErrorMsg) Then
             RunInUiWait(Sub()
                             If Not IsLaunching Then Exit Sub
-                            If MyMsgBox($"{ErrorMsg}{vbCrLf}{vbCrLf}当然，你可以尝试继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                            MyMsgBox($"{ErrorMsg}", "账号信息获取失败", ForceWait:=True)
                         End Sub)
         End If
-        If IsIgnore Then
-            Return Nothing
-        Else
-            Throw New Exception("$$")
-        End If
+        Throw New Exception("$$")
     End Function
     Private Async Function MsLoginStep1TrySilentLogin(app As IPublicClientApplication, data As LoaderTask(Of McLoginMs, McLoginResult)) As Task(Of AuthenticationResult)
         If String.IsNullOrEmpty(data.Input.OAuthId) Then Throw New MsalUiRequiredException(-1, "无法使用静默登录，要求用户选择指定账户")
@@ -760,7 +762,7 @@ SkipLogin:
             Dim IsIgnore As Boolean = False
             RunInUiWait(Sub()
                             If Not IsLaunching Then Exit Sub
-                            If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                            If MyMsgBox($"启动器在尝试刷新账号信息时(Step 2)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                         End Sub)
             If IsIgnore Then
                 Return "Ignore"
@@ -823,7 +825,7 @@ SkipLogin:
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
-                                If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                                If MyMsgBox($"启动器在尝试刷新账号信息时(Step 3)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                             End Sub)
                 If IsIgnore Then
                     Return {SelectedProfile.AccessToken, "Ignore"}
@@ -867,7 +869,7 @@ SkipLogin:
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
-                                If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                                If MyMsgBox($"启动器在尝试刷新账号信息时(Step 4)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                             End Sub)
                 If IsIgnore Then
                     Return "Ignore"
@@ -947,7 +949,7 @@ SkipLogin:
                 Dim IsIgnore As Boolean = False
                 RunInUiWait(Sub()
                                 If Not IsLaunching Then Exit Sub
-                                If MyMsgBox($"启动器在尝试刷新账号信息时遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                                If MyMsgBox($"启动器在尝试刷新账号信息时(Step 6)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
                             End Sub)
                 If IsIgnore Then
                     Return {SelectedProfile.Uuid, SelectedProfile.Username, "Ignore"}

@@ -92,6 +92,7 @@
         BtnRegister.Visibility = Visibility.Visible
         BtnCancel.Visibility = Visibility.Collapsed
         TextLogin.Text = "登录至 Natayark Network 以使用大厅等在线服务"
+        DisposeWebServer("oauth/NatayarkID")
         Hint("已取消登录！")
     End Sub
     Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogout.Click
