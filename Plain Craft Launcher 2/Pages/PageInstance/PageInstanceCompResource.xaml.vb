@@ -1246,8 +1246,15 @@ Install:
             End If
             '更改 UI 中的列表
             Try
+                ' 先从ModItems字典中移除旧条目，避免重复
+                Dim OldFileName = ModEntity.FileName
+                If ModItems.ContainsKey(OldFileName) Then
+                    ModItems.Remove(OldFileName)
+                End If
+
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ModItems(ModEntity.FileName) = NewItem
+                ' 使用新的文件名作为字典键
+                ModItems(NewModEntity.FileName) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
