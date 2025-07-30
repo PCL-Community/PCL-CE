@@ -517,7 +517,7 @@ Retry:
     '加入大厅
     Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
         If Not LobbyPrecheck() Then Exit Sub
-        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E").Trim()
+        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E")?.Trim()
         If JoinedLobbyId = Nothing Then Exit Sub
         If JoinedLobbyId.Length < 9 OrElse Not JoinedLobbyId.IsASCII() Then
             Hint("大厅编号不合法", HintType.Critical)
