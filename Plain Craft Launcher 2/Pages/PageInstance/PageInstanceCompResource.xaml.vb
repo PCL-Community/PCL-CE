@@ -275,7 +275,7 @@ Public Class PageInstanceCompResource
                     Else
                         '根目录为空的提示
                         TxtEmptyTitle.Text = "尚未安装资源"
-                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
                     End If
                 Else
                     TxtEmptyTitle.Text = "尚未安装资源"
@@ -297,7 +297,7 @@ Public Class PageInstanceCompResource
             '修改缓存
             ModItems.Clear()
             Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
-            rootPath = IO.Path.GetFullPath(rootPath.TrimEnd("\"))
+            rootPath = System.IO.Path.GetFullPath(rootPath.TrimEnd("\"))
 
             Dim itemsToShow = CompResourceListLoader.Output.Where(Function(item)
                                                                       Dim itemPath = If(item.IsFolder, item.ActualPath, item.Path)
@@ -310,13 +310,14 @@ Public Class PageInstanceCompResource
                                                                   End Function).ToList()
 
             For Each ModEntity As LocalCompFile In itemsToShow
-                ModItems(ModEntity.RawPath) = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.FileName) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
             RunInUi(Sub()
                         Filter = FilterType.All
                         SearchBox.Text = "" '这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
                         RefreshUI()
+                        SetSortMethod(SortMethod.CompName)
                     End Sub)
         Catch ex As Exception
             Log(ex, $"加载 {CurrentCompType} 列表 UI 失败", LogLevel.Feedback)
@@ -326,7 +327,7 @@ Public Class PageInstanceCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
+                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.FileName)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -416,24 +417,24 @@ Public Class PageInstanceCompResource
             PanList.Visibility = Visibility.Visible
             PanList.Children.Clear()
             For Each TargetMod In ShowingMods
-                If Not ModItems.ContainsKey(TargetMod.RawPath) Then Continue For
-                Dim Item As MyLocalCompItem = ModItems(TargetMod.RawPath)
+                If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
+                Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
 
-                ' 确保元素没有父容器，避免重复添加异常
+                  ' 确保元素没有父容器，避免重复添加异常
                 If Item.Parent IsNot Nothing Then
                     CType(Item.Parent, Panel).Children.Remove(Item)
                 End If
 
                 MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo)
-                Item.Checked = SelectedMods.Contains(TargetMod.RawPath) '更新选中状态
+                Item.Checked = SelectedMods.Contains(TargetMod.FileName) '更新选中状态
                 PanList.Children.Add(Item)
             Next
         Else
             PanList.Visibility = Visibility.Collapsed
         End If
         AniControlEnabled -= 1
-        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.RawPath = m)).ToList '取消选中已经不显示的 Mod
+        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.FileName = m)).ToList '取消选中已经不显示的 Mod
         RefreshBars()
     End Sub
 
@@ -505,7 +506,7 @@ Public Class PageInstanceCompResource
             Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
             
             For Each ModEntity In CompResourceListLoader.Output
-                If SelectedMods.Contains(ModEntity.RawPath) Then
+                If SelectedMods.Contains(ModEntity.FileName) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
                     If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
                         HasEnabled = True
@@ -925,7 +926,7 @@ Install:
             '#4992，Mod 从过滤器看可能不应在列表中，但因为刚切换状态所以依然保留在列表中，所以应该从列表 UI 判断，而非从过滤器判断
             Dim ShouldSelected As Boolean = Value AndAlso PanList.Children.Contains(Item)
             Item.Checked = ShouldSelected
-            If ShouldSelected Then SelectedMods.Add(Item.Entry.RawPath)
+            If ShouldSelected Then SelectedMods.Add(Item.Entry.FileName)
         Next
         AniControlEnabled -= 1
         RefreshBars()
@@ -1011,6 +1012,7 @@ Install:
     Private Sub ChangeFilter(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnFilterAll.Check, BtnFilterCanUpdate.Check, BtnFilterDisabled.Check, BtnFilterEnabled.Check, BtnFilterError.Check, BtnFilterDuplicate.Check
         Filter = sender.Tag
         RefreshUI()
+        DoSort()
     End Sub
 
 #End Region
@@ -1186,7 +1188,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub
@@ -1244,8 +1246,15 @@ Install:
             End If
             '更改 UI 中的列表
             Try
+                ' 先从ModItems字典中移除旧条目，避免重复
+                Dim OldFileName = ModEntity.FileName
+                If ModItems.ContainsKey(OldFileName) Then
+                    ModItems.Remove(OldFileName)
+                End If
+
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ModItems(ModEntity.RawPath) = NewItem
+                ' 使用新的文件名作为字典键
+                ModItems(NewModEntity.FileName) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
@@ -1266,7 +1275,7 @@ Install:
 
     '更新
     Private Sub BtnSelectUpdate_Click() Handles BtnSelectUpdate.Click
-        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.CanUpdate).ToList()
+        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.CanUpdate).ToList()
         If Not UpdateList.Any() Then Return
         UpdateResource(UpdateList)
         ChangeAllSelected(False)
@@ -1404,7 +1413,7 @@ Install:
 
     '删除
     Private Sub BtnSelectDelete_Click() Handles BtnSelectDelete.Click
-        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)))
+        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)))
         ChangeAllSelected(False)
     End Sub
     Private Sub DeleteMods(ModList As IEnumerable(Of LocalCompFile))
@@ -1451,11 +1460,11 @@ Install:
                     IsSuccessful = False
                 End Try
                 '取消选中
-                SelectedMods.Remove(ModEntity.RawPath)
+                SelectedMods.Remove(ModEntity.FileName)
                 '更改 Loader 和 UI 中的列表
                 CompResourceListLoader.Output.Remove(ModEntity)
                 SearchResult?.Remove(ModEntity)
-                ModItems.Remove(ModEntity.RawPath)
+                ModItems.Remove(ModEntity.FileName)
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry.Equals(ModEntity)))
                 If IndexOfUi >= 0 Then PanList.Children.RemoveAt(IndexOfUi)
             Next
@@ -1500,13 +1509,13 @@ Install:
 
     '收藏
     Private Sub BtnSelectFavorites_Click(sender As Object, e As RouteEventArgs) Handles BtnSelectFavorites.Click
-        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
+        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
         CompFavorites.ShowMenu(Selected, sender)
     End Sub
 
     '分享
     Private Sub BtnSelectShare_Click() Handles BtnSelectShare.Click
-        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
+        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
         ClipboardSet(CompFavorites.GetShareCode(ShareList))
         ChangeAllSelected(False)
     End Sub

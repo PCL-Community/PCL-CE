@@ -340,11 +340,14 @@ Retry:
                                }
         Try
             ETCliProcess.Start()
-            Thread.Sleep(100)
+            ETCliProcess.WaitForExit(200)
 
             Dim ETCliOutput As String = Nothing
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
-            'Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
+            If Not ETCliProcess.HasExited Then
+                Log($"[Link] 轮询获取结果超时(200 ms)，程序状态可能异常！")
+                Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
+            End If
             If Not ETCliOutput.Contains("10.114.51.41") AndAlso Not ETCliOutput.Contains("10.144.144.1") Then
                 If RemainRetry > 0 Then
                     Log($"[Link] 未找到大厅创建者 IP，放弃前再重试 {RemainRetry} 次")
