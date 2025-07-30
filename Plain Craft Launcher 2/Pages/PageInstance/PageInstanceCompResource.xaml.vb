@@ -1,5 +1,56 @@
 Public Class PageInstanceCompResource
     Implements IRefreshable
+    ' 文件信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
+    Private ReadOnly fileInfoCache As New Dictionary(Of String, (CreationTime As DateTime, Length As Long))
+    Private ReadOnly cacheLock As New Object()
+    Private WithEvents cacheCleanupTimer As New Timers.Timer(300000) ' 5分钟缓存清理间隔
+
+    Public Sub New()
+        InitializeComponent()
+        cacheCleanupTimer.Start()
+    End Sub
+
+    ' 获取文件信息（带缓存）
+    Private Function GetFileInfo(path As String) As (CreationTime As DateTime, Length As Long)
+        SyncLock cacheLock
+            Dim cacheItem As (CreationTime As DateTime, Length As Long)
+            If fileInfoCache.TryGetValue(path, cacheItem) Then
+                Return cacheItem
+            End If
+        End SyncLock
+
+        Try
+            Dim fileInfo As New FileInfo(path)
+            Dim newItem = (fileInfo.CreationTime, fileInfo.Length)
+            SyncLock cacheLock
+                If Not fileInfoCache.ContainsKey(path) Then
+                    fileInfoCache.Add(path, newItem)
+                End If
+            End SyncLock
+            Return newItem
+        Catch ex As Exception
+            ' 记录异常但不中断程序
+            Log(ex, "获取文件信息失败: " & path, LogLevel.Msgbox)
+            Return (DateTime.MinValue, 0)
+        End Try
+    End Function
+
+    ' 定时清理缓存
+    Private Sub cacheCleanupTimer_Elapsed(sender As Object, e As Timers.ElapsedEventArgs) Handles cacheCleanupTimer.Elapsed
+        SyncLock cacheLock
+            fileInfoCache.Clear()
+        End SyncLock
+    End Sub
+
+    ' 页面关闭时停止定时器并清理缓存
+    Private Sub Page_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+        cacheCleanupTimer.Stop()
+        SyncLock cacheLock
+            fileInfoCache.Clear()
+        End SyncLock
+    End Sub
+
+    
 #Region "初始化"
 
     Private CurrentCompType As CompType = CompType.Mod
@@ -1140,14 +1191,18 @@ Install:
                            Dim folderResult = folderFirstCompare(a, b)
                            If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
-                           Try
-                               Dim aDate = New FileInfo(If(a.IsFolder, a.ActualPath, a.Path)).CreationTime
-                               Dim bDate = New FileInfo(If(b.IsFolder, b.ActualPath, b.Path)).CreationTime
-                               Return bDate.CompareTo(aDate)
-                           Catch ex As Exception
-                               ' 如果获取时间失败，则按名称排序
+                           Dim aPath = If(a.IsFolder, a.ActualPath, a.Path)
+                           Dim bPath = If(b.IsFolder, b.ActualPath, b.Path)
+                           Dim aDate = GetFileInfo(aPath).CreationTime
+                           Dim bDate = GetFileInfo(bPath).CreationTime
+                           If aDate = DateTime.MinValue AndAlso bDate = DateTime.MinValue Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           End Try
+                           ElseIf aDate = DateTime.MinValue Then
+                               Return 1 ' 出错的文件排在后面
+                           ElseIf bDate = DateTime.MinValue Then
+                               Return -1
+                           End If
+                           Return bDate.CompareTo(aDate)
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
@@ -1160,14 +1215,16 @@ Install:
                            End If
                            ' 如果都是文件，则按文件大小排序（大的在前）
                            If Not a.IsFolder AndAlso Not b.IsFolder Then
-                               Try
-                                   Dim aSize As Long = (New FileInfo(a.ActualPath)).Length
-                                   Dim bSize As Long = (New FileInfo(b.ActualPath)).Length
-                                   Return bSize.CompareTo(aSize)
-                               Catch ex As Exception
-                                   ' 如果获取大小失败，则按名称排序
+                               Dim aSize As Long = GetFileInfo(a.ActualPath).Length
+                               Dim bSize As Long = GetFileInfo(b.ActualPath).Length
+                               If aSize = 0 AndAlso bSize = 0 Then
                                    Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                               End Try
+                               ElseIf aSize = 0 Then
+                                   Return 1
+                               ElseIf bSize = 0 Then
+                                   Return -1
+                               End If
+                               Return bSize.CompareTo(aSize)
                            End If
                            ' 理论上不会到达这里，但为了安全起见
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
