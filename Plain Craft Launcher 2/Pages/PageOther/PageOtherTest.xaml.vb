@@ -24,6 +24,7 @@ Public Class PageOtherTest
         TextDownloadFolder.Validate()
         TextDownloadName.Validate()
         TextUserAgent.Text = Setup.Get("ToolDownloadCustomUserAgent")
+        UpdateLaunchCountDisplay()
     End Sub
     Private Sub StartButtonRefresh()
         BtnDownloadStart.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) AndAlso
@@ -609,5 +610,13 @@ Public Class PageOtherTest
         Dim locationName = If(choice = 2, desktopName, startName)
         Helper.Files.CreateShortcut(shortcutPath, Helper.NativeInterop.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
+    End Sub
+    
+    ''' <summary>
+    ''' 更新启动次数显示
+    ''' </summary>
+    Public Sub UpdateLaunchCountDisplay()
+        Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
+        TextLaunchCount.Text = $"PCL 游戏启动次数：{launchCount} 次"
     End Sub
 End Class
