@@ -30,7 +30,7 @@ Public Class PageInstanceCompResource
             Return newItem
         Catch ex As Exception
             ' 记录异常但不中断程序
-            Log(ex, "获取文件信息失败: " & path, LogLevel.Msgbox)
+            Log(ex, "获取文件信息失败: " & path)
             Return (DateTime.MinValue, 0)
         End Try
     End Function
