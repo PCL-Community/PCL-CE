@@ -899,7 +899,7 @@ Install:
                 Dim ExportContent As New List(Of String)
                 ExportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径")
                 For Each ModEntity In CompResourceListLoader.Output
-                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{New FileInfo(ModEntity.Path).Length},{ModEntity.Path}")
+                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.Path).Length},{ModEntity.Path}")
                 Next
                 ExportText(Join(ExportContent, vbCrLf), PageInstanceLeft.Instance.Name & "已安装的资源信息.csv")
 
@@ -1634,7 +1634,7 @@ Install:
                     '处理普通文件详情
                     If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
                     If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
 
                     '原理图文件的详情信息已通过异步方法处理
@@ -1750,7 +1750,7 @@ Install:
 
                                                If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
                                                If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
                                                If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
 
                                                '根据文件类型显示详细信息
