@@ -24,7 +24,6 @@ Public Class PageOtherTest
         TextDownloadFolder.Validate()
         TextDownloadName.Validate()
         TextUserAgent.Text = Setup.Get("ToolDownloadCustomUserAgent")
-        UpdateLaunchCountDisplay()
     End Sub
     Private Sub StartButtonRefresh()
         BtnDownloadStart.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) AndAlso
@@ -612,11 +611,9 @@ Public Class PageOtherTest
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
     
-    ''' <summary>
-    ''' 更新启动次数显示
-    ''' </summary>
-    Public Sub UpdateLaunchCountDisplay()
+    ' 启动计数显示
+    Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
-        TextLaunchCount.Text = $"PCL 游戏启动次数：{launchCount} 次"
+        MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数")
     End Sub
 End Class

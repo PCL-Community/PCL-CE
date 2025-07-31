@@ -129,9 +129,6 @@
             Case FormMain.PageSubType.OtherHelp
                 RefreshHelp()
                 ItemHelp.Checked = True
-            Case FormMain.PageSubType.OtherTest
-                FrmOtherTest.UpdateLaunchCountDisplay()
-                ItemTest.Checked = True
             Case FormMain.PageSubType.OtherFeedback
                 If FrmOtherFeedback IsNot Nothing Then
                     FrmOtherFeedback.Loader.Start(IsForceRestart:=True)
