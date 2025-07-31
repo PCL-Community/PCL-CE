@@ -2398,6 +2398,13 @@ NextInstance:
 
         '启动计数
         Setup.Set("SystemLaunchCount", Setup.Get("SystemLaunchCount") + 1)
+        
+        Dim currentVersionPath As String = CurrentLaunchOptions.Version.Path
+        Dim launchCount = ReadIni(currentVersionPath & "PCL\Setup.ini", "LaunchCount", 0)
+        launchCount += 1
+        If Directory.Exists(Path) Then
+            WriteIni(Path & "PCL\Setup.ini", "LaunchCount", launchCount)
+        End If
 
     End Sub
 
