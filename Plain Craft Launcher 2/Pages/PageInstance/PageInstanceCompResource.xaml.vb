@@ -910,20 +910,20 @@ Install:
     ''' 下载 Mod。
     ''' </summary>
     Private Sub BtnManageDownload_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageDownload.Click, BtnHintDownload.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         Select Case CurrentCompType
             Case CompType.Mod : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
             Case CompType.ResourcePack : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack)
             Case CompType.Shader : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader)
         End Select
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
     ''' 下载投影Mod按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicDownloadMod_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicDownloadMod.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
