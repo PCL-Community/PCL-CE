@@ -277,7 +277,7 @@ Public Class PageInstanceCompResource
 #Region "UI 化"
 
     ''' <summary>
-    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 FileName。
+    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 RawPath。
     ''' </summary>
     Public ModItems As New Dictionary(Of String, MyLocalCompItem)
     ''' <summary>
@@ -347,7 +347,7 @@ Public Class PageInstanceCompResource
                                                                   End Function).ToList()
 
             For Each ModEntity As LocalCompFile In itemsToShow
-                ModItems(ModEntity.FileName) = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.RawPath) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
             RunInUi(Sub()
@@ -364,7 +364,7 @@ Public Class PageInstanceCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.FileName)}
+                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -374,7 +374,7 @@ Public Class PageInstanceCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log(ex, $"创建UI项失败：{Entry.FileName}", LogLevel.Debug)
+            Log(ex, $"创建UI项失败：{Entry.RawPath}", LogLevel.Debug)
             Throw
         End Try
     End Function
@@ -454,8 +454,8 @@ Public Class PageInstanceCompResource
             PanList.Visibility = Visibility.Visible
             PanList.Children.Clear()
             For Each TargetMod In ShowingMods
-                If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
-                Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
+                If Not ModItems.ContainsKey(TargetMod.RawPath) Then Continue For
+                Dim Item As MyLocalCompItem = ModItems(TargetMod.RawPath)
 
                   ' 确保元素没有父容器，避免重复添加异常
                 If Item.Parent IsNot Nothing Then
@@ -464,14 +464,14 @@ Public Class PageInstanceCompResource
 
                 MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo)
-                Item.Checked = SelectedMods.Contains(TargetMod.FileName) '更新选中状态
+                Item.Checked = SelectedMods.Contains(TargetMod.RawPath) '更新选中状态
                 PanList.Children.Add(Item)
             Next
         Else
             PanList.Visibility = Visibility.Collapsed
         End If
         AniControlEnabled -= 1
-        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.FileName = m)).ToList '取消选中已经不显示的 Mod
+        SelectedMods = New HashSet(Of String)(SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.RawPath = m)))
         RefreshBars()
     End Sub
 
@@ -543,7 +543,7 @@ Public Class PageInstanceCompResource
             Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
             
             For Each ModEntity In CompResourceListLoader.Output
-                If SelectedMods.Contains(ModEntity.FileName) Then
+                If SelectedMods.Contains(ModEntity.RawPath) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
                     If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
                         HasEnabled = True
@@ -940,15 +940,15 @@ Install:
     ''' <summary>
     ''' 选择的 Mod 的路径（不含 .disabled 和 .old）。
     ''' </summary>
-    Public SelectedMods As New List(Of String)
+    Public SelectedMods As New HashSet(Of String)
 
     '单项切换选择状态
     Public Sub CheckChanged(sender As MyLocalCompItem, e As RouteEventArgs)
         If AniControlEnabled <> 0 Then Return
         '更新选择了的内容
-        Dim SelectedKey As String = sender.Entry.FileName
+        Dim SelectedKey As String = sender.Entry.RawPath
         If sender.Checked Then
-            If Not SelectedMods.Contains(SelectedKey) Then SelectedMods.Add(SelectedKey)
+            SelectedMods.Add(SelectedKey)
         Else
             SelectedMods.Remove(SelectedKey)
         End If
@@ -1231,7 +1231,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub
@@ -1289,15 +1289,8 @@ Install:
             End If
             '更改 UI 中的列表
             Try
-                ' 先从ModItems字典中移除旧条目，避免重复
-                Dim OldFileName = ModEntity.FileName
-                If ModItems.ContainsKey(OldFileName) Then
-                    ModItems.Remove(OldFileName)
-                End If
-
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ' 使用新的文件名作为字典键
-                ModItems(NewModEntity.FileName) = NewItem
+                ModItems(ModEntity.RawPath) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
@@ -1507,7 +1500,7 @@ Install:
                 '更改 Loader 和 UI 中的列表
                 CompResourceListLoader.Output.Remove(ModEntity)
                 SearchResult?.Remove(ModEntity)
-                ModItems.Remove(ModEntity.FileName)
+                ModItems.Remove(ModEntity.RawPath)
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry.Equals(ModEntity)))
                 If IndexOfUi >= 0 Then PanList.Children.RemoveAt(IndexOfUi)
             Next
