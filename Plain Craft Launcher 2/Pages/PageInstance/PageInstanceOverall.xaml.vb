@@ -351,7 +351,7 @@
 
     '查看启动次数
     Private Sub BtnManageLaunchCount_Click(sender As Object, e As EventArgs) Handles BtnManageLaunchCount.Click
-        Dim launchCount As Integer = ReadIni(PageInstanceLeft.Instance.Path & "PCL\Setup.ini", "LaunchCount", 0)
+        Dim launchCount As Integer = Setup.Get("VersionLaunchCount", PageInstanceLeft.Instance)
         MyMsgBox($"实例 {PageInstanceLeft.Instance.Name} 已启动 {launchCount} 次。", "启动次数统计")
     End Sub
 

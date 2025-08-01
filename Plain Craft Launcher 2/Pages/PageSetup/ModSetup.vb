@@ -208,7 +208,8 @@ Public Class ModSetup
         {"VersionServerAuthRegister", New SetupEntry("", source:=SetupSource.Instance)},
         {"VersionServerAuthName", New SetupEntry("", source:=SetupSource.Instance)},
         {"VersionServerAuthServer", New SetupEntry("", source:=SetupSource.Instance)},
-        {"VersionServerLoginLock", New SetupEntry(False, source:=SetupSource.Instance)}}
+        {"VersionServerLoginLock", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionLaunchCount", New SetupEntry(0, source:=SetupSource.Instance)}}
 
 #Region "Register 存储"
 
