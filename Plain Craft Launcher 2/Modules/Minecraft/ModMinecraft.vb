@@ -41,27 +41,6 @@ Public Module ModMinecraft
             '初始化
             Dim CacheMcFolderList = New List(Of McFolder)
 
-#Region "读取默认（Original）文件夹，即当前、官启文件夹，可能没有结果"
-
-            '扫描当前文件夹
-            Try
-                If Directory.Exists(Path & "versions\") Then CacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path, .Type = McFolderType.Original})
-                For Each Folder As DirectoryInfo In New DirectoryInfo(Path).GetDirectories
-                    If Directory.Exists(Folder.FullName & "versions\") OrElse Folder.Name = ".minecraft" Then CacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Folder.FullName & "\", .Type = McFolderType.Original})
-                Next
-            Catch ex As Exception
-                Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败")
-            End Try
-
-            '扫描官启文件夹
-            Dim MojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
-            If (Not CacheMcFolderList.Any OrElse MojangPath <> CacheMcFolderList(0).Path) AndAlso '当前文件夹不是官启文件夹
-                Directory.Exists(MojangPath & "versions\") Then '具有权限且存在 versions 文件夹
-                CacheMcFolderList.Add(New McFolder With {.Name = "官方启动器文件夹", .Path = MojangPath, .Type = McFolderType.Original})
-            End If
-
-#End Region
-
 #Region "读取自定义（Custom）文件夹，可能没有结果"
 
             '格式：TMZ 12>C://xxx/xx/|Test>D://xxx/xx/|名称>路径
@@ -75,21 +54,53 @@ Public Module ModMinecraft
                 Dim Path As String = Folder.Split(">")(1)
                 Try
                     CheckPermissionWithException(Path)
-                    '若已有该文件夹，则直接重命名；没有则添加
-                    Dim Renamed As Boolean = False
-                    For Each OriginalFolder As McFolder In CacheMcFolderList
-                        If OriginalFolder.Path = Path Then
-                            OriginalFolder.Name = Name
-                            OriginalFolder.Type = McFolderType.RenamedOriginal
-                            Renamed = True
-                        End If
-                    Next
-                    If Not Renamed Then CacheMcFolderList.Add(New McFolder With {.Name = Name, .Path = Path, .Type = McFolderType.Custom})
+                    CacheMcFolderList.Add(New McFolder With {.Name = Name, .Path = Path, .Type = McFolderType.Custom})
                 Catch ex As Exception
                     MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & Path & vbCrLf & vbCrLf & GetExceptionSummary(ex), "Minecraft 文件夹失效", IsWarn:=True)
                     Log(ex, $"无法访问 Minecraft 文件夹 {Path}")
                 End Try
             Next
+
+#End Region
+
+#Region "读取默认（Original）文件夹，即当前、官启文件夹，可能没有结果"
+
+            Dim OriginalMcFolderList = New List(Of McFolder)
+            '扫描当前文件夹
+            Try
+                If Directory.Exists(Path & "versions\") Then OriginalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path, .Type = McFolderType.Original})
+                For Each Folder As DirectoryInfo In New DirectoryInfo(Path).GetDirectories
+                    If Directory.Exists(Folder.FullName & "versions\") OrElse Folder.Name = ".minecraft" Then OriginalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Folder.FullName & "\", .Type = McFolderType.Original})
+                Next
+            Catch ex As Exception
+                Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败")
+            End Try
+
+            '扫描官启文件夹
+            Dim MojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
+            If (Not CacheMcFolderList.Any OrElse MojangPath <> CacheMcFolderList(0).Path) AndAlso '当前文件夹不是官启文件夹
+                Directory.Exists(MojangPath & "versions\") Then '具有权限且存在 versions 文件夹
+                OriginalMcFolderList.Add(New McFolder With {.Name = "官方启动器文件夹", .Path = MojangPath, .Type = McFolderType.Original})
+            End If
+            
+            Dim UnAdded As Boolean = False
+            For Each NewOriginalFolder As McFolder In OriginalMcFolderList
+                For Each OriginalFolder As McFolder In CacheMcFolderList
+                    If OriginalFolder.Path = NewOriginalFolder.Path Then
+                        If OriginalFolder.Name <> NewOriginalFolder.Name
+                            OriginalFolder.Type = McFolderType.RenamedOriginal
+                        Else 
+                            OriginalFolder.Type = McFolderType.Original
+                        End If
+                        UnAdded = True
+                    End If
+                Next
+                If Not UnAdded Then CacheMcFolderList.Add(NewOriginalFolder) '如果没有重命名，则添加当前文件夹
+            Next
+
+#End Region
+
+#Region "读取自定义文件夹情况并写入设置"
 
             '将自定义文件夹情况同步到设置
             Dim NewSetup As New List(Of String)
