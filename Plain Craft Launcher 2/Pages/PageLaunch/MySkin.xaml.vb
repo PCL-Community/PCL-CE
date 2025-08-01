@@ -193,6 +193,7 @@ Public Class MySkin
                     Log("[Skin] 正在清空皮肤缓存")
                     If Directory.Exists(PathTemp & "Cache\Skin") Then DeleteDirectory(PathTemp & "Cache\Skin")
                     If Directory.Exists(PathTemp & "Cache\Uuid") Then DeleteDirectory(PathTemp & "Cache\Uuid")
+                    If Directory.Exists(PathTemp & "Cache\Capes") Then DeleteDirectory(PathTemp & "Cache\Capes")
                     IniClearCache(PathTemp & "Cache\Skin\IndexMs.ini")
                     IniClearCache(PathTemp & "Cache\Skin\IndexAuth.ini")
                     IniClearCache(PathTemp & "Cache\Uuid\Mojang.ini")
@@ -270,14 +271,26 @@ Retry:
                 Dim AccessToken As String = McLoginMsLoader.Output.AccessToken
                 Dim Uuid As String = McLoginMsLoader.Output.Uuid
                 Dim SkinData As JObject = GetJson(McLoginMsLoader.Output.ProfileJson)
+                
+                '为当前账号创建独立的披风缓存目录
+                Dim accountCacheDir = $"{PathTemp}Cache\Capes\{Uuid}\"
+                If Not Directory.Exists(accountCacheDir) Then
+                    Directory.CreateDirectory(accountCacheDir)
+                End If
+                
+                '处理披风缓存，使用账号专用的缓存目录
                 For Each itemSkin In SkinData("capes")
                     If itemSkin("url") Is Nothing Then Continue For
-                    Dim localFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}.png"
-                    Dim capeFrontFile = $"{PathTemp}Cache\Capes\{itemSkin("alias")}-front.png"
+                    Dim localFile = $"{accountCacheDir}{itemSkin("alias")}.png"
+                    Dim capeFrontFile = $"{accountCacheDir}{itemSkin("alias")}-front.png"
+                    
+                    '如果缓存文件存在且有效，直接使用缓存
                     If File.Exists(localFile) AndAlso File.Exists(capeFrontFile) Then
                         itemSkin("url") = capeFrontFile
                         Continue For
                     End If
+                    
+                    '下载并处理披风图片
                     NetDownloadByLoader(itemSkin("url").ToString(), localFile)
                     Dim capeFrontRegion As New Rectangle(1, 0, 11, 17)
                     Dim capeFront As New Bitmap(capeFrontRegion.Width, capeFrontRegion.Height)
