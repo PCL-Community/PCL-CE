@@ -49,7 +49,7 @@ Public Class ModSetup
         {"SystemHttpProxy", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"SystemUseDefaultProxy", New SetupEntry(True, source:=SetupSource.AppData)},
         {"SystemDisableHardwareAcceleration", New SetupEntry(False, source:=SetupSource.AppData)},
-        {"SystemTelemetry", New SetupEntry(Nothing, source:=SetupSource.AppData)},
+        {"SystemTelemetry", New SetupEntry(False, source:=SetupSource.AppData)},
         {"SystemMirrorChyanKey", New SetupEntry("", source:=SetupSource.AppData, encoded:=True)},
         {"SystemMaxLog", New SetupEntry(13, source:=SetupSource.AppData)},
         {"CacheExportConfig", New SetupEntry("", source:=SetupSource.AppData)},
