@@ -1166,9 +1166,6 @@
     <PackageReference Include="CacheCow.Client">
       <Version>2.13.1</Version>
     </PackageReference>
-    <PackageReference Include="CacheCow.Client.FileStore">
-      <Version>2.13.1</Version>
-    </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>6.0.0</Version>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
