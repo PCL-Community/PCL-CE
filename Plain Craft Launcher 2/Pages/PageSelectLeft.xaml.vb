@@ -23,7 +23,7 @@
                 Next
                 If IsEqual Then Return
             End If
-            McFolderListLast = McFolderList
+            McFolderListLast = New List(Of McFolder)(McFolderList)
 
             '创建 UI
             FrmSelectLeft.PanList.Children.Clear()
@@ -71,15 +71,34 @@
                 CType(ContMenu.FindName("Delete"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Delete_Click))
                 CType(ContMenu.FindName("Rename"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Rename_Click))
                 CType(ContMenu.FindName("Refresh"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Refresh_Click))
-                '构建框架与图表按钮
-                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
+
+                ' 构建框架与图表按钮
+                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 90, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
                 AddHandler NewItem.Changed, AddressOf FrmSelectLeft.Folder_Change
+
+                Dim Buttons As New List(Of MyIconButton)
+
+                ' 上移按钮 - 如果不是第一个才显示
+                If McFolderList.IndexOf(Folder) > 0 Then
+                    Dim BtnUp As New MyIconButton With {.Logo = "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z", .LogoScale = 1.1, .Tag = Folder}
+                    AddHandler BtnUp.Click, AddressOf ButtonUp_Click
+                    Buttons.Add(BtnUp)
+                End If
+
+                ' 下移按钮 - 如果不是最后一个才显示
+                If McFolderList.IndexOf(Folder) < McFolderList.Count - 1 Then
+                    Dim BtnDown As New MyIconButton With {.Logo = "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z", .LogoScale = 1.1, .Tag = Folder}
+                    AddHandler BtnDown.Click, AddressOf ButtonDown_Click
+                    Buttons.Add(BtnDown)
+                End If
+
                 Dim NewIconButton As New MyIconButton With {.Logo = Logo.IconButtonSetup, .LogoScale = 1.1}
                 AddHandler NewIconButton.Click, Sub(sender, e)
                                                     ContMenu.PlacementTarget = NewItem
                                                     ContMenu.IsOpen = True
                                                 End Sub
-                NewItem.Buttons = {NewIconButton}
+                Buttons.Add(NewIconButton)
+                NewItem.Buttons = Buttons
                 FrmSelectLeft.PanList.Children.Add(NewItem)
                 Log("[Minecraft] 有效的 Minecraft 文件夹：" & Folder.Name & " > " & Folder.Path)
             Next
@@ -144,6 +163,35 @@
         End Try
     End Sub
     Private McFolderListLast As List(Of McFolder)
+
+    Private Sub ButtonUp_Click(sender As Object, e As RoutedEventArgs)
+        Dim Folder = CType(sender, MyIconButton).Tag
+        Dim Index = McFolderList.IndexOf(Folder)
+        If Index > 0 Then
+            McFolderList.RemoveAt(Index)
+            McFolderList.Insert(Index - 1, Folder)
+            UpdateFolderOrder()
+        End If
+    End Sub
+
+    Private Sub ButtonDown_Click(sender As Object, e As RoutedEventArgs)
+        Dim Folder = CType(sender, MyIconButton).Tag
+        Dim Index = McFolderList.IndexOf(Folder)
+        If Index < McFolderList.Count - 1 Then
+            McFolderList.RemoveAt(Index)
+            McFolderList.Insert(Index + 1, Folder)
+            UpdateFolderOrder()
+        End If
+    End Sub
+
+    Private Sub UpdateFolderOrder()
+        Dim Folders As New List(Of String)
+        For Each Folder As McFolder In McFolderList
+            Folders.Add(Folder.Name & ">" & Folder.Path)
+        Next
+        Setup.Set("LaunchFolders", Join(Folders.ToArray, "|"))
+        McFolderListUi()
+    End Sub
 
     '添加文件夹
     Public Sub Add_Click()
