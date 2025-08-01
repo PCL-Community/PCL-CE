@@ -348,7 +348,7 @@ Retry:
                 Log($"[Link] 轮询获取结果超时(200 ms)，程序状态可能异常！")
                 Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
             End If
-            If Not ETCliOutput.Contains("10.114.51.41") Then
+            If Not ETCliOutput.Contains("10.114.51.41") AndAlso Not ETCliOutput.Contains("10.144.144.1") Then
                 If RemainRetry > 0 Then
                     Log($"[Link] 未找到大厅创建者 IP，放弃前再重试 {RemainRetry} 次")
                     Thread.Sleep(1000)
@@ -382,14 +382,14 @@ Retry:
                 If p("hostname").ToString().Contains("PublicServer") Then Continue For '服务器
                 Dim hostnameSplit As String() = p("hostname").ToString().Split("|")
                 Dim info As New ETPlayerInfo With {
-                    .IsHost = p("hostname").ToString().StartsWithF("H|", True),
+                    .IsHost = p("hostname").ToString().StartsWithF("H|", True) OrElse p("ipv4") = "10.144.144.1",
                     .Hostname = p("hostname"),
                     .Cost = p("cost").ToString().BeforeLast("("),
                     .Ping = Math.Round(Val(p("lat_ms"))),
                     .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
                     .NatType = p("nat_type"),
                     .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
-                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), Nothing)
+                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), "Terracotta-User")
                 }
                 If info.Cost = "Local" Then LocalInfo = info
                 If info.IsHost Then
@@ -510,27 +510,27 @@ Retry:
                                    End Sub)
                            Thread.Sleep(1000)
                            StartETWatcher()
-                       End Sub)
+                       End Sub, "Link Create Lobby")
     End Sub
 
     Public JoinedLobbyId As String = Nothing
     '加入大厅
     Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
         If Not LobbyPrecheck() Then Exit Sub
-        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E")
+        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E")?.Trim()
         If JoinedLobbyId = Nothing Then Exit Sub
-        If JoinedLobbyId.Length < 9 Then
+        If JoinedLobbyId.Length < 9 OrElse Not JoinedLobbyId.IsASCII() Then
             Hint("大厅编号不合法", HintType.Critical)
             Exit Sub
         End If
-        Dim lobbyRoomKey As String
-        Try
-            lobbyRoomKey = JoinedLobbyId.Trim().FromB32ToB10()
-        Catch ex As Exception
-            Hint("无效的房间号，请重试！", HintType.Critical)
-            Log(ex, "[Link] 输入了错误的房间号")
-            Return
-        End Try
+        If Not JoinedLobbyId.Split("-").Length = 5 Then
+            Try
+                JoinedLobbyId.FromB32ToB10()
+            Catch ex As Exception
+                Hint("大厅编号不合法", HintType.Critical)
+                Exit Sub
+            End Try
+        End If
         IsHost = False
         RunInNewThread(Sub()
                            RunInUi(Sub()
@@ -546,9 +546,18 @@ Retry:
                                        LabConnectUserType.Text = "加入者"
                                        BtnFinishCopyIp.Visibility = Visibility.Visible
                                    End Sub)
-                           RemotePort = lobbyRoomKey.Substring(10)
-                           Log("[Link] 远程端口解析结果: " & RemotePort)
-                           LaunchLink(False, lobbyRoomKey.Substring(0, 8), lobbyRoomKey.Substring(8, 2), remotePort:=RemotePort)
+                           Dim processedId As String
+                           If JoinedLobbyId.Split("-").Length = 5 Then
+                               TcInfo = ParseTerracottaCode(JoinedLobbyId)
+                               RemotePort = TcInfo.Port
+                               Log("[Link] 远程端口解析结果: " & RemotePort)
+                               LaunchLink(False, TcInfo.NetworkName, TcInfo.NetworkSecret, remotePort:=RemotePort)
+                           Else
+                               processedId = JoinedLobbyId.FromB32ToB10()
+                               RemotePort = processedId.Substring(10)
+                               Log("[Link] 远程端口解析结果: " & RemotePort)
+                               LaunchLink(False, processedId.Substring(0, 8), processedId.Substring(8, 2), remotePort:=RemotePort)
+                           End If
                            Dim retryCount As Integer = 0
                            While Not IsETRunning
                                Thread.Sleep(300)
@@ -568,10 +577,8 @@ Retry:
                                Thread.Sleep(500)
                            End While
                            McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & HostInfo.NaidName)
-                           RunInUi(Sub()
-                                       BtnFinishExit.Text = $"退出 {HostInfo.NaidName} 的大厅"
-                                   End Sub)
-                       End Sub)
+                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {HostInfo.NaidName} 的大厅")
+                       End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish
     End Sub
 

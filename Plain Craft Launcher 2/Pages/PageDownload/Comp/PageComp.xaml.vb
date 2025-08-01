@@ -39,7 +39,7 @@ Public Class PageComp
         Set(Value As String)
             If _TypeNameSpaced = Value Then Return
             _TypeNameSpaced = Value
-            PanSearchBox.HintText = $"搜索{Value} 在输入框中按下 Enter 以进行搜索"
+            PanSearchBox.HintText = $"搜索{Value}"
             Load.Text = $"正在获取{Value}列表"
         End Set
     End Property
@@ -213,7 +213,7 @@ Public Class PageComp
 #Region "搜索"
 
     '搜索按钮
-    Private Sub StartNewSearch()
+    Private Sub StartNewSearch() Handles PanSearchBox.Search
         Page = 0
         If Loader.ShouldStart(LoaderInput()) Then Storage = New CompProjectStorage '避免连续搜索两次使得 CompProjectStorage 引用丢失（#1311）
         Loader.Start()

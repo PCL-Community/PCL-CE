@@ -1,4 +1,6 @@
-﻿Public Class PageDownloadCompDetail
+﻿Imports System.Security.Cryptography
+
+Public Class PageDownloadCompDetail
     Private CompItem As MyCompItem = Nothing
 
 #Region "加载器"
@@ -198,14 +200,18 @@
                 NewCard.Children.Add(NewStack)
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
                                             Stack.Tag = Sort(CType(Stack.Tag, List(Of CompFile)), Function(a, b) a.ReleaseDate > b.ReleaseDate)
+                                            Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
                                             If Project.Type = CompType.ModPack Then
-                                                Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
                                                 For Each item In Stack.Tag
                                                     Stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Install_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=BadDisplayName))
                                                 Next
+                                            ElseIf Project.Type = CompType.World Then
+                                                For Each item In Stack.Tag
+                                                    Stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.InstallWorld_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=BadDisplayName))
+                                                Next
                                             Else
                                                 CompFilesCardPreload(Stack, Stack.Tag)
-                                                Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
+
                                                 For Each item In Stack.Tag
                                                     Stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=BadDisplayName))
                                                 Next
@@ -318,6 +324,94 @@
             Log(ex, "下载资源整合包失败", LogLevel.Feedback)
         End Try
     End Sub
+    '世界下载
+    Public Sub InstallWorld_Click(sender As MyListItem, e As EventArgs)
+        Try
+
+            '获取基本信息
+            Dim File As CompFile = sender.Tag
+            Dim LoaderName As String = $"{If(Project.FromCurseForge, "CurseForge", "Modrinth")} 世界下载：{Project.TranslatedName} "
+
+            '确认默认保存位置
+            Dim DefaultFolder As String = Nothing
+            Dim SubFolder As String = "saves\"
+            Dim IsVersionSuitable As Func(Of McInstance, Boolean) = Nothing
+            '获取资源所需的加载器
+            Dim AllowedLoaders As New List(Of CompLoaderType)
+            If File.ModLoaders.Any Then
+                AllowedLoaders = File.ModLoaders
+            ElseIf Project.ModLoaders.Any Then
+                AllowedLoaders = Project.ModLoaders
+            End If
+            Log($"[Comp] 世界要求的加载器种类：" & If(AllowedLoaders.Any(), AllowedLoaders.Join(" / "), "无要求"))
+            '判断某个版本是否符合资源要求
+            IsVersionSuitable =
+                    Function(Version)
+                        If Version Is Nothing Then Return False
+                        If Not Version.IsLoaded Then Version.Load()
+                        If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
+                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.McName) Then Return False
+                        '加载器
+                        If Not AllowedLoaders.Any() Then Return True '无要求
+                        Return False
+                    End Function
+            '获取常规资源默认下载位置
+            If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
+                DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, Path))
+                Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
+            ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
+                DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"
+                Directory.CreateDirectory(DefaultFolder)
+                Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}")
+            Else
+                '查找所有可能的实例
+                Dim NeedLoad As Boolean = McInstanceListLoader.State <> LoadState.Finished
+                If NeedLoad Then
+                    Hint("正在查找适合的游戏实例……")
+                    LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\", WaitForExit:=True)
+                End If
+                Dim SuitableVersions = McInstanceList.Values.SelectMany(Function(l) l).Where(Function(v) IsVersionSuitable(v)).
+                            Select(Function(v) New DirectoryInfo($"{v.PathIndie}{SubFolder}"))
+                If SuitableVersions.Any Then
+                    Dim SelectedVersion = SuitableVersions.
+                                OrderByDescending(Function(Dir) If(Dir.Exists, Dir.LastWriteTimeUtc, Date.MinValue)). '先按文件夹更改时间降序
+                                ThenByDescending(Function(Dir) If(Dir.Exists, Dir.GetFiles().Length, -1)). '再按文件夹中的文件数量降序
+                                First()
+                    DefaultFolder = SelectedVersion.FullName
+                    Directory.CreateDirectory(DefaultFolder)
+                    Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}")
+                Else
+                    DefaultFolder = PathMcFolder
+                    If NeedLoad Then
+                        Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！")
+                    Else
+                        Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置")
+                    End If
+                End If
+            End If
+
+            Dim Target As String = SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" & "*.zip", DefaultFolder)
+            If String.IsNullOrEmpty(Target) Then Return
+
+            '构造步骤加载器
+            Dim Loaders As New List(Of LoaderBase)
+            Dim TargetPath As String = Target.BeforeLast("\")
+            Dim LogoFileAddress As String = MyImage.GetTempPath(CompItem.Logo)
+            Loaders.Add(New LoaderDownload("下载世界文件", New List(Of NetFile) From {File.ToNetFile(Target)}) With {.ProgressWeight = 10, .Block = True})
+            Loaders.Add(New LoaderTask(Of Integer, Integer)("安装世界", Sub() ExtractFile(Target, TargetPath, Encoding.UTF8)) With {.ProgressWeight = 0.1, .Block = True})
+            Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存", Sub() IO.File.Delete(Target)))
+
+            '启动
+            Dim Loader As New LoaderCombo(Of Integer)(LoaderName, Loaders) With {.OnStateChanged = AddressOf LoaderStateChangedHintOnly}
+            Loader.Start()
+            LoaderTaskbarAdd(Loader)
+            FrmMain.BtnExtraDownload.ShowRefresh()
+            FrmMain.BtnExtraDownload.Ribble()
+
+        Catch ex As Exception
+            Log(ex, "下载世界资源失败", LogLevel.Feedback)
+        End Try
+    End Sub
     '资源下载；整合包另存为
     Public Shared CachedFolder As New Dictionary(Of CompType, String) '仅在本次缓存的下载文件夹
     Public Sub Save_Click(sender As Object, e As EventArgs)
@@ -332,6 +426,7 @@
                     Case CompType.ResourcePack : Desc = "资源包"
                     Case CompType.Shader : Desc = "光影包"
                     Case CompType.DataPack : Desc = "数据包"
+                    Case CompType.World : Desc = "世界"
                 End Select
                 '确认默认保存位置
                 Dim DefaultFolder As String = Nothing
@@ -341,6 +436,7 @@
                         Case CompType.Mod : SubFolder = "mods\"
                         Case CompType.ResourcePack : SubFolder = "resourcepacks\"
                         Case CompType.Shader : SubFolder = "shaderpacks\"
+                        Case CompType.World : SubFolder = "saves\"
                         Case CompType.DataPack : SubFolder = "" '导航到版本根目录
                     End Select
                     Dim IsVersionSuitable As Func(Of McInstance, Boolean) = Nothing

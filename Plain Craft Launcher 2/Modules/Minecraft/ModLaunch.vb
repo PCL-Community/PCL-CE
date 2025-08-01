@@ -2398,6 +2398,8 @@ NextInstance:
 
         '启动计数
         Setup.Set("SystemLaunchCount", Setup.Get("SystemLaunchCount") + 1)
+        
+        Setup.Set("VersionLaunchCount", Setup.Get("VersionLaunchCount", CurrentLaunchOptions.Version) + 1, instance := CurrentLaunchOptions.Version)
 
     End Sub
 

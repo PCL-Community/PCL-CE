@@ -4,7 +4,7 @@
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
         BtnLogin.IsEnabled = False
-        BtnBack.IsEnabled = False
+        BtnBack.Visibility = Visibility.Collapsed
         BtnLogin.Text = "0%"
         RunInNewThread(
         Sub()
@@ -38,7 +38,7 @@
                 RunInUi(
                 Sub()
                     BtnLogin.IsEnabled = True
-                    BtnBack.IsEnabled = True
+                    BtnBack.Visibility = Visibility.Visible
                     BtnLogin.Text = "登录"
                 End Sub)
             End Try

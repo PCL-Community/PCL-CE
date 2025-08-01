@@ -610,4 +610,10 @@ Public Class PageOtherTest
         Helper.Files.CreateShortcut(shortcutPath, Helper.NativeInterop.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
+    
+    ' 启动计数显示
+    Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
+        MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数")
+    End Sub
 End Class

@@ -38,6 +38,10 @@ Public Module ModComp
         ''' 投影原理图。
         ''' </summary>
         Schematic = 6
+        ''' <summary>
+        ''' 世界。
+        ''' </summary>
+        World = 7
     End Enum
     Public Enum CompLoaderType
         'https://docs.curseforge.com/?http#tocS_ModLoaderType
@@ -371,6 +375,8 @@ Public Module ModComp
                         Type = CompType.ResourcePack
                     ElseIf Website.Contains("/shaders/") Then
                         Type = CompType.Shader
+                    ElseIf Website.Contains("/worlds/") Then
+                        Type = CompType.World
                     Else
                         Type = CompType.DataPack
                     End If
@@ -468,6 +474,14 @@ Public Module ModComp
                             Case 6946 : Tags.Add("Mod 相关")
                             Case 6951 : Tags.Add("科技")
                             Case 6953 : Tags.Add("实用")
+                            '世界
+                            Case 248 : Tags.Add("冒险")
+                            Case 249 : Tags.Add("创造")
+                            Case 250 : Tags.Add("小游戏")
+                            Case 251 : Tags.Add("跑酷")
+                            Case 252 : Tags.Add("解谜")
+                            Case 253 : Tags.Add("生存")
+                            Case 4464 : Tags.Add("Mod 世界")
                         End Select
                     Next
 #End Region
@@ -966,6 +980,8 @@ NoSubtitle:
                     Address += "&classId=6552"
                 Case CompType.ResourcePack
                     Address += "&classId=12"
+                Case CompType.World
+                    Address += "&classId=17"
             End Select
             Address += "&categoryId=" & If(Tag = "", "0", Tag.BeforeFirst("/"))
             If ModLoader <> CompLoaderType.Any Then Address += "&modLoaderType=" & CType(ModLoader, Integer)

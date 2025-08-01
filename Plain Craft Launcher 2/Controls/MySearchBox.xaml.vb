@@ -23,6 +23,15 @@
             TextBox.Text = value
         End Set
     End Property
+    Public Property SearchButtonVisibility() As Visibility
+        Get
+            Return BtnSearch.Visibility = Visibility.Visible
+        End Get
+        Set(value As Visibility)
+            BtnClear.Margin = New Thickness(0, 0, If(value = Visibility.Visible, 70, 10), 0)
+            BtnSearch.Visibility = value
+        End Set
+    End Property
 
     Private Sub Text_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextBox.TextChanged
         If String.IsNullOrEmpty(TextBox.Text) Then
@@ -37,6 +46,10 @@
     Private Sub BtnClear_Click(sender As Object, e As EventArgs) Handles BtnClear.Click
         TextBox.Text = ""
         TextBox.Focus()
+    End Sub
+    Public Event Search(sender As Object, e As EventArgs)
+    Private Sub BtnSearch_Click(sender As Object, e As EventArgs) Handles BtnSearch.Click
+        RaiseEvent Search(sender, e)
     End Sub
 
 End Class

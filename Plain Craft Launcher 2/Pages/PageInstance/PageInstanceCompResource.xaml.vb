@@ -1,5 +1,40 @@
 Public Class PageInstanceCompResource
     Implements IRefreshable
+    
+#Region "模组信息缓存"
+    ' 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
+    Private ReadOnly ModFileInfoCache As New Dictionary(Of String, (CreationTime As DateTime, Length As Long))
+
+    Public Sub New()
+        InitializeComponent()
+    End Sub
+
+    ' 获取模组信息（带缓存）
+    Private Function GetModFileInfo(path As String) As (CreationTime As DateTime, Length As Long)
+        Dim cacheItem As (CreationTime As DateTime, Length As Long)
+        If ModFileInfoCache.TryGetValue(path, cacheItem) Then
+            Return cacheItem
+        End If
+
+        Try
+            Dim fileInfo As New FileInfo(path)
+            Dim newItem = (fileInfo.CreationTime, fileInfo.Length)
+            If Not ModFileInfoCache.ContainsKey(path) Then
+                ModFileInfoCache.Add(path, newItem)
+            End If
+            Return newItem
+        Catch ex As Exception
+            Log(ex, "获取模组信息失败: " & path)
+            Return (DateTime.MinValue, 0)
+        End Try
+    End Function
+
+    ' 页面关闭时清理缓存
+    Private Sub Page_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+        ModFileInfoCache.Clear()
+    End Sub
+#End Region
+    
 #Region "初始化"
 
     Private CurrentCompType As CompType = CompType.Mod
@@ -88,6 +123,8 @@ Public Class PageInstanceCompResource
     Public Sub ReloadCompFileList(Optional ForceReload As Boolean = False)
         If LoaderRun(If(ForceReload, LoaderFolderRunType.ForceRun, LoaderFolderRunType.RunOnUpdated)) Then
             Log($"[System] 已刷新 {CurrentCompType} 列表")
+            ModFileInfoCache.Clear()
+            
             RunInUi(Sub()
                         Filter = FilterType.All
                         PanBack.ScrollToHome()
@@ -240,7 +277,7 @@ Public Class PageInstanceCompResource
 #Region "UI 化"
 
     ''' <summary>
-    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 FileName。
+    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 RawPath。
     ''' </summary>
     Public ModItems As New Dictionary(Of String, MyLocalCompItem)
     ''' <summary>
@@ -310,7 +347,7 @@ Public Class PageInstanceCompResource
                                                                   End Function).ToList()
 
             For Each ModEntity As LocalCompFile In itemsToShow
-                ModItems(ModEntity.FileName) = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.RawPath) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
             RunInUi(Sub()
@@ -327,7 +364,7 @@ Public Class PageInstanceCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.FileName)}
+                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -337,7 +374,7 @@ Public Class PageInstanceCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log(ex, $"创建UI项失败：{Entry.FileName}", LogLevel.Debug)
+            Log(ex, $"创建 UI 项失败：{Entry.RawPath}", LogLevel.Debug)
             Throw
         End Try
     End Function
@@ -417,8 +454,8 @@ Public Class PageInstanceCompResource
             PanList.Visibility = Visibility.Visible
             PanList.Children.Clear()
             For Each TargetMod In ShowingMods
-                If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
-                Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
+                If Not ModItems.ContainsKey(TargetMod.RawPath) Then Continue For
+                Dim Item As MyLocalCompItem = ModItems(TargetMod.RawPath)
 
                   ' 确保元素没有父容器，避免重复添加异常
                 If Item.Parent IsNot Nothing Then
@@ -427,14 +464,14 @@ Public Class PageInstanceCompResource
 
                 MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo)
-                Item.Checked = SelectedMods.Contains(TargetMod.FileName) '更新选中状态
+                Item.Checked = SelectedMods.Contains(TargetMod.RawPath) '更新选中状态
                 PanList.Children.Add(Item)
             Next
         Else
             PanList.Visibility = Visibility.Collapsed
         End If
         AniControlEnabled -= 1
-        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.FileName = m)).ToList '取消选中已经不显示的 Mod
+        SelectedMods = New HashSet(Of String)(SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.RawPath = m)))
         RefreshBars()
     End Sub
 
@@ -506,7 +543,7 @@ Public Class PageInstanceCompResource
             Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
             
             For Each ModEntity In CompResourceListLoader.Output
-                If SelectedMods.Contains(ModEntity.FileName) Then
+                If SelectedMods.Contains(ModEntity.RawPath) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
                     If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
                         HasEnabled = True
@@ -862,7 +899,7 @@ Install:
                 Dim ExportContent As New List(Of String)
                 ExportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径")
                 For Each ModEntity In CompResourceListLoader.Output
-                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{New FileInfo(ModEntity.Path).Length},{ModEntity.Path}")
+                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.Path).Length},{ModEntity.Path}")
                 Next
                 ExportText(Join(ExportContent, vbCrLf), PageInstanceLeft.Instance.Name & "已安装的资源信息.csv")
 
@@ -873,26 +910,27 @@ Install:
     ''' 下载 Mod。
     ''' </summary>
     Private Sub BtnManageDownload_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageDownload.Click, BtnHintDownload.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         Select Case CurrentCompType
             Case CompType.Mod : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
             Case CompType.ResourcePack : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack)
             Case CompType.Shader : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader)
         End Select
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
     ''' 下载投影Mod按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicDownloadMod_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicDownloadMod.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
     ''' 实例选择按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicVersionSelect_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicVersionSelect.Click
+        FrmMain.PageChange(FormMain.PageType.Launch)
         FrmMain.PageChange(FormMain.PageType.InstanceSelect)
     End Sub
 
@@ -903,15 +941,15 @@ Install:
     ''' <summary>
     ''' 选择的 Mod 的路径（不含 .disabled 和 .old）。
     ''' </summary>
-    Public SelectedMods As New List(Of String)
+    Public SelectedMods As New HashSet(Of String)
 
     '单项切换选择状态
     Public Sub CheckChanged(sender As MyLocalCompItem, e As RouteEventArgs)
         If AniControlEnabled <> 0 Then Return
         '更新选择了的内容
-        Dim SelectedKey As String = sender.Entry.FileName
+        Dim SelectedKey As String = sender.Entry.RawPath
         If sender.Checked Then
-            If Not SelectedMods.Contains(SelectedKey) Then SelectedMods.Add(SelectedKey)
+            SelectedMods.Add(SelectedKey)
         Else
             SelectedMods.Remove(SelectedKey)
         End If
@@ -1140,14 +1178,18 @@ Install:
                            Dim folderResult = folderFirstCompare(a, b)
                            If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
-                           Try
-                               Dim aDate = New FileInfo(If(a.IsFolder, a.ActualPath, a.Path)).CreationTime
-                               Dim bDate = New FileInfo(If(b.IsFolder, b.ActualPath, b.Path)).CreationTime
-                               Return bDate.CompareTo(aDate)
-                           Catch ex As Exception
-                               ' 如果获取时间失败，则按名称排序
+                           Dim aPath = If(a.IsFolder, a.ActualPath, a.Path)
+                           Dim bPath = If(b.IsFolder, b.ActualPath, b.Path)
+                           Dim aDate = GetModFileInfo(aPath).CreationTime
+                           Dim bDate = GetModFileInfo(bPath).CreationTime
+                           If aDate = DateTime.MinValue AndAlso bDate = DateTime.MinValue Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           End Try
+                           ElseIf aDate = DateTime.MinValue Then
+                               Return 1 ' 出错的文件排在后面
+                           ElseIf bDate = DateTime.MinValue Then
+                               Return -1
+                           End If
+                           Return bDate.CompareTo(aDate)
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
@@ -1160,14 +1202,16 @@ Install:
                            End If
                            ' 如果都是文件，则按文件大小排序（大的在前）
                            If Not a.IsFolder AndAlso Not b.IsFolder Then
-                               Try
-                                   Dim aSize As Long = (New FileInfo(a.ActualPath)).Length
-                                   Dim bSize As Long = (New FileInfo(b.ActualPath)).Length
-                                   Return bSize.CompareTo(aSize)
-                               Catch ex As Exception
-                                   ' 如果获取大小失败，则按名称排序
+                               Dim aSize As Long = GetModFileInfo(a.ActualPath).Length
+                               Dim bSize As Long = GetModFileInfo(b.ActualPath).Length
+                               If aSize = 0 AndAlso bSize = 0 Then
                                    Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                               End Try
+                               ElseIf aSize = 0 Then
+                                   Return 1
+                               ElseIf bSize = 0 Then
+                                   Return -1
+                               End If
+                               Return bSize.CompareTo(aSize)
                            End If
                            ' 理论上不会到达这里，但为了安全起见
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
@@ -1188,7 +1232,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub
@@ -1246,15 +1290,8 @@ Install:
             End If
             '更改 UI 中的列表
             Try
-                ' 先从ModItems字典中移除旧条目，避免重复
-                Dim OldFileName = ModEntity.FileName
-                If ModItems.ContainsKey(OldFileName) Then
-                    ModItems.Remove(OldFileName)
-                End If
-
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ' 使用新的文件名作为字典键
-                ModItems(NewModEntity.FileName) = NewItem
+                ModItems(ModEntity.RawPath) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
@@ -1464,7 +1501,7 @@ Install:
                 '更改 Loader 和 UI 中的列表
                 CompResourceListLoader.Output.Remove(ModEntity)
                 SearchResult?.Remove(ModEntity)
-                ModItems.Remove(ModEntity.FileName)
+                ModItems.Remove(ModEntity.RawPath)
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry.Equals(ModEntity)))
                 If IndexOfUi >= 0 Then PanList.Children.RemoveAt(IndexOfUi)
             Next
@@ -1591,7 +1628,7 @@ Install:
                     '处理普通文件详情
                     If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
                     If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
 
                     '原理图文件的详情信息已通过异步方法处理
@@ -1707,7 +1744,7 @@ Install:
 
                                                If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
                                                If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
                                                If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
 
                                                '根据文件类型显示详细信息

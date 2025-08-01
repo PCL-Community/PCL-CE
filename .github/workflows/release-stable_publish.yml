@@ -55,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rename_and_release:
-    needs: build
+    needs: [build, changelog]
     runs-on: windows-latest
     strategy:
       matrix:

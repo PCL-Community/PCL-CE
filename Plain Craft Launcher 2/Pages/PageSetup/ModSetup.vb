@@ -78,7 +78,7 @@ Public Class ModSetup
         {"LaunchArgumentWindowWidth", New SetupEntry(854)},
         {"LaunchArgumentWindowHeight", New SetupEntry(480)},
         {"LaunchArgumentWindowType", New SetupEntry(1)},
-        {"LaunchPreferredIpStack", New SetupEntry(0, source:=SetupSource.AppData)},
+        {"LaunchPreferredIpStack", New SetupEntry(1, source:=SetupSource.AppData)},
         {"LaunchArgumentRam", New SetupEntry(False, source:=SetupSource.AppData)},
         {"LaunchAdvanceJvm", New SetupEntry("-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")},
         {"LaunchAdvanceGame", New SetupEntry("")},
@@ -208,7 +208,8 @@ Public Class ModSetup
         {"VersionServerAuthRegister", New SetupEntry("", source:=SetupSource.Instance)},
         {"VersionServerAuthName", New SetupEntry("", source:=SetupSource.Instance)},
         {"VersionServerAuthServer", New SetupEntry("", source:=SetupSource.Instance)},
-        {"VersionServerLoginLock", New SetupEntry(False, source:=SetupSource.Instance)}}
+        {"VersionServerLoginLock", New SetupEntry(False, source:=SetupSource.Instance)},
+        {"VersionLaunchCount", New SetupEntry(0, source:=SetupSource.Instance)}}
 
 #Region "Register 存储"
 

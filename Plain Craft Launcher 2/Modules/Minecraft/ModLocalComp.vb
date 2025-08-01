@@ -1953,6 +1953,7 @@ Finished:
             Case CompType.ResourcePack : Return "resourcepacks"
             Case CompType.Shader : Return "shaderpacks"
             Case CompType.Schematic : Return "schematics"
+            Case CompType.World : Return "saves"
         End Select
         Return "Nothing"
     End Function

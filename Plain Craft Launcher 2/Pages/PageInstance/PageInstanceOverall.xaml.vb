@@ -349,6 +349,12 @@
         End Try
     End Sub
 
+    '查看启动次数
+    Private Sub BtnManageLaunchCount_Click(sender As Object, e As EventArgs) Handles BtnManageLaunchCount.Click
+        Dim launchCount As Integer = Setup.Get("VersionLaunchCount", PageInstanceLeft.Instance)
+        MyMsgBox($"实例 {PageInstanceLeft.Instance.Name} 已启动 {launchCount} 次。", "启动次数统计")
+    End Sub
+
     '测试游戏
     Private Sub BtnManageTest_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageTest.Click
         Try
