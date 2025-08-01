@@ -113,6 +113,10 @@ Public Class PageDownloadCompFavorites
                     NewItem.Title = "光影包 ({0})"
                 Case CompType.DataPack
                     NewItem.Title = "数据包 ({0})"
+                Case CompType.Plugin
+                    NewItem.Title = "插件 ({0})"
+                Case CompType.World
+                    NewItem.Title = "世界 ({0})"
                 Case Else
                     NewItem.Title = "未分类类型 ({0})"
             End Select
