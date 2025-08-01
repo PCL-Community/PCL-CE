@@ -374,7 +374,7 @@ Public Class PageInstanceCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log(ex, $"创建UI项失败：{Entry.RawPath}", LogLevel.Debug)
+            Log(ex, $"创建 UI 项失败：{Entry.RawPath}", LogLevel.Debug)
             Throw
         End Try
     End Function
