@@ -1,0 +1,18 @@
+﻿<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    mc:Ignorable="d" x:Class="PageDownloadWorld"
+    PanScroll="{Binding ElementName=Content}">
+    <local:PageComp x:Name="Content" PageType="World" TypeName="世界" TypeNameSpaced="世界">
+        <local:MyComboBoxItem Tag="" Content="全部" IsSelected="True" />
+
+        <local:MyComboBoxItem Content="冒险" Tag="248/" />
+        <local:MyComboBoxItem Content="创造" Tag="249/" />
+        <local:MyComboBoxItem Content="小游戏" Tag="250/" />
+        <local:MyComboBoxItem Content="跑酷" Tag="251/" />
+        <local:MyComboBoxItem Content="解谜" Tag="252/" />
+        <local:MyComboBoxItem Content="生存" Tag="253/" />
+        <local:MyComboBoxItem Content="Mod 世界" Tag="4464/" />
+    </local:PageComp>
+</local:MyPageRight>

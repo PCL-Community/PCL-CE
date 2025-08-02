@@ -988,6 +988,7 @@ Public Class FormMain
         DownloadResourcePack = 14
         DownloadShader = 15
         DownloadCompFavorites = 17
+        DownloadWorld = 18
         SetupLaunch = 0
         SetupUI = 1
         SetupSystem = 2

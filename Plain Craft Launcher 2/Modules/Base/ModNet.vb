@@ -2,8 +2,10 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
+Imports System.IO.Compression
 Imports LiteDB
 Imports CacheCow.Client
+Imports CacheCow.Common
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
@@ -20,7 +22,7 @@ Public Module ModNet
                                                 .UseCookies = False
                                             })
 
-    Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New FileCacheStore.FileStore(IO.Path.Combine(PathTemp, "Cache", "Http")), New HttpClientHandler() With {
+    Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New NetCacheStorage(IO.Path.Combine(PathTemp, "Cache", "Net")), New HttpClientHandler() With {
                                                 .Proxy = Core.Model.Net.HttpProxyManager.Instance,
                                                 .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
                                                     System.Security.Authentication.SslProtocols.Tls12 Or
@@ -30,6 +32,93 @@ Public Module ModNet
                                                 .AllowAutoRedirect = True,
                                                 .UseCookies = False
                                             })
+
+    Private Class NetCacheStorage
+        Implements CacheCow.Common.ICacheStore
+        Implements IDisposable
+
+        Private disposedValue As Boolean
+        Private _storagePath As String
+        Private _contentSerializer As New MessageContentHttpMessageSerializer()
+        Sub New(storagePath As String)
+            _storagePath = storagePath
+            If Not Directory.Exists(storagePath) Then Directory.CreateDirectory(storagePath)
+        End Sub
+
+        Public Async Function GetValueAsync(key As CacheKey) As Task(Of HttpResponseMessage) Implements ICacheStore.GetValueAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                If Not cacheFile.Exists Then Return Nothing
+                Dim ms As New MemoryStream()
+                Using fs = cacheFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read)
+                    Using decompress As New DeflateStream(fs, CompressionMode.Decompress)
+                        Await decompress.CopyToAsync(ms)
+                    End Using
+                End Using
+                ms.Seek(0, SeekOrigin.Begin)
+                Return Await _contentSerializer.DeserializeToResponseAsync(ms)
+            Catch ex As Exception
+                Log(ex, $"[Net] 获取缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+            Return Nothing
+        End Function
+
+        Public Async Function AddOrUpdateAsync(key As CacheKey, response As HttpResponseMessage) As Task Implements ICacheStore.AddOrUpdateAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                Using fs = cacheFile.Open(FileMode.Create, FileAccess.Write, FileShare.None)
+                    fs.SetLength(0) '先清空之前的内容
+                    Using compress As New DeflateStream(fs, CompressionMode.Compress)
+                        Await _contentSerializer.SerializeAsync(response, compress)
+                    End Using
+                End Using
+            Catch ex As Exception
+                Log(ex, $"[Net] 更新缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+        End Function
+
+        Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                If Not cacheFile.Exists Then Return True
+                cacheFile.Delete()
+                Return True
+            Catch ex As Exception
+                Log(ex, $"[Net] 移除缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+            Return False
+        End Function
+
+        Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
+            Try
+                Dim dir As New DirectoryInfo(_storagePath)
+                Dim cacheFiles = dir.EnumerateFiles()
+                For Each cacheFile In cacheFiles
+                    cacheFile.Delete()
+                Next
+            Catch ex As Exception
+                Log(ex, $"[Net] 清空缓存资源出现异常")
+            End Try
+        End Function
+
+        Private Function GetCacheNameByKey(key As CacheKey)
+            Return Core.Helper.Hash.SHA512Provider.Instance.ComputeHash($"{key.HashBase64}{New Uri(key.ResourceUri).Host}")
+        End Function
+
+        Protected Overridable Sub Dispose(disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+
+                End If
+                disposedValue = True
+            End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Dispose(disposing:=True)
+            GC.SuppressFinalize(Me)
+        End Sub
+    End Class
 
     ''' <summary>
     ''' 测试 Ping。失败则返回 -1。

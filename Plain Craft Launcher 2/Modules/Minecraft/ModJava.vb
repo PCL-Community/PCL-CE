@@ -107,7 +107,7 @@ Public Module ModJava
         Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
         Dim userGlobalJavaSet = Java.Parse(userGlobalJava)
         If userGlobalJavaSet IsNot Nothing Then
-            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet.ToString()}")
+            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet}")
             Return userGlobalJavaSet
         End If
         '寻找合适 Java

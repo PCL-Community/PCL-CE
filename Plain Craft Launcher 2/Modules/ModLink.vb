@@ -211,7 +211,11 @@ Public Module ModLink
     Public Function GetLauncherBrand(pid As Integer) As String
         Try
             Dim cmd = CmdLineHelper.GetCommandLine(pid)
-            Return cmd.AfterFirst("-Dminecraft.launcher.brand=").BeforeFirst("-").TrimEnd("'", " ")
+            If cmd.Contains("-Dminecraft.launcher.brand=") Then
+                Return cmd.AfterFirst("-Dminecraft.launcher.brand=").BeforeFirst("-").TrimEnd("'", " ")
+            Else
+                Return cmd.AfterFirst("--versionType ").BeforeFirst("-").TrimEnd("'", " ")
+            End If
         Catch ex As Exception
             Log(ex, $"[MCDetect] 检测 PID {pid} 进程的启动参数失败")
             Return ""
@@ -301,7 +305,7 @@ Public Module ModLink
     End Class
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
-    Public ETVersion As String = "2.3.2"
+    Public ETVersion As String = "2.4.0"
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
@@ -345,15 +349,12 @@ Public Module ModLink
             End If
             If IsHost Then '创建者
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true"
-            Else '加入者
+                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --tcp-whitelist {LocalPort} --udp-whitelist {LocalPort}" '创建者
+            Else
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true"
-                If TcInfo Is Nothing Then
-                    Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort} --port-forward=tcp://[::1]:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}"
-                Else
-                    Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.144.144.1:{remotePort} --port-forward=tcp://[::1]:{PageLinkLobby.JoinerLocalPort}/10.144.144.1:{remotePort}"
-                End If
+                Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --tcp-whitelist 0 --udp-whitelist 0" '加入者
+                Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" 'TCP
+                Arguments += $" --port-forward=udp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" 'UDP
             End If
 
             '节点设置
@@ -431,8 +432,11 @@ Public Module ModLink
                                Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion))))
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("清理文件", Sub() File.Delete(DlTargetPath)))
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion))) With {.Block = True})
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
+                                                                                                File.Delete(DlTargetPath)
+                                                                                                CleanupOldEasyTier()
+                                                                                            End Sub))
                                If LaunchAfterDownload Then
                                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动 EasyTier", Function() LaunchEasyTier(IsHost, Name, Secret, True)))
                                End If
@@ -440,7 +444,7 @@ Public Module ModLink
                                                                                                          FrmLinkLobby.BtnCreate.IsEnabled = True
                                                                                                          FrmLinkLobby.BtnSelectJoin.IsEnabled = True
                                                                                                          Hint("联机组件下载完成！", HintType.Finish)
-                                                                                                     End Sub)))
+                                                                                                     End Sub)) With {.Show = False})
                                '启动
                                DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
                                DlEasyTierLoader.Start()
@@ -456,7 +460,19 @@ Public Module ModLink
                        End Function)
         Return 0
     End Function
-
+    Private Sub CleanupOldEasyTier()
+        Dim subDirs As String() = Directory.GetDirectories(IO.Path.Combine(FileService.LocalDataPath, "EasyTier"))
+        For Each folderPath As String In subDirs
+            Dim name As String = IO.Path.GetFileName(folderPath)
+            If Not name.Equals(ETVersion) Then
+                Try
+                    Directory.Delete(folderPath, True)
+                Catch ex As Exception
+                    Log(ex, "[Link] 清理旧版本 EasyTier 出错")
+                End Try
+            End If
+        Next
+    End Sub
     Public Sub ExitEasyTier()
         PageLinkLobby.IsETFirstCheckFinished = False
         If IsETRunning AndAlso ETProcess IsNot Nothing Then

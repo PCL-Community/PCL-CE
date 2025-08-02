@@ -1582,30 +1582,30 @@ LoginFinish:
         '进存档
         Dim WorldName As String = CurrentLaunchOptions.WorldName
         If WorldName IsNot Nothing Then
-            Arguments += $" --quickPlaySingleplayer ""{WorldName}"""
+            FinalArguments += $" --quickPlaySingleplayer ""{WorldName}"""
         End If
         '进服
         Dim Server As String = If(String.IsNullOrEmpty(CurrentLaunchOptions.ServerIp), Setup.Get("VersionServerEnter", McInstanceCurrent), CurrentLaunchOptions.ServerIp)
         If String.IsNullOrWhiteSpace(WorldName) AndAlso Not String.IsNullOrWhiteSpace(Server) Then
             If McInstanceCurrent.ReleaseTime > New Date(2023, 4, 4) Then
                 'QuickPlay
-                Arguments += $" --quickPlayMultiplayer ""{Server}"""
+                FinalArguments += $" --quickPlayMultiplayer ""{Server}"""
             Else
                 '老版本
                 If Server.Contains(":") Then
                     '包含端口号
-                    Arguments += " --server " & Server.Split(":")(0) & " --port " & Server.Split(":")(1)
+                    FinalArguments += " --server " & Server.Split(":")(0) & " --port " & Server.Split(":")(1)
                 Else
                     '不包含端口号
-                    Arguments += " --server " & Server & " --port 25565"
+                    FinalArguments += " --server " & Server & " --port 25565"
                 End If
                 If McInstanceCurrent.Version.HasOptiFine Then Hint("OptiFine 与自动进入服务器可能不兼容，有概率导致材质丢失甚至游戏崩溃！", HintType.Critical)
             End If
         End If
         '输出
         McLaunchLog("Minecraft 启动参数：")
-        McLaunchLog(Arguments)
-        McLaunchArgument = Arguments
+        McLaunchLog(FinalArguments)
+        McLaunchArgument = FinalArguments
     End Sub
 
     'Jvm 部分（第一段）
@@ -2398,6 +2398,8 @@ NextInstance:
 
         '启动计数
         Setup.Set("SystemLaunchCount", Setup.Get("SystemLaunchCount") + 1)
+
+        Setup.Set("VersionLaunchCount", Setup.Get("VersionLaunchCount", McInstanceCurrent) + 1, instance:=McInstanceCurrent)
 
     End Sub
 
