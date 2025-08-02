@@ -29,6 +29,8 @@
     <!-- 标题 -->
     <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Bottom" Margin="0,1,0,0" Orientation="Horizontal" 
                 IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
+        <Path x:Name="IconFavorite" Visibility="Collapsed" Margin="0,0,2,0" IsHitTestVisible="False" HorizontalAlignment="Left" Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource ColorBrush3}"
+              Data="M700.856 155.543c-74.769 0-144.295 72.696-190.046 127.26-45.737-54.576-115.247-127.26-190.056-127.26-134.79 0-244.443 105.78-244.443 235.799 0 77.57 39.278 131.988 70.845 175.713C238.908 694.053 469.62 852.094 479.39 858.757c9.41 6.414 20.424 9.629 31.401 9.629 11.006 0 21.998-3.215 31.398-9.63 9.782-6.662 240.514-164.703 332.238-291.701 31.587-43.724 70.874-98.143 70.874-175.713-0.001-130.02-109.656-235.8-244.445-235.8z m0 0"/>
         <TextBlock x:Name="LabTitle" TextTrimming="WordEllipsis" FontSize="14" Foreground="{DynamicResource ColorBrush1}" />
         <TextBlock x:Name="LabTitleRaw" TextTrimming="WordEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Bottom" Visibility="Collapsed" />
     </StackPanel>

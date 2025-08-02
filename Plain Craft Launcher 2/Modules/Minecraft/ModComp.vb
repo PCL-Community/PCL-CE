@@ -707,6 +707,7 @@ Public Module ModComp
             End Select
             '实例化 UI
             Dim NewItem As New MyCompItem With {.Tag = Me, .Logo = GetControlLogo()}
+            NewItem.IsFavorite = CompFavorites.IsFavourite(Id)
             Dim Title = GetControlTitle(True)
             NewItem.Title = Title.Key
             If Title.Value = "" Then
@@ -1960,6 +1961,14 @@ Retry:
                 res.Favs = FavList
             End If
             Return res
+        End Function
+        
+        Public Shared Function IsFavourite(Id As String) As Boolean
+            If FavoritesList Is Nothing Then Return False
+            For Each i In FavoritesList
+                If i.Favs.Contains(Id) Then Return True
+            Next
+            Return False
         End Function
     End Class
 
