@@ -5,7 +5,11 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PCL"
       mc:Ignorable="d" 
+      DataContext="{Binding RelativeSource={RelativeSource Self}}"
       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <local:MyScrollViewer.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+    </local:MyScrollViewer.Resources>
     <StackPanel Orientation="Vertical" Margin="25">
         <StackPanel x:Name="PanAlways">
             <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" HintText="搜索资源" SearchButtonVisibility="Visible"/>
@@ -60,8 +64,8 @@
                     <TextBlock VerticalAlignment="Center" Grid.Column="4" HorizontalAlignment="Left" Text="来源" Margin="5,0,5,0" />
                     <local:MyComboBox x:Name="ComboSearchSource" Grid.Column="5">
                         <local:MyComboBoxItem Content="全部" Tag="3" IsSelected="True" />
-                        <local:MyComboBoxItem Content="CurseForge" Tag="1" />
-                        <local:MyComboBoxItem Content="Modrinth" Tag="2" />
+                        <local:MyComboBoxItem Content="CurseForge" Tag="1" Visibility="{Binding SupportCurseForge, Converter={StaticResource VisibilityConverter}}"/>
+                        <local:MyComboBoxItem Content="Modrinth" Tag="2" Visibility="{Binding SupportModrinth, Converter={StaticResource VisibilityConverter}}"/>
                     </local:MyComboBox>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="6">
                         <local:MyIconButton x:Name="BtnSearchReset" Logo="M931.07 384.75a368 368 0 0 0-704 95.25H64l192 192 192-192H288.91C312 333.51 439.12 221.13 592 221.13c169.21 0 306.87 137.66 306.87 306.87S761.21 834.87 592 834.87a307.37 307.37 0 0 1-194.56-69.55 30.57 30.57 0 0 0-38.79 47.25 368.1 368.1 0 0 0 572.42-427.82z"

@@ -13,6 +13,28 @@ Public Class PageComp
             Return ComboSearchTag.Items
         End Get
     End Property
+    
+    Public Shared ReadOnly SupportCurseForgeProperty As DependencyProperty = DependencyProperty.Register("SupportCurseForge", GetType(Boolean), GetType(PageComp), New PropertyMetadata(True))
+    
+    Public Property SupportCurseForge As Boolean
+        Get
+            Return GetValue(SupportCurseForgeProperty)
+        End Get
+        Set
+            SetValue(SupportCurseForgeProperty, value)
+        End Set
+    End Property
+    
+    Public Shared ReadOnly SupportModrinthProperty As DependencyProperty = DependencyProperty.Register("SupportModrinth", GetType(Boolean), GetType(PageComp), New PropertyMetadata(True))
+    
+    Public Property SupportModrinth As Boolean
+        Get
+            Return GetValue(SupportModrinthProperty)
+        End Get
+        Set
+            SetValue(SupportModrinthProperty, value)
+        End Set
+    End Property
 
     ''' <summary>
     ''' 英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
