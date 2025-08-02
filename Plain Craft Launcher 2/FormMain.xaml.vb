@@ -18,7 +18,9 @@ Public Class FormMain
                 Else
                     Changelog = "欢迎使用呀~"
                 End If
-                MyMsgBoxMarkdown(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName)
+                If MyMsgBoxMarkdown(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
+                    OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases")
+                End If
             End Sub, "UpdateLog Output")
     End Sub
 
@@ -26,6 +28,22 @@ Public Class FormMain
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
         ApplicationStartTick = GetTimeTick()
+        '刷新主题
+        ThemeCheckAll(False)
+        Dim dark As Int32 = Setup.Get("UiDarkMode")
+        Select Case dark
+            Case 0
+                IsDarkMode = False
+            Case 1
+                IsDarkMode = True
+            Case 2
+                IsDarkMode = IsSystemInDarkMode()
+        End Select
+        ThemeRefreshColor()
+        '窗体参数初始化
+        FrmMain = Me
+        FrmLaunchLeft = New PageLaunchLeft
+        FrmLaunchRight = New PageLaunchRight
         '版本号改变
         Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
         If LastVersion < VersionCode Then
@@ -48,22 +66,6 @@ Public Class FormMain
                 Setup.Set("LaunchArgumentIndieV2", Setup.GetDefault("LaunchArgumentIndieV2"))
             End If
         End If
-        '刷新主题
-        ThemeCheckAll(False)
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = IsSystemInDarkMode()
-        End Select
-        ThemeRefreshColor()
-        '窗体参数初始化
-        FrmMain = Me
-        FrmLaunchLeft = New PageLaunchLeft
-        FrmLaunchRight = New PageLaunchRight
         Setup.Load("UiLauncherTheme")
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
