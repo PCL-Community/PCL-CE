@@ -99,6 +99,15 @@
                 ' 构建框架与图表按钮
                 Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
                 AddHandler NewItem.Changed, AddressOf FrmSelectLeft.Folder_Change
+                
+                ' 启用拖拽功能
+                NewItem.AllowDrop = True
+                AddHandler NewItem.MouseMove, AddressOf FrmSelectLeft.Item_MouseMove
+                AddHandler NewItem.DragEnter, AddressOf FrmSelectLeft.Item_DragEnter
+                AddHandler NewItem.DragOver, AddressOf FrmSelectLeft.Item_DragOver
+                AddHandler NewItem.DragLeave, AddressOf FrmSelectLeft.Item_DragLeave
+                AddHandler NewItem.Drop, AddressOf FrmSelectLeft.Item_Drop
+                
                 Dim NewIconButton As New MyIconButton With {.Logo = Logo.IconButtonSetup, .LogoScale = 1.1}
                 AddHandler NewIconButton.Click, Sub(sender, e)
                                                     ContMenu.PlacementTarget = NewItem
@@ -466,5 +475,139 @@
         McFolderListLoader.Start(IsForceRestart:=True)
         LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
     End Sub
+
+#Region "拖拽排序功能"
+    
+    ' 拖拽开始时的鼠标移动处理
+    Private Sub Item_MouseMove(sender As Object, e As MouseEventArgs)
+        Dim Item As MyListItem = CType(sender, MyListItem)
+        ' 当按住鼠标左键时开始拖拽操作
+        If e.LeftButton = MouseButtonState.Pressed Then
+            Try
+                DragDrop.DoDragDrop(Item, Item.Tag, DragDropEffects.Move)
+            Catch ex As Exception
+                Log(ex, "开始拖拽操作失败", LogLevel.Debug)
+            End Try
+        End If
+    End Sub
+
+    ' 拖拽进入时的处理
+    Private Sub Item_DragEnter(sender As Object, e As DragEventArgs)
+        Try
+            If e.Data.GetDataPresent(GetType(McFolder)) Then
+                e.Effects = DragDropEffects.Move
+                ' 添加视觉反馈
+                Dim Item As MyListItem = CType(sender, MyListItem)
+                Item.Opacity = 0.7
+            Else
+                e.Effects = DragDropEffects.None
+            End If
+        Catch ex As Exception
+            e.Effects = DragDropEffects.None
+        End Try
+        e.Handled = True
+    End Sub
+
+    ' 拖拽悬停时的处理
+    Private Sub Item_DragOver(sender As Object, e As DragEventArgs)
+        Try
+            If e.Data.GetDataPresent(GetType(McFolder)) Then
+                e.Effects = DragDropEffects.Move
+            Else
+                e.Effects = DragDropEffects.None
+            End If
+        Catch ex As Exception
+            e.Effects = DragDropEffects.None
+        End Try
+        e.Handled = True
+    End Sub
+
+    ' 拖拽离开时的处理
+    Private Sub Item_DragLeave(sender As Object, e As DragEventArgs)
+        Try
+            ' 恢复视觉状态
+            Dim Item As MyListItem = CType(sender, MyListItem)
+            Item.Opacity = 1.0
+        Catch ex As Exception
+            Log(ex, "拖拽离开处理失败", LogLevel.Debug)
+        End Try
+        e.Handled = True
+    End Sub
+
+    ' 拖拽放下时的处理
+    Private Sub Item_Drop(sender As Object, e As DragEventArgs)
+        Try
+            Dim TargetItem As MyListItem = CType(sender, MyListItem)
+            Dim TargetFolder As McFolder = CType(TargetItem.Tag, McFolder)
+            
+            ' 恢复视觉状态
+            TargetItem.Opacity = 1.0
+            
+            ' 检查数据有效性
+            If Not e.Data.GetDataPresent(GetType(McFolder)) Then
+                e.Handled = True
+                Return
+            End If
+            
+            Dim SourceFolder As McFolder = CType(e.Data.GetData(GetType(McFolder)), McFolder)
+            
+            ' 检查是否为有效的拖拽操作
+            If SourceFolder Is Nothing OrElse SourceFolder Is TargetFolder Then
+                e.Handled = True
+                Return
+            End If
+            
+            ' 检查文件夹是否在列表中
+            If Not McFolderList.Contains(SourceFolder) OrElse Not McFolderList.Contains(TargetFolder) Then
+                e.Handled = True
+                Return
+            End If
+
+            ' 获取源文件夹和目标文件夹的索引
+            Dim SourceIndex As Integer = McFolderList.IndexOf(SourceFolder)
+            Dim TargetIndex As Integer = McFolderList.IndexOf(TargetFolder)
+
+            ' 执行移动操作
+            If SourceIndex <> TargetIndex Then
+                ' 先移除源文件夹
+                McFolderList.RemoveAt(SourceIndex)
+                
+                ' 计算新的插入位置
+                Dim NewTargetIndex As Integer
+                
+                If SourceIndex < TargetIndex Then
+                    ' 向下拖拽：插入到目标项目的后面
+                    ' 由于移除了源项目，目标索引已经自动减1，所以直接使用TargetIndex就是插入到目标后面
+                    NewTargetIndex = TargetIndex
+                Else
+                    ' 向上拖拽：插入到目标项目的前面
+                    NewTargetIndex = TargetIndex
+                End If
+                
+                ' 确保插入位置不超出列表范围
+                If NewTargetIndex > McFolderList.Count Then
+                    NewTargetIndex = McFolderList.Count
+                ElseIf NewTargetIndex < 0 Then
+                    NewTargetIndex = 0
+                End If
+                
+                ' 插入到新位置
+                McFolderList.Insert(NewTargetIndex, SourceFolder)
+                
+                ' 更新文件夹顺序并刷新UI
+                UpdateFolderOrder()
+                
+                Dim Direction As String = If(SourceIndex < TargetIndex, "后面", "前面")
+                Log("[Control] 文件夹拖拽排序：" & SourceFolder.Name & " -> 位置 " & NewTargetIndex & " (在 " & TargetFolder.Name & " " & Direction & ")", LogLevel.Debug)
+            End If
+
+        Catch ex As Exception
+            Log(ex, "拖拽放下操作失败", LogLevel.Feedback)
+        Finally
+            e.Handled = True
+        End Try
+    End Sub
+
+#End Region
 
 End Class
