@@ -91,7 +91,7 @@ Public Class MyCheckBox
             Select Case True
                 Case isChecked = True
                     Select Case True
-                        Case _previousStatae = False
+                        Case _previousState = False
                             '由无变有
                             AniBackgroundScale()
                             AniCheckShow()
