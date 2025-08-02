@@ -47,7 +47,7 @@ Public Class MyCheckBox
         DependencyProperty.Register("IsThreeState", GetType(Boolean), GetType(MyCheckBox), New PropertyMetadata(False))
 
     Private Const AnimationTimeOfCheck As Integer = 150 '勾选状态变更动画长度
-    Private _previousStatae As Boolean? = False '上一次的勾选状态
+    Private _previousState As Boolean? = False '上一次的勾选状态
     ''' <summary>
     ''' 手动设置 Checked 属性。
     ''' </summary>
@@ -72,7 +72,7 @@ Public Class MyCheckBox
             '判断真实勾选状态
             Dim isChecked As Boolean? = GetFinalState(value, IsThreeState)
 
-            _previousStatae = Checked '记录上一次的勾选状态
+            _previousState = Checked '记录上一次的勾选状态
             SetValue(CheckedProperty, isChecked)
             If IsLoaded Then RaiseEvent Change(Me, user)
 
@@ -97,7 +97,7 @@ Public Class MyCheckBox
                             AniCheckShow()
                             AniColorChecked()
                             AniAllowMouseDown()
-                        Case _previousStatae Is Nothing
+                        Case _previousState Is Nothing
                             '由空变有
                             AniBackgroundScale()
                             AniIndeterminateHide()
@@ -108,13 +108,13 @@ Public Class MyCheckBox
 
                 Case isChecked = False
                     Select Case True
-                        Case _previousStatae = True
+                        Case _previousState = True
                             '由有变无
                             AniBackgroundScale()
                             AniCheckHide()
                             AniColorUnchecked()
                             AniAllowMouseDown()
-                        Case _previousStatae Is Nothing
+                        Case _previousState Is Nothing
                             '由空变无
                             AniBackgroundScale()
                             AniIndeterminateHide()
@@ -124,14 +124,14 @@ Public Class MyCheckBox
                     End Select
                 Case isChecked Is Nothing
                     Select Case True
-                        Case _previousStatae = True
+                        Case _previousState = True
                             '由有变空
                             AniBackgroundScale()
                             AniCheckHide()
                             AniIndeterminateShow()
                             AniColorUnchecked()
                             AniAllowMouseDown()
-                        Case _previousStatae = False
+                        Case _previousState = False
                             '由无变空
                             AniBackgroundScale()
                             AniIndeterminateShow()
