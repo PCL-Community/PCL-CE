@@ -627,17 +627,20 @@ Public Module ModLink
     Public NaidProfile As New NaidUser()
     Public NaidProfileException As Exception
     Public NaidIsGettingInfo As Boolean
+    Private NaidLock As New Object()
     Public Sub GetNaidData(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False)
         RunInNewThread(Sub() GetNaidDataSync(Token, IsRefresh, IsRetry, IsSilent))
     End Sub
     Public Function GetNaidDataSync(Token As String, Optional IsRefresh As Boolean = False, Optional IsRetry As Boolean = False, Optional IsSilent As Boolean = False) As Boolean
-        If NaidIsGettingInfo Then Return False
-        NaidIsGettingInfo = True
+        SyncLock NaidLock
+            If NaidIsGettingInfo Then Return False
+            NaidIsGettingInfo = True
+        End SyncLock
+        Thread.Sleep(500)
         Try
             '获取 AccessToken 和 RefreshToken
             Dim RequestData As String = $"grant_type={If(IsRefresh, "refresh_token", "authorization_code")}&client_id={NatayarkClientId}&client_secret={NatayarkClientSecret}&{If(IsRefresh, "refresh_token", "code")}={Token}&redirect_uri=http://localhost:29992/callback"
             'Log("[Link] Naid 请求数据: " & RequestData)
-            Thread.Sleep(500)
             Dim Received As String = NetRequestRetry("https://account.naids.com/api/oauth2/token", "POST", RequestData, "application/x-www-form-urlencoded")
             Dim Data As JObject = JObject.Parse(Received)
             NaidProfile.AccessToken = Data("access_token").ToString()
