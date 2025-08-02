@@ -30,7 +30,8 @@
 
             '文件夹列表
             FrmSelectLeft.PanList.Children.Add(New TextBlock With {.Text = "文件夹列表", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
-            For Each Folder As McFolder In McFolderList.ToArray
+            For i As Integer = 0 To McFolderList.Count - 1
+                Dim Folder As McFolder = McFolderList(i)
                 '添加控件
                 Dim ContMenu As ContextMenu = Nothing
                 Select Case Folder.Type
@@ -38,6 +39,8 @@
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
+                                    <local:MyMenuItem x:Name="MoveUp" Header="上移" Icon="M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
+                                    <local:MyMenuItem x:Name="MoveDown" Header="下移" Icon="M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z"/>
                                     <local:MyMenuItem x:Name="Open" Header="打开" Icon="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z"/>
                                     <local:MyMenuItem x:Name="Refresh" Header="刷新" Icon="F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z"/>
                                     <local:MyMenuItem x:Name="Delete" Header="删除" Padding="0,0,0,2" Icon="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
@@ -48,6 +51,8 @@
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Remove" Header="复原名称" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
+                                    <local:MyMenuItem x:Name="MoveUp" Header="上移" Icon="M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
+                                    <local:MyMenuItem x:Name="MoveDown" Header="下移" Icon="M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z"/>
                                     <local:MyMenuItem x:Name="Open" Header="打开" Icon="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z"/>
                                     <local:MyMenuItem x:Name="Refresh" Header="刷新" Icon="F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z"/>
                                     <local:MyMenuItem x:Name="Delete" Header="删除" Padding="0,0,0,2" Icon="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
@@ -57,6 +62,8 @@
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
+                                    <local:MyMenuItem x:Name="MoveUp" Header="上移" Icon="M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
+                                    <local:MyMenuItem x:Name="MoveDown" Header="下移" Icon="M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z"/>
                                     <local:MyMenuItem x:Name="Open" Header="打开" Icon="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z"/>
                                     <local:MyMenuItem x:Name="Refresh" Header="刷新" Icon="F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z"/>
                                     <local:MyMenuItem x:Name="Remove" Header="移出列表" Icon="F1 M 23.3428,25.205L 23.3805,25.4461C 23.9229,27.177 30.261,29.0992 38,29.0992C 45.7386,29.0992 52.0765,27.1771 52.6194,25.4463L 52.6571,25.205C 52.6571,23.3616 46.0949,21.3109 38,21.3109C 29.9051,21.3109 23.3428,23.3616 23.3428,25.205 Z M 23.3428,53.0204L 19.1571,26.2111C 19.0534,25.8817 19,25.5459 19,25.205C 19,20.9036 27.5066,17.4167 38,17.4167C 48.4934,17.4167 57,20.9036 57,25.205C 57,25.5459 56.9466,25.8818 56.8429,26.2112L 52.6571,53.0204L 52.5974,53.0204C 51.9241,56.1393 45.6457,58.5833 38,58.5833C 30.3543,58.5833 24.076,56.1393 23.4026,53.0204L 23.3428,53.0204 Z M 51.8228,30.5485C 48.3585,32.0537 43.4469,32.9933 38,32.9933C 32.5531,32.9933 27.6415,32.0537 24.1771,30.5484L 27.5988,52.464L 27.6857,52.464C 27.6857,53.3857 32.3036,54.6892 38,54.6892C 43.6964,54.6892 48.3143,53.3857 48.3143,52.464L 48.4011,52.464L 51.8228,30.5485 Z "/>
@@ -64,41 +71,40 @@
                                 </ContextMenu>
                         )
                 End Select
+                
+                '根据位置控制上移和下移按钮的显示
+                Dim moveUpItem As MyMenuItem = CType(ContMenu.FindName("MoveUp"), MyMenuItem)
+                Dim moveDownItem As MyMenuItem = CType(ContMenu.FindName("MoveDown"), MyMenuItem)
+                
+                ' 如果是第一个项目，隐藏上移按钮
+                If i = 0 Then
+                    moveUpItem.Visibility = Visibility.Collapsed
+                End If
+                
+                ' 如果是最后一个项目，隐藏下移按钮
+                If i = McFolderList.Count - 1 Then
+                    moveDownItem.Visibility = Visibility.Collapsed
+                End If
+                
                 If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = Path & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
                 '注册事件
                 If Not Folder.Type = McFolderType.Original Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
+                moveUpItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveUp_Click))
+                moveDownItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveDown_Click))
                 CType(ContMenu.FindName("Open"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Open_Click))
                 CType(ContMenu.FindName("Delete"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Delete_Click))
                 CType(ContMenu.FindName("Rename"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Rename_Click))
                 CType(ContMenu.FindName("Refresh"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Refresh_Click))
 
                 ' 构建框架与图表按钮
-                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 90, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
+                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
                 AddHandler NewItem.Changed, AddressOf FrmSelectLeft.Folder_Change
-
-                Dim Buttons As New List(Of MyIconButton)
-
-                ' 上移按钮 - 如果不是第一个才显示
-                If McFolderList.IndexOf(Folder) > 0 Then
-                    Dim BtnUp As New MyIconButton With {.Logo = "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z", .LogoScale = 1.1, .Tag = Folder}
-                    AddHandler BtnUp.Click, AddressOf ButtonUp_Click
-                    Buttons.Add(BtnUp)
-                End If
-
-                ' 下移按钮 - 如果不是最后一个才显示
-                If McFolderList.IndexOf(Folder) < McFolderList.Count - 1 Then
-                    Dim BtnDown As New MyIconButton With {.Logo = "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z", .LogoScale = 1.1, .Tag = Folder}
-                    AddHandler BtnDown.Click, AddressOf ButtonDown_Click
-                    Buttons.Add(BtnDown)
-                End If
-
                 Dim NewIconButton As New MyIconButton With {.Logo = Logo.IconButtonSetup, .LogoScale = 1.1}
                 AddHandler NewIconButton.Click, Sub(sender, e)
                                                     ContMenu.PlacementTarget = NewItem
                                                     ContMenu.IsOpen = True
                                                 End Sub
-                Buttons.Add(NewIconButton)
-                NewItem.Buttons = Buttons
+                NewItem.Buttons = {NewIconButton}
                 FrmSelectLeft.PanList.Children.Add(NewItem)
                 Log("[Minecraft] 有效的 Minecraft 文件夹：" & Folder.Name & " > " & Folder.Path)
             Next
@@ -164,8 +170,8 @@
     End Sub
     Private McFolderListLast As List(Of McFolder)
 
-    Private Sub ButtonUp_Click(sender As Object, e As RoutedEventArgs)
-        Dim Folder = CType(sender, MyIconButton).Tag
+    Public Sub MoveUp_Click(sender As Object, e As RoutedEventArgs)
+        Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
         Dim Index = McFolderList.IndexOf(Folder)
         If Index > 0 Then
             McFolderList.RemoveAt(Index)
@@ -174,8 +180,8 @@
         End If
     End Sub
 
-    Private Sub ButtonDown_Click(sender As Object, e As RoutedEventArgs)
-        Dim Folder = CType(sender, MyIconButton).Tag
+    Public Sub MoveDown_Click(sender As Object, e As RoutedEventArgs)
+        Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
         Dim Index = McFolderList.IndexOf(Folder)
         If Index < McFolderList.Count - 1 Then
             McFolderList.RemoveAt(Index)
