@@ -21,16 +21,31 @@
     <!-- Logo -->
     <Grid Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" HorizontalAlignment="Right" VerticalAlignment="Center" Width="50" Height="50" ClipToBounds="False">
         <Border IsHitTestVisible="False" SnapsToDevicePixels="True" UseLayoutRounding="True">
-            <Border.Clip>
-                <CombinedGeometry GeometryCombineMode="Exclude">
-                    <CombinedGeometry.Geometry1>
-                        <RectangleGeometry Rect="0,0,50,50" RadiusX="9" RadiusY="9" />
-                    </CombinedGeometry.Geometry1>
-                    <CombinedGeometry.Geometry2>
-                        <EllipseGeometry Center="50,50" RadiusX="6" RadiusY="6" />
-                    </CombinedGeometry.Geometry2>
-                </CombinedGeometry>
-            </Border.Clip>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Clip">
+                        <Setter.Value>
+                            <RectangleGeometry Rect="0,0,50,50" RadiusX="9" RadiusY="9" />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=IconFavorite, Path=Visibility}" Value="Visible">
+                            <Setter Property="Clip">
+                                <Setter.Value>
+                                    <CombinedGeometry GeometryCombineMode="Exclude">
+                                        <CombinedGeometry.Geometry1>
+                                            <RectangleGeometry Rect="0,0,50,50" RadiusX="9" RadiusY="9" />
+                                        </CombinedGeometry.Geometry1>
+                                        <CombinedGeometry.Geometry2>
+                                            <EllipseGeometry Center="50,50" RadiusX="6" RadiusY="6" />
+                                        </CombinedGeometry.Geometry2>
+                                    </CombinedGeometry>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <local:MyImage x:Name="PathLogo" RenderOptions.BitmapScalingMode="HighQuality" FallbackSource="pack://application:,,,/images/Icons/NoIcon.png" />
         </Border>
         <Path x:Name="IconFavorite" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-5,-5" Width="9" Height="9" Stretch="Uniform" Fill="{DynamicResource ColorBrush3}"
