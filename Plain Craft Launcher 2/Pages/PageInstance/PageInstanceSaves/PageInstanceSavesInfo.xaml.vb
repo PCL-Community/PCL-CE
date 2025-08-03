@@ -48,6 +48,13 @@ Class PageInstanceSavesInfo
         ' 确保页面已完全加载
         If Not _loaded OrElse Not _isInitialized Then Return
         
+        ' 立即隐藏所有提示，避免在任何情况下闪烁
+        If Dispatcher.CheckAccess() Then
+            HideAllHints()
+        Else
+            Dispatcher.Invoke(Sub() HideAllHints())
+        End If
+        
         ' 取消之前的操作
         If _cancellationTokenSource IsNot Nothing Then
             _cancellationTokenSource.Cancel()
@@ -206,7 +213,6 @@ Class PageInstanceSavesInfo
             PanList.IsEnabled = False
             
             ClearInfoTable()
-            HideAllHints()
 
             Dim GetDataInfoByPath = Function(path As String) As String
                                         Try
