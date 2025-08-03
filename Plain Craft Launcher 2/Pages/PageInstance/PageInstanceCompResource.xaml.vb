@@ -1238,7 +1238,7 @@ Install:
     End Sub
     Private Sub EDMods(ModList As IEnumerable(Of LocalCompFile), IsEnable As Boolean)
         Dim IsSuccessful As Boolean = True
-        For Each ModE In ModList.ToList
+        For Each ModE In ModList
             Dim ModEntity = ModE '仅用于去除迭代变量无法修改的限制
             Dim NewPath As String = Nothing
             If ModEntity.State = LocalCompFile.LocalFileStatus.Fine AndAlso Not IsEnable Then

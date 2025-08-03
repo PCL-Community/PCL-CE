@@ -94,6 +94,16 @@ Public Class MyCompItem
         End Set
     End Property
 
+    ''' <summary>
+    ''' 刷新收藏状态
+    ''' </summary>
+    Public Sub RefreshFavoriteStatus()
+        If TypeOf Tag Is CompProject Then
+            Dim project As CompProject = CType(Tag, CompProject)
+            IsFavorite = CompFavorites.IsFavourite(project.Id)
+        End If
+    End Sub
+
 #End Region
 
 #Region "点击"

@@ -1,4 +1,4 @@
-﻿Imports System.Threading.Tasks
+Imports System.Threading.Tasks
 Imports System.Net.Http
 Imports LiteDB
 
@@ -1815,7 +1815,7 @@ Retry:
         ''' </summary>
         ''' <param name="Project"></param>
         ''' <param name="Pos"></param>
-        Public Shared Sub ShowMenu(Project As CompProject, Pos As UIElement)
+        Public Shared Sub ShowMenu(Project As CompProject, Pos As UIElement, Optional ClosedCallBack As Action = Nothing)
             Dim Body As New ContextMenu()
             For Each i In FavoritesList
                 Dim Item As New MyMenuItem
@@ -1845,6 +1845,9 @@ Retry:
                                        End Sub
                 Body.Items.Add(Item)
             Next
+            AddHandler Body.Closed, Sub()
+                                      ClosedCallBack?.Invoke()
+                                  End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True
@@ -1852,7 +1855,7 @@ Retry:
         ''' <summary>
         ''' 显示收藏菜单。
         ''' </summary>
-        Public Shared Sub ShowMenu(Project As List(Of CompProject), Pos As UIElement)
+        Public Shared Sub ShowMenu(Project As List(Of CompProject), Pos As UIElement, Optional ClosedCallBack As Action = Nothing)
             Dim Body As New ContextMenu
             For Each i In FavoritesList
                 Dim Item As New MyMenuItem With {
@@ -1874,6 +1877,9 @@ Retry:
                                        End Sub
                 Body.Items.Add(Item)
             Next
+            AddHandler Body.Closed, Sub()
+                                      ClosedCallBack?.Invoke()
+                                  End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True

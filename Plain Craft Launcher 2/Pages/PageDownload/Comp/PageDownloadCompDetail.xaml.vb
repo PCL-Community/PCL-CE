@@ -254,7 +254,7 @@ Public Class PageDownloadCompDetail
 
 #End Region
     Private IsFirstInit As Boolean = True
-    Public Sub Init() Handles Me.PageEnter
+    Private Sub Init() Handles Me.PageEnter
         AniControlEnabled += 1
         Project = FrmMain.PageCurrent.Additional(0)
         PanBack.ScrollToHome()
@@ -275,6 +275,9 @@ Public Class PageDownloadCompDetail
         '决定按钮显示
         BtnIntroWeb.Text = If(Project.FromCurseForge, "CurseForge", "Modrinth")
         BtnIntroWiki.Visibility = If(Project.WikiId = 0, Visibility.Collapsed, Visibility.Visible)
+        
+        ' 刷新收藏按钮状态
+        RefreshFavoriteButton()
 
         AniControlEnabled -= 1
     End Sub
@@ -565,7 +568,7 @@ Public Class PageDownloadCompDetail
         ClipboardSet(CompItem.LabTitle.Text & CompItem.LabTitleRaw.Text)
     End Sub
     Private Sub BtnFavorites_Click(sender As Object, e As EventArgs) Handles BtnFavorites.Click
-        CompFavorites.ShowMenu(Project, sender)
+        CompFavorites.ShowMenu(Project, sender, new Action(AddressOf RefreshFavoriteButton))
     End Sub
     Private Sub BtnIntroLinkCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroLinkCopy.Click
         CompClipboard.CurrentText = Project.Website
@@ -578,4 +581,21 @@ Public Class PageDownloadCompDetail
         If ChineseDescription Is Nothing Then Return
         MyMsgBox($"原文：{Project.Description}{Environment.NewLine}译文：{ChineseDescription}")
     End Sub
+
+    ''' <summary>
+    ''' 刷新收藏按钮的显示状态
+    ''' </summary>
+    Public Sub RefreshFavoriteButton()
+        Try
+            If Project IsNot Nothing Then
+                ' 刷新顶部的项目卡片收藏状态
+                If CompItem IsNot Nothing Then
+                    CompItem.RefreshFavoriteStatus()
+                End If
+            End If
+        Catch ex As Exception
+            Log(ex, "刷新收藏按钮状态时出错")
+        End Try
+    End Sub
+
 End Class
