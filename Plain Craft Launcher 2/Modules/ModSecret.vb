@@ -543,7 +543,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Private ReadOnly HueList As Integer() = {200, 210, 225}
     Private ReadOnly SatList As Integer() = {100, 85, 70}
     Private ReadOnly LightList As Integer() = {7, 0, -2}
-
+    
     Public Sub ThemeRefreshColor()
 #If DEBUG Then
         If EnableCustomTheme Then
@@ -691,6 +691,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 FrmMain.PanForm.Background = New MyColor(If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245))
             End If
             FrmMain.PanForm.Background.Freeze()
+
+            ' 通用ContextMenu主题刷新
+            RefreshAllContextMenuThemes()
         End Sub)
     End Sub
     Friend Sub ThemeCheckAll(EffectSetup As Boolean)
@@ -1075,6 +1078,74 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log(ex, "获取 GPU 信息时出错", LogLevel.Normal)
         End Try
     End Sub
+#End Region
+
+#Region "主题"
+
+    ''' <summary>
+    ''' 通用的ContextMenu主题刷新方法
+    ''' </summary>
+    Private Sub RefreshAllContextMenuThemes()
+        Try
+            ' 注册全局的ContextMenu主题刷新事件处理器
+            EventManager.RegisterClassHandler(GetType(ContextMenu), ContextMenu.OpenedEvent, New RoutedEventHandler(AddressOf OnContextMenuOpened))
+            
+            ' 刷新当前打开的ContextMenu
+            RunInUi(Sub()
+                        ' 获取当前应用程序中所有的窗口
+                        For Each window As Window In Application.Current.Windows
+                            RefreshContextMenusInElement(window)
+                        Next
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "刷新ContextMenu主题时出错", LogLevel.Debug)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' ContextMenu打开事件处理器，确保在显示时应用正确主题
+    ''' </summary>
+    Private Sub OnContextMenuOpened(sender As Object, e As RoutedEventArgs)
+        Try
+            If TypeOf sender Is ContextMenu Then
+                Dim contextMenu As ContextMenu = CType(sender, ContextMenu)
+                ' 强制重新应用样式
+                contextMenu.ClearValue(FrameworkElement.StyleProperty)
+                contextMenu.UpdateDefaultStyle()
+            End If
+        Catch ex As Exception
+            ' 忽略个别错误
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 递归刷新元素及其子元素中的ContextMenu
+    ''' </summary>
+    Private Sub RefreshContextMenusInElement(element As DependencyObject)
+        If element Is Nothing Then Return
+        
+        Try
+            ' 检查当前元素是否有ContextMenu
+            If TypeOf element Is FrameworkElement Then
+                Dim fe As FrameworkElement = CType(element, FrameworkElement)
+                If fe.ContextMenu IsNot Nothing Then
+                    ' 强制重新应用样式
+                    fe.ContextMenu.ClearValue(FrameworkElement.StyleProperty)
+                    fe.ContextMenu.UpdateDefaultStyle()
+                End If
+            End If
+            
+            ' 递归处理子元素
+            Dim childrenCount As Integer = VisualTreeHelper.GetChildrenCount(element)
+            For i As Integer = 0 To childrenCount - 1
+                Dim child As DependencyObject = VisualTreeHelper.GetChild(element, i)
+                RefreshContextMenusInElement(child)
+            Next
+        Catch ex As Exception
+            ' 忽略个别元素的错误，继续处理其他元素
+        End Try
+    End Sub
+
 #End Region
 
 End Module
