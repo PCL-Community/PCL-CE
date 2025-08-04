@@ -87,8 +87,8 @@ Public Class MyCompItem
         End Set
     End Property
 
-    'IsFavorite
-    Public IsFavorite As Boolean = False
+    'showFavoriteBtn
+    Public showFavoriteBtn As Boolean = False
 
     ''' <summary>
     ''' 刷新收藏状态
@@ -96,7 +96,7 @@ Public Class MyCompItem
     Public Sub RefreshFavoriteStatus()
         If TypeOf Tag Is CompProject Then
             Dim project As CompProject = CType(Tag, CompProject)
-            IsFavorite = CompFavorites.IsFavourite(project.Id)
+            showFavoriteBtn = CompFavorites.IsFavourite(project.Id)
         End If
     End Sub
 #End Region
@@ -268,7 +268,7 @@ Public Class MyCompItem
             '有动画
             Dim Ani As New List(Of AniData)
             If IsMouseOver Then
-                If PanButtons IsNot Nothing AndAlso IsFavorite Then
+                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, 1 - PanButtons.Opacity, Time * 0.35, Time * 0.15))
                 End If
                 Ani.AddRange({
@@ -281,7 +281,7 @@ Public Class MyCompItem
                     Ani.Add(AaScaleTransform(RectBack, 1 - CType(RectBack.RenderTransform, ScaleTransform).ScaleX, Time * 1.2,, New AniEaseOutFluent))
                 End If
             Else
-                If PanButtons IsNot Nothing AndAlso IsFavorite Then
+                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, -PanButtons.Opacity, Time * 0.4))
                 End If
                 Ani.AddRange({

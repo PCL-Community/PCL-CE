@@ -269,7 +269,7 @@ Public Class PageDownloadCompDetail
         If CompItem IsNot Nothing Then PanIntro.Children.Remove(CompItem)
         CompItem = Project.ToCompItem(True, True)
         CompItem.CanInteraction = False
-        CompItem.isFavorite = false
+        CompItem.showFavoriteBtn = false
         CompItem.Margin = New Thickness(-7, -7, 0, 8)
         PanIntro.Children.Insert(0, CompItem)
 

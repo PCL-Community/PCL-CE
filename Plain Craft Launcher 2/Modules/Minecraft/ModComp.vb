@@ -1,4 +1,4 @@
-Imports System.Threading.Tasks
+﻿Imports System.Threading.Tasks
 Imports System.Net.Http
 Imports LiteDB
 
@@ -707,7 +707,7 @@ Public Module ModComp
             End Select
             '实例化 UI
             Dim NewItem As New MyCompItem With {.Tag = Me, .Logo = GetControlLogo()}
-            NewItem.IsFavorite = CompFavorites.IsFavourite(Id)
+            NewItem.showFavoriteBtn = CompFavorites.IsFavourite(Id)
             Dim Title = GetControlTitle(True)
             NewItem.Title = Title.Key
             If Title.Value = "" Then
