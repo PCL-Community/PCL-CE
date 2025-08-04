@@ -269,15 +269,13 @@ Public Class PageDownloadCompDetail
         If CompItem IsNot Nothing Then PanIntro.Children.Remove(CompItem)
         CompItem = Project.ToCompItem(True, True)
         CompItem.CanInteraction = False
+        CompItem.isFavorite = false
         CompItem.Margin = New Thickness(-7, -7, 0, 8)
         PanIntro.Children.Insert(0, CompItem)
 
         '决定按钮显示
         BtnIntroWeb.Text = If(Project.FromCurseForge, "CurseForge", "Modrinth")
         BtnIntroWiki.Visibility = If(Project.WikiId = 0, Visibility.Collapsed, Visibility.Visible)
-        
-        ' 刷新收藏按钮状态
-        RefreshFavoriteButton()
 
         AniControlEnabled -= 1
     End Sub
@@ -568,7 +566,7 @@ Public Class PageDownloadCompDetail
         ClipboardSet(CompItem.LabTitle.Text & CompItem.LabTitleRaw.Text)
     End Sub
     Private Sub BtnFavorites_Click(sender As Object, e As EventArgs) Handles BtnFavorites.Click
-        CompFavorites.ShowMenu(Project, sender, new Action(AddressOf RefreshFavoriteButton))
+        CompFavorites.ShowMenu(Project, sender)
     End Sub
     Private Sub BtnIntroLinkCopy_Click(sender As Object, e As EventArgs) Handles BtnIntroLinkCopy.Click
         CompClipboard.CurrentText = Project.Website

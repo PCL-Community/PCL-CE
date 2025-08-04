@@ -12,7 +12,7 @@ Public Class MyCompItem
             PathLogo.Source = value
         End Set
     End Property
-
+    
     '标题
     Public Property Title As String
         Get
@@ -90,7 +90,7 @@ Public Class MyCompItem
     'IsFavorite
     Public WriteOnly Property IsFavorite As Boolean
         Set(value As Boolean)
-            IconFavorite.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)
+            BtnDelete.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)
         End Set
     End Property
 
@@ -103,20 +103,22 @@ Public Class MyCompItem
             IsFavorite = CompFavorites.IsFavourite(project.Id)
         End If
     End Sub
-
 #End Region
 
 #Region "点击"
 
     '触发点击事件
     Public Event Click(sender As Object, e As MouseButtonEventArgs)
-    Private Sub Button_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonUp
-        If IsMouseDown Then
-            RaiseEvent Click(sender, e)
-            If e.Handled Then Return
-            Log("[Control] 按下资源工程列表项：" & LabTitle.Text)
+    
+    Private Sub BtnDelete_Click(sender As Object, e As EventArgs) Handles BtnDelete.Click
+        If TypeOf Tag Is CompProject Then
+            Dim project = CType(Tag, CompProject)
+            CompFavorites.ShowMenu(project, sender, New Action(Sub()
+                RefreshFavoriteStatus()
+            End Sub))
         End If
     End Sub
+    
     Private Sub MyCompItem_Click(sender As MyCompItem, e As EventArgs) Handles Me.Click
         '记录当前展开的卡片标题（#2712）
         Dim Titles As New List(Of String)
@@ -171,8 +173,38 @@ Public Class MyCompItem
 
     '鼠标点击判定
     Private IsMouseDown As Boolean = False
+    '触发点击事件
+    Private Sub Button_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonUp
+        If Not IsMouseDown Then Return
+        RaiseEvent Click(sender, e)
+    End Sub
     Private Sub Button_MouseDown(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonDown
-        If IsMouseOver AndAlso CanInteraction Then IsMouseDown = True
+        If Not CanInteraction Then Return
+        ' 检查点击位置是否在按钮区域内
+        Dim clickPosition = e.GetPosition(Me)
+        Dim isClickOnButton As Boolean = False
+        
+        If BtnDelete.Visibility = Visibility.Visible Then
+            Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
+            isClickOnButton = buttonBounds.Contains(clickPosition)
+        End If
+        
+        ' 如果点击在按钮上，不处理主项目点击事件
+        If isClickOnButton Then
+            Return
+        End If
+        
+        ' 如果点击在其他区域，按原逻辑处理
+        ' 也要检查是否点击在LabInfo区域（支持ToolTip点击）
+        Dim isClickOnLabInfo As Boolean = False
+        If LabInfo.Visibility = Visibility.Visible Then
+            Dim labInfoBounds = New Rect(LabInfo.TranslatePoint(New Point(0, 0), Me), LabInfo.RenderSize)
+            isClickOnLabInfo = labInfoBounds.Contains(clickPosition)
+        End If
+        
+        If IsMouseDirectlyOver OrElse isClickOnLabInfo Then
+            IsMouseDown = True
+        End If
     End Sub
     Private Sub Button_MouseLeave(sender As Object, e As Object) Handles Me.MouseLeave, Me.PreviewMouseLeftButtonUp
         IsMouseDown = False
@@ -262,6 +294,7 @@ Public Class MyCompItem
             '无动画
             AniStop("CompItem Color " & Uuid)
             If _RectBack IsNot Nothing Then RectBack.Opacity = 0
+            If PanButtons IsNot Nothing Then PanButtons.Opacity = 0
         End If
     End Sub
 
