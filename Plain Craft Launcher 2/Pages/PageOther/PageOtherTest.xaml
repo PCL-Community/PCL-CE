@@ -127,16 +127,7 @@
                         <Border.Background>
                             <ImageBrush ImageSource="/Plain Craft Launcher 2;component/Images/Themes/server_bg.png" Stretch="Uniform" TileMode="Tile" Viewport="0,0,124,124" ViewportUnits="Absolute"/>
                         </Border.Background>
-                        <Grid Margin="6" HorizontalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Margin="6" x:Name="ImgServerLogo" Width="54" Height="54"/>
-                            <TextBlock Grid.Column="1" Margin="6" x:Name="LabServerDesc" TextWrapping="Wrap" FontSize="15" Foreground="White"/>
-                            <TextBlock Grid.Column="2" Margin="6" x:Name="LabServerPlayer" TextWrapping="Wrap" TextAlignment="Right" FontSize="12" Foreground="White"/>
-                        </Grid>
+                        <local:MinecraftServer x:Name="PanMcServer"/>
                     </Border>
                 </Grid>
             </local:MyCard>
