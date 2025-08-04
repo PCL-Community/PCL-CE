@@ -2,7 +2,7 @@ Public Class MyCompItem
 
 #Region "基础属性"
     Public Uuid As Integer = GetUuid()
-
+    
     'Logo
     Public Property Logo As String
         Get
@@ -88,11 +88,7 @@ Public Class MyCompItem
     End Property
 
     'IsFavorite
-    Public WriteOnly Property IsFavorite As Boolean
-        Set(value As Boolean)
-            BtnDelete.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)
-        End Set
-    End Property
+    Public IsFavorite As Boolean = False
 
     ''' <summary>
     ''' 刷新收藏状态
@@ -184,7 +180,7 @@ Public Class MyCompItem
         Dim clickPosition = e.GetPosition(Me)
         Dim isClickOnButton As Boolean = False
         
-        If BtnDelete.Visibility = Visibility.Visible Then
+        If PanButtons.Visibility = Visibility.Visible Then
             Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
             isClickOnButton = buttonBounds.Contains(clickPosition)
         End If
@@ -272,6 +268,9 @@ Public Class MyCompItem
             '有动画
             Dim Ani As New List(Of AniData)
             If IsMouseOver Then
+                If PanButtons IsNot Nothing AndAlso IsFavorite Then
+                    Ani.Add(AaOpacity(PanButtons, 1 - PanButtons.Opacity, Time * 0.35, Time * 0.15))
+                End If
                 Ani.AddRange({
                              AaColor(RectBack, Border.BackgroundProperty, If(IsMouseDown, "ColorBrush6", "ColorBrushBg1"), Time),
                              AaOpacity(RectBack, 1 - RectBack.Opacity, Time,, New AniEaseOutFluent)
@@ -282,6 +281,9 @@ Public Class MyCompItem
                     Ani.Add(AaScaleTransform(RectBack, 1 - CType(RectBack.RenderTransform, ScaleTransform).ScaleX, Time * 1.2,, New AniEaseOutFluent))
                 End If
             Else
+                If PanButtons IsNot Nothing AndAlso IsFavorite Then
+                    Ani.Add(AaOpacity(PanButtons, -PanButtons.Opacity, Time * 0.4))
+                End If
                 Ani.AddRange({
                              AaOpacity(RectBack, -RectBack.Opacity, Time),
                              AaColor(RectBack, Border.BackgroundProperty, If(IsMouseDown, "ColorBrush6", "ColorBrush7"), Time),
