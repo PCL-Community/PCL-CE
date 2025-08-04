@@ -402,7 +402,7 @@ Public Class PageInstanceOverall
     '删除实例
     '修改此代码时，同时修改 PageSelectRight 中的代码
     Private Sub BtnManagePatch_Click(sender As Object, e As EventArgs) Handles BtnManagePatch.Click
-        Select Case MyMsgBox($"你确定要修改 {PageInstanceLeft.Instance.Name} 吗？ {vbCrLf}修改游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修改核心后，请在高级启动选项里勾选关闭文件校验选项。", Title:="修补提示", Button2:="取消")
+        Select Case MyMsgBox($"你确定要修补 {PageInstanceLeft.Instance.Name} 吗？ {vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修补核心后，文件校验会自动关闭。", Title:="修补提示", Button2:="取消")
             Case 1
                 Dim UserInput As String = SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
                 If UserInput Is Nothing Or String.IsNullOrWhiteSpace(UserInput) Then Return
@@ -412,6 +412,7 @@ Public Class PageInstanceOverall
                         Dim Core As New GameCore(PageInstanceLeft.Instance.Path & PageInstanceLeft.Instance.Name & ".jar")
                         Core.AddToCore(UserInput)
                         Hint("修补游戏核心成功", HintType.Finish)
+                        Setup.Set(“VersionAdvanceAssetsV2", True, instance:=PageInstanceLeft.Instance)
                     End Sub)
             Case 2
                 Return
