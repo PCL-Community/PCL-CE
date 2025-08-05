@@ -98,7 +98,6 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
                             <local:MyButton x:Name="BtnSkinSave" Text="保存皮肤" MinWidth="140" Padding="13,0" Margin="0,0,20,0" Grid.Row="1" />
-                            <local:MyButton x:Name="BtnSkinCache" Text="刷新缓存" MinWidth="140" Padding="13,0" Margin="0,0,20,0" ToolTip="刷新并重新下载 PCL 当前显示的皮肤" Grid.Row="1" Grid.Column="1" />
                         </Grid>
                     </Grid>
                 </StackPanel>

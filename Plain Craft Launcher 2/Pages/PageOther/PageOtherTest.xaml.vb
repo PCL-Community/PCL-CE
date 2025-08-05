@@ -566,9 +566,6 @@ Public Class PageOtherTest
                            End Try
                        End Sub)
     End Sub
-    Private Sub BtnSkinCache_Click(sender As Object, e As EventArgs) Handles BtnSkinCache.Click
-        MySkin.RefreshCache(Nothing)
-    End Sub
 
     '今日人品
     Private Sub BtnLuck_Click(sender As Object, e As MouseButtonEventArgs)
