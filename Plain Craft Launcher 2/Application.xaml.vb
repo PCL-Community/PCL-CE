@@ -176,15 +176,6 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             Dim WebpPath = $"{PathPure}CE\libwebp.dll"
             If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
-            WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
-            If Not File.Exists(PathPure & "CE\msalruntime.dll") Then
-                If Directory.Exists(PathPure & "CE\runtimes") Then DeleteDirectory(PathPure & "CE\runtimes")
-                Using fs = New FileStream(PathPure & "CE\" & "msalruntime.zip", FileMode.Open, FileAccess.Read)
-                    Using fszip = New ZipArchive(fs, ZipArchiveMode.Read)
-                        fszip.ExtractToDirectory(PathPure & "CE\")
-                    End Using
-                End Using
-            End If
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体

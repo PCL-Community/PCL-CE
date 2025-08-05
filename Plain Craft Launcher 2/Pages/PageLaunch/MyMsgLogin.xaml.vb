@@ -25,7 +25,7 @@ Public Class MyMsgLogin
             OAuthUrl = Converter.AuthUrl
             Init()
         Catch ex As Exception
-            Log(ex, "登录弹窗初始化失败", LogLevel.Hint)
+            Log(ex, "正版验证弹窗初始化失败", LogLevel.Hint)
         End Try
     End Sub
 
@@ -40,9 +40,9 @@ Public Class MyMsgLogin
                 AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 300, 60, New AniEaseOutFluent(AniEasePower.Weak))
             }, "MyMsgBox " & Uuid)
             '记录日志
-            Log("[Control] 登录弹窗：" & LabTitle.Text & vbCrLf & LabCaption.Text)
+            Log("[Control] 正版验证弹窗：" & LabTitle.Text & vbCrLf & LabCaption.Text)
         Catch ex As Exception
-            Log(ex, "登录弹窗加载失败", LogLevel.Hint)
+            Log(ex, "正版验证弹窗加载失败", LogLevel.Hint)
         End Try
     End Sub
     Private Sub Close()
@@ -127,35 +127,46 @@ Public Class MyMsgLogin
                     "application/x-www-form-urlencoded", 5000 + UnknownFailureCount * 5000, MakeLog:=False)
                 '获取结果
                 Dim ResultJson As JObject = GetJson(Result)
-                McLaunchLog($"令牌过期时间：{ResultJson("expires_in")} 秒")
+                ProfileLog($"令牌过期时间：{ResultJson("expires_in")} 秒")
                 Hint("网页登录成功！", HintType.Finish)
                 Finished({ResultJson("access_token").ToString, ResultJson("refresh_token").ToString})
                 Return
-            Catch ex As Exception
-                If ex.Message.Contains("authorization_declined") Then
+            Catch ex As HttpWebException
+                Dim response As String = ex.InnerHttpException.WebResponse
+                If response.Contains("authorization_declined") Then
                     Finished(New Exception("$你拒绝了 PCL 申请的权限……"))
                     Return
-                ElseIf ex.Message.Contains("expired_token") Then
+                ElseIf response.Contains("expired_token") Then
                     Finished(New Exception("$登录用时太长啦，重新试试吧！"))
                     Return
-                ElseIf ex.Message.Contains("Account security interrupt") Then
+                ElseIf response.Contains("Account security interrupt") Then
                     Finished(New Exception("$非常抱歉，该账号由于安全问题无法登陆，请前往 Microsoft 账户页获取更多信息。"))
                     Return
-                ElseIf ex.Message.Contains("service abuse") Then
+                ElseIf response.Contains("service abuse") Then
                     Finished(New Exception("$非常抱歉，该账号已被微软封禁，无法登录。"))
                     Return
-                ElseIf ex.Message.Contains("AADSTS70000") Then '可能不能判 “invalid_grant”，见 #269
+                ElseIf response.Contains("AADSTS70000") Then '可能不能判 “invalid_grant”，见 #269
                     Finished(New RestartException)
                     Return
-                ElseIf ex.Message.Contains("authorization_pending") Then
+                ElseIf response.Contains("authorization_pending") Then
                     Thread.Sleep(2000)
                 ElseIf UnknownFailureCount <= 2 Then
                     UnknownFailureCount += 1
-                    Log(ex, $"登录轮询第 {UnknownFailureCount} 次失败")
+                    Log(ex, $"正版验证轮询第 {UnknownFailureCount} 次失败")
+                    Log("原始返回内容: " & response)
+                    Thread.Sleep(2000)
+                Else
+                    Finished(New Exception("正版验证轮询失败", ex))
+                    Return
+                End If
+            Catch ex As Exception
+                If UnknownFailureCount <= 2 Then
+                    UnknownFailureCount += 1
+                    Log(ex, $"正版验证轮询第 {UnknownFailureCount} 次失败")
                     Log(ex.Message)
                     Thread.Sleep(2000)
                 Else
-                    Finished(New Exception("登录轮询失败", ex))
+                    Finished(New Exception("正版验证轮询失败", ex))
                     Return
                 End If
             End Try

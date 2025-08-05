@@ -133,16 +133,6 @@ Namespace My.Resources
         '''<summary>
         '''  查找 System.Byte[] 类型的本地化资源。
         '''</summary>
-        Friend ReadOnly Property msalruntime() As Byte()
-            Get
-                Dim obj As Object = ResourceManager.GetObject("msalruntime", resourceCulture)
-                Return CType(obj,Byte())
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  查找 System.Byte[] 类型的本地化资源。
-        '''</summary>
         Friend ReadOnly Property RetroWrapper() As Byte()
             Get
                 Dim obj As Object = ResourceManager.GetObject("RetroWrapper", resourceCulture)
