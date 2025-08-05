@@ -190,19 +190,38 @@ Retry:
 #End Region
 
 #Region "UI 元素"
-    Private Function PlayerInfoItem(Info As ETPlayerInfo, OnClick As MyListItem.ClickEventHandler)
-        Dim NewItem As New MyListItem With {
-                .Title = Info.NaidName,
-                .Info = If(Info.IsHost, "[主机] ", "") & If(Info.Cost = "Local", $"[本机] NAT {GetNatTypeChinese(Info.NatType)}", $"{Info.Ping}ms / {GetConnectTypeChinese(Info.Cost)}{If(Not Info.Loss = 0, $" / 丢包 {Info.Loss}%", "")}"),
+    Private Function PlayerInfoItem(info As ETPlayerInfo, onClick As MyListItem.ClickEventHandler)
+        Dim details As String = Nothing
+        If info.IsHost Then details += "[主机] "
+        If String.IsNullOrEmpty(info.NaidName) Then details += "[第三方] "
+        If info.Cost = "Local" Then
+            details += $"[本机] NAT {GetNatTypeChinese(info.NatType)}"
+        Else
+            details += $"{info.Ping}ms / {GetConnectTypeChinese(info.Cost)}{If(Not info.Loss = 0, $" / 丢包 {info.Loss}%", "")}"
+        End If
+        Dim newItem As New MyListItem With {
+                .Title = If(Not String.IsNullOrEmpty(info.NaidName), info.NaidName, info.Hostname),
+                .Info = details,
                 .Type = MyListItem.CheckType.Clickable,
-                .Tag = Info
+                .Tag = info
         }
-        AddHandler NewItem.Click, OnClick
-        Return NewItem
+        AddHandler newItem.Click, onClick
+        Return newItem
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
-        MyMsgBox($"{If(sender.Tag.NaidName IsNot Nothing, "Natayark ID：" & sender.Tag.NaidName, "来自其他启动器")}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
-                 $"玩家 {sender.Tag.NaidName} 的详细信息")
+        Dim info As ETPlayerInfo = sender.Tag
+        Dim msg As String = Nothing
+        If Not String.IsNullOrEmpty(info.NaidName) Then
+            msg += $"Natayark ID：{info.NaidName}"
+            If Not String.IsNullOrEmpty(info.McName) Then
+                msg += $"，启动器使用的 MC 档案名称：{info.McName}"
+            End If
+        Else
+            msg += $"主机名称：{info.Hostname}"
+        End If
+        msg += vbCrLf
+        msg += $"延迟：{info.Ping}ms，丢包率：{info.Loss}%，连接方式：{GetConnectTypeChinese(info.Cost)}，NAT 类型：{GetNatTypeChinese(info.NatType)}"
+        MyMsgBox(msg, $"玩家 {If(Not String.IsNullOrEmpty(info.NaidName), info.NaidName, info.Hostname)} 的详细信息")
     End Sub
 #End Region
 
@@ -389,7 +408,7 @@ Retry:
                     .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
                     .NatType = p("nat_type"),
                     .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
-                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), "Terracotta-User")
+                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), Nothing)
                 }
                 If info.Cost = "Local" Then LocalInfo = info
                 If info.IsHost Then
