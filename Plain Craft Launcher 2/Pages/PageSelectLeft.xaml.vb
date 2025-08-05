@@ -88,7 +88,7 @@
                 
                 If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = Path & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
                 '注册事件
-                If Folder.Type = McFolderType.Custom Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
+                If Not Folder.Type = McFolderType.Original Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
                 moveUpItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveUp_Click))
                 moveDownItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveDown_Click))
                 CType(ContMenu.FindName("Open"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Open_Click))
