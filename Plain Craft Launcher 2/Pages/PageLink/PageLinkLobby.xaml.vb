@@ -19,6 +19,16 @@ Public Class PageLinkLobby
         PageLoaderInit(Load, PanLoad, PanContent, PanAlways, InitLoader, AutoRun:=False)
         '注册自定义的 OnStateChanged
         AddHandler InitLoader.OnStateChangedUi, AddressOf OnLoadStateChanged
+        If LobbyAnnouncementLoader Is Nothing Then
+            Dim loaders As New List(Of LoaderBase)
+            loaders.Add(New LoaderTask(Of Integer, Integer)("大厅界面初始化", Sub() RunInUi(Sub()
+                                                                                         HintAnnounce.Visibility = Visibility.Visible
+                                                                                         HintAnnounce.Theme = MyHint.Themes.Blue
+                                                                                         HintAnnounce.Text = "正在连接到大厅服务器..."
+                                                                                     End Sub)))
+            loaders.Add(New LoaderTask(Of Integer, Integer)("大厅公告获取", AddressOf GetAnnouncement) With {.ProgressWeight = 0.5})
+            LobbyAnnouncementLoader = New LoaderCombo(Of Integer)("Lobby Announcement", loaders) With {.Show = False}
+        End If
     End Sub
 
     Public IsLoad As Boolean = False
@@ -46,7 +56,7 @@ Public Class PageLinkLobby
                            End If
                        End Sub)
         IsMcWatcherRunning = True
-        GetAnnouncement()
+        LobbyAnnouncementLoader.Start()
         If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshExpiresAt")) AndAlso Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) < 0 Then
                 Setup.Set("LinkNaidRefreshToken", "")
@@ -85,13 +95,9 @@ Public Class PageLinkLobby
 
 #Region "公告"
     Public Const AllowedVersion As Integer = 4
+    Public Shared LobbyAnnouncementLoader As LoaderCombo(Of Integer) = Nothing
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
-                           RunInUi(Sub()
-                                       HintAnnounce.Visibility = Visibility.Visible
-                                       HintAnnounce.Theme = MyHint.Themes.Blue
-                                       HintAnnounce.Text = "正在连接到大厅服务器..."
-                                   End Sub)
                            Try
                                Dim ServerNumber As Integer = 0
                                Dim Jobj As JObject = Nothing
