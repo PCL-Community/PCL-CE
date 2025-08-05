@@ -161,6 +161,8 @@ WaitRetry:
             '设置初始化
             Setup.Load("SystemDebugMode")
             Setup.Load("SystemDebugAnim")
+            Setup.Load("SystemUseDefaultProxy")
+            Setup.Load("SystemHttpProxy")
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")

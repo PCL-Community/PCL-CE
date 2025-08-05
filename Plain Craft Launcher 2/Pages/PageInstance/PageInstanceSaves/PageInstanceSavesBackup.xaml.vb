@@ -1,4 +1,6 @@
-﻿Imports PCL.Core.Utils.FileVersionControl
+﻿Imports PCL.Core.IO
+Imports PCL.Core.VersionControl
+
 Class PageInstanceSavesBackup
     Implements IRefreshable
 
@@ -119,7 +121,29 @@ Class PageInstanceSavesBackup
                                                 End Try
                                             End Sub
 
-                newItem.Buttons = {btnDelete, btnExport, btnApply}
+                Dim btnInfo As New MyIconButton With {
+                    .Logo = Logo.IconButtonInfo,
+                    .ToolTip = "信息"
+                }
+
+                AddHandler btnInfo.Click, Sub()
+                                              Try
+                                                  Dim data As List(Of FileVersionObjects)
+                                                  Using snap As New SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave)
+                                                      data = snap.GetNodeObjects(item.NodeId)
+                                                  End Using
+
+                                                  Dim totalSize As Long = data.Select(Function(x) x.Length).Sum()
+                                                  MyMsgBox($"描述: {item.Desc}
+创建时间: {item.Created}
+存档大小: {ByteStream.GetReadableLength(totalSize)} ({data.Count} 个对象)",
+                                                          item.Name)
+                                              Catch ex As Exception
+                                                  Log(ex, $"执行删除任务失败")
+                                              End Try
+                                          End Sub
+
+                newItem.Buttons = {btnDelete, btnExport, btnInfo, btnApply}
 
                 PanList.Children.Add(newItem)
             Next

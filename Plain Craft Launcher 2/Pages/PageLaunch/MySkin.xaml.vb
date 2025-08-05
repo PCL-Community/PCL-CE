@@ -260,7 +260,6 @@ Public Class MySkin
         RunInNewThread(
         Sub()
             Try
-Retry:
                 '获取登录信息
                 If McLoginMsLoader.State <> LoadState.Finished Then McLoginMsLoader.WaitForExit(GetLoginData())
                 If McLoginMsLoader.State <> LoadState.Finished Then

@@ -65,6 +65,13 @@ Public Class PageInstanceExport
                     If SubOptionBlackList.Any(Function(b) File.Name.ContainsF(b)) Then Continue For
                     Panel.Children.Add(New MyCheckBox With {. _
                         Tag = New ExportOption With {.Title = File.Name, .DefaultChecked = True, .Rules = EscapeLikePattern($"{Folder}/{File.Name}")}})
+                    If Folder = "shaderpacks" Then '处理光影包的配置文件
+                        Dim shaderConfig As New FileInfo(IO.Path.Combine(File.Directory.FullName, $"{IO.Path.GetFileNameWithoutExtension(File.Name)}.txt"))
+                        If shaderConfig.Exists Then
+                            Panel.Children.Add(New MyCheckBox With {. _
+                        Tag = New ExportOption With {.Title = $"{shaderConfig.Name} (光影配置文件)", .DefaultChecked = True, .Rules = EscapeLikePattern($"{Folder}/{shaderConfig.Name}")}})
+                        End If
+                    End If
                 Next
             End If
             If AcceptFolder Then

@@ -7,10 +7,10 @@ Class PageLoginProfile
     Public Sub Reload() Handles Me.Loaded
         RefreshProfileList()
         FrmLoginProfileSkin = Nothing
-        RunInNewThread(Sub()
-                           Thread.Sleep(800)
-                           RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
-                       End Sub)
+        'RunInNewThread(Sub()
+        '                   Thread.Sleep(800)
+        '                   RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
+        '               End Sub)
     End Sub
     Public Property ProfileCollection As New ObservableCollection(Of ProfileItem)
     Public Class ProfileItem
@@ -60,6 +60,13 @@ Class PageLoginProfile
         SelectedProfile = CType(sender, MyListItem).Tag
         Log($"[Profile] 选定档案: {sender.Tag.Username}, 以 {sender.Tag.Type} 方式验证")
         LastUsedProfile = ProfileList.IndexOf(sender.Tag) '获取当前档案的序号
+        SaveProfile() '保存档案配置，确保切换后的档案被正确保存
+
+        '清除登录验证缓存，确保使用新档案的验证信息
+        McLoginMsLoader.State = LoadState.Waiting
+        McLoginAuthLoader.State = LoadState.Waiting
+        McLoginLegacyLoader.State = LoadState.Waiting
+
         RunInUi(Sub()
                     FrmLaunchLeft.RefreshPage(True)
                     FrmLaunchLeft.BtnLaunch.IsEnabled = True

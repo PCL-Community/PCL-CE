@@ -337,12 +337,12 @@ Finish:
     '离线皮肤
     Public Shared SkinLegacy As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Legacy", AddressOf SkinLegacyLoad, AddressOf SkinLegacyInput, ThreadPriority.AboveNormal)
     Private Shared Function SkinLegacyInput() As EqualableList(Of String)
-        Return New EqualableList(Of String) From {0, SelectedProfile.Username}
+        Return New EqualableList(Of String) From {SelectedProfile.Username, SelectedProfile.Uuid}
     End Function
     Private Shared Sub SkinLegacyLoad(Data As LoaderTask(Of EqualableList(Of String), String))
         '清空已有皮肤
         RunInUi(Sub() If FrmLoginProfileSkin IsNot Nothing AndAlso FrmLoginProfileSkin.Skin IsNot Nothing Then FrmLoginProfileSkin.Skin.Clear())
-        Data.Output = PathImage & "Skins/" & McSkinSex(GetOfflineUuid(Data.Input(1))) & ".png"
+        Data.Output = PathImage & "Skins/" & McSkinSex(Data.Input(1)) & ".png"
         '刷新显示
         If FrmLoginProfileSkin IsNot Nothing Then
             RunInUi(Sub() FrmLoginProfileSkin.Skin.Load())

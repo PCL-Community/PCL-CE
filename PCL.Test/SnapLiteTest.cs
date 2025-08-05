@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Utils.FileVersionControl;
 using System.Threading.Tasks;
+using PCL.Core.VersionControl;
 
 namespace PCL.Test;
 

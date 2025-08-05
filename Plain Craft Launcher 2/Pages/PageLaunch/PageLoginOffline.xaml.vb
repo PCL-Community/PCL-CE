@@ -43,6 +43,8 @@
             .Desc = ""}
         ProfileList.Add(NewProfile)
         SaveProfile()
+        SelectedProfile = NewProfile
+        IsCreatingProfile = False
         Hint("档案新建成功！", HintType.Finish)
         RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
     End Sub

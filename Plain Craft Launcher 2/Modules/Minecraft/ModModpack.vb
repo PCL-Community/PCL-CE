@@ -298,6 +298,8 @@ Retry:
                             TargetFolder = "mods" : Type = CompType.Mod
                         ElseIf ModuleNames.Contains("pack.mcmeta") Then
                             TargetFolder = "resourcepacks" : Type = CompType.ResourcePack
+                        ElseIf ModuleNames.Contains("level.dat") Then
+                            TargetFolder = "saves" : Type = CompType.World
                         Else
                             TargetFolder = "shaderpacks" : Type = CompType.Shader
                         End If
@@ -453,7 +455,7 @@ Retry:
             '添加下载文件
             Dim Urls = File("downloads").Select(Function(x) CompFile.HandleCurseForgeDownloadUrls(x.ToString())).ToList()
             '镜像源
-            Urls = Urls.SelectMany(Function(x) DlSourceModDownloadGet(x))
+            Urls = Urls.SelectMany(Function(x As String) DlSourceModDownloadGet(x)).ToList()
             Dim TargetPath As String = $"{PathMcFolder}versions\{InstanceName}\{File("path")}"
             If Not IO.Path.GetFullPath(TargetPath).StartsWithF($"{PathMcFolder}versions\{InstanceName}\", True) Then
                 MyMsgBox($"整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！" & vbCrLf & "错误的文件：" & TargetPath, "文件路径校验失败", IsWarn:=True)

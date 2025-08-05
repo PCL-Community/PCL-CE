@@ -1,5 +1,5 @@
 Imports System.IO.Compression
-Imports PCL.Core.Model
+Imports PCL.Core.Minecraft
 
 Public Module ModDownloadLib
 

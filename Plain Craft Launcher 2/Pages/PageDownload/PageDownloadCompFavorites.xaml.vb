@@ -113,6 +113,10 @@ Public Class PageDownloadCompFavorites
                     NewItem.Title = "光影包 ({0})"
                 Case CompType.DataPack
                     NewItem.Title = "数据包 ({0})"
+                Case CompType.Plugin
+                    NewItem.Title = "插件 ({0})"
+                Case CompType.World
+                    NewItem.Title = "世界 ({0})"
                 Case Else
                     NewItem.Title = "未分类类型 ({0})"
             End Select
@@ -515,6 +519,7 @@ Public Class PageDownloadCompFavorites
             If SearchResult.Contains(Item) Then SearchResult.Remove(Item)
             CurrentFavTarget.Favs.Remove(Item.Tag.Id)
             CompFavorites.Save()
+            If Not CompItemList.Any Then FrmDownloadCompFavorites.PageLoaderRestart()
         Catch ex As Exception
             Log(ex, "[CompFavourites] 移除收藏时发生错误")
         End Try

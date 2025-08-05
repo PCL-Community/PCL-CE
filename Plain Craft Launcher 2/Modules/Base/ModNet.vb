@@ -2,71 +2,125 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
+Imports System.IO.Compression
 Imports LiteDB
+Imports CacheCow.Client
+Imports CacheCow.Common
+Imports PCL.Core.Network
+Imports PCL.Core.Utils.Hash
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
 
-    ''' <summary>
-    ''' 确定是否使用代理。
-    ''' </summary>
-    ''' <returns>返回 WebProxy 或者 Nothing</returns>
-    Public Function GetProxy() As WebProxy
-        If Setup.Get("SystemUseDefaultProxy") Then
-            Log("[Net] 当前代理状态：跟随系统代理设置")
-            Return Nothing
-        End If
-        Dim ProxyServer As String = Setup.Get("SystemHttpProxy")
-        _PreviousProxyLink = ProxyServer
-        If Not String.IsNullOrWhiteSpace(ProxyServer) Then
-            Log("[Net] 当前代理状态：自定义")
-            Dim ProxyUri As New Uri(ProxyServer)
-            Try
-                If Not ProxyUri.Scheme.ContainsF("http:") Then Return Nothing
-                If ProxyUri.IsLoopback OrElse
-                ProxyUri.Host.StartsWithF("192.168.") OrElse
-                ProxyUri.Host.StartsWithF("10.") OrElse
-                ProxyUri.Host.StartsWithF("fe80") OrElse
-                (ProxyUri.Host.Split(".")(1) > 16 AndAlso ProxyUri.Host.Split(".")(1) < 31 AndAlso ProxyUri.Host.StartsWithF("172.")) Then Log($"[Net] 使用 {ProxyUri} 作为网络代理")
-                '视作非本地地址
-            Catch
-            End Try
-            Return New WebProxy(ProxyServer, True)
-        End If
-        Log("[Net] 当前代理状态：禁用")
-        Return Nothing
-    End Function
-
-    Private _PreviousProxyLink As String
-    Private _httpClient As HttpClient
-    Private _httpClientHandler As HttpClientHandler
-    Private ReadOnly _httpClientLock As New Object
-    Public Function GetHttpClient() As HttpClient
-        SyncLock (_httpClientLock)
-            If Setup.Get("SystemHttpProxy") <> _PreviousProxyLink Then
-                _httpClient?.Dispose()
-                _httpClient = Nothing
-                _httpClientHandler?.Dispose()
-                _httpClientHandler = Nothing
-            End If
-            If _httpClient Is Nothing Then
-                _httpClientHandler = New HttpClientHandler() With {
-                                                .Proxy = GetProxy(),
-                                                .MaxConnectionsPerServer = 1024,
+    Public ReadOnly MyHttpClient As New HttpClient(New HttpClientHandler() With {
+                                                .Proxy = HttpProxyManager.Instance,
+                                                .MaxConnectionsPerServer = 256,
                                                 .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
                                                     System.Security.Authentication.SslProtocols.Tls12 Or
                                                     System.Security.Authentication.SslProtocols.Tls11 Or
                                                     System.Security.Authentication.SslProtocols.Tls,
                                                 .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
                                                 .AllowAutoRedirect = True,
-                                                .UseCookies = True,
-                                                .CookieContainer = New CookieContainer()
-                                            }
-                _httpClient = New HttpClient(_httpClientHandler)
+                                                .UseCookies = False
+                                            })
+
+    Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New NetCacheStorage(IO.Path.Combine(PathTemp, "Cache", "Net")), New HttpClientHandler() With {
+                                                .Proxy = HttpProxyManager.Instance,
+                                                .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
+                                                    System.Security.Authentication.SslProtocols.Tls12 Or
+                                                    System.Security.Authentication.SslProtocols.Tls11 Or
+                                                    System.Security.Authentication.SslProtocols.Tls,
+                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .AllowAutoRedirect = True,
+                                                .UseCookies = False
+                                            })
+
+    Private Class NetCacheStorage
+        Implements CacheCow.Common.ICacheStore
+        Implements IDisposable
+
+        Private disposedValue As Boolean
+        Private _storagePath As String
+        Private _contentSerializer As New MessageContentHttpMessageSerializer()
+        Sub New(storagePath As String)
+            _storagePath = storagePath
+            If Not Directory.Exists(storagePath) Then Directory.CreateDirectory(storagePath)
+        End Sub
+
+        Public Async Function GetValueAsync(key As CacheKey) As Task(Of HttpResponseMessage) Implements ICacheStore.GetValueAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                If Not cacheFile.Exists Then Return Nothing
+                Dim ms As New MemoryStream()
+                Using fs = cacheFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read)
+                    Using decompress As New DeflateStream(fs, CompressionMode.Decompress)
+                        Await decompress.CopyToAsync(ms)
+                    End Using
+                End Using
+                ms.Seek(0, SeekOrigin.Begin)
+                Return Await _contentSerializer.DeserializeToResponseAsync(ms)
+            Catch ex As Exception
+                Log(ex, $"[Net] 获取缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+            Return Nothing
+        End Function
+
+        Public Async Function AddOrUpdateAsync(key As CacheKey, response As HttpResponseMessage) As Task Implements ICacheStore.AddOrUpdateAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                Using fs = cacheFile.Open(FileMode.Create, FileAccess.Write, FileShare.None)
+                    fs.SetLength(0) '先清空之前的内容
+                    Using compress As New DeflateStream(fs, CompressionMode.Compress)
+                        Await _contentSerializer.SerializeAsync(response, compress)
+                    End Using
+                End Using
+            Catch ex As Exception
+                Log(ex, $"[Net] 更新缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+        End Function
+
+        Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
+            Try
+                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                If Not cacheFile.Exists Then Return True
+                cacheFile.Delete()
+                Return True
+            Catch ex As Exception
+                Log(ex, $"[Net] 移除缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+            End Try
+            Return False
+        End Function
+
+        Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
+            Try
+                Dim dir As New DirectoryInfo(_storagePath)
+                Dim cacheFiles = dir.EnumerateFiles()
+                For Each cacheFile In cacheFiles
+                    cacheFile.Delete()
+                Next
+            Catch ex As Exception
+                Log(ex, $"[Net] 清空缓存资源出现异常")
+            End Try
+        End Function
+
+        Private Function GetCacheNameByKey(key As CacheKey)
+            Return SHA512Provider.Instance.ComputeHash($"{key.HashBase64}{New Uri(key.ResourceUri).Host}")
+        End Function
+
+        Protected Overridable Sub Dispose(disposing As Boolean)
+            If Not disposedValue Then
+                If disposing Then
+
+                End If
+                disposedValue = True
             End If
-            Return _httpClient
-        End SyncLock
-    End Function
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Dispose(disposing:=True)
+            GC.SuppressFinalize(Me)
+        End Sub
+    End Class
 
     ''' <summary>
     ''' 测试 Ping。失败则返回 -1。
@@ -99,11 +153,16 @@ Public Module ModNet
         ''' 不要尝试读取 <c>Content</c> 属性的内容，它已经被 dispose 了
         ''' </summary>
         Public ReadOnly Property Response As HttpResponseMessage
-        Public Sub New(response As HttpResponseMessage)
+        ''' <summary>
+        ''' 站点的原始返回内容
+        ''' </summary>
+        Public ReadOnly Property WebResponse As String
+        Public Sub New(response As HttpResponseMessage, Optional webResponse As String = Nothing)
             MyBase.New($"HTTP 响应失败: {response.ReasonPhrase} ({CType(response.StatusCode, Integer)})")
             Me.Response = response
             StatusCode = response.StatusCode
             ReasonPhrase = response.ReasonPhrase
+            Me.WebResponse = webResponse
         End Sub
     End Class
 
@@ -132,8 +191,9 @@ Public Module ModNet
     ''' <exception cref="HttpRequestFailedException">HTTP 响应失败</exception>
     Private Sub EnsureSuccessStatusCode(response As HttpResponseMessage)
         If Not response.IsSuccessStatusCode Then
+            Dim content As String = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
             response.Content?.Dispose()
-            Throw New HttpRequestFailedException(response)
+            Throw New HttpRequestFailedException(response, content)
         End If
     End Sub
 
@@ -181,7 +241,7 @@ Public Module ModNet
                     request.Headers.Accept.ParseAdd(Accept)
                     request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.5")
                     request.Headers.Add("X-Requested-With", "XMLHttpRequest")
-                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = MyHttpCacheClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         EnsureSuccessStatusCode(response)
                         Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
                             If Encoding Is Nothing Then Encoding = Encoding.UTF8
@@ -251,7 +311,7 @@ Public Module ModNet
                 Using request As New HttpRequestMessage(HttpMethod.Get, Url)
                     request.Headers.Accept.ParseAdd(Accept)
                     SecretHeadersSign(Url, request, UseBrowserUserAgent)
-                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = MyHttpCacheClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         EnsureSuccessStatusCode(response)
                         If Encode Is Nothing Then Encode = Encoding.UTF8
                         Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
@@ -317,7 +377,7 @@ Public Module ModNet
             If File.Exists(LocalFile) Then File.Delete(LocalFile)
             Using request As New HttpRequestMessage(HttpMethod.Get, Url)
                 SecretHeadersSign(Url, request, UseBrowserUserAgent)
-                Using response As HttpResponseMessage = Await GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
+                Using response As HttpResponseMessage = Await MyHttpCacheClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                     EnsureSuccessStatusCode(response)
                     Using httpStream As Stream = Await response.Content.ReadAsStreamAsync()
                         Using fileStream As New FileStream(LocalFile, FileMode.Create)
@@ -401,9 +461,12 @@ Public Module ModNet
             Catch ex As ThreadInterruptedException
                 Throw
             Catch ex As Exception
-                If ex.InnerException IsNot Nothing AndAlso TypeOf ex.InnerException Is HttpRequestFailedException AndAlso CInt(CType(ex.InnerException, HttpRequestFailedException).StatusCode).ToString().StartsWithF("40") AndAlso DontRetryOnRefused Then Throw
+                If ex.InnerException IsNot Nothing AndAlso
+                    TypeOf ex.InnerException Is HttpRequestFailedException AndAlso
+                    CInt(CType(ex.InnerException, HttpRequestFailedException).StatusCode).ToString().StartsWithF("4") AndAlso
+                    DontRetryOnRefused Then Throw
                 RetryException = ex
-                If ModeDebug Then Log(ex, $"[Net] 网络请求第 {RetryCount} 次失败（{Url}）")
+                Log(ex, $"[Net] 网络请求第 {RetryCount} 次失败（{Url}）", LogLevel.Debug)
             End Try
         End While
         Throw RetryException
@@ -411,6 +474,15 @@ Public Module ModNet
     ''' <summary>
     ''' 发送一次网络请求并获取返回内容。
     ''' </summary>
+    ''' <param name="Url"></param>
+    ''' <param name="Method"></param>
+    ''' <param name="Data"></param>
+    ''' <param name="ContentType">仅 Data 为 string 时可用</param>
+    ''' <param name="Timeout"></param>
+    ''' <param name="Headers"></param>
+    ''' <param name="MakeLog"></param>
+    ''' <param name="UseBrowserUserAgent"></param>
+    ''' <returns></returns>
     Public Function NetRequestOnce(Url As String, Method As String, Data As Object, ContentType As String, Optional Timeout As Integer = 25000, Optional Headers As Dictionary(Of String, String) = Nothing, Optional MakeLog As Boolean = True, Optional UseBrowserUserAgent As Boolean = False) As String
         If RunInUi() AndAlso Not Url.Contains("//127.") Then Throw New Exception("在 UI 线程执行了网络请求")
         Url = SecretCdnSign(Url)
@@ -448,10 +520,15 @@ Public Module ModNet
                     End If
                     If Headers IsNot Nothing Then
                         For Each Pair In Headers
+                            If String.IsNullOrWhiteSpace(Pair.Key) OrElse String.IsNullOrWhiteSpace(Pair.Value) Then Continue For
+                            '标头覆盖
+                            If request.Headers.Contains(Pair.Key) Then
+                                request.Headers.Remove(Pair.Key)
+                            End If
                             request.Headers.Add(Pair.Key, Pair.Value)
                         Next
                     End If
-                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = MyHttpCacheClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         EnsureSuccessStatusCode(response)
                         Using responseStream = response.Content.ReadAsStreamAsync().Result
                             Using reader As New StreamReader(responseStream, Encoding.UTF8)
@@ -1083,7 +1160,7 @@ StartThread:
                 If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
-                    Using response = GetHttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = MyHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
                         EnsureSuccessStatusCode(response)
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString

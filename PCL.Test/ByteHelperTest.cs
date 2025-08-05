@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Helper;
+using PCL.Core.IO;
 
 namespace PCL.Test;
 
@@ -18,7 +18,7 @@ public class ByteHelperTest
         wathcer.Start();
         for (int i = 0; i < maxTestCount; i++)
         {
-            ByteHelper.GetReadableLength(random.Next(1024, 10240000));
+            ByteStream.GetReadableLength(random.Next(1024, 10240000));
         }
         wathcer.Stop();
         Console.WriteLine($"Took {wathcer.ElapsedMilliseconds} ms to format {maxTestCount} data size.");

@@ -4,11 +4,12 @@
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
         BtnLogin.IsEnabled = False
-        BtnBack.IsEnabled = False
+        BtnBack.Visibility = Visibility.Collapsed
         BtnLogin.Text = "0%"
         RunInNewThread(
         Sub()
             Try
+                SelectedProfile = Nothing
                 McLoginMsLoader.Start(GetLoginData(McLoginType.Ms), IsForceRestart:=True)
                 Do While McLoginMsLoader.State = LoadState.Loading
                     RunInUi(Sub() BtnLogin.Text = Math.Round(McLoginMsLoader.Progress * 100) & "%")
@@ -38,7 +39,7 @@
                 RunInUi(
                 Sub()
                     BtnLogin.IsEnabled = True
-                    BtnBack.IsEnabled = True
+                    BtnBack.Visibility = Visibility.Visible
                     BtnLogin.Text = "登录"
                 End Sub)
             End Try

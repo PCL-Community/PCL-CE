@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Model
+﻿Imports PCL.Core.Minecraft
 
 Public Class PageSetupJava
 

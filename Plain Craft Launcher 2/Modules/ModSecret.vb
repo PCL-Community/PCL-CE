@@ -1,11 +1,13 @@
-'由于包含加解密等安全信息，本文件中的部分代码已被删除
-
 Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
-Imports System.IO.Compression
-Imports PCL.Core.Helper
+Imports PCL.Core.IO
+Imports PCL.Core.Secret
+Imports PCL.Core.UI
+Imports PCL.Core.Update
+Imports PCL.Core.Utils
+Imports PCL.Core.VersionControl
 
 Friend Module ModSecret
 
@@ -69,7 +71,14 @@ Friend Module ModSecret
             Environment.[Exit](ProcessReturnValues.Cancel)
         End If
         '社区版提示
-        If Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce()
+        If Setup.Get("UiLauncherCEHint") Then
+            Dim count As Integer = Setup.Get("UiLauncherCEHintCount")
+            If count <= 0 Then
+                ShowCEAnnounce()
+                count = 11
+            End If
+            Setup.Set("UiLauncherCEHintCount", count - 1)
+        End If
     End Sub
     ''' <summary>
     ''' 展示社区版提示
@@ -158,7 +167,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Function
 
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
-        Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", Version:=McInstanceCurrent)
+        Dim DataJvmCustom As String = Setup.Get("VersionAdvanceJvm", instance:=McInstanceCurrent)
         DataList.Insert(0, If(DataJvmCustom = "", Setup.Get("LaunchAdvanceJvm"), DataJvmCustom)) '可变 JVM 参数
         Select Case Setup.Get("LaunchPreferredIpStack")
             Case 0
@@ -189,32 +198,15 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         If Url.Contains("api.curseforge.com") Then Client.Headers.Add("x-api-key", CurseForgeAPIKey)
         Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomUserAgent),
                                      CustomUserAgent,
-                                     If(Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com"),
-                                         "LogStatistic",
                                          If(UseBrowserUserAgent,
                                              $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
                                              $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode}"
                                          )
-                                     ))
+                                     )
         Client.Headers.Add("User-Agent", userAgent)
 
         Client.Headers.Add("Referer", "http://" & VersionCode & ".ce.open.pcl2.server/")
         If Url.Contains("pcl2ce.pysio.online/post") AndAlso Not String.IsNullOrEmpty(TelemetryKey) Then Client.Headers.Add("Authorization", TelemetryKey)
-    End Sub
-    ''' <summary>
-    ''' 设置 Headers 的 UA、Referer。
-    ''' </summary>
-    Friend Sub SecretHeadersSign(Url As String, ByRef Request As HttpWebRequest, Optional UseBrowserUserAgent As Boolean = False)
-        If Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com") Then
-            Request.UserAgent = "LogStatistic" '#4951
-        ElseIf UseBrowserUserAgent Then
-            Request.UserAgent = "PCL2/" & UpstreamVersion & "." & VersionBranchCode & " PCLCE/" & VersionStandardCode & " Mozilla/5.0 AppleWebKit/537.36 Chrome/63.0.3239.132 Safari/537.36"
-        Else
-            Request.UserAgent = "PCL2/" & UpstreamVersion & "." & VersionBranchCode & " PCLCE/" & VersionStandardCode
-        End If
-        Request.Referer = "http://" & VersionCode & ".ce.open.pcl2.server/"
-        If Url.Contains("api.curseforge.com") Then Request.Headers("x-api-key") = CurseForgeAPIKey
-        If Url.Contains("pcl2ce.pysio.online/post") Then Request.Headers("Authorization") = TelemetryKey
     End Sub
 
 #End Region
@@ -357,38 +349,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End Get
     End Property
 
-    Public Class ThemeStyle
-        Public Property L1 As Integer
-        Public Property L2 As Integer
-        Public Property L3 As Integer
-        Public Property L4 As Integer
-        Public Property L5 As Integer
-        Public Property L6 As Integer
-        Public Property L7 As Integer
-        Public Property L8 As Integer
-        Public Property G1 As Integer
-        Public Property G2 As Integer
-        Public Property G3 As Integer
-
-        Public ReadOnly Property Lb0 As Integer
-            Get
-                Return L5
-            End Get
-        End Property
-
-        Public ReadOnly Property Lb1 As Integer
-            Get
-                Return L7
-            End Get
-        End Property
-
-        Public Property LaP As Double = 1
-        Public Property LaN As Double = 1
-
-        Public Property Sa0 As Double
-        Public Property Sa1 As Double
-    End Class
-
     Private ReadOnly Property NewColor As MyColor
         Get
             Return New MyColor()
@@ -428,7 +388,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly TooltipBrush As SolidColorBrush
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
 
-        Public Sub New(style As ThemeStyle)
+        Public Sub New(style As GrayProfile)
             Gray1 = NewColor.FromHSL2(0, 0, style.L1)
             Gray2 = NewColor.FromHSL2(0, 0, style.L2)
             Gray3 = NewColor.FromHSL2(0, 0, style.L3)
@@ -438,12 +398,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Gray7 = NewColor.FromHSL2(0, 0, style.L7)
             Gray8 = NewColor.FromHSL2(0, 0, style.L8)
             White = NewColor.FromHSL2(0, 0, style.G2)
-            HalfWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(&H55)
-            SemiWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(&HDB)
-            Transparent = NewColor.FromHSL2(0, 0, style.L8).Alpha(0)
+            HalfWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Ahw)
+            SemiWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Asw)
+            Transparent = NewColor.FromHSL2(0, 0, style.L8).Alpha(style.At)
             Memory = NewColor.FromHSL2(0, 0, style.G3)
-            Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(&HE5)
-            BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(&HD2)
+            Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Atb)
+            BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(style.Asb)
 
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
@@ -468,11 +428,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Private Const LowestLight = 10
     Private Const LogLightBase = 1 - LowestLight
     Private ReadOnly LogLightBaseRate = Math.Log(HighestLight + 1)
-    Public Function AdjustLight(origin As Integer, adjust As Integer, Optional style As ThemeStyle = Nothing) As Integer
+    Public Function AdjustLight(origin As Integer, adjust As Integer, Optional style As GrayProfile = Nothing) As Integer
         If origin < 0 Then Return 0 '保证不炸定义域（虽然不会有人传个负的亮度过来吧，应该...不会吧）
         If adjust = 0 Then Return origin '节省性能
         If origin > HighestLight Or origin < LowestLight Then Return origin '亮度阈值
-        If style Is Nothing Then style = CurrentStyle
+        If style Is Nothing Then style = CurrentProfile
         adjust *= If(adjust > 0, style.LaP, style.LaN) '根据当前 style 调整 adjust 值
         '对数分布 -> 线性分布
         Dim originF = Math.Log(origin + LogLightBase) / LogLightBaseRate '源 [0,1]
@@ -508,7 +468,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly ColorBg1Brush As SolidColorBrush
         Public ReadOnly SemiTransparentBrush As SolidColorBrush
 
-        Public Sub New(style As ThemeStyle, hue As Integer, sat As Integer, lightAdjust As Integer)
+        Public Sub New(style As GrayProfile, hue As Integer, sat As Integer, lightAdjust As Integer)
             Dim sat0 = sat * style.Sa0
             Dim sat1 = sat * style.Sa1
 
@@ -521,8 +481,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Color7 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L7, lightAdjust, style))
             Color8 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
             ColorBg0 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
-            ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(&HBE)
-            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(&H1)
+            ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(style.Ab)
+            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(style.Ast)
 
             Color1Brush = New SolidColorBrush(Color1)
             Color2Brush = New SolidColorBrush(Color2)
@@ -538,29 +498,15 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End Sub
     End Class
 
-    Public ReadOnly LightStyle = New ThemeStyle With {
-        .L1 = 25, .L2 = 45, .L3 = 55, .L4 = 65,
-        .L5 = 80, .L6 = 91, .L7 = 95, .L8 = 97,
-        .G1 = 100, .G2 = 98, .G3 = 0,
-        .Sa0 = 1, .Sa1 = 1, .LaN = 0.5
-    }
+    Public Property GrayProfile As GrayProfileConfig = Nothing
 
-    Public ReadOnly LightStaticColors As New ThemeStyleStaticColors(LightStyle)
+    Public Property LightStaticColors As ThemeStyleStaticColors = Nothing
 
-    Public ReadOnly DarkStyle = New ThemeStyle With {
-        .L1 = 96, .L2 = 75, .L3 = 60, .L4 = 65,
-        .L5 = 45, .L6 = 25, .L7 = 22, .L8 = 20,
-        .G1 = 15, .G2 = 20, .G3 = 100,
-        .Sa0 = 1, .Sa1 = 0.4, .LaP = 0.75, .LaN = 0.75
-    }
+    Public Property DarkStaticColors As ThemeStyleStaticColors = Nothing
 
-    Public ReadOnly DarkStaticColors As New ThemeStyleStaticColors(DarkStyle)
-
-    Public ReadOnly Property CurrentStyle As ThemeStyle
-        Get
-            Return If(IsDarkMode, DarkStyle, LightStyle)
-        End Get
-    End Property
+    Public Function CurrentProfile As GrayProfile
+        Return GrayProfile.CurrentProfile(IsDarkMode)
+    End Function
 
     Public Property StaticColors As ThemeStyleStaticColors = Nothing
 
@@ -617,9 +563,28 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End If
 #End If
 
+        If GrayProfile Is Nothing Then
+            Dim result As AnyType = FileService.WaitForResult(PredefinedFileItems.GrayProfile)
+            If result Is Nothing Then
+                Log("[Theme] 无法获取灰阶配置", LogLevel.Debug)
+            Else If result.Type.IsSubclassOf(GetType(Exception)) Then
+                Log(result.Value(Of Exception), "[Theme] 获取灰阶配置时出错", LogLevel.Hint)
+            Else
+                GrayProfile = result.Value(Of GrayProfileConfig)
+            End If
+            If GrayProfile Is Nothing OrElse Not GrayProfile.IsEnabled Then
+                Log("[Theme] 正在使用默认灰阶配置")
+                GrayProfile = New GrayProfileConfig With {.IsEnabled = True}
+            Else
+                Log("[Theme] 生效灰阶配置: " & PredefinedFileItems.GrayProfile.TargetPath)
+            End If
+            LightStaticColors = New ThemeStyleStaticColors(GrayProfile.Light)
+            DarkStaticColors = New ThemeStyleStaticColors(GrayProfile.Dark)
+        End If
+
         Dim res = Application.Current.Resources
         StaticColors = If(IsDarkMode, DarkStaticColors, LightStaticColors)
-        DynamicColors = New ThemeStyleDynamicColors(CurrentStyle, ColorHue, ColorSat, ColorLightAdjust)
+        DynamicColors = New ThemeStyleDynamicColors(CurrentProfile, ColorHue, ColorSat, ColorLightAdjust)
 
         res("ColorObjectGray1") = StaticColors.Gray1
         res("ColorObjectGray2") = StaticColors.Gray2
@@ -760,6 +725,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     })
     Public ReadOnly Property IsUpdBetaChannel
         Get
+            If VersionBaseName.Contains("beta") Then Return True
             Return Setup.Get("SystemSystemUpdateBranch") = 1
         End Get
     End Property
@@ -869,7 +835,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Exit Sub
             End If
             ' id old new restart
-            Dim text As String = String.Concat(New String() {"update ", Process.GetCurrentProcess().Id, " """, PathWithName, """ """, fileName, """ true"})
+            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{PathWithName}"" ""{fileName}"" true"
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If TriggerRestartAndByEnd Then

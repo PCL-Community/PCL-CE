@@ -1,4 +1,4 @@
-Imports PCL.Core.Controls
+Imports PCL.Core.UI.Controls
 
 Public Class MyMsgLogin
     Private Data As JObject

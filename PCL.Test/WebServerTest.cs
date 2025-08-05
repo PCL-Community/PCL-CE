@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.Network;
 using PCL.Core.Utils;
 
 namespace PCL.Test;

@@ -2,7 +2,6 @@
 using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
-using PCL.Core.Model.ResourceProject.Modrinth;
 
 namespace PCL.Test.Project;
 

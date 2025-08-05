@@ -1,5 +1,40 @@
 Public Class PageInstanceCompResource
     Implements IRefreshable
+    
+#Region "模组信息缓存"
+    ' 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
+    Private ReadOnly ModFileInfoCache As New Dictionary(Of String, (CreationTime As DateTime, Length As Long))
+
+    Public Sub New()
+        InitializeComponent()
+    End Sub
+
+    ' 获取模组信息（带缓存）
+    Private Function GetModFileInfo(path As String) As (CreationTime As DateTime, Length As Long)
+        Dim cacheItem As (CreationTime As DateTime, Length As Long)
+        If ModFileInfoCache.TryGetValue(path, cacheItem) Then
+            Return cacheItem
+        End If
+
+        Try
+            Dim fileInfo As New FileInfo(path)
+            Dim newItem = (fileInfo.CreationTime, fileInfo.Length)
+            If Not ModFileInfoCache.ContainsKey(path) Then
+                ModFileInfoCache.Add(path, newItem)
+            End If
+            Return newItem
+        Catch ex As Exception
+            Log(ex, "获取模组信息失败: " & path)
+            Return (DateTime.MinValue, 0)
+        End Try
+    End Function
+
+    ' 页面关闭时清理缓存
+    Private Sub Page_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
+        ModFileInfoCache.Clear()
+    End Sub
+#End Region
+    
 #Region "初始化"
 
     Private CurrentCompType As CompType = CompType.Mod
@@ -88,6 +123,8 @@ Public Class PageInstanceCompResource
     Public Sub ReloadCompFileList(Optional ForceReload As Boolean = False)
         If LoaderRun(If(ForceReload, LoaderFolderRunType.ForceRun, LoaderFolderRunType.RunOnUpdated)) Then
             Log($"[System] 已刷新 {CurrentCompType} 列表")
+            ModFileInfoCache.Clear()
+            
             RunInUi(Sub()
                         Filter = FilterType.All
                         PanBack.ScrollToHome()
@@ -179,11 +216,6 @@ Public Class PageInstanceCompResource
     ''' </summary>
     Private Sub EnterFolderWithCheck(folderPath As String)
         Try
-            If String.IsNullOrEmpty(folderPath) OrElse Not Directory.Exists(folderPath) Then
-                Hint("文件夹不存在或已被删除", HintType.Critical)
-                Return
-            End If
-            
             EnterFolder(folderPath)
         Catch ex As Exception
             Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
@@ -245,7 +277,7 @@ Public Class PageInstanceCompResource
 #Region "UI 化"
 
     ''' <summary>
-    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 FileName。
+    ''' 已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 RawPath。
     ''' </summary>
     Public ModItems As New Dictionary(Of String, MyLocalCompItem)
     ''' <summary>
@@ -269,7 +301,7 @@ Public Class PageInstanceCompResource
                         Return
                     End If
                 End If
-                
+
                 '根据组件类型设置PanEmpty的文本内容
                 If CurrentCompType = CompType.Schematic Then
                     '检查是否在子文件夹中
@@ -286,14 +318,14 @@ Public Class PageInstanceCompResource
                     TxtEmptyTitle.Text = "尚未安装资源"
                     TxtEmptyDescription.Text = "你可以下载新的资源，也可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
                 End If
-                
+
                 '如果当前在子文件夹中，显示返回上一级按钮
                 If Not String.IsNullOrEmpty(CurrentFolderPath) Then
                     BtnHintBack.Visibility = Visibility.Visible
                 Else
                     BtnHintBack.Visibility = Visibility.Collapsed
                 End If
-                
+
                 PanEmpty.Visibility = Visibility.Visible
                 PanBack.Visibility = Visibility.Collapsed
                 PanSchematicEmpty.Visibility = Visibility.Collapsed
@@ -315,7 +347,7 @@ Public Class PageInstanceCompResource
                                                                   End Function).ToList()
 
             For Each ModEntity As LocalCompFile In itemsToShow
-                ModItems(ModEntity.FileName) = BuildLocalCompItem(ModEntity)
+                ModItems(ModEntity.RawPath) = BuildLocalCompItem(ModEntity)
             Next
             '显示结果
             RunInUi(Sub()
@@ -332,7 +364,7 @@ Public Class PageInstanceCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.FileName)}
+                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -342,7 +374,7 @@ Public Class PageInstanceCompResource
             Return NewItem
         Catch ex As Exception
             AniControlEnabled -= 1
-            Log(ex, $"创建UI项失败：{Entry.FileName}", LogLevel.Debug)
+            Log(ex, $"创建 UI 项失败：{Entry.RawPath}", LogLevel.Debug)
             Throw
         End Try
     End Function
@@ -355,7 +387,7 @@ Public Class PageInstanceCompResource
             AddHandler sender.Click, Sub(ss As MyLocalCompItem, ee As EventArgs)
                                          Dim currentTime = DateTime.Now
                                          Dim timeDiff = (currentTime - lastClickTime).TotalMilliseconds
-                                         
+
                                          If timeDiff <= 300 Then
                                              '300ms内双击，进入文件夹
                                              EnterFolderWithCheck(ss.Entry.ActualPath)
@@ -363,7 +395,7 @@ Public Class PageInstanceCompResource
                                              '单击切换选中状态
                                              ss.Checked = Not ss.Checked
                                          End If
-                                         
+
                                          lastClickTime = currentTime
                                      End Sub
         Else
@@ -409,24 +441,37 @@ Public Class PageInstanceCompResource
     Public Sub RefreshUI()
         If PanList Is Nothing Then Return
         Dim ShowingMods = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry)).Where(Function(m) CanPassFilter(m)).ToList
+
+        ' 对显示的资源进行排序，确保文件夹置顶
+        If ShowingMods.Any() Then
+            Dim sortMethod = GetSortMethod(CurrentSortMethod)
+            ShowingMods.Sort(Function(a, b) sortMethod(a, b))
+        End If
+
         '重新列出列表
         AniControlEnabled += 1
         If ShowingMods.Any() Then
             PanList.Visibility = Visibility.Visible
             PanList.Children.Clear()
             For Each TargetMod In ShowingMods
-                If Not ModItems.ContainsKey(TargetMod.FileName) Then Continue For
-                Dim Item As MyLocalCompItem = ModItems(TargetMod.FileName)
+                If Not ModItems.ContainsKey(TargetMod.RawPath) Then Continue For
+                Dim Item As MyLocalCompItem = ModItems(TargetMod.RawPath)
+
+                  ' 确保元素没有父容器，避免重复添加异常
+                If Item.Parent IsNot Nothing Then
+                    CType(Item.Parent, Panel).Children.Remove(Item)
+                End If
+
                 MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle)
                 MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo)
-                Item.Checked = SelectedMods.Contains(TargetMod.FileName) '更新选中状态
+                Item.Checked = SelectedMods.Contains(TargetMod.RawPath) '更新选中状态
                 PanList.Children.Add(Item)
             Next
         Else
             PanList.Visibility = Visibility.Collapsed
         End If
         AniControlEnabled -= 1
-        SelectedMods = SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.FileName = m)).ToList '取消选中已经不显示的 Mod
+        SelectedMods = New HashSet(Of String)(SelectedMods.Where(Function(m) ShowingMods.Any(Function(s) s.RawPath = m)))
         RefreshBars()
     End Sub
 
@@ -472,14 +517,14 @@ Public Class PageInstanceCompResource
                                                 End Function).Where(Function(g) g.Count > 1 AndAlso g.First.Comp IsNot Nothing).SelectMany(Function(g) g).ToList()
         BtnFilterDuplicate.Text = $"重复 ({DuplicateItems.Count})"
         BtnFilterDuplicate.Visibility = If(Filter = FilterType.Duplicate OrElse DuplicateItems.Any, Visibility.Visible, Visibility.Collapsed)
-        
+
         '返回按钮显示控制（在子文件夹中时显示）
         If Not String.IsNullOrEmpty(CurrentFolderPath) Then
             BtnManageBack.Visibility = Visibility.Visible
         Else
             BtnManageBack.Visibility = Visibility.Collapsed
         End If
-        
+
 
 
         '-----------------
@@ -495,20 +540,28 @@ Public Class PageInstanceCompResource
             Dim HasUpdate As Boolean = False
             Dim HasEnabled As Boolean = False
             Dim HasDisabled As Boolean = False
+            Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
+            
             For Each ModEntity In CompResourceListLoader.Output
-                If SelectedMods.Contains(ModEntity.FileName) Then
+                If SelectedMods.Contains(ModEntity.RawPath) Then
                     If ModEntity.CanUpdate Then HasUpdate = True
                     If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
                         HasEnabled = True
                     ElseIf ModEntity.State = LocalCompFile.LocalFileStatus.Disabled Then
                         HasDisabled = True
                     End If
+                    
+                    ' 检查是否所有选中的资源都有有效的项目信息（即已完成联网更新）
+                    If ModEntity.Comp Is Nothing OrElse String.IsNullOrEmpty(ModEntity.Comp.Id) Then
+                        CanFavoriteAndShare = False
+                    End If
                 End If
             Next
+            
             BtnSelectDisable.IsEnabled = HasEnabled
             BtnSelectEnable.IsEnabled = HasDisabled
             BtnSelectUpdate.IsEnabled = HasUpdate
-            
+
             '针对投影原理图隐藏分享 更新 收藏按钮
             If CurrentCompType = CompType.Schematic Then
                 BtnSelectUpdate.Visibility = Visibility.Collapsed
@@ -518,6 +571,10 @@ Public Class PageInstanceCompResource
                 BtnSelectUpdate.Visibility = Visibility.Visible
                 BtnSelectFavorites.Visibility = Visibility.Visible
                 BtnSelectShare.Visibility = Visibility.Visible
+                
+                ' 根据是否已加载项目信息来启用/禁用收藏和分享按钮
+                BtnSelectFavorites.IsEnabled = CanFavoriteAndShare
+                BtnSelectShare.IsEnabled = CanFavoriteAndShare
             End If
         End If
         '更新显示状态
@@ -576,14 +633,23 @@ Public Class PageInstanceCompResource
     Private Sub BtnManageBack_Click(sender As Object, e As EventArgs) Handles BtnManageBack.Click
         GoBackToParentFolder()
     End Sub
-    
+
     Private Sub BtnHintBack_Click(sender As Object, e As EventArgs) Handles BtnHintBack.Click
         GoBackToParentFolder()
     End Sub
 
     Private Sub BtnManageOpen_Click(sender As Object, e As EventArgs) Handles BtnManageOpen.Click, BtnHintOpen.Click
         Try
-            Dim CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Dim CompFilePath As String
+
+            ' 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
+            If String.IsNullOrEmpty(CurrentFolderPath) Then
+                ' 打开根目录
+                CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Else
+                ' 打开当前子文件夹
+                CompFilePath = If(CurrentFolderPath.EndsWith("\"), CurrentFolderPath, CurrentFolderPath & "\")
+            End If
             Directory.CreateDirectory(CompFilePath)
             OpenExplorer(CompFilePath)
         Catch ex As Exception
@@ -668,12 +734,12 @@ Install:
     ''' </summary>
     Public Shared Sub InstallCompFiles(FilePathList As IEnumerable(Of String), CompType As CompType, Optional TargetFolderPath As String = "")
         If Not FilePathList.Any Then Exit Sub
-        
+
         Dim Extension As String = FilePathList.First.AfterLast(".").ToLower
         Dim ValidExtensions As String() = Nothing
         Dim CompTypeName As String = ""
         Dim CompFolder As String = ""
-        
+
         '检查回收站：回收站中的文件有错误的文件名
         If FilePathList.First.Contains(":\$RECYCLE.BIN\") Then
             Hint("请先将文件从回收站还原，再尝试安装！", HintType.Critical)
@@ -719,13 +785,13 @@ Install:
                     CompFolder = TargetFolderPath & "\"
                 End If
         End Select
-        
+
         '检查文件扩展名
         If Not ValidExtensions.Contains(Extension) Then
             Hint($"不支持的文件格式：{Extension}，{CompTypeName}支持的格式：{String.Join(", ", ValidExtensions)}", HintType.Critical)
             Exit Sub
         End If
-        
+
         Log($"[System] 文件为 {Extension} 格式，尝试作为{CompTypeName}安装")
 
         '检查实例兼容性
@@ -756,15 +822,15 @@ Install:
                     NewFileName = NewFileName.Replace(".disabled", "").Replace(".old", "")
                     If Not NewFileName.Contains(".") Then NewFileName += ".jar"
                 End If
-                
+
                 Dim DestFile = CompFolder & NewFileName
                 If File.Exists(DestFile) Then
                     If MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", "覆盖", "取消") <> 1 Then Continue For
                 End If
-                
+
                 CopyFile(FilePath, DestFile)
             Next
-            
+
             If FilePathList.Count = 1 Then
                 Hint($"已安装 {GetFileNameFromPath(FilePathList.First)}！", HintType.Finish)
             Else
@@ -790,7 +856,7 @@ Install:
             Log(ex, $"复制{CompTypeName}文件失败", LogLevel.Msgbox)
         End Try
     End Sub
-    
+
     ''' <summary>
     ''' 获取当前的组件资源管理窗体。
     ''' </summary>
@@ -833,7 +899,7 @@ Install:
                 Dim ExportContent As New List(Of String)
                 ExportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径")
                 For Each ModEntity In CompResourceListLoader.Output
-                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{New FileInfo(ModEntity.Path).Length},{ModEntity.Path}")
+                    ExportContent.Add($"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.Path).Length},{ModEntity.Path}")
                 Next
                 ExportText(Join(ExportContent, vbCrLf), PageInstanceLeft.Instance.Name & "已安装的资源信息.csv")
 
@@ -844,26 +910,27 @@ Install:
     ''' 下载 Mod。
     ''' </summary>
     Private Sub BtnManageDownload_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageDownload.Click, BtnHintDownload.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         Select Case CurrentCompType
             Case CompType.Mod : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
             Case CompType.ResourcePack : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack)
             Case CompType.Shader : FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader)
         End Select
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
     ''' 下载投影Mod按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicDownloadMod_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicDownloadMod.Click
-        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
         FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod)
+        PageComp.TargetVersion = PageInstanceLeft.Instance '将当前实例设置为筛选器
     End Sub
 
     ''' <summary>
     ''' 实例选择按钮点击事件。
     ''' </summary>
     Private Sub BtnSchematicVersionSelect_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSchematicVersionSelect.Click
+        FrmMain.PageChange(FormMain.PageType.Launch)
         FrmMain.PageChange(FormMain.PageType.InstanceSelect)
     End Sub
 
@@ -874,15 +941,15 @@ Install:
     ''' <summary>
     ''' 选择的 Mod 的路径（不含 .disabled 和 .old）。
     ''' </summary>
-    Public SelectedMods As New List(Of String)
+    Public SelectedMods As New HashSet(Of String)
 
     '单项切换选择状态
     Public Sub CheckChanged(sender As MyLocalCompItem, e As RouteEventArgs)
         If AniControlEnabled <> 0 Then Return
         '更新选择了的内容
-        Dim SelectedKey As String = sender.Entry.FileName
+        Dim SelectedKey As String = sender.Entry.RawPath
         If sender.Checked Then
-            If Not SelectedMods.Contains(SelectedKey) Then SelectedMods.Add(SelectedKey)
+            SelectedMods.Add(SelectedKey)
         Else
             SelectedMods.Remove(SelectedKey)
         End If
@@ -897,7 +964,7 @@ Install:
             '#4992，Mod 从过滤器看可能不应在列表中，但因为刚切换状态所以依然保留在列表中，所以应该从列表 UI 判断，而非从过滤器判断
             Dim ShouldSelected As Boolean = Value AndAlso PanList.Children.Contains(Item)
             Item.Checked = ShouldSelected
-            If ShouldSelected Then SelectedMods.Add(Item.Entry.FileName)
+            If ShouldSelected Then SelectedMods.Add(Item.Entry.RawPath)
         Next
         AniControlEnabled -= 1
         RefreshBars()
@@ -911,6 +978,11 @@ Install:
     Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '若监听自己的事件则在进入页面后需点击右侧控件才可监听到 (#4311)
         If FrmMain.PageRight IsNot Me Then Return
         If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then ChangeAllSelected(True)
+    End Sub
+    Private Sub SearchBox_PreviewKeyDown(sender As Object, e As KeyEventArgs) Handles SearchBox.PreviewKeyDown
+        'Ctrl + A 会被搜索框捕获，导致无法全选，所以在按下 Ctrl + A 时转移焦点以便捕获
+        If SearchBox.Text.Any Then Return
+        If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then PanBack.Focus()
     End Sub
 
 #End Region
@@ -989,7 +1061,7 @@ Install:
     Private Sub SetSortMethod(Target As SortMethod)
         CurrentSortMethod = Target
         BtnSort.Text = $"排序：{GetSortName(Target)}"
-        RefreshUI()
+        'RefreshUI()
         DoSort()
     End Sub
 
@@ -1039,7 +1111,7 @@ Install:
                 Dim Method = GetSortMethod(CurrentSortMethod)
 
                 ' 分离有效和无效项（保持原始相对顺序）
-                Dim invalid = items.Where(Function(i) i.Entry Is Nothing OrElse (CurrentSortMethod = SortMethod.TagNums AndAlso i.Entry.Comp Is Nothing)).ToList()
+                Dim invalid = items.Where(Function(i) i.Entry Is Nothing OrElse (CurrentSortMethod = SortMethod.TagNums AndAlso i.Entry.Comp Is Nothing AndAlso Not i.Entry.IsFolder)).ToList()
                 Dim valid = items.Except(invalid).ToList()
                 ' 仅对有效项进行排序
                 valid.Sort(Function(x, y) Method(x.Entry, y.Entry))
@@ -1057,64 +1129,98 @@ Install:
     End Sub
 
     Private Function GetSortMethod(Method As SortMethod) As Func(Of LocalCompFile, LocalCompFile, Integer)
+        ' 通用的文件夹置顶比较函数
+        Dim folderFirstCompare = Function(a As LocalCompFile, b As LocalCompFile) As Integer
+                                     If a.IsFolder AndAlso Not b.IsFolder Then Return -1
+                                     If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                                     Return 0 ' 相同类型，需要进一步比较
+                                 End Function
+
         Select Case Method
             Case SortMethod.FileName
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按文件名排序
                            Return String.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.CompName
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按资源名称排序
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.TagNums
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹，则按名称排序；如果都是文件，则按标签数量排序
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹，则按名称排序
                            If a.IsFolder AndAlso b.IsFolder Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           Else
-                               Return b.Comp.Tags.Count - a.Comp.Tags.Count
                            End If
+                           ' 如果都是文件，则按标签数量排序（标签多的在前）
+                           If Not a.IsFolder AndAlso Not b.IsFolder Then
+                               ' 安全检查，确保Comp不为空
+                               Dim aTagCount = If(a.Comp?.Tags?.Count, 0)
+                               Dim bTagCount = If(b.Comp?.Tags?.Count, 0)
+                               Return bTagCount.CompareTo(aTagCount)
+                           End If
+                           ' 理论上不会到达这里，但为了安全起见
+                           Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case SortMethod.CreateTime
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹或都是文件，则按创建时间排序
-                           Dim aDate = New FileInfo(If(a.IsFolder, a.ActualPath, a.Path)).CreationTime
-                           Dim bDate = New FileInfo(If(b.IsFolder, b.ActualPath, b.Path)).CreationTime
-                           Return If(aDate = bDate, 0, If(aDate > bDate, -1, 1))
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
+                           Dim aPath = If(a.IsFolder, a.ActualPath, a.Path)
+                           Dim bPath = If(b.IsFolder, b.ActualPath, b.Path)
+                           Dim aDate = GetModFileInfo(aPath).CreationTime
+                           Dim bDate = GetModFileInfo(bPath).CreationTime
+                           If aDate = DateTime.MinValue AndAlso bDate = DateTime.MinValue Then
+                               Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+                           ElseIf aDate = DateTime.MinValue Then
+                               Return 1 ' 出错的文件排在后面
+                           ElseIf bDate = DateTime.MinValue Then
+                               Return -1
+                           End If
+                           Return bDate.CompareTo(aDate)
                        End Function
             Case SortMethod.ModFileSize
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
-                           ' 如果都是文件夹，则按名称排序；如果都是文件，则按文件大小排序
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
+                           ' 如果都是文件夹，则按名称排序
                            If a.IsFolder AndAlso b.IsFolder Then
                                Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-                           Else
-                               Dim aSize As Long = (New FileInfo(a.ActualPath)).Length
-                               Dim bSize As Long = (New FileInfo(b.ActualPath)).Length
+                           End If
+                           ' 如果都是文件，则按文件大小排序（大的在前）
+                           If Not a.IsFolder AndAlso Not b.IsFolder Then
+                               Dim aSize As Long = GetModFileInfo(a.ActualPath).Length
+                               Dim bSize As Long = GetModFileInfo(b.ActualPath).Length
+                               If aSize = 0 AndAlso bSize = 0 Then
+                                   Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+                               ElseIf aSize = 0 Then
+                                   Return 1
+                               ElseIf bSize = 0 Then
+                                   Return -1
+                               End If
                                Return bSize.CompareTo(aSize)
                            End If
+                           ' 理论上不会到达这里，但为了安全起见
+                           Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
             Case Else
                 Return Function(a As LocalCompFile, b As LocalCompFile) As Integer
                            ' 文件夹始终排在最前面
-                           If a.IsFolder AndAlso Not b.IsFolder Then Return -1
-                           If Not a.IsFolder AndAlso b.IsFolder Then Return 1
+                           Dim folderResult = folderFirstCompare(a, b)
+                           If folderResult <> 0 Then Return folderResult
                            ' 如果都是文件夹或都是文件，则按名称排序
                            Return String.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
                        End Function
@@ -1126,7 +1232,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub
@@ -1185,7 +1291,7 @@ Install:
             '更改 UI 中的列表
             Try
                 Dim NewItem As MyLocalCompItem = BuildLocalCompItem(NewModEntity)
-                ModItems(ModEntity.FileName) = NewItem
+                ModItems(ModEntity.RawPath) = NewItem
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry Is ModEntity))
                 If IndexOfUi = -1 Then Continue For '因为未知原因 Mod 的状态已经切换完了
                 PanList.Children.RemoveAt(IndexOfUi)
@@ -1206,7 +1312,7 @@ Install:
 
     '更新
     Private Sub BtnSelectUpdate_Click() Handles BtnSelectUpdate.Click
-        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.CanUpdate).ToList()
+        Dim UpdateList As List(Of LocalCompFile) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.CanUpdate).ToList()
         If Not UpdateList.Any() Then Return
         UpdateResource(UpdateList)
         ChangeAllSelected(False)
@@ -1271,14 +1377,14 @@ Install:
                 Try
                     For Each Entry As LocalCompFile In ModList
                         If File.Exists(Entry.Path) Then
-                            My.Computer.FileSystem.DeleteFile(Entry.Path, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            My.Computer.FileSystem.DeleteFile(Entry.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         Else
                             Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{Entry.Path}", LogLevel.Debug)
                         End If
                     Next
                     For Each Entry As KeyValuePair(Of String, String) In FileCopyList
                         If File.Exists(Entry.Value) Then
-                            My.Computer.FileSystem.DeleteFile(Entry.Value, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            My.Computer.FileSystem.DeleteFile(Entry.Value, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                             Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", LogLevel.Debug)
                         End If
                         If Directory.Exists(GetPathFromFullPath(Entry.Value)) Then
@@ -1344,7 +1450,7 @@ Install:
 
     '删除
     Private Sub BtnSelectDelete_Click() Handles BtnSelectDelete.Click
-        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName)))
+        DeleteMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)))
         ChangeAllSelected(False)
     End Sub
     Private Sub DeleteMods(ModList As IEnumerable(Of LocalCompFile))
@@ -1372,14 +1478,14 @@ Install:
                         If IsShiftPressed Then
                             Directory.Delete(ModEntity.ActualPath, True)
                         Else
-                            My.Computer.FileSystem.DeleteDirectory(ModEntity.ActualPath, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            My.Computer.FileSystem.DeleteDirectory(ModEntity.ActualPath, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         End If
                     Else
                         ' 删除文件
                         If IsShiftPressed Then
                             File.Delete(ModEntity.Path)
                         Else
-                            My.Computer.FileSystem.DeleteFile(ModEntity.Path, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            My.Computer.FileSystem.DeleteFile(ModEntity.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         End If
                     End If
                 Catch ex As OperationCanceledException
@@ -1391,11 +1497,11 @@ Install:
                     IsSuccessful = False
                 End Try
                 '取消选中
-                SelectedMods.Remove(ModEntity.FileName)
+                SelectedMods.Remove(ModEntity.RawPath)
                 '更改 Loader 和 UI 中的列表
                 CompResourceListLoader.Output.Remove(ModEntity)
                 SearchResult?.Remove(ModEntity)
-                ModItems.Remove(ModEntity.FileName)
+                ModItems.Remove(ModEntity.RawPath)
                 Dim IndexOfUi As Integer = PanList.Children.IndexOf(PanList.Children.OfType(Of MyLocalCompItem).FirstOrDefault(Function(i) i.Entry.Equals(ModEntity)))
                 If IndexOfUi >= 0 Then PanList.Children.RemoveAt(IndexOfUi)
             Next
@@ -1440,13 +1546,13 @@ Install:
 
     '收藏
     Private Sub BtnSelectFavorites_Click(sender As Object, e As RouteEventArgs) Handles BtnSelectFavorites.Click
-        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
+        Dim Selected As List(Of CompProject) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp).ToList
         CompFavorites.ShowMenu(Selected, sender)
     End Sub
 
     '分享
     Private Sub BtnSelectShare_Click() Handles BtnSelectShare.Click
-        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.FileName) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
+        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
         ClipboardSet(CompFavorites.GetShareCode(ShareList))
         ChangeAllSelected(False)
     End Sub
@@ -1482,7 +1588,7 @@ Install:
                 End If
                 '获取信息
                 Dim ContentLines As New List(Of String)
-                
+
                 '检查是否为文件夹
                 If ModEntry.IsFolder Then
                     '处理文件夹详情
@@ -1506,7 +1612,7 @@ Install:
                         Catch ex As Exception
                             fileCount = 0
                         End Try
-                        
+
                         If fileCount = 0 Then
                             ContentLines.Add("空文件夹" & vbCrLf)
                         ElseIf fileCount = 1 Then
@@ -1522,12 +1628,12 @@ Install:
                     '处理普通文件详情
                     If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
                     If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
+                    ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
                     If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
-                    
+
                     '原理图文件的详情信息已通过异步方法处理
                 End If
-                
+
                 '只有普通文件才显示调试信息
                 If Not ModEntry.IsFolder Then
                     Dim DebugInfo As New List(Of String)
@@ -1545,7 +1651,7 @@ Install:
                         ContentLines.AddRange(DebugInfo)
                     End If
                 End If
-                
+
                 '显示详情信息
                 If ModEntry.IsFolder Then
                     '文件夹只显示基本信息，不提供搜索功能
@@ -1623,57 +1729,53 @@ Install:
     Private Sub ShowSchematicInfoAsync(ModEntry As LocalCompFile)
         '显示加载提示
         Hint("正在加载详情....", HintType.Info)
-        
+
         '在后台线程中加载NBT数据
         RunInNewThread(Sub()
-            Try
-                '确保NBT数据已加载
-                ModEntry.LoadNbtDataIfNeeded()
-                
-                '在UI线程中显示详情
-                RunInUi(Sub()
-                    Try
-                        '构建详情信息
-                        Dim ContentLines As New List(Of String)
-                        
-                        If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
-                        If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
-                        ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(New FileInfo(ModEntry.Path).Length) & "）")
-                        If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
-                        
-                        '根据文件类型显示详细信息
-                        If ModEntry.Path.EndsWithF(".litematic", True) Then
-                            ShowLitematicDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
-                            ShowSchemDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
-                            ShowSchematicDetails(ContentLines, ModEntry)
-                        ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
-                            ShowNbtDetails(ContentLines, ModEntry)
-                        End If
-                        
-                        '显示调试信息
-                        ShowDebugInfo(ContentLines, ModEntry)
-                        
-                        '显示详情对话框
-                        ShowSchematicDialog(ContentLines, ModEntry)
-                        
-                    Catch ex As Exception
-                        Log(ex, "显示原理图详情失败", LogLevel.Feedback)
-                        MyMsgBox("显示原理图详情时发生错误：" & ex.Message, "错误")
-                    End Try
-                End Sub)
-                
-            Catch ex As Exception
-                '在UI线程中显示错误
-                RunInUi(Sub()
-                    Log(ex, "加载原理图NBT数据失败", LogLevel.Feedback)
-                    MyMsgBox("加载原理图详情时发生错误：" & ex.Message, "错误")
-                End Sub)
-            End Try
-        End Sub)
+                           Try
+                               '确保 NBT 数据已加载
+                               ModEntry.LoadNbtDataIfNeeded()
+
+                               '在 UI 线程中显示详情
+                               RunInUi(Sub()
+                                           Try
+                                               '构建详情信息
+                                               Dim ContentLines As New List(Of String)
+
+                                               If ModEntry.Description IsNot Nothing Then ContentLines.Add(ModEntry.Description & vbCrLf)
+                                               If ModEntry.Authors IsNot Nothing Then ContentLines.Add("作者：" & ModEntry.Authors)
+                                               ContentLines.Add("文件：" & ModEntry.FileName & "（" & GetString(GetModFileInfo(ModEntry.Path).Length) & "）")
+                                               If ModEntry.Version IsNot Nothing Then ContentLines.Add("版本：" & ModEntry.Version)
+
+                                               '根据文件类型显示详细信息
+                                               If ModEntry.Path.EndsWithF(".litematic", True) Then
+                                                   ShowLitematicDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".schem", True) Then
+                                                   ShowSchemDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".schematic", True) Then
+                                                   ShowSchematicDetails(ContentLines, ModEntry)
+                                               ElseIf ModEntry.Path.EndsWithF(".nbt", True) Then
+                                                   ShowNbtDetails(ContentLines, ModEntry)
+                                               End If
+
+                                               '显示调试信息
+                                               ShowDebugInfo(ContentLines, ModEntry)
+
+                                               '显示详情对话框
+                                               ShowSchematicDialog(ContentLines, ModEntry)
+
+                                           Catch ex As Exception
+                                               Log(ex, "显示原理图详情失败", LogLevel.Feedback)
+                                           End Try
+                                       End Sub)
+
+                           Catch ex As Exception
+                               '记录错误日志但不显示错误提示，因为通用的文件状态检查已经处理了
+                               Log(ex, "加载原理图 NBT 数据失败", LogLevel.Feedback)
+                           End Try
+                       End Sub)
     End Sub
-    
+
 #Region "原理图文件详细信息显示"
 
     ''' <summary>
@@ -1682,36 +1784,36 @@ Install:
     Private Sub ShowLitematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
-        
+
         ' 显示原始名称（从 NBT Metadata/Name 读取）
         If ModEntry.LitematicOriginalName IsNot Nothing Then
             ContentLines.Add("原始名称：" & ModEntry.LitematicOriginalName)
         End If
-        
+
         ' 显示版本信息
         If ModEntry.LitematicVersion.HasValue Then
             ContentLines.Add("原理图版本：" & ModEntry.LitematicVersion.Value)
         End If
-        
+
         ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒大小：" & ModEntry.LitematicEnclosingSize)
         End If
-         
+
         ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
-        
+
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
-        
+
         ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
-        
+
         ' 显示时间信息
         If ModEntry.LitematicTimeCreated.HasValue Then
             Try
@@ -1721,7 +1823,7 @@ Install:
                 ContentLines.Add("创建时间：" & ModEntry.LitematicTimeCreated.Value)
             End Try
         End If
-        
+
         If ModEntry.LitematicTimeModified.HasValue Then
             Try
                 Dim modifiedTime As DateTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeModified.Value).ToLocalTime().DateTime
@@ -1731,123 +1833,123 @@ Install:
             End Try
         End If
     End Sub
-    
+
     ''' <summary>
     ''' 显示 Schem 文件的详细信息
     ''' </summary>
     Private Sub ShowSchemDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
-        
+
         ' 显示原始名称（从 NBT Metadata/Name 读取）
         If ModEntry.SchemOriginalName IsNot Nothing Then
             ContentLines.Add("原始名称：" & ModEntry.SchemOriginalName)
         End If
-        
+
         ' 显示版本信息
         If ModEntry.StructureGameVersion IsNot Nothing Then
             ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
-        
+
         If ModEntry.SpongeVersion.HasValue Then
             ContentLines.Add("Sponge 版本：" & ModEntry.SpongeVersion.Value)
         End If
-        
+
         If ModEntry.StructureDataVersion.HasValue Then
             ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
         End If
-        
+
         ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
-        
+
         ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
-        
+
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
-        
+
         ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
-        
+
         ContentLines.Add("文件类型：Sponge Schematic")
     End Sub
-    
+
     ''' <summary>
     ''' 显示 Schematic 文件的详细信息
     ''' </summary>
     Private Sub ShowSchematicDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
-        
+
         ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("大小：" & ModEntry.LitematicEnclosingSize)
         End If
-        
+
         ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
-        
+
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
-        
+
         ContentLines.Add("文件类型：MCEdit/WorldEdit Schematic")
     End Sub
-    
+
     ''' <summary>
     ''' 显示 NBT 结构文件的详细信息
     ''' </summary>
     Private Sub ShowNbtDetails(ContentLines As List(Of String), ModEntry As LocalCompFile)
         ContentLines.Add("")
         ContentLines.Add("详细信息：")
-        
+
         ' 显示作者信息
         If ModEntry.StructureAuthor IsNot Nothing Then
             ContentLines.Add("作者：" & ModEntry.StructureAuthor)
         End If
-        
+
         ' 显示版本信息
         If ModEntry.StructureGameVersion IsNot Nothing Then
             ContentLines.Add("游戏版本：" & ModEntry.StructureGameVersion)
         End If
-        
+
         If ModEntry.StructureDataVersion.HasValue Then
             ContentLines.Add("数据版本：" & ModEntry.StructureDataVersion.Value)
         End If
-        
+
         ' 显示尺寸信息
         If ModEntry.LitematicEnclosingSize IsNot Nothing Then
             ContentLines.Add("包围盒尺寸：" & ModEntry.LitematicEnclosingSize)
         End If
-        
+
         ' 显示方块和体积统计
         If ModEntry.LitematicTotalBlocks.HasValue Then
             ContentLines.Add("总方块数：" & ModEntry.LitematicTotalBlocks.Value.ToString("N0"))
         End If
-        
+
         If ModEntry.LitematicTotalVolume.HasValue Then
             ContentLines.Add("总体积：" & ModEntry.LitematicTotalVolume.Value.ToString("N0"))
         End If
-        
+
         ' 显示区域数量
         If ModEntry.LitematicRegionCount.HasValue Then
             ContentLines.Add("区域数量：" & ModEntry.LitematicRegionCount.Value)
         End If
-        
+
         ContentLines.Add("文件类型：原版结构")
     End Sub
 
 #End Region
-    
+
     Private Sub ShowDebugInfo(ContentLines As List(Of String), ModEntry As LocalCompFile)
         Dim DebugInfo As New List(Of String)
         If ModEntry.ModId IsNot Nothing Then
@@ -1864,7 +1966,7 @@ Install:
             ContentLines.AddRange(DebugInfo)
         End If
     End Sub
-    
+
     Private Sub ShowSchematicDialog(ContentLines As List(Of String), ModEntry As LocalCompFile)
         '投影原理图文件不显示百科搜索选项
         If ModEntry.Url Is Nothing Then
@@ -1886,33 +1988,36 @@ Install:
         End Get
     End Property
     Private SearchResult As List(Of LocalCompFile)
-
     Public Sub SearchRun() Handles SearchBox.TextChanged
-        If IsSearching Then
-            '构造请求
-            Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
-            For Each Entry As LocalCompFile In CompResourceListLoader.Output
-                Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
-                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
-                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
-                If Entry.Version IsNot Nothing Then
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
-                End If
-                If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
-                End If
-                If Entry.Comp IsNot Nothing Then
-                    If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
-                    If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
-                    If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
-                End If
-                QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
-            Next
-            '进行搜索
-            SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
-        End If
-        RefreshUI()
+        Try
+            If IsSearching Then
+                '构造请求
+                Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
+                For Each Entry As LocalCompFile In CompResourceListLoader.Output
+                    Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
+                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
+                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
+                    If Entry.Version IsNot Nothing Then
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
+                    End If
+                    If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
+                    End If
+                    If Entry.Comp IsNot Nothing Then
+                        If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
+                        If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
+                        If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                        SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
+                    End If
+                    QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+                Next
+                '进行搜索
+                SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+            End If
+            RefreshUI()
+        Catch ex As Exception
+            Log(ex, "搜索过程中发生异常", LogLevel.Debug)
+        End Try
     End Sub
 
 #End Region

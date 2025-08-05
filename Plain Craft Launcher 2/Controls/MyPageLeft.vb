@@ -2,11 +2,15 @@
     Inherits Grid
     Private Uuid As Integer = GetUuid()
 
+    Private _animatedControlNullWarned As Boolean = False
     '执行逐个进入动画的控件
     Public Property AnimatedControl As FrameworkElement
         Get
             Dim res = GetValue(AnimatedControlProperty)
-            If res Is Nothing Then Log($"[MyPageLeft] 获取到 AnimatedControl 的值为 null", LogLevel.Debug)
+            If res Is Nothing AndAlso Not _animatedControlNullWarned Then
+                _animatedControlNullWarned = True
+                Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", LogLevel.Debug)
+            End If
             Return res
         End Get
         Set(value As FrameworkElement)

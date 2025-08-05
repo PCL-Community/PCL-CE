@@ -309,6 +309,9 @@
     <Compile Include="Modules\Updates\UpdatesWrapperModel.vb" />
     <Compile Include="Modules\Updates\VersionAnnouncementDataModel.vb" />
     <Compile Include="Modules\Updates\VersionDataModel.vb" />
+    <Compile Include="Pages\PageDownload\Comp\PageDownloadWorld.xaml.vb">
+      <DependentUpon>PageDownloadWorld.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageDownload\PageDownloadLegacyFabric.xaml.vb">
       <DependentUpon>PageDownloadLegacyFabric.xaml</DependentUpon>
     </Compile>
@@ -664,6 +667,10 @@
     <Page Include="Pages\PageDownload\Comp\PageComp.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PageDownload\Comp\PageDownloadWorld.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\PageDownload\PageDownloadLegacyFabric.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -1163,6 +1170,9 @@
     <None Include="Resources\libwebp64.dll" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CacheCow.Client">
+      <Version>2.13.1</Version>
+    </PackageReference>
     <PackageReference Include="Costura.Fody">
       <Version>6.0.0</Version>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -1183,10 +1193,10 @@
       <Version>0.5.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client">
-      <Version>4.74.0</Version>
+      <Version>4.74.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client.Broker">
-      <Version>4.74.0</Version>
+      <Version>4.74.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts">
       <Version>10.0.19041.2</Version>
@@ -1245,6 +1255,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Themes\server_bg.png" />
+    <Resource Include="Images\Icons\DefaultServer.png" />
     <Content Include="Resources\linkd.exe" />
     <Resource Include="Resources\oauth-complete.html" />
   </ItemGroup>

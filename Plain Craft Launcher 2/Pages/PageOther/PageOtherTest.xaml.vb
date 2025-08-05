@@ -2,7 +2,9 @@ Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
 
-Imports PCL.Core
+Imports PCL.Core.IO
+Imports PCL.Core.Link
+Imports PCL.Core.Native
 
 Public Class PageOtherTest
     Public Sub New()
@@ -96,7 +98,18 @@ Public Class PageOtherTest
         End Try
     End Sub
     Public Shared Sub Jrrp()
-        Hint("为便于维护，社区版中不包含百宝箱功能……")
+        Dim random As New Random(GenerateDailySeed())
+        Dim luckValue = random.Next(0, 101)
+        Dim rating = GetRating(luckValue)
+        Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
+        Dim title = $"今日人品 - {currentDate}"
+
+        If (luckValue >= 60) Then
+            MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title)
+        Else
+            MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn:=luckValue <= 30)
+        End If
+
     End Sub
     Public Shared Sub RubbishClear()
         RunInUi(
@@ -116,8 +129,8 @@ Public Class PageOtherTest
                         If Not McFolderList.Any() Then
                             McFolderListLoader.Start()
                         End If
-                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, IO.Path.GetTempPath() + "PCL\"))
-                        If String.Compare(PathTemp, IO.Path.GetTempPath() + "PCL\") = 0 Then
+                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, System.IO.Path.GetTempPath() + "PCL\"))
+                        If String.Compare(PathTemp, System.IO.Path.GetTempPath() + "PCL\") = 0 Then
                             If Setup.Get("HintClearRubbish") <= 2 Then
                                 If MyMsgBox("即将清理游戏日志、错误报告、缓存等文件。" & vbCrLf & "虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？" & vbCrLf & vbCrLf & "在完成清理后，PCL 将自动重启。", "清理确认", "确定", "取消") = 2 Then
                                     Return
@@ -469,7 +482,7 @@ Public Class PageOtherTest
                                    End Try
                                End If
                                '查询信息
-                               Using query As New Utils.Minecraft.McPing(ip.ToString(), port)
+                               Using query As New McPing(ip.ToString(), port)
                                    Dim ret = query.PingAsync().Result
                                    If ret Is Nothing Then Throw New Exception("没有查询到信息")
                                    'Base64 图像转换
@@ -491,6 +504,12 @@ Public Class PageOtherTest
                                    RunInUi(Sub()
                                                MinecraftFormatter.SetColorfulTextLab($"Minecraft 服务器{vbCrLf}{ret.Description}", LabServerDesc)
                                                MinecraftFormatter.SetColorfulTextLab($"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms", LabServerPlayer)
+                                               If ret.Players.Samples.Any Then
+                                                   LabServerPlayer.ToolTip = ret.Players.Samples.Select(Function(x) x.Name).Join(vbCrLf)
+                                                   ToolTipService.SetPlacement(LabServerPlayer, Primitives.PlacementMode.Mouse)
+                                               Else
+                                                   LabServerPlayer.ToolTip = Nothing
+                                               End If
                                                ServerInfo.Visibility = Visibility.Visible
                                                If Not String.IsNullOrEmpty(base64String) Then
                                                    Dim bitmapImage As New BitmapImage()
@@ -553,28 +572,17 @@ Public Class PageOtherTest
 
     '今日人品
     Private Sub BtnLuck_Click(sender As Object, e As MouseButtonEventArgs)
-        Dim random As New Random(GenerateDailySeed())
-        Dim luckValue = random.Next(0, 101)
-        Dim rating = GetRating(luckValue)
-        Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
-        Dim title = $"今日人品 - {currentDate}"
-
-        If (luckValue >= 60) Then
-            MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title)
-        Else
-            MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn:=luckValue <= 30)
-        End If
-
+        Jrrp()
     End Sub
 
-    Private Function GenerateDailySeed() As Integer
+    Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
         Dim secretCode As String = SecretGetRawCode()
 
         Return (datePart & secretCode).GetHashCode()
     End Function
 
-    Private Function GetRating(luckValue As Integer) As String
+    Public Shared Function GetRating(luckValue As Integer) As String
         If luckValue = 100 Then
             Return "100！100！\n隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
         Else
@@ -592,8 +600,8 @@ Public Class PageOtherTest
         Const shortcutName = "PCL 社区版.lnk"
         Const desktopName = "桌面"
         Const startName = "开始菜单"
-        Dim desktop = Service.FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
-        Dim start = Service.FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
+        Dim desktop = FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
+        Dim start = FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
         Dim choice = MyMsgBox(
             "这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。" & vbCrLf & vbCrLf &
             desktopName & "位置: " & desktop & vbCrLf & startName & "位置: " & start,
@@ -601,7 +609,13 @@ Public Class PageOtherTest
         If choice = 1 Then Exit Sub
         Dim shortcutPath = If(choice = 2, desktop, start)
         Dim locationName = If(choice = 2, desktopName, startName)
-        Helper.Files.CreateShortcut(shortcutPath, Helper.NativeInterop.ExecutablePath)
+        Files.CreateShortcut(shortcutPath, NativeInterop.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
+    End Sub
+    
+    ' 启动计数显示
+    Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
+        MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数")
     End Sub
 End Class

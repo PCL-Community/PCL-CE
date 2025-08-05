@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Utils.Logger;
+using PCL.Core.Logging;
 
 namespace PCL.Test;
 

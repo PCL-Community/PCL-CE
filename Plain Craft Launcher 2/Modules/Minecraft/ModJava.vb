@@ -1,15 +1,15 @@
-﻿Imports PCL.Core.Helper
-Imports PCL.Core.Model
+﻿
 Imports System.Threading.Tasks
+Imports PCL.Core.Minecraft
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
 
-    Private _javas As JavaManage = Nothing
+    Private _javas As JavaManager = Nothing
     ''' <summary>
     ''' 目前所有可用的 Java。
     ''' </summary>
-    Public ReadOnly Property Javas As JavaManage
+    Public ReadOnly Property Javas As JavaManager
         Get
             InitJava().GetAwaiter().GetResult()
             Return _javas
@@ -26,7 +26,7 @@ Public Module ModJava
             If _javaInitTask Is Nothing Then
                 _javaInitTask = Task.Run(Sub()
                                              Dim storeCache = JavaGetCache()
-                                             _javas = New JavaManage()
+                                             _javas = New JavaManager()
                                              If storeCache IsNot Nothing Then
                                                  _javas.SetCache(storeCache)
                                              End If
@@ -107,7 +107,7 @@ Public Module ModJava
         Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
         Dim userGlobalJavaSet = Java.Parse(userGlobalJava)
         If userGlobalJavaSet IsNot Nothing Then
-            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet.ToString()}")
+            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet}")
             Return userGlobalJavaSet
         End If
         '寻找合适 Java
@@ -131,7 +131,7 @@ Public Module ModJava
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
     Public Function GetVersionUserSetJava(Mc As McInstance) As Java
         If Mc Is Nothing Then Return Nothing
-        Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=Mc)
+        Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=Mc)
         If UserSetupVersion = "使用全局设置" Then
             Return Nothing
         Else
@@ -152,13 +152,13 @@ Public Module ModJava
                 Setup.Set("LaunchArgumentJavaSelect", UserSetup)
             End If
             If RelatedVersion IsNot Nothing Then
-                Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", Version:=RelatedVersion)
+                Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
                         Dim k = Java.Parse(UserSetupVersion)
                         Return k IsNot Nothing AndAlso k.Is64Bit
                     Else
-                        Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
+                        Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
                     End If
                 End If
             End If
@@ -173,7 +173,7 @@ Public Module ModJava
             Return j IsNot Nothing AndAlso j.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
-            If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", Version:=RelatedVersion)
+            If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
             Setup.Set("LaunchArgumentJavaSelect", "")
         End Try
         Return True

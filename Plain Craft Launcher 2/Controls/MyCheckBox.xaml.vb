@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Markup
+Imports System.Windows.Markup
 
 <ContentProperty("Inlines")>
 Public Class MyCheckBox
@@ -17,28 +17,43 @@ Public Class MyCheckBox
     End Sub '使外部程序引发本控件的 Change 事件
 
     '自定义属性
-    Public Property Checked As Boolean
+    Public Property Checked As Boolean?
         Get
             Return GetValue(CheckedProperty)
         End Get
-        Set(value As Boolean)
+        Set(value As Boolean?)
             SetChecked(value, False)
         End Set
     End Property
     Public Shared ReadOnly CheckedProperty As DependencyProperty =
-        DependencyProperty.Register("Checked", GetType(Boolean), GetType(MyCheckBox), New PropertyMetadata(False,
+        DependencyProperty.Register("Checked", GetType(Boolean?), GetType(MyCheckBox), New PropertyMetadata(False,
         Sub(d As MyCheckBox, e As DependencyPropertyChangedEventArgs)
             '在使用 XAML 设置 Checked 属性时，不会触发 Checked_Set 方法，所以需要在这里手动触发 UI 改变
             If Not d.IsLoaded Then d.SyncUI()
         End Sub))
 
+    Public Property IsThreeState As Boolean
+        Get
+            Return GetValue(IsThreeStateProperty)
+        End Get
+        Set(value As Boolean)
+            SetValue(IsThreeStateProperty, value)
+        End Set
+    End Property '是否为三态复选框
+    ''' <summary>
+    ''' 是否为三态复选框。
+    ''' </summary>
+    Public Shared ReadOnly IsThreeStateProperty As DependencyProperty =
+        DependencyProperty.Register("IsThreeState", GetType(Boolean), GetType(MyCheckBox), New PropertyMetadata(False))
+
     Private Const AnimationTimeOfCheck As Integer = 150 '勾选状态变更动画长度
+    Private _previousState As Boolean? = False '上一次的勾选状态
     ''' <summary>
     ''' 手动设置 Checked 属性。
     ''' </summary>
     ''' <param name="value">新的 Checked 属性。</param>
     ''' <param name="user">是否由用户引发。</param>
-    Public Sub SetChecked(value As Boolean, user As Boolean)
+    Public Sub SetChecked(value As Boolean?, user As Boolean)
         Try
             If value = Checked Then Return
 
@@ -54,7 +69,11 @@ Public Class MyCheckBox
                 End If
             End If
 
-            SetValue(CheckedProperty, value)
+            '判断真实勾选状态
+            Dim isChecked As Boolean? = GetFinalState(value, IsThreeState)
+
+            _previousState = Checked '记录上一次的勾选状态
+            SetValue(CheckedProperty, isChecked)
             If IsLoaded Then RaiseEvent Change(Me, user)
 
             '更改动画
@@ -66,36 +85,95 @@ Public Class MyCheckBox
     Private Sub SyncUI()
         If AniControlEnabled = 0 AndAlso IsLoaded Then '防止默认属性变更触发动画
             AllowMouseDown = False
-            If Checked Then
-                '由无变有
-                AniStart({
-                      AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
-                      AaScaleTransform(ShapeCheck, 1 - CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack(AniEasePower.Weak)),
-                      AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
-                 }, "MyCheckBox Scale " & Uuid)
-                AniStart({
-                      AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush2"), "ColorBrushGray4"), AnimationTimeOfCheck)
-                 }, "MyCheckBox BorderColor " & Uuid)
-                AniStart({
-                      AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
-                 }, "MyCheckBox AllowMouseDown " & Uuid)
-            Else
-                '由有变无
-                AniStart({
-                      AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
-                      AaScaleTransform(ShapeCheck, -CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 0.9, , New AniEaseInFluent(AniEasePower.Weak)),
-                      AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
-                 }, "MyCheckBox Scale " & Uuid)
-                AniStart({
-                      AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush1"), "ColorBrushGray4"), AnimationTimeOfCheck)
-                 }, "MyCheckBox BorderColor " & Uuid)
-                AniStart({
-                      AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
-                 }, "MyCheckBox AllowMouseDown " & Uuid)
-            End If
+
+            Dim isChecked As Boolean? = GetFinalState(Checked, IsThreeState)
+
+            Select Case True
+                Case isChecked = True
+                    Select Case True
+                        Case _previousState = False
+                            '由无变有
+                            AniBackgroundScale()
+                            AniCheckShow()
+                            AniColorChecked()
+                            AniAllowMouseDown()
+                        Case _previousState Is Nothing
+                            '由空变有
+                            AniBackgroundScale()
+                            AniIndeterminateHide()
+                            AniCheckShow()
+                            AniColorChecked()
+                            AniAllowMouseDown()
+                    End Select
+
+                Case isChecked = False
+                    Select Case True
+                        Case _previousState = True
+                            '由有变无
+                            AniBackgroundScale()
+                            AniCheckHide()
+                            AniColorUnchecked()
+                            AniAllowMouseDown()
+                        Case _previousState Is Nothing
+                            '由空变无
+                            AniBackgroundScale()
+                            AniIndeterminateHide()
+                            AniCheckHide()
+                            AniColorUnchecked()
+                            AniAllowMouseDown()
+                    End Select
+                Case isChecked Is Nothing
+                    Select Case True
+                        Case _previousState = True
+                            '由有变空
+                            AniBackgroundScale()
+                            AniCheckHide()
+                            AniIndeterminateShow()
+                            AniColorUnchecked()
+                            AniAllowMouseDown()
+                        Case _previousState = False
+                            '由无变空
+                            AniBackgroundScale()
+                            AniIndeterminateShow()
+                            AniColorUnchecked()
+                            AniAllowMouseDown()
+                    End Select
+            End Select
+
+            'If Checked Then
+            '    '由无变有
+            '    AniStart({
+            '          AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
+            '          AaScaleTransform(ShapeCheck, 1 - CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack(AniEasePower.Weak)),
+            '          AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
+            '     }, "MyCheckBox Scale " & Uuid)
+            '    AniStart({
+            '          AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush2"), "ColorBrushGray4"), AnimationTimeOfCheck)
+            '     }, "MyCheckBox BorderColor " & Uuid)
+            '    AniStart({
+            '          AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
+            '     }, "MyCheckBox AllowMouseDown " & Uuid)
+            'Else
+            '    '由有变无
+            '    AniStart({
+            '          AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
+            '          AaScaleTransform(ShapeCheck, -CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 0.9, , New AniEaseInFluent(AniEasePower.Weak)),
+            '          AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
+            '     }, "MyCheckBox Scale " & Uuid)
+            '    AniStart({
+            '          AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush1"), "ColorBrushGray4"), AnimationTimeOfCheck)
+            '     }, "MyCheckBox BorderColor " & Uuid)
+            '    AniStart({
+            '          AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
+            '     }, "MyCheckBox AllowMouseDown " & Uuid)
+            'End If
         Else
             '不使用动画
-            AniStop("MyCheckBox Scale " & Uuid)
+            AniStop("MyCheckBox Background Scale " & Uuid)
+            AniStop("MyCheckBox Check Scale Show" & Uuid)
+            AniStop("MyCheckBox Check Scale Hide" & Uuid)
+            AniStop("MyCheckBox Indeterminate Scale Show" & Uuid)
+            AniStop("MyCheckBox Indeterminate Scale Hide" & Uuid)
             AniStop("MyCheckBox BorderColor " & Uuid)
             AniStop("MyCheckBox AllowMouseDown " & Uuid)
             If Checked Then
@@ -136,6 +214,18 @@ Public Class MyCheckBox
         If Not MouseDowned Then Return
         Log("[Control] 按下复选框（" & (Not Checked).ToString & "）：" & Text)
         MouseDowned = False
+        If IsThreeState Then
+            Select Case True
+                Case Checked = True
+                    SetChecked(Nothing, True)
+                Case Checked = False
+                    SetChecked(True, True)
+                Case Checked Is Nothing
+                    SetChecked(False, True)
+            End Select
+            AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100), "MyCheckBox Background " & Uuid)
+            Return
+        End If
         SetChecked(Not Checked, True)
         AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100), "MyCheckBox Background " & Uuid)
     End Sub
@@ -212,4 +302,62 @@ Public Class MyCheckBox
          }, "MyCheckBox BorderColor " & Uuid)
     End Sub
 
+    '动画
+    Private Sub AniBackgroundScale()
+        AniStart({
+                      AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
+                      AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
+                 }, "MyCheckBox Background Scale " & Uuid)
+    End Sub
+    Private Sub AniCheckShow()
+        AniStart({
+                      AaScaleTransform(ShapeCheck, 1 - CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack(AniEasePower.Weak))
+                 }, "MyCheckBox Check Scale Show" & Uuid)
+    End Sub
+    Private Sub AniCheckHide()
+        AniStart({
+                      AaScaleTransform(ShapeCheck, -CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 0.9, , New AniEaseInFluent(AniEasePower.Weak))
+                 }, "MyCheckBox Check Scale Hide" & Uuid)
+    End Sub
+    Private Sub AniIndeterminateShow()
+        AniStart({
+                      AaScaleTransform(ShapeIndeterminate, 1 - CType(ShapeIndeterminate.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack(AniEasePower.Weak))
+                 }, "MyCheckBox Indeterminate Scale Show" & Uuid)
+    End Sub
+    Private Sub AniIndeterminateHide()
+        AniStart({
+                      AaScaleTransform(ShapeIndeterminate, -CType(ShapeIndeterminate.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 0.9, , New AniEaseInFluent(AniEasePower.Weak))
+                 }, "MyCheckBox Indeterminate Scale Hide" & Uuid)
+    End Sub
+    Private Sub AniAllowMouseDown()
+        AniStart({
+                      AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
+                 }, "MyCheckBox AllowMouseDown " & Uuid)
+    End Sub
+    Private Sub AniColorChecked()
+        AniStart({
+                      AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush2"), "ColorBrushGray4"), AnimationTimeOfCheck)
+                 }, "MyCheckBox BorderColor " & Uuid)
+    End Sub
+    Private Sub AniColorUnchecked()
+        AniStart({
+                      AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush1"), "ColorBrushGray4"), AnimationTimeOfCheck)
+                 }, "MyCheckBox BorderColor " & Uuid)
+    End Sub
+
+    Private Function GetFinalState(value As Boolean?, isThreeState As Boolean) As Boolean?
+        If isThreeState Then
+            '三态复选框
+            If value = True Then
+                Return True
+            ElseIf value = False Then
+                Return False
+            Else
+                Return Nothing '空值表示未选中状态
+            End If
+        Else
+            '二态复选框
+            Return If(value, True, False)
+        End If
+    End Function
 End Class

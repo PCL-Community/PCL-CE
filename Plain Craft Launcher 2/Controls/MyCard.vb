@@ -1,6 +1,5 @@
 Imports System.Threading.Tasks
-Imports PCL.Core.Controls
-Imports PCL.Core.Helper
+Imports PCL.Core.UI.Controls
 
 Public Class MyCard
 

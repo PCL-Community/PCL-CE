@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.Helper
+﻿Imports PCL.Core.Update
+Imports PCL.Core.VersionControl
 
 Public Class UpdatesRandomModel '社区自己的更新系统格式
     Implements IUpdateSource

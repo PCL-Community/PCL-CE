@@ -1,4 +1,6 @@
-﻿Imports PCL.Core.Helper
+﻿Imports PCL.Core.Update
+Imports PCL.Core.VersionControl
+
 Public Interface IUpdateSource
     ''' <summary>
     ''' 是否可用，根据本地情况判断

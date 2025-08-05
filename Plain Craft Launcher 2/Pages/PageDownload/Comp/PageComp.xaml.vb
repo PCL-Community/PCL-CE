@@ -13,6 +13,28 @@ Public Class PageComp
             Return ComboSearchTag.Items
         End Get
     End Property
+    
+    Public Shared ReadOnly SupportCurseForgeProperty As DependencyProperty = DependencyProperty.Register("SupportCurseForge", GetType(Boolean), GetType(PageComp), New PropertyMetadata(True))
+    
+    Public Property SupportCurseForge As Boolean
+        Get
+            Return GetValue(SupportCurseForgeProperty)
+        End Get
+        Set
+            SetValue(SupportCurseForgeProperty, value)
+        End Set
+    End Property
+    
+    Public Shared ReadOnly SupportModrinthProperty As DependencyProperty = DependencyProperty.Register("SupportModrinth", GetType(Boolean), GetType(PageComp), New PropertyMetadata(True))
+    
+    Public Property SupportModrinth As Boolean
+        Get
+            Return GetValue(SupportModrinthProperty)
+        End Get
+        Set
+            SetValue(SupportModrinthProperty, value)
+        End Set
+    End Property
 
     ''' <summary>
     ''' 英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
@@ -39,7 +61,7 @@ Public Class PageComp
         Set(Value As String)
             If _TypeNameSpaced = Value Then Return
             _TypeNameSpaced = Value
-            PanSearchBox.HintText = $"搜索{Value} 在输入框中按下 Enter 以进行搜索"
+            PanSearchBox.HintText = $"搜索{Value}"
             Load.Text = $"正在获取{Value}列表"
         End Set
     End Property
@@ -213,7 +235,7 @@ Public Class PageComp
 #Region "搜索"
 
     '搜索按钮
-    Private Sub StartNewSearch()
+    Private Sub StartNewSearch() Handles PanSearchBox.Search
         Page = 0
         If Loader.ShouldStart(LoaderInput()) Then Storage = New CompProjectStorage '避免连续搜索两次使得 CompProjectStorage 引用丢失（#1311）
         Loader.Start()

@@ -366,7 +366,7 @@ Public Class PageSelectRight
                         DeleteDirectory(Version.Path)
                         Hint("实例 " & Version.Name & " 已永久删除！", HintType.Finish)
                     Else
-                        FileIO.FileSystem.DeleteDirectory(Version.Path, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                        FileIO.FileSystem.DeleteDirectory(Version.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         Hint("实例 " & Version.Name & " 已删除到回收站！", HintType.Finish)
                     End If
                 Case 2

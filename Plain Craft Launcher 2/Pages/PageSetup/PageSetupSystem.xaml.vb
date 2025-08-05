@@ -44,7 +44,14 @@
         '系统设置
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
         If Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 Then
-            ComboSystemUpdateBranch.SelectedIndex = Setup.Get("SystemSystemUpdateBranch")
+            If VersionBaseName.Contains("beta") Then Setup.Reset("SystemSystemUpdateBranch")
+            Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
+            ComboSystemUpdateBranch.SelectedIndex = branch
+            If branch = 1 Then
+                ComboSystemUpdateBranch.IsEnabled = False
+            Else
+                ComboSystemUpdateBranch.IsEnabled = True
+            End If
         Else '不满足系统要求
             ComboSystemUpdateBranch.Items.Clear()
             ComboSystemUpdateBranch.Items.Add("Legacy")
@@ -208,7 +215,7 @@
         If ComboSystemUpdateBranch.SelectedIndex <> 1 Then Exit Sub
         If MyMsgBox("你正在切换启动器更新通道到 Fast Ring。" & vbCrLf &
                     "Fast Ring 可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
-                    "在升级到 Fast Ring 版本后，如果你选择切换到 Slow Ring，需要等待下一个 Slow Ring 版本发布，在这期间不会提供更新。" & vbCrLf &
+                    "在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
                     "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
             ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
         Else
