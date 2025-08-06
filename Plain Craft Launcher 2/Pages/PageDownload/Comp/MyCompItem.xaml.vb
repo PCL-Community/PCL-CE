@@ -107,7 +107,7 @@ Public Class MyCompItem
     Public Event Click(sender As Object, e As MouseButtonEventArgs)
     
     Private Sub BtnDelete_Click(sender As Object, e As EventArgs) Handles BtnDelete.Click
-        If TypeOf Tag Is CompProject Then
+        If PanButtons.Opacity > 0 AndAlso TypeOf Tag Is CompProject Then
             Dim project = CType(Tag, CompProject)
             CompFavorites.ShowMenu(project, sender, New Action(Sub()
                 RefreshFavoriteStatus()
@@ -180,13 +180,11 @@ Public Class MyCompItem
         Dim clickPosition = e.GetPosition(Me)
         Dim isClickOnButton As Boolean = False
         
-        If PanButtons.Visibility = Visibility.Visible Then
-            Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
-            isClickOnButton = buttonBounds.Contains(clickPosition)
-        End If
+        Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
+        isClickOnButton = buttonBounds.Contains(clickPosition)
         
         ' 如果点击在按钮上，不处理主项目点击事件
-        If isClickOnButton Then
+        If isClickOnButton AndAlso PanButtons.Opacity > 0 Then
             Return
         End If
         
@@ -198,7 +196,7 @@ Public Class MyCompItem
             isClickOnLabInfo = labInfoBounds.Contains(clickPosition)
         End If
         
-        If IsMouseDirectlyOver OrElse isClickOnLabInfo Then
+        If IsMouseDirectlyOver OrElse isClickOnLabInfo orElse isClickOnButton Then
             IsMouseDown = True
         End If
     End Sub
