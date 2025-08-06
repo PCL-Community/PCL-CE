@@ -329,13 +329,16 @@ Public Module ModLink
     Public IsETReady As Boolean = False
     Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
         Try
-            If ETProcess IsNot Nothing AndAlso Not ETProcess.HasExited Then
-                ETProcess.Kill()
-            End If
+            Dim etFilePath = $"{ETPath}\easytier-core.exe"
+
+            Dim existingET = Process.GetProcessesByName("easytier-core")
+            For Each et In existingET
+                Log($"发现一个存在的 ET 实例，可能影响与启动器所用的实例通信：{et.Id}")
+            Next
             ETProcess = New Process With {
                 .EnableRaisingEvents = True,
                 .StartInfo = New ProcessStartInfo With {
-                    .FileName = $"{ETPath}\easytier-core.exe",
+                    .FileName = etFilePath,
                     .WorkingDirectory = ETPath,
                     .UseShellExecute = False,
                     .CreateNoWindow = True,

@@ -365,39 +365,13 @@ Retry:
                                }
         Try
             ETCliProcess.Start()
-            ETCliProcess.WaitForExit(200)
+            ETCliProcess.WaitForExit(180)
 
             Dim ETCliOutput As String = Nothing
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
             If Not ETCliProcess.HasExited Then
-                Log($"[Link] 轮询获取结果超时(200 ms)，程序状态可能异常！")
+                Log($"[Link] 轮询获取结果超时(180 ms)，程序状态可能异常！")
                 Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
-            End If
-            If Not ETCliOutput.Contains("10.114.51.41") AndAlso Not ETCliOutput.Contains("10.144.144.1") Then
-                If RemainRetry > 0 Then
-                    Log($"[Link] 未找到大厅创建者 IP，放弃前再重试 {RemainRetry} 次")
-                    Thread.Sleep(1000)
-                    GetETInfo(RemainRetry - 1)
-                    Exit Sub
-                End If
-                If IsETFirstCheckFinished Then
-                    Hint("大厅已被解散", HintType.Critical)
-                    ToastNotification.SendToast("大厅已被解散", "PCL CE 大厅")
-                Else
-                    If IsHost Then
-                        Hint("大厅创建失败", HintType.Critical)
-                    Else
-                        Hint("该大厅不存在", HintType.Critical)
-                    End If
-                End If
-                RunInUi(Sub()
-                            CardPlayerList.Title = "大厅成员列表（正在获取信息）"
-                            StackPlayerList.Children.Clear()
-                            CurrentSubpage = Subpages.PanSelect
-                            Log("[Link] [ETInfo] 大厅不存在或已被解散，返回选择界面")
-                        End Sub)
-                ExitEasyTier()
-                Exit Sub
             End If
             '查询大厅成员信息
             Dim PlayerNum As Integer = 0
@@ -424,6 +398,32 @@ Retry:
                 End If
                 PlayerNum += 1
             Next
+            If Not PlayerList.Any(Function(x) x.IsHost) Then
+                If RemainRetry > 0 Then
+                    Log($"[Link] 未找到大厅创建者 IP，放弃前再重试 {RemainRetry} 次")
+                    Thread.Sleep(1000)
+                    GetETInfo(RemainRetry - 1)
+                    Exit Sub
+                End If
+                If IsETFirstCheckFinished Then
+                    Hint("大厅已被解散", HintType.Critical)
+                    ToastNotification.SendToast("大厅已被解散", "PCL CE 大厅")
+                Else
+                    If IsHost Then
+                        Hint("大厅创建失败", HintType.Critical)
+                    Else
+                        Hint("该大厅不存在", HintType.Critical)
+                    End If
+                End If
+                RunInUi(Sub()
+                            CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                            StackPlayerList.Children.Clear()
+                            CurrentSubpage = Subpages.PanSelect
+                            Log("[Link] [ETInfo] 大厅不存在或已被解散，返回选择界面")
+                        End Sub)
+                ExitEasyTier()
+                Exit Sub
+            End If
             '本地网络质量评估
             Dim Quality As Integer = 0
             'NAT 评估
@@ -477,6 +477,9 @@ Retry:
             IsETFirstCheckFinished = True
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
+            If ETProcess.HasExited Then
+                ExitEasyTier()
+            End If
         End Try
     End Sub
 #End Region
