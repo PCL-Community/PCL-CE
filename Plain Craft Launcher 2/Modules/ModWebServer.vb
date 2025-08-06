@@ -103,7 +103,13 @@ Public Module ModWebServer
                     '寻找可用端口号创建服务端实例
                     For port = 29992 To 30992
                         If Not Array.Exists(IPGlobalProperties.GetIPGlobalProperties.GetActiveTcpListeners, Function(i) i.Port = port) Then
-                            server = New RoutedWebServer($"127.0.0.1:{port}")
+                            Log($"[OAuth] {serviceName}: 尝试在 {port} 端口初始化 Web 服务端")
+                            Try
+                                server = New RoutedWebServer($"127.0.0.1:{port}")
+                            Catch ex As HttpListenerException
+                                If ex.NativeErrorCode = &H80004005 Then Continue For
+                                Throw
+                            End Try
                             Log($"[OAuth] {serviceName}: 已开始监听 {port} 端口，正在初始化路由")
                             Exit For
                         End If
