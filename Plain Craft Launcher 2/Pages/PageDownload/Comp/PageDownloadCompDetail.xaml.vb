@@ -225,7 +225,7 @@ Public Class PageDownloadCompDetail
                    CType(FrmMain.PageCurrent.Additional(1), List(Of String)).Contains(NewCard.Title)) Then
                     NewCard.StackInstall() '9 是安装，8 是另存为
                 Else
-                    NewCard.IsSwaped = True
+                    NewCard.IsSwapped = True
                 End If
                 '增加提示
                 If Pair.Key = "其他版本" Then
@@ -234,7 +234,7 @@ Public Class PageDownloadCompDetail
             Next
             '如果只有一张卡片，展开第一张卡片
             If PanResults.Children.Count = 1 Then
-                CType(PanResults.Children(0), MyCard).IsSwaped = False
+                CType(PanResults.Children(0), MyCard).IsSwapped = False
             End If
         Catch ex As Exception
             Log(ex, "可视化工程下载列表出错", LogLevel.Feedback)

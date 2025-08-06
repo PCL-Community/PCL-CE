@@ -189,7 +189,7 @@
                     <local:MyButton x:Name="BtnServerNewProfile" Height="35" MinWidth="150" Margin="360,-35,0,0" Text="新建档案" HorizontalAlignment="Left" />
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardAdvance" Margin="0,0,0,15" Title="高级启动选项" IsSwaped="True" CanSwap="True">
+            <local:MyCard x:Name="CardAdvance" Margin="0,0,0,15" Title="高级启动选项" IsSwapped="True" CanSwap="True">
                 <Grid Margin="25,40,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />

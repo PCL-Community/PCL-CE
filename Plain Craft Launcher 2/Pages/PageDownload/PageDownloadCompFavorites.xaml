@@ -26,10 +26,10 @@
                         <StackPanel  x:Name="PanContentList">
                             
                         </StackPanel>
-                        <!--<local:MyCard x:Name="CardProjectsMod" Title="Mod" IsSwaped="True" CanSwap="True" Margin="0,0,0,15">
+                        <!--<local:MyCard x:Name="CardProjectsMod" Title="Mod" IsSwapped="True" CanSwap="True" Margin="0,0,0,15">
                             <StackPanel x:Name="PanProjectsMod" Margin="12,38,12,12" />
                         </local:MyCard>
-                        <local:MyCard x:Name="CardProjectsModpack" Title="整合包" IsSwaped="True" CanSwap="True" Margin="0,0,0,15">
+                        <local:MyCard x:Name="CardProjectsModpack" Title="整合包" IsSwapped="True" CanSwap="True" Margin="0,0,0,15">
                             <StackPanel x:Name="PanProjectsModpack" Margin="12,38,12,12" />
                         </local:MyCard>-->
                     </StackPanel>

@@ -38,13 +38,13 @@
                 <local:MyCard Title="UP NEXT" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True">
                     <StackPanel x:Name="PanListUpnext" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
-                <local:MyCard Title="已完成" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True" IsSwaped="True">
+                <local:MyCard Title="已完成" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True" IsSwapped="True">
                     <StackPanel x:Name="PanListCompleted" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
-                <local:MyCard Title="已拒绝" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwaped="True">
+                <local:MyCard Title="已拒绝" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwapped="True">
                     <StackPanel x:Name="PanListDecline" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
-                <local:MyCard Title="已忽略" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwaped="True">
+                <local:MyCard Title="已忽略" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwapped="True">
                     <StackPanel x:Name="PanListIgnored" Orientation="Vertical" Margin="20,36,18,22"/>
                 </local:MyCard>
             </StackPanel>
