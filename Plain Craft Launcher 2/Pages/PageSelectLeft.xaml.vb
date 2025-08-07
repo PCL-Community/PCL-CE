@@ -13,7 +13,7 @@
         Try
 
             '确认数据有变化
-            If McFolderListLast IsNot Nothing AndAlso McFolderListLast.SequenceEqual(McFolderList) Then
+            If McFolderListLast IsNot Nothing AndAlso McFolderListLast.Equals(McFolderList) Then
                 Dim IsEqual As Boolean = True
                 For i = 0 To McFolderListLast.Count - 1
                     If Not McFolderListLast(i).Equals(McFolderList(i)) Then
@@ -30,8 +30,10 @@
 
             '文件夹列表
             FrmSelectLeft.PanList.Children.Add(New TextBlock With {.Text = "文件夹列表", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
-            For i As Integer = 0 To McFolderList.Count - 1
+            For i = 0 To McFolderList.Count - 1
                 Dim Folder As McFolder = McFolderList(i)
+                Log(Folder.Name)
+                Log(Folder.Type)
                 '添加控件
                 Dim ContMenu As ContextMenu = Nothing
                 Select Case Folder.Type
@@ -49,7 +51,7 @@
                     Case McFolderType.RenamedOriginal
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
-                                    <local:MyMenuItem x:Name="Remove" Header="复原名称" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
+                                    <local:MyMenuItem x:Name="Restore" Header="复原名称" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
                                     <local:MyMenuItem x:Name="MoveUp" Header="上移" Icon="M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
                                     <local:MyMenuItem x:Name="MoveDown" Header="下移" Icon="M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z"/>
@@ -73,8 +75,8 @@
                 End Select
                 
                 '根据位置控制上移和下移按钮的显示
-                Dim moveUpItem As MyMenuItem = CType(ContMenu.FindName("MoveUp"), MyMenuItem)
-                Dim moveDownItem As MyMenuItem = CType(ContMenu.FindName("MoveDown"), MyMenuItem)
+                Dim moveUpItem = CType(ContMenu.FindName("MoveUp"), MyMenuItem)
+                Dim moveDownItem = CType(ContMenu.FindName("MoveDown"), MyMenuItem)
                 
                 ' 如果是第一个项目，隐藏上移按钮
                 If i = 0 Then
@@ -89,6 +91,7 @@
                 If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = Path & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
                 '注册事件
                 If Folder.Type = McFolderType.Custom Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
+                If Folder.Type = McFolderType.RenamedOriginal Then CType(ContMenu.FindName("Restore"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Restore_Click))
                 moveUpItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveUp_Click))
                 moveDownItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveDown_Click))
                 CType(ContMenu.FindName("Open"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Open_Click))
@@ -179,37 +182,45 @@
     End Sub
     Private McFolderListLast As List(Of McFolder)
 
-    Public Sub MoveUp_Click(sender As Object, e As RoutedEventArgs)
-        Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-        Dim Index = McFolderList.IndexOf(Folder)
-        If Index > 0 Then
-            McFolderList.RemoveAt(Index)
-            McFolderList.Insert(Index - 1, Folder)
+    Private Sub MoveUp_Click(sender As Object, e As RoutedEventArgs)
+        Dim folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
+        Dim index = McFolderList.IndexOf(folder)
+        If index > 0 Then
+            McFolderList.RemoveAt(index)
+            McFolderList.Insert(index - 1, folder)
             UpdateFolderOrder()
         End If
     End Sub
 
-    Public Sub MoveDown_Click(sender As Object, e As RoutedEventArgs)
-        Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-        Dim Index = McFolderList.IndexOf(Folder)
-        If Index < McFolderList.Count - 1 Then
-            McFolderList.RemoveAt(Index)
-            McFolderList.Insert(Index + 1, Folder)
+    Private Sub MoveDown_Click(sender As Object, e As RoutedEventArgs)
+        Dim folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
+        Dim index = McFolderList.IndexOf(folder)
+        If index < McFolderList.Count - 1 Then
+            McFolderList.RemoveAt(index)
+            McFolderList.Insert(index + 1, folder)
             UpdateFolderOrder()
         End If
     End Sub
 
     Private Sub UpdateFolderOrder()
-        Dim Folders As New List(Of String)
-        For Each Folder As McFolder In McFolderList
-            Folders.Add(Folder.Name & ">" & Folder.Path)
+        Dim folders As New List(Of String)
+        For Each folder As McFolder In McFolderList
+            folders.Add(folder.Name & ">" & folder.Path)
         Next
-        Setup.Set("LaunchFolders", Join(Folders.ToArray, "|"))
+        Setup.Set("LaunchFolders", Join(folders.ToArray, "|"))
         McFolderListUi()
+    End Sub
+    
+    Private Sub Restore_Click(sender As Object, e As RoutedEventArgs)
+        Dim folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
+        Dim index = McFolderList.IndexOf(folder)
+        McFolderList(index).Type = McFolderType.Original
+        McFolderList(index).Name = "官方启动器文件夹"
+        UpdateFolderOrder()
     End Sub
 
     '添加文件夹
-    Public Sub Add_Click()
+    Private Sub Add_Click()
         Dim NewFolder As String = ""
         '检查是否有下载任务
         If HasDownloadingTask() Then
@@ -338,24 +349,21 @@
         Try
 
             Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-            '若为 “移除”，则提醒是否删除 PCL 的配置文件
-            If Folder.Type = McFolderType.Custom Then
-                Select Case MyMsgBox("是否需要清理 PCL 在该文件夹中的配置文件？" & vbCrLf & "这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。", "配置文件清理", "删除", "保留", "取消")
-                    Case 1
-                        '删除配置文件
-                        If File.Exists(Folder.Path & "PCL.ini") Then File.Delete(Folder.Path & "PCL.ini")
-                        If Directory.Exists(Folder.Path & "versions\") Then
-                            For Each Version In New DirectoryInfo(Folder.Path & "versions\").EnumerateDirectories
-                                If Directory.Exists(Version.FullName & "\PCL\") Then Directory.Delete(Version.FullName & "\PCL\", True)
-                            Next
-                        End If
-                    Case 2
-                    '不删除
-                    Case 3
-                        '取消
-                        Return
-                End Select
-            End If
+            Select Case MyMsgBox("是否需要清理 PCL 在该文件夹中的配置文件？" & vbCrLf & "这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。", "配置文件清理", "删除", "保留", "取消")
+                Case 1
+                    '删除配置文件
+                    If File.Exists(Folder.Path & "PCL.ini") Then File.Delete(Folder.Path & "PCL.ini")
+                    If Directory.Exists(Folder.Path & "versions\") Then
+                        For Each Version In New DirectoryInfo(Folder.Path & "versions\").EnumerateDirectories
+                            If Directory.Exists(Version.FullName & "\PCL\") Then Directory.Delete(Version.FullName & "\PCL\", True)
+                        Next
+                    End If
+                Case 2
+                '不删除
+                Case 3
+                    '取消
+                    Return
+            End Select
             '若修改了本部分代码，应对应修改 Delete_Click 中的代码
             '获取并删除列表项
             Dim Folders As New List(Of String)(Setup.Get("LaunchFolders").ToString.Split("|"))
