@@ -87,8 +87,8 @@ Public Class Application
             Directory.CreateDirectory(PathTemp & "Cache")
             Directory.CreateDirectory(PathTemp & "Download")
             Directory.CreateDirectory(PathAppdata)
+#If False Then
             '检测单例
-#If Not DEBUGRESERVED Then
             Dim ShouldWaitForExit As Boolean = args.Length > 0 AndAlso args(0) = "--wait" '要求等待已有的 PCL 退出
             Dim WaitRetryCount As Integer = 0
 WaitRetry:
