@@ -1,4 +1,5 @@
-﻿Imports System.Net.Http
+﻿Imports System.IO.Pipelines
+Imports System.Net.Http
 Imports System.Security.Cryptography
 
 Public Module ModProfile
@@ -19,9 +20,9 @@ Public Module ModProfile
     ''' <summary>
     ''' 档案操作日志
     ''' </summary>
-    Public Sub ProfileLog(content As String, Optional level As LogLevel = LogLevel.Normal)
-        Dim output As String = "[Profile] " & content
-        Log(output, level)
+    Public Sub ProfileLog(Content As String)
+        Dim Output As String = "[Profile] " & Content
+        Log(Output)
     End Sub
 
 #Region "类型声明"
@@ -73,7 +74,6 @@ Public Module ModProfile
         ''' <summary>
         ''' 用于识别正版档案的 ID 标识符
         ''' </summary>
-        <Obsolete("暂时弃用，应当使用 AccessToken 与 RefreshToken")>
         Public IdentityId As String
     End Class
 #End Region
@@ -106,7 +106,8 @@ Public Module ModProfile
                         .Expires = Profile("expires"),
                         .Desc = Profile("desc"),
                         .RawJson = SecretDecrypt(Profile("rawJson")),
-                        .SkinHeadId = Profile("skinHeadId")
+                        .SkinHeadId = Profile("skinHeadId"),
+                        .IdentityId = SecretDecrypt(Profile("identityId"))
                     }
                 ElseIf Profile("type") = "authlib" Then
                     NewProfile = New McProfile With {
@@ -170,7 +171,8 @@ Public Module ModProfile
                             {"expires", Profile.Expires},
                             {"desc", Profile.Desc},
                             {"rawJson", SecretEncrypt(Profile.RawJson)},
-                            {"skinHeadId", Profile.SkinHeadId}
+                            {"skinHeadId", Profile.SkinHeadId},
+                            {"identityId", SecretEncrypt(Profile.IdentityId)}
                         }
                     ElseIf Profile.Type = McLoginType.Auth Then
                         ProfileJobj = New JObject From {
@@ -405,6 +407,7 @@ Write:
                                                                .Uuid = Profile("uuid"),
                                                                .Username = Profile("displayName"),
                                                                .AccessToken = "",
+                                                               .IdentityId = "",
                                                                .Expires = 1743779140286,
                                                                .Desc = "",
                                                                .RawJson = "",
@@ -607,14 +610,14 @@ Write:
             ElseIf AuthType = McLoginType.Ms Then
                 If McLoginMsLoader.State = LoadState.Finished Then
                     Return New McLoginMs With {
-                        .OAuthRefreshToken = SelectedProfile.RefreshToken,
+                        .OAuthId = SelectedProfile.IdentityId,
                         .UserName = SelectedProfile.Username,
                         .AccessToken = SelectedProfile.AccessToken,
                         .Uuid = SelectedProfile.Uuid,
                         .ProfileJson = SelectedProfile.RawJson
                     }
                 Else
-                    Return New McLoginMs With {.OAuthRefreshToken = SelectedProfile.RefreshToken, .UserName = SelectedProfile.Name}
+                    Return New McLoginMs With {.OAuthId = SelectedProfile.IdentityId, .UserName = SelectedProfile.Name}
                 End If
             Else
                 Return New McLoginLegacy With {.UserName = SelectedProfile.Username, .Uuid = SelectedProfile.Uuid}
