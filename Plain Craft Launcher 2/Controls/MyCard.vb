@@ -290,6 +290,19 @@ Public Class MyCard
         End Set
     End Property
     Private _IsSwapped As Boolean = False
+    
+    ''' <summary>
+    ''' 是否已被折叠。(已过时，请使用 IsSwapped)
+    ''' </summary>
+    <Obsolete("请使用 IsSwapped 属性，IsSwaped 存在拼写错误")>
+    Public Property IsSwaped As Boolean
+        Get
+            Return IsSwapped
+        End Get
+        Set(value As Boolean)
+            IsSwapped = value
+        End Set
+    End Property
 
     Public Property SwapLogoRight As Boolean = False
     Private IsMouseDown As Boolean = False
