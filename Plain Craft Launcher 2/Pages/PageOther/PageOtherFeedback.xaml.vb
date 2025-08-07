@@ -349,7 +349,7 @@
             ElseIf StatusDesc.Equals("已完成") Then
                 PanListCompleted.Children.Add(ele)
             ElseIf StatusDesc.Equals("已拒绝") Then
-                PanListDecline.Children.Add(ele）
+                PanListDecline.Children.Add(ele)
             ElseIf StatusDesc.Equals("已忽略") Then
                 PanListIgnored.Children.Add(ele)
             ElseIf StatusDesc.Equals("已确认，等待社区开发者接管该内容的处理") Then
@@ -362,7 +362,7 @@
             PanContentDecline.Visibility = If(PanListDecline.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentCompleted.Visibility = If(PanListCompleted.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentWaitingProcess.Visibility = If(PanListWaitingProcess.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
-            PanContentProcessing.Visibility = If(PanListProcessing.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible）
+            PanContentProcessing.Visibility = If(PanListProcessing.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentIgnored.Visibility = If(PanListIgnored.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentWait.Visibility = If(PanListWait.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentPause.Visibility = If(PanListPause.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
