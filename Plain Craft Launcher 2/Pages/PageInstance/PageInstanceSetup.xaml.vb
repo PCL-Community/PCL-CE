@@ -484,12 +484,7 @@ PreFin:
     End Sub
 
     Private Shared Sub TextServerEnter_Change(sender As MyTextBox, e As Object) Handles TextServerEnter.LostFocus
-        If sender.Text.ContainsF("：") Then
-            If MyMsgBox("你似乎将服务器地址中的冒号打成了全角冒号，这可能会导致你无法进入服务器！" & vbCrLf & vbCrLf & "是否要将其替换为半角冒号？",
-                     "警告", Button1:="确定", Button2:="取消", IsWarn:=True) = 1 Then
-                sender.Text = sender.Text.Replace("：", ":")
-            End If
-        End If
+        sender.Text = sender.Text.Replace("：", ":")
     End Sub
 #End Region
 
