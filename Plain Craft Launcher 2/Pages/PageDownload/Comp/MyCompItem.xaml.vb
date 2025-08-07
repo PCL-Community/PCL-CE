@@ -3,7 +3,7 @@ Public Class MyCompItem
 #Region "基础属性"
     Public Uuid As Integer = GetUuid()
     
-    'Logo
+    ' Logo
     Public Property Logo As String
         Get
             Return PathLogo.Source
@@ -13,7 +13,7 @@ Public Class MyCompItem
         End Set
     End Property
     
-    '标题
+    ' 标题
     Public Property Title As String
         Get
             Return LabTitle.Text
@@ -24,7 +24,7 @@ Public Class MyCompItem
         End Set
     End Property
 
-    '副标题
+    ' 副标题
     Public Property SubTitle As String
         Get
             Return If(LabTitleRaw?.Text, "")
@@ -36,7 +36,7 @@ Public Class MyCompItem
         End Set
     End Property
 
-    '描述
+    ' 描述
     Public Property Description As String
         Get
             Return LabInfo.Text
@@ -62,7 +62,7 @@ Public Class MyCompItem
         Return formattedText.Width > textBlock.ActualWidth
     End Function
 
-    'Tag
+    ' Tag
     Public WriteOnly Property Tags As List(Of String)
         Set(value As List(Of String))
             PanTags.Children.Clear()
@@ -86,9 +86,20 @@ Public Class MyCompItem
             Next
         End Set
     End Property
+    
+    ‘ 收藏按钮
+    Public Property ShowFavoriteBtn As Boolean
+        Set
+           PanButtons.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)
+        End Set
+        Get
+            Return PanButtons.Visibility = Visibility.Visible
+        End Get
 
-    'showFavoriteBtn
-    Public showFavoriteBtn As Boolean = False
+    End Property
+
+    ' showFavoriteBtn
+    ' Public ShowFavoriteBtn As Boolean = False
 
     ''' <summary>
     ''' 刷新收藏状态
@@ -96,7 +107,7 @@ Public Class MyCompItem
     Public Sub RefreshFavoriteStatus()
         If TypeOf Tag Is CompProject Then
             Dim project As CompProject = CType(Tag, CompProject)
-            showFavoriteBtn = CompFavorites.IsFavourite(project.Id)
+            ShowFavoriteBtn = CompFavorites.IsFavourite(project.Id)
         End If
     End Sub
 #End Region
@@ -107,7 +118,7 @@ Public Class MyCompItem
     Public Event Click(sender As Object, e As MouseButtonEventArgs)
     
     Private Sub BtnDelete_Click(sender As Object, e As EventArgs) Handles BtnDelete.Click
-        If PanButtons.Opacity > 0 AndAlso TypeOf Tag Is CompProject Then
+        If TypeOf Tag Is CompProject Then
             Dim project = CType(Tag, CompProject)
             CompFavorites.ShowMenu(project, sender, New Action(Sub()
                 RefreshFavoriteStatus()
@@ -180,11 +191,13 @@ Public Class MyCompItem
         Dim clickPosition = e.GetPosition(Me)
         Dim isClickOnButton As Boolean = False
         
-        Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
-        isClickOnButton = buttonBounds.Contains(clickPosition)
-        
+        If PanButtons.Visibility = Visibility.Visible Then
+            Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
+            isClickOnButton = buttonBounds.Contains(clickPosition)
+        End If
+
         ' 如果点击在按钮上，不处理主项目点击事件
-        If isClickOnButton AndAlso PanButtons.Opacity > 0 Then
+        If isClickOnButton Then
             Return
         End If
         
@@ -196,7 +209,7 @@ Public Class MyCompItem
             isClickOnLabInfo = labInfoBounds.Contains(clickPosition)
         End If
         
-        If IsMouseDirectlyOver OrElse isClickOnLabInfo orElse isClickOnButton Then
+        If IsMouseDirectlyOver OrElse isClickOnLabInfo Then
             IsMouseDown = True
         End If
     End Sub
@@ -266,7 +279,7 @@ Public Class MyCompItem
             '有动画
             Dim Ani As New List(Of AniData)
             If IsMouseOver Then
-                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                If PanButtons IsNot Nothing AndAlso ShowFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, 1 - PanButtons.Opacity, Time * 0.35, Time * 0.15))
                 End If
                 Ani.AddRange({
@@ -279,7 +292,7 @@ Public Class MyCompItem
                     Ani.Add(AaScaleTransform(RectBack, 1 - CType(RectBack.RenderTransform, ScaleTransform).ScaleX, Time * 1.2,, New AniEaseOutFluent))
                 End If
             Else
-                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                If PanButtons IsNot Nothing AndAlso ShowFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, -PanButtons.Opacity, Time * 0.4))
                 End If
                 Ani.AddRange({

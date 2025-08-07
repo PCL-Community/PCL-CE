@@ -6,12 +6,17 @@ Imports System.IO.Compression
 Imports LiteDB
 Imports CacheCow.Client
 Imports CacheCow.Common
+Imports PCL.Core.Helper.Hash
+Imports PCL.Core.Model.Net
+Imports PCL.Core.Network
+Imports PCL.Core.Utils.Hash
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"
 
     Public ReadOnly MyHttpClient As New HttpClient(New HttpClientHandler() With {
-                                                .Proxy = Core.Model.Net.HttpProxyManager.Instance,
+                                                .Proxy = 
+                                                HttpProxyManager.Instance,
                                                 .MaxConnectionsPerServer = 256,
                                                 .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
                                                     System.Security.Authentication.SslProtocols.Tls12 Or
@@ -23,7 +28,7 @@ Public Module ModNet
                                             })
 
     Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New NetCacheStorage(IO.Path.Combine(PathTemp, "Cache", "Net")), New HttpClientHandler() With {
-                                                .Proxy = Core.Model.Net.HttpProxyManager.Instance,
+                                                .Proxy = HttpProxyManager.Instance,
                                                 .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
                                                     System.Security.Authentication.SslProtocols.Tls12 Or
                                                     System.Security.Authentication.SslProtocols.Tls11 Or
@@ -102,7 +107,7 @@ Public Module ModNet
         End Function
 
         Private Function GetCacheNameByKey(key As CacheKey)
-            Return Core.Helper.Hash.SHA512Provider.Instance.ComputeHash($"{key.HashBase64}{New Uri(key.ResourceUri).Host}")
+            Return SHA512Provider.Instance.ComputeHash($"{key.HashBase64}{New Uri(key.ResourceUri).Host}")
         End Function
 
         Protected Overridable Sub Dispose(disposing As Boolean)
