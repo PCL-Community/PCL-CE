@@ -279,6 +279,9 @@
     </ApplicationDefinition>
     <Compile Include="Controls\Behaviors\ClipboardInterceptor.vb" />
     <Compile Include="Controls\IMyRadio.vb" />
+    <Compile Include="Controls\MinecraftServerQuery.xaml.vb">
+      <DependentUpon>MinecraftServerQuery.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\MinecraftServer.xaml.vb">
       <DependentUpon>MinecraftServer.xaml</DependentUpon>
     </Compile>
@@ -559,6 +562,10 @@
       <DependentUpon>PageSpeedRight.xaml</DependentUpon>
     </Compile>
     <Compile Include="Program.vb" />
+    <Page Include="Controls\MinecraftServerQuery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\MinecraftServer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

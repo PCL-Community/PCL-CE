@@ -104,32 +104,7 @@
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
-                <Grid Margin="25,40,25,20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <local:MyTextBox x:Name="LabServerIp" HintText="输入服务器地址" Margin="0,0,15,0" Grid.Column="0">
-                        <local:MyTextBox.ValidateRules>
-                            <local:ValidateExcept>
-                                <local:ValidateExcept.Excepts>
-                                    <sys:String>/</sys:String>
-                                </local:ValidateExcept.Excepts>
-                            </local:ValidateExcept>
-                        </local:MyTextBox.ValidateRules>
-                    </local:MyTextBox>
-                    <local:MyButton x:Name="BtnServerQuery" Text="查询" Width="60" Grid.Column="1"/>
-                    <Border x:Name="ServerInfo" Margin="0,15,0,0" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="5" BorderThickness="2" BorderBrush="{DynamicResource ColorBrush5}">
-                        <Border.Background>
-                            <ImageBrush ImageSource="/Plain Craft Launcher 2;component/Images/Themes/server_bg.png" Stretch="Uniform" TileMode="Tile" Viewport="0,0,124,124" ViewportUnits="Absolute"/>
-                        </Border.Background>
-                        <local:MinecraftServer x:Name="PanMcServer"/>
-                    </Border>
-                </Grid>
+                <local:MinecraftServerQuery Margin="15,40,15,15"/>
             </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>

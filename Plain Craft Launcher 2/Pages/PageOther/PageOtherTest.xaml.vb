@@ -433,10 +433,6 @@ Public Class PageOtherTest
         RunInThread(Sub() MemoryOptimize(True))
     End Sub
     Private _IsQueryServer As Boolean = False
-    Private Async Sub BtnServerQuery_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnServerQuery.Click
-        Await PanMcServer.UpdateServerInfoAsync(LabServerIp.Text)
-        ServerInfo.Visibility = Visibility.Visible
-    End Sub
 
     '下载正版玩家皮肤
     Private Sub BtnSkinSave_Click(sender As Object, e As EventArgs) Handles BtnSkinSave.Click
