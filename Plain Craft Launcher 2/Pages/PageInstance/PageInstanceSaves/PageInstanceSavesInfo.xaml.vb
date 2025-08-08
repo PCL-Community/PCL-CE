@@ -99,7 +99,7 @@ Class PageInstanceSavesInfo
                     If hasDifficulty Then
                         Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
                         Dim difficultyName As String = "获取失败"
-                        Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value, difficultyValue)
+                        Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
                         Select Case difficultyValue
                             Case 0
                                 difficultyName = "和平"

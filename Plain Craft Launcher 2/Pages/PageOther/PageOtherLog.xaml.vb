@@ -55,7 +55,7 @@ Class PageOtherLog
                 Sub(sender, e)
                     Dim s = CType(sender, MyListItem)
                     Dim file = CType(s.Tag, String)
-                    Process.Start(file)
+                    Process.Start(New ProcessStartInfo With {.FileName = file, .UseShellExecute = True})
                 End Sub
             PanList.Children.Add(ele)
         Next

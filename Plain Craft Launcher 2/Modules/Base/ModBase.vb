@@ -2146,30 +2146,26 @@ RetryDir:
     ''' 通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
     ''' </summary>
     Public Class SafeList(Of T)
-        Inherits SynchronizedCollection(Of T)
+        Inherits List(Of T)
         Implements IEnumerable, IEnumerable(Of T)
+
+        Private ReadOnly SyncRoot As New Object
         '构造函数
         Public Sub New()
             MyBase.New()
         End Sub
         Public Sub New(Data As IEnumerable(Of T))
-            MyBase.New(New Object, Data)
+            MyBase.New(Data)
         End Sub
-        Public Shared Widening Operator CType(Data As List(Of T)) As SafeList(Of T)
-            Return New SafeList(Of T)(Data)
-        End Operator
-        Public Shared Widening Operator CType(Data As SafeList(Of T)) As List(Of T)
-            Return New List(Of T)(Data)
-        End Operator
         '基于 SyncLock 覆写
         Public Overloads Function GetEnumerator() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
             SyncLock SyncRoot
-                Return Items.ToList.GetEnumerator()
+                Return MyBase.ToList.GetEnumerator()
             End SyncLock
         End Function
         Private Overloads Function GetEnumeratorGeneral() As IEnumerator Implements IEnumerable.GetEnumerator
             SyncLock SyncRoot
-                Return Items.ToList.GetEnumerator()
+                Return MyBase.ToList.GetEnumerator()
             End SyncLock
         End Function
     End Class

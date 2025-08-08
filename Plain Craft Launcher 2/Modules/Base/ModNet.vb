@@ -15,22 +15,16 @@ Public Module ModNet
     Public ReadOnly MyHttpClient As New HttpClient(New HttpClientHandler() With {
                                                 .Proxy = HttpProxyManager.Instance,
                                                 .MaxConnectionsPerServer = 256,
-                                                .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
-                                                    System.Security.Authentication.SslProtocols.Tls12 Or
-                                                    System.Security.Authentication.SslProtocols.Tls11 Or
-                                                    System.Security.Authentication.SslProtocols.Tls,
-                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .SslProtocols = System.Security.Authentication.SslProtocols.None,
+                                                .AutomaticDecompression = DecompressionMethods.All,
                                                 .AllowAutoRedirect = True,
                                                 .UseCookies = False
                                             })
 
     Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New NetCacheStorage(IO.Path.Combine(PathTemp, "Cache", "Net")), New HttpClientHandler() With {
                                                 .Proxy = HttpProxyManager.Instance,
-                                                .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
-                                                    System.Security.Authentication.SslProtocols.Tls12 Or
-                                                    System.Security.Authentication.SslProtocols.Tls11 Or
-                                                    System.Security.Authentication.SslProtocols.Tls,
-                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .SslProtocols = System.Security.Authentication.SslProtocols.None,
+                                                .AutomaticDecompression = DecompressionMethods.All,
                                                 .AllowAutoRedirect = True,
                                                 .UseCookies = False
                                             })
@@ -980,7 +974,8 @@ Public Module ModNet
                     Case NetState.Finish, NetState.Error
                         Return 1
                     Case Else
-                        Throw New ArgumentOutOfRangeException("文件状态未知：" & State)
+                        Return 0.5
+                        'Throw New ArgumentOutOfRangeException("文件状态未知：" & State)
                 End Select
             End Get
         End Property
