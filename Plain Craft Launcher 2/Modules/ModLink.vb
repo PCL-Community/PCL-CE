@@ -924,7 +924,7 @@ PortRetry:
     Private Sub StartUdpBoardcast()
         Try
             Try
-                UdpThread.Abort()
+                UdpThread.Interrupt()
             Catch ex As Exception
 
             End Try
@@ -937,11 +937,11 @@ PortRetry:
         IsMcPortForwardRunning = False
         Log("[Link] 停止 MC 端口转发")
         If UdpThread IsNot Nothing Then
-            UdpThread.Abort()
+            UdpThread.Interrupt()
             UdpThread = Nothing
         End If
         If TcpThread IsNot Nothing Then
-            TcpThread.Abort()
+            TcpThread.Interrupt()
             TcpThread = Nothing
         End If
         If BoardcastClient IsNot Nothing Then
