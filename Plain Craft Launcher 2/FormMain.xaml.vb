@@ -1,7 +1,7 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
-Imports PCL.Core.LifecycleManagement
+Imports PCL.Core.App
 
 Public Class FormMain
 
@@ -480,6 +480,7 @@ Public Class FormMain
 #Region "窗体事件"
     Private Resizer
     Public Sub AddResizer()
+        Me.ResizeMode = ResizeMode.CanResize
         Resizer.addResizerDown(ResizerB)
         Resizer.addResizerLeft(ResizerL)
         Resizer.addResizerLeftDown(ResizerLB)
@@ -490,6 +491,7 @@ Public Class FormMain
         Resizer.addResizerUp(ResizerT)
     End Sub
     Public Sub RemoveResizer()
+        Me.ResizeMode = ResizeMode.NoResize
         Resizer.removeAllResizers()
     End Sub
 

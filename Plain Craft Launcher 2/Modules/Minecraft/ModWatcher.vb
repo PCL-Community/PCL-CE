@@ -1,4 +1,6 @@
-﻿Public Module ModWatcher
+﻿Imports PCL.Core.Logging
+
+Public Module ModWatcher
 
     '对全体的监视
     Public McWatcherList As New List(Of Watcher)
@@ -477,7 +479,7 @@
                     Analyzer.Prepare()
                     Analyzer.Analyze(Version)
                     Analyzer.Output(False, New List(Of String) From
-                        {Version.Path & Version.Name & ".json", Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last(), Path & "PCL\LatestLaunch.bat"})
+                        {Version.Path & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), Path & "PCL\LatestLaunch.bat"})
                 Catch ex As Exception
                     Log(ex, "崩溃分析失败", LogLevel.Feedback)
                 End Try

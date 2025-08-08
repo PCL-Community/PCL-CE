@@ -4,11 +4,11 @@ Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
 Imports System.Threading.Tasks
-Imports PCL.Core.Model
-Imports PCL.Core.Utils.Minecraft
-Imports PCL.Core.Service
-Imports PCL.Core.Extension
-Imports PCL.Core.Helper
+Imports PCL.Core.IO
+Imports PCL.Core.Link
+Imports PCL.Core.Net
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Public Module ModLink
 
@@ -184,23 +184,39 @@ Public Module ModLink
             Log($"[MCDetect] 获取到端口数量 {lookupList.Count}")
             '并行查找本地，超时 3s 自动放弃
             Dim checkTasks = lookupList.Select(Function(lookup) Task.Run(Async Function()
-                                                                             Try
-                                                                                 Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}")
-                                                                                 Using test As New McPing("127.0.0.1", lookup.Item1, 3000)
-                                                                                     Dim info = Await test.PingAsync()
+                                                                             Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}")
+                                                                             Using test As New McPing("127.0.0.1", lookup.Item1, 3000)
+                                                                                 Dim info As McPingResult
+                                                                                 Try
+                                                                                     info = Await test.PingAsync()
                                                                                      Dim launcher = GetLauncherBrand(lookup.Item2)
                                                                                      If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
                                                                                          Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界")
                                                                                          res.Add(New Tuple(Of Integer, McPingResult, String)(lookup.Item1, info, launcher))
+                                                                                         Return
                                                                                      End If
-                                                                                 End Using
-                                                                             Catch ex As Exception
-                                                                                 If TypeOf ex.InnerException Is ObjectDisposedException Then
-                                                                                     Log($"[McDetect] {lookup} 验证超时，已强制断开连接")
-                                                                                 Else
-                                                                                     Log(ex, $"[McDetect] {lookup} 验证出错")
-                                                                                 End If
-                                                                             End Try
+                                                                                 Catch ex As Exception
+                                                                                     If TypeOf ex.InnerException Is ObjectDisposedException Then
+                                                                                         Log($"[McDetect] {lookup} 验证超时，已强制断开连接，将尝试旧版检测")
+                                                                                     Else
+                                                                                         Log(ex, $"[McDetect] {lookup} 验证出错，将尝试旧版检测")
+                                                                                     End If
+                                                                                 End Try
+                                                                                 Try
+                                                                                     info = Await test.PingOldAsync()
+                                                                                     If Not String.IsNullOrWhiteSpace(info.Version.Name) Then
+                                                                                         Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界")
+                                                                                         res.Add(New Tuple(Of Integer, McPingResult, String)(lookup.Item1, info, String.Empty))
+                                                                                         Return
+                                                                                     End If
+                                                                                 Catch ex As Exception
+                                                                                     If TypeOf ex.InnerException Is ObjectDisposedException Then
+                                                                                         Log($"[McDetect] {lookup} 验证超时，已强制断开连接")
+                                                                                     Else
+                                                                                         Log(ex, $"[McDetect] {lookup} 验证出错")
+                                                                                     End If
+                                                                                 End Try
+                                                                             End Using
                                                                          End Function)).ToArray()
             Await Task.WhenAll(checkTasks)
         Catch ex As Exception
@@ -210,7 +226,7 @@ Public Module ModLink
     End Function
     Public Function GetLauncherBrand(pid As Integer) As String
         Try
-            Dim cmd = CmdLineHelper.GetCommandLine(pid)
+            Dim cmd = ProcessInterop.GetCommandLine(pid)
             If cmd.Contains("-Dminecraft.launcher.brand=") Then
                 Return cmd.AfterFirst("-Dminecraft.launcher.brand=").BeforeFirst("-").TrimEnd("'", " ")
             Else
@@ -304,7 +320,7 @@ Public Module ModLink
         Public Type As String
     End Class
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
-    Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"
+    Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
     Public ETVersion As String = "2.4.1"
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
@@ -313,15 +329,18 @@ Public Module ModLink
     Public IsETReady As Boolean = False
     Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
         Try
+            Dim etFilePath = $"{ETPath}\easytier-core.exe"
+
+            Dim existingET = Process.GetProcessesByName("easytier-core")
+            For Each et In existingET
+                Log($"发现一个存在的 ET 实例，可能影响与启动器所用的实例通信：{et.Id}")
+            Next
             ETProcess = New Process With {
                 .EnableRaisingEvents = True,
                 .StartInfo = New ProcessStartInfo With {
-                    .FileName = $"{ETPath}\easytier-core.exe",
+                    .FileName = etFilePath,
                     .WorkingDirectory = ETPath,
-                    .UseShellExecute = False,
-                    .CreateNoWindow = True,
-                    .RedirectStandardOutput = True,
-                    .RedirectStandardError = True
+                    .WindowStyle = ProcessWindowStyle.Hidden
                 }
             }
             '兜底
@@ -344,7 +363,7 @@ Public Module ModLink
                 Secret = ETNetworkDefaultSecret & Secret
             End If
             If Not IsHost Then
-                PageLinkLobby.JoinerLocalPort = PortHelper.GetAvailablePort()
+                PageLinkLobby.JoinerLocalPort = NetworkHelper.NewTcpPort()
                 Log("[Link] ET 本地端口转发端口: " & PageLinkLobby.JoinerLocalPort)
             End If
             If IsHost Then '创建者
@@ -353,8 +372,14 @@ Public Module ModLink
             Else
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
                 Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --tcp-whitelist 0 --udp-whitelist 0" '加入者
-                Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" 'TCP
-                Arguments += $" --port-forward=udp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/10.114.51.41:{remotePort}" 'UDP
+                Dim ip As String = Nothing
+                If TcInfo IsNot Nothing Then
+                    ip = "10.144.144.1"
+                Else
+                    ip = "10.114.51.41"
+                End If
+                Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}" 'TCP
+                Arguments += $" --port-forward=udp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}" 'UDP
             End If
 
             '节点设置

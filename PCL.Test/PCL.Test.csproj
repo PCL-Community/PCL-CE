@@ -95,7 +95,6 @@
   <ItemGroup>
     <Compile Include="BaseXTest.cs" />
     <Compile Include="ByteHelperTest.cs" />
-    <Compile Include="ConfigureTest.cs" />
     <Compile Include="DiffTest.cs" />
     <Compile Include="DynamicJsonTest.cs" />
     <Compile Include="JavaTest.cs" />

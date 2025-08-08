@@ -4,8 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
-using PCL.Core.Helper;
+using PCL.Core.Minecraft;
+using PCL.Core.Utils;
 
 namespace PCL.Test
 {
@@ -16,7 +16,7 @@ namespace PCL.Test
         public async Task TestJavaSearch()
         {
             // Java 搜索是否稳定
-            var jas = new JavaManage();
+            var jas = new JavaManager();
             await jas.ScanJava();
             var firstScanedCount = jas.JavaList.Count;
             foreach (var ja in jas.JavaList)

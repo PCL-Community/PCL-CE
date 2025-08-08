@@ -57,7 +57,7 @@
                 If Type = "指南" Then
                     MyCard.StackInstall(NewStack, PutMethod)
                 Else
-                    NewCard.IsSwaped = True
+                    NewCard.IsSwapped = True
                 End If
                 PanList.Children.Add(NewCard)
             Next

@@ -1,0 +1,34 @@
+﻿<Grid x:Class="MinecraftServerQuery"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:local="clr-namespace:PCL"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <local:MyTextBox x:Name="LabServerIp" HintText="输入服务器地址" Margin="0,0,15,0" Grid.Column="0">
+        <local:MyTextBox.ValidateRules>
+            <local:ValidateExcept>
+                <local:ValidateExcept.Excepts>
+                    <sys:String>/</sys:String>
+                </local:ValidateExcept.Excepts>
+            </local:ValidateExcept>
+        </local:MyTextBox.ValidateRules>
+    </local:MyTextBox>
+    <local:MyButton x:Name="BtnServerQuery" Text="查询" Width="60" Grid.Column="1"/>
+    <Border x:Name="ServerInfo" Margin="0,7,0,0" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="5" BorderThickness="2" BorderBrush="{DynamicResource ColorBrush5}">
+        <Border.Background>
+            <ImageBrush ImageSource="/Plain Craft Launcher 2;component/Images/Themes/server_bg.png" Stretch="Uniform" TileMode="Tile" Viewport="0,0,124,124" ViewportUnits="Absolute"/>
+        </Border.Background>
+        <local:MinecraftServer x:Name="PanMcServer"/>
+    </Border>
+</Grid>

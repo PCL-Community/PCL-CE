@@ -30,6 +30,7 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -278,6 +279,12 @@
     </ApplicationDefinition>
     <Compile Include="Controls\Behaviors\ClipboardInterceptor.vb" />
     <Compile Include="Controls\IMyRadio.vb" />
+    <Compile Include="Controls\MinecraftServerQuery.xaml.vb">
+      <DependentUpon>MinecraftServerQuery.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\MinecraftServer.xaml.vb">
+      <DependentUpon>MinecraftServer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\MyComboBox.vb" />
     <Compile Include="Controls\MyComboBoxItem.vb" />
     <Compile Include="Controls\MyCard.vb" />
@@ -555,6 +562,14 @@
       <DependentUpon>PageSpeedRight.xaml</DependentUpon>
     </Compile>
     <Compile Include="Program.vb" />
+    <Page Include="Controls\MinecraftServerQuery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\MinecraftServer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\MyExtraTextButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -1105,7 +1120,6 @@
   <ItemGroup>
     <None Include="Resources\Help.zip" />
     <None Include="Resources\ModData.dbcp" />
-    <None Include="Resources\msalruntime.zip" />
     <None Include="Resources\transformer.jar" />
   </ItemGroup>
   <ItemGroup>
@@ -1191,12 +1205,6 @@
     </PackageReference>
     <PackageReference Include="Markdig.Wpf">
       <Version>0.5.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Identity.Client">
-      <Version>4.74.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Identity.Client.Broker">
-      <Version>4.74.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts">
       <Version>10.0.19041.2</Version>

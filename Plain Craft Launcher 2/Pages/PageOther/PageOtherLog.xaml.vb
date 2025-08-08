@@ -1,7 +1,7 @@
 ﻿Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Text.RegularExpressions
-Imports PCL.Core.Service
+Imports PCL.Core.Logging
 
 Class PageOtherLog
     Private Sub PageOtherLog_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded

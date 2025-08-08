@@ -22,7 +22,7 @@
 
                 <!-- pcl2新闻主页 -->
 
-                <local:MyCard Margin="0,15,0,14" Title="PCL2 新闻主页" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,15,0,14" Title="PCL2 新闻主页" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,8">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -59,7 +59,7 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                 <!-- 简单主页 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="简单主页" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="简单主页" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -118,7 +118,7 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                 <!-- 每日整合包推荐 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="每日整合包推荐" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="每日整合包推荐" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -150,7 +150,7 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                 <!-- Minecraft皮肤推荐 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="Minecraft 皮肤推荐" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="Minecraft 皮肤推荐" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -182,7 +182,7 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                 <!-- OpenBMCLApi仪表盘Lite -->
 
-                    <local:MyCard Margin="0,0,0,14" Title="OpenBMCLApi 仪表盘 Lite" CanSwap="True" IsSwaped="True">
+                    <local:MyCard Margin="0,0,0,14" Title="OpenBMCLApi 仪表盘 Lite" CanSwap="True" IsSwapped="True">
                         <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                             <StackPanel>
                                 <Grid Margin="26,20,20,2">
@@ -223,7 +223,7 @@ LogoScale="1" Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.
 
                     <!-- PCL2 新闻速报 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="PCL2 新闻速报" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="PCL2 新闻速报" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -271,7 +271,7 @@ Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.
 
                 <!-- pcl2新功能说明书 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="PCL2 新功能说明书" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="PCL2 新功能说明书" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -318,7 +318,7 @@ Logo="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.
 
                 <!-- pcl2杂志主页 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="PCL2 杂志主页" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="PCL2 杂志主页" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">
@@ -378,7 +378,7 @@ Mfn233@Github（Mfn233）为主页提供最开始的技术支持支持和鼓励�
 
                 <!-- PCL2 GitHub 仓库仪表盘 -->
 
-                <local:MyCard Margin="0,0,0,14" Title="PCL2 GitHub 仓库仪表盘" CanSwap="True" IsSwaped="True">
+                <local:MyCard Margin="0,0,0,14" Title="PCL2 GitHub 仓库仪表盘" CanSwap="True" IsSwapped="True">
                     <Border Margin="-0.6" CornerRadius="5" BorderThickness="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="26,20,20,2">

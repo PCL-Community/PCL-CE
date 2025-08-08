@@ -1,4 +1,5 @@
 ﻿Imports System.Text.RegularExpressions
+Imports PCL.Core.Logging
 
 Public Class CrashAnalyzer
 
@@ -915,7 +916,7 @@ NextStack:
                                 FileName = "游戏崩溃前的输出.txt"
                                 FileEncoding = Encoding.UTF8
                         End Select
-                        If Core.Helper.LogWrapper.CurrentLogger.LogFiles.Last().AfterLast("\") = FileName Then
+                        If LogWrapper.CurrentLogger.LogFiles.Last().AfterLast("\") = FileName Then
                             FileName = "PCL 启动器日志.txt"
                             FileEncoding = Encoding.UTF8
                         End If

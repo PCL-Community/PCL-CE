@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Model
+﻿Imports PCL.Core.Minecraft
 
 Public Class PageSetupJava
 
@@ -37,7 +37,7 @@ Public Class PageSetupJava
                                                          If J.IsEnabled Then
                                                              Setup.Set("LaunchArgumentJavaSelect", J.JavaExePath)
                                                          Else
-                                                             Hint("未启动此 Java")
+                                                             Hint("请先启用此 Java 后再选择其作为默认 Java")
                                                              e.Handled = True
                                                          End If
                                                      End Sub
@@ -78,6 +78,10 @@ Public Class PageSetupJava
                               AddHandler BtnEnableSwitch.Click, Sub()
                                                                     Try
                                                                         Dim target = Javas.JavaList.Where(Function(x) x.JavaExePath = J.JavaExePath).First()
+                                                                        If target.IsEnabled AndAlso Setup.Get("LaunchArgumentJavaSelect") = target.JavaExePath Then
+                                                                            Hint("请先取消选择此 Java 作为默认 Java 后再禁用")
+                                                                            Return
+                                                                        End If
                                                                         target.IsEnabled = Not target.IsEnabled
                                                                         UpdateEnableStyle(target.IsEnabled)
                                                                         JavaSetCache(Javas.GetCache())
@@ -113,7 +117,7 @@ Public Class PageSetupJava
     End Sub
 
     Private Sub BtnAdd_Click(sender As Object, e As RouteEventArgs) Handles BtnAdd.Click
-        Dim ret = SelectFile("Java 程序(*.exe)|*.exe", "选择 Java 程序")
+        Dim ret = SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
         If String.IsNullOrEmpty(ret) OrElse Not File.Exists(ret) Then Return
         If JavaAddNew(ret) Then
             Hint("已添加 Java！", HintType.Finish)

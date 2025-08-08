@@ -21,8 +21,8 @@ namespace PCL.Test
             };
             string json = JsonSerializer.Serialize(obj, options);
             Console.WriteLine(json);
-            dynamic obj2 = JsonSerializer.Deserialize<ExpandoObject>(json, options);
-            Console.WriteLine(obj2.ToString());
+            dynamic? obj2 = JsonSerializer.Deserialize<ExpandoObject>(json, options);
+            Console.WriteLine(obj2?.ToString());
         }
     }
 }

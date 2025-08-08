@@ -180,7 +180,7 @@ Public Class PageSelectRight
                                     Next
                                 End Sub
                 If Card.Key = McInstanceCardType.Rubbish OrElse Card.Key = McInstanceCardType.Error OrElse Card.Key = McInstanceCardType.Fool Then
-                    NewCard.IsSwaped = True
+                    NewCard.IsSwapped = True
                     NewCard.InstallMethod = PutMethod
                 Else
                     MyCard.StackInstall(NewStack, PutMethod)
@@ -188,8 +188,8 @@ Public Class PageSelectRight
             Next
 
             '若只有一个卡片，则强制展开
-            If PanMain.Children.Count = 1 AndAlso CType(PanMain.Children(0), MyCard).IsSwaped Then
-                CType(PanMain.Children(0), MyCard).IsSwaped = False
+            If PanMain.Children.Count = 1 AndAlso CType(PanMain.Children(0), MyCard).IsSwapped Then
+                CType(PanMain.Children(0), MyCard).IsSwapped = False
             End If
 
             PanVerSearchBox.Visibility = If(hasVisibleFolders, Visibility.Visible, Visibility.Collapsed)

@@ -1,7 +1,8 @@
-﻿Imports PCL.Core.Helper
-Imports PCL.Core.Extension
-Imports PCL.Core.Utils.Minecraft
-Imports PCL.Core.Model
+﻿
+
+Imports PCL.Core.Link
+Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -19,6 +20,16 @@ Public Class PageLinkLobby
         PageLoaderInit(Load, PanLoad, PanContent, PanAlways, InitLoader, AutoRun:=False)
         '注册自定义的 OnStateChanged
         AddHandler InitLoader.OnStateChangedUi, AddressOf OnLoadStateChanged
+        If LobbyAnnouncementLoader Is Nothing Then
+            Dim loaders As New List(Of LoaderBase)
+            loaders.Add(New LoaderTask(Of Integer, Integer)("大厅界面初始化", Sub() RunInUi(Sub()
+                                                                                         HintAnnounce.Visibility = Visibility.Visible
+                                                                                         HintAnnounce.Theme = MyHint.Themes.Blue
+                                                                                         HintAnnounce.Text = "正在连接到大厅服务器..."
+                                                                                     End Sub)))
+            loaders.Add(New LoaderTask(Of Integer, Integer)("大厅公告获取", AddressOf GetAnnouncement) With {.ProgressWeight = 0.5})
+            LobbyAnnouncementLoader = New LoaderCombo(Of Integer)("Lobby Announcement", loaders) With {.Show = False}
+        End If
     End Sub
 
     Public IsLoad As Boolean = False
@@ -46,7 +57,7 @@ Public Class PageLinkLobby
                            End If
                        End Sub)
         IsMcWatcherRunning = True
-        GetAnnouncement()
+        LobbyAnnouncementLoader.Start()
         If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshExpiresAt")) AndAlso Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) < 0 Then
                 Setup.Set("LinkNaidRefreshToken", "")
@@ -85,13 +96,9 @@ Public Class PageLinkLobby
 
 #Region "公告"
     Public Const AllowedVersion As Integer = 4
+    Public Shared LobbyAnnouncementLoader As LoaderCombo(Of Integer) = Nothing
     Public Sub GetAnnouncement()
         RunInNewThread(Sub()
-                           RunInUi(Sub()
-                                       HintAnnounce.Visibility = Visibility.Visible
-                                       HintAnnounce.Theme = MyHint.Themes.Blue
-                                       HintAnnounce.Text = "正在连接到大厅服务器..."
-                                   End Sub)
                            Try
                                Dim ServerNumber As Integer = 0
                                Dim Jobj As JObject = Nothing
@@ -190,19 +197,38 @@ Retry:
 #End Region
 
 #Region "UI 元素"
-    Private Function PlayerInfoItem(Info As ETPlayerInfo, OnClick As MyListItem.ClickEventHandler)
-        Dim NewItem As New MyListItem With {
-                .Title = Info.NaidName,
-                .Info = If(Info.IsHost, "[主机] ", "") & If(Info.Cost = "Local", $"[本机] NAT {GetNatTypeChinese(Info.NatType)}", $"{Info.Ping}ms / {GetConnectTypeChinese(Info.Cost)}{If(Not Info.Loss = 0, $" / 丢包 {Info.Loss}%", "")}"),
+    Private Function PlayerInfoItem(info As ETPlayerInfo, onClick As MyListItem.ClickEventHandler)
+        Dim details As String = Nothing
+        If info.IsHost Then details += "[主机] "
+        If String.IsNullOrEmpty(info.NaidName) Then details += "[第三方] "
+        If info.Cost = "Local" Then
+            details += $"[本机] NAT {GetNatTypeChinese(info.NatType)}"
+        Else
+            details += $"{info.Ping}ms / {GetConnectTypeChinese(info.Cost)}{If(Not info.Loss = 0, $" / 丢包 {info.Loss}%", "")}"
+        End If
+        Dim newItem As New MyListItem With {
+                .Title = If(Not String.IsNullOrEmpty(info.NaidName), info.NaidName, info.Hostname),
+                .Info = details,
                 .Type = MyListItem.CheckType.Clickable,
-                .Tag = Info
+                .Tag = info
         }
-        AddHandler NewItem.Click, OnClick
-        Return NewItem
+        AddHandler newItem.Click, onClick
+        Return newItem
     End Function
     Private Sub PlayerInfoClick(sender As MyListItem, e As EventArgs)
-        MyMsgBox($"{If(sender.Tag.NaidName IsNot Nothing, "Natayark ID：" & sender.Tag.NaidName, "来自其他启动器")}{If(sender.Tag.McName IsNot Nothing, "，启动器使用的 MC 档案名称：" & sender.Tag.McName, "")}{vbCrLf}延迟：{sender.Tag.Ping}ms，丢包率：{sender.Tag.Loss}%，连接方式：{GetConnectTypeChinese(sender.Tag.Cost)}，NAT 类型：{GetNatTypeChinese(sender.Tag.NatType)}",
-                 $"玩家 {sender.Tag.NaidName} 的详细信息")
+        Dim info As ETPlayerInfo = sender.Tag
+        Dim msg As String = Nothing
+        If Not String.IsNullOrEmpty(info.NaidName) Then
+            msg += $"Natayark ID：{info.NaidName}"
+            If Not String.IsNullOrEmpty(info.McName) Then
+                msg += $"，启动器使用的 MC 档案名称：{info.McName}"
+            End If
+        Else
+            msg += $"主机名称：{info.Hostname}"
+        End If
+        msg += vbCrLf
+        msg += $"延迟：{info.Ping}ms，丢包率：{info.Loss}%，连接方式：{GetConnectTypeChinese(info.Cost)}，NAT 类型：{GetNatTypeChinese(info.NatType)}"
+        MyMsgBox(msg, $"玩家 {If(Not String.IsNullOrEmpty(info.NaidName), info.NaidName, info.Hostname)} 的详细信息")
     End Sub
 #End Region
 
@@ -321,7 +347,7 @@ Retry:
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
     End Sub
     'EasyTier Cli 信息获取
-    Private Sub GetETInfo(Optional RemainRetry As Integer = 5)
+    Private Sub GetETInfo(Optional RemainRetry As Integer = 10)
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
@@ -340,15 +366,40 @@ Retry:
                                }
         Try
             ETCliProcess.Start()
-            ETCliProcess.WaitForExit(200)
+            ETCliProcess.WaitForExit(180)
 
             Dim ETCliOutput As String = Nothing
             ETCliOutput = ETCliProcess.StandardOutput.ReadToEnd() & ETCliProcess.StandardError.ReadToEnd()
             If Not ETCliProcess.HasExited Then
-                Log($"[Link] 轮询获取结果超时(200 ms)，程序状态可能异常！")
+                Log($"[Link] 轮询获取结果超时(180 ms)，程序状态可能异常！")
                 Log($"[Link] 获取到 EasyTier Cli 信息: {vbCrLf}" + ETCliOutput)
             End If
-            If Not ETCliOutput.Contains("10.114.51.41") AndAlso Not ETCliOutput.Contains("10.144.144.1") Then
+            '查询大厅成员信息
+            Dim PlayerNum As Integer = 0
+            Dim PlayerList As New List(Of ETPlayerInfo)
+            Dim cliJson As JArray = JArray.Parse(ETCliOutput)
+            For Each p In cliJson
+                If p("hostname").ToString().StartsWith("PublicServer") Then Continue For '服务器
+                Dim hostnameSplit As String() = p("hostname").ToString().Split("|")
+                Dim info As New ETPlayerInfo With {
+                    .IsHost = p("hostname").ToString().StartsWithF("H|", True) OrElse p("ipv4") = "10.144.144.1",
+                    .Hostname = p("hostname"),
+                    .Cost = p("cost").ToString().BeforeLast("("),
+                    .Ping = Math.Round(Val(p("lat_ms"))),
+                    .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
+                    .NatType = p("nat_type"),
+                    .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
+                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), Nothing)
+                }
+                If info.Cost = "Local" Then LocalInfo = info
+                If info.IsHost Then
+                    HostInfo = info
+                Else
+                    PlayerList.Add(info)
+                End If
+                PlayerNum += 1
+            Next
+            If HostInfo Is Nothing Then
                 If RemainRetry > 0 Then
                     Log($"[Link] 未找到大厅创建者 IP，放弃前再重试 {RemainRetry} 次")
                     Thread.Sleep(1000)
@@ -374,31 +425,6 @@ Retry:
                 ExitEasyTier()
                 Exit Sub
             End If
-            '查询大厅成员信息
-            Dim PlayerNum As Integer = 0
-            Dim PlayerList As New List(Of ETPlayerInfo)
-            Dim cliJson As JArray = JArray.Parse(ETCliOutput)
-            For Each p In cliJson
-                If p("hostname").ToString().Contains("PublicServer") Then Continue For '服务器
-                Dim hostnameSplit As String() = p("hostname").ToString().Split("|")
-                Dim info As New ETPlayerInfo With {
-                    .IsHost = p("hostname").ToString().StartsWithF("H|", True) OrElse p("ipv4") = "10.144.144.1",
-                    .Hostname = p("hostname"),
-                    .Cost = p("cost").ToString().BeforeLast("("),
-                    .Ping = Math.Round(Val(p("lat_ms"))),
-                    .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
-                    .NatType = p("nat_type"),
-                    .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
-                    .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), "Terracotta-User")
-                }
-                If info.Cost = "Local" Then LocalInfo = info
-                If info.IsHost Then
-                    HostInfo = info
-                Else
-                    PlayerList.Add(info)
-                End If
-                PlayerNum += 1
-            Next
             '本地网络质量评估
             Dim Quality As Integer = 0
             'NAT 评估
@@ -452,6 +478,9 @@ Retry:
             IsETFirstCheckFinished = True
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
+            If ETProcess.HasExited Then
+                ExitEasyTier()
+            End If
         End Try
     End Sub
 #End Region
@@ -576,8 +605,9 @@ Retry:
                            While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing OrElse HostInfo Is Nothing
                                Thread.Sleep(500)
                            End While
-                           McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & HostInfo.NaidName)
-                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {HostInfo.NaidName} 的大厅")
+                           Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
+                           McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & hostname)
+                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
                        End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish
     End Sub

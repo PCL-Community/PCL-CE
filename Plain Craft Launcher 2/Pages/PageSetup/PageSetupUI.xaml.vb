@@ -81,36 +81,33 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            ComboUiFont.Items.Clear()
-            ComboUiFont.Items.Add(New MyComboBoxItem With {
+            If ComboUiFont.Items.Count = 0 Then
+                ComboUiFont.Items.Clear()
+                ComboUiFont.Items.Add(New MyComboBoxItem With {
                 .Content = New TextBlock With {
                                   .Text = "默认",
                                   .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                  .IsHitTestVisible = False,
-                                  .HorizontalAlignment = HorizontalAlignment.Left
+                                  .IsHitTestVisible = False
                                   },
                 .Tag = ""
             })
-            For Each Font In Fonts.SystemFontFamilies
-                Try
-                    ComboUiFont.Items.Add(New MyComboBoxItem With {
+                For Each Font In Fonts.SystemFontFamilies
+                    Try
+                        ComboUiFont.Items.Add(New MyComboBoxItem With {
                     .Content = New TextBlock With {
                                       .Text = Font.Source,
-                                      .FontFamily = New FontFamily(Font.Source),
-                                      .IsHitTestVisible = False,
-                                      .HorizontalAlignment = HorizontalAlignment.Left
+                                      .FontFamily = Font,
+                                      .IsHitTestVisible = False
                                       },
                     .Tag = Font.Source
                 })
-                Catch ex As Exception
-                    Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Hint)
-                End Try
-            Next
-            If String.IsNullOrWhiteSpace(Setup.Get("UiFont")) Then
-                ComboUiFont.SelectedIndex = 0
-            Else
-                ComboUiFont.SelectedIndex = ComboUiFont.Items.IndexOf(ComboUiFont.Items.Cast(Of MyComboBoxItem).Where(Function(x) x.Tag = Setup.Get("UiFont")).FirstOrDefault)
+                    Catch ex As Exception
+                        Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Hint)
+                    End Try
+                Next
             End If
+            Dim targetFont As String = Setup.Get("UiFont")
+            ComboUiFont.SelectedItem = ComboUiFont.Items.Cast(Of MyComboBoxItem).Where(Function(x) x.Tag = targetFont).FirstOrDefault()
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)

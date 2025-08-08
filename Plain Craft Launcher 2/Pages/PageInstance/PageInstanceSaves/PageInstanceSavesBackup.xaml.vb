@@ -1,4 +1,6 @@
-﻿Imports PCL.Core.Utils.FileVersionControl
+﻿Imports PCL.Core.IO
+Imports PCL.Core.Utils.VersionControl
+
 Class PageInstanceSavesBackup
     Implements IRefreshable
 
@@ -134,7 +136,7 @@ Class PageInstanceSavesBackup
                                                   Dim totalSize As Long = data.Select(Function(x) x.Length).Sum()
                                                   MyMsgBox($"描述: {item.Desc}
 创建时间: {item.Created}
-存档大小: {Core.Helper.ByteHelper.GetReadableLength(totalSize)} ({data.Count} 个对象)",
+存档大小: {ByteStream.GetReadableLength(totalSize)} ({data.Count} 个对象)",
                                                           item.Name)
                                               Catch ex As Exception
                                                   Log(ex, $"执行删除任务失败")

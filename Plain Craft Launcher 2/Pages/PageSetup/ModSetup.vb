@@ -1,3 +1,5 @@
+Imports PCL.Core.Net
+
 Public Class ModSetup
 
     ''' <summary>
@@ -893,11 +895,11 @@ Public Class ModSetup
     End Sub
 
     Public Sub SystemHttpProxy(value As String)
-        Core.Model.Net.HttpProxyManager.Instance.ProxyAddress = value
+        HttpProxyManager.Instance.ProxyAddress = value
     End Sub
 
     Public Sub SystemUseDefaultProxy(value As Boolean)
-        Core.Model.Net.HttpProxyManager.Instance.DisableProxy = value
+        HttpProxyManager.Instance.DisableProxy = value
     End Sub
 
 #End Region

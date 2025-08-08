@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Markup
+Imports System.Windows.Markup
 
 <ContentProperty("SearchTags")>
 Public Class PageComp
@@ -125,6 +125,9 @@ Public Class PageComp
         IsLoaderInited = True
         CType(Parent, MyPageRight).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, Loader, AddressOf Load_OnFinish, AddressOf LoaderInput)
         If McVersionHighest = -1 Then McVersionHighest = Math.Max(McVersionHighest, Integer.Parse(CType(TextSearchVersion.Items(1), MyComboBoxItem).Content.ToString.Split(".")(1)))
+
+        '根据页面类型控制加载器选择的显示
+        UpdateShaderLoaderVisibility()
     End Sub
     Private Function LoaderInput() As CompProjectRequest
         Dim Request As New CompProjectRequest(PageType, Storage, (Page + 1) * PageSize)
@@ -141,7 +144,11 @@ Public Class PageComp
         With Request
             .SearchText = PanSearchBox.Text
             .GameVersion = GameVersion
-            .Tag = ComboSearchTag.SelectedItem.Tag
+            .Tag = If(PageType = CompType.Shader,
+                     If(String.IsNullOrEmpty(ComboSearchShaderLoader.SelectedItem?.Tag?.ToString()),
+                        ComboSearchTag.SelectedItem?.Tag?.ToString(),
+                        ComboSearchTag.SelectedItem?.Tag?.ToString() & ComboSearchShaderLoader.SelectedItem?.Tag?.ToString()),
+                     ComboSearchTag.SelectedItem?.Tag?.ToString())
             .ModLoader = If(PageType = CompType.Mod, Val(ComboSearchLoader.SelectedItem.Tag), CompLoaderType.Any)
             .Source = CType(Val(ComboSearchSource.SelectedItem.Tag), CompSourceType)
         End With
@@ -244,6 +251,9 @@ Public Class PageComp
         If e.Key = Key.Enter Then StartNewSearch()
     End Sub
 
+    Private Sub ComboSearchShaderLoader_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSearchShaderLoader.SelectionChanged
+    End Sub
+
     '重置按钮
     Private Sub ResetFilter() Handles BtnSearchReset.Click
         PanSearchBox.Text = ""
@@ -252,6 +262,7 @@ Public Class PageComp
         ComboSearchSource.SelectedIndex = 0
         ComboSearchTag.SelectedIndex = 0
         ComboSearchLoader.SelectedIndex = 0
+        ComboSearchShaderLoader.SelectedIndex = 0
         Loader.LastFinishedTime = 0 '要求强制重新开始
     End Sub
 
@@ -268,6 +279,38 @@ Public Class PageComp
             ComboSearchLoader.Visibility = Visibility.Collapsed
             Grid.SetColumnSpan(TextSearchVersion, 2)
             ComboSearchLoader.SelectedIndex = 0
+        End If
+    End Sub
+
+    ''' <summary>
+    ''' 根据页面类型控制光影加载器选择的显示
+    ''' </summary>
+    Private Sub UpdateShaderLoaderVisibility()
+        Dim MainGrid As Grid = LabShaderLoader.Parent
+        If PageType = CompType.Shader Then
+            LabShaderLoader.Visibility = Visibility.Visible
+            ComboSearchShaderLoader.Visibility = Visibility.Visible
+            '显示光影加载器时，恢复列宽和控件位置
+            MainGrid.ColumnDefinitions(2).Width = New GridLength(1, GridUnitType.Auto)
+            MainGrid.ColumnDefinitions(3).Width = New GridLength(1.2, GridUnitType.Star)
+            Grid.SetColumn(LabShaderLoader, 2)
+            Grid.SetColumn(ComboSearchShaderLoader, 3)
+            Grid.SetColumn(LabTag, 4)
+            Grid.SetColumn(ComboSearchTag, 5)
+            Grid.SetColumn(LabSource, 6)
+            Grid.SetColumn(ComboSearchSource, 7)
+        Else
+            LabShaderLoader.Visibility = Visibility.Collapsed
+            ComboSearchShaderLoader.Visibility = Visibility.Collapsed
+            ComboSearchShaderLoader.SelectedIndex = 0
+            '隐藏光影加载器时，将加载器列宽设为0，并移动其他控件到原始列位置
+            MainGrid.ColumnDefinitions(2).Width = New GridLength(0)
+            MainGrid.ColumnDefinitions(3).Width = New GridLength(0)
+            '保持类型和来源控件在原始列位置，确保它们有正确的宽度
+            Grid.SetColumn(LabTag, 4)
+            Grid.SetColumn(ComboSearchTag, 5)
+            Grid.SetColumn(LabSource, 6)
+            Grid.SetColumn(ComboSearchSource, 7)
         End If
     End Sub
 

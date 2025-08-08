@@ -1,6 +1,5 @@
 ﻿Imports System.Windows.Threading
-Imports System.IO.Compression
-Imports PCL.Core.LifecycleManagement
+Imports PCL.Core.App
 
 Public Class Application
 
@@ -87,8 +86,8 @@ Public Class Application
             Directory.CreateDirectory(PathTemp & "Cache")
             Directory.CreateDirectory(PathTemp & "Download")
             Directory.CreateDirectory(PathAppdata)
+#If False Then
             '检测单例
-#If Not DEBUGRESERVED Then
             Dim ShouldWaitForExit As Boolean = args.Length > 0 AndAlso args(0) = "--wait" '要求等待已有的 PCL 退出
             Dim WaitRetryCount As Integer = 0
 WaitRetry:
@@ -176,15 +175,6 @@ WaitRetry:
             SetDllDirectory(PathPure & "CE")
             Dim WebpPath = $"{PathPure}CE\libwebp.dll"
             If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
-            WriteFile(PathPure & "CE\" & "msalruntime.zip", GetResources("msalruntime"))
-            If Not File.Exists(PathPure & "CE\msalruntime.dll") Then
-                If Directory.Exists(PathPure & "CE\runtimes") Then DeleteDirectory(PathPure & "CE\runtimes")
-                Using fs = New FileStream(PathPure & "CE\" & "msalruntime.zip", FileMode.Open, FileAccess.Read)
-                    Using fszip = New ZipArchive(fs, ZipArchiveMode.Read)
-                        fszip.ExtractToDirectory(PathPure & "CE\")
-                    End Using
-                End Using
-            End If
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体

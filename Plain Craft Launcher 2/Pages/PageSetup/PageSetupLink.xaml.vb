@@ -16,7 +16,7 @@
         AniControlEnabled -= 1
 
     End Sub
-    Public Sub Reload()
+    Public Sub Reload() Handles Me.Loaded
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
         ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
         ComboServerType.SelectedIndex = Setup.Get("LinkServerType")
@@ -37,6 +37,10 @@
                 TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
             End If
         End If
+        TextRelays.Text = "正在获取信息..."
+        Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
+            Thread.Sleep(500)
+        Loop
         If ETServerDefList.Count > 0 Then
             TextRelays.Text = ""
             For Each Relay In ETServerDefList
@@ -76,6 +80,10 @@
                        End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogin.Click
+        If Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed) Then
+            Hint("正在拉取大厅公告，请稍后再试...")
+            Exit Sub
+        End If
         If Not IsLobbyAvailable Then
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Exit Sub

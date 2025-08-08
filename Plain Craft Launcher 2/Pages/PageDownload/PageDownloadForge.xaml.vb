@@ -28,7 +28,7 @@
                                             AddHandler LoadingPickaxe.Click, AddressOf FrmDownloadForge.Forge_Click
                                             Stack.Children.Add(LoadingPickaxe)
                                         End Sub
-                NewCard.IsSwaped = True
+                NewCard.IsSwapped = True
                 PanMain.Children.Add(NewCard)
             Next
             ''非官方源警示

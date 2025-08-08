@@ -11,7 +11,6 @@
 Option Strict On
 Option Explicit On
 
-Imports System
 
 Namespace My.Resources
     
@@ -126,16 +125,6 @@ Namespace My.Resources
         Friend ReadOnly Property ModData() As Byte()
             Get
                 Dim obj As Object = ResourceManager.GetObject("ModData", resourceCulture)
-                Return CType(obj,Byte())
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  查找 System.Byte[] 类型的本地化资源。
-        '''</summary>
-        Friend ReadOnly Property msalruntime() As Byte()
-            Get
-                Dim obj As Object = ResourceManager.GetObject("msalruntime", resourceCulture)
                 Return CType(obj,Byte())
             End Get
         End Property

@@ -124,7 +124,7 @@ Public Class MyBitmap
     Public Class WebPDecoder '将代码隔离在另外一个类中，这样只要不调用这个方法就不会加载 Imazen.WebP.dll
         Public Shared Function DecodeFromBytes(Bytes As Byte()) As System.Drawing.Bitmap
             If Is32BitSystem Then Throw New Exception("不支持在 32 位系统下加载 WebP 图片。")
-            Dim Decoder As New Imazen.WebP.SimpleDecoder()
+            Static Dim Decoder As New Imazen.WebP.SimpleDecoder()
             Return Decoder.DecodeFromBytes(Bytes, Bytes.Length)
         End Function
     End Class

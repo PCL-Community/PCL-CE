@@ -34,7 +34,7 @@
                 Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Pair.Value}
                 NewCard.Children.Add(NewStack)
                 NewCard.SwapControl = NewStack
-                NewCard.IsSwaped = True
+                NewCard.IsSwapped = True
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
                                             Stack.Tag = Sort(CType(Stack.Tag, List(Of DlLiteLoaderListEntry)), Function(a, b) VersionSortBoolean(a.Inherit, b.Inherit))
                                             For Each item In Stack.Tag

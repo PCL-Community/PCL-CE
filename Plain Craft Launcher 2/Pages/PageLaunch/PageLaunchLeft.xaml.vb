@@ -327,7 +327,7 @@
         End Try
 Finish:
         '刷新显示
-        If FrmLoginProfileSkin IsNot Nothing Then
+        If FrmLoginProfileSkin IsNot Nothing AndAlso FrmLoginProfileSkin.Skin.Loader Is Data Then
             RunInUi(AddressOf FrmLoginProfileSkin.Skin.Load)
         ElseIf Not Data.IsAborted Then '如果已经中断，Input 也被清空，就不会再次刷新
             Data.Input = Nothing '清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
@@ -344,7 +344,7 @@ Finish:
         RunInUi(Sub() If FrmLoginProfileSkin IsNot Nothing AndAlso FrmLoginProfileSkin.Skin IsNot Nothing Then FrmLoginProfileSkin.Skin.Clear())
         Data.Output = PathImage & "Skins/" & McSkinSex(Data.Input(1)) & ".png"
         '刷新显示
-        If FrmLoginProfileSkin IsNot Nothing Then
+        If FrmLoginProfileSkin IsNot Nothing AndAlso FrmLoginProfileSkin.Skin.Loader Is Data Then
             RunInUi(Sub() FrmLoginProfileSkin.Skin.Load())
         ElseIf Not Data.IsAborted Then '如果已经中断，Input 也被清空，就不会再次刷新
             Data.Input = Nothing '清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
@@ -392,7 +392,7 @@ Finish:
         End Try
 Finish:
         '刷新显示
-        If FrmLoginProfileSkin IsNot Nothing Then
+        If FrmLoginProfileSkin IsNot Nothing AndAlso FrmLoginProfileSkin.Skin.Loader Is Data Then
             RunInUi(AddressOf FrmLoginProfileSkin.Skin.Load)
         ElseIf Not Data.IsAborted Then '如果已经中断，Input 也被清空，就不会再次刷新
             Data.Input = Nothing '清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染

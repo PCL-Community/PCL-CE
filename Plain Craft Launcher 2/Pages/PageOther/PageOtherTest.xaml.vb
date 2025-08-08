@@ -1,8 +1,9 @@
 Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
+Imports PCL.Core.App
 
-Imports PCL.Core
+Imports PCL.Core.IO
 
 Public Class PageOtherTest
     Public Sub New()
@@ -127,8 +128,8 @@ Public Class PageOtherTest
                         If Not McFolderList.Any() Then
                             McFolderListLoader.Start()
                         End If
-                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, IO.Path.GetTempPath() + "PCL\"))
-                        If String.Compare(PathTemp, IO.Path.GetTempPath() + "PCL\") = 0 Then
+                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, System.IO.Path.GetTempPath() + "PCL\"))
+                        If String.Compare(PathTemp, System.IO.Path.GetTempPath() + "PCL\") = 0 Then
                             If Setup.Get("HintClearRubbish") <= 2 Then
                                 If MyMsgBox("即将清理游戏日志、错误报告、缓存等文件。" & vbCrLf & "虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？" & vbCrLf & vbCrLf & "在完成清理后，PCL 将自动重启。", "清理确认", "确定", "取消") = 2 Then
                                     Return
@@ -431,110 +432,6 @@ Public Class PageOtherTest
         RunInThread(Sub() MemoryOptimize(True))
     End Sub
     Private _IsQueryServer As Boolean = False
-    Private Sub BtnServerQuery_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnServerQuery.Click
-        If _IsQueryServer Then
-            Hint("正在查询中，请稍等……")
-            Exit Sub
-        End If
-        Dim url = LabServerIp.Text
-        Log($"查询服务器：{url}")
-        _IsQueryServer = True
-        RunInNewThread(Sub()
-                           Try
-                               '数据处理
-                               Dim ip As String
-                               Dim port As UInt16 = 25565
-
-                               Dim tempIp As IPAddress = Nothing
-                               If IPAddress.TryParse(url, tempIp) Then '纯 IP
-                                   ip = url
-                               ElseIf url.Contains(":") Then '域名/IP:端口 不需要 SRV
-                                   Dim PossiblePort As UInt16
-                                   Dim temp = url.Split(":")
-                                   If temp.Count() = 2 AndAlso UInt16.TryParse(temp.ElementAt(1), PossiblePort) Then
-                                       ip = temp.ElementAt(0)
-                                       port = PossiblePort
-                                   Else
-                                       Throw New Exception("错误的地址结构")
-                                   End If
-                               Else
-                                   Log($"尝试获取 {url} 的 SRV 记录")
-                                   Try
-                                       Dim SrvRet = nDnsQuery.GetSRVRecords($"_minecraft._tcp.{url}")
-                                       Dim WantedSRV = SrvRet.FirstOrDefault()
-                                       If String.IsNullOrEmpty(WantedSRV) Then Throw New Exception("没有 SRV 记录")
-                                       Log($"获取到的 SRV 记录为 {WantedSRV}")
-                                       Dim temp = WantedSRV.Split(":")
-                                       If temp.Count() = 2 Then
-                                           ip = temp.ElementAt(0)
-                                           port = UInt16.Parse(temp.ElementAt(1))
-                                       ElseIf temp.Count() = 1 Then
-                                           ip = temp.ElementAt(0)
-                                           port = 25565
-                                       Else
-                                           Throw New Exception("对方服务器的 SRV 数据错误")
-                                       End If
-                                   Catch ex As Exception
-                                       ip = url
-                                       port = 25565
-                                   End Try
-                               End If
-                               '查询信息
-                               Using query As New Utils.Minecraft.McPing(ip.ToString(), port)
-                                   Dim ret = query.PingAsync().Result
-                                   If ret Is Nothing Then Throw New Exception("没有查询到信息")
-                                   'Base64 图像转换
-                                   Dim base64String = ret.Favicon
-                                   If base64String.Contains(",") Then
-                                       base64String = base64String.Split(","c)(1)
-                                   End If
-                                   Dim imageBytes As Byte() = Convert.FromBase64String(base64String)
-                                   '延迟颜色
-                                   Dim latencyColor As String
-                                   If ret.Latency < 150 Then
-                                       latencyColor = "a"
-                                   ElseIf ret.Latency < 400 Then
-                                       latencyColor = "6"
-                                   Else
-                                       latencyColor = "c"
-                                   End If
-                                   '设置 UI
-                                   RunInUi(Sub()
-                                               MinecraftFormatter.SetColorfulTextLab($"Minecraft 服务器{vbCrLf}{ret.Description}", LabServerDesc)
-                                               MinecraftFormatter.SetColorfulTextLab($"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms", LabServerPlayer)
-                                               If ret.Players.Samples.Any Then
-                                                   LabServerPlayer.ToolTip = ret.Players.Samples.Select(Function(x) x.Name).Join(vbCrLf)
-                                                   ToolTipService.SetPlacement(LabServerPlayer, Primitives.PlacementMode.Mouse)
-                                               Else
-                                                   LabServerPlayer.ToolTip = Nothing
-                                               End If
-                                               ServerInfo.Visibility = Visibility.Visible
-                                               If Not String.IsNullOrEmpty(base64String) Then
-                                                   Dim bitmapImage As New BitmapImage()
-                                                   Using ms As New MemoryStream(imageBytes)
-                                                       bitmapImage.BeginInit()
-                                                       bitmapImage.CacheOption = BitmapCacheOption.OnLoad ' 加载后关闭流
-                                                       bitmapImage.StreamSource = ms
-                                                       bitmapImage.EndInit()
-                                                   End Using
-                                                   ImgServerLogo.Source = bitmapImage
-                                               Else
-                                                   Dim defaultImage As New BitmapImage()
-                                                   defaultImage.BeginInit()
-                                                   defaultImage.UriSource = New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
-                                                   defaultImage.EndInit()
-                                                   ImgServerLogo.Source = defaultImage
-                                               End If
-                                           End Sub)
-                                   Hint("查询完成", HintType.Finish)
-                               End Using
-                           Catch ex As Exception
-                               Log(ex, "查询失败", LogLevel.Hint)
-                           Finally
-                               _IsQueryServer = False
-                           End Try
-                       End Sub, "Server Query")
-    End Sub
 
     '下载正版玩家皮肤
     Private Sub BtnSkinSave_Click(sender As Object, e As EventArgs) Handles BtnSkinSave.Click
@@ -563,9 +460,6 @@ Public Class PageOtherTest
                                End If
                            End Try
                        End Sub)
-    End Sub
-    Private Sub BtnSkinCache_Click(sender As Object, e As EventArgs) Handles BtnSkinCache.Click
-        MySkin.RefreshCache(Nothing)
     End Sub
 
     '今日人品
@@ -598,8 +492,8 @@ Public Class PageOtherTest
         Const shortcutName = "PCL 社区版.lnk"
         Const desktopName = "桌面"
         Const startName = "开始菜单"
-        Dim desktop = Service.FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
-        Dim start = Service.FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
+        Dim desktop = FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
+        Dim start = FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
         Dim choice = MyMsgBox(
             "这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。" & vbCrLf & vbCrLf &
             desktopName & "位置: " & desktop & vbCrLf & startName & "位置: " & start,
@@ -607,7 +501,7 @@ Public Class PageOtherTest
         If choice = 1 Then Exit Sub
         Dim shortcutPath = If(choice = 2, desktop, start)
         Dim locationName = If(choice = 2, desktopName, startName)
-        Helper.Files.CreateShortcut(shortcutPath, Helper.NativeInterop.ExecutablePath)
+        Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
     

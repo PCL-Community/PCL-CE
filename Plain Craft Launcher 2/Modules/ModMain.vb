@@ -1,6 +1,5 @@
 Imports System.Windows.Interop
 Imports System.Windows.Threading
-Imports PCL.Core.Controls
 
 Public Module ModMain
 

@@ -1,15 +1,15 @@
-﻿Imports PCL.Core.Helper
-Imports PCL.Core.Model
+﻿
 Imports System.Threading.Tasks
+Imports PCL.Core.Minecraft
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
 
-    Private _javas As JavaManage = Nothing
+    Private _javas As JavaManager = Nothing
     ''' <summary>
     ''' 目前所有可用的 Java。
     ''' </summary>
-    Public ReadOnly Property Javas As JavaManage
+    Public ReadOnly Property Javas As JavaManager
         Get
             InitJava().GetAwaiter().GetResult()
             Return _javas
@@ -26,7 +26,7 @@ Public Module ModJava
             If _javaInitTask Is Nothing Then
                 _javaInitTask = Task.Run(Sub()
                                              Dim storeCache = JavaGetCache()
-                                             _javas = New JavaManage()
+                                             _javas = New JavaManager()
                                              If storeCache IsNot Nothing Then
                                                  _javas.SetCache(storeCache)
                                              End If

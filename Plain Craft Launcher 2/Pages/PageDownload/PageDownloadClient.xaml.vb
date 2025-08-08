@@ -103,7 +103,7 @@
                 NewCard.Children.Add(NewStack)
                 NewCard.SwapControl = NewStack
                 NewCard.InstallMethod = PutMethod
-                NewCard.IsSwaped = True
+                NewCard.IsSwapped = True
                 PanMain.Children.Add(NewCard)
             Next
         Catch ex As Exception

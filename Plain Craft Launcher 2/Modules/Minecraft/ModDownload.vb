@@ -210,15 +210,14 @@
             Dim CacheFilePath As String = PathTemp & "Cache\uvmc-download.json"
             If Not File.Exists(CacheFilePath) Then
                 Try
-                    Dim UnlistedJson As JObject = NetGetCodeByRequestRetry("https://zkitefly.github.io/unlisted-versions-of-minecraft/version_manifest.json", IsJson:=True)
+                    Dim UnlistedJson As JObject = NetGetCodeByRequestRetry("https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json", IsJson:=True)
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString())
                 Catch ex As Exception
                     Log("[Download] 未列出的版本官方源下载失败: " & ex.Message)
                 End Try
-            Else
-                Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
-                Versions.Merge(CachedJson("versions"))
             End If
+            Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
+            Versions.Merge(CachedJson("versions"))
             '确定官方源是否可用
             If Not DlPreferMojang Then
                 Dim DeltaTime = GetTimeTick() - StartTime
@@ -226,7 +225,8 @@
                 Log($"[Download] Mojang 官方源加载耗时：{DeltaTime}ms，{If(DlPreferMojang, "可优先使用官方源", "不优先使用官方源")}")
             End If
             '添加 PCL 特供项
-            If File.Exists(PathTemp & "Cache\download.json") Then Versions.Merge(GetJson(ReadFile(PathTemp & "Cache\download.json")))
+            '这个社区版下不了
+            'If File.Exists(PathTemp & "Cache\download.json") Then Versions.Merge(GetJson(ReadFile(PathTemp & "Cache\download.json")))
             '返回
             Loader.Output = New DlClientListResult With {.IsOfficial = True, .SourceName = "Mojang 官方源", .Value = Json}
             '解析更新提示（Release）
@@ -265,10 +265,9 @@
                 Catch ex As Exception
                     Log("[Download] 未列出的版本镜像源下载失败: " & ex.Message)
                 End Try
-            Else
-                Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
-                Versions.Merge(CachedJson("versions"))
             End If
+            Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
+            Versions.Merge(CachedJson("versions"))
             '检查是否有要求的版本（#5195）
             If Not String.IsNullOrEmpty(Loader.Input) Then
                 Dim Id = Loader.Input
@@ -1399,7 +1398,7 @@
                 Return NetGetCodeByRequestOnce(Source.Key, Encode:=Encoding.UTF8, Timeout:=Source.Value * 1000, IsJson:=IsJson, UseBrowserUserAgent:=True)
             Catch ex As Exception
                 ' 镜像源可能随机爆炸，忽略就好
-                If Not ex.Message.ContainsF("mcimirrmr") Then
+                If Not ex.Message.ContainsF("mcimirror") Then
                     Exs += ex.Message + vbCrLf
                 End If
             End Try

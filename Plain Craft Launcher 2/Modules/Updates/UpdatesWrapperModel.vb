@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Helper
+﻿Imports PCL.Core.Utils
 
 Public Class UpdatesWrapperModel
     Implements IUpdateSource
