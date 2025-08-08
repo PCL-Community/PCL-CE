@@ -2504,6 +2504,7 @@ NextElement:
             Using Program As New Process
                 Program.StartInfo.Arguments = Arguments
                 Program.StartInfo.FileName = FileName
+                Program.StartInfo.UseShellExecute = True
                 Log("[System] 执行外部命令：" & FileName & " " & Arguments)
                 Program.Start()
             End Using
