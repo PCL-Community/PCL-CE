@@ -604,7 +604,7 @@ Retry:
                            While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing OrElse HostInfo Is Nothing
                                Thread.Sleep(500)
                            End While
-                           Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.NaidName, HostInfo.Hostname)
+                           Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
                            McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & hostname)
                            RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
                        End Sub, "Link Join Lobby")
