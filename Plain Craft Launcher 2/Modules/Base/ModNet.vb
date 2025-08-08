@@ -1025,7 +1025,7 @@ Public Module ModNet
                 Sources.Add(New NetSource With {.FailCount = 0, .Url = SecretCdnSign(Source.Replace(vbCr, "").Replace(vbLf, "").Trim), .Id = Count, .IsFailed = False, .Ex = Nothing})
                 Count += 1
             Next
-            Me.Sources = Sources
+            Me.Sources = New SafeList(Of NetSource)(Sources)
             Me.LocalPath = LocalPath
             Me.Check = Check
             Me.UseBrowserUserAgent = UseBrowserUserAgent

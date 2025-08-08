@@ -2157,6 +2157,14 @@ RetryDir:
         Public Sub New(Data As IEnumerable(Of T))
             MyBase.New(Data)
         End Sub
+        Public Shared Function FromList(data As List(Of T)) As SafeList(Of T)
+            Return New SafeList(Of T)(data)
+        End Function
+        Public Function ToList() As List(Of T)
+            SyncLock SyncRoot
+                Return MyBase.ToList() ' 创建副本
+            End SyncLock
+        End Function
         '基于 SyncLock 覆写
         Public Overloads Function GetEnumerator() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
             SyncLock SyncRoot
