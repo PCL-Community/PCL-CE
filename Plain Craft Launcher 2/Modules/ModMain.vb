@@ -457,7 +457,7 @@ EndHint:
     '联机页面声明
     Public FrmLinkLeft As PageLinkLeft
     Public FrmLinkLobby As PageLinkLobby
-    Public FrmLinkHelp As PageOtherHelpDetail
+    Public FrmLinkHelp As PageLinkQA
     Public FrmLinkFeedback As PageLinkFeedback
 
     '下载页面声明
