@@ -352,7 +352,7 @@ Retry:
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
                                        .WorkingDirectory = ETPath,
-                                       .Arguments = "-o json peer",
+                                       .Arguments = $"--rpc-portal 127.0.0.1:{ETRpcPort} -o json peer",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
                                        .WindowStyle = ProcessWindowStyle.Hidden,

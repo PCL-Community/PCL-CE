@@ -322,6 +322,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
     Public ETVersion As String = "2.4.1"
+    Public ETRpcPort As Integer = 15888
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
@@ -428,6 +429,10 @@ Public Module ModLink
                 Hostname += $"|{SelectedProfile.Username}"
             End If
             Arguments += $" --hostname ""{Hostname}"""
+
+            '指定 RPC 端口避免多 ET 实例冲突
+            ETRpcPort = NetworkHelper.NewTcpPort()
+            Arguments += $" --rpc-portal 127.0.0.1:{ETRpcPort}"
 
             '启动
             Log($"[Link] 启动 EasyTier")
