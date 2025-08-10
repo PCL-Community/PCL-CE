@@ -1,4 +1,4 @@
-﻿Imports System.Security.Cryptography
+﻿
 
 Public Class PageDownloadCompDetail
     Private CompItem As MyCompItem = Nothing

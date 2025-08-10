@@ -1,16 +1,14 @@
 Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
-Imports Newtonsoft.Json.Serialization
+Imports PCL.Core.App
 Imports PCL.Core.Logging
-Imports PCL.Core.Native
 
 Public Module ModBase
 
@@ -43,11 +41,11 @@ Public Module ModBase
     ''' <summary>
     ''' 程序可执行文件所在目录，以“\”结尾。
     ''' </summary>
-    Public Path As String = If(NativeInterop.ExecutableDirectory.EndsWith("\"), NativeInterop.ExecutableDirectory, NativeInterop.ExecutableDirectory & "\")
+    Public Path As String = If(Basics.ExecutableDirectory.EndsWith("\"), Basics.ExecutableDirectory, Basics.ExecutableDirectory & "\")
     ''' <summary>
     ''' 程序可执行文件完整路径。
     ''' </summary>
-    Public PathWithName As String = NativeInterop.ExecutablePath
+    Public PathWithName As String = Basics.ExecutablePath
     ''' <summary>
     ''' 程序内嵌图片文件夹路径，以“/”结尾。
     ''' </summary>

@@ -1,10 +1,9 @@
 Imports System.Net
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
+Imports PCL.Core.App
 
 Imports PCL.Core.IO
-Imports PCL.Core.Link
-Imports PCL.Core.Native
 
 Public Class PageOtherTest
     Public Sub New()
@@ -502,7 +501,7 @@ Public Class PageOtherTest
         If choice = 1 Then Exit Sub
         Dim shortcutPath = If(choice = 2, desktop, start)
         Dim locationName = If(choice = 2, desktopName, startName)
-        Files.CreateShortcut(shortcutPath, NativeInterop.ExecutablePath)
+        Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
     

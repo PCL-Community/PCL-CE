@@ -1,7 +1,5 @@
 ﻿Imports System.Windows.Threading
-Imports System.IO.Compression
-Imports PCL.Core.LifecycleManagement
-Imports SixLabors.ImageSharp.Formats.Webp
+Imports PCL.Core.App
 
 Public Class Application
 

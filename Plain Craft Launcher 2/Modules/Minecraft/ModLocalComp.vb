@@ -1,8 +1,5 @@
 Imports System.IO.Compression
 
-Imports PlainNamedBinaryTag
-Imports System.Xml.Linq
-Imports System.Xml.XPath
 Imports fNbt
 
 Public Module ModLocalComp

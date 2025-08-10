@@ -3,10 +3,9 @@ Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports System.IO.Compression
-Imports LiteDB
 Imports CacheCow.Client
 Imports CacheCow.Common
-Imports PCL.Core.Network
+Imports PCL.Core.Net
 Imports PCL.Core.Utils.Hash
 
 Public Module ModNet

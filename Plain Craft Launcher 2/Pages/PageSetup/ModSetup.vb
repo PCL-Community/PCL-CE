@@ -1,4 +1,5 @@
-Imports PCL.Core.Network
+
+Imports PCL.Core.Net
 
 Public Class ModSetup
 

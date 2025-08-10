@@ -1,5 +1,4 @@
-Imports System.Reflection
-Imports System.Resources
+
 Imports System.Runtime.InteropServices
 <Assembly: ComVisible(False)>
 
