@@ -3,11 +3,9 @@ Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
 Imports PCL.Core.IO
-Imports PCL.Core.Secret
 Imports PCL.Core.UI
-Imports PCL.Core.Update
 Imports PCL.Core.Utils
-Imports PCL.Core.VersionControl
+Imports PCL.Core.Utils.Secret
 
 Friend Module ModSecret
 

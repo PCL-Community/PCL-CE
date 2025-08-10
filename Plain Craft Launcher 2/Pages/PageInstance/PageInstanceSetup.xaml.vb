@@ -483,6 +483,9 @@ PreFin:
                        End Sub)
     End Sub
 
+    Private Shared Sub TextServerEnter_Change(sender As MyTextBox, e As Object) Handles TextServerEnter.LostFocus
+        sender.Text = sender.Text.Replace("：", ":")
+    End Sub
 #End Region
 
 #Region "Java 选择"

@@ -1,7 +1,8 @@
 ﻿
-Imports PCL.Core.Extension
+
 Imports PCL.Core.Link
-Imports PCL.Core.Native
+Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -351,7 +352,7 @@ Retry:
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
                                        .WorkingDirectory = ETPath,
-                                       .Arguments = "-o json peer",
+                                       .Arguments = $"--rpc-portal 127.0.0.1:{ETRpcPort} -o json peer",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
                                        .WindowStyle = ProcessWindowStyle.Hidden,
@@ -604,8 +605,9 @@ Retry:
                            While Not IsWatcherStarted OrElse JoinerLocalPort = Nothing OrElse HostInfo Is Nothing
                                Thread.Sleep(500)
                            End While
-                           McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & HostInfo.NaidName)
-                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {HostInfo.NaidName} 的大厅")
+                           Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
+                           McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & hostname)
+                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
                        End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish
     End Sub

@@ -1,9 +1,5 @@
-﻿Imports System.Net.Http
+﻿
 Imports System.Text.RegularExpressions
-Imports System.Windows.Forms
-Imports System.Windows.Forms.LinkLabel
-Imports System.Xml
-Imports NAudio.Gui
 
 Public Class PageOtherVote
     Public Class Vote

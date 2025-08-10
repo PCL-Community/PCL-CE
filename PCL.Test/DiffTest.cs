@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Update.Diff;
+using PCL.Core.Utils.Diff;
 
 namespace PCL.Test;
 

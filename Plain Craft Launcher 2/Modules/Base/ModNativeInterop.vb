@@ -1,5 +1,6 @@
 ﻿Imports Newtonsoft.Json
-Imports PCL.Core.Native
+Imports PCL.Core.App
+Imports PCL.Core.IO
 
 Public Module ModNativeInterop
 
@@ -124,7 +125,7 @@ Public Module ModNativeInterop
             If OpenLogPipes.Contains(id) Then Return RPCResponse.Err("日志 ID 正在使用")
             Dim pipeName = LogPipePrefix & RandomInteger(10000, 99999)
             OpenLogPipes.Add(id)
-            NativeInterop.StartPipeServer($"Log({id})", pipeName,
+            PipeComm.StartPipeServer($"Log({id})", pipeName,
                 Function(r, w, c) LogPipeCallback(r, w, request),
                 Sub() OpenLogPipes.Remove(id),
                 True, {clientProcess.Id})

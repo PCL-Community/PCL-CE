@@ -1,5 +1,4 @@
-﻿Imports PCL.Core.Update
-Imports PCL.Core.VersionControl
+Imports PCL.Core.Utils
 
 Public Class UpdatesWrapperModel
     Implements IUpdateSource

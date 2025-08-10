@@ -1,5 +1,5 @@
-﻿Imports PCL.Core.LifecycleManagement
-Imports PCL.Core.UI
+﻿
+Imports PCL.Core.App
 
 Module Program
 

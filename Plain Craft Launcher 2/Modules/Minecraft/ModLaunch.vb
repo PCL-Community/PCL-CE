@@ -1,6 +1,5 @@
-Imports System.Diagnostics.Eventing.Reader
+
 Imports System.IO.Compression
-Imports System.Threading.Tasks
 Imports PCL.Core.Minecraft
 
 Public Module ModLaunch

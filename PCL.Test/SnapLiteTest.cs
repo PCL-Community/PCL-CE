@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
-using PCL.Core.VersionControl;
+using PCL.Core.Utils.VersionControl;
 
 namespace PCL.Test;
 

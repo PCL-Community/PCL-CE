@@ -1,14 +1,13 @@
 ﻿Imports System.Runtime.InteropServices
-Imports Open.Nat
 Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
 Imports System.Threading.Tasks
-Imports PCL.Core.Extension
 Imports PCL.Core.IO
 Imports PCL.Core.Link
-Imports PCL.Core.Native
-Imports PCL.Core.Network
+Imports PCL.Core.Net
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Public Module ModLink
 
@@ -158,7 +157,7 @@ Public Module ModLink
     End Function
     Public Function GetLauncherBrand(pid As Integer) As String
         Try
-            Dim cmd = NativeInterop.GetCommandLine(pid)
+            Dim cmd = ProcessInterop.GetCommandLine(pid)
             If cmd.Contains("-Dminecraft.launcher.brand=") Then
                 Return cmd.AfterFirst("-Dminecraft.launcher.brand=").BeforeFirst("-").TrimEnd("'", " ")
             Else
@@ -254,6 +253,7 @@ Public Module ModLink
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
     Public ETVersion As String = "2.4.1"
+    Public ETRpcPort As Integer = 15888
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
     Public ETServerDefList As New List(Of ETRelay)
@@ -360,6 +360,10 @@ Public Module ModLink
                 Hostname += $"|{SelectedProfile.Username}"
             End If
             Arguments += $" --hostname ""{Hostname}"""
+
+            '指定 RPC 端口避免多 ET 实例冲突
+            ETRpcPort = NetworkHelper.NewTcpPort()
+            Arguments += $" --rpc-portal 127.0.0.1:{ETRpcPort}"
 
             '启动
             Log($"[Link] 启动 EasyTier")
