@@ -7,6 +7,10 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <StartupObject>PCL.Program</StartupObject>
     <PublishUrl>publish\</PublishUrl>
+	<PublishSingleFile>true</PublishSingleFile>
+	<RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+	<RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+	<RuntimeIdentifier Condition="'$(Platform)' == 'AnyCPU'">win-x64</RuntimeIdentifier>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
