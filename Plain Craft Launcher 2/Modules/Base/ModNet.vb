@@ -73,27 +73,31 @@ Public Module ModNet
         End Function
 
         Public Async Function TryRemoveAsync(key As CacheKey) As Task(Of Boolean) Implements ICacheStore.TryRemoveAsync
-            Try
-                Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
-                If Not cacheFile.Exists Then Return True
-                cacheFile.Delete()
-                Return True
-            Catch ex As Exception
-                Log(ex, $"[Net] 移除缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
-            End Try
-            Return False
+            Return Await Task.Run(Function()
+                Try
+                    Dim cacheFile As New FileInfo(IO.Path.Combine(_storagePath, GetCacheNameByKey(key)))
+                    If Not cacheFile.Exists Then Return True
+                    cacheFile.Delete()
+                    Return True
+                Catch ex As Exception
+                    Log(ex, $"[Net] 移除缓存资源({key.ResourceUri} : {key.HashBase64})出现异常")
+                End Try
+                Return False
+            End Function)
         End Function
 
         Public Async Function ClearAsync() As Task Implements ICacheStore.ClearAsync
-            Try
-                Dim dir As New DirectoryInfo(_storagePath)
-                Dim cacheFiles = dir.EnumerateFiles()
-                For Each cacheFile In cacheFiles
-                    cacheFile.Delete()
-                Next
-            Catch ex As Exception
-                Log(ex, $"[Net] 清空缓存资源出现异常")
-            End Try
+            Await Task.Run(Sub()
+                Try
+                    Dim dir As New DirectoryInfo(_storagePath)
+                    Dim cacheFiles = dir.EnumerateFiles()
+                    For Each cacheFile In cacheFiles
+                        cacheFile.Delete()
+                    Next
+                Catch ex As Exception
+                    Log(ex, $"[Net] 清空缓存资源出现异常")
+                End Try
+            End Sub)
         End Function
 
         Private Function GetCacheNameByKey(key As CacheKey)

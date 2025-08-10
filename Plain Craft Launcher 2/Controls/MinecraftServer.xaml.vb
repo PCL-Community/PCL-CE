@@ -24,7 +24,7 @@ Class MinecraftServer
 
     Private Shared Sub OnAddressChanged(d As DependencyObject, e As DependencyPropertyChangedEventArgs)
         Dim server As MinecraftServer = d
-        server.UpdateServerInfoAsync(e.NewValue?.ToString())
+        d.Dispatcher.BeginInvoke(Function() server.UpdateServerInfoAsync(e.NewValue?.ToString()))
     End Sub
 
     Public Async Function UpdateServerInfoAsync(address As String) As Task
@@ -95,15 +95,18 @@ Class MinecraftServer
                                 base64String)
 
             ' 异步转换图像
-            Using ms = New MemoryStream(Convert.FromBase64String(base64Data))
-                Dim bitmap = New BitmapImage()
-                bitmap.BeginInit()
-                bitmap.CacheOption = BitmapCacheOption.OnLoad
-                bitmap.StreamSource = ms
-                bitmap.EndInit()
-                bitmap.Freeze() ' 确保跨线程安全
-                ImgServerLogo.Source = bitmap
-            End Using
+            Dim image = Await Task.Run(Function()
+                Using ms = New MemoryStream(Convert.FromBase64String(base64Data))
+                    Dim bitmap = New BitmapImage()
+                    bitmap.BeginInit()
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad
+                    bitmap.StreamSource = ms
+                    bitmap.EndInit()
+                    bitmap.Freeze() ' 确保跨线程安全
+                    Return bitmap
+                End Using
+            End Function)
+            ImgServerLogo.Source = image
         Catch ex As Exception
             Log(ex, "图标解析失败，使用默认图标")
             SetDefaultLogo()

@@ -1,0 +1,26 @@
+﻿<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    mc:Ignorable="d" x:Class="PageLinkQA"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
+            <local:MyCard Title="加入大厅超时怎么办" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="加入大厅超时的时候请先检查设置中的 EasyTier 设置。在节点设置中双方有至少一个相同的节点以确保能够被相互发现。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="启动 EasyTier 失败怎么办" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，或者是否目前设备上运行了多个 EasyTier。目前暂不支持多 EasyTier 实例情况下的通信。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="联机可以用服务端么" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="可以的，Minecraft 服务端也可以用于联机。"/>
+                </StackPanel>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

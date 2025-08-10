@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Extension;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Test;
 

@@ -1,4 +1,3 @@
-﻿
 Imports PCL.Core.Utils
 
 Public Class UpdatesWrapperModel

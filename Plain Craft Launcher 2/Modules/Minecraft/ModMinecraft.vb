@@ -1,4 +1,6 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.ProgramSetup
+Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Module ModMinecraft
 
@@ -760,8 +762,8 @@ Recheck:
 #End Region
 ExitDataLoad:
                 '确定实例图标
-                Logo = ReadIni(Path & "PCL\Setup.ini", "Logo", "")
-                If Logo = "" OrElse Not CType(ReadIni(Path & "PCL\Setup.ini", "LogoCustom", False), Boolean) Then
+                Logo = NEWSetup.Instance.LogoPath(Path)
+                If Logo = "" OrElse Not NEWSetup.Instance.IsLogoCustom(Path) Then
                     Select Case State
                         Case McInstanceState.Original
                             Logo = PathImage & "Blocks/Grass.png"
@@ -794,33 +796,33 @@ ExitDataLoad:
                     End Select
                 End If
                 '确定实例描述
-                Dim CustomInfo As String = ReadIni(Path & "PCL\Setup.ini", "CustomInfo")
+                Dim CustomInfo As String = NEWSetup.Instance.CustomInfo(Path)
                 Info = If(CustomInfo <> "", CustomInfo, GetDefaultDescription())
                 '确定实例收藏状态
-                IsStar = ReadIni(Path & "PCL\Setup.ini", "IsStar", False)
+                IsStar = NEWSetup.Instance.Starred(Path)
                 '确定实例显示种类
-                DisplayType = ReadIni(Path & "PCL\Setup.ini", "DisplayType", McInstanceCardType.Auto)
+                DisplayType = NEWSetup.Instance.DisplayType(Path)
                 '写入缓存
                 If Directory.Exists(Path) Then
-                    WriteIni(Path & "PCL\Setup.ini", "State", State)
-                    WriteIni(Path & "PCL\Setup.ini", "Info", Info)
-                    WriteIni(Path & "PCL\Setup.ini", "Logo", Logo)
+                    NEWSetup.Instance.State(Path) = State
+                    NEWSetup.Instance.Info(Path) = Info
+                    NEWSetup.Instance.LogoPath(Path) = Logo
                 End If
                 If State <> McInstanceState.Error Then
-                    WriteIni(Path & "PCL\Setup.ini", "ReleaseTime", ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm"))
-                    WriteIni(Path & "PCL\Setup.ini", "VersionFabric", Version.FabricVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionLegacyFabric", Version.LegacyFabricVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionQuilt", Version.QuiltVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionLabyMod", Version.LabyModVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionOptiFine", Version.OptiFineVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionLiteLoader", Version.HasLiteLoader)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionForge", Version.ForgeVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionNeoForge", Version.NeoForgeVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionCleanroom", Version.CleanroomVersion)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionApiCode", Version.SortCode)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionOriginal", Version.McName)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionOriginalMain", Version.McCodeMain)
-                    WriteIni(Path & "PCL\Setup.ini", "VersionOriginalSub", Version.McCodeSub)
+                    NEWSetup.Instance.ReleaseTime(Path) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
+                    NEWSetup.Instance.FabricVersion(Path) = Version.FabricVersion
+                    NEWSetup.Instance.LegacyFabricVersion(Path) = Version.LegacyFabricVersion
+                    NEWSetup.Instance.QuiltVersion(Path) = Version.QuiltVersion
+                    NEWSetup.Instance.LabyModVersion(Path) = Version.LabyModVersion
+                    NEWSetup.Instance.OptiFineVersion(Path) = Version.OptiFineVersion
+                    NEWSetup.Instance.HasLiteLoader(Path) = Version.HasLiteLoader
+                    NEWSetup.Instance.ForgeVersion(Path) = Version.ForgeVersion
+                    NEWSetup.Instance.NeoForgeVersion(Path) = Version.NeoForgeVersion
+                    NEWSetup.Instance.CleanroomVersion(Path) = Version.CleanroomVersion
+                    NEWSetup.Instance.SortCode(Path) = Version.SortCode
+                    NEWSetup.Instance.McVersion(Path) = Version.McName
+                    NEWSetup.Instance.VersionMajor(Path) = Version.McCodeMain
+                    NEWSetup.Instance.VersionMinor(Path) = Version.McCodeSub
                 End If
             Catch ex As Exception
                 Info = "未知错误：" & GetExceptionSummary(ex)
@@ -1327,29 +1329,33 @@ OnLoaded:
                         '读取单个实例
                         Dim Instance As New McInstance(VersionFolder)
                         InstanceList.Add(Instance)
-                        Instance.Info = ReadIni(Instance.Path & "PCL\Setup.ini", "CustomInfo", "")
-                        If Instance.Info = "" Then Instance.Info = ReadIni(Instance.Path & "PCL\Setup.ini", "Info", Instance.Info)
-                        Instance.Logo = ReadIni(Instance.Path & "PCL\Setup.ini", "Logo", Instance.Logo)
-                        Instance.ReleaseTime = ReadIni(Instance.Path & "PCL\Setup.ini", "ReleaseTime", Instance.ReleaseTime)
-                        Instance.State = ReadIni(Instance.Path & "PCL\Setup.ini", "State", Instance.State)
-                        Instance.IsStar = ReadIni(Instance.Path & "PCL\Setup.ini", "IsStar", False)
-                        Instance.DisplayType = ReadIni(Path & "PCL\Setup.ini", "DisplayType", McInstanceCardType.Auto)
+                        Instance.Info = NEWSetup.Instance.CustomInfo(Instance.Path)
+                        
+                        If Instance.Info = "" Then Instance.Info = NEWSetup.Instance.Info(Instance.Path)
+                        If Not SetupService.IsUnset(SetupEntries.Instance.LogoPath, Instance.Path) Then _
+                            Instance.Logo = NEWSetup.Instance.LogoPath(Instance.Path)
+                        If Not SetupService.IsUnset(SetupEntries.Instance.ReleaseTime, Instance.Path) Then _
+                            Instance.ReleaseTime = NEWSetup.Instance.ReleaseTime(Instance.Path)
+                        If Not SetupService.IsUnset(SetupEntries.Instance.State, Instance.Path) Then _
+                            Instance.State = NEWSetup.Instance.State(Instance.Path)
+                        Instance.IsStar = NEWSetup.Instance.Starred(Instance.Path)
+                        Instance.DisplayType = NEWSetup.Instance.DisplayType(Instance.Path)
                         If Instance.State <> McInstanceState.Error AndAlso
-                           ReadIni(Instance.Path & "PCL\Setup.ini", "VersionOriginal", "Unknown") <> "Unknown" Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
+                           Not SetupService.IsUnset(SetupEntries.Instance.McVersion, Instance.Path) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
                             Dim InstanceInfo As New McInstanceInfo With {
-                                .FabricVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionFabric", ""),
-                                .LegacyFabricVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionLegacyFabric", ""),
-                                .QuiltVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionQuilt", ""),
-                                .ForgeVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionForge", ""),
-                                .LabyModVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionLabyMod", ""),
-                                .NeoForgeVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionNeoForge", ""),
-                                .CleanroomVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionCleanroom", ""),
-                                .OptiFineVersion = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionOptiFine", ""),
-                                .HasLiteLoader = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionLiteLoader", False),
-                                .SortCode = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionApiCode", -1),
-                                .McName = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionOriginal", "Unknown"),
-                                .McCodeMain = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionOriginalMain", -1),
-                                .McCodeSub = ReadIni(Instance.Path & "PCL\Setup.ini", "VersionOriginalSub", -1),
+                                .FabricVersion = NEWSetup.Instance.FabricVersion(Instance.Path),
+                                .LegacyFabricVersion = NEWSetup.Instance.LegacyFabricVersion(Instance.Path),
+                                .QuiltVersion = NEWSetup.Instance.QuiltVersion(Instance.Path),
+                                .ForgeVersion = NEWSetup.Instance.ForgeVersion(Instance.Path),
+                                .LabyModVersion = NEWSetup.Instance.LabyModVersion(Instance.Path),
+                                .NeoForgeVersion = NEWSetup.Instance.NeoForgeVersion(Instance.Path),
+                                .CleanroomVersion = NEWSetup.Instance.CleanroomVersion(Instance.Path),
+                                .OptiFineVersion = NEWSetup.Instance.OptiFineVersion(Instance.Path),
+                                .HasLiteLoader = NEWSetup.Instance.HasLiteLoader(Instance.Path),
+                                .SortCode = NEWSetup.Instance.SortCode(Instance.Path),
+                                .McName = NEWSetup.Instance.McVersion(Instance.Path),
+                                .McCodeMain = NEWSetup.Instance.VersionMajor(Instance.Path),
+                                .McCodeSub = NEWSetup.Instance.VersionMinor(Instance.Path),
                                 .IsApiLoaded = True
                             }
                             InstanceInfo.HasFabric = InstanceInfo.FabricVersion.Any()
@@ -1369,7 +1375,7 @@ OnLoaded:
                             Instance.State = McInstanceState.Original
                             Instance.Check()
                             '校验错误原因是否改变
-                            Dim CustomInfo As String = ReadIni(Instance.Path & "PCL\Setup.ini", "CustomInfo")
+                            Dim CustomInfo As String = NEWSetup.Instance.CustomInfo(Instance.Path)
                             If Instance.State = McInstanceState.Original OrElse (CustomInfo = "" AndAlso Not OldDesc = Instance.Info) Then
                                 Log("[Minecraft] 实例 " & Instance.Name & " 的错误状态已变更，新的状态为：" & Instance.Info)
                                 Return Nothing
