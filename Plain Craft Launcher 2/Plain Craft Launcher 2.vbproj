@@ -169,20 +169,20 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CacheCow.Client" Version="2.13.1" />
+    <PackageReference Include="fNbt" Version="1.0.0" />
     <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
-    <PackageReference Include="IPNetwork2" Version="2.6.618" />
+    <PackageReference Include="IPNetwork2" Version="3.1.775" />
     <PackageReference Include="Makaretu.Nat" Version="0.2.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-    <PackageReference Include="PlainNamedBinaryTag" Version="1.2.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="STUN" Version="0.5.0" />
     <PackageReference Include="System.Management" Version="9.0.8" />
     <PackageReference Include="System.Security.AccessControl" Version="6.0.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.8" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+    <PackageReference Include="System.Text.Json" Version="9.0.8" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="CoreWCF.Primitives" Version="1.8.0" />
     <PackageReference Include="CoreWCF.ConfigurationManager" Version="1.8.0" />

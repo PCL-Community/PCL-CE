@@ -1,5 +1,5 @@
 ﻿Imports System.Xml.XPath
-Imports PlainNamedBinaryTag
+Imports fNbt
 
 Class PageInstanceSavesInfo
     Implements IRefreshable
@@ -26,104 +26,97 @@ Class PageInstanceSavesInfo
     Private Sub RefreshInfo()
         Try
             Dim saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
-            Dim isCompressed As Boolean
             Using fs As New FileStream(saveDatPath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                Using saveInfo = VbNbtReaderCreator.FromStreamAutoDetect(fs, isCompressed)
-                    Dim outRes As NbtType
-                    Dim xData = saveInfo.ReadNbtAsXml(outRes)
-                    Dim levelData = xData.XPathSelectElement("//TCompound[@Name='Data']")
-                    ClearInfoTable()
+                Dim saveInfo as New NbtFile()
+                saveInfo.LoadFromStream(fs, NbtCompression.AutoDetect)
+                ClearInfoTable()
 
-                    Hintversion1_9.Visibility = Visibility.Collapsed
-                    Hintversion1_8.Visibility = Visibility.Collapsed
-                    HintVersion1_3.Visibility = Visibility.Collapsed
+                Hintversion1_9.Visibility = Visibility.Collapsed
+                Hintversion1_8.Visibility = Visibility.Collapsed
+                HintVersion1_3.Visibility = Visibility.Collapsed
+                dim gameLevel = saveInfo.RootTag.Get(Of NbtCompound)("Data")
+                AddInfoTable("存档名称", gameLevel.Get(Of NbtString)("LevelName").Value)
+                Dim versionName As NbtString
+                Dim versionId As NbtInt
+                Dim gameVersion = gameLevel.Get(Of NbtCompound)("Version")
+                gameVersion.TryGet(Of NbtString)("Name", versionName)
+                gameVersion.TryGet(Of NbtInt)("Id", versionId)
+                Dim hasDifficulty = gameLevel.Contains("Difficulty")
+                Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 
-                    Dim GetDataInfoByPath = Function(path As String) As String
-                                                Dim element = levelData.XPathSelectElement(path)
-                                                Return If(element IsNot Nothing, element.Value, "获取失败")
-                                            End Function
-                    Dim GetDataInfoByPathWithFallback = Function(path As String, fallbackPath As String) As String
-                                                            Dim element = levelData.XPathSelectElement(path)
-                                                            If element Is Nothing Then
-                                                                element = levelData.XPathSelectElement(fallbackPath)
-                                                            End If
-                                                            Return If(element IsNot Nothing, element.Value, "获取失败")
-                                                        End Function
-                    AddInfoTable("存档名称", GetDataInfoByPath("//TString[@Name='LevelName']"))
-                    Dim versionName As String = "获取失败"
-                    Dim versionId As String = "获取失败"
-                    versionName = GetDataInfoByPath("//TCompound[@Name='Version']/TString[@Name='Name']")
-                    versionId = GetDataInfoByPath("//TCompound[@Name='Version']/TInt32[@Name='Id']")
-                    Dim hasDifficulty = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']") IsNot Nothing
-                    Dim hasAllowCommands = levelData.XPathSelectElement("//TInt8[@Name='allowCommands']") IsNot Nothing
-                    
-                    If versionName = "获取失败" Then
-                        If hasDifficulty Then
-                            Hintversion1_9.Visibility = Visibility.Visible
-                            Hintversion1_9.Text = $"1.9 以下的版本无法获取存档版本"
-                        Else
-                            If hasAllowCommands Then
-                                Hintversion1_8.Visibility = Visibility.Visible
-                                Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
-                            Else
-                                HintVersion1_3.Visibility = Visibility.Visible
-                                HintVersion1_3.Text = $"1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊"
-                            End If
-                        End If
-                    Else
-                        AddInfoTable("存档版本", $"{versionName} ({versionId})")
-                    End If
-                    
-                    Dim seed As String = GetDataInfoByPathWithFallback("//TCompound[@Name='WorldGenSettings']/TInt64[@Name='seed']", "//TInt64[@Name='RandomSeed']")
-                    AddInfoTable("种子", seed, True, versionName, True)
-                    
-                    If hasAllowCommands Then
-                        Dim allowCommandValue As Integer = Integer.Parse(GetDataInfoByPath("//TInt8[@Name='allowCommands']"))
-                        Dim allowCommandName As String = "获取失败"
-                        Select Case allowCommandValue
-                            Case 0
-                                allowCommandName = "不允许"
-                            Case 1
-                                allowCommandName = "允许"
-                        End Select
-                        AddInfoTable("是否允许作弊", allowCommandName)
-                    End If
-                    
-                    AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(GetDataInfoByPath("//TInt64[@Name='LastPlayed']"))).ToLocalTime().ToString())
-                    
-                    Dim spawnX = GetDataInfoByPath("//TInt32[@Name='SpawnX']")
-                    Dim spawnY = GetDataInfoByPath("//TInt32[@Name='SpawnY']")
-                    Dim spawnZ = GetDataInfoByPath("//TInt32[@Name='SpawnZ']")
-                    AddInfoTable("出生点 (X/Y/Z)", $"{spawnX} / {spawnY} / {spawnZ}")
-                    
+                If versionName Is Nothing Then
                     If hasDifficulty Then
-                        Dim difficultyElement = levelData.XPathSelectElement("//TInt8[@Name='Difficulty']")
-                        Dim difficultyName As String = "获取失败"
-                        Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
-                        Select Case difficultyValue
-                            Case 0
-                                difficultyName = "和平"
-                            Case 1
-                                difficultyName = "简单"
-                            Case 2
-                                difficultyName = "普通"
-                            Case 3
-                                difficultyName = "困难"
-                        End Select
-                        Dim lockedElement = levelData.XPathSelectElement("//TInt8[@Name='DifficultyLocked']")
-                        Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
-                        If Hintversion1_8.Visibility <> Visibility.Visible Then
-                            AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
+                        Hintversion1_9.Visibility = Visibility.Visible
+                        Hintversion1_9.Text = $"1.9 以下的版本无法获取存档版本"
+                    Else
+                        If hasAllowCommands Then
+                            Hintversion1_8.Visibility = Visibility.Visible
+                            Hintversion1_8.Text = $"1.8 以下的版本无法获取存档版本和游戏难度"
+                        Else
+                            HintVersion1_3.Visibility = Visibility.Visible
+                            HintVersion1_3.Text = $"1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊"
                         End If
                     End If
-                    
-                    Dim totalTicks As Long = Long.Parse(GetDataInfoByPath("//TInt64[@Name='Time']"))
-                    Dim totalSeconds As Double = totalTicks / 20.0
-                    Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
-                    Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
-                    AddInfoTable("游戏时长", formattedPlayTime)
-                    PanContent.Visibility = Visibility.Visible
-                End Using
+                Else
+                    AddInfoTable("存档版本", $"{versionName.Value} ({versionId.Value})")
+                End If
+
+                Dim seedNbt As NbtString
+                Dim seed As String
+                If gameLevel.TryGet(Of NbtString)("RandomSeed" , seedNbt) Then
+                    seed = seedNbt.Value
+                Else
+                    seed = gameLevel.Get(of NbtCompound)("WorldGenSettings").Get(of NbtLong)("seed").Value.ToString()
+                End If
+
+                AddInfoTable("种子", seed, True, versionName?.Value, True)
+
+                If hasAllowCommands Then
+                    Dim allowCommandValue As Integer = Integer.Parse(gameLevel.Get(Of NbtByte)("allowCommands").Value)
+                    Dim allowCommandName As String = "获取失败"
+                    Select Case allowCommandValue
+                        Case 0
+                            allowCommandName = "不允许"
+                        Case 1
+                            allowCommandName = "允许"
+                    End Select
+                    AddInfoTable("是否允许作弊", allowCommandName)
+                End If
+
+                AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(gameLevel.Get(Of NbtLong)("LastPlayed").Value)).ToLocalTime().ToString())
+
+                Dim spawnX = gameLevel.Get(Of NbtInt)("SpawnX")
+                Dim spawnY = gameLevel.Get(Of NbtInt)("SpawnY")
+                Dim spawnZ = gameLevel.Get(Of NbtInt)("SpawnZ")
+                AddInfoTable("出生点 (X/Y/Z)", $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}")
+
+                If hasDifficulty Then
+                    Dim difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
+                    Dim difficultyName As String = "获取失败"
+                    Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
+                    Select Case difficultyValue
+                        Case 0
+                            difficultyName = "和平"
+                        Case 1
+                            difficultyName = "简单"
+                        Case 2
+                            difficultyName = "普通"
+                        Case 3
+                            difficultyName = "困难"
+                    End Select
+                    Dim lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                    Dim isDifficultyLocked As String = If(lockedElement IsNot Nothing AndAlso lockedElement.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
+                    If Hintversion1_8.Visibility <> Visibility.Visible Then
+                        AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
+                    End If
+                End If
+
+                Dim totalTicks As Long = Long.Parse(gameLevel.Get(Of NbtLong)("Time").Value)
+                Dim totalSeconds As Double = totalTicks / 20.0
+                Dim playTime As TimeSpan = TimeSpan.FromSeconds(totalSeconds)
+                Dim formattedPlayTime As String = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
+                AddInfoTable("游戏时长", formattedPlayTime)
+                PanContent.Visibility = Visibility.Visible
             End Using
         Catch ex As Exception
             Log(ex, $"获取存档信息失败", LogLevel.Msgbox)
