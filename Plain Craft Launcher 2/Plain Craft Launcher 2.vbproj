@@ -10,7 +10,6 @@
 	<PublishSingleFile>true</PublishSingleFile>
 	<RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
 	<RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
-	<RuntimeIdentifier Condition="'$(Platform)' == 'AnyCPU'">win-x64</RuntimeIdentifier>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -45,131 +44,37 @@
     <Copyright>Copyright © 龙腾猫跃 2016. All Rights Reserved.</Copyright>
     <AssemblyVersion>2.12.2.0</AssemblyVersion>
     <FileVersion>2.12.2.0</FileVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineTrace>false</DefineTrace>
-    <IncrementalBuild>true</IncrementalBuild>
-    <OutputPath>.\bin\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <Configuration>PCL2 Config Mark</Configuration>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineTrace>true</DefineTrace>
+    <DefineConstants>DEBUG</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'DebugCI' ">
+    <OutputPath>.\bin\DebugCI</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <DefineTrace>true</DefineTrace>
+    <DefineConstants>DEBUGCI</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
-    <DefineDebug>false</DefineDebug>
-    <DefineTrace>false</DefineTrace>
-    <IncrementalBuild>false</IncrementalBuild>
-    <OutputPath>.\bin\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
     <DefineConstants>RELEASE</DefineConstants>
-    <Configuration>PCL2 Config Mark</Configuration>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugCI|AnyCPU' ">
-    <OutputPath>.\bin\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <DebugSymbols>true</DebugSymbols>
-    <Optimize>false</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-    <DefineConstants>DEBUGCI</DefineConstants>
-    <Configuration>PCL2 Config Mark</Configuration>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Beta|AnyCPU' ">
-    <OutputPath>.\bin\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)' == 'Beta'">
+    <OutputPath>bin\Beta\</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
     <DefineConstants>BETA</DefineConstants>
-    <Configuration>PCL2 Config Mark</Configuration>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseUpdate|AnyCPU' ">
-    <OutputPath>.\bin\</OutputPath>
-    <DefineConstants>RELEASE,BY_UPDATE</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM64'">
-    <OutputPath>bin\ARM64\Debug\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM64'">
-    <OutputPath>bin\ARM64\Release\</OutputPath>
-    <DefineConstants>RELEASE</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugCI|ARM64' ">
-    <OutputPath>bin\ARM64\DebugCI\</OutputPath>
-    <DefineConstants>DEBUGCI</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <DebugSymbols>true</DebugSymbols>
-    <Optimize>false</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Beta|ARM64' ">
-    <OutputPath>bin\ARM64\BETA\</OutputPath>
-    <DefineConstants>BETA</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUpdate|ARM64'">
-    <OutputPath>bin\ARM64\ReleaseUpdate\</OutputPath>
-    <DefineConstants>RELEASE,BY_UPDATE</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>RELEASE</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugCI|x64' ">
-    <OutputPath>bin\x64\DebugCI\</OutputPath>
-    <DefineConstants>DEBUGCI</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <DebugSymbols>true</DebugSymbols>
-    <Optimize>false</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Beta|x64' ">
-    <OutputPath>bin\x64\BETA\</OutputPath>
-    <DefineConstants>BETA</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUpdate|x64'">
-    <OutputPath>bin\x64\ReleaseUpdate\</OutputPath>
-    <DefineConstants>RELEASE,BY_UPDATE</DefineConstants>
-    <DocumentationFile>Plain Craft Launcher 2.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CacheCow.Client" Version="2.13.1" />
@@ -193,6 +98,9 @@
     <PackageReference Include="CoreWCF.Http" Version="1.8.0" />
     <PackageReference Include="CoreWCF.WebHttp" Version="1.8.0" />
     <PackageReference Include="CoreWCF.NetTcp" Version="1.8.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Newtonsoft.Json.Linq" />
@@ -226,168 +134,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
+    <Resource Include="Images\**" />
     <Resource Include="Resources\Font.ttf" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\LTCat.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\Anvil.png" />
-    <Resource Include="Images\Blocks\CobbleStone.png" />
-    <Resource Include="Images\Blocks\CommandBlock.png" />
-    <Resource Include="Images\Blocks\Grass.png" />
-    <Resource Include="Images\Blocks\RedstoneBlock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\GrassPath.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\Egg.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\Hao_Tian.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Skins\Steve.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Skins\Alex.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\5.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\6.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\7.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\8.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\9.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\10.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <PublishFile Include="Newtonsoft.Json">
-      <Visible>False</Visible>
-      <Group>
-      </Group>
-      <TargetPath>
-      </TargetPath>
-      <PublishState>Exclude</PublishState>
-      <IncludeHash>True</IncludeHash>
-      <FileType>Assembly</FileType>
-    </PublishFile>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\Patrick.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\11.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\12.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\GoldBlock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\13.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\42.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\RedstoneLampOff.png" />
-    <Resource Include="Images\Blocks\RedstoneLampOn.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\Fabric.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\Logo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Icons\A.png" />
-    <Resource Include="Images\Icons\B.png" />
-    <Resource Include="Images\Icons\R.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Icons\NoIcon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\PCL2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\00ll00.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\bangbang93.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\wiki.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\OptiFabric.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Skins\Ari.png" />
-    <Resource Include="Images\Skins\Efe.png" />
-    <Resource Include="Images\Skins\Kai.png" />
-    <Resource Include="Images\Skins\Makena.png" />
-    <Resource Include="Images\Skins\Noor.png" />
-    <Resource Include="Images\Skins\Sunny.png" />
-    <Resource Include="Images\Skins\Zuri.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Icons\Disabled.png" />
-    <Resource Include="Images\Icons\Unavailable.png" />
-    <Resource Include="Images\Icons\Folder.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\MCBBS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\Quilt.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\LabyMod.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\NeoForge.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\z0z0r4.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Blocks\Cleanroom.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\PCL-Community.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\Logo-CE.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\Pysio.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Themes\server_bg.png" />
-    <Resource Include="Images\Icons\DefaultServer.png" />
-    <Content Include="Resources\linkd.exe" />
     <Resource Include="Resources\oauth-complete.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    <Content Include="Resources\linkd.exe" />
   </ItemGroup>
 </Project>
