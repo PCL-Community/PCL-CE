@@ -1,6 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports System.IO.Compression
 Imports PCL.Core.LifecycleManagement
+Imports SixLabors.ImageSharp.Formats.Webp
 
 Public Class Application
 
@@ -172,11 +173,6 @@ WaitRetry:
                 Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
-            '释放资源
-            Directory.CreateDirectory(PathPure & "CE")
-            SetDllDirectory(PathPure & "CE")
-            Dim WebpPath = $"{PathPure}CE\libwebp.dll"
-            If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
             'Pipe RPC 初始化
             StartEchoPipe()
             '设置字体
