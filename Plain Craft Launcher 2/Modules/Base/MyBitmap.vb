@@ -78,7 +78,7 @@ Public Class MyBitmap
                     If InputStream.Length > 2 AndAlso InputStream.ReadByte() = 82 AndAlso InputStream.ReadByte() = 73 Then
                         InputStream.Seek(0, SeekOrigin.Begin)
                         Using ms as new MemoryStream()
-                            Using im = Image (Of PixelFormats.Argb32).Load(InputStream)
+                            Using im = Image.Load(InputStream)
                                 im.SaveAsPng(ms)
                             End Using
                             Pic = New System.Drawing.Bitmap(ms)
