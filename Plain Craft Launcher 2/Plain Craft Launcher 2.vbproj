@@ -90,15 +90,8 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="STUN" Version="0.5.0" />
     <PackageReference Include="System.Management" Version="9.0.8" />
-    <PackageReference Include="System.Security.AccessControl" Version="6.0.1" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.8" />
     <PackageReference Include="System.Text.Json" Version="9.0.8" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
-    <PackageReference Include="CoreWCF.Primitives" Version="1.8.0" />
-    <PackageReference Include="CoreWCF.ConfigurationManager" Version="1.8.0" />
-    <PackageReference Include="CoreWCF.Http" Version="1.8.0" />
-    <PackageReference Include="CoreWCF.WebHttp" Version="1.8.0" />
-    <PackageReference Include="CoreWCF.NetTcp" Version="1.8.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
