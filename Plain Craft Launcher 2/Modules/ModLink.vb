@@ -321,7 +321,7 @@ Public Module ModLink
     End Class
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
     Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
-    Public ETVersion As String = "2.4.1"
+    Public ETVersion As String = "2.4.2"
     Public ETRpcPort As Integer = 15888
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
     Public IsETRunning As Boolean = False
