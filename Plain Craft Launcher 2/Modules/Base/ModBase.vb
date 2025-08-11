@@ -6,6 +6,7 @@ Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
 Imports System.Threading.Tasks
+Imports Microsoft.Win32
 Imports Newtonsoft.Json
 Imports PCL.Core.App
 Imports PCL.Core.Logging
@@ -1113,9 +1114,14 @@ Public Module ModBase
     ''' 返回以 \ 结尾的完整路径，如果没有选择则返回空字符串。
     ''' </summary>
     Public Function SelectFolder(Optional Title As String = "选择文件夹") As String
-        Dim folderDialog As New Ookii.Dialogs.Wpf.VistaFolderBrowserDialog With {.ShowNewFolderButton = True, .RootFolder = Environment.SpecialFolder.Desktop, .Description = Title, .UseDescriptionForTitle = True}
+        Dim folderDialog As New OpenFolderDialog With {
+                .InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                .Title = Title,
+                .Multiselect = False
+        }
         folderDialog.ShowDialog()
-        SelectFolder = If(String.IsNullOrEmpty(folderDialog.SelectedPath), "", folderDialog.SelectedPath & If(folderDialog.SelectedPath.EndsWithF("\"), "", "\"))
+        Dim selected = folderDialog.FolderName
+        SelectFolder = If(String.IsNullOrEmpty(selected), "", selected & If(selected.EndsWithF("\"), "", "\"))
         Log("[UI] 选择文件夹返回：" & SelectFolder)
     End Function
 
