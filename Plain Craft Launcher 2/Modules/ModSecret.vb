@@ -94,54 +94,19 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 - 百宝箱：部分内容更改和缺失，主线分支没有提供相关内容{If(IsUpdate, $"{vbCrLf}{vbCrLf}该提示总会在更新启动器时展示一次。", "")}", "社区版本说明", "我知道了")
     End Sub
 
-    Private _RawCodeCache As String = Nothing
-    Private ReadOnly _cacheLock As New Object()
     ''' <summary>
     ''' 获取原始的设备标识码
     ''' </summary>
     ''' <returns></returns>
     Friend Function SecretGetRawCode() As String
-        SyncLock _cacheLock
-            Try
-                If _RawCodeCache IsNot Nothing Then Return _RawCodeCache
-                Dim rawCode As String = Nothing
-                Dim searcher As New ManagementObjectSearcher("select ProcessorId from Win32_Processor") ' 获取 CPU 序列号
-                For Each obj As ManagementObject In searcher.Get()
-                    rawCode = obj("ProcessorId")?.ToString()
-                    Exit For
-                Next
-                If String.IsNullOrWhiteSpace(rawCode) Then Throw New Exception("获取 CPU 序列号失败")
-                Using sha256 As SHA256 = SHA256.Create() ' SHA256 加密
-                    Dim hash As Byte() = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawCode))
-                    rawCode = BitConverter.ToString(hash).Replace("-", "")
-                End Using
-                _RawCodeCache = rawCode
-                Return rawCode
-            Catch ex As Exception
-                Log(ex, "[System] 获取设备原始标识码失败，使用默认标识码")
-                Return "b09675a9351cbd1fd568056781fe3966dd936cc9b94e51ab5cf67eeb7e74c075".ToUpper()
-            End Try
-        End SyncLock
+        Return Identify.RawCode
     End Function
 
     ''' <summary>
     ''' 获取设备的短标识码
     ''' </summary>
     Friend Function SecretGetUniqueAddress() As String
-        Dim code As String
-        Try
-            Dim rawId As String = Setup.Get("LaunchUuid")
-            If String.IsNullOrEmpty(rawId) Then
-                rawId = Identify.GetGuid()
-                Setup.Set("LaunchUuid", rawId)
-            End If
-            code = Identify.GetMachineId(rawId)
-            code = code.Substring(6, 16)
-            code = code.Insert(4, "-").Insert(9, "-").Insert(14, "-")
-            Return code
-        Catch ex As Exception
-            Return "PCL2-CECE-GOOD-2025"
-        End Try
+        Return Identify.LaunchId
     End Function
 
     Private _EncryptKeyCache As String = Nothing
