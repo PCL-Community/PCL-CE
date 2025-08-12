@@ -1,7 +1,7 @@
 ﻿'一个万能的自动图片类型转换工具类
 
 Imports System.Drawing.Imaging
-Imports SixLabors.ImageSharp
+Imports PCL.Core.UI.Media
 
 Public Class MyBitmap
 
@@ -74,17 +74,15 @@ Public Class MyBitmap
                 End If
             Else
                 '使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                Using InputStream As New FileStream(FilePathOrResourceName, FileMode.Open)
-                    If InputStream.Length > 2 AndAlso InputStream.ReadByte() = 82 AndAlso InputStream.ReadByte() = 73 Then
-                        InputStream.Seek(0, SeekOrigin.Begin)
-                        Using ms as new MemoryStream()
-                            Using im = Image.Load(InputStream)
-                                im.SaveAsPng(ms)
-                            End Using
+                Using picStream As New FileStream(FilePathOrResourceName, FileMode.Open)
+                    If picStream.Length > 2 AndAlso picStream.ReadByte() = 82 AndAlso picStream.ReadByte() = 73 Then
+                        picStream.Seek(0, SeekOrigin.Begin)
+                        '调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统
+                        Using ms = picStream.FromWebpToPng()
                             Pic = New System.Drawing.Bitmap(ms)
                         End Using
                     Else
-                        Pic = New System.Drawing.Bitmap(InputStream)
+                        Pic = New System.Drawing.Bitmap(picStream)
                     End If
                 End Using
             End If
