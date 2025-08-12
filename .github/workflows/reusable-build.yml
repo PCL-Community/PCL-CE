@@ -60,7 +60,7 @@ jobs:
         run: |
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
           -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-          -p:DeleteExistingFiles=true -o ./artifact
+          -p:DeleteExistingFiles=true -o ./artifact --self-contained false
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
