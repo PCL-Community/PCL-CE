@@ -1,6 +1,6 @@
+Imports PCL.Core.Minecraft
 Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
-Imports PCL.Core.Utils
 
 Public Class PageInstanceOverall
 
