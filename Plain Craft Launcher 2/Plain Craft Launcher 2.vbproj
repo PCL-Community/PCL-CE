@@ -16,7 +16,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <LangVersion>default</LangVersion>
-    <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <Configurations>Beta;Debug;Release;DebugCI</Configurations>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
@@ -70,7 +69,6 @@
     <PackageReference Include="Makaretu.Nat" Version="0.2.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="STUN" Version="0.5.0" />
     <PackageReference Include="System.Management" Version="9.0.8" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />

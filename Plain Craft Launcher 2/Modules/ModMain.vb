@@ -753,7 +753,7 @@ NextFile:
     Public Sub HelpExtract()
         DeleteDirectory(PathTemp & "CE\Help")
         Directory.CreateDirectory(PathTemp & "CE\Help")
-        WriteFile(PathTemp & "CE\Cache\Help.zip", GetResources("Help"))
+        WriteFile(PathTemp & "CE\Cache\Help.zip", GetResourceStream("Resources/Help.zip"))
         ExtractFile(PathTemp & "CE\Cache\Help.zip", PathTemp & "CE\Help", Encoding.UTF8)
         Log("[Help] 已解压内置帮助文件，目前状态：" & File.Exists(PathTemp & "CE\Help\启动器\备份设置.xaml"), LogLevel.Debug)
     End Sub
