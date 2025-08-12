@@ -369,8 +369,7 @@ Public Class PageInstanceOverall
         End Try
     End Sub
 
-    '删除实例
-    '修改此代码时，同时修改 PageSelectRight 中的代码
+    '修补游戏核心
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
             Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
