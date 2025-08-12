@@ -1,5 +1,3 @@
-Imports Windows.Media
-Imports Windows.Storage.Streams
 Public Module ModMusic
 
 #Region "播放列表"
@@ -212,10 +210,10 @@ Public Module ModMusic
     ''' </summary>
     Private Sub MusicStartPlay(Address As String, Optional IsFirstLoad As Boolean = False)
         If Address Is Nothing Then Return
-        If _smtc Is Nothing OrElse Not _smtc.IsEnabled Then EnableSMTCSupport()
+        'If _smtc Is Nothing OrElse Not _smtc.IsEnabled Then EnableSMTCSupport()
         Log("[Music] 播放开始：" & Address)
         MusicCurrent = Address
-        UpdateSMTCInfo()
+        'UpdateSMTCInfo()
         RunInNewThread(Sub() MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal)
     End Sub
 
@@ -230,7 +228,7 @@ Public Module ModMusic
             Sub()
                 Log("[Music] 已暂停播放")
                 MusicNAudio?.Pause()
-                SetSMTCStatus()
+                'SetSMTCStatus()
                 MusicRefreshUI()
             End Sub)
             Return True
@@ -256,7 +254,7 @@ Public Module ModMusic
                     MusicNAudio?.Stop()
                     MusicNAudio?.Play()
                 End Try
-                SetSMTCStatus()
+                'SetSMTCStatus()
                 MusicRefreshUI()
             End Sub)
             Return True
@@ -265,6 +263,8 @@ Public Module ModMusic
 
 #End Region
 
+'TODO 基于底层 COM 交互的 WinRT 调用
+#If False
 #Region "SMTC 控件"
     Private ReadOnly _player = If(Environment.OSVersion.Version.ToString().Substring(0, 4) = "10.0", New Playback.MediaPlayer, Nothing)
     Private _smtc As SystemMediaTransportControls = Nothing
@@ -441,6 +441,7 @@ Public Module ModMusic
                        End Sub, "SMTC Updater")
     End Sub
 #End Region
+#End If
 
     ''' <summary>
     ''' 当前正在播放的 NAudio.Wave.WaveOutEvent。
@@ -467,14 +468,14 @@ Public Module ModMusic
             '第一次打开的暂停
             If IsFirstLoad AndAlso Not Setup.Get("UiMusicAuto") Then
                 CurrentWave.Pause()
-                EnableSMTCSupport() '启用 SMTC 支持
-                UpdateSMTCInfo() '更新 SMTC 媒体信息
+                'EnableSMTCSupport() '启用 SMTC 支持
+                'UpdateSMTCInfo() '更新 SMTC 媒体信息
             End If
-            SetSMTCStatus()
+            'SetSMTCStatus()
             MusicRefreshUI()
             '停止条件：播放完毕或变化
             Dim PreviousVolume = 0
-            SMTCTimelineUpdater(CurrentWave, Reader) '启动 SMTC 时间轴更新
+            'SMTCTimelineUpdater(CurrentWave, Reader) '启动 SMTC 时间轴更新
             While CurrentWave.Equals(MusicNAudio) AndAlso Not CurrentWave.PlaybackState = NAudio.Wave.PlaybackState.Stopped
                 If Setup.Get("UiMusicVolume") <> PreviousVolume Then
                     '更新音量
@@ -485,13 +486,13 @@ Public Module ModMusic
                 Dim Percent = Reader.CurrentTime.TotalMilliseconds / Reader.TotalTime.TotalMilliseconds
                 RunInUi(Sub() FrmMain.BtnExtraMusic.Progress = Percent)
                 '检查 SMTC 状态
-                If Setup.Get("UiMusicSMTC") AndAlso _smtc Is Nothing Then
-                    EnableSMTCSupport()
-                    UpdateSMTCInfo()
-                    SetSMTCStatus()
-                    SMTCTimelineUpdater(CurrentWave, Reader)
-                End If
-                If Not Setup.Get("UiMusicSMTC") AndAlso _smtc IsNot Nothing Then DisableSMTCSupport()
+                'If Setup.Get("UiMusicSMTC") AndAlso _smtc Is Nothing Then
+                '    EnableSMTCSupport()
+                '    UpdateSMTCInfo()
+                '    SetSMTCStatus()
+                '    SMTCTimelineUpdater(CurrentWave, Reader)
+                'End If
+                'If Not Setup.Get("UiMusicSMTC") AndAlso _smtc IsNot Nothing Then DisableSMTCSupport()
                 Thread.Sleep(100)
             End While
             '当前音乐已播放结束，继续下一曲
