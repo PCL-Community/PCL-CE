@@ -395,7 +395,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         If origin < 0 Then Return 0 '保证不炸定义域（虽然不会有人传个负的亮度过来吧，应该...不会吧）
         If adjust = 0 Then Return origin '节省性能
         If origin > HighestLight Or origin < LowestLight Then Return origin '亮度阈值
-        If style Is Nothing Then style = CurrentProfile
+        If style Is Nothing Then style = CurrentProfile()
         adjust *= If(adjust > 0, style.LaP, style.LaN) '根据当前 style 调整 adjust 值
         '对数分布 -> 线性分布
         Dim originF = Math.Log(origin + LogLightBase) / LogLightBaseRate '源 [0,1]
@@ -467,7 +467,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     Public Property DarkStaticColors As ThemeStyleStaticColors = Nothing
 
-    Public Function CurrentProfile As GrayProfile
+    Public Function CurrentProfile() As GrayProfile
         Return GrayProfile.CurrentProfile(IsDarkMode)
     End Function
 
@@ -507,7 +507,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Private ReadOnly HueList As Integer() = {200, 210, 225}
     Private ReadOnly SatList As Integer() = {100, 85, 70}
     Private ReadOnly LightList As Integer() = {7, 0, -2}
-    
+
     Public Sub ThemeRefreshColor()
 #If DEBUG Then
         If EnableCustomTheme Then
@@ -530,7 +530,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Dim result As AnyType = FileService.WaitForResult(PredefinedFileItems.GrayProfile)
             If result Is Nothing Then
                 Log("[Theme] 无法获取灰阶配置", LogLevel.Debug)
-            Else If result.Type.IsSubclassOf(GetType(Exception)) Then
+            ElseIf result.Type.IsSubclassOf(GetType(Exception)) Then
                 Log(result.Value(Of Exception), "[Theme] 获取灰阶配置时出错", LogLevel.Hint)
             Else
                 GrayProfile = result.Value(Of GrayProfileConfig)
@@ -739,10 +739,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 End Sub
             ).Join()
             If latest Is Nothing Then
-                Log(checkUpdateEx,"[Update] 检查更新失败",LogLevel.MsgBox)
+                Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
                 Exit Sub
             End If
-            If Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
+            If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
+                MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
+                         "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
+            ElseIf Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
                 If MyMsgBox($"发现了启动器更新（版本 {latest.VersionName}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
                 Exit Sub
             End If
