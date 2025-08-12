@@ -5,6 +5,8 @@ Imports System.Management
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
 
 Friend Module ModSecret
@@ -13,31 +15,21 @@ Friend Module ModSecret
 
 #If DEBUG Then
     Public Const RegFolder As String = "PCLCEDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
-    '用于微软登录的 ClientId
-    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
-    'CurseForge API Key
-    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-    'LittleSkin OAuth ClientId
-    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
-    '遥测鉴权密钥
-    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
-    'Natayark ID Client Id
-    Public NatayarkClientId As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_ID"), "")
-    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
-    Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
-    '联机服务根地址
-    Public LinkServerRoots As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-    Public Const OAuthClientId As String = ""
-    Public Const CurseForgeAPIKey As String = ""
-    Public Const LittleSkinClientId As String = ""
-    Public Const TelemetryKey As String = ""
-    Public Const NatayarkClientId As String = ""
-    Public Const NatayarkClientSecret As String = ""
-    Public Const LinkServerRoots As String = ""
 #End If
-    Public LinkServers As String() = LinkServerRoots.Split(";")
+    '用于微软登录的 ClientId
+    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    'CurseForge API Key
+    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    '遥测鉴权密钥
+    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    'Natayark ID Client Id
+    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
+    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).EmptyIfNull()
+    '联机服务根地址
+    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).EmptyIfNull().Split(";")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级

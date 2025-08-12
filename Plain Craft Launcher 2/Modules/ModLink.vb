@@ -251,7 +251,7 @@ Public Module ModLink
         Public Type As String
     End Class
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
-    Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
+    Public ReadOnly ETNetworkDefaultSecret As String = If(EnvironmentInterop.GetSecret("LOBBY_DEFAULT_SECRET", readEnvDebugOnly := True), "PCLCEETLOBBY2025")
     Public ETVersion As String = "2.4.1"
     Public ETRpcPort As Integer = 15888
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
@@ -259,7 +259,8 @@ Public Module ModLink
     Public ETServerDefList As New List(Of ETRelay)
     Public ETProcess As Process = Nothing
     Public IsETReady As Boolean = False
-    Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+    Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         Try
             Dim etFilePath = $"{ETPath}\easytier-core.exe"
 
@@ -381,7 +382,8 @@ Public Module ModLink
         End Try
     End Function
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret)
+    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing)
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETVersion}.zip"
         RunInNewThread(Function()
                            Try
@@ -528,7 +530,8 @@ Public Module ModLink
         End If
         Return True
     End Function
-    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         '回传联机数据
         Log("[Link] 开始发送联机数据")
         Dim Servers As String = Nothing

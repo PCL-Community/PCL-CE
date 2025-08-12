@@ -10,6 +10,7 @@ Imports Microsoft.Win32
 Imports Newtonsoft.Json
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.Utils.OS
 
 Public Module ModBase
 
@@ -18,10 +19,10 @@ Public Module ModBase
     '下列版本信息由更新器自动修改
     Public Const VersionBaseName As String = "2.12.2" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.12.2." & VersionBranchCode
-    Public Const CommitHash As String = "native" 'Commit Hash，由 GitHub Workflow 自动替换
-    Public CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
     Public Const VersionCode As Integer = 399 '内部版本号
+    Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
+    Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
