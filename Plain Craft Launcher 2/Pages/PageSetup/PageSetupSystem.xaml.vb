@@ -226,7 +226,7 @@
         UpdateCheckByButton()
     End Sub
     Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
-        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个第三方应用分发平台{vbCrLf}如果你购买了他们的服务，可以让 PCL CE 使用他们的高速下载源下载版本更新，同时也可以减轻社区更新服务器的压力……")
+        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个付费的第三方应用分发平台，用于提供国内有偿高速下载源{vbCrLf}这是一项可选服务，不填入 CDK 不影响软件的正常使用。你如果拥有 Mirror 酱的 CDK，可以提供给 PCL-CE，启动器会优先使用他们的高速下载源下载版本更新，同时也能缓解社区公益更新服务器的一些压力……")
         If ret Is Nothing Then Return
         If String.IsNullOrWhiteSpace(ret) Then
             Setup.Reset("SystemMirrorChyanKey")
