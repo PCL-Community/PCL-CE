@@ -34,11 +34,12 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Update Help
+        continue-on-error: true
         run: |
           cd ..
           git clone https://github.com/PCL-Community/PCL2CEHelp.git -b master --single-branch --depth 1
           cd PCL2CEHelp
-          rm -f ./*
+          rm -f ./* || true
           zip -r Help.zip . -x "./.*/*"
           cp -f Help.zip "${{ github.workspace }}/Plain Craft Launcher 2/Resources/Help.zip"
           cd ..
