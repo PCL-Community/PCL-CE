@@ -1,36 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <LangVersion>12</LangVersion>
+    <LangVersion>13.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Configurations>Beta;Debug;Release;DebugCI</Configurations>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <Configurations>Debug;CI;Publish</Configurations>
+    <Platforms>AnyCPU;x64;ARM64</Platforms>
     <AssemblyTitle>PCL.Test</AssemblyTitle>
     <Product>PCL.Test</Product>
-    <Copyright>Copyright ©  2025</Copyright>
+    <Copyright>Copyright © PCL Community 2025</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM64'">
-    <OutputPath>bin\ARM64\Debug\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug-$(Platform)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM64'">
-    <OutputPath>bin\ARM64\Release\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)' == 'Publish'">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Publish-$(Platform)\</OutputPath>
+    <DefineConstants>PUBLISH</DefineConstants>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>bin\x64\Debug\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Beta|AnyCPU'">
-    <OutputPath>bin\Beta\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Beta|ARM64'">
-    <OutputPath>bin\ARM64\Beta\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Beta|x64'">
-    <OutputPath>bin\x64\Beta\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)' == 'CI'">
+    <DebugType>embedded</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\CI-$(Platform)\</OutputPath>
+    <DefineConstants>CI;TRACE</DefineConstants>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="fNbt" Version="1.0.0" />
@@ -40,7 +45,6 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.10.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.10.1" />
     <PackageReference Include="System.Text.Json" Version="9.0.8" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />

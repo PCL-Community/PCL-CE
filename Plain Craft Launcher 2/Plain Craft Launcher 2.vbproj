@@ -11,41 +11,25 @@
 	<RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
 	<RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <TargetCulture>zh-CN</TargetCulture>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <LangVersion>16.9</LangVersion>
+    <LangVersion>default</LangVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Configurations>Beta;Debug;Release;DebugCI</Configurations>
+    <Platforms>AnyCPU;x64;ARM64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Images\icon.ico</ApplicationIcon>
-    <ManifestCertificateThumbprint>CE7A815CD81401B559C8649A3EEA43B75ECB8FC5</ManifestCertificateThumbprint>
-    <ManifestKeyFile>Plain Craft Launcher 2_TemporaryKey.pfx</ManifestKeyFile>
-    <GenerateManifests>false</GenerateManifests>
-    <TargetZone>LocalIntranet</TargetZone>
-    <SignManifests>false</SignManifests>
-    <AssemblyOriginatorKeyFile />
     <AssemblyTitle>Plain Craft Launcher Community Edition</AssemblyTitle>
-    <Description>Minecraft 启动器 %28作者：龙腾猫跃；经社区二次开发版本%29</Description>
+    <Description>Minecraft 启动器 (作者: 龙腾猫跃; 经社区二次开发版本)</Description>
     <Product>Plain Craft Launcher Community Edition</Product>
     <Copyright>Copyright © 龙腾猫跃 2016. All Rights Reserved.</Copyright>
     <AssemblyVersion>2.12.2.0</AssemblyVersion>
     <FileVersion>2.12.2.0</FileVersion>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
+    <NoWarn>41999;42016;42017;42018;42019;42020;42021;42022;42032;42036;42314</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputPath>bin\Debug\</OutputPath>
@@ -56,7 +40,7 @@
     <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'DebugCI' ">
-    <OutputPath>.\bin\DebugCI</OutputPath>
+    <OutputPath>bin\DebugCI\</OutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
@@ -125,10 +109,23 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
+  <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
+  <PropertyGroup>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+  </PropertyGroup>
   <ItemGroup>
+    <Compile Include="**\*.vb" Exclude="bin\**;obj\**;publish\**" />
+    <ApplicationDefinition Include="Application.xaml" Condition="Exists('Application.xaml')" />
+    <ApplicationDefinition Include="App.xaml" Condition="Exists('App.xaml')" />
+    <Page Include="**\*.xaml" Exclude="bin\**;obj\**;@(ApplicationDefinition)" />
     <Resource Include="Images\**" />
-    <Resource Include="Resources\Font.ttf" />
-    <Resource Include="Resources\oauth-complete.html" />
+    <Resource Include="Resources\**" />
+    <Resource Remove="Resources\linkd.exe" />
     <Content Include="Resources\linkd.exe" />
   </ItemGroup>
 </Project>
