@@ -1,5 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
+Imports PCL.Core.ProgramSetup
+Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class Application
 
@@ -168,6 +170,9 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
+            If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
+                NEWSetup.System.UpdateBranch = SetupEntries.System.UpdateBranch.DefaultValue
+            End If
             '删除旧日志
             For i = 1 To 5
                 Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
