@@ -1,4 +1,6 @@
-﻿Public Class PageLoginAuth
+﻿Imports PCL.Core.Minecraft.Yggdrasil
+
+Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
     Private Sub Reload() Handles Me.Loaded
         If DraggedAuthServer IsNot Nothing Then
@@ -65,7 +67,9 @@
                        End Sub)
     End Sub
     '获取验证服务器名称
-    Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
+    Private Async Sub GetServerName() Handles TextServer.LostKeyboardFocus
+        Dim Addr As String = Await ApiLocation.GetApiLocation(TextServer.Text)
+        TextServer.Text = If(String.IsNullOrEmpty(Addr),TextServer.Text,Addr)
         Dim Link As String = TextServer.Text
         Dim Name As String = Nothing
         RunInNewThread(Sub()
