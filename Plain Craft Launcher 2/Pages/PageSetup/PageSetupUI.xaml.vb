@@ -1,3 +1,6 @@
+Imports System.Threading.Tasks
+Imports PCL.Core.Utils.Exts
+
 Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
@@ -81,33 +84,58 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            If ComboUiFont.Items.Count = 0 Then
-                ComboUiFont.Items.Clear()
-                ComboUiFont.Items.Add(New MyComboBoxItem With {
-                .Content = New TextBlock With {
-                                  .Text = "默认",
-                                  .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                  .IsHitTestVisible = False
-                                  },
-                .Tag = ""
-            })
-                For Each Font In Fonts.SystemFontFamilies
-                    Try
-                        ComboUiFont.Items.Add(New MyComboBoxItem With {
-                    .Content = New TextBlock With {
-                                      .Text = Font.Source,
-                                      .FontFamily = Font,
-                                      .IsHitTestVisible = False
-                                      },
-                    .Tag = Font.Source
-                })
-                    Catch ex As Exception
-                        Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Hint)
-                    End Try
-                Next
-            End If
-            Dim targetFont As String = Setup.Get("UiFont")
-            ComboUiFont.SelectedItem = ComboUiFont.Items.Cast(Of MyComboBoxItem).Where(Function(x) x.Tag = targetFont).FirstOrDefault()
+            Dispatcher.BeginInvoke(Async Sub()
+                ComboUiFont.IsEnabled = False
+                Dim uiFonts = ComboUiFont.Items
+                If uiFonts.Count = 0 Then
+                    uiFonts.Add(New MyComboBoxItem With { .Content = New TextBlock With { .Text = "加载中..." } })
+                    ComboUiFont.SelectedIndex = 0
+                    Dim availableFonts As New List(Of FontFamily)
+                    Await Task.Run(Sub()
+                        For Each Font In Fonts.SystemFontFamilies
+                            Try
+                                '忽略 Global 系列字体
+                                If Font.Source.StartsWith("Global ") Then Continue For
+                                '尝试加载字体以检测是否可用
+                                For Each Typeface In Font.GetTypefaces()
+                                    Dim glyph As GlyphTypeface = Nothing
+                                    Typeface.TryGetGlyphTypeface(glyph)
+                                    If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                                    'ReSharper disable once UnusedVariable
+                                    Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                                Next
+                                availableFonts.Add(Font)
+                            Catch ex As Exception
+                                Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                            End Try
+                        Next
+                    End Sub)
+                    uiFonts.Clear()
+                    uiFonts.Add(New MyComboBoxItem With {
+                        .Content = New TextBlock With {
+                            .Text = "默认",
+                            .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
+                            .IsHitTestVisible = False,
+                            .TextAlignment = TextAlignment.Center
+                        },
+                        .Tag = ""
+                    })
+                    For Each Font In availableFonts
+                        uiFonts.Add(New MyComboBoxItem With {
+                            .Content = New TextBlock With {
+                                .Text = Font.FamilyNames.GetForCurrentUiCulture(),
+                                .FontFamily = Font,
+                                .IsHitTestVisible = False,
+                                .TextAlignment = TextAlignment.Center
+                            },
+                            .Tag = Font.Source
+                        })
+                    Next
+                End If
+                Dim targetFont As String = Setup.Get("UiFont")
+                ComboUiFont.SelectedItem = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function (x) x.Tag = targetFont)
+                ComboUiFont.IsEnabled = True
+            End Sub)
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)
