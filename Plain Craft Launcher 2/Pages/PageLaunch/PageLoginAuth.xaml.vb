@@ -68,20 +68,19 @@ Public Class PageLoginAuth
     End Sub
     '获取验证服务器名称
     Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
+        Dim serverUriInput = TextServer.Text
         RunInNewThread(Sub()
             Dim serverUri As String = Nothing
             Dim serverName As String = Nothing
             Try
-                serverUri = ApiLocation.TryRequest(TextServer.Text).GetAwaiter().GetResult()
+                serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
                 Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
                 serverName = JObject.Parse(response)("meta")("serverName").ToString()
             Catch ex As Exception
                 Log(ex, "从服务器获取名称失败", LogLevel.Debug)
             End Try
             RunInUi(Sub()
-                If serverUri IsNot Nothing Then
-                    TextServer.Text = serverUri
-                End If
+                If serverUri IsNot Nothing Then TextServer.Text = serverUri
                 If serverName Is Nothing Then
                     TextServerName.Visibility = Visibility.Hidden
                 Else
