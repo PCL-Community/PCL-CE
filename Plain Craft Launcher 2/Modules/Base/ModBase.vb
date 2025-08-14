@@ -1766,7 +1766,7 @@ RetryDir:
     ''' 获取字符串 MD5。
     ''' </summary>
     Public Function GetStringMD5(Str As String) As String
-        Dim md5Hasher As New MD5CryptoServiceProvider
+        Dim md5Hasher As MD5 = MD5.Create()
         Dim hashedDataBytes As Byte()
         hashedDataBytes = md5Hasher.ComputeHash(Encoding.GetEncoding("gb2312").GetBytes(Str))
         Dim tmp As New StringBuilder()
@@ -2801,7 +2801,7 @@ NextElement:
         Try
             Location = ShortenPath(Location.Replace("/", "\").Trim(" "c, """"c))
             Log("[System] 正在打开资源管理器：" & Location)
-            If Location.EndsWith("\") Then
+            If Location.EndsWithF("\") Then
                 ShellOnly(Location)
             Else
                 ShellOnly("explorer", $"/select,""{Location}""")
