@@ -172,13 +172,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim Key = "00000000"
         Dim btKey As Byte() = Encoding.UTF8.GetBytes(Key)
         Dim btIV As Byte() = Encoding.UTF8.GetBytes("87160295")
-        Dim des As New DESCryptoServiceProvider
-        Using MS As New MemoryStream
-            Dim inData As Byte() = Convert.FromBase64String(SourceString)
-            Using cs As New CryptoStream(MS, des.CreateDecryptor(btKey, btIV), CryptoStreamMode.Write)
-                cs.Write(inData, 0, inData.Length)
-                cs.FlushFinalBlock()
-                Return Encoding.UTF8.GetString(MS.ToArray())
+        Using des As DES = DES.Create()
+            Using MS As New MemoryStream
+                Dim inData As Byte() = Convert.FromBase64String(SourceString)
+                Using cs As New CryptoStream(MS, des.CreateDecryptor(btKey, btIV), CryptoStreamMode.Write)
+                    cs.Write(inData, 0, inData.Length)
+                    cs.FlushFinalBlock()
+                    Return Encoding.UTF8.GetString(MS.ToArray())
+                End Using
             End Using
         End Using
     End Function
@@ -198,11 +199,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             aes.Padding = PaddingMode.PKCS7
 
             Dim salt As Byte() = New Byte(31) {}
-            Using rng = New RNGCryptoServiceProvider()
+            Using rng = RandomNumberGenerator.Create()
                 rng.GetBytes(salt)
             End Using
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
                 aes.GenerateIV()
             End Using
@@ -247,7 +248,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Throw New ArgumentException("加密数据格式无效或已损坏")
             End If
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
             End Using
 

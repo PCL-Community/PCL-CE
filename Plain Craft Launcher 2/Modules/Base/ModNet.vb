@@ -144,7 +144,7 @@ Public Module ModNet
     ''' </summary>
     Public Class HttpRequestFailedException
         Inherits HttpRequestException
-        Public ReadOnly Property StatusCode As HttpStatusCode
+        Public Overloads ReadOnly Property StatusCode As HttpStatusCode
         Public ReadOnly Property ReasonPhrase As String
         ''' <summary>
         ''' 不要尝试读取 <c>Content</c> 属性的内容，它已经被 dispose 了
@@ -267,6 +267,9 @@ Public Module ModNet
     ''' <param name="Url">网页的 Url。</param>
     ''' <param name="Encode">网页的编码，通常为 UTF-8。</param>
     ''' <param name="BackupUrl">如果第一次尝试失败，换用的备用 URL。</param>
+    ''' <param name="IsJson">是否解析为 Json。</param>
+    ''' <param name="Accept">请求的套接字类型。</param>
+    ''' <param name="UseBrowserUserAgent">是否使用浏览器 User-Agent。</param>
     Public Function NetGetCodeByRequestRetry(Url As String, Optional Encode As Encoding = Nothing, Optional Accept As String = "",
                                              Optional IsJson As Boolean = False, Optional BackupUrl As String = Nothing, Optional UseBrowserUserAgent As Boolean = False)
         Dim RetryCount As Integer = 0
