@@ -2765,7 +2765,7 @@ NextElement:
     ''' 时间戳转化为日期。
     ''' </summary>
     Public Function GetDate(timeStamp As Integer) As Date
-        Dim dtStart As Date = TimeZone.CurrentTimeZone.ToLocalTime(New Date(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+        Dim dtStart As Date = TimeZoneInfo.ConvertTimeFromUtc(New Date(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Local)
         Dim lTime As Long = (CLng(timeStamp) * 10000000)
         Return dtStart.Add(New TimeSpan(lTime))
     End Function
