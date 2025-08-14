@@ -67,27 +67,29 @@ Public Class PageLoginAuth
                        End Sub)
     End Sub
     '获取验证服务器名称
-    Private Async Sub GetServerName() Handles TextServer.LostKeyboardFocus
-        Dim Addr As String = Await ApiLocation.GetApiLocation(TextServer.Text)
-        TextServer.Text = If(String.IsNullOrEmpty(Addr),TextServer.Text,Addr)
-        Dim Link As String = TextServer.Text
-        Dim Name As String = Nothing
+    Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
         RunInNewThread(Sub()
-                           Try
-                               Dim Response As String = NetGetCodeByRequestRetry(Link, Encoding.UTF8)
-                               Name = JObject.Parse(Response)("meta")("serverName").ToString()
-                           Catch ex As Exception
-                               Name = Nothing
-                           End Try
-                           RunInUi(Sub()
-                                       If Name = Nothing Then
-                                           TextServerName.Visibility = Visibility.Hidden
-                                       Else
-                                           TextServerName.Text = "验证服务器: " & Name
-                                           TextServerName.Visibility = Visibility.Visible
-                                       End If
-                                   End Sub)
-                       End Sub)
+            Dim serverUri As String = Nothing
+            Dim serverName As String = Nothing
+            Try
+                serverUri = ApiLocation.TryRequest(TextServer.Text).GetAwaiter().GetResult()
+                Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
+                serverName = JObject.Parse(response)("meta")("serverName").ToString()
+            Catch ex As Exception
+                Log(ex, "从服务器获取名称失败", LogLevel.Debug)
+            End Try
+            RunInUi(Sub()
+                If serverUri IsNot Nothing Then
+                    TextServer.Text = serverUri
+                End If
+                If serverName Is Nothing Then
+                    TextServerName.Visibility = Visibility.Hidden
+                Else
+                    TextServerName.Text = "验证服务器: " & serverName
+                    TextServerName.Visibility = Visibility.Visible
+                End If
+            End Sub)
+        End Sub)
     End Sub
     '链接处理
     Private Sub ComboName_TextChanged() Handles TextName.TextChanged
