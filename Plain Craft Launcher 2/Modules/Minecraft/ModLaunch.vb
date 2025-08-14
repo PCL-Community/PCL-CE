@@ -2152,7 +2152,7 @@ NextInstance:
             End If
         Catch ex As Exception
             Log(ex, "输出启动脚本失败")
-            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw ex '直接触发启动失败
+            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw '直接触发启动失败
         End Try
 
         '执行自定义命令
