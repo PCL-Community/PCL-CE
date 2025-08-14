@@ -203,7 +203,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 rng.GetBytes(salt)
             End Using
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA256)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
                 aes.GenerateIV()
             End Using
@@ -248,7 +248,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Throw New ArgumentException("加密数据格式无效或已损坏")
             End If
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA256)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
             End Using
 
