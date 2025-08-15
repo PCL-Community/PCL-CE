@@ -120,8 +120,12 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion" Text="当前联机双方所使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再次发起联机" Theme="Yellow" Visibility="Collapsed"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
                         <!--网络信息栏-->
                         <local:MyCard Margin="0,0,15,16" >
                             <StackPanel Orientation="Horizontal" Margin="3,0">
@@ -190,7 +194,7 @@
                         </local:MyCard>
                     </StackPanel>
                     <!--操作栏-->
-                    <local:MyCard x:Name="PanOperation" HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="1">
+                    <local:MyCard x:Name="PanOperation" HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="2">
                         <StackPanel Orientation="Horizontal" Margin="7">
                             <local:MyIconTextButton x:Name="BtnFinishCopyIp" Text="复制虚拟 IP" Logo="M394.666667 106.666667h448a74.666667 74.666667 0 0 1 74.666666 74.666666v448a74.666667 74.666667 0 0 1-74.666666 74.666667H394.666667a74.666667 74.666667 0 0 1-74.666667-74.666667V181.333333a74.666667 74.666667 0 0 1 74.666667-74.666666z m0 64a10.666667 10.666667 0 0 0-10.666667 10.666666v448a10.666667 10.666667 0 0 0 10.666667 10.666667h448a10.666667 10.666667 0 0 0 10.666666-10.666667V181.333333a10.666667 10.666667 0 0 0-10.666666-10.666666H394.666667z m245.333333 597.333333a32 32 0 0 1 64 0v74.666667a74.666667 74.666667 0 0 1-74.666667 74.666666H181.333333a74.666667 74.666667 0 0 1-74.666666-74.666666V394.666667a74.666667 74.666667 0 0 1 74.666666-74.666667h74.666667a32 32 0 0 1 0 64h-74.666667a10.666667 10.666667 0 0 0-10.666666 10.666667v448a10.666667 10.666667 0 0 0 10.666666 10.666666h448a10.666667 10.666667 0 0 0 10.666667-10.666666v-74.666667z"/>
                             <local:MyIconTextButton x:Name="BtnFinishCopy" Text="复制大厅编号" Logo="M394.666667 106.666667h448a74.666667 74.666667 0 0 1 74.666666 74.666666v448a74.666667 74.666667 0 0 1-74.666666 74.666667H394.666667a74.666667 74.666667 0 0 1-74.666667-74.666667V181.333333a74.666667 74.666667 0 0 1 74.666667-74.666666z m0 64a10.666667 10.666667 0 0 0-10.666667 10.666666v448a10.666667 10.666667 0 0 0 10.666667 10.666667h448a10.666667 10.666667 0 0 0 10.666666-10.666667V181.333333a10.666667 10.666667 0 0 0-10.666666-10.666666H394.666667z m245.333333 597.333333a32 32 0 0 1 64 0v74.666667a74.666667 74.666667 0 0 1-74.666667 74.666666H181.333333a74.666667 74.666667 0 0 1-74.666666-74.666666V394.666667a74.666667 74.666667 0 0 1 74.666666-74.666667h74.666667a32 32 0 0 1 0 64h-74.666667a10.666667 10.666667 0 0 0-10.666666 10.666667v448a10.666667 10.666667 0 0 0 10.666666 10.666666h448a10.666667 10.666667 0 0 0 10.666667-10.666666v-74.666667z"/>
@@ -198,7 +202,7 @@
                         </StackPanel>
                     </local:MyCard>
                     <!--成员-->
-                    <local:MyCard x:Name="CardPlayerList" Title="大厅成员列表（正在获取信息）" HorizontalAlignment="Center" Margin="0,0,0,16" MinWidth="300" Grid.Row="2" >
+                    <local:MyCard x:Name="CardPlayerList" Title="大厅成员列表（正在获取信息）" HorizontalAlignment="Center" Margin="0,0,0,16" MinWidth="300" Grid.Row="3" >
                         <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8"/>
                     </local:MyCard>
                 </Grid>

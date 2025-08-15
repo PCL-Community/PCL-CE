@@ -2,7 +2,7 @@ Public Class MyCompItem
 
 #Region "基础属性"
     Public Uuid As Integer = GetUuid()
-
+    
     'Logo
     Public Property Logo As String
         Get
@@ -12,7 +12,7 @@ Public Class MyCompItem
             PathLogo.Source = value
         End Set
     End Property
-
+    
     '标题
     Public Property Title As String
         Get
@@ -87,19 +87,34 @@ Public Class MyCompItem
         End Set
     End Property
 
+    'showFavoriteBtn
+    Public showFavoriteBtn As Boolean = False
+
+    ''' <summary>
+    ''' 刷新收藏状态
+    ''' </summary>
+    Public Sub RefreshFavoriteStatus()
+        If TypeOf Tag Is CompProject Then
+            Dim project As CompProject = CType(Tag, CompProject)
+            showFavoriteBtn = CompFavorites.IsFavourite(project.Id)
+        End If
+    End Sub
 #End Region
 
 #Region "点击"
 
     '触发点击事件
     Public Event Click(sender As Object, e As MouseButtonEventArgs)
-    Private Sub Button_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonUp
-        If IsMouseDown Then
-            RaiseEvent Click(sender, e)
-            If e.Handled Then Return
-            Log("[Control] 按下资源工程列表项：" & LabTitle.Text)
+    
+    Private Sub BtnDelete_Click(sender As Object, e As EventArgs) Handles BtnDelete.Click
+        If PanButtons.Opacity > 0 AndAlso TypeOf Tag Is CompProject Then
+            Dim project = CType(Tag, CompProject)
+            CompFavorites.ShowMenu(project, sender, New Action(Sub()
+                RefreshFavoriteStatus()
+            End Sub))
         End If
     End Sub
+    
     Private Sub MyCompItem_Click(sender As MyCompItem, e As EventArgs) Handles Me.Click
         '记录当前展开的卡片标题（#2712）
         Dim Titles As New List(Of String)
@@ -154,8 +169,36 @@ Public Class MyCompItem
 
     '鼠标点击判定
     Private IsMouseDown As Boolean = False
+    '触发点击事件
+    Private Sub Button_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonUp
+        If Not IsMouseDown Then Return
+        RaiseEvent Click(sender, e)
+    End Sub
     Private Sub Button_MouseDown(sender As Object, e As MouseButtonEventArgs) Handles Me.PreviewMouseLeftButtonDown
-        If IsMouseOver AndAlso CanInteraction Then IsMouseDown = True
+        If Not CanInteraction Then Return
+        ' 检查点击位置是否在按钮区域内
+        Dim clickPosition = e.GetPosition(Me)
+        Dim isClickOnButton As Boolean = False
+        
+        Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
+        isClickOnButton = buttonBounds.Contains(clickPosition)
+        
+        ' 如果点击在按钮上，不处理主项目点击事件
+        If isClickOnButton AndAlso PanButtons.Opacity > 0 Then
+            Return
+        End If
+        
+        ' 如果点击在其他区域，按原逻辑处理
+        ' 也要检查是否点击在LabInfo区域（支持ToolTip点击）
+        Dim isClickOnLabInfo As Boolean = False
+        If LabInfo.Visibility = Visibility.Visible Then
+            Dim labInfoBounds = New Rect(LabInfo.TranslatePoint(New Point(0, 0), Me), LabInfo.RenderSize)
+            isClickOnLabInfo = labInfoBounds.Contains(clickPosition)
+        End If
+        
+        If IsMouseDirectlyOver OrElse isClickOnLabInfo orElse isClickOnButton Then
+            IsMouseDown = True
+        End If
     End Sub
     Private Sub Button_MouseLeave(sender As Object, e As Object) Handles Me.MouseLeave, Me.PreviewMouseLeftButtonUp
         IsMouseDown = False
@@ -223,6 +266,9 @@ Public Class MyCompItem
             '有动画
             Dim Ani As New List(Of AniData)
             If IsMouseOver Then
+                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                    Ani.Add(AaOpacity(PanButtons, 1 - PanButtons.Opacity, Time * 0.35, Time * 0.15))
+                End If
                 Ani.AddRange({
                              AaColor(RectBack, Border.BackgroundProperty, If(IsMouseDown, "ColorBrush6", "ColorBrushBg1"), Time),
                              AaOpacity(RectBack, 1 - RectBack.Opacity, Time,, New AniEaseOutFluent)
@@ -233,6 +279,9 @@ Public Class MyCompItem
                     Ani.Add(AaScaleTransform(RectBack, 1 - CType(RectBack.RenderTransform, ScaleTransform).ScaleX, Time * 1.2,, New AniEaseOutFluent))
                 End If
             Else
+                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                    Ani.Add(AaOpacity(PanButtons, -PanButtons.Opacity, Time * 0.4))
+                End If
                 Ani.AddRange({
                              AaOpacity(RectBack, -RectBack.Opacity, Time),
                              AaColor(RectBack, Border.BackgroundProperty, If(IsMouseDown, "ColorBrush6", "ColorBrush7"), Time),
@@ -245,6 +294,7 @@ Public Class MyCompItem
             '无动画
             AniStop("CompItem Color " & Uuid)
             If _RectBack IsNot Nothing Then RectBack.Opacity = 0
+            If PanButtons IsNot Nothing Then PanButtons.Opacity = 0
         End If
     End Sub
 

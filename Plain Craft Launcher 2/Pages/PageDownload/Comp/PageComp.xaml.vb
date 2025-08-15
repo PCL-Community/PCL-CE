@@ -129,6 +129,14 @@ Public Class PageComp
         '根据页面类型控制加载器选择的显示
         UpdateShaderLoaderVisibility()
     End Sub
+    
+    Private Sub PageComp_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs) Handles Me.IsVisibleChanged
+        ' 当页面变为可见时刷新收藏按钮状态
+        If IsVisible Then
+            RefreshAllFavoriteStatus()
+        End If
+    End Sub
+    
     Private Function LoaderInput() As CompProjectRequest
         Dim Request As New CompProjectRequest(PageType, Storage, (Page + 1) * PageSize)
         Dim GameVersion As String = If(TextSearchVersion.Text = "全部 (也可自行输入)", Nothing,
@@ -319,6 +327,21 @@ Public Class PageComp
     '安装已有整合包按钮
     Private Sub BtnSearchInstallModPack_Click(sender As Object, e As EventArgs) Handles BtnSearchInstallModPack.Click
         ModpackInstall()
+    End Sub
+
+    ''' <summary>
+    ''' 刷新所有已显示项目的收藏状态
+    ''' </summary>
+    Public Sub RefreshAllFavoriteStatus()
+        Try
+            For Each item In PanProjects.Children
+                If TypeOf item Is MyCompItem Then
+                    CType(item, MyCompItem).RefreshFavoriteStatus()
+                End If
+            Next
+        Catch ex As Exception
+            Log(ex, "刷新收藏状态时出错")
+        End Try
     End Sub
 
 End Class

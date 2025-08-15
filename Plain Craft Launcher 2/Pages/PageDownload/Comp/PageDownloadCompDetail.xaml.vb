@@ -254,7 +254,7 @@ Public Class PageDownloadCompDetail
 
 #End Region
     Private IsFirstInit As Boolean = True
-    Public Sub Init() Handles Me.PageEnter
+    Private Sub Init() Handles Me.PageEnter
         AniControlEnabled += 1
         Project = FrmMain.PageCurrent.Additional(0)
         PanBack.ScrollToHome()
@@ -269,6 +269,7 @@ Public Class PageDownloadCompDetail
         If CompItem IsNot Nothing Then PanIntro.Children.Remove(CompItem)
         CompItem = Project.ToCompItem(True, True)
         CompItem.CanInteraction = False
+        CompItem.showFavoriteBtn = false
         CompItem.Margin = New Thickness(-7, -7, 0, 8)
         PanIntro.Children.Insert(0, CompItem)
 
@@ -578,4 +579,21 @@ Public Class PageDownloadCompDetail
         If ChineseDescription Is Nothing Then Return
         MyMsgBox($"原文：{Project.Description}{Environment.NewLine}译文：{ChineseDescription}")
     End Sub
+
+    ''' <summary>
+    ''' 刷新收藏按钮的显示状态
+    ''' </summary>
+    Public Sub RefreshFavoriteButton()
+        Try
+            If Project IsNot Nothing Then
+                ' 刷新顶部的项目卡片收藏状态
+                If CompItem IsNot Nothing Then
+                    CompItem.RefreshFavoriteStatus()
+                End If
+            End If
+        Catch ex As Exception
+            Log(ex, "刷新收藏按钮状态时出错")
+        End Try
+    End Sub
+
 End Class

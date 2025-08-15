@@ -136,6 +136,6 @@
 
     Private Sub ClearCache()
         Setup.Set("CacheSavedPageUrl", "")
-        Setup.Set("CacheSavedPageInstance", "")
+        Setup.Set("CacheSavedPageVersion", "")
     End Sub
 End Class

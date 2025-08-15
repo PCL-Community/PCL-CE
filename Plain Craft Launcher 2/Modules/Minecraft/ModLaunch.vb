@@ -504,7 +504,7 @@ NextInner:
         Dim OAuthTokens As String()
         Dim OAuthAccessToken As String
         Dim OAuthRefreshToken As String
-        If Input.OAuthRefreshToken = "" Then
+        If String.IsNullOrEmpty(Input.OAuthRefreshToken) Then
 Relogin:
             OAuthTokens = MsLoginStep1New(Data)
         Else

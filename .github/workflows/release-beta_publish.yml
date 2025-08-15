@@ -34,16 +34,20 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v3
         with:
-          node-version: 20
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
 
-      - name: Install dependencies
-        run: npm install changelogithub
-
-      - name: Generate Changelog
-        run: npx changelogithub
+      - name: Add changelog to release
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

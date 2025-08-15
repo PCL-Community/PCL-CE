@@ -86,6 +86,7 @@
                         <local:MyButton x:Name="BtnManageRestore" Text="重置" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="3" ToolTip="重新从互联网获取此实例的安装信息，并执行自动安装。&#xa;你的存档、Mod、资源包等信息不会丢失。&#xa;若游戏因 Libraries 等资源缺失无法启动，请尝试此项。" Height="35"/>
                         <local:MyButton x:Name="BtnManageLaunchCount" Text="查看启动次数" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Height="35"/>
                         <local:MyButton x:Name="BtnManageDelete" Text="删除实例" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="4" ColorType="Red" Height="35"/>
+                        <local:MyButton x:Name="BtnManagePatch" Text="修补核心" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="6" Height="35"/>
                     </WrapPanel>
                 </StackPanel>
             </local:MyCard>

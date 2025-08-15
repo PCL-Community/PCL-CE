@@ -1,4 +1,4 @@
-﻿Imports System.Runtime.InteropServices
+Imports System.Runtime.InteropServices
 Imports System.Net.Sockets
 Imports Makaretu.Nat
 Imports STUN
@@ -777,7 +777,7 @@ PortRetry:
         If IsMcPortForwardRunning Then Exit Sub
         If isRetry Then PortForwardRetryTimes += 1
         Log($"[Link] 开始 MC 端口转发，远程 IP: {remoteIp}, 远程端口: {remotePort}")
-        Dim Sip As New IPEndPoint((Await Dns.GetHostAddressesAsync(remoteIp))(0), remotePort)
+        Dim Sip As New IPEndPoint(IPAddress.Parse(remoteIp), remotePort)
 
         ServerSocket = New Socket(SocketType.Stream, ProtocolType.Tcp)
         ServerSocket.Bind(New IPEndPoint(IPAddress.Any, 0))
@@ -820,22 +820,14 @@ PortRetry:
                                    Dim s As Socket
                                    Try
                                        While IsMcPortForwardRunning
-                                           c = ServerSocket.Accept()
+                                           Log($"[Link] 开始等待客户端连接……")
+                                           c = Await ServerSocket.AcceptAsync()
                                            s = New Socket(SocketType.Stream, ProtocolType.Tcp)
-
+                                           Log($"[Link] 接受来自 {c.RemoteEndPoint} 的连接")
                                            s.Connect(Sip)
-                                           Dim Count As Integer = 0
-                                           While Not s.Connected
-                                               If Count <= 5 Then
-                                                   Count += 1
-                                                   Await Task.Delay(1000)
-                                               Else
-                                                   Log("[Link] 连接到目标 MC 服务器失败")
-                                                   Return
-                                               End If
-                                           End While
-                                           RunInNewThread(Sub() Forward(c, s))
-                                           RunInNewThread(Sub() Forward(s, c))
+                                           fw_s = s
+                                           fw_c = c
+                                           Await Forward(s, c) '进行本次转发
                                        End While
                                    Catch ex As SocketException
                                        If Not IsMcPortForwardRunning Then Exit Sub
@@ -844,7 +836,7 @@ PortRetry:
                                    Catch ex As Exception
                                        If Not IsMcPortForwardRunning Then Exit Sub
                                        If PortForwardRetryTimes < 4 Then
-                                           Log($"[Link] Minecraft TCP 转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
+                                           Log(ex, $"[Link] Minecraft TCP 转发线程异常，放弃前再尝试 {3 - PortForwardRetryTimes} 次")
                                            McPortForward(remoteIp, remotePort, desc, True)
                                        Else
                                            Log(ex, "[Link] Minecraft TCP 转发线程异常", LogLevel.Hint)
@@ -892,51 +884,68 @@ PortRetry:
             ServerSocket = Nothing
         End If
         If fw_s IsNot Nothing Then
-            fw_s.Disconnect(False)
-            fw_s.Close()
+            Try
+                fw_s.Close()
+            Catch
+            End Try
             fw_s = Nothing
         End If
         If fw_c IsNot Nothing Then
-            fw_c.Disconnect(False)
-            fw_c.Close()
+            Try
+                fw_c.Close()
+            Catch
+            End Try
             fw_c = Nothing
         End If
     End Sub
 
     Private fw_s As Socket = Nothing
     Private fw_c As Socket = Nothing
-    Private Sub Forward(s As Socket, c As Socket)
-        fw_s = s
-        fw_c = c
+    Private Async Function Forward(localSocket As Socket, remoteSocket As Socket) As Task
+        Log($"[Link] 开始转发任务 {localSocket.RemoteEndPoint} <-> {remoteSocket.RemoteEndPoint}")
         Try
-            Dim Buffer As Byte() = New Byte(8192) {}
-
-            While IsMcPortForwardRunning
-                If IsMcPortForwardRunning Then
-                    Dim Count As Integer = s.Receive(Buffer, 0, Buffer.Length, SocketFlags.None)
-                    If Count > 0 Then
-                        c.Send(Buffer, 0, Count, SocketFlags.None)
-                    Else
-                        fw_s = Nothing
-                        fw_c = Nothing
-                        Exit While
-                    End If
-                End If
-            End While
+            Dim forwardToRemote As Task
+            Dim forwardToLocal As Task
+            Using localStream = New NetworkStream(localSocket, False)
+                Using remoteStream = New NetworkStream(remoteSocket, False)
+                    forwardToRemote = localStream.CopyToAsync(remoteStream)
+                    forwardToLocal = remoteStream.CopyToAsync(localStream)
+                    Await Task.WhenAny(forwardToLocal, forwardToRemote)
+                    Await Task.Delay(500) '给个 500ms 用于剩余数据的发送
+                End Using
+            End Using
+            Log($"[Link] 转发任务已结束")
+        Catch ex As ObjectDisposedException
+            ' 流已被释放，正常情况
+            Log(ex, $"[Link] 流已释放，正常结束")
+        Catch ex As IOException
+            ' 可能网络中断
+            Log(ex, $"[Link] IO异常，网络可能中断")
+        Catch ex As SocketException
+            ' socket 层错误
+            Log(ex, $"[Link] Socket 出现异常")
         Catch ex As Exception
+            ' 其他未预期异常
+            Log(ex, $"[Link] 意外的异常")
+        Finally
             Try
-                c.Disconnect(False)
-            Catch ex1 As Exception
+                If remoteSocket.Connected Then
+                    remoteSocket.Shutdown(SocketShutdown.Both)
+                End If
+                remoteSocket.Close()
+            Catch ' 忽略
             End Try
             Try
-                s.Disconnect(False)
-            Catch ex1 As Exception
+                If localSocket.Connected Then
+                    localSocket.Shutdown(SocketShutdown.Both)
+                End If
+                localSocket.Close()
+            Catch ' 忽略
             End Try
             fw_s = Nothing
             fw_c = Nothing
         End Try
-
-    End Sub
+    End Function
 #End Region
 
 End Module

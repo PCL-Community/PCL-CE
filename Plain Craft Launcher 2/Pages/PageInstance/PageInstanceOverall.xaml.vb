@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Minecraft
+Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class PageInstanceOverall
@@ -368,8 +369,7 @@ Public Class PageInstanceOverall
         End Try
     End Sub
 
-    '删除实例
-    '修改此代码时，同时修改 PageSelectRight 中的代码
+    '修补游戏核心
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
             Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
@@ -396,6 +396,26 @@ Public Class PageInstanceOverall
         Catch ex As Exception
             Log(ex, "删除实例 " & PageInstanceLeft.Instance.Name & " 失败", LogLevel.Msgbox)
         End Try
+    End Sub
+
+    '删除实例
+    '修改此代码时，同时修改 PageSelectRight 中的代码
+    Private Sub BtnManagePatch_Click(sender As Object, e As EventArgs) Handles BtnManagePatch.Click
+        Select Case MyMsgBox($"你确定要修补 {PageInstanceLeft.Instance.Name} 吗？ {vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修补核心后，文件校验会自动关闭。", Title:="修补提示", Button2:="取消")
+            Case 1
+                Dim UserInput As String = SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
+                If UserInput Is Nothing Or String.IsNullOrWhiteSpace(UserInput) Then Return
+                Hint("正在修补游戏核心，这可能需要一段时间")
+                RunInNewThread(
+                    Sub()
+                        Dim Core As New GameCore(PageInstanceLeft.Instance.Path & PageInstanceLeft.Instance.Name & ".jar")
+                        Core.AddToCore(UserInput)
+                        Hint("修补游戏核心成功", HintType.Finish)
+                        Setup.Set(“VersionAdvanceAssetsV2", True, instance:=PageInstanceLeft.Instance)
+                    End Sub)
+            Case 2
+                Return
+        End Select
     End Sub
 
 #End Region

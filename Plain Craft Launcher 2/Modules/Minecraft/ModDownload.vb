@@ -216,8 +216,12 @@
                     Log("[Download] 未列出的版本官方源下载失败: " & ex.Message)
                 End Try
             End If
-            Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
-            Versions.Merge(CachedJson("versions"))
+            Try
+                Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
+                Versions.Merge(CachedJson("versions"))
+            Catch ex As Exception
+                Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容")
+            End Try
             '确定官方源是否可用
             If Not DlPreferMojang Then
                 Dim DeltaTime = GetTimeTick() - StartTime
@@ -266,8 +270,12 @@
                     Log("[Download] 未列出的版本镜像源下载失败: " & ex.Message)
                 End Try
             End If
-            Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
-            Versions.Merge(CachedJson("versions"))
+            Try
+                Dim CachedJson As JObject = GetJson(ReadFile(CacheFilePath))
+                Versions.Merge(CachedJson("versions"))
+            Catch ex As Exception
+                Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容")
+            End Try
             '检查是否有要求的版本（#5195）
             If Not String.IsNullOrEmpty(Loader.Input) Then
                 Dim Id = Loader.Input

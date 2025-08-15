@@ -44,7 +44,6 @@
         '系统设置
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
         If Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 Then
-            If VersionBaseName.Contains("beta") Then Setup.Reset("SystemSystemUpdateBranch")
             Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
             ComboSystemUpdateBranch.SelectedIndex = branch
             If branch = 1 Then

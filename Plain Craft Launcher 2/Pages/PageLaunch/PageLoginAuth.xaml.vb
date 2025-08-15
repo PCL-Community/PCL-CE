@@ -1,4 +1,6 @@
-﻿Public Class PageLoginAuth
+﻿Imports PCL.Core.Minecraft.Yggdrasil
+
+Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
     Private Sub Reload() Handles Me.Loaded
         If DraggedAuthServer IsNot Nothing Then
@@ -66,24 +68,27 @@
     End Sub
     '获取验证服务器名称
     Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
-        Dim Link As String = TextServer.Text
-        Dim Name As String = Nothing
+        Dim serverUriInput = TextServer.Text
         RunInNewThread(Sub()
-                           Try
-                               Dim Response As String = NetGetCodeByRequestRetry(Link, Encoding.UTF8)
-                               Name = JObject.Parse(Response)("meta")("serverName").ToString()
-                           Catch ex As Exception
-                               Name = Nothing
-                           End Try
-                           RunInUi(Sub()
-                                       If Name = Nothing Then
-                                           TextServerName.Visibility = Visibility.Hidden
-                                       Else
-                                           TextServerName.Text = "验证服务器: " & Name
-                                           TextServerName.Visibility = Visibility.Visible
-                                       End If
-                                   End Sub)
-                       End Sub)
+            Dim serverUri As String = Nothing
+            Dim serverName As String = Nothing
+            Try
+                serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
+                Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
+                serverName = JObject.Parse(response)("meta")("serverName").ToString()
+            Catch ex As Exception
+                Log(ex, "从服务器获取名称失败", LogLevel.Debug)
+            End Try
+            RunInUi(Sub()
+                If serverUri IsNot Nothing Then TextServer.Text = serverUri
+                If serverName Is Nothing Then
+                    TextServerName.Visibility = Visibility.Hidden
+                Else
+                    TextServerName.Text = "验证服务器: " & serverName
+                    TextServerName.Visibility = Visibility.Visible
+                End If
+            End Sub)
+        End Sub)
     End Sub
     '链接处理
     Private Sub ComboName_TextChanged() Handles TextName.TextChanged

@@ -193,6 +193,10 @@ Retry:
         ''' </summary>
         Public Loss As Double
         Public NatType As String
+        ''' <summary>
+        ''' 节点的 ET 版本
+        ''' </summary>
+        Public EasyTierVersion As String
     End Class
 #End Region
 
@@ -388,6 +392,7 @@ Retry:
                     .Ping = Math.Round(Val(p("lat_ms"))),
                     .Loss = Math.Round(Val(p("loss_rate")) * 100, 1),
                     .NatType = p("nat_type"),
+                    .EasyTierVersion = p("version"),
                     .McName = If(hostnameSplit.Length = 3, hostnameSplit(2), Nothing),
                     .NaidName = If(hostnameSplit.Length = 3 OrElse hostnameSplit.Length = 2, hostnameSplit(1), Nothing)
                 }
@@ -424,6 +429,11 @@ Retry:
                         End Sub)
                 ExitEasyTier()
                 Exit Sub
+            End If
+            If HostInfo.EasyTierVersion <> LocalInfo.EasyTierVersion Then
+                RunInUi(Sub() HintEasyTierVersion.Visibility = Visibility.Visible)
+            Else
+                RunInUi(Sub() HintEasyTierVersion.Visibility = Visibility.Collapsed)
             End If
             '本地网络质量评估
             Dim Quality As Integer = 0
