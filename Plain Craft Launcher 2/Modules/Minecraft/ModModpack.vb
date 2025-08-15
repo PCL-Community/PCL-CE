@@ -38,6 +38,7 @@ Public Module ModModpack
             Dim PackType As Integer = -1
             Try
                 Archive = New ZipArchive(New FileStream(File, FileMode.Open, FileAccess.Read, FileShare.Read))
+                If Archive.Entries.Any(Function(e) e.isEncrypted) Then Throw New Exception("PCL 无法处理加密的压缩包，请在解压后重新压缩为不加密的 zip 格式再试")
                 '从根目录判断整合包类型
                 If Archive.GetEntry("mcbbs.packmeta") IsNot Nothing Then PackType = 3 : Exit Try 'MCBBS 整合包（优先于 manifest.json 判断）
                 If Archive.GetEntry("mmc-pack.json") IsNot Nothing Then PackType = 2 : Exit Try 'MMC 整合包（优先于 manifest.json 判断，#4194）
@@ -78,6 +79,8 @@ Public Module ModModpack
                     Throw New Exception("打开整合包文件失败", ex)
                 ElseIf File.EndsWithF(".rar", True) Then
                     Throw New Exception("PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试", ex)
+                ElseIf GetExceptionDetail(ex, True).Contains("加密") Then
+                    Throw
                 Else
                     Throw New Exception("打开整合包文件失败，文件可能损坏或为不支持的压缩包格式", ex)
                 End If
