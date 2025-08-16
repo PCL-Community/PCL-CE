@@ -205,11 +205,11 @@ Public Module ModWebServer
                 End If
                 Dim status As OAuthCompleteStatus = Nothing
                 Dim code = parameters("code")
-                Dim result = GetNaidDataSync(code)
+                Dim result = NaidManager.GetNaidDataSync(code)
                 If result Then
-                    status = OAuthCompleteStatus.Complete(NaidProfile.Username)
+                    status = OAuthCompleteStatus.Complete(NaidManager.NaidProfile.Username)
                 Else
-                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", NaidProfileException)
+                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", NaidManager.Exception)
                 End If
                 completeCallback?.Invoke()
                 Return status
@@ -267,14 +267,14 @@ Public Module ModWebServer
 
                     '设置状态信息
                     If OAuthCode IsNot Nothing Then
-                        Dim result = GetNaidDataSync(OAuthCode)
+                        Dim result = NaidManager.GetNaidDataSync(OAuthCode)
                         If result Then
                             CurrentStatus.success = True
-                            CurrentStatus.username = NaidProfile.Username
+                            CurrentStatus.username = NaidManager.NaidProfile.Username
                         Else
                             CurrentStatus.success = False
                             CurrentStatus.message = $"获取用户信息失败，请尝试重新登录"
-                            CurrentStatus.stacktrace = NaidProfileException.ToString()
+                            CurrentStatus.stacktrace = NaidManager.Exception.ToString()
                         End If
                     Else
                         CurrentStatus.success = False

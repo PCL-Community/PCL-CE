@@ -17,6 +17,7 @@ Public Class PageLinkLobby
     Public Shared HostInfo As ETPlayerInfo = Nothing
 
     Public Shared ETPath As String = ETController.ETPath
+    Public Shared PortForward As New McPortForward
 
 #Region "初始化"
 
@@ -616,8 +617,7 @@ Retry:
                                Thread.Sleep(500)
                            End While
                            Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
-                           Dim portForward As New McPortForward
-                           portForward.StartAsync(LobbyInfoProvider.TargetLobby.Ip, LobbyInfoProvider.TargetLobby.Port, "§ePCL CE 大厅 - " & hostname)
+                           PortForward.StartAsync(LobbyInfoProvider.TargetLobby.Ip, LobbyInfoProvider.TargetLobby.Port, "§ePCL CE 大厅 - " & hostname)
                            RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
                        End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish

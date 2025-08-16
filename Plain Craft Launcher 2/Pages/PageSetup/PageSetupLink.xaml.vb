@@ -1,4 +1,6 @@
-﻿Class PageSetupLink
+﻿Imports PCL.Core.Link.EasyTier
+
+Class PageSetupLink
 
     Private Shadows IsLoaded As Boolean = False
     Private IsFirstLoad As Boolean = True
@@ -33,18 +35,18 @@
                 ReloadNaidData()
                 IsFirstLoad = False
             Else
-                TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
-                TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
+                TextUsername.Text = $"已以 {NaidManager.NaidProfile.Username} 的身份登录至 Natayark Network"
+                TextStatus.Text = $"账号状态：{If(NaidManager.NaidProfile.Status = 0, "正常", "异常")} / {If(NaidManager.NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
             End If
         End If
         TextRelays.Text = "正在获取信息..."
         Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
             Thread.Sleep(500)
         Loop
-        If ETServerDefList.Count > 0 Then
+        If EasyTierRelay.RelayList.Count > 0 Then
             TextRelays.Text = ""
-            For Each Relay In ETServerDefList
-                TextRelays.Text += If(Relay.Type = "community", "[社区] ", "[自有] ") & Relay.Name & "，"
+            For Each Relay In EasyTierRelay.RelayList
+                TextRelays.Text += If(Relay.Type = EasyTierRelay.ETRelayType.Community, "[社区] ", "[自有] ") & Relay.Name & "，"
             Next
             TextRelays.Text = TextRelays.Text.BeforeLast("，")
         Else
@@ -59,14 +61,14 @@
                                    Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
                                    Exit Sub
                                Else
-                                   GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+                                   NaidManager.GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
                                End If
-                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
+                               While String.IsNullOrWhiteSpace(NaidManager.NaidProfile.Username)
                                    Thread.Sleep(1000)
                                End While
                                RunInUi(Sub()
-                                           TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
-                                           TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")}{If(NaidProfile.IsRealname, " / 已完成实名验证", If(RequiresRealname, " / 未完成实名验证", Nothing))}"
+                                           TextUsername.Text = $"已以 {NaidManager.NaidProfile.Username} 的身份登录至 Natayark Network"
+                                           TextStatus.Text = $"账号状态：{If(NaidManager.NaidProfile.Status = 0, "正常", "异常")}{If(NaidManager.NaidProfile.IsRealname, " / 已完成实名验证", If(RequiresRealname, " / 未完成实名验证", Nothing))}"
                                            CardLogged.Visibility = Visibility.Visible
                                            CardNotLogged.Visibility = Visibility.Collapsed
                                        End Sub)
