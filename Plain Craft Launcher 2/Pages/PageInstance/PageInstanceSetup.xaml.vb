@@ -53,6 +53,7 @@ Public Class PageInstanceSetup
             TextServerAuthRegister.Text = Setup.Get("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
 
             '高级设置
+            ComboAdvanceRenderer.SelectedIndex = Setup.Get("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
             TextAdvanceJvm.Text = Setup.Get("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
             TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
             TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
@@ -104,6 +105,7 @@ Public Class PageInstanceSetup
             Setup.Reset("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
             Setup.Reset("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             Setup.Reset("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
 
             Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
 
@@ -131,7 +133,7 @@ Public Class PageInstanceSetup
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value, instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged, ComboAdvanceRenderer.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged

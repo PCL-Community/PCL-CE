@@ -454,6 +454,8 @@
                         <RowDefinition Height="60" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="60" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="60" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Java Launch Wrapper" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2022 00ll00&#xa;Licensed under the MIT License." TextWrapping="Wrap" />
@@ -599,6 +601,13 @@ EventType="打开网页" EventData="https://github.com/Kryptos-FR/markdig.wpf/bl
                 EventType="打开网页" EventData="https://github.com/aliostad/CacheCow" />
                     <local:MyButton Grid.Row="41" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt" />
+                    
+                    <TextBlock Grid.Row="42" Grid.Column="0" Text="Mesa Loader Windows" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="42" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2024 Glavo&#xa;Licensed under the Apache 2 License." TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="43" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                EventType="打开网页" EventData="https://github.com/HMCL-dev/mesa-loader-windows" />
+                    <local:MyButton Grid.Row="43" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+EventType="打开网页" EventData="https://github.com/HMCL-dev/mesa-loader-windows/blob/main/LICENSE" />
                 </Grid>
             </local:MyCard>
         </StackPanel>

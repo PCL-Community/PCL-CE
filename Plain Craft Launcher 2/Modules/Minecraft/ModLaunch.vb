@@ -1419,7 +1419,7 @@ LoginFinish:
         Return WrapperPath
     End Function
     Private ExtractJavaWrapperLock As New Object
-
+    
     ''' <summary>
     ''' 释放 linkd 并返回完整文件路径。
     ''' </summary>
@@ -1580,6 +1580,15 @@ LoginFinish:
             End Try
         End If
 
+        '渲染器
+        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
+
+        If Renderer <> 0 Then
+            DataList.Insert(0, "-javaagent:""" & MesaLoaderWindowsTargetFile & """=" & If(Renderer = 1, "llvmpipe", If(Renderer = 2, "d3d12", "zink")))
+        End If
+
         '设置代理
         If Setup.Get("VersionAdvanceUseProxyV2", instance:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
             Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
@@ -1648,6 +1657,15 @@ NextInstance:
             Catch ex As Exception
                 Throw New Exception("无法连接到第三方登录服务器（" & If(Server, Nothing) & "）", ex)
             End Try
+        End If
+
+        '渲染器
+        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim MesaLoaderWindowsVersion = "0.3.0"
+        Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
+
+        If Renderer <> 0 Then
+            DataList.Insert(0, "-javaagent:""" & MesaLoaderWindowsTargetFile & """=" & If(Renderer = 1, "llvmpipe", If(Renderer = 2, "d3d12", "zink")))
         End If
 
         '设置代理
