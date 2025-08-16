@@ -3,6 +3,9 @@
 Imports PCL.Core.Link
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Link.EasyTier.EasyTierRelay
+Imports PCL.Core.Link.EasyTier.EasyTierController
+Imports PCL.Core.Link.Lobby
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -12,6 +15,8 @@ Public Class PageLinkLobby
     Public Shared IsConnected As Boolean = False
     Public Shared LocalInfo As ETPlayerInfo = Nothing
     Public Shared HostInfo As ETPlayerInfo = Nothing
+
+    Public Shared ETPath As String = ETController.ETPath
 
 #Region "初始化"
 
@@ -63,7 +68,7 @@ Public Class PageLinkLobby
                 Setup.Set("LinkNaidRefreshToken", "")
                 Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
             Else
-                GetNaidData(Setup.Get("LinkNaidRefreshToken"), True, IsSilent:=True)
+                NaidManager.GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
             End If
         End If
         DetectMcInstance()
@@ -149,12 +154,12 @@ Retry:
                                End If
                                '中继服务器
                                Dim Relays As JArray = Jobj("relays")
-                               ETServerDefList = New List(Of ETRelay)
+                               RelayList = New List(Of ETRelay)
                                For Each Relay In Relays
-                                   ETServerDefList.Add(New ETRelay With {
+                                   RelayList.Add(New ETRelay With {
                                        .Name = Relay("name").ToString(),
                                        .Url = Relay("url").ToString(),
-                                       .Type = Relay("type").ToString()
+                                       .Type = If(Relay("type") = "official", ETRelayType.Selfhosted, ETRelayType.Community)
                                    })
                                Next
                            Catch ex As Exception
@@ -323,29 +328,29 @@ Retry:
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount As Integer = 0
-                           While ETProcess Is Nothing AndAlso retryCount < 10
+                           While ETController.ETProcess Is Nothing AndAlso retryCount < 10
                                Thread.Sleep(1000)
                                retryCount += 1
                            End While
-                           While ETProcess IsNot Nothing AndAlso Not IsETReady
+                           While ETController.ETProcess IsNot Nothing AndAlso Not ETController.EasyTierStatus = EasyTierState.Ready
                                GetETInfo()
                                Thread.Sleep(1000)
                            End While
-                           While ETProcess IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(NaidProfile.AccessToken)
+                           While ETController.ETProcess IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(NaidManager.NaidProfile.AccessToken)
                                GetETInfo()
-                               If String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
+                               If String.IsNullOrWhiteSpace(NaidManager.NaidProfile.AccessToken) Then
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
-                                   ExitEasyTier()
+                                   LobbyController.Close()
                                End If
                                Thread.Sleep(2000)
                            End While
-                           If ETProcess Is Nothing Then
+                           If ETController.ETProcess Is Nothing Then
                                RunInUi(Sub()
                                            CurrentSubpage = Subpages.PanSelect
                                            Log("[Link] [ETWatcher] ETProcess 为 null，EasyTier 可能已退出")
                                        End Sub)
                            End If
-                           ExitEasyTier()
+                           LobbyController.Close()
                            Log("[Link] EasyTier 轮询已结束")
                            IsWatcherStarted = False
                        End Sub, "EasyTier Status Watcher", ThreadPriority.BelowNormal)
@@ -356,7 +361,7 @@ Retry:
                                    .StartInfo = New ProcessStartInfo With {
                                        .FileName = $"{ETPath}\easytier-cli.exe",
                                        .WorkingDirectory = ETPath,
-                                       .Arguments = $"--rpc-portal 127.0.0.1:{ETRpcPort} -o json peer",
+                                       .Arguments = $"--rpc-portal 127.0.0.1:{ETController.ETRpcPort} -o json peer",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
                                        .WindowStyle = ProcessWindowStyle.Hidden,
@@ -427,7 +432,7 @@ Retry:
                             CurrentSubpage = Subpages.PanSelect
                             Log("[Link] [ETInfo] 大厅不存在或已被解散，返回选择界面")
                         End Sub)
-                ExitEasyTier()
+                LobbyController.Close()
                 Exit Sub
             End If
             If HostInfo.EasyTierVersion <> LocalInfo.EasyTierVersion Then
@@ -460,15 +465,15 @@ Retry:
                                 StackPlayerList.Children.Clear()
                                 CurrentSubpage = Subpages.PanSelect
                             End Sub)
-                    ExitEasyTier()
+                    ETController.Exit()
                     MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
                 End If
             End If
             '加入方刷新连接信息
             RunInUi(Sub()
-                        If Not IsETReady AndAlso Not HostInfo.Ping = 200 Then
-                            IsETReady = True
-                        ElseIf Not IsETReady AndAlso HostInfo.Ping = 200 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                        If Not ETController.EasyTierStatus = EasyTierState.Ready AndAlso Not HostInfo.Ping = 200 Then
+                            ETController.EasyTierStatus = EasyTierState.Ready
+                        ElseIf Not ETController.EasyTierStatus = EasyTierState.Ready AndAlso HostInfo.Ping = 200 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
                             HostInfo.Ping = 0
                         End If
                         LabFinishPing.Text = HostInfo.Ping.ToString() & "ms"
@@ -479,7 +484,7 @@ Retry:
                         StackPlayerList.Children.Clear()
                         StackPlayerList.Children.Add(PlayerInfoItem(HostInfo, AddressOf PlayerInfoClick))
                         For Each Player In PlayerList
-                            If Not IsETReady AndAlso Player.Ping = 200 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                            If Not ETController.EasyTierStatus = EasyTierState.Ready AndAlso Player.Ping = 200 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
                             Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(NewItem)
                         Next
@@ -488,9 +493,7 @@ Retry:
             IsETFirstCheckFinished = True
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
-            If ETProcess.HasExited Then
-                ExitEasyTier()
-            End If
+            If ETController.EasyTierStatus = EasyTierState.Stopped Then LobbyController.Close()
         End Try
     End Sub
 #End Region
@@ -522,21 +525,29 @@ Retry:
                                        BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserName.Text = NaidManager.NaidProfile.Username
                                        LabConnectUserType.Text = "创建者"
                                        BtnFinishCopyIp.Visibility = Visibility.Collapsed
                                    End Sub)
                            Dim id As String = RandomInteger(10000000, 99999999).ToString()
                            Dim secret As String = RandomInteger(10, 99).ToString()
-                           LaunchLink(True, id, secret, LocalPort)
+                           Dim lobbyInfo As New LobbyInfoProvider.LobbyInfo With {
+                               .NetworkName = id,
+                               .NetworkSecret = secret,
+                               .OriginalCode = $"{id}{secret}{LocalPort}".FromB10ToB32,
+                               .Type = LobbyInfoProvider.LobbyType.PCLCE
+                           }
+                           LobbyController.Launch(True, lobbyInfo)
                            Dim retryCount As Integer = 0
-                           While Not IsETRunning
+                           While ETController.EasyTierStatus = EasyTierState.Stopped
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
                                If retryCount > 10 Then
                                    Hint("EasyTier 启动失败", HintType.Critical)
                                    RunInUi(Sub() BtnCreate.IsEnabled = True)
-                                   ExitEasyTier()
+                                   LobbyController.Close()
+                                   BtnCreate.IsEnabled = True
+                                   CurrentSubpage = Subpages.PanSelect
                                    Exit Sub
                                End If
                                retryCount += 1
@@ -545,7 +556,6 @@ Retry:
                                        BtnCreate.IsEnabled = True
                                        CurrentSubpage = Subpages.PanFinish
                                        BtnFinishExit.Text = "关闭大厅"
-                                       BtnCreate.IsEnabled = True
                                    End Sub)
                            Thread.Sleep(1000)
                            StartETWatcher()
@@ -581,30 +591,20 @@ Retry:
                                        LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabConnectUserName.Text = NaidProfile.Username
+                                       LabConnectUserName.Text = NaidManager.NaidProfile.Username
                                        LabConnectUserType.Text = "加入者"
                                        BtnFinishCopyIp.Visibility = Visibility.Visible
                                    End Sub)
                            Dim processedId As String
-                           If JoinedLobbyId.Split("-").Length = 5 Then
-                               TcInfo = ParseTerracottaCode(JoinedLobbyId)
-                               RemotePort = TcInfo.Port
-                               Log("[Link] 远程端口解析结果: " & RemotePort)
-                               LaunchLink(False, TcInfo.NetworkName, TcInfo.NetworkSecret, remotePort:=RemotePort)
-                           Else
-                               processedId = JoinedLobbyId.FromB32ToB10()
-                               RemotePort = processedId.Substring(10)
-                               Log("[Link] 远程端口解析结果: " & RemotePort)
-                               LaunchLink(False, processedId.Substring(0, 8), processedId.Substring(8, 2), remotePort:=RemotePort)
-                           End If
+                           LobbyController.Launch(False, LobbyInfoProvider.ParseCode(JoinedLobbyId))
                            Dim retryCount As Integer = 0
-                           While Not IsETRunning
+                           While ETController.EasyTierStatus = EasyTierState.Stopped
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
                                If retryCount > 10 Then
                                    Hint("EasyTier 启动失败", HintType.Critical)
                                    RunInUi(Sub() BtnCreate.IsEnabled = True)
-                                   ExitEasyTier()
+                                   LobbyController.Close()
                                    Exit Sub
                                End If
                                retryCount += 1
@@ -616,7 +616,8 @@ Retry:
                                Thread.Sleep(500)
                            End While
                            Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
-                           McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & hostname)
+                           Dim portForward As New McPortForward
+                           portForward.StartAsync(LobbyInfoProvider.TargetLobby.Ip, LobbyInfoProvider.TargetLobby.Port, "§ePCL CE 大厅 - " & hostname)
                            RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
                        End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish
@@ -686,7 +687,7 @@ Retry:
         If MyMsgBox($"你确定要退出大厅吗？{If(IsHost, vbCrLf & "由于你是大厅创建者，退出后此大厅将会自动解散。", "")}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             BtnFinishExit.Text = "退出大厅"
-            ExitEasyTier()
+            LobbyController.Close()
             'RemoveNATTranversal()
             Exit Sub
         End If
