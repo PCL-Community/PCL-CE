@@ -87,8 +87,16 @@ Public Class MyCompItem
         End Set
     End Property
 
-    'showFavoriteBtn
-    Public showFavoriteBtn As Boolean = False
+    ‘ 收藏按钮
+    Public Property ShowFavoriteBtn As Boolean
+        Set
+            PanButtons.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)
+        End Set
+        Get
+            Return PanButtons.Visibility = Visibility.Visible
+        End Get
+
+    End Property
 
     ''' <summary>
     ''' 刷新收藏状态
@@ -96,7 +104,7 @@ Public Class MyCompItem
     Public Sub RefreshFavoriteStatus()
         If TypeOf Tag Is CompProject Then
             Dim project As CompProject = CType(Tag, CompProject)
-            showFavoriteBtn = CompFavorites.IsFavourite(project.Id)
+            ShowFavoriteBtn = CompFavorites.IsFavourite(project.Id)
         End If
     End Sub
 #End Region
@@ -180,11 +188,13 @@ Public Class MyCompItem
         Dim clickPosition = e.GetPosition(Me)
         Dim isClickOnButton As Boolean = False
         
-        Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
-        isClickOnButton = buttonBounds.Contains(clickPosition)
+        If PanButtons.Visibility = Visibility.Visible Then
+            Dim buttonBounds = New Rect(BtnDelete.TranslatePoint(New Point(0, 0), Me), BtnDelete.RenderSize)
+            isClickOnButton = buttonBounds.Contains(clickPosition)
+        End If
         
         ' 如果点击在按钮上，不处理主项目点击事件
-        If isClickOnButton AndAlso PanButtons.Opacity > 0 Then
+        If isClickOnButton Then
             Return
         End If
         
@@ -196,7 +206,7 @@ Public Class MyCompItem
             isClickOnLabInfo = labInfoBounds.Contains(clickPosition)
         End If
         
-        If IsMouseDirectlyOver OrElse isClickOnLabInfo orElse isClickOnButton Then
+        If IsMouseDirectlyOver OrElse isClickOnLabInfo Then
             IsMouseDown = True
         End If
     End Sub
@@ -266,7 +276,7 @@ Public Class MyCompItem
             '有动画
             Dim Ani As New List(Of AniData)
             If IsMouseOver Then
-                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                If PanButtons IsNot Nothing AndAlso ShowFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, 1 - PanButtons.Opacity, Time * 0.35, Time * 0.15))
                 End If
                 Ani.AddRange({
@@ -279,7 +289,7 @@ Public Class MyCompItem
                     Ani.Add(AaScaleTransform(RectBack, 1 - CType(RectBack.RenderTransform, ScaleTransform).ScaleX, Time * 1.2,, New AniEaseOutFluent))
                 End If
             Else
-                If PanButtons IsNot Nothing AndAlso showFavoriteBtn Then
+                If PanButtons IsNot Nothing AndAlso ShowFavoriteBtn Then
                     Ani.Add(AaOpacity(PanButtons, -PanButtons.Opacity, Time * 0.4))
                 End If
                 Ani.AddRange({
