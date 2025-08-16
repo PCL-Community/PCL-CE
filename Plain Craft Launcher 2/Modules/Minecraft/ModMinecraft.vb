@@ -84,10 +84,10 @@ Public Module ModMinecraft
             End Try
 
             '扫描官启文件夹
-            Dim mojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
-            If (Not currentMcFolderList.Any OrElse mojangPath <> currentMcFolderList(0).Path) AndAlso '当前文件夹不是官启文件夹
-                Directory.Exists(mojangPath & "versions\") Then '具有权限且存在 versions 文件夹
-                originalMcFolderList.Add(New McFolder With {.Name = "官方启动器文件夹", .Path = mojangPath, .Type = McFolderType.Original})
+            Dim MojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
+            If (Not currentMcFolderList.Any OrElse MojangPath <> currentMcFolderList(0).Path) AndAlso '当前文件夹不是官启文件夹
+                Directory.Exists(MojangPath & "versions\") Then '具有权限且存在 versions 文件夹
+                originalMcFolderList.Add(New McFolder With {.Name = "官方启动器文件夹", .Path = MojangPath, .Type = McFolderType.Original})
             End If
 
             Log(cacheMcFolderList.Count & " 个自定义文件夹，" & originalMcFolderList.Count & " 个原始文件夹")
