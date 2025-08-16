@@ -1582,7 +1582,7 @@ LoginFinish:
 
         '渲染器
         Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
-        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsVersion = "0.3.0"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
         If Renderer <> 0 Then
