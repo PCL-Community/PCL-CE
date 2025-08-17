@@ -1,4 +1,6 @@
 ﻿Imports PCL.Core.Link.EasyTier
+Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 
 Class PageSetupLink
 
@@ -19,6 +21,7 @@ Class PageSetupLink
 
     End Sub
     Public Sub Reload() Handles Me.Loaded
+        TextLinkUsername.Text = Setup.Get("LinkUsername")
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
         ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
         ComboServerType.SelectedIndex = Setup.Get("LinkServerType")
@@ -35,8 +38,8 @@ Class PageSetupLink
                 ReloadNaidData()
                 IsFirstLoad = False
             Else
-                TextUsername.Text = $"已以 {NaidManager.NaidProfile.Username} 的身份登录至 Natayark Network"
-                TextStatus.Text = $"账号状态：{If(NaidManager.NaidProfile.Status = 0, "正常", "异常")} / {If(NaidManager.NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
+                TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
+                TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealname, "已完成实名验证", "尚未进行实名验证")}"
             End If
         End If
         TextRelays.Text = "正在获取信息..."
@@ -61,14 +64,14 @@ Class PageSetupLink
                                    Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
                                    Exit Sub
                                Else
-                                   NaidManager.GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
+                                   GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
                                End If
-                               While String.IsNullOrWhiteSpace(NaidManager.NaidProfile.Username)
+                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
                                    Thread.Sleep(1000)
                                End While
                                RunInUi(Sub()
-                                           TextUsername.Text = $"已以 {NaidManager.NaidProfile.Username} 的身份登录至 Natayark Network"
-                                           TextStatus.Text = $"账号状态：{If(NaidManager.NaidProfile.Status = 0, "正常", "异常")}{If(NaidManager.NaidProfile.IsRealname, " / 已完成实名验证", If(RequiresRealname, " / 未完成实名验证", Nothing))}"
+                                           TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
+                                           TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")}{If(NaidProfile.IsRealname, " / 已完成实名验证", If(RequiresRealname, " / 未完成实名验证", Nothing))}"
                                            CardLogged.Visibility = Visibility.Visible
                                            CardNotLogged.Visibility = Visibility.Collapsed
                                        End Sub)
@@ -135,6 +138,7 @@ Class PageSetupLink
     '初始化
     Public Sub Reset()
         Try
+            Setup.Reset("LinkUsername")
             Setup.Reset("LinkRelayServer")
             Setup.Reset("LinkRelayType")
             Setup.Reset("LinkServerType")
@@ -151,7 +155,7 @@ Class PageSetupLink
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLinkRelay.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLinkRelay.ValidatedTextChanged, TextLinkUsername.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged, ComboProxyType.SelectionChanged

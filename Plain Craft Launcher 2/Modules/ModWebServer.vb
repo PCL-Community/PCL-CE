@@ -1,6 +1,7 @@
 Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
+Imports PCL.Core.Link.Natayark
 Imports PCL.Core.Net
 
 Public Module ModWebServer
@@ -205,11 +206,11 @@ Public Module ModWebServer
                 End If
                 Dim status As OAuthCompleteStatus = Nothing
                 Dim code = parameters("code")
-                Dim result = NaidManager.GetNaidDataSync(code)
+                Dim result = NatayarkProfileManager.GetNaidDataSync(code)
                 If result Then
-                    status = OAuthCompleteStatus.Complete(NaidManager.NaidProfile.Username)
+                    status = OAuthCompleteStatus.Complete(NatayarkProfileManager.NaidProfile.Username)
                 Else
-                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", NaidManager.Exception)
+                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", NatayarkProfileManager.Exception)
                 End If
                 completeCallback?.Invoke()
                 Return status
@@ -267,14 +268,14 @@ Public Module ModWebServer
 
                     '设置状态信息
                     If OAuthCode IsNot Nothing Then
-                        Dim result = NaidManager.GetNaidDataSync(OAuthCode)
+                        Dim result = NatayarkProfileManager.GetNaidDataSync(OAuthCode)
                         If result Then
                             CurrentStatus.success = True
-                            CurrentStatus.username = NaidManager.NaidProfile.Username
+                            CurrentStatus.username = NatayarkProfileManager.NaidProfile.Username
                         Else
                             CurrentStatus.success = False
                             CurrentStatus.message = $"获取用户信息失败，请尝试重新登录"
-                            CurrentStatus.stacktrace = NaidManager.Exception.ToString()
+                            CurrentStatus.stacktrace = NatayarkProfileManager.Exception.ToString()
                         End If
                     Else
                         CurrentStatus.success = False

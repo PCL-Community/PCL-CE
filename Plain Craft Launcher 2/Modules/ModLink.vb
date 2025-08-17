@@ -5,17 +5,14 @@ Imports Makaretu.Nat
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Utils.OS
-Imports PCL.Core.Link.EasyTier.EasyTierController
+Imports PCL.Core.Link.EasyTier.EasyTierInfoProvider
 Imports PCL.Core.Link.Lobby
+Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports STUN
 Imports PCL.Core.Link.EasyTier
-Imports PCL.Core.Link.Natayark
 
 Public Module ModLink
-
-    Public IsLobbyAvailable As Boolean = False
-    Public RequiresRealname As Boolean = True
 
 #Region "端口查找"
     Public Class PortFinder
@@ -173,10 +170,6 @@ Public Module ModLink
     End Function
 #End Region
 
-    Public ETController As New EasyTierController
-    Public NaidManager As New NatayarkProfileManager
-    Public LobbyController As New LobbyController
-
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional lobbyInfo As LobbyInfoProvider.LobbyInfo = Nothing, Optional boardcastDesc As String = Nothing)
@@ -197,7 +190,7 @@ Public Module ModLink
                                                                                                 CleanupEasyTierCache()
                                                                                             End Sub))
                                If LaunchAfterDownload Then
-                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Function() LobbyController.Launch(isHost, lobbyInfo, boardcastDesc)))
+                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Function() LobbyController.Launch(isHost, lobbyInfo, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))))
                                End If
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
                                                                                                          FrmLinkLobby.BtnCreate.IsEnabled = True
@@ -241,39 +234,50 @@ Public Module ModLink
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Return False
         End If
-        If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
-            Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
-            Return False
-        End If
         If SelectedProfile IsNot Nothing Then
             If SelectedProfile.Username.Contains("|") Then
                 Hint("MC 玩家 ID 不可包含分隔符 (|) ！")
                 Return False
             End If
         End If
-        Try
-            NaidManager.GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
-        Catch ex As Exception
-            Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
-            Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
-            Return False
-        End Try
-        Dim WaitCount As Integer = 0
-        While String.IsNullOrWhiteSpace(NaidProfile.Username)
-            If WaitCount > 30 Then Exit While
-            Thread.Sleep(500)
-            WaitCount += 1
-        End While
-        If String.IsNullOrWhiteSpace(NaidProfile.Username) Then
-            Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
+        If RequiresLogin Then
+            If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
+                Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
+                Return False
+            End If
+            Try
+                GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
+            Catch ex As Exception
+                Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
+                Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
+                Return False
+            End Try
+            Dim WaitCount As Integer = 0
+            While String.IsNullOrWhiteSpace(NaidProfile.Username)
+                If WaitCount > 30 Then Exit While
+                Thread.Sleep(500)
+                WaitCount += 1
+            End While
+            If String.IsNullOrWhiteSpace(NaidProfile.Username) Then
+                Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
+                Return False
+            End If
+            If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
+                Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
+                Return False
+            End If
+            If Not NaidProfile.Status = 0 Then
+                Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
+                Return False
+            End If
+        End If
+        If String.IsNullOrWhiteSpace(Setup.Get("LinkUsername")) AndAlso String.IsNullOrWhiteSpace(NaidProfile.Username) Then
+            Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return False
         End If
-        If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
-            Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
-            Return False
-        End If
-        If Not NaidProfile.Status = 0 Then
-            Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", HintType.Critical)
+        If EasyTierController.Precheck() = 1 Then
+            Hint("正在下载联机依赖组件，请稍后...")
+            DownloadEasyTier()
             Return False
         End If
         If DlEasyTierLoader IsNot Nothing Then
@@ -296,12 +300,10 @@ Public Module ModLink
     ''' </summary>
     ''' <returns></returns>
     Public Function NetTestET()
-        Dim etController As New EasyTierController
-        Dim etPath As String = etController.ETPath
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
-                                       .FileName = $"{etPath}\easytier-cli.exe",
-                                       .WorkingDirectory = etPath,
+                                       .FileName = $"{ETPath}\easytier-cli.exe",
+                                       .WorkingDirectory = ETPath,
                                        .Arguments = "stun",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,
