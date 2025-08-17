@@ -3,10 +3,12 @@
 Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
     Private Sub Reload() Handles Me.Loaded
+        TextServer.Text = "https://littleskin.cn/api/yggdrasil"
         If DraggedAuthServer IsNot Nothing Then
             TextServer.Text = DraggedAuthServer
             DraggedAuthServer = Nothing
         End If
+        GetServerName()
     End Sub
     Private Sub BtnBack_Click(sender As Object, e As EventArgs) Handles BtnBack.Click
         RunInUi(Sub()
@@ -17,7 +19,7 @@ Public Class PageLoginAuth
                 End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
-        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then 
+        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then
             Hint("输入的验证服务器地址无效", HintType.Critical)
             Exit Sub
         End If
@@ -70,25 +72,25 @@ Public Class PageLoginAuth
     Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
         Dim serverUriInput = TextServer.Text
         RunInNewThread(Sub()
-            Dim serverUri As String = Nothing
-            Dim serverName As String = Nothing
-            Try
-                serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
-                Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
-                serverName = JObject.Parse(response)("meta")("serverName").ToString()
-            Catch ex As Exception
-                Log(ex, "从服务器获取名称失败", LogLevel.Debug)
-            End Try
-            RunInUi(Sub()
-                If serverUri IsNot Nothing Then TextServer.Text = serverUri
-                If serverName Is Nothing Then
-                    TextServerName.Visibility = Visibility.Hidden
-                Else
-                    TextServerName.Text = "验证服务器: " & serverName
-                    TextServerName.Visibility = Visibility.Visible
-                End If
-            End Sub)
-        End Sub)
+                           Dim serverUri As String = Nothing
+                           Dim serverName As String = Nothing
+                           Try
+                               serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
+                               Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
+                               serverName = JObject.Parse(response)("meta")("serverName").ToString()
+                           Catch ex As Exception
+                               Log(ex, "从服务器获取名称失败", LogLevel.Debug)
+                           End Try
+                           RunInUi(Sub()
+                                       If serverUri IsNot Nothing Then TextServer.Text = serverUri
+                                       If serverName Is Nothing Then
+                                           TextServerName.Visibility = Visibility.Hidden
+                                       Else
+                                           TextServerName.Text = "验证服务器: " & serverName
+                                           TextServerName.Visibility = Visibility.Visible
+                                       End If
+                                   End Sub)
+                       End Sub)
     End Sub
     '链接处理
     Private Sub ComboName_TextChanged() Handles TextName.TextChanged
