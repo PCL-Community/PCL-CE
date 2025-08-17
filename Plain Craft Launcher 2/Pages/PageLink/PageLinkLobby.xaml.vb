@@ -1,5 +1,8 @@
 ﻿
 
+Imports System.Collections.ObjectModel
+Imports System.Threading.Tasks
+Imports System.Windows.Threading
 Imports PCL.Core.Link
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
@@ -41,23 +44,30 @@ Public Class PageLinkLobby
         HintAnnounce.Visibility = Visibility.Visible
         HintAnnounce.Text = "正在连接到大厅服务器..."
         HintAnnounce.Theme = MyHint.Themes.Blue
-        RunInNewThread(Sub()
-                           If Not Setup.Get("LinkEula") Then
-                               Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我已知晓大厅功能使用途中可能需要提供管理员权限以用于必要的操作，并会确保 PCL CE 为从官方发布渠道下载的副本。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
+        RunInNewThread(
+            Sub()
+                If Not Setup.Get("LinkEula") Then
+                    Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我已知晓大厅功能使用途中可能需要提供管理员权限以用于必要的操作，并会确保 PCL CE 为从官方发布渠道下载的副本。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
                                                     "我已阅读并同意", "拒绝并返回", "查看相关隐私协议",
                                                     Button3Action:=Sub() OpenWebsite("https://www.pclc.cc/privacy/personal-info-brief.html"))
-                                   Case 1
-                                       Setup.Set("LinkEula", True)
-                                   Case 2
-                                       RunInUi(Sub()
-                                                   FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                                                   FrmLinkLobby = Nothing
-                                               End Sub)
-                               End Select
-                           End If
-                       End Sub)
+                        Case 1
+                            Setup.Set("LinkEula", True)
+                        Case 2
+                            RunInUi(
+                            Sub()
+                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                                FrmLinkLobby = Nothing
+                            End Sub)
+                    End Select
+                End If
+            End Sub)
         IsMcWatcherRunning = True
+        '加载公告
         LobbyAnnouncementLoader.Start()
+        If _linkAnnounceUpdateCancelSource IsNot Nothing Then _linkAnnounceUpdateCancelSource.Cancel()
+        _linkAnnounceUpdateCancelSource = New CancellationTokenSource()
+        Dispatcher.BeginInvoke(Async Sub() Await _LinkAnnounceUpdate()) '我实在不理解为啥 BeginInvoke 这个委托要 MustBeInherit
+        '刷新 NAID 令牌
         If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             If Not String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshExpiresAt")) AndAlso Convert.ToDateTime(Setup.Get("LinkNaidRefreshExpiresAt")).CompareTo(DateTime.Now) < 0 Then
                 Setup.Set("LinkNaidRefreshToken", "")
@@ -97,75 +107,124 @@ Public Class PageLinkLobby
 #Region "公告"
     Public Const AllowedVersion As Integer = 4
     Public Shared LobbyAnnouncementLoader As LoaderCombo(Of Integer) = Nothing
+    Private _linkAnnounces As New ObservableCollection(Of LinkAnnounceInfo)
+    Private _linkAnnounceUpdateCancelSource As CancellationTokenSource = Nothing
+    '公告轮播实现
+    Private Async Function _LinkAnnounceUpdate() As Task
+        Dim currentIndex = 0
+        Dim globalCancelToken As CancellationToken = _linkAnnounceUpdateCancelSource.Token
+        Dim waiterCancelSource As CancellationTokenSource = Nothing
+        Dim contentChanged As Boolean = False
+        AddHandler _linkAnnounces.CollectionChanged,
+            Sub(sender, e)
+                If waiterCancelSource IsNot Nothing Then waiterCancelSource.Cancel()
+            End Sub
+        While Not globalCancelToken.IsCancellationRequested
+            waiterCancelSource = CancellationTokenSource.CreateLinkedTokenSource(globalCancelToken)
+            Dim waiterCancelToken = waiterCancelSource.Token
+            If _linkAnnounces.Count > 0 Then
+                Dim info As LinkAnnounceInfo = _linkAnnounces(currentIndex)
+                Dim prefix As String = Nothing
+                If info.Type = LinkAnnounceType.Important Then
+                    HintAnnounce.Theme = MyHint.Themes.Red
+                    prefix = "重要"
+                ElseIf info.Type = LinkAnnounceType.Warning Then
+                    HintAnnounce.Theme = MyHint.Themes.Yellow
+                    prefix = "注意"
+                Else
+                    HintAnnounce.Theme = MyHint.Themes.Blue
+                    prefix = "提示"
+                End If
+                HintAnnounce.Text = "[" & prefix & "] " & info.Content.Replace(vbLf, vbCrLf)
+            Else
+                HintAnnounce.Visibility = Visibility.Collapsed
+            End If
+            Try
+                Await Task.Delay(10000, waiterCancelToken)
+            Catch ex As TaskCanceledException
+                '忽略取消任务的异常
+            End Try
+            If Not waiterCancelToken.IsCancellationRequested Then currentIndex += 1
+            If currentIndex >= _linkAnnounces.Count Then currentIndex = 0
+            waiterCancelSource = Nothing
+        End While
+    End Function
+    '获取公告信息
     Public Sub GetAnnouncement()
-        RunInNewThread(Sub()
-                           Try
-                               Dim ServerNumber As Integer = 0
-                               Dim Jobj As JObject = Nothing
-                               Dim Cache As Integer = Nothing
-Retry:
-                               Try
-                                   Cache = Val(NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
-                                   If Cache = Setup.Get("LinkAnnounceCacheVer") Then
-                                       Log("[Link] 使用缓存的公告数据")
-                                       Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
-                                   Else
-                                       Log("[Link] 尝试拉取公告数据")
-                                       Dim Received As String = NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/v2/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
-                                       Jobj = JObject.Parse(Received)
-                                       Setup.Set("LinkAnnounceCache", Received)
-                                       Setup.Set("LinkAnnounceCacheVer", Cache)
-                                   End If
-                               Catch ex As Exception
-                                   Log(ex, $"[Link] 从服务器 {ServerNumber} 获取公告缓存失败")
-                                   ServerNumber += 1
-                                   If ServerNumber <= LinkServers.Count - 1 Then GoTo Retry
-                               End Try
-                               If Jobj Is Nothing Then Throw New Exception("获取联机数据失败")
-                               IsLobbyAvailable = Jobj("available")
-                               RequiresRealname = Jobj("requireRealname")
-                               If Not Val(Jobj("version")) = AllowedVersion Then
-                                   RunInUi(Sub()
-                                               HintAnnounce.Theme = MyHint.Themes.Red
-                                               HintAnnounce.Text = "请更新到最新版本 PCL CE 以使用大厅"
-                                               IsLobbyAvailable = False
-                                           End Sub)
-                                   Exit Sub
-                               End If
-                               '公告
-                               Dim Notices As JArray = Jobj("notices")
-                               Dim NoticeLatest As JObject = Notices(0)
-                               If Not String.IsNullOrWhiteSpace(NoticeLatest("content").ToString()) Then
-                                   If NoticeLatest("type") = "important" OrElse NoticeLatest("type") = "red" Then
-                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Red)
-                                   ElseIf NoticeLatest("type") = "warning" OrElse NoticeLatest("type") = "yellow" Then
-                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Yellow)
-                                   Else
-                                       RunInUi(Sub() HintAnnounce.Theme = MyHint.Themes.Blue)
-                                   End If
-                                   RunInUi(Sub() HintAnnounce.Text = NoticeLatest("content").ToString().Replace("\n", vbCrLf))
-                               Else
-                                   HintAnnounce.Visibility = Visibility.Collapsed
-                               End If
-                               '中继服务器
-                               Dim Relays As JArray = Jobj("relays")
-                               ETServerDefList = New List(Of ETRelay)
-                               For Each Relay In Relays
-                                   ETServerDefList.Add(New ETRelay With {
+        RunInNewThread(
+            Sub()
+                Try
+                    Dim ServerNumber As Integer = 0
+                    Dim Jobj As JObject = Nothing
+                    Dim Cache As Integer = Nothing
+                    While ServerNumber < LinkServers.Count
+                        Try
+                            Cache = Val(NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
+                            If Cache = Setup.Get("LinkAnnounceCacheVer") Then
+                                Log("[Link] 使用缓存的公告数据")
+                                Jobj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                            Else
+                                Log("[Link] 尝试拉取公告数据")
+                                Dim Received As String = NetRequestOnce($"{LinkServers(ServerNumber)}/api/link/v2/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
+                                Jobj = JObject.Parse(Received)
+                                Setup.Set("LinkAnnounceCache", Received)
+                                Setup.Set("LinkAnnounceCacheVer", Cache)
+                            End If
+                            Exit While
+                        Catch ex As Exception
+                            Log(ex, $"[Link] 从服务器 {ServerNumber} 获取公告缓存失败")
+                            ServerNumber += 1
+                        End Try
+                    End While
+                    If Jobj Is Nothing Then Throw New Exception("获取联机数据失败")
+                    IsLobbyAvailable = Jobj("available")
+                    RequiresRealname = Jobj("requireRealname")
+                    If Not Val(Jobj("version")) = AllowedVersion Then
+                        RunInUi(
+                            Sub()
+                                HintAnnounce.Theme = MyHint.Themes.Red
+                                HintAnnounce.Text = "请更新到最新版本 PCL CE 以使用大厅"
+                                IsLobbyAvailable = False
+                            End Sub)
+                        Exit Sub
+                    End If
+                    '公告
+                    Dim Notices As JArray = Jobj("notices")
+                    Dim NoticeLatest As JObject = Notices(0)
+                    Dim announceContent = NoticeLatest("content").ToString()
+                    If Not String.IsNullOrWhiteSpace(announceContent) Then
+                        Dim announceType As LinkAnnounceType = Nothing
+                        If NoticeLatest("type") = "important" OrElse NoticeLatest("type") = "red" Then
+                            announceType = LinkAnnounceType.Important
+                        ElseIf NoticeLatest("type") = "warning" OrElse NoticeLatest("type") = "yellow" Then
+                            announceType = LinkAnnounceType.Warning
+                        Else
+                            announceType = LinkAnnounceType.Notice
+                        End If
+                        Dim announces As String() = announceContent.Split(vbLf)
+                        For Each announce As String In announces
+                            _linkAnnounces.Add(New LinkAnnounceInfo(announceType, announce))
+                        Next
+                    End If
+                    '中继服务器
+                    Dim Relays As JArray = Jobj("relays")
+                    ETServerDefList = New List(Of ETRelay)
+                    For Each Relay In Relays
+                        ETServerDefList.Add(New ETRelay With {
                                        .Name = Relay("name").ToString(),
                                        .Url = Relay("url").ToString(),
                                        .Type = Relay("type").ToString()
                                    })
-                               Next
-                           Catch ex As Exception
-                               IsLobbyAvailable = False
-                               RunInUi(Sub()
-                                           HintAnnounce.Theme = MyHint.Themes.Red
-                                           HintAnnounce.Text = "连接到大厅服务器失败"
-                                       End Sub)
-                               Log(ex, "[Link] 获取大厅公告失败")
-                           End Try
-                       End Sub)
+                    Next
+                Catch ex As Exception
+                    IsLobbyAvailable = False
+                    RunInUi(Sub()
+                                HintAnnounce.Theme = MyHint.Themes.Red
+                                HintAnnounce.Text = "连接到大厅服务器失败"
+                            End Sub)
+                    Log(ex, "[Link] 获取大厅公告失败")
+                End Try
+            End Sub)
     End Sub
 #End Region
 
@@ -289,28 +348,26 @@ Retry:
         ComboWorldList.SelectedIndex = 0
         BtnRefresh.IsEnabled = False
         ComboWorldList.IsEnabled = False
-        RunInNewThread(Sub()
-                           Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
-                           RunInUi(Sub()
-                                       ComboWorldList.Items.Clear()
-                                       If Worlds.Count = 0 Then
-                                           ComboWorldList.Items.Add(New MyComboBoxItem With {
-                                                                    .Tag = Nothing,
-                                                                    .Content = "无可用实例"
-                                                                    })
-                                       Else
-                                           For Each World In Worlds
-                                               ComboWorldList.Items.Add(New MyComboBoxItem With {
-                                                                        .Tag = World,
-                                                                        .Content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1}{If(Not String.IsNullOrWhiteSpace(World.Item3), $" / 由 {World.Item3} 启动", Nothing)})"})
-                                           Next
-                                       End If
-                                       IsDetectingMc = False
-                                       ComboWorldList.SelectedIndex = 0
-                                       BtnRefresh.IsEnabled = True
-                                       ComboWorldList.IsEnabled = True
-                                   End Sub)
-                       End Sub, "Minecraft Port Detect")
+        RunInNewThread(
+            Sub()
+                Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
+                RunInUi(
+                    Sub()
+                        ComboWorldList.Items.Clear()
+                        If Worlds.Count = 0 Then
+                            ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "无可用实例"})
+                        Else
+                            For Each World In Worlds
+                                Dim content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1}{If(Not String.IsNullOrWhiteSpace(World.Item3), $" / 由 {World.Item3} 启动", Nothing)})"
+                                ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = World, .Content = content})
+                            Next
+                            ComboWorldList.IsEnabled = True
+                        End If
+                        IsDetectingMc = False
+                        ComboWorldList.SelectedIndex = 0
+                        BtnRefresh.IsEnabled = True
+                    End Sub)
+            End Sub, "Minecraft Port Detect")
     End Sub
     'EasyTier Cli 轮询
     Public Sub StartETWatcher()
@@ -493,13 +550,27 @@ Retry:
             End If
         End Try
     End Sub
+    Private Sub PasteLobbyId() Handles BtnPaste.Click
+        Dim lobbyId As String
+        Try
+            Dim clipText = Clipboard.GetText(TextDataFormat.Text)
+            lobbyId = CheckLobbyId(clipText)
+        Catch ex As Exception
+            Log(ex, "读取剪贴板文本出错")
+            Exit Sub
+        End Try
+        If lobbyId IsNot Nothing Then TextJoinLobbyId.Text = lobbyId
+    End Sub
+    Private Sub ClearLobbyId() Handles BtnClearLobbyId.Click
+        TextJoinLobbyId.Text = String.Empty
+    End Sub
 #End Region
 
 #Region "PanSelect | 种类选择页面"
 
     Public LocalPort As String = Nothing
     '创建大厅
-    Private Sub BtnSelectCreate_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnCreate.Click
+    Private Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         BtnCreate.IsEnabled = False
         If Not LobbyPrecheck() Then
             BtnCreate.IsEnabled = True
@@ -516,9 +587,7 @@ Retry:
         RunInNewThread(Sub()
                            'CreateNATTranversal(LocalPort)
                            RunInUi(Sub()
-                                       SplitLineBeforePing.Visibility = Visibility.Collapsed
                                        BtnFinishPing.Visibility = Visibility.Collapsed
-                                       SplitLineBeforeType.Visibility = Visibility.Collapsed
                                        BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
@@ -551,32 +620,36 @@ Retry:
                            StartETWatcher()
                        End Sub, "Link Create Lobby")
     End Sub
+    '检测合法性并返回合法的大厅 ID
+    Private Function CheckLobbyId(source As String) As String
+        If source = Nothing Then Return Nothing
+        source = source.Trim()
+        If source.Length < 9 OrElse Not source.IsASCII() Then
+            Hint("大厅编号不合法", HintType.Critical)
+            Return Nothing
+        End If
+        If Not source.Split("-").Length = 5 Then
+            Try
+                source.FromB32ToB10()
+            Catch ex As Exception
+                Hint("大厅编号不合法", HintType.Critical)
+                Return Nothing
+            End Try
+        End If
+        Return source
+    End Function
 
     Public JoinedLobbyId As String = Nothing
     '加入大厅
-    Private Sub BtnSelectJoin_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnSelectJoin.MouseLeftButtonUp
+    Private Sub BtnJoin_Click(sender As Object, e As EventArgs) Handles BtnJoin.Click
         If Not LobbyPrecheck() Then Exit Sub
-        JoinedLobbyId = MyMsgBoxInput("输入大厅编号", HintText:="例如：X15Z9Y361E")?.Trim()
+        JoinedLobbyId = CheckLobbyId(TextJoinLobbyId.Text)
         If JoinedLobbyId = Nothing Then Exit Sub
-        If JoinedLobbyId.Length < 9 OrElse Not JoinedLobbyId.IsASCII() Then
-            Hint("大厅编号不合法", HintType.Critical)
-            Exit Sub
-        End If
-        If Not JoinedLobbyId.Split("-").Length = 5 Then
-            Try
-                JoinedLobbyId.FromB32ToB10()
-            Catch ex As Exception
-                Hint("大厅编号不合法", HintType.Critical)
-                Exit Sub
-            End Try
-        End If
         IsHost = False
         RunInNewThread(Sub()
                            RunInUi(Sub()
-                                       SplitLineBeforePing.Visibility = Visibility.Visible
                                        BtnFinishPing.Visibility = Visibility.Visible
                                        LabFinishPing.Text = "-ms"
-                                       SplitLineBeforeType.Visibility = Visibility.Visible
                                        BtnConnectType.Visibility = Visibility.Visible
                                        LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
@@ -617,9 +690,12 @@ Retry:
                            End While
                            Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.NaidName), HostInfo.Hostname, HostInfo.NaidName)
                            McPortForward("127.0.0.1", Val(JoinerLocalPort), "§ePCL CE 大厅 - " & hostname)
-                           RunInUi(Sub() BtnFinishExit.Text = $"退出 {hostname} 的大厅")
+                           RunInUi(Sub() PanNetInfo.Title = $"{hostname} 的大厅")
                        End Sub, "Link Join Lobby")
         CurrentSubpage = Subpages.PanFinish
+    End Sub
+    Private Sub TextJoinLobbyId_KeyDown(sender As Object, e As KeyEventArgs) Handles TextJoinLobbyId.KeyDown
+        If e.Key = Key.Enter Then BtnJoin_Click(sender, e)
     End Sub
 
 #End Region
