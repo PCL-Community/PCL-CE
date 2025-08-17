@@ -66,9 +66,12 @@
         CheckSystemTelemetry.Checked = Setup.Get("SystemTelemetry")
 
         '网络
-        TextSystemHttpProxy.Text = Setup.Get("SystemHttpProxy")
         CheckDownloadCert.Checked = Setup.Get("ToolDownloadCert")
-        CheckUseDefaultProxy.Checked = Setup.Get("SystemUseDefaultProxy")
+
+        TextSystemHttpProxy.Text = Setup.Get("SystemHttpProxy")
+        TextSystemHttpProxyCustomUsername.Text = Setup.Get("SystemHttpProxyCustomUsername")
+        TextSystemHttpProxyCustomPassword.Text = Setup.Get("SystemHttpProxyCustomPassword")
+        CType(FindName($"RadioHttpProxyType{Setup.Get("SystemHttpProxyType")}"), MyRadioBox).SetChecked(True, False)
 
         '调试选项
         CheckDebugMode.Checked = Setup.Get("SystemDebugMode")
@@ -104,6 +107,9 @@
             Setup.Reset("SystemSystemActivity")
             Setup.Reset("SystemDisableHardwareAcceleration")
             Setup.Reset("SystemHttpProxy")
+            Setup.Reset("SystemHttpProxyType")
+            Setup.Reset("SystemHttpProxyCustomUsername")
+            Setup.Reset("SystemHttpProxyCustomPassword")
             Setup.Reset("ToolDownloadCert")
             Setup.Reset("SystemUseDefaultProxy")
             Setup.Reset("UiAniFPS")
@@ -118,7 +124,7 @@
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadCert.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckUseDefaultProxy.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadCert.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change, SliderMaxLog.Change
@@ -127,8 +133,18 @@
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboDownloadMod.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged, TextSystemHttpProxy.TextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
+    End Sub
+    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioHttpProxyType0.Check, RadioHttpProxyType1.Check, RadioHttpProxyType2.Check
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)))
+    End Sub
+
+    '网络
+    Private Sub ApplyHttpProxyBtn_OnClicked(sender As Object, e As MouseButtonEventArgs) Handles BtnApplyHttpProxy.Click
+        Setup.Set("SystemHttpProxy", TextSystemHttpProxy.Text)
+        Setup.Set("SystemHttpProxyCustomPassword", TextSystemHttpProxyCustomPassword.Text)
+        Setup.Set("SystemHttpProxyCustomUsername", TextSystemHttpProxyCustomUsername.Text)
     End Sub
 
     '滑动条

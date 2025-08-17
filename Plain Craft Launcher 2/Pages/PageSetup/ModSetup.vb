@@ -467,11 +467,32 @@ Public Class ModSetup
     End Sub
 
     Public Sub SystemHttpProxy(value As String)
-        HttpProxyManager.Instance.ProxyAddress = value
+        Try
+            HttpProxyManager.Instance.CustomProxyAddress = New Uri(value)
+        Catch ex As Exception
+        End Try
     End Sub
 
-    Public Sub SystemUseDefaultProxy(value As Boolean)
-        HttpProxyManager.Instance.DisableProxy = value
+    Public Sub SystemHttpProxyType(value As Integer)
+        HttpProxyManager.Instance.Mode = [Enum].Parse(GetType(HttpProxyManager.ProxyMode), value)
+    End Sub
+
+    Public Sub SystemHttpProxyCustomUsername(value As String)
+        If Not String.IsNullOrEmpty(value) Then
+            Dim password As String = Setup.Get("SystemHttpProxyCustomPassword")
+            HttpProxyManager.Instance.Credentials = New NetworkCredential(value, password)
+        Else
+            HttpProxyManager.Instance.Credentials = Nothing
+        End If
+    End Sub
+
+    Public Sub SystemHttpProxyCustomPassword(value As String)
+        Dim username As String = Setup.Get("SystemHttpProxyCustomUsername")
+        If Not String.IsNullOrEmpty(username) Then
+            HttpProxyManager.Instance.Credentials = New NetworkCredential(username, value)
+        Else
+            HttpProxyManager.Instance.Credentials = Nothing
+        End If
     End Sub
 
 #End Region
