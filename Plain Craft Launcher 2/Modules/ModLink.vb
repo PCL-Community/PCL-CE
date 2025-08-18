@@ -5,12 +5,11 @@ Imports Makaretu.Nat
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Utils.OS
-Imports PCL.Core.Link.EasyTier.EasyTierInfoProvider
+Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports STUN
-Imports PCL.Core.Link.EasyTier
 
 Public Module ModLink
 
@@ -173,18 +172,18 @@ Public Module ModLink
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional lobbyInfo As LobbyInfoProvider.LobbyInfo = Nothing, Optional boardcastDesc As String = Nothing)
-        Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETVersion}.zip"
+        Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Function()
                            Try
                                '构造步骤加载器
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
                                Dim Address As New List(Of String)
-                               Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
-                               Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETVersion}.zip")
+                               Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
+                               Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
 
                                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion))) With {.Block = True})
+                               Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
                                                                                                 File.Delete(DlTargetPath)
                                                                                                 CleanupEasyTierCache()
@@ -216,7 +215,7 @@ Public Module ModLink
         Dim subDirs As String() = Directory.GetDirectories(IO.Path.Combine(FileService.LocalDataPath, "EasyTier"))
         For Each folderPath As String In subDirs
             Dim name As String = IO.Path.GetFileName(folderPath)
-            If Not name.Equals(ETVersion) Then
+            If Not name.Equals(ETInfoProvider.ETVersion) Then
                 Try
                     Directory.Delete(folderPath, True)
                 Catch ex As Exception
@@ -262,7 +261,7 @@ Public Module ModLink
                 Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
                 Return False
             End If
-            If RequiresRealname AndAlso Not NaidProfile.IsRealname Then
+            If RequiresRealName AndAlso Not NaidProfile.IsRealNamed Then
                 Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
                 Return False
             End If
@@ -275,7 +274,7 @@ Public Module ModLink
             Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return False
         End If
-        If EasyTierController.Precheck() = 1 Then
+        If ETController.Precheck() = 1 Then
             Hint("正在下载联机依赖组件，请稍后...")
             DownloadEasyTier()
             Return False
@@ -302,8 +301,8 @@ Public Module ModLink
     Public Function NetTestET()
         Dim ETCliProcess As New Process With {
                                    .StartInfo = New ProcessStartInfo With {
-                                       .FileName = $"{ETPath}\easytier-cli.exe",
-                                       .WorkingDirectory = ETPath,
+                                       .FileName = $"{ETInfoProvider.ETPath}\easytier-cli.exe",
+                                       .WorkingDirectory = ETInfoProvider.ETPath,
                                        .Arguments = "stun",
                                        .ErrorDialog = False,
                                        .CreateNoWindow = True,

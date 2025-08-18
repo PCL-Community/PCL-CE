@@ -1,12 +1,9 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
-Imports System.Windows.Threading
 Imports PCL.Core.Link
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
-Imports PCL.Core.Link.EasyTier.EasyTierRelay
-Imports PCL.Core.Link.EasyTier.EasyTierController
-Imports PCL.Core.Link.EasyTier.EasyTierInfoProvider
+Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
@@ -81,7 +78,7 @@ Public Class PageLinkLobby
         IsLoading = False
     End Sub
     Private Function IsEasyTierExists()
-        Return File.Exists(ETPath & "\easytier-core.exe") AndAlso File.Exists(ETPath & "\easytier-cli.exe") AndAlso File.Exists(ETPath & "\wintun.dll")
+        Return File.Exists(ETInfoProvider.ETPath & "\easytier-core.exe") AndAlso File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") AndAlso File.Exists(ETInfoProvider.ETPath & "\wintun.dll")
     End Function
 #End Region
 
@@ -91,8 +88,8 @@ Public Class PageLinkLobby
         New LoaderTask(Of Integer, Integer)("检查 EasyTier 文件", AddressOf InitFileCheck) With {.ProgressWeight = 0.5}
     })
     Private Shared Sub InitFileCheck(Task As LoaderTask(Of Integer, Integer))
-        If Not File.Exists(ETPath & "\easytier-core.exe") OrElse Not File.Exists(ETPath & "\Packet.dll") OrElse
-            Not File.Exists(ETPath & "\easytier-cli.exe") OrElse Not File.Exists(ETPath & "\wintun.dll") Then
+        If Not File.Exists(ETInfoProvider.ETPath & "\easytier-core.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\Packet.dll") OrElse
+            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\wintun.dll") Then
             Log("[Link] EasyTier 不存在，开始下载")
             DownloadEasyTier()
         Else
@@ -178,7 +175,7 @@ Public Class PageLinkLobby
                     IsLobbyAvailable = Jobj("available")
                     AllowCustomName = Jobj("allowCustomName")
                     RequiresLogin = Jobj("requireLogin")
-                    RequiresRealname = Jobj("requireRealname")
+                    RequiresRealName = Jobj("requireRealname")
                     If Not Val(Jobj("version")) = AllowedVersion Then
                         RunInUi(
                             Sub()
@@ -208,9 +205,9 @@ Public Class PageLinkLobby
                     End If
                     '中继服务器
                     Dim Relays As JArray = Jobj("relays")
-                    RelayList = New List(Of ETRelay)
+                    ETRelay.RelayList = New List(Of ETRelay)
                     For Each Relay In Relays
-                        RelayList.Add(New ETRelay With {
+                        ETRelay.RelayList.Add(New ETRelay With {
                             .Name = Relay("name").ToString(),
                             .Url = Relay("url").ToString(),
                             .Type = If(Relay("type") = "official", ETRelayType.Selfhosted, ETRelayType.Community)
@@ -315,7 +312,7 @@ Public Class PageLinkLobby
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount As Integer = 0
-                           While CheckETStatus().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
+                           While ETInfoProvider.CheckETStatus().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
                                retryCount += GetETInfo()
                                If RequiresLogin AndAlso String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
@@ -332,7 +329,7 @@ Public Class PageLinkLobby
     'EasyTier Cli 信息获取
     Private Function GetETInfo(Optional RemainRetry As Integer = 8) As Integer
         Try
-            Dim info = GetPlayerList()
+            Dim info = ETInfoProvider.GetPlayerList()
             Dim playerList = info.Item1
             Dim localInfo = info.Item2
             If playerList Is Nothing OrElse Not playerList(0).IsHost OrElse localInfo Is Nothing Then
@@ -395,11 +392,11 @@ Public Class PageLinkLobby
             End If
 
             '加入方刷新连接信息
-            Dim etStatus = EasyTierStatus
+            Dim etStatus = ETController.Status
             RunInUi(Sub()
-                        If Not etStatus = EasyTierState.Ready AndAlso Not hostInfo.Ping = 200 Then
-                            etStatus = EasyTierState.Ready
-                        ElseIf Not etStatus = EasyTierState.Ready AndAlso hostInfo.Ping = 200 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                        If Not etStatus = ETState.Ready AndAlso Not hostInfo.Ping = 200 Then
+                            etStatus = ETState.Ready
+                        ElseIf Not etStatus = ETState.Ready AndAlso hostInfo.Ping = 200 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
                             hostInfo.Ping = 0
                         End If
                         LabFinishPing.Text = hostInfo.Ping.ToString() & "ms"
@@ -410,7 +407,7 @@ Public Class PageLinkLobby
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
                         For Each Player In playerList
-                            If Not etStatus = EasyTierState.Ready AndAlso Player.Ping = 1000 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                            If Not etStatus = ETState.Ready AndAlso Player.Ping = 1000 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
                             Dim NewItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(NewItem)
                         Next
@@ -420,8 +417,8 @@ Public Class PageLinkLobby
             Return 0
         Catch ex As Exception
             Log(ex, "[Link] EasyTier Cli 线程异常")
+            If ETController.Status = ETState.Stopped Then LobbyController.Close()
             Return 1
-            If EasyTierStatus = EasyTierState.Stopped Then LobbyController.Close()
         End Try
     End Function
     Private Sub PasteLobbyId() Handles BtnPaste.Click
@@ -485,7 +482,7 @@ Public Class PageLinkLobby
                            End If
 
                            Dim retryCount As Integer = 0
-                           While EasyTierStatus = EasyTierState.Stopped
+                           While ETController.Status = ETState.Stopped
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
                                If retryCount > 10 Then
@@ -557,7 +554,7 @@ Public Class PageLinkLobby
                            End If
 
                            Dim retryCount As Integer = 0
-                           While EasyTierStatus = EasyTierState.Stopped
+                           While ETController.Status = ETState.Stopped
                                Thread.Sleep(300)
                                If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
                                If retryCount > 10 Then
