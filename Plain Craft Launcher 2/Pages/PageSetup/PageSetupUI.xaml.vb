@@ -79,7 +79,7 @@ Public Class PageSetupUI
             SliderLauncherSat.Value = Setup.Get("UiLauncherSat")
             SliderLauncherDelta.Value = Setup.Get("UiLauncherDelta")
             SliderLauncherLight.Value = Setup.Get("UiLauncherLight")
-            If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
+            'If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")

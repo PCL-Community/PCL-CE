@@ -917,7 +917,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Exit Sub
         End Select
         If AnnouncementDesire <= 1 Then
-            Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|").ToList()
+            Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList()
             Dim ShowAnnounce = RemoteServer.GetAnnouncementList().content.Where(Function(x) Not ShowedAnnounced.Contains(x.id)).ToList()
             Log("[System] 需要展示的公告数量：" + ShowAnnounce.Count.ToString())
             RunInNewThread(Sub()
@@ -934,7 +934,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                    Button2Action:=Sub()
                                                       TryStartEvent(item.btn2.command, item.btn2.command_paramter)
                                                   End Sub
-)
+                                    )
                                Next
                            End Sub)
             ShowedAnnounced.AddRange(ShowAnnounce.Select(Function(x) x.id).ToList())
