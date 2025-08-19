@@ -1,5 +1,7 @@
 Imports System.IO.Compression
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Net
+Imports System.Net.Http
 
 Public Module ModDownloadLib
 
@@ -683,7 +685,14 @@ pause"
             '官方源
             Dim PageData As String
             Try
-                PageData = NetGetCodeByClient("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, New UTF8Encoding(False), 15000, "text/html", True)
+                PageData = HttpRequestBuilder.
+                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, HttpMethod.Get).
+                    WithHeader("Accept", "text/html").
+                    WithHeader("Accept-Language", "en-US,en;q=0.5").
+                    WithHeader("X-Requested-With", "XMLHttpRequest").
+                    SendAsync(True).
+                    Result.
+                    AsStringContent()
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))
                 Log("[Download] OptiFine " & DownloadInfo.NameDisplay & " 官方下载地址：" & Sources.Last)
@@ -846,7 +855,14 @@ Retry:
             '官方源
             Dim PageData As String
             Try
-                PageData = NetGetCodeByClient("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, New UTF8Encoding(False), 15000, "text/html", True)
+                PageData = HttpRequestBuilder.
+                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, HttpMethod.Get).
+                    WithHeader("Accept", "text/html").
+                    WithHeader("Accept-Language", "en-US,en;q=0.5").
+                    WithHeader("X-Requested-With", "XMLHttpRequest").
+                    SendAsync(True).
+                    Result.
+                    AsStringContent()
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))
                 Log("[Download] OptiFine " & DownloadInfo.NameDisplay & " 官方下载地址：" & Sources.Last)

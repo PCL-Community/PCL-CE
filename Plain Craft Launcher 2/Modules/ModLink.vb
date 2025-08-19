@@ -839,7 +839,7 @@ PortRetry:
     Private BoardcastClient As Socket
     Private IsMcPortForwardRunning As Boolean = False
     Private PortForwardRetryTimes As Integer = 0
-    Public Async Sub McPortForward(remoteIp As String, Optional remotePort As Integer = 25565, Optional desc As String = "§ePCL CE 局域网广播", Optional isRetry As Boolean = False)
+    Public Sub McPortForward(remoteIp As String, Optional remotePort As Integer = 25565, Optional desc As String = "§ePCL CE 局域网广播", Optional isRetry As Boolean = False)
         If IsMcPortForwardRunning Then Exit Sub
         If isRetry Then PortForwardRetryTimes += 1
         Log($"[Link] 开始 MC 端口转发，远程 IP: {remoteIp}, 远程端口: {remotePort}")
