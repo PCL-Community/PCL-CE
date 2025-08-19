@@ -1,0 +1,27 @@
+﻿<local:MyPageRight x:Class="PageInstanceServer"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:local="clr-namespace:PCL"
+      mc:Ignorable="d">
+    
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" x:Name="PanScroll">
+        <StackPanel Margin="10,25,10,10">
+            <!-- 页面标题 -->
+            <local:MyCard Title="服务器管理" Margin="15,0,15,15">
+                <StackPanel Margin="25,40,23,15">
+                    <TextBlock Text="管理游戏内保存的服务器信息，支持查看服务器状态、快速连接、地址复制等功能。"
+                               Foreground="{DynamicResource ColorBrush2}" FontSize="13" />
+                </StackPanel>
+            </local:MyCard>
+            
+            <!-- 服务器列表 -->
+            <StackPanel x:Name="PanServers" Margin="15,0,15,15">
+                <!-- 服务器项目将动态添加到这里 -->
+            </StackPanel>
+            
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>
+

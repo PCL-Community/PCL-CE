@@ -119,7 +119,7 @@ Class MinecraftServer
         )
     End Sub
 
-    Private Shared Async Function GetReachableAddressAsync(address As String) As Task(Of (Ip As String, Port As Integer))
+    Public Shared Async Function GetReachableAddressAsync(address As String) As Task(Of (Ip As String, Port As Integer))
         ' 输入验证
         If String.IsNullOrWhiteSpace(address) Then
             Throw New ArgumentException("服务器地址不能为空")
