@@ -74,6 +74,7 @@ Public Class PageLoginAuth
             Dim serverName As String = Nothing
             Try
                 serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
+                If serverUri Is Nothing Then Throw New NullReferenceException("找不到 Api 指示标头")
                 Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
                 serverName = JObject.Parse(response)("meta")("serverName").ToString()
             Catch ex As Exception
