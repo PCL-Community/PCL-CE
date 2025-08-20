@@ -3,6 +3,7 @@ Imports System.Threading.Tasks
 Imports fNbt
 Imports PCL.Core.IO
 Imports PCL.Core.Link
+Imports PCL.Core.Net
 
 Public Class PageInstanceServer
     Inherits MyPageRight
@@ -143,7 +144,7 @@ Public Class PageInstanceServer
     ''' ping单个服务器
     ''' </summary>
     Public Async Shared Function PingServer(server As MinecraftServerInfo) As Task(of MinecraftServerInfo)
-        Dim addr = Await MinecraftServer.GetReachableAddressAsync(server.Address)
+        Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(server.Address)
         
         Try
             ' Ping服务器

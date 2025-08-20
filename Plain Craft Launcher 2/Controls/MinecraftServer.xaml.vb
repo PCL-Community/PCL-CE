@@ -2,6 +2,7 @@
 Imports System.Net.Sockets
 Imports System.Threading.Tasks
 Imports PCL.Core.Link
+Imports PCL.Core.Net
 
 Class MinecraftServer
     Inherits Grid
@@ -38,7 +39,7 @@ Class MinecraftServer
 
         Try
             ' 获取可达地址（DNS解析）
-            Dim addr = Await GetReachableAddressAsync(address)
+            Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(address)
 
             ' Ping服务器
             Using query = New McPing(addr.Ip, addr.Port)
@@ -118,75 +119,4 @@ Class MinecraftServer
             New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
         )
     End Sub
-
-    Public Shared Async Function GetReachableAddressAsync(address As String) As Task(Of (Ip As String, Port As Integer))
-        ' 输入验证
-        If String.IsNullOrWhiteSpace(address) Then
-            Throw New ArgumentException("服务器地址不能为空")
-        End If
-
-        ' 移除协议头（如果存在）
-        address = address.Replace("http://", "").Replace("https://", "")
-
-        ' 情况1: 纯IP:端口
-        If address.Contains(":") Then
-            Dim parts = address.Split(":"c)
-            If parts.Length <> 2 OrElse Not Integer.TryParse(parts(1), Nothing) Then
-                Throw New FormatException("无效的端口格式")
-            End If
-            Return (parts(0), Integer.Parse(parts(1)))
-        End If
-
-        ' 情况2: 纯IP (IPv4/IPv6)
-        If IPAddress.TryParse(address, Nothing) Then
-            Return (address, 25565)
-        End If
-
-        ' 情况3: 域名 (尝试SRV查询)
-        Try
-            Log($"尝试SRV查询: _minecraft._tcp.{address}")
-            Dim srvRecords = Await ResolveSrvRecordsAsync(address)
-
-            If srvRecords.Any() Then
-                Dim ret = ParseSrvRecord(srvRecords(0))
-                Return ret
-            End If
-        Catch ex As SocketException
-            Log(ex, "SRV查询失败 (网络错误)")
-        Catch ex As Exception
-            Log(ex, "SRV查询异常")
-        End Try
-
-        ' 默认: 直接使用域名+默认端口
-        Return (address, 25565)
-    End Function
-
-    Private Shared Async Function ResolveSrvRecordsAsync(domain As String) As Task(Of IEnumerable(Of String))
-        Return Await Task.Run(Function()
-                                  Try
-                                      Return nDnsQuery.GetSRVRecords($"_minecraft._tcp.{domain}")
-                                  Catch
-                                      Return Enumerable.Empty(Of String)()
-                                  End Try
-                              End Function)
-    End Function
-
-    Private Shared Function ParseSrvRecord(record As String) As (Host As String, Port As Integer)
-        ' 标准SRV格式: 优先级 权重 端口 主机
-        ' 但nDnsQuery返回格式可能不同，按原逻辑处理
-        Dim parts = record.Split({" "c}, StringSplitOptions.RemoveEmptyEntries)
-        If parts.Length >= 3 Then
-            Return (parts(3), Integer.Parse(parts(2)))
-        End If
-
-        ' 回退到原处理逻辑
-        parts = record.Split(":"c)
-        If parts.Length = 2 Then
-            Return (parts(0), Integer.Parse(parts(1)))
-        ElseIf parts.Length = 1 Then
-            Return (parts(0), 25565)
-        Else
-            Throw New FormatException("无效的SRV记录格式")
-        End If
-    End Function
 End Class
