@@ -6,6 +6,7 @@ Imports System.Threading.Tasks
 Imports PCL.Core.App
 
 Imports PCL.Core.IO
+Imports PCL.Core.Net
 
 Public Class PageOtherTest
     Public Sub New()
@@ -527,11 +528,11 @@ Public Class PageOtherTest
     End Sub
     
     Private Async Function LoadImageAsync(imageUrl As String) As Task
-        Using client As New HttpClient
+        Using client = NetworkService.GetClient() 
             Try
                 Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
                 If response.IsSuccessStatusCode Then
-                    Using stream As IO.Stream = Await response.Content.ReadAsStreamAsync()
+                    Using stream As Stream = Await response.Content.ReadAsStreamAsync()
                         Dim bitmapImage As New BitmapImage()
                         bitmapImage.BeginInit()
                         bitmapImage.CacheOption = BitmapCacheOption.OnLoad
@@ -570,7 +571,7 @@ Public Class PageOtherTest
     
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
-        Using client As New HttpClient()
+        Using client = NetworkService.GetClient()
             Try
                 ' 异步发送 GET 请求
                 Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
