@@ -23,7 +23,7 @@
             <RowDefinition Height="18" />
             <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
-        <!-- Logo -->
+        <!-- Icon -->
         <Border Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" IsHitTestVisible="False" SnapsToDevicePixels="True" UseLayoutRounding="True" 
             HorizontalAlignment="Right" VerticalAlignment="Center" Width="34" Height="34">
             <Border.Clip>
@@ -35,13 +35,15 @@
         <TextBlock Grid.Column="3" Grid.Row="1" VerticalAlignment="Bottom" x:Name="ServerName" TextTrimming="CharacterEllipsis" FontSize="14"
                    HorizontalAlignment="Left"
                    SnapsToDevicePixels="False" UseLayoutRounding="False" MaxWidth="145"/>
-        <!-- Tag 与 详情 -->
-        <!--<TextBlock x:Name="ServerPlayer" Grid.Column="1" HorizontalAlignment="Left"
-                   TextTrimming="CharacterEllipsis" FontSize="12" 
-                   Foreground="{DynamicResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Bottom" />-->
-        <TextBlock x:Name="ServerPing" Grid.Row="2" Grid.Column="3" VerticalAlignment="Bottom" Margin="0,0,3,1"
-                   TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource ColorBrushGray4}"
-                   IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False" />
+        <!-- ping 值与玩家人数 -->
+        <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+            <Image RenderOptions.BitmapScalingMode="HighQuality" Width="20" Height="20" x:Name="Signal" VerticalAlignment="Center"/>
+            <TextBlock x:Name="ServerPlayer" HorizontalAlignment="Left" 
+                       TextTrimming="CharacterEllipsis" FontSize="12" 
+                       Foreground="{DynamicResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center" />
+        </StackPanel>
+        
+        <!-- MotD -->
         <TextBlock Grid.Row="1" x:Name="ServerMotD" Grid.RowSpan="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,1"
                    TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource ColorBrushGray4}"
                    IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False" HorizontalAlignment="Center" />

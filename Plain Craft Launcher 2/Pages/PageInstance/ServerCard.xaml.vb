@@ -1,4 +1,6 @@
-﻿Public Class ServerCard
+﻿Imports System.Windows.Controls.Primitives
+
+Public Class ServerCard
     Dim _server As MinecraftServerInfo
     
     Private Sub BtnSkin_Click(sender As Object, e As RoutedEventArgs) Handles BtnSetting.Click
@@ -28,13 +30,37 @@
             SetDefaultLogo()
         End If
         If _server.Status  = ServerStatus.Online
-            ServerPing.Text = _server.Ping
+            Signal.Source = New BitmapImage(New Uri("/Images/Icons/" & GetSignalIcon(_server.Ping), UriKind.Relative))
+            Signal.ToolTip = _server.Ping.ToString() & "ms"
+            ToolTipService.SetPlacement(Signal, PlacementMode.Top)
+            
+            If _server.PlayerCount <> Nothing AndAlso _server.MaxPlayers <> Nothing Then
+                ServerPlayer.Text = $"{_server.PlayerCount} / {_server.MaxPlayers}"
+            Else
+                ServerPlayer.Text = "???"
+            End If
+            
             MinecraftFormatter.SetColorfulTextLab(
                 _server.Description,
                 ServerMotD
             )
         End If
     End Sub
+    
+    Private Function GetSignalIcon(ping As Integer) As String
+        Select Case ping
+            Case 0 To 99
+                Return "signal_5.png" ' 5 条信号
+            Case 100 To 299
+                Return "signal_4.png" ' 4 条信号
+            Case 300 To 599
+                Return "signal_3.png" ' 3 条信号
+            Case 600 To 999
+                Return "signal_2.png" ' 2 条信号
+            Case Else
+                Return "signal_1.png" ' 1 条信号
+        End Select
+    End Function
     
     Private Async Function SetServerLogoAsync(base64String As String) As Task
         Try
