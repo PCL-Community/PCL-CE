@@ -137,20 +137,14 @@ Public Class ServerCard
     ''' 连接到服务器
     ''' </summary>
     Private Sub BtnConnect_Click(sender As Object, e As EventArgs)
-        Dim server As MinecraftServerInfo = sender.Tag
         Try
-            ' 使用PCL的启动逻辑，参考实例设置中的自动进入服务器选项
-            Dim launchArgs As String = $"--server {server.Address} --port {server.Port}"
-            
-            ' 这里需要调用PCL的启动游戏功能
-            ' 具体实现需要参考现有的启动代码
-            Hint($"正在连接到服务器 {server.Name}...", HintType.Info)
-            
-            ' TODO: 实现实际的游戏启动逻辑
-            
+            Dim launchOptions As New McLaunchOptions With {.ServerIp = _server.Address}
+            McLaunchStart(LaunchOptions)
+            FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+            Hint($"正在连接到服务器 {_server.Name}...", HintType.Info)
         Catch ex As Exception
-            Log(ex, "连接服务器失败", LogLevel.Feedback)
-            Hint("连接服务器失败：" & ex.Message, HintType.Critical)
+            Log(ex, "启动服务器失败", LogLevel.Feedback)
+            Hint("启动服务器失败：" & ex.Message, HintType.Critical)
         End Try
     End Sub
     

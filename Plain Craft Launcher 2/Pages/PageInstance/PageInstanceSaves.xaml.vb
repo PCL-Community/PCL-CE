@@ -156,7 +156,7 @@ Public Class PageInstanceSaves
                 AddHandler BtnLaunch.Click, Sub()
                                                 Dim WorldName = GetFileNameFromPath(curFolder)
                                                 Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
-                                                ModLaunch.McLaunchStart(LaunchOptions)
+                                                McLaunchStart(LaunchOptions)
                                                 FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
                                             End Sub
                 If QuickPlayFeature Then
