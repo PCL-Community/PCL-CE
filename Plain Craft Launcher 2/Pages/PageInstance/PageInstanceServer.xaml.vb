@@ -27,21 +27,20 @@ Public Class PageInstanceServer
     End Sub
 
     Public Sub RefreshServers()
-        RunInNewThread(Async Sub()
-            Try
-                ' 读取服务器信息
-                LoadServersFromFile()
+        Log("Refreshing server list...")
+        Try
+            ' 读取服务器信息
+            LoadServersFromFile()
 
-                ' 在UI线程中更新界面
-                RunInUi(Sub() UpdateServerUi())
+            ' 在UI线程中更新界面
+            RunInUi(Sub() UpdateServerUi())
 
-                ' 异步ping所有服务器
-                Await PingAllServers()
-            Catch ex As Exception
-                Log(ex, "刷新服务器列表失败", LogLevel.Feedback)
-                RunInUi(Sub() Hint("刷新服务器列表失败：" & ex.Message, HintType.Critical))
-            End Try
-        End Sub, "RefreshServers")
+            ' 异步ping所有服务器
+            PingAllServers()
+        Catch ex As Exception
+            Log(ex, "刷新服务器列表失败", LogLevel.Feedback)
+            RunInUi(Sub() Hint("刷新服务器列表失败：" & ex.Message, HintType.Critical))
+        End Try
     End Sub
 
     ''' <summary>
@@ -123,11 +122,13 @@ Public Class PageInstanceServer
     ''' <summary>
     ''' 异步ping所有服务器
     ''' </summary>
-    Private Async Function PingAllServers() As Task
-        For Each server In _serverCardList.Values
-            Await server.RefreshServerStatus(False)
-        Next
-    End Function
+    Private Sub PingAllServers()
+        Task.Run(Async Function() 
+            For Each server In _serverCardList.Values
+                Await server.RefreshServerStatus(False) 
+            Next
+        End Function)
+    End Sub
 
     ''' <summary>
     ''' ping单个服务器

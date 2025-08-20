@@ -44,6 +44,15 @@ Public Class ServerCard
                 _server.Description,
                 ServerMotD
             )
+        Else If _server.Status = ServerStatus.Pinging
+            Signal.Source = New BitmapImage(New Uri("/Images/Icons/loading.png", UriKind.Relative))
+            ServerPlayer.Text = "正在连接"
+            ServerMotD.Text = "正在连接..."
+        Else If _server.Status = ServerStatus.Offline
+            Signal.Source = New BitmapImage(New Uri("/Images/Icons/signal_offline.png", UriKind.Relative))
+            Signal.ToolTip = "服务器离线"
+            ServerPlayer.Text = "离线"
+            ServerMotD.Text = "服务器离线"
         End If
     End Sub
     
@@ -101,6 +110,8 @@ Public Class ServerCard
         If withHint Then
             Hint($"正在刷新服务器 {_server.Name} 的状态...", HintType.Info)
         End If
+        _server.Status = ServerStatus.Pinging
+        RunInUi(Sub() UpdateServerUi())
         Dim server = Await PageInstanceServer.PingServer(_server)
         UpdateServerInfo(server)
     End Function

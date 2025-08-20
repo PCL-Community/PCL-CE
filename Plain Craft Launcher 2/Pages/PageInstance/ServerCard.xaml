@@ -40,7 +40,7 @@
             <Image RenderOptions.BitmapScalingMode="HighQuality" Width="20" Height="20" x:Name="Signal" VerticalAlignment="Center"/>
             <TextBlock x:Name="ServerPlayer" HorizontalAlignment="Left" 
                        TextTrimming="CharacterEllipsis" FontSize="12" 
-                       Foreground="{DynamicResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource ColorBrushGray3}" Opacity="0.4" VerticalAlignment="Center" />
         </StackPanel>
         
         <!-- MotD -->

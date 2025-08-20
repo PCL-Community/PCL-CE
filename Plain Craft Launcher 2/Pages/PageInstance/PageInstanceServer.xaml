@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:PCL"
       mc:Ignorable="d">
     
-    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" x:Name="PanScroll">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" x:Name="PanBack">
         <StackPanel Margin="10,25,10,10">
             <!-- 页面标题 -->
             <local:MyCard Title="服务器管理" Margin="15,0,15,15">
