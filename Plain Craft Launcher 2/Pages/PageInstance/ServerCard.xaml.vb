@@ -50,7 +50,6 @@ Public Class ServerCard
             ServerMotD.Text = "正在连接..."
         Else If _server.Status = ServerStatus.Offline
             Signal.Source = New BitmapImage(New Uri("/Images/Icons/signal_offline.png", UriKind.Relative))
-            Signal.ToolTip = "服务器离线"
             ServerPlayer.Text = "离线"
             ServerMotD.Text = "服务器离线"
         End If
