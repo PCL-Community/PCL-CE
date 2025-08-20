@@ -7,7 +7,7 @@ Public Class PageInstanceServer
     Inherits MyPageRight
 
     Private _serverList As New List(Of MinecraftServerInfo)
-    Private _serverCardList As New Dictionary(Of String, ServerCard)
+    Private Shared _serverCardList As New Dictionary(Of String, ServerCard)
 
     Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
         _serverList.Clear()
@@ -25,6 +25,15 @@ Public Class PageInstanceServer
             End Function)
         Next
     End Sub
+    
+    Public Shared Function GetServerIndex(serverCard) As Integer
+        ' 查找服务器在列表中的索引
+        Return _serverCardList.Values.ToList().IndexOf(serverCard)
+    End Function
+
+    ''' <summary>
+    ''' 刷新服务器列表
+    ''' </summary>
 
     Public Sub RefreshServers()
         Log("Refreshing server list...")
@@ -55,9 +64,7 @@ Public Class PageInstanceServer
         Try
             ' 读取NBT格式的servers.dat文件
             Dim nbtData = ReadNBTFile(serversFile)
-            If nbtData IsNot Nothing Then
-                ParseServersFromNBT(nbtData)
-            End If
+            ParseServersFromNBT(nbtData)
         Catch ex As Exception
             Log(ex, "读取servers.dat文件失败", LogLevel.Debug)
         End Try
@@ -66,16 +73,16 @@ Public Class PageInstanceServer
     ''' <summary>
     ''' 解析NBT格式的服务器数据
     ''' </summary>
-    Private Sub ParseServersFromNBT(serversList As Object)
+    Private Sub ParseServersFromNBT(serversList As NbtList)
         If serversList IsNot Nothing Then
             Log($"Found {serversList.Count} servers:")
 
             ' 遍历 servers 列表中的每个服务器
-            For i As Integer = 0 To serversList.Count - 1
-                Dim server As NbtCompound = TryCast(serversList(i), NbtCompound)
+            For i = 0 To serversList.Count - 1
+                Dim server = TryCast(serversList(i), NbtCompound)
                 If server IsNot Nothing Then
                     ' 提取服务器信息
-                    Dim hidden As Byte = If(server.Get(Of NbtByte)("hidden")?.Value, 0)
+                    ' Dim hidden As Byte = If(server.Get(Of NbtByte)("hidden")?.Value, 0)
                     Dim ip As String = If(server.Get(Of NbtString)("ip")?.Value, "Unknown")
                     Dim name As String = If(server.Get(Of NbtString)("name")?.Value, "Unknown")
                     Dim iconBase64 As String = server.Get(Of NbtString)("icon")?.Value
@@ -83,7 +90,7 @@ Public Class PageInstanceServer
                     Log(vbCrLf & $"Server {i + 1}:")
                     Log($"  Name: {name}")
                     Log($"  IP: {ip}")
-                    Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
+                    ' Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
                     _serverList.Add(New MinecraftServerInfo With {
                                        .Name = name,
                                        .Address = ip,
@@ -163,10 +170,9 @@ Public Class PageInstanceServer
     ''' <summary>
     ''' 简化的NBT文件读取
     ''' </summary>
-    Private Function ReadNBTFile(filePath As String) As Object
+    Public Shared Function ReadNBTFile(filePath As String) As NbtList
         ' TODO: 实现实际的NBT读取逻辑
-        Dim saveDatPath = IO.Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")
-        Using fs As New FileStream(saveDatPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+        Using fs As New FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)
             Dim saveInfo as New NbtFile()
             saveInfo.LoadFromStream(fs, NbtCompression.AutoDetect)
             ' 获取根节点的 "servers" 列表（TAG_List）
@@ -174,8 +180,34 @@ Public Class PageInstanceServer
 
             return serversList
         End Using
-        Return Nothing
     End Function
+    
+    ''' <summary>
+    ''' 简化的NBT文件写入
+    ''' </summary>
+    ''' <param name="serversList">要写入文件的 NbtList 列表</param>
+    ''' <param name="filePath">目标文件路径</param>
+    Public Shared Sub WriteNBTFile(serversList As NbtList, filePath As String)
+        ' 创建一个根节点（TAG_Compound）
+        Dim rootTag As New NbtCompound()
+        rootTag.Name = "" ' 设置为空字符串，这是 NBT 文件的约定
+    
+        ' 将传入的 NbtList 添加到根节点，并命名为 "servers"
+        rootTag.Add(serversList)
+    
+        ' 创建一个 NbtFile 实例
+        Dim nbtFile As New NbtFile(rootTag)
+    
+        ' 将文件保存到磁盘
+        ' 使用 Using 确保 FileStream 在写入完毕后被正确释放
+        Using fs As New FileStream(filePath, FileMode.Create, FileAccess.Write)
+            ' 将 NbtFile 写入流，并指定压缩类型
+            nbtFile.SaveToStream(fs, NbtCompression.GZip)
+        End Using
+    
+        ' 可以在此处添加日志或成功消息
+        Console.WriteLine($"NBT file saved successfully at: {filePath}")
+    End Sub
 
 End Class
 

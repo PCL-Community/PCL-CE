@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Controls.Primitives
+Imports fNbt
 Imports PCL.Core.UI
 
 Public Class ServerCard
@@ -176,39 +177,37 @@ Public Class ServerCard
     ''' 编辑服务器信息
     ''' </summary>
     Private Sub BtnEdit_Click(sender As Object, e As RoutedEventArgs)
-        Dim server As MinecraftServerInfo = sender.Tag
         Try
-            Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name)
+            Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", _server.Name)
             If String.IsNullOrEmpty(newName) Then Return
             
             Dim newAddress As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", 
-                server.Address & If(server.Port <> 25565, ":" & server.Port, ""))
+                _server.Address)
             If String.IsNullOrEmpty(newAddress) Then Return
             
-            ' 解析地址和端口
-            Dim addressParts = newAddress.Split(":"c)
-            server.Name = newName
-            server.Address = addressParts(0)
-            server.Port = If(addressParts.Length > 1, Integer.Parse(addressParts(1)), 25565)
+            Dim nbtData = PageInstanceServer.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat")
+            If nbtData IsNot Nothing Then
+                Dim index = PageInstanceServer.GetServerIndex(Me)
+                Dim server = TryCast(nbtData(index), NbtCompound)
+                If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
+                   server.Get(Of NbtString)("ip").Value = _server.Address Then
+                    server("name") = New NbtString("name", newName)
+                    server("ip") = New NbtString("ip", newAddress)
+                    Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
+                    PageInstanceServer.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                    ' 更改地址和端口
+                    _server.Name = newName
+                    _server.Address = newAddress
             
-            ' 保存到文件
-            SaveServersToFile()
+                    ' 刷新UI
+                    RunInUi(Sub() UpdateServerUi())
             
-            ' 刷新UI
-            RunInUi(Sub() UpdateServerUi())
-            
-            Hint("服务器信息已更新", HintType.Finish)
+                    Hint("服务器信息已更新", HintType.Finish)
+                End If
+            End If
         Catch ex As Exception
             Log(ex, "编辑服务器信息失败", LogLevel.Feedback)
             Hint("编辑服务器信息失败：" & ex.Message, HintType.Critical)
         End Try
-    End Sub
-    
-    ''' <summary>
-    ''' 保存服务器信息到文件
-    ''' </summary>
-    Private Sub SaveServersToFile()
-        ' TODO: 实现保存到servers.dat文件的逻辑
-        ' 这需要NBT写入功能
     End Sub
 End Class
