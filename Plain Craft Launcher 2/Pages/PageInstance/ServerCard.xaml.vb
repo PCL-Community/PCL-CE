@@ -1,5 +1,6 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports fNbt
+Imports PCL.Core.IO
 Imports PCL.Core.UI
 
 Public Class ServerCard
@@ -185,7 +186,7 @@ Public Class ServerCard
                 _server.Address)
             If String.IsNullOrEmpty(newAddress) Then Return
             
-            Dim nbtData = PageInstanceServer.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat")
+            Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData IsNot Nothing Then
                 Dim index = PageInstanceServer.GetServerIndex(Me)
                 Dim server = TryCast(nbtData(index), NbtCompound)
@@ -194,7 +195,7 @@ Public Class ServerCard
                     server("name") = New NbtString("name", newName)
                     server("ip") = New NbtString("ip", newAddress)
                     Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
-                    PageInstanceServer.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                    NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
                     ' 更改地址和端口
                     _server.Name = newName
                     _server.Address = newAddress

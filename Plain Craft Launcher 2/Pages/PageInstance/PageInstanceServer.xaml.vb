@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.Threading.Tasks
 Imports fNbt
+Imports PCL.Core.IO
 Imports PCL.Core.Link
 
 Public Class PageInstanceServer
@@ -63,7 +64,7 @@ Public Class PageInstanceServer
 
         Try
             ' 读取NBT格式的servers.dat文件
-            Dim nbtData = ReadNBTFile(serversFile)
+            Dim nbtData = NbtFileHandler.ReadNbtFile(serversFile, "servers")
             ParseServersFromNBT(nbtData)
         Catch ex As Exception
             Log(ex, "读取servers.dat文件失败", LogLevel.Debug)
@@ -166,49 +167,6 @@ Public Class PageInstanceServer
         End Try
         Return server
     End Function
-    
-    ''' <summary>
-    ''' 简化的NBT文件读取
-    ''' </summary>
-    Public Shared Function ReadNBTFile(filePath As String) As NbtList
-        ' TODO: 实现实际的NBT读取逻辑
-        Using fs As New FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)
-            Dim saveInfo as New NbtFile()
-            saveInfo.LoadFromStream(fs, NbtCompression.AutoDetect)
-            ' 获取根节点的 "servers" 列表（TAG_List）
-            Dim serversList As NbtList = saveInfo.RootTag.Get(Of NbtList)("servers")
-
-            return serversList
-        End Using
-    End Function
-    
-    ''' <summary>
-    ''' 简化的NBT文件写入
-    ''' </summary>
-    ''' <param name="serversList">要写入文件的 NbtList 列表</param>
-    ''' <param name="filePath">目标文件路径</param>
-    Public Shared Sub WriteNBTFile(serversList As NbtList, filePath As String)
-        ' 创建一个根节点（TAG_Compound）
-        Dim rootTag As New NbtCompound()
-        rootTag.Name = "" ' 设置为空字符串，这是 NBT 文件的约定
-    
-        ' 将传入的 NbtList 添加到根节点，并命名为 "servers"
-        rootTag.Add(serversList)
-    
-        ' 创建一个 NbtFile 实例
-        Dim nbtFile As New NbtFile(rootTag)
-    
-        ' 将文件保存到磁盘
-        ' 使用 Using 确保 FileStream 在写入完毕后被正确释放
-        Using fs As New FileStream(filePath, FileMode.Create, FileAccess.Write)
-            ' 将 NbtFile 写入流，并指定压缩类型
-            nbtFile.SaveToStream(fs, NbtCompression.GZip)
-        End Using
-    
-        ' 可以在此处添加日志或成功消息
-        Console.WriteLine($"NBT file saved successfully at: {filePath}")
-    End Sub
-
 End Class
 
 ''' <summary>
