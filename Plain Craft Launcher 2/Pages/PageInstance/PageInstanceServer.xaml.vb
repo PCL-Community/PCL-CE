@@ -123,11 +123,12 @@ Public Class PageInstanceServer
     ''' 异步ping所有服务器
     ''' </summary>
     Private Sub PingAllServers()
-        Task.Run(Async Function() 
-            For Each server In _serverCardList.Values
-                Await server.RefreshServerStatus(False) 
-            Next
-        End Function)
+        For Each server In _serverCardList.Values
+            Dim currentServer = server
+            Task.Run(Async Function() 
+                Await currentServer.RefreshServerStatus(False) 
+            End Function)
+        Next
     End Sub
 
     ''' <summary>

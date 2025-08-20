@@ -37,7 +37,8 @@
                    SnapsToDevicePixels="False" UseLayoutRounding="False" MaxWidth="145"/>
         <!-- ping 值与玩家人数 -->
         <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-            <Image RenderOptions.BitmapScalingMode="HighQuality" Width="20" Height="20" x:Name="Signal" VerticalAlignment="Center"/>
+            <ContentPresenter x:Name="Signal" Content="{Binding SelectedIcon.XamlContent}" 
+                              Width="20" Height="20" />
             <TextBlock x:Name="ServerPlayer" HorizontalAlignment="Left" 
                        TextTrimming="CharacterEllipsis" FontSize="12" 
                        Foreground="{DynamicResource ColorBrushGray3}" Opacity="0.4" VerticalAlignment="Center" />
