@@ -5,6 +5,7 @@ Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
 Imports System.Threading.Tasks
+Imports Microsoft.Win32
 Imports Newtonsoft.Json
 Imports PCL.Core.App
 Imports PCL.Core.Logging
@@ -2278,9 +2279,10 @@ RetryDir:
     ''' 返回程序的返回代码，如果运行失败将抛出异常。
     ''' </summary>
     Public Function RunAsAdmin(Argument As String) As Integer
-        Dim NewProcess = Process.Start(New ProcessStartInfo(PathWithName) With {.Verb = "runas", .Arguments = Argument, .UseShellExecute = True})
-        NewProcess.WaitForExit()
-        Return NewProcess.ExitCode
+        Dim newProcess = ProcessInterop.StartAsAdmin(PathWithName, Argument)
+        If newProcess Is Nothing Then Throw New Exception("以管理员权限启动进程失败")
+        newProcess.WaitForExit()
+        Return newProcess.ExitCode
     End Function
 
     Public IsRestrictedFeatAllowed As Boolean = False
@@ -2722,7 +2724,7 @@ NextElement:
                 Throw New Exception(Url & " 不是一个有效的网址，它必须以 http 开头！")
             End If
             Log("[System] 正在打开网页：" & Url)
-            Process.Start(New ProcessStartInfo With {.FileName = Url, .UseShellExecute = True})
+            Basics.OpenPath(Url)
         Catch ex As Exception
             Log(ex, "无法打开网页（" & Url & "）")
             ClipboardSet(Url, False)
