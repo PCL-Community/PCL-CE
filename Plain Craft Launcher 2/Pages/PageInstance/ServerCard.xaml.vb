@@ -169,4 +169,33 @@ Public Class ServerCard
             Hint("编辑服务器信息失败：" & ex.Message, HintType.Critical)
         End Try
     End Sub
+    
+    Private Sub BtnRemove_Click(sender As Object, e As RoutedEventArgs)
+        If MyMsgBox("你确定要移除服务器 " & _server.Name & " 吗？" & vbCrLf & "'" & _server.Address & "' 将从您的列表中移除，包括游戏内列表，且无法恢复。", "移除服务器确认", "确认", "取消") = 1 Then
+            Dim index = PageInstanceServer.GetServerIndex(Me)
+            If index >= 0 Then
+                PageInstanceServer.RemoveServer(Me)
+                
+                ' 更新NBT文件
+                Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+                If nbtData IsNot Nothing Then
+                    Dim server = TryCast(nbtData(index), NbtCompound)
+                    If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
+                       server.Get(Of NbtString)("ip").Value = _server.Address Then
+                        nbtData.RemoveAt(index)
+                        Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
+                        NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                    End If
+                End If
+                
+                Hint("服务器已移除", HintType.Finish)
+                Dim parent = TryCast(Me.Parent, Panel)
+                If parent IsNot Nothing Then
+                    parent.Children.Remove(Me)
+                End If
+            Else
+                Hint("无法找到服务器在列表中的索引", HintType.Critical)
+            End If
+        End If
+    End Sub
 End Class

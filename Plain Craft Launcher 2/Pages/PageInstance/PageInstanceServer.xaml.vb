@@ -8,7 +8,7 @@ Imports PCL.Core.Net
 Public Class PageInstanceServer
     Inherits MyPageRight
 
-    Private _serverList As New List(Of MinecraftServerInfo)
+    Private Shared _serverList As New List(Of MinecraftServerInfo)
     Private Shared _serverCardList As New List(Of ServerCard)
 
     Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
@@ -218,6 +218,16 @@ Public Class PageInstanceServer
         End Try
         Return server
     End Function
+    
+    Public Shared Sub RemoveServer(server As ServerCard)
+        If _serverCardList.Contains(server) Then
+            _serverCardList.Remove(server)
+            Dim index = GetServerIndex(server)
+            If index >= 0 AndAlso index < _serverList.Count Then
+                _serverList.RemoveAt(index)
+            End If
+        End If
+    End Sub
 End Class
 
 ''' <summary>
