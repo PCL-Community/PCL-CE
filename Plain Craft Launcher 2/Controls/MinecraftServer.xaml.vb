@@ -3,9 +3,12 @@ Imports System.Net.Sockets
 Imports System.Threading.Tasks
 Imports PCL.Core.Link
 Imports PCL.Core.Net
+Imports PCL.Core.UI
 
 Class MinecraftServer
     Inherits Grid
+    
+    Dim _fallbackImageUri As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png"
 
     Public Property Address As String
         Get
@@ -35,7 +38,7 @@ Class MinecraftServer
         LabServerDesc.Text = "查询中..."
         LabServerPlayer.Text = "-/-"
         LabServerPlayer.ToolTip = Nothing
-        SetDefaultLogo()
+        ImageLoaderHelper.SetFallbackImage(imgServerLogo, _fallbackImageUri)
 
         Try
             ' 获取可达地址（DNS解析）
@@ -50,11 +53,7 @@ Class MinecraftServer
                 End If
 
                 ' 处理服务器图标
-                If Not String.IsNullOrEmpty(ret.Favicon) Then
-                    Await SetServerLogoAsync(ret.Favicon)
-                Else
-                    SetDefaultLogo()
-                End If
+                Await ImageLoaderHelper.SetServerLogoAsync(ret.Favicon, ImgServerLogo)
 
                 ' 更新UI
                 UpdateServerStatus(ret)
@@ -63,7 +62,7 @@ Class MinecraftServer
             Log(ex, "[MinecraftServer] 信息查询失败")
             LabServerDesc.Text = $"无法连接: {ex.Message}"
             LabServerDesc.Foreground = Brushes.Red
-            SetDefaultLogo()
+            ImageLoaderHelper.SetFallbackImage(ImgServerLogo, _fallbackImageUri)
         End Try
     End Function
 
@@ -86,37 +85,5 @@ Class MinecraftServer
             LabServerPlayer.ToolTip = String.Join(vbCrLf, ret.Players.Samples.Select(Function(x) x.Name))
             ToolTipService.SetPlacement(LabServerPlayer, Primitives.PlacementMode.Mouse)
         End If
-    End Sub
-
-    Private Async Function SetServerLogoAsync(base64String As String) As Task
-        Try
-            ' 提取Base64数据部分
-            Dim base64Data = If(base64String.Contains(","),
-                                base64String.Split(","c)(1),
-                                base64String)
-
-            ' 异步转换图像
-            Dim image = Await Task.Run(Function()
-                Using ms = New MemoryStream(Convert.FromBase64String(base64Data))
-                    Dim bitmap = New BitmapImage()
-                    bitmap.BeginInit()
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad
-                    bitmap.StreamSource = ms
-                    bitmap.EndInit()
-                    bitmap.Freeze() ' 确保跨线程安全
-                    Return bitmap
-                End Using
-            End Function)
-            ImgServerLogo.Source = image
-        Catch ex As Exception
-            Log(ex, "图标解析失败，使用默认图标")
-            SetDefaultLogo()
-        End Try
-    End Function
-
-    Private Sub SetDefaultLogo()
-        ImgServerLogo.Source = New BitmapImage(
-            New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
-        )
     End Sub
 End Class

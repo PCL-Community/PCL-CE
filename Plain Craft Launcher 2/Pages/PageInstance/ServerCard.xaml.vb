@@ -43,7 +43,7 @@ Public Class ServerCard
         ' 更新服务器名称
         ServerName.Text = _server.Name
         If Not String.IsNullOrEmpty(_server.Icon) Then
-            Await SetServerLogoAsync(_server.Icon)
+            Await ImageLoaderHelper.SetServerLogoAsync(_server.Icon, ServerIcon)
         Else
             SetDefaultLogo()
         End If
@@ -87,38 +87,6 @@ Public Class ServerCard
                 Return "signal_1" ' 1 条信号
         End Select
     End Function
-    
-    Private Async Function SetServerLogoAsync(base64String As String) As Task
-        Try
-            ' 提取Base64数据部分
-            Dim base64Data = If(base64String.Contains(","),
-                                base64String.Split(","c)(1),
-                                base64String)
-
-            ' 异步转换图像
-            Dim image = Await Task.Run(Function()
-                Using ms = New MemoryStream(Convert.FromBase64String(base64Data))
-                    Dim bitmap = New BitmapImage()
-                    bitmap.BeginInit()
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad
-                    bitmap.StreamSource = ms
-                    bitmap.EndInit()
-                    bitmap.Freeze() ' 确保跨线程安全
-                    Return bitmap
-                End Using
-            End Function)
-            ServerIcon.Source = image
-        Catch ex As Exception
-            Log(ex, "图标解析失败，使用默认图标")
-            SetDefaultLogo()
-        End Try
-    End Function
-
-    Private Sub SetDefaultLogo()
-        ServerIcon.Source = New BitmapImage(
-            New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png")
-            )
-    End Sub
     
     ''' <summary>
     ''' 刷新服务器状态
