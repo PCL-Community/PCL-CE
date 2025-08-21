@@ -5,7 +5,9 @@ Imports PCL.Core.UI
 
 Public Class ServerCard
     Dim _server As MinecraftServerInfo
-    Dim _manager As IconManager
+    Dim ReadOnly _manager As IconManager
+    
+    Private Const FallbackImageUri As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png"
     
     Public Sub New()
         InitializeComponent()
@@ -45,7 +47,7 @@ Public Class ServerCard
         If Not String.IsNullOrEmpty(_server.Icon) Then
             Await ImageLoaderHelper.SetServerLogoAsync(_server.Icon, ServerIcon)
         Else
-            SetDefaultLogo()
+            ImageLoaderHelper.SetFallbackImage(ServerIcon, FallbackImageUri)
         End If
         If _server.Status = ServerStatus.Online
             _manager.SetSelectedIconByName(GetSignalIcon(_server.Ping))

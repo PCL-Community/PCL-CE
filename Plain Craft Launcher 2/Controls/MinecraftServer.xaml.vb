@@ -8,7 +8,7 @@ Imports PCL.Core.UI
 Class MinecraftServer
     Inherits Grid
     
-    Dim _fallbackImageUri As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png"
+    Private Const FallbackImageUri As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png"
 
     Public Property Address As String
         Get
@@ -38,7 +38,7 @@ Class MinecraftServer
         LabServerDesc.Text = "查询中..."
         LabServerPlayer.Text = "-/-"
         LabServerPlayer.ToolTip = Nothing
-        ImageLoaderHelper.SetFallbackImage(imgServerLogo, _fallbackImageUri)
+        ImageLoaderHelper.SetFallbackImage(imgServerLogo, FallbackImageUri)
 
         Try
             ' 获取可达地址（DNS解析）
@@ -62,7 +62,7 @@ Class MinecraftServer
             Log(ex, "[MinecraftServer] 信息查询失败")
             LabServerDesc.Text = $"无法连接: {ex.Message}"
             LabServerDesc.Foreground = Brushes.Red
-            ImageLoaderHelper.SetFallbackImage(ImgServerLogo, _fallbackImageUri)
+            ImageLoaderHelper.SetFallbackImage(ImgServerLogo, FallbackImageUri)
         End Try
     End Function
 
