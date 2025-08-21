@@ -1232,7 +1232,7 @@ Install:
 
     '启用 / 禁用
     Private Sub BtnSelectED_Click(sender As MyIconTextButton, e As RouteEventArgs) Handles BtnSelectEnable.Click, BtnSelectDisable.Click
-        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)),
+        EDMods(CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath)).ToList(),
                Not sender.Equals(BtnSelectDisable))
         ChangeAllSelected(False)
     End Sub

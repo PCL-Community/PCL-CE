@@ -13,12 +13,17 @@
             </local:MyCard>
             <local:MyCard Title="启动 EasyTier 失败怎么办" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，或者是否目前设备上运行了多个 EasyTier。目前暂不支持多 EasyTier 实例情况下的通信。"/>
+                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，网络是否可以正常连接到数据服务器。"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="联机可以用服务端么" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="可以的，Minecraft 服务端也可以用于联机。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="联机是否需要实名认证" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="目前无此要求，登录 Natayark 账号即可联机，如有变动，请以公告提示为准。"/>
                 </StackPanel>
             </local:MyCard>
         </StackPanel>

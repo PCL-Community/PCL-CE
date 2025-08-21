@@ -41,6 +41,9 @@
 - `PCL.Core/` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL.Core/blob/main/LICENSE)
 - `Plain Craft Launcher 2/` 使用 [自定义许可证](./LICENCE)
 
+## 🌟 统计数据
+[![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL2-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL2-CE&Date)
+
 ## ❤️ 贡献者
 
 [![](https://contrib.rocks/image?repo=PCL-Community/PCL2-CE)](https://github.com/PCL-Community/PCL2-CE/graphs/contributors)

@@ -2,6 +2,7 @@ Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports PCL.Core.App
+Imports PCL.Core.Logging
 
 Public Class FormMain
 
@@ -425,7 +426,7 @@ Public Class FormMain
                 FeedbackInfo()
                 Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
                 IsLogShown = True
-                ShellOnly(Path & "PCL\Log-CE1.log")
+                ShellOnly(LogWrapper.CurrentLogger.LogFiles.Last())
             End If
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If

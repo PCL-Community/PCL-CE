@@ -38,7 +38,7 @@ postprocessors = [
 # render body even when there are no releases to process
 # render_always = true
 # output file path
-# output = "test.md"
+output = "CHANGELOG.md"
 
 [git]
 # Parse commits according to the conventional commits specification.
