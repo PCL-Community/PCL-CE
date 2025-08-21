@@ -108,21 +108,6 @@ Public Class PageInstanceScreenshot
                 image.Source = Await Tasks.Task.Run(Function()
                                                         Dim bitmapImage As New BitmapImage()
                                                         Dim loadSource As String = i
-                                                        Using fs As New FileStream(i, FileMode.Open, FileAccess.Read)
-                                                            Dim Header(1) As Byte
-                                                            fs.Read(Header, 0, 2)
-                                                            fs.Seek(0, SeekOrigin.Begin)
-                                                            If Header(0) = 82 AndAlso Header(1) = 73 Then
-                                                                'WebP 格式，需要转换
-                                                                Dim FileBytes(fs.Length - 1) As Byte
-                                                                fs.Read(FileBytes, 0, FileBytes.Length)
-                                                                Dim Pic = MyBitmap.WebPDecoder.DecodeFromBytes(FileBytes)
-                                                                Dim picTempPath = PathTemp & "Screenshot\"
-                                                                Directory.CreateDirectory(picTempPath)
-                                                                loadSource = picTempPath & GetHash(i) & ".png"
-                                                                Pic.Save(loadSource)
-                                                            End If
-                                                        End Using
                                                         Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
                                                             bitmapImage.BeginInit()
                                                             bitmapImage.DecodePixelHeight = 200

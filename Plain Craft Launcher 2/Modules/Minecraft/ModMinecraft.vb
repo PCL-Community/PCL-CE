@@ -2231,7 +2231,7 @@ OnLoaded:
             End If
             If Token.LocalPath.Contains("transformer-discovery-service") Then
                 'Transformer 文件释放
-                If Not File.Exists(Token.LocalPath) Then WriteFile(Token.LocalPath, GetResources("Transformer"))
+                If Not File.Exists(Token.LocalPath) Then WriteFile(Token.LocalPath, GetResourceStream("Resources/transformer.jar"))
                 Log("[Download] 已自动释放 Transformer Discovery Service", LogLevel.Developer)
                 Continue For
             ElseIf Token.LocalPath.Contains("optifine\OptiFine") Then

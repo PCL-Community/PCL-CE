@@ -1,14 +1,14 @@
-﻿Imports System.Net.Sockets
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
+Imports System.Net.Sockets
 Imports Makaretu.Nat
-Imports Open.Nat
+Imports STUN
+Imports System.Threading.Tasks
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Net
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
-Imports STUN
+Imports PCL.Core.Utils
 
 Public Module ModLink
 
@@ -77,74 +77,6 @@ Public Module ModLink
             Return ports
         End Function
     End Class
-#End Region
-
-#Region "UPnP 映射"
-
-    Public Enum UPnPStatusType
-        Disabled
-        Enabled
-        Unsupported
-        Failed
-    End Enum
-    ''' <summary>
-    ''' UPnP 状态，可能值："Disabled", "Enabled", "Unsupported", "Failed"
-    ''' </summary>
-    Public UPnPStatus As UPnPStatusType = Nothing
-    Public UPnPMappingName As String = "PCL2 CE Link Lobby"
-    Public UPnPDevice = Nothing
-    Public CurrentUPnPMapping As Mapping = Nothing
-    Public UPnPPublicPort As String = Nothing
-
-    ''' <summary>
-    ''' 寻找 UPnP 设备并尝试创建一个 UPnP 映射
-    ''' </summary>
-    Public Async Sub CreateUPnPMapping(Optional LocalPort As Integer = 25565, Optional PublicPort As Integer = 10240)
-        Log($"[UPnP] 尝试创建 UPnP 映射，本地端口：{LocalPort}，远程端口：{PublicPort}，映射名称：{UPnPMappingName}")
-
-        UPnPPublicPort = PublicPort
-        Dim UPnPDiscoverer = New NatDiscoverer()
-        Dim cts = New CancellationTokenSource(10000)
-        Try
-            UPnPDevice = Await UPnPDiscoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts)
-
-            CurrentUPnPMapping = New Mapping(Protocol.Tcp, LocalPort, PublicPort, UPnPMappingName)
-            Await UPnPDevice.CreatePortMapAsync(CurrentUPnPMapping)
-
-            Await UPnPDevice.CreatePortMapAsync(New Mapping(Protocol.Tcp, LocalPort, PublicPort, "PCL2 Link Lobby"))
-
-            UPnPStatus = UPnPStatusType.Enabled
-            Log("[UPnP] UPnP 映射已创建")
-        Catch NotFoundEx As NatDeviceNotFoundException
-            UPnPStatus = UPnPStatusType.Unsupported
-            CurrentUPnPMapping = Nothing
-            Log("[UPnP] 找不到可用的 UPnP 设备")
-        Catch ex As Exception
-            UPnPStatus = UPnPStatusType.Failed
-            CurrentUPnPMapping = Nothing
-            Log("[UPnP] UPnP 映射创建失败: " + ex.ToString())
-        End Try
-    End Sub
-
-    ''' <summary>
-    ''' 尝试移除现有 UPnP 映射记录
-    ''' </summary>
-    Public Async Sub RemoveUPnPMapping()
-        Log($"[UPnP] 尝试移除 UPnP 映射，本地端口：{CurrentUPnPMapping.PrivatePort}，远程端口：{CurrentUPnPMapping.PublicPort}，映射名称：{UPnPMappingName}")
-
-        Try
-            Await UPnPDevice.DeletePortMapAsync(CurrentUPnPMapping)
-
-            UPnPStatus = UPnPStatusType.Disabled
-            CurrentUPnPMapping = Nothing
-            Log("[UPnP] UPnP 映射移除成功")
-        Catch ex As Exception
-            UPnPStatus = UPnPStatusType.Failed
-            CurrentUPnPMapping = Nothing
-            Log("[UPnP] UPnP 映射移除失败: " + ex.ToString())
-        End Try
-    End Sub
-
 #End Region
 
 #Region "Minecraft 实例探测"
@@ -320,7 +252,7 @@ Public Module ModLink
         Public Type As String
     End Class
     Public Const ETNetworkDefaultName As String = "PCLCELobby"
-    Public Const ETNetworkDefaultSecret As String = "PCLCEETLOBBY2025"
+    Public ReadOnly ETNetworkDefaultSecret As String = If(EnvironmentInterop.GetSecret("LOBBY_DEFAULT_SECRET", readEnvDebugOnly := True), "PCLCEETLOBBY2025")
     Public ETVersion As String = "2.4.2"
     Public ETRpcPort As Integer = 15888
     Public ETPath As String = IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion, "easytier-windows-" & If(IsArm64System, "arm64", "x86_64"))
@@ -328,7 +260,8 @@ Public Module ModLink
     Public ETServerDefList As New List(Of ETRelay)
     Public ETProcess As Process = Nothing
     Public IsETReady As Boolean = False
-    Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+    Public Function LaunchEasyTier(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing, Optional IsAfterDownload As Boolean = False, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         Try
             Dim etFilePath = $"{ETPath}\easytier-core.exe"
 
@@ -351,7 +284,7 @@ Public Module ModLink
             End If
             Log($"[Link] EasyTier 路径: {ETPath}")
 
-            Dim Arguments As String = Nothing
+            Dim arguments As New ArgumentsBuilder
 
             '大厅设置
             Dim lobbyId As String
@@ -367,77 +300,82 @@ Public Module ModLink
                 PageLinkLobby.JoinerLocalPort = NetworkHelper.NewTcpPort()
                 Log("[Link] ET 本地端口转发端口: " & PageLinkLobby.JoinerLocalPort)
             End If
+
+            arguments.Add("network-name", Name)
+            arguments.Add("network-secret", Secret)
+            arguments.Add("relay-network-whitelist", Name)
+            arguments.AddFlag("no-tun")
+            arguments.Add("private-mode", "true")
+
             If IsHost Then '创建者
                 Log($"[Link] 本机作为创建者创建大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-i 10.114.51.41 --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --tcp-whitelist {LocalPort} --udp-whitelist {LocalPort}" '创建者
+                arguments.Add("i", "10.114.51.41")
+                arguments.Add("tcp-whitelist", LocalPort)
+                arguments.Add("udp-whitelist", LocalPort)
             Else
                 Log($"[Link] 本机作为加入者加入大厅，EasyTier 网络名称: {Name}")
-                Arguments = $"-d --network-name {Name} --network-secret {Secret} --no-tun --relay-network-whitelist ""{Name}"" --private-mode true --tcp-whitelist 0 --udp-whitelist 0" '加入者
+                arguments.AddFlag("d")
+                arguments.Add("tcp-whitelist", "0")
+                arguments.Add("udp-whitelist", "0")
                 Dim ip As String = Nothing
                 If TcInfo IsNot Nothing Then
                     ip = "10.144.144.1"
                 Else
                     ip = "10.114.51.41"
                 End If
-                Arguments += $" --port-forward=tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}" 'TCP
-                Arguments += $" --port-forward=udp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}" 'UDP
+                arguments.Add("port-forward", $"tcp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}")
+                arguments.Add("port-forward", $"udp://127.0.0.1:{PageLinkLobby.JoinerLocalPort}/{ip}:{remotePort}")
             End If
 
+
             '节点设置
-            Dim ServerList As String = Setup.Get("LinkRelayServer")
-            Dim Servers As New List(Of String)
+            Dim serverList As String = Setup.Get("LinkRelayServer")
+            Dim servers As New List(Of String)
             If TcInfo IsNot Nothing Then
-                ServerList = "tcp://public.easytier.top:11010;tcp://8.138.6.53:11010;tcp://119.23.65.180:11010;tcp://ah.nkbpal.cn:11010;tcp://gz.minebg.top:11010;tcp://39.108.52.138:11010;tcp://turn.hb.629957.xyz:11010;tcp://turn.sc.629957.xyz:11010;tcp://8.148.29.206:11010;tcp://turn.js.629957.xyz:11012;tcp://103.194.107.246:11010;tcp://sh.993555.xyz:11010;tcp://et.993555.xyz:11010;tcp://turn.bj.629957.xyz:11010;tcp://et.sh.suhoan.cn:11010;tcp://96.9.229.212:11010;tcp://et-hk.clickor.click:11010;tcp://47.113.227.73:11010;tcp://et.01130328.xyz:11010;tcp://et.ie12vps.xyz:11010;tcp://103.40.14.90:35971;tcp://154.9.255.133:11010;tcp://47.103.35.100:11010;tcp://et.gbc.moe:11011;tcp://116.206.178.250:11010"
-                For Each Server In ServerList.Split(";")
-                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
-                Next
+                serverList = "tcp://public.easytier.top:11010;tcp://8.138.6.53:11010;tcp://119.23.65.180:11010;tcp://ah.nkbpal.cn:11010;tcp://gz.minebg.top:11010;tcp://39.108.52.138:11010;tcp://turn.hb.629957.xyz:11010;tcp://turn.sc.629957.xyz:11010;tcp://8.148.29.206:11010;tcp://turn.js.629957.xyz:11012;tcp://103.194.107.246:11010;tcp://sh.993555.xyz:11010;tcp://et.993555.xyz:11010;tcp://turn.bj.629957.xyz:11010;tcp://et.sh.suhoan.cn:11010;tcp://96.9.229.212:11010;tcp://et-hk.clickor.click:11010;tcp://47.113.227.73:11010;tcp://et.01130328.xyz:11010;tcp://et.ie12vps.xyz:11010;tcp://103.40.14.90:35971;tcp://154.9.255.133:11010;tcp://47.103.35.100:11010;tcp://et.gbc.moe:11011;tcp://116.206.178.250:11010"
+                servers.AddRange(From s In serverList.Split(";") Where Not String.IsNullOrWhiteSpace(s))
             Else
-                For Each Server In ServerList.Split(";")
-                    If Not String.IsNullOrWhiteSpace(Server) Then Servers.Add(Server)
-                Next
-                If Not Setup.Get("LinkServerType") = 2 Then
-                    Dim AllowCommunity As Boolean = Setup.Get("LinkServerType") = 1
-                    For Each Server In ETServerDefList
-                        If Server.Type = "community" AndAlso Not AllowCommunity Then Continue For
-                        Servers.Add(Server.Url)
-                    Next
+                servers.AddRange(From s In serverList.Replace("；", ";").Split(";") Where Not String.IsNullOrWhiteSpace(s))
+                If Setup.Get("LinkServerType") = 2 Then
+                    Log("[Link] 当前选择不使用任何中继，这将极大概率导致无法连接")
+                Else
+                    Dim allowCommunity As Boolean = Setup.Get("LinkServerType") = 1
+                    servers.AddRange(From relay In ETServerDefList Where relay.Type <> "community" OrElse allowCommunity Select relay.Url)
                 End If
             End If
 
             '中继行为设置
-            For Each Server In Servers
-                Arguments += $" -p {Server}"
+            For Each Server In servers
+                arguments.Add("p", Server)
             Next
             If Setup.Get("LinkRelayType") = 1 Then
-                Arguments += " --disable-p2p"
+                arguments.AddFlag("disable-p2p")
             End If
             '数据处理设置
-            Dim proxyType As Integer = Setup.Get("LinkProxyType")
-            If proxyType = 0 Then
-                Arguments += " --enable-quic-proxy"
-            ElseIf proxyType = 1 Then
-                Arguments += " --enable-kcp-proxy"
-            Else
-                Arguments += " --enable-quic-proxy --enable-kcp-proxy"
-            End If
+            arguments.AddFlag("enable-quic-proxy")
+            arguments.AddFlag("enable-kcp-proxy")
+            arguments.AddFlag("use-smoltcp")
 
             '用户名与其他参数
-            Arguments += $" --latency-first --compression=zstd --multi-thread"
+            If Setup.Get("LinkLatencyFirstMode") Then arguments.AddFlag("latency-first")
+            arguments.Add("encryption-algorithm", "chacha20")
+            arguments.AddFlag("compression=zstd")
+            arguments.AddFlag("multi-thread")
             Dim Hostname As String = Nothing
             Hostname = If(IsHost, "H|", "J|") & NaidProfile.Username
             If SelectedProfile IsNot Nothing Then
                 Hostname += $"|{SelectedProfile.Username}"
             End If
-            Arguments += $" --hostname ""{Hostname}"""
+            arguments.Add("hostname", Hostname)
 
             '指定 RPC 端口避免多 ET 实例冲突
             ETRpcPort = NetworkHelper.NewTcpPort()
-            Arguments += $" --rpc-portal 127.0.0.1:{ETRpcPort}"
+            arguments.Add("rpc-portal", $"127.0.0.1:{ETRpcPort}")
 
             '启动
             Log($"[Link] 启动 EasyTier")
-            'Log($"[Link] EasyTier 参数: {Arguments}")
-            ETProcess.StartInfo.Arguments = Arguments
+            'Log($"[Link] EasyTier 参数: {arguments}")
+            ETProcess.StartInfo.Arguments = arguments.GetResult()
             RunInUi(Sub() FrmLinkLobby.LabFinishId.Text = lobbyId)
             ETProcess.Start()
             IsETRunning = True
@@ -450,7 +388,8 @@ Public Module ModLink
         End Try
     End Function
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret)
+    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional IsHost As Boolean = False, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing)
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETVersion}.zip"
         RunInNewThread(Function()
                            Try
@@ -597,7 +536,8 @@ Public Module ModLink
         End If
         Return True
     End Function
-    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = ETNetworkDefaultSecret, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+    Public Function LaunchLink(IsHost As Boolean, Optional Name As String = ETNetworkDefaultName, Optional Secret As String = Nothing, Optional LocalPort As Integer = 25565, Optional remotePort As Integer = 25565) As Integer
+        If Secret Is Nothing Then Secret = ETNetworkDefaultSecret
         '回传联机数据
         Log("[Link] 开始发送联机数据")
         Dim Servers As String = Nothing
@@ -921,7 +861,7 @@ PortRetry:
     Private Sub StartUdpBoardcast()
         Try
             Try
-                UdpThread.Abort()
+                UdpThread.Interrupt()
             Catch ex As Exception
 
             End Try
@@ -934,11 +874,11 @@ PortRetry:
         IsMcPortForwardRunning = False
         Log("[Link] 停止 MC 端口转发")
         If UdpThread IsNot Nothing Then
-            UdpThread.Abort()
+            UdpThread.Interrupt()
             UdpThread = Nothing
         End If
         If TcpThread IsNot Nothing Then
-            TcpThread.Abort()
+            TcpThread.Interrupt()
             TcpThread = Nothing
         End If
         If BoardcastClient IsNot Nothing Then

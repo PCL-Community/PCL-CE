@@ -1,26 +1,27 @@
 Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
-Imports System.Security.Cryptography
 Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
 Imports System.Threading.Tasks
+Imports Microsoft.Win32
 Imports Newtonsoft.Json
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.Utils.OS
 
 Public Module ModBase
 
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.12.3-beta.2" '不含分支前缀的显示用版本名
+    Public Const VersionBaseName As String = "2.12.3" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.12.3." & VersionBranchCode
-    Public Const CommitHash As String = "native" 'Commit Hash，由 GitHub Workflow 自动替换
-    Public CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
-    Public Const VersionCode As Integer = 401 '内部版本号
+    Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
+    Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
+    Public Const VersionCode As Integer = 402 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -1096,9 +1097,14 @@ Public Module ModBase
     ''' 返回以 \ 结尾的完整路径，如果没有选择则返回空字符串。
     ''' </summary>
     Public Function SelectFolder(Optional Title As String = "选择文件夹") As String
-        Dim folderDialog As New Ookii.Dialogs.Wpf.VistaFolderBrowserDialog With {.ShowNewFolderButton = True, .RootFolder = Environment.SpecialFolder.Desktop, .Description = Title, .UseDescriptionForTitle = True}
+        Dim folderDialog As New OpenFolderDialog With {
+                .InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                .Title = Title,
+                .Multiselect = False
+        }
         folderDialog.ShowDialog()
-        SelectFolder = If(String.IsNullOrEmpty(folderDialog.SelectedPath), "", folderDialog.SelectedPath & If(folderDialog.SelectedPath.EndsWithF("\"), "", "\"))
+        Dim selected = folderDialog.FolderName
+        SelectFolder = If(String.IsNullOrEmpty(selected), "", selected & If(selected.EndsWithF("\"), "", "\"))
         Log("[UI] 选择文件夹返回：" & SelectFolder)
     End Function
 
@@ -2083,30 +2089,34 @@ RetryDir:
     ''' 通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
     ''' </summary>
     Public Class SafeList(Of T)
-        Inherits SynchronizedCollection(Of T)
+        Inherits List(Of T)
         Implements IEnumerable, IEnumerable(Of T)
+
+        Private ReadOnly SyncRoot As New Object
         '构造函数
         Public Sub New()
             MyBase.New()
         End Sub
         Public Sub New(Data As IEnumerable(Of T))
-            MyBase.New(New Object, Data)
+            MyBase.New(Data)
         End Sub
-        Public Shared Widening Operator CType(Data As List(Of T)) As SafeList(Of T)
-            Return New SafeList(Of T)(Data)
-        End Operator
-        Public Shared Widening Operator CType(Data As SafeList(Of T)) As List(Of T)
-            Return New List(Of T)(Data)
-        End Operator
+        Public Shared Function FromList(data As List(Of T)) As SafeList(Of T)
+            Return New SafeList(Of T)(data)
+        End Function
+        Public Function ToList() As List(Of T)
+            SyncLock SyncRoot
+                Return MyBase.ToList() ' 创建副本
+            End SyncLock
+        End Function
         '基于 SyncLock 覆写
         Public Overloads Function GetEnumerator() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
             SyncLock SyncRoot
-                Return Items.ToList.GetEnumerator()
+                Return MyBase.ToList.GetEnumerator()
             End SyncLock
         End Function
         Private Overloads Function GetEnumeratorGeneral() As IEnumerator Implements IEnumerable.GetEnumerator
             SyncLock SyncRoot
-                Return Items.ToList.GetEnumerator()
+                Return MyBase.ToList.GetEnumerator()
             End SyncLock
         End Function
     End Class
@@ -2269,9 +2279,10 @@ RetryDir:
     ''' 返回程序的返回代码，如果运行失败将抛出异常。
     ''' </summary>
     Public Function RunAsAdmin(Argument As String) As Integer
-        Dim NewProcess = Process.Start(New ProcessStartInfo(PathWithName) With {.Verb = "runas", .Arguments = Argument})
-        NewProcess.WaitForExit()
-        Return NewProcess.ExitCode
+        Dim newProcess = ProcessInterop.StartAsAdmin(PathWithName, Argument)
+        If newProcess Is Nothing Then Throw New Exception("以管理员权限启动进程失败")
+        newProcess.WaitForExit()
+        Return newProcess.ExitCode
     End Function
 
     Public IsRestrictedFeatAllowed As Boolean = False
@@ -2437,6 +2448,7 @@ NextElement:
             Using Program As New Process
                 Program.StartInfo.Arguments = Arguments
                 Program.StartInfo.FileName = FileName
+                Program.StartInfo.UseShellExecute = True
                 Log("[System] 执行外部命令：" & FileName & " " & Arguments)
                 Program.Start()
             End Using
@@ -2692,7 +2704,7 @@ NextElement:
     ''' 时间戳转化为日期。
     ''' </summary>
     Public Function GetDate(timeStamp As Integer) As Date
-        Dim dtStart As Date = TimeZone.CurrentTimeZone.ToLocalTime(New Date(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+        Dim dtStart As Date = TimeZoneInfo.ConvertTimeFromUtc(New Date(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Local)
         Dim lTime As Long = (CLng(timeStamp) * 10000000)
         Return dtStart.Add(New TimeSpan(lTime))
     End Function
@@ -2712,7 +2724,7 @@ NextElement:
                 Throw New Exception(Url & " 不是一个有效的网址，它必须以 http 开头！")
             End If
             Log("[System] 正在打开网页：" & Url)
-            Process.Start(Url)
+            Basics.OpenPath(Url)
         Catch ex As Exception
             Log(ex, "无法打开网页（" & Url & "）")
             ClipboardSet(Url, False)
@@ -2728,7 +2740,7 @@ NextElement:
         Try
             Location = ShortenPath(Location.Replace("/", "\").Trim(" "c, """"c))
             Log("[System] 正在打开资源管理器：" & Location)
-            If Location.EndsWith("\") Then
+            If Location.EndsWithF("\") Then
                 ShellOnly(Location)
             Else
                 ShellOnly("explorer", $"/select,""{Location}""")

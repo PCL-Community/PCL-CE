@@ -492,12 +492,12 @@
                     <local:MyButton Grid.Row="9" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://iconmonstr.com/license/" />
                     
-                    <TextBlock Grid.Row="10" Grid.Column="0" Text="libwebp wrapper for .NET" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="10" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2012 Imazen&#xa;Licensed under the MIT License." TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="10" Grid.Column="0" Text="SixLabors.ImageSharp" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="10" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Six Labors&#xa;Licensed under the Apache License 2.0." TextWrapping="Wrap" />
                     <local:MyButton Grid.Row="11" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                                    EventType="打开网页" EventData="https://github.com/imazen/libwebp-net" />
+                                    EventType="打开网页" EventData="https://github.com/SixLabors/ImageSharp" />
                     <local:MyButton Grid.Row="11" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                                    EventType="打开网页" EventData="https://github.com/imazen/libwebp-net/blob/master/LICENSE.txt" />
+                                    EventType="打开网页" EventData="https://github.com/SixLabors/ImageSharp/blob/main/LICENSE" />
 
                     <TextBlock Grid.Row="12" Grid.Column="0" Text="Iconfont" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="12" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © ALIMAMA MUX, powered by alimama THX." TextWrapping="Wrap" />
@@ -533,11 +533,11 @@
 EventType="打开网页" EventData="https://github.com/moien007/STUN/blob/master/LICENSE" />
 
                     <TextBlock Grid.Row="22" Grid.Column="0" Text="Open.NAT" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="22" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2006 Alan McGovern&#xa;Copyright © 2007 Ben Motmans&#xa;Copyright © 2014 Lucas Ontivero" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="22" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2010-2011 Erik Davidson, 2012+ Matvei Stefarov&#xa;License under 3-Clause BSD" TextWrapping="Wrap" />
                     <local:MyButton Grid.Row="23" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                EventType="打开网页" EventData="https://github.com/lontivero/Open.NAT" />
+                EventType="打开网页" EventData="https://github.com/mstefarov/fNbt" />
                     <local:MyButton Grid.Row="23" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-EventType="打开网页" EventData="https://github.com/lontivero/Open.NAT/blob/master/LICENSE" />
+EventType="打开网页" EventData="https://licenses.nuget.org/BSD-3-Clause" />
 
                     <TextBlock Grid.Row="24" Grid.Column="0" Text="TagLibSharp" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="24" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2006-2007 Brian Nickel.&#xa;Copyright © 2009-2020 Other contributors" TextWrapping="Wrap" />

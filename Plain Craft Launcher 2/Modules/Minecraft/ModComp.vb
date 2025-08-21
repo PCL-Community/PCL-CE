@@ -108,7 +108,7 @@ Public Module ModComp
             If _CompDatabase IsNot Nothing Then Return _CompDatabase
             '初始化数据库
             Dim dbPath = $"{PathTemp}Cache\ModData.db"
-            Using compressedDbData As New MemoryStream(GetResources("ModData"))
+            Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
                 Log($"[DB] 解压 ModData 中")
                 If File.Exists(dbPath) Then File.Delete(dbPath)
                 Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
@@ -707,7 +707,7 @@ Public Module ModComp
             End Select
             '实例化 UI
             Dim NewItem As New MyCompItem With {.Tag = Me, .Logo = GetControlLogo()}
-            NewItem.showFavoriteBtn = CompFavorites.IsFavourite(Id)
+            NewItem.ShowFavoriteBtn = CompFavorites.IsFavourite(Id)
             Dim Title = GetControlTitle(True)
             NewItem.Title = Title.Key
             If Title.Value = "" Then

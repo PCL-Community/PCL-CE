@@ -1,6 +1,7 @@
 ﻿'一个万能的自动图片类型转换工具类
 
 Imports System.Drawing.Imaging
+Imports PCL.Core.UI.Media
 
 Public Class MyBitmap
 
@@ -35,7 +36,7 @@ Public Class MyBitmap
         Dim bitmapData = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb)
         Try
             Dim size = rect.Width * rect.Height * 4
-            Return BitmapSource.Create(Bitmap.Width, Bitmap.Height, Bitmap.HorizontalResolution, Bitmap.VerticalResolution, PixelFormats.Bgra32, Nothing, bitmapData.Scan0, size, bitmapData.Stride)
+            Return BitmapSource.Create(Bitmap.Width, Bitmap.Height, Bitmap.HorizontalResolution, Bitmap.VerticalResolution, Media.PixelFormats.Bgra32, Nothing, bitmapData.Scan0, size, bitmapData.Stride)
         Finally
             Bitmap.UnlockBits(bitmapData)
         End Try
@@ -73,18 +74,15 @@ Public Class MyBitmap
                 End If
             Else
                 '使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                Using InputStream As New FileStream(FilePathOrResourceName, FileMode.Open)
-                    '判断是否为 WebP 文件头
-                    Dim Header(1) As Byte
-                    InputStream.Read(Header, 0, 2)
-                    InputStream.Seek(0, SeekOrigin.Begin)
-                    If Header(0) = 82 AndAlso Header(1) = 73 Then
-                        '读取 WebP
-                        Dim FileBytes(InputStream.Length - 1) As Byte
-                        InputStream.Read(FileBytes, 0, FileBytes.Length)
-                        Pic = WebPDecoder.DecodeFromBytes(FileBytes) '将代码隔离在另外一个类中，这样只要不走进这个分支就不会加载 Imazen.WebP.dll
+                Using picStream As New FileStream(FilePathOrResourceName, FileMode.Open)
+                    If picStream.Length > 2 AndAlso picStream.ReadByte() = 82 AndAlso picStream.ReadByte() = 73 Then
+                        picStream.Seek(0, SeekOrigin.Begin)
+                        '调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统
+                        Using ms = picStream.FromWebpToPng()
+                            Pic = New System.Drawing.Bitmap(ms)
+                        End Using
                     Else
-                        Pic = New System.Drawing.Bitmap(InputStream)
+                        Pic = New System.Drawing.Bitmap(picStream)
                     End If
                 End Using
             End If
@@ -121,13 +119,6 @@ Public Class MyBitmap
             Pic = New System.Drawing.Bitmap(MS)
         End Using
     End Sub
-    Public Class WebPDecoder '将代码隔离在另外一个类中，这样只要不调用这个方法就不会加载 Imazen.WebP.dll
-        Public Shared Function DecodeFromBytes(Bytes As Byte()) As System.Drawing.Bitmap
-            If Is32BitSystem Then Throw New Exception("不支持在 32 位系统下加载 WebP 图片。")
-            Static Dim Decoder As New Imazen.WebP.SimpleDecoder()
-            Return Decoder.DecodeFromBytes(Bytes, Bytes.Length)
-        End Function
-    End Class
 
     ''' <summary>
     ''' 获取裁切的图片，这个方法不会导致原对象改变且会返回一个新的对象。
