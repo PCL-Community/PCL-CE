@@ -9,7 +9,7 @@ Public Class PageInstanceServer
     Inherits MyPageRight
 
     Private _serverList As New List(Of MinecraftServerInfo)
-    Private Shared _serverCardList As New Dictionary(Of String, ServerCard)
+    Private Shared _serverCardList As New List(Of ServerCard)
 
     Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
         _serverList.Clear()
@@ -20,7 +20,7 @@ Public Class PageInstanceServer
         For Each server In _serverList
             Dim serverCard = New ServerCard()
             serverCard.UpdateServerInfo(server)
-            _serverCardList(server.Address) = serverCard
+            _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
             Task.Run(Async Function() 
                 Await serverCard.RefreshServerStatus(False)
@@ -30,15 +30,14 @@ Public Class PageInstanceServer
     
     Public Shared Function GetServerIndex(serverCard) As Integer
         ' 查找服务器在列表中的索引
-        Return _serverCardList.Values.ToList().IndexOf(serverCard)
+        Return _serverCardList.IndexOf(serverCard)
     End Function
 
     ''' <summary>
     ''' 刷新服务器列表
     ''' </summary>
-
     Public Sub RefreshServers()
-        Log("Refreshing server list...")
+        Log("刷新服务器列表")
         Try
             ' 读取服务器信息
             LoadServersFromFile()
@@ -53,6 +52,56 @@ Public Class PageInstanceServer
             RunInUi(Sub() Hint("刷新服务器列表失败：" & ex.Message, HintType.Critical))
         End Try
     End Sub
+    
+    Private Sub BtnRefresh_Click(sender As Object, e As MouseButtonEventArgs)
+        Hint("正在刷新服务器列表，请稍候...", HintType.Info)
+        RefreshServers()
+    End Sub
+    
+    Private Sub BtnAddServer_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim result = GetServerInfo(New MinecraftServerInfo() With {.Name = "Minecraft服务器", .Address = ""})
+        If result.Success Then
+            Dim newServer As New MinecraftServerInfo With {
+                .Name = result.Name,
+                .Address = result.Address,
+                .Status = ServerStatus.Unknown
+            }
+            _serverList.Add(newServer)
+            
+            Dim serverCard = New ServerCard()
+            serverCard.UpdateServerInfo(newServer)
+            _serverCardList.Add(serverCard)
+            PanServers.Children.Add(serverCard)
+            
+            Task.Run(Async Function() 
+                Await serverCard.RefreshServerStatus(False)
+            End Function)
+            
+            Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            If nbtData IsNot Nothing Then
+                Dim server = new NbtCompound()
+                server("name") = New NbtString("name", result.Name)
+                server("ip") = New NbtString("ip", result.Address)
+                nbtData.Add(server)
+                Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
+                NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+            End If
+        End If
+    End Sub
+    
+    Public Shared Function GetServerInfo(server As MinecraftServerInfo) As (Name As String, Address As String, Success As Boolean)
+        Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name)
+        If String.IsNullOrEmpty(newName) Then 
+            Return (String.Empty, String.Empty, False)
+        End If
+
+        Dim newAddress As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address)
+        If String.IsNullOrEmpty(newAddress) Then 
+            Return (String.Empty, String.Empty, False)
+        End If
+    
+        Return (newName, newAddress, True)
+    End Function
 
     ''' <summary>
     ''' 从servers.dat文件读取服务器信息
@@ -123,7 +172,7 @@ Public Class PageInstanceServer
         For Each server In _serverList
             Dim serverCard = New ServerCard()
             serverCard.UpdateServerInfo(server)
-            _serverCardList(server.Address) = serverCard
+            _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
         Next
     End Sub
@@ -132,7 +181,7 @@ Public Class PageInstanceServer
     ''' 异步ping所有服务器
     ''' </summary>
     Private Sub PingAllServers()
-        For Each server In _serverCardList.Values
+        For Each server In _serverCardList
             Dim currentServer = server
             Task.Run(Async Function() 
                 Await currentServer.RefreshServerStatus(False) 
@@ -158,6 +207,7 @@ Public Class PageInstanceServer
                     server.Description = result.Description
                     server.Version = result.Version.Name
                     server.Ping = result.Latency
+                    server.Icon = result.Favicon
                 Else
                     server.Status = ServerStatus.Offline
                 End If

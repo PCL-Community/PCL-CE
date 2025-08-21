@@ -44,14 +44,12 @@ Public Class ServerCard
         
         ' 更新服务器名称
         ServerName.Text = _server.Name
-        If Not String.IsNullOrEmpty(_server.Icon) Then
-            Await ImageLoaderHelper.SetServerLogoAsync(_server.Icon, ServerIcon)
-        Else
-            ImageLoaderHelper.SetFallbackImage(ServerIcon, FallbackImageUri)
-        End If
+        Await ImageLoaderHelper.SetServerLogoAsync(_server.Icon, ServerIcon)
         If _server.Status = ServerStatus.Online
             _manager.SetSelectedIconByName(GetSignalIcon(_server.Ping))
             Signal.ToolTip = _server.Ping.ToString() & "ms"
+            ToolTipService.SetInitialShowDelay(Signal, 0)
+            ToolTipService.SetBetweenShowDelay(Signal, 50)
             ToolTipService.SetPlacement(Signal, PlacementMode.Top)
             
             If _server.PlayerCount <> Nothing AndAlso _server.MaxPlayers <> Nothing Then
@@ -143,31 +141,27 @@ Public Class ServerCard
     ''' </summary>
     Private Sub BtnEdit_Click(sender As Object, e As RoutedEventArgs)
         Try
-            Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", _server.Name)
-            If String.IsNullOrEmpty(newName) Then Return
-            
-            Dim newAddress As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", 
-                _server.Address)
-            If String.IsNullOrEmpty(newAddress) Then Return
-            
-            Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
-            If nbtData IsNot Nothing Then
-                Dim index = PageInstanceServer.GetServerIndex(Me)
-                Dim server = TryCast(nbtData(index), NbtCompound)
-                If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
-                   server.Get(Of NbtString)("ip").Value = _server.Address Then
-                    server("name") = New NbtString("name", newName)
-                    server("ip") = New NbtString("ip", newAddress)
-                    Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
-                    NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
-                    ' 更改地址和端口
-                    _server.Name = newName
-                    _server.Address = newAddress
-            
-                    ' 刷新UI
-                    RunInUi(Sub() UpdateServerUi())
-            
-                    Hint("服务器信息已更新", HintType.Finish)
+            Dim result = PageInstanceServer.GetServerInfo(_server)
+            If result.Success Then
+                Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+                If nbtData IsNot Nothing Then
+                    Dim index = PageInstanceServer.GetServerIndex(Me)
+                    Dim server = TryCast(nbtData(index), NbtCompound)
+                    If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
+                       server.Get(Of NbtString)("ip").Value = _server.Address Then
+                        server("name") = New NbtString("name", result.Name)
+                        server("ip") = New NbtString("ip", result.Address)
+                        Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
+                        NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                        ' 更改地址和端口
+                        _server.Name = result.Name
+                        _server.Address = result.Address
+                
+                        ' 刷新UI
+                        RunInUi(Sub() UpdateServerUi())
+                
+                        Hint("服务器信息已更新", HintType.Finish)
+                    End If
                 End If
             End If
         Catch ex As Exception

@@ -9,11 +9,15 @@
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" x:Name="PanBack">
         <StackPanel Margin="10,25,10,10">
             <!-- 页面标题 -->
-            <local:MyCard Title="服务器管理" Margin="15,0,15,15">
-                <StackPanel Margin="25,40,23,15">
-                    <TextBlock Text="管理游戏内保存的服务器信息，支持查看服务器状态、快速连接、地址复制等功能。"
-                               Foreground="{DynamicResource ColorBrush2}" FontSize="13" />
-                </StackPanel>
+            <local:MyCard Title="快捷操作" Margin="15,0,15,15">
+                <Grid Height="35" Margin="25,40,23,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                    </Grid.ColumnDefinitions>
+                    <local:MyButton Grid.Column="0" MinWidth="140" Text="刷新所有服务器" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" Click="BtnRefresh_Click" ColorType="Highlight"/>
+                    <local:MyButton Grid.Column="1" MinWidth="140" Text="加入新服务器" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" Click="BtnAddServer_Click"/>
+                </Grid>
             </local:MyCard>
             
             <!-- 服务器列表 -->
