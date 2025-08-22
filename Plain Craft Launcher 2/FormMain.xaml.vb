@@ -150,8 +150,8 @@ Public Class FormMain
         Topmost = False
         If FrmStart IsNot Nothing Then FrmStart.Close(New TimeSpan(0, 0, 0, 0, 400 / AniSpeed))
         '更改窗口
-        Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
-        Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
+        'Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
+        'Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
         IsSizeSaveable = True
         ShowWindowToTop()
         Dim HwndSource As Interop.HwndSource = PresentationSource.FromVisual(Me)
