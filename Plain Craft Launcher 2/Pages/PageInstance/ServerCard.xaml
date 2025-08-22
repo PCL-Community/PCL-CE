@@ -47,7 +47,7 @@
         <TextBlock Grid.Row="1" x:Name="ServerMotD" Grid.RowSpan="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,1"
                    TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource ColorBrushGray4}"
                    IsHitTestVisible="False" HorizontalAlignment="Center" Visibility="Visible" />
-        <Canvas x:Name="MotdCanvas" Grid.Row="1" Grid.RowSpan="2" Grid.Column="4" Margin="0,-15,3,1"
+        <Canvas x:Name="MotdCanvas" Grid.Row="1" Grid.RowSpan="2" Grid.Column="4" Margin="0,0,3,1"
                 IsHitTestVisible="False" HorizontalAlignment="Center" Width="300" Height="34"/>
 
         <StackPanel Grid.Row="1" Grid.Column="5" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">

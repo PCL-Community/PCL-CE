@@ -205,8 +205,8 @@ Public Class ServerCard
         Dim fontFamily As New FontFamily(If(String.IsNullOrWhiteSpace(font), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI", font))
         Dim fontSize As Double = 12
         Dim canvasWidth As Double = If(MotdCanvas.ActualWidth > 0, MotdCanvas.ActualWidth, 300) ' 防止宽度为0
+        Dim canvasHeight As Double = If(MotdCanvas.ActualHeight > 0, MotdCanvas.ActualHeight, 34) ' 防止宽度为0
         Dim y As Double = 10
-        Dim lineHeight As Double = fontSize * 1.5 ' 行间距
 
         ' 正则表达式匹配 § 代码和 RGB 颜色
         Dim regex As New Regex("(§[0-9a-fk-oAr]|#[0-9A-Fa-f]{6})")
@@ -223,18 +223,17 @@ Public Class ServerCard
 
         For lineIndex As Integer = 0 To lines.Length - 1
             Dim line As String = lines(lineIndex).Trim()
-            Log(lineIndex & ":" & line)
             Dim parts As String() = regex.Split(line)
 
             ' 计算整行宽度
             Dim lineWidth As Double = 0
+            Dim lineHeight As Double = 0
             Dim tempX As Double = 0 ' 临时x坐标用于宽度计算
             Dim textBlocks As New List(Of TextBlock) ' 存储每行的TextBlock
             Dim positions As New List(Of Double) ' 存储每个TextBlock的x坐标
             Dim partTexts As New List(Of String) ' 存储每段文本内容
 
             For Each part As String In parts
-                Log(part.ToString())
                 If String.IsNullOrEmpty(part) Then Continue For
 
                 ' 处理 § 颜色代码
@@ -298,6 +297,8 @@ Public Class ServerCard
 
                 ' 使用原始文本宽度更新 tempX 坐标
                 If isObfuscated Then
+                    Dim textHeight = MeasureTextHeight(part, fontFamily, fontSize, isBold, isItalic)
+                    lineHeight = If(textHeight > lineHeight, textHeight, lineHeight)
                     If IsMonospacedFont(fontFamily.Source) Then
                         Log("使用等宽字体：" & fontFamily.Source)
                         tempX += MeasureTextWidth(part, fontFamily, fontSize, isBold, isItalic)
@@ -307,6 +308,8 @@ Public Class ServerCard
                     End If
                 Else
                     tempX += MeasureTextWidth(part, fontFamily, fontSize, isBold, isItalic)
+                    Dim textHeight = MeasureTextHeight(part, fontFamily, fontSize, isBold, isItalic)
+                    lineHeight = If(textHeight > lineHeight, textHeight, lineHeight)
                 End If
                 lineWidth = tempX ' 更新行宽度
             Next
@@ -314,14 +317,31 @@ Public Class ServerCard
             ' 居中对齐：调整每行TextBlock的x坐标
             Dim offsetX As Double = (canvasWidth - lineWidth) / 2
             For i As Integer = 0 To textBlocks.Count - 1
+                Log(positions(i))
                 Canvas.SetLeft(textBlocks(i), positions(i) + offsetX)
-                ' MotdCanvas.Children.Add(textBlocks(i))
                 If isObfuscated Then
                     obfuscatedTextBlocks.Add(New Tuple(Of TextBlock, String)(textBlocks(i), partTexts(i)))
                 End If
             Next
-
-            y += lineHeight
+            
+            If lines.Length = 1 Then
+                Dim offsetY As Double = (canvasHeight - lineHeight) / 2
+                For i As Integer = 0 To textBlocks.Count - 1
+                    Canvas.SetTop(textBlocks(i), offsetY)
+                    If isObfuscated Then
+                        obfuscatedTextBlocks.Add(New Tuple(Of TextBlock, String)(textBlocks(i), partTexts(i)))
+                    End If
+                Next
+            Else If lines.Length = 2 AndAlso lineIndex = 0 Then
+                Dim offsetY As Double = (canvasHeight - lineHeight * 2) / 2
+                For i As Integer = 0 To textBlocks.Count - 1
+                    Canvas.SetTop(textBlocks(i), offsetY)
+                    If isObfuscated Then
+                        obfuscatedTextBlocks.Add(New Tuple(Of TextBlock, String)(textBlocks(i), partTexts(i)))
+                    End If
+                Next
+                y = lineHeight + offsetY
+            End If
         Next
     End Sub
     
@@ -383,7 +403,6 @@ Public Class ServerCard
 
     Private Function MeasureTextWidth(text As String, fontFamily As FontFamily, fontSize As Double,
                                     isBold As Boolean, isItalic As Boolean) As Double
-        Log(text)
         Dim formattedText As New FormattedText(
             text,
             System.Globalization.CultureInfo.InvariantCulture,
@@ -393,8 +412,21 @@ Public Class ServerCard
             fontSize,
             Brushes.White,
             96)
-        Log(formattedText.ToString())
         Return formattedText.WidthIncludingTrailingWhitespace
+    End Function
+    
+    Private Function MeasureTextHeight(text As String, fontFamily As FontFamily, fontSize As Double,
+                                      isBold As Boolean, isItalic As Boolean) As Double
+        Dim formattedText As New FormattedText(
+            text,
+            System.Globalization.CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            New Typeface(fontFamily, If(isItalic, FontStyles.Italic, FontStyles.Normal),
+                         If(isBold, FontWeights.Bold, FontWeights.Normal), FontStretches.Normal),
+            fontSize,
+            Brushes.White,
+            96)
+        Return formattedText.Height
     End Function
     
     Private Sub SaveButton_Click()
@@ -453,11 +485,13 @@ Public Class ServerCard
             SaveButton_Click()
         Else If _server.Status = ServerStatus.Pinging
             _manager.SetSelectedIconByName("loading")
+            MotdCanvas.Children.Clear()
             ServerPlayer.Text = "正在连接"
             ServerMotD.Text = "正在连接..."
             ServerMotD.Visibility = Visibility.Visible
         Else If _server.Status = ServerStatus.Offline
             _manager.SetSelectedIconByName("signal_offline")
+            MotdCanvas.Children.Clear()
             ServerPlayer.Text = "离线"
             ServerMotD.Text = "服务器离线"
             ServerMotD.Visibility = Visibility.Visible
