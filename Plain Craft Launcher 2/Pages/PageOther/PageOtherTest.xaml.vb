@@ -399,7 +399,7 @@ Public Class PageOtherTest
         Try
             Dim text As String = TextDownloadFolder.Text
             Directory.CreateDirectory(text)
-            Process.Start(text)
+            Basics.OpenPath(text)
         Catch ex As Exception
             Log(ex, "打开下载文件夹失败", ModBase.LogLevel.Debug, "出现错误")
         End Try
