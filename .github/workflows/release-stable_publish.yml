@@ -32,14 +32,11 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: cliff.toml
-          args: --verbose
-        env:
-          OUTPUT: CHANGELOG.md
-          GITHUB_REPO: ${{ github.repository }}
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate changelog
+        run: git-cliff
 
       - name: Add changelog to release
         uses: softprops/action-gh-release@v2.2.2

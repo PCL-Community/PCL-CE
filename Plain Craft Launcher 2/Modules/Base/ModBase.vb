@@ -1,7 +1,6 @@
 Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
-Imports System.Security.Cryptography
 Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
@@ -17,12 +16,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.12.2" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.12.2." & VersionBranchCode
+    Public Const VersionBaseName As String = "2.12.3" '不含分支前缀的显示用版本名
+    Public Const VersionStandardCode As String = "2.12.3." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
-    Public Const VersionCode As Integer = 399 '内部版本号
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
+    Public Const VersionCode As Integer = 402 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -842,12 +841,7 @@ Public Module ModBase
     ''' 从文件路径或者 Url 获取不包含路径与扩展名的文件名。不包含文件名将会抛出异常。
     ''' </summary>
     Public Function GetFileNameWithoutExtentionFromPath(FilePath As String) As String
-        Dim Name As String = GetFileNameFromPath(FilePath)
-        If Name.Contains(".") Then
-            Return Name.Substring(0, Name.LastIndexOfF("."))
-        Else
-            Return Name
-        End If
+        Return IO.Path.GetFileNameWithoutExtension(FilePath)
     End Function
     ''' <summary>
     ''' 从文件夹路径获取文件夹名。
@@ -885,12 +879,12 @@ Public Module ModBase
             '还原文件路径
             If Not FilePath.Contains(":\") Then FilePath = Path & FilePath
             If File.Exists(FilePath) Then
-                Dim FileBytes As Byte()
                 Using ReadStream As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) '支持读取使用中的文件
-                    ReDim FileBytes(ReadStream.Length - 1)
-                    ReadStream.Read(FileBytes, 0, ReadStream.Length)
+                    Using ms As New MemoryStream
+                        ReadStream.CopyTo(ms)
+                        Return ms.ToArray()
+                    End Using
                 End Using
-                Return FileBytes
             Else
                 Log("[System] 欲读取的文件不存在，已返回空内容：" & FilePath)
                 Return {}
@@ -913,14 +907,9 @@ Public Module ModBase
     ''' </summary>
     Public Function ReadFile(Stream As Stream, Optional Encoding As Encoding = Nothing) As String
         Try
-            Dim srcBuf As Byte() = New Byte(16384) {}
-            Dim DataCount As Integer = Stream.Read(srcBuf, 0, 16384)
-            Dim Result As New List(Of Byte)
-            While DataCount > 0
-                If DataCount > 0 Then Result.AddRange(srcBuf.ToList.GetRange(0, DataCount))
-                DataCount = Stream.Read(srcBuf, 0, 16384)
-            End While
-            Dim Bts = Result.ToArray
+            Dim readedContent As New MemoryStream()
+            Stream.CopyTo(readedContent)
+            Dim Bts = readedContent.ToArray()
             Return If(Encoding, GetEncoding(Bts)).GetString(Bts)
         Catch ex As Exception
             Log(ex, "读取流出错")
@@ -943,8 +932,6 @@ Public Module ModBase
             '追加目前文件
             Using writer As New StreamWriter(FilePath, True, If(Encoding, GetEncoding(ReadFileBytes(FilePath))))
                 writer.Write(Text)
-                writer.Flush()
-                writer.Close()
             End Using
         Else
             '直接写入字节
@@ -978,13 +965,8 @@ Public Module ModBase
             Directory.CreateDirectory(GetPathFromFullPath(FilePath))
             '读取流
             Using fs As New FileStream(FilePath, FileMode.Create, FileAccess.Write)
-                Dim srcBuf As Byte() = New Byte(16384) {}
-                Dim DataCount As Integer = Stream.Read(srcBuf, 0, 16384)
-                While DataCount > 0
-                    If DataCount > 0 Then fs.Write(srcBuf, 0, DataCount)
-                    DataCount = Stream.Read(srcBuf, 0, 16384)
-                End While
-                fs.Close()
+                fs.SetLength(0)
+                Stream.CopyTo(fs)
             End Using
             Return True
         Catch ex As Exception
@@ -1165,15 +1147,8 @@ Public Module ModBase
 Re:
         Try
             '获取 MD5
-            Dim Result As New StringBuilder()
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Using hasher = MD5.Create()
-                    Dim Retval As Byte() = hasher.ComputeHash(fs)
-                    For i = 0 To Retval.Length - 1
-                        Result.Append(Retval(i).ToString("x2"))
-                    Next
-                    Return Result.ToString
-                End Using
+                Return Core.Utils.Hash.MD5Provider.Instance.ComputeHash(fs)
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -1373,15 +1348,13 @@ Re:
         Directory.CreateDirectory(DestDirectory)
         If CompressFilePath.EndsWithF(".gz", True) Then
             '以 gz 方式解压
-            Dim stream As New GZipStream(New FileStream(CompressFilePath, FileMode.Open, FileAccess.ReadWrite), CompressionMode.Decompress)
-            Dim decompressedFile As New FileStream(DestDirectory & GetFileNameFromPath(CompressFilePath).ToLower.Replace(".tar", "").Replace(".gz", ""), FileMode.OpenOrCreate, FileAccess.Write)
-            Dim data As Integer = stream.ReadByte()
-            While data <> -1
-                decompressedFile.WriteByte(data)
-                data = stream.ReadByte()
-            End While
-            decompressedFile.Close()
-            stream.Close()
+            Using compressedFile As New FileStream(CompressFilePath, FileMode.Open, FileAccess.Read)
+                Using decompressStream As New GZipStream(compressedFile, CompressionMode.Decompress)
+                    Using extractFileStream As New FileStream(IO.Path.Combine(DestDirectory, GetFileNameFromPath(CompressFilePath).ToLower.Replace(".tar", "").Replace(".gz", "")), FileMode.OpenOrCreate, FileAccess.Write)
+                        decompressStream.CopyTo(extractFileStream)
+                    End Using
+                End Using
+            End Using
         Else
             '以 zip 方式解压
             Using Archive = ZipFile.Open(CompressFilePath, ZipArchiveMode.Read, If(Encode, Encoding.GetEncoding("GB18030")))
@@ -2306,9 +2279,10 @@ RetryDir:
     ''' 返回程序的返回代码，如果运行失败将抛出异常。
     ''' </summary>
     Public Function RunAsAdmin(Argument As String) As Integer
-        Dim NewProcess = Process.Start(New ProcessStartInfo(PathWithName) With {.Verb = "runas", .Arguments = Argument, .UseShellExecute = True})
-        NewProcess.WaitForExit()
-        Return NewProcess.ExitCode
+        Dim newProcess = ProcessInterop.StartAsAdmin(PathWithName, Argument)
+        If newProcess Is Nothing Then Throw New Exception("以管理员权限启动进程失败")
+        newProcess.WaitForExit()
+        Return newProcess.ExitCode
     End Function
 
     Public IsRestrictedFeatAllowed As Boolean = False
@@ -2514,12 +2488,12 @@ NextElement:
     ''' <param name="Timeout">等待该程序结束的最长时间（毫秒）。超时会抛出错误。</param>
     Public Function ShellAndGetOutput(FileName As String, Optional Arguments As String = "", Optional Timeout As Integer = 1000000, Optional WorkingDirectory As String = Nothing) As String
         Dim Info = New ProcessStartInfo With {
-        .FileName = FileName,
-        .Arguments = Arguments,
-        .UseShellExecute = False,
-        .CreateNoWindow = True,
-        .RedirectStandardOutput = True,
-        .RedirectStandardError = True
+            .FileName = FileName,
+            .Arguments = Arguments,
+            .UseShellExecute = False,
+            .CreateNoWindow = True,
+            .RedirectStandardOutput = True,
+            .RedirectStandardError = True
         }
 
         ' 设置工作目录（如果提供）
@@ -2750,7 +2724,7 @@ NextElement:
                 Throw New Exception(Url & " 不是一个有效的网址，它必须以 http 开头！")
             End If
             Log("[System] 正在打开网页：" & Url)
-            Process.Start(New ProcessStartInfo With {.FileName = Url, .UseShellExecute = True})
+            Basics.OpenPath(Url)
         Catch ex As Exception
             Log(ex, "无法打开网页（" & Url & "）")
             ClipboardSet(Url, False)
@@ -2780,27 +2754,27 @@ NextElement:
     ''' 设置剪贴板。将在另一线程运行，且不会抛出异常。
     ''' </summary>
     Public Sub ClipboardSet(Text As String, Optional ShowSuccessHint As Boolean = True)
-        RunInThread(
-        Sub()
-            Dim RetryCount As Integer = 0
-Retry:
-            Try
-                RunInUi(
-                Sub()
-                    My.Computer.Clipboard.Clear()
-                    My.Computer.Clipboard.SetText(Text)
-                End Sub)
-            Catch ex As Exception
-                RetryCount += 1
-                If RetryCount <= 5 Then
-                    Thread.Sleep(20)
-                    GoTo Retry
-                Else
-                    Log(ex, "可能由于剪贴板被其他程序占用，文本复制失败", LogLevel.Hint)
-                End If
-            End Try
-            If ShowSuccessHint Then Hint("已成功复制！", HintType.Finish)
-        End Sub)
+        RunInThread(Sub()
+                        Dim success As Boolean = False
+
+                        For attempt As Integer = 0 To 5
+                            Try
+                                RunInUi(Sub()
+                                            Clipboard.SetText(Text)
+                                        End Sub)
+                                success = True
+                                Exit For
+                            Catch ex As Exception When attempt < 5
+                                Thread.Sleep(20)
+                            Catch finalEx As Exception
+                                Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint)
+                            End Try
+                        Next
+
+                        If success AndAlso ShowSuccessHint Then
+                            RunInUi(Sub() Hint("已成功复制！", HintType.Finish))
+                        End If
+                    End Sub)
     End Sub
 
     ''' <summary>
@@ -2878,7 +2852,7 @@ Retry:
     Public Sub SetLaunchFont(Optional FontName As String = Nothing)
         Try
             Dim TargetFont As FontFamily
-            If FontName Is Nothing Then
+            If String.IsNullOrEmpty(FontName) Then
                 TargetFont = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI")
             Else
                 TargetFont = New FontFamily($"{FontName}, Segoe UI, Microsoft YaHei UI")

@@ -55,7 +55,7 @@
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="TextBlock"/>
                             <ColumnDefinition Width="8" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
@@ -81,21 +81,16 @@
                         <TextBlock x:Name="TextRelays" Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="正在获取..." TextWrapping="WrapWithOverflow"/>
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="中继行为"/>
                         <local:MyComboBox x:Name="ComboRelayType" Tag="LinkRelayType" Grid.Row="4" Grid.Column="2">
-                            <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 无法连接时尝试中继。"/>
-                            <local:MyComboBoxItem Content="优先通过中继连接" ToolTip="优先通过中继节点建立网络连接，可能需要联机双方均开启才能生效。&#xa;不能确保流量经服务器中继，且仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
+                            <local:MyComboBoxItem Content="自动决定（推荐）" ToolTip="让 EasyTier 自行决定连接方式，适用于绝大多数用户。&#xa;EasyTier 将会尽可能建立 P2P 连接，仅在 P2P 连接未能建立时使用中继。"/>
+                            <local:MyComboBoxItem Content="仅中继" ToolTip="数据仅通过中继节点进行转发，且仅推荐在完全无法连接或极端卡顿的情况下尝试。"/>
                         </local:MyComboBox>
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="节点行为"/>
                         <local:MyComboBox x:Name="ComboServerType" Tag="LinkServerType" Grid.Row="6" Grid.Column="2">
-                            <local:MyComboBoxItem Content="仅自有节点" ToolTip="仅通过 PCL CE 自有节点通信。&#xa;自有节点由 PCL CE 开发者部署，数据将不会经过第三方。"/>
-                            <local:MyComboBoxItem Content="自有节点 + 社区节点" ToolTip="除自有节点外，添加由 PCL CE 挑选的部分 EasyTier 社区提供的节点。&#xa;这些节点由社区志愿者部署，可能可以提供更快的连接速度，但数据将会由其中继。"/>
-                            <local:MyComboBoxItem Content="不使用预设节点" ToolTip="不使用任何预设节点。&#xa;虽然 EasyTier 仍会尝试建立 P2P 连接，但你可能必须手动添加一个节点才能使用大厅。"/>
+                            <local:MyComboBoxItem Content="仅自有节点协助中继" ToolTip="仅通过 PCL CE 自有节点通信。&#xa;自有节点由 PCL CE 官方部署，一般情况下此选项已经足够使用。"/>
+                            <local:MyComboBoxItem Content="自有节点 + 社区节点 协助中继" ToolTip="除自有节点外，添加由 PCL CE 挑选的部分 EasyTier 社区提供的节点。&#xa;这些节点由社区志愿者部署，可能可以提供更快的连接速度，其将中继部分数据。"/>
+                            <local:MyComboBoxItem Content="不使用预设节点中继 (谨慎选择)" ToolTip="不使用任何预设节点中继数据。&#xa;这极大概率会导致无法连接"/>
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="数据处理行为"/>
-                        <local:MyComboBox x:Name="ComboProxyType" Tag="LinkProxyType" Grid.Row="8" Grid.Column="2" ToolTip="选择 EasyTier 进行数据处理的方式，可能可以降低延迟或提升传输带宽。&#xa;需要联机双方都配置方可生效。">
-                            <local:MyComboBoxItem Content="使用 QUIC" ToolTip="使用 QUIC 协议代理 TCP 流，对提升传输带宽较有帮助。&#xa;此设置暂时无效。"/>
-                            <local:MyComboBoxItem Content="使用 KCP" ToolTip="使用 KCP 协议代理 TCP 流，对降低延迟较有帮助。"/>
-                            <local:MyComboBoxItem Content="使用 KCP + QUIC" ToolTip="同时允许 KCP 和 QUIC 协议。&#xa;需要注意，KCP 优先级大于 QUIC，因此在联机双方的设置均允许使用 KCP 的情况下不会尝试使用 QUIC。"/>
-                        </local:MyComboBox>
+                        <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="8" Grid.ColumnSpan="3" Text="选择最低延迟路径而不是最短路径" ToolTip="这将要求 EasyTier 通信时进行选择最低延迟的路径，在部分情况下能降低联机时的延迟，但可能会提高丢包率"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
