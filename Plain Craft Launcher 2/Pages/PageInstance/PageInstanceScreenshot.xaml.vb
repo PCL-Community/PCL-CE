@@ -1,5 +1,6 @@
 ﻿
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.App
 
 Public Class PageInstanceScreenshot
     Implements IRefreshable
@@ -124,7 +125,7 @@ Public Class PageInstanceScreenshot
                 image.Cursor = Cursors.Hand
                 AddHandler image.MouseLeftButtonDown, Sub(sender, e)
                     Try
-                        Process.Start(i) ' 使用系统默认程序打开
+                        Basics.OpenPath(i) ' 使用系统默认程序打开
                     Catch ex As Exception
                         Log(ex, "打开截图失败！", LogLevel.Hint)
                     End Try
