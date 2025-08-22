@@ -1,6 +1,4 @@
-﻿Imports PCL.Core.App
-
-Class PageSetupSystem
+﻿Class PageSetupSystem
 
     Private Shadows IsLoaded As Boolean = False
 
