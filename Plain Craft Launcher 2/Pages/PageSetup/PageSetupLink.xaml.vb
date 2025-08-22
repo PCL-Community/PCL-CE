@@ -25,7 +25,7 @@ Class PageSetupLink
         TextLinkRelay.Text = Setup.Get("LinkRelayServer")
         ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
         ComboServerType.SelectedIndex = Setup.Get("LinkServerType")
-        ComboProxyType.SelectedIndex = Setup.Get("LinkProxyType")
+        CheckLatencyFirstMode.Checked = Setup.Get("LinkLatencyFirstMode")
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -142,7 +142,7 @@ Class PageSetupLink
             Setup.Reset("LinkRelayServer")
             Setup.Reset("LinkRelayType")
             Setup.Reset("LinkServerType")
-            Setup.Reset("LinkProxyType")
+            Setup.Reset("LinkLatencyFirstMode")
 
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)
@@ -158,8 +158,11 @@ Class PageSetupLink
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLinkRelay.ValidatedTextChanged, TextLinkUsername.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
-    Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged, ComboProxyType.SelectionChanged
+    Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
+    End Sub
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
 End Class

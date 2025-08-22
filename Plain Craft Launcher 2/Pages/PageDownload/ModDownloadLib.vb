@@ -1555,7 +1555,7 @@ Retry:
 Retry:
                     Try
                         '释放 Forge 注入器
-                        WriteFile(PathTemp & "Cache\forge_installer.jar", GetResources("ForgeInstaller"))
+                        WriteFile(PathTemp & "Cache\forge_installer.jar", GetResourceStream("Resources/forge-installer.jar"))
                         Task.Progress = 0.06
                         '运行注入器
                         ForgelikeInjector(InstallerAddress, Task, McFolder, UseJavaWrapper, ForgeType)

@@ -481,7 +481,7 @@ Public Class PageDownloadCompFavorites
                                                     ' 获取有期望版本号的文件
                                                     Dim FinalChoices = Target.Where(Function(i) i.GameVersions.Contains(SelectedVersionStr)).ToList()
                                                     ' 按照发布日期排序
-                                                    FinalChoices = FinalChoices.Sort(Function(a As CompFile, b As CompFile) a.ReleaseDate > b.ReleaseDate)
+                                                    FinalChoices.Sort(Function(a As CompFile, b As CompFile) a.ReleaseDate > b.ReleaseDate)
                                                     ' 选择最新版本进行下载
                                                     Res.Add(FinalChoices.First.ToNetFile(SaveFolder & FinalChoices.First.FileName))
                                                 Next
@@ -526,7 +526,7 @@ Public Class PageDownloadCompFavorites
     End Sub
 
     Private Sub Page_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
-        If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then Items_SetSelectAll(True)
+        If Keyboard.IsKeyDown(Key.LeftCtrl) OrElse Keyboard.IsKeyDown(Key.RightCtrl) AndAlso e.Key = Key.A Then Items_SetSelectAll(True)
     End Sub
 
     Private Sub Manage_Click(sender As Object, e As MouseButtonEventArgs)

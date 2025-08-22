@@ -84,58 +84,64 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            Dispatcher.BeginInvoke(Async Sub()
-                ComboUiFont.IsEnabled = False
-                Dim uiFonts = ComboUiFont.Items
-                If uiFonts.Count = 0 Then
-                    uiFonts.Add(New MyComboBoxItem With { .Content = New TextBlock With { .Text = "加载中..." } })
-                    ComboUiFont.SelectedIndex = 0
-                    Dim availableFonts As New List(Of FontFamily)
-                    Await Task.Run(Sub()
-                        For Each Font In Fonts.SystemFontFamilies
-                            Try
-                                '忽略 Global 系列字体
-                                If Font.Source.StartsWith("Global ") Then Continue For
-                                '尝试加载字体以检测是否可用
-                                For Each Typeface In Font.GetTypefaces()
-                                    Dim glyph As GlyphTypeface = Nothing
-                                    Typeface.TryGetGlyphTypeface(glyph)
-                                    If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                    'ReSharper disable once UnusedVariable
-                                    Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                Next
-                                availableFonts.Add(Font)
-                            Catch ex As Exception
-                                Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                            End Try
-                        Next
-                    End Sub)
-                    uiFonts.Clear()
-                    uiFonts.Add(New MyComboBoxItem With {
-                        .Content = New TextBlock With {
-                            .Text = "默认",
-                            .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                            .IsHitTestVisible = False,
-                            .TextAlignment = TextAlignment.Center
-                        },
-                        .Tag = ""
-                    })
-                    For Each Font In availableFonts
+            Dispatcher.BeginInvoke(
+                Async Sub()
+                    ComboUiFont.IsEnabled = False
+                    Dim uiFonts = ComboUiFont.Items
+                    If uiFonts.Count = 0 Then
+                        uiFonts.Add(New MyComboBoxItem With {.Content = New TextBlock With {.Text = "加载中..."}})
+                        ComboUiFont.SelectedIndex = 0
+                        Dim availableFonts As New List(Of FontFamily)
+                        Await Task.Run(Sub()
+                                           For Each Font In Fonts.SystemFontFamilies
+                                               Try
+                                                   '忽略 Global 系列字体
+                                                   If Font.Source.StartsWith("Global ") Then Continue For
+                                                   '尝试加载字体以检测是否可用
+                                                   For Each Typeface In Font.GetTypefaces()
+                                                       Dim glyph As GlyphTypeface = Nothing
+                                                       Typeface.TryGetGlyphTypeface(glyph)
+                                                       If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                                                       'ReSharper disable once UnusedVariable
+                                                       Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                                                   Next
+                                                   availableFonts.Add(Font)
+                                               Catch ex As Exception
+                                                   Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                                               End Try
+                                           Next
+                                       End Sub)
+                        uiFonts.Clear()
                         uiFonts.Add(New MyComboBoxItem With {
-                            .Content = New TextBlock With {
-                                .Text = Font.FamilyNames.GetForCurrentUiCulture(),
-                                .FontFamily = Font,
+                        .Content = New TextBlock With {
+                                .Text = "默认",
+                                .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
                                 .IsHitTestVisible = False,
                                 .TextAlignment = TextAlignment.Center
                             },
-                            .Tag = Font.Source
+                            .Tag = ""
                         })
-                    Next
-                End If
-                Dim targetFont As String = Setup.Get("UiFont")
-                ComboUiFont.SelectedItem = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function (x) x.Tag = targetFont)
-                ComboUiFont.IsEnabled = True
-            End Sub)
+                        For Each Font In availableFonts
+                            uiFonts.Add(New MyComboBoxItem With {
+                                .Content = New TextBlock With {
+                                    .Text = Font.FamilyNames.GetForCurrentUiCulture(),
+                                    .FontFamily = Font,
+                                    .IsHitTestVisible = False,
+                                    .TextAlignment = TextAlignment.Center
+                                },
+                                .Tag = Font.Source
+                            })
+                        Next
+                    End If
+                    Dim targetFont As String = Setup.Get("UiFont")
+                    Dim targetSelection = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function(x) x.Tag = targetFont)
+                    If targetSelection Is Nothing Then
+                        ComboUiFont.SelectedIndex = 0
+                    Else
+                        ComboUiFont.SelectedItem = targetSelection
+                    End If
+                    ComboUiFont.IsEnabled = True
+                End Sub)
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)
@@ -290,13 +296,8 @@ Public Class PageSetupUI
 
     Private Sub ComboFontChange(sender As MyComboBox, e As Object) Handles ComboUiFont.SelectionChanged
         If AniControlEnabled = 0 Then
-            If sender.SelectedIndex = 0 Or sender.SelectedItem Is Nothing Then
-                Setup.Set("UiFont", "")
-                SetLaunchFont()
-            Else
-                Setup.Set("UiFont", sender.SelectedItem.Tag)
-                SetLaunchFont(sender.SelectedItem.Tag)
-            End If
+            If Not sender.IsEnabled OrElse sender.SelectedItem.Tag Is Nothing Then Return
+            Setup.Set("UiFont", sender.SelectedItem.Tag)
         End If
     End Sub
 
@@ -492,7 +493,7 @@ Refresh:
                 '删除文件
                 Try
                     DeleteDirectory(Path & "PCL\Musics")
-                    DisableSMTCSupport()
+                    'DisableSMTCSupport()
                     Hint("背景音乐已删除！", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "删除背景音乐失败", LogLevel.Msgbox)
@@ -521,7 +522,7 @@ Refresh:
             If File.Exists(Path & "PCL\Custom.xaml") Then
                 If MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn:=True) = 2 Then Return
             End If
-            WriteFile(Path & "PCL\Custom.xaml", GetResources("Custom"))
+            WriteFile(Path & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
             Hint("教学文件已生成！", HintType.Finish)
             OpenExplorer(Path & "PCL\Custom.xaml")
         Catch ex As Exception
@@ -798,7 +799,7 @@ Refresh:
         SliderLauncherHue.GetHintText = Function(v) v & "°"
         SliderLauncherSat.GetHintText = Function(v) v & "%"
         SliderLauncherDelta.GetHintText =
-        Function(Value As Integer)
+        Function(Value As Integer) As String
             If Value > 90 Then
                 Return "+" & (Value - 90)
             ElseIf Value = 90 Then
@@ -808,7 +809,7 @@ Refresh:
             End If
         End Function
         SliderLauncherLight.GetHintText =
-        Function(Value As Integer)
+        Function(Value As Integer) As String
             If Value > 20 Then
                 Return "+" & (Value - 20)
             ElseIf Value = 20 Then
@@ -822,6 +823,6 @@ Refresh:
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
     End Sub
     Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
-        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket}）
+        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket})
     End Sub
 End Class

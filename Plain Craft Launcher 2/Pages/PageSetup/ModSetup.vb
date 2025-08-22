@@ -261,6 +261,15 @@ Public Class ModSetup
         End Select
     End Sub
 
+    '字体
+    Public Sub UiFont(value As String)
+        Try
+            SetLaunchFont(value)
+        Catch ex As Exception
+            Log(ex, "字体加载失败", LogLevel.Hint)
+        End Try
+    End Sub
+
     '主页
     Public Sub UiCustomType(Value As Integer)
         If FrmSetupUI Is Nothing Then Return

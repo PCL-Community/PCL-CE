@@ -1,6 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class Application
@@ -26,6 +27,7 @@ Public Class Application
     '开始
     Private Sub Application_Startup() '(sender As Object, e As StartupEventArgs) Handles Me.Startup
         Try
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
             '创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(New BindingErrorTraceListener())
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
@@ -47,17 +49,17 @@ Public Class Application
                     End Try
                 ElseIf args(0).StartsWithF("--memory") Then
                     '内存优化
-                    Dim Ram = My.Computer.Info.AvailablePhysicalMemory
+                    Dim Ram = KernelInterop.GetAvailablePhysicalMemoryBytes()
                     Try
                         PageOtherTest.MemoryOptimizeInternal(False)
                     Catch ex As Exception
                         MsgBox(ex.Message, MsgBoxStyle.Critical, "内存优化失败")
                         Environment.Exit(-1)
                     End Try
-                    If My.Computer.Info.AvailablePhysicalMemory < Ram Then '避免 ULong 相减出现负数
+                    If KernelInterop.GetAvailablePhysicalMemoryBytes() < Ram Then '避免 ULong 相减出现负数
                         Environment.Exit(0)
                     Else
-                        Environment.Exit((My.Computer.Info.AvailablePhysicalMemory - Ram) / 1024) '返回清理的内存量（K）
+                        Environment.Exit((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) / 1024) '返回清理的内存量（K）
                     End If
 #If DEBUGRESERVED Then
                     '制作更新包
@@ -171,6 +173,7 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
+            Setup.Load("UiFont")
             If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
                 NEWSetup.System.UpdateBranch = SetupEntries.System.UpdateBranch.DefaultValue
             End If
@@ -179,28 +182,8 @@ WaitRetry:
                 Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
-            '释放资源
-            Directory.CreateDirectory(PathPure & "CE")
-            SetDllDirectory(PathPure & "CE")
-            Dim WebpPath = $"{PathPure}CE\libwebp.dll"
-            If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
             'Pipe RPC 初始化
             StartEchoPipe()
-            '设置字体
-            Dim TargetFont As String = Setup.Get("UiFont")
-            If Not String.IsNullOrEmpty(TargetFont) Then
-                Try
-                    Dim Font = Fonts.SystemFontFamilies.FirstOrDefault(Function(x) x.FamilyNames.Values.Contains(TargetFont))
-                    If Font Is Nothing Then
-                        Setup.Reset("UiFont")
-                    Else
-                        SetLaunchFont(TargetFont)
-                    End If
-                Catch ex As Exception
-                    Log(ex, "字体加载失败", LogLevel.Hint)
-                    Setup.Reset("UiFont")
-                End Try
-            End If
             '计时
             Log("[Start] 第一阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
             ApplicationStartTick = GetTimeTick()
@@ -250,12 +233,12 @@ WaitRetry:
     Private Sub MyIconButton_Click(sender As Object, e As EventArgs)
     End Sub
 
-    Public Shared ShowingTooltips As New List(Of Border)
-    Private Sub TooltipLoaded(sender As Border, e As EventArgs)
-        ShowingTooltips.Add(sender)
+    Public Shared ReadOnly ShowingTooltips As New List(Of Border)
+    Private Sub TooltipLoaded(sender As Object, e As EventArgs)
+        ShowingTooltips.Add(CType(sender, Border))
     End Sub
-    Private Sub TooltipUnloaded(sender As Border, e As RoutedEventArgs)
-        ShowingTooltips.Remove(sender)
+    Private Sub TooltipUnloaded(sender As Object, e As RoutedEventArgs)
+        ShowingTooltips.Remove(CType(sender, Border))
     End Sub
 
     ' 自定义监听器类

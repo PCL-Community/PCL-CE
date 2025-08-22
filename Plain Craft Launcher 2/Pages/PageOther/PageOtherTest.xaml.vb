@@ -4,6 +4,7 @@ Imports System.Runtime.InteropServices
 Imports PCL.Core.App
 
 Imports PCL.Core.IO
+Imports PCL.Core.Utils.OS
 
 Public Class PageOtherTest
     Public Sub New()
@@ -231,7 +232,6 @@ Public Class PageOtherTest
         Public Flags As UInteger
     End Structure
     Private Declare Ansi Function GetCurrentProcess Lib "kernel32.dll" () As IntPtr
-    <ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)>
     Private Declare Auto Function CloseHandle Lib "kernel32.dll" (handle As IntPtr) As Boolean
     Private Declare Auto Function OpenProcessToken Lib "advapi32.dll" (ProcessHandle As HandleRef, DesiredAccess As Integer, <System.Runtime.InteropServices.OutAttribute()> ByRef TokenHandle As IntPtr) As Boolean
     Private Declare Auto Function LookupPrivilegeValue Lib "advapi32.dll" (<MarshalAs(UnmanagedType.LPTStr)> lpSystemName As String, <MarshalAs(UnmanagedType.LPTStr)> lpName As String, <System.Runtime.InteropServices.OutAttribute()> ByRef lpLuid As LUID) As Boolean
@@ -248,7 +248,7 @@ Public Class PageOtherTest
             IsMemoryOptimizing = True
             Dim num As Long
             If ModBase.IsAdmin() Then
-                num = CLng(My.Computer.Info.AvailablePhysicalMemory)
+                num = CLng(KernelInterop.GetAvailablePhysicalMemoryBytes())
                 Try
                     MemoryOptimizeInternal(ShowHint)
                 Catch ex As Exception
@@ -257,7 +257,7 @@ Public Class PageOtherTest
                 Finally
                     IsMemoryOptimizing = False
                 End Try
-                num = Convert.ToInt64(Decimal.Subtract(New Decimal(My.Computer.Info.AvailablePhysicalMemory), New Decimal(num)))
+                num = Convert.ToInt64(Decimal.Subtract(New Decimal(KernelInterop.GetAvailablePhysicalMemoryBytes()), New Decimal(num)))
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
@@ -275,7 +275,7 @@ Public Class PageOtherTest
                     Return
                 End If
             End If
-            Dim MemAfter As String = GetString(CLng(My.Computer.Info.AvailablePhysicalMemory))
+            Dim MemAfter As String = GetString(CLng(KernelInterop.GetAvailablePhysicalMemoryBytes()))
             Log(String.Format("[Test] 内存优化完成，可用内存改变量：{0}，大致剩余内存：{1}", GetString(num), MemAfter))
             If num > 0L Then
                 If ShowHint Then
@@ -399,7 +399,7 @@ Public Class PageOtherTest
         Try
             Dim text As String = TextDownloadFolder.Text
             Directory.CreateDirectory(text)
-            Process.Start(text)
+            Basics.OpenPath(text)
         Catch ex As Exception
             Log(ex, "打开下载文件夹失败", ModBase.LogLevel.Debug, "出现错误")
         End Try
