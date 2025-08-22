@@ -1,3 +1,5 @@
+Imports Microsoft.VisualBasic.FileIO
+
 Public Class PageInstanceCompResource
     Implements IRefreshable
     
@@ -977,12 +979,12 @@ Install:
     End Sub
     Private Sub FrmMain_KeyDown(sender As Object, e As KeyEventArgs) '若监听自己的事件则在进入页面后需点击右侧控件才可监听到 (#4311)
         If FrmMain.PageRight IsNot Me Then Return
-        If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then ChangeAllSelected(True)
+        If (Keyboard.IsKeyDown(Key.LeftCtrl) OrElse Keyboard.IsKeyDown(Key.RightCtrl)) AndAlso e.Key = Key.A Then ChangeAllSelected(True)
     End Sub
     Private Sub SearchBox_PreviewKeyDown(sender As Object, e As KeyEventArgs) Handles SearchBox.PreviewKeyDown
         'Ctrl + A 会被搜索框捕获，导致无法全选，所以在按下 Ctrl + A 时转移焦点以便捕获
         If SearchBox.Text.Any Then Return
-        If My.Computer.Keyboard.CtrlKeyDown AndAlso e.Key = Key.A Then PanBack.Focus()
+        If (Keyboard.IsKeyDown(Key.LeftCtrl) OrElse Keyboard.IsKeyDown(Key.RightCtrl)) AndAlso e.Key = Key.A Then PanBack.Focus()
     End Sub
 
 #End Region
@@ -1266,7 +1268,7 @@ Install:
                     End If
                 End If
                 File.Delete(NewPath)
-                FileSystem.Rename(ModEntity.Path, NewPath)
+                Microsoft.VisualBasic.FileSystem.Rename(ModEntity.Path, NewPath)
             Catch ex As FileNotFoundException
                 Log(ex, $"未找到需要重命名的 Mod（{If(ModEntity.Path, "null")}）", LogLevel.Feedback)
                 ReloadCompFileList(True)
@@ -1377,14 +1379,14 @@ Install:
                 Try
                     For Each Entry As LocalCompFile In ModList
                         If File.Exists(Entry.Path) Then
-                            My.Computer.FileSystem.DeleteFile(Entry.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            FileSystem.DeleteFile(Entry.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         Else
                             Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{Entry.Path}", LogLevel.Debug)
                         End If
                     Next
                     For Each Entry As KeyValuePair(Of String, String) In FileCopyList
                         If File.Exists(Entry.Value) Then
-                            My.Computer.FileSystem.DeleteFile(Entry.Value, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            FileSystem.DeleteFile(Entry.Value, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                             Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", LogLevel.Debug)
                         End If
                         If Directory.Exists(GetPathFromFullPath(Entry.Value)) Then
@@ -1456,7 +1458,7 @@ Install:
     Private Sub DeleteMods(ModList As IEnumerable(Of LocalCompFile))
         Try
             Dim IsSuccessful As Boolean = True
-            Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
+            Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
             '确认需要删除的文件
             ModList = ModList.SelectMany(
             Function(Target As LocalCompFile)
@@ -1478,14 +1480,14 @@ Install:
                         If IsShiftPressed Then
                             Directory.Delete(ModEntity.ActualPath, True)
                         Else
-                            My.Computer.FileSystem.DeleteDirectory(ModEntity.ActualPath, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            FileSystem.DeleteDirectory(ModEntity.ActualPath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin)
                         End If
                     Else
                         ' 删除文件
                         If IsShiftPressed Then
                             File.Delete(ModEntity.Path)
                         Else
-                            My.Computer.FileSystem.DeleteFile(ModEntity.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                            FileSystem.DeleteFile(ModEntity.Path, UIOption.AllDialogs, RecycleOption.SendToRecycleBin)
                         End If
                     End If
                 Catch ex As OperationCanceledException
@@ -1599,15 +1601,15 @@ Install:
                             '根据当前资源类型计算文件数量
                             Select Case CurrentCompType
                                 Case CompType.Schematic
-                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.AllDirectories).Where(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Schematic)).Count()
+                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*", IO.SearchOption.AllDirectories).Where(Function(f) LocalCompFile.IsCompFile(f.FullName, CompType.Schematic)).Count()
                                 Case CompType.Mod
-                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.jar", SearchOption.AllDirectories).Count()
+                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.jar", IO.SearchOption.AllDirectories).Count()
                                 Case CompType.ResourcePack
-                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.zip", SearchOption.AllDirectories).Count()
+                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.zip", IO.SearchOption.AllDirectories).Count()
                                 Case CompType.Shader
-                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.zip", SearchOption.AllDirectories).Count()
+                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*.zip", IO.SearchOption.AllDirectories).Count()
                                 Case Else
-                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*", SearchOption.AllDirectories).Count()
+                                    fileCount = New DirectoryInfo(folderPath).EnumerateFiles("*", IO.SearchOption.AllDirectories).Count()
                             End Select
                         Catch ex As Exception
                             fileCount = 0

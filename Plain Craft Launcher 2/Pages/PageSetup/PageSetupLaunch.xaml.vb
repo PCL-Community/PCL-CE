@@ -1,4 +1,6 @@
-﻿Public Class PageSetupLaunch
+﻿Imports PCL.Core.Utils.OS
+
+Public Class PageSetupLaunch
 
     Private IsLoad As Boolean = False
 
@@ -137,8 +139,9 @@
         If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.Setup OrElse FrmSetupLeft.PageID <> FormMain.PageSubType.SetupLaunch Then Return
         '获取内存情况
         Dim RamGame As Double = Math.Round(GetRam(McInstanceCurrent, False), 5)
-        Dim RamTotal As Double = Math.Round(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024 / 1024, 1)
-        Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024, 1)
+        Dim phyRam = KernelInterop.GetPhysicalMemoryBytes()
+        Dim RamTotal As Double = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1)
+        Dim RamAvailable As Double = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1)
         Dim RamGameActual As Double = Math.Round(Math.Min(RamGame, RamAvailable), 5)
         Dim RamUsed As Double = Math.Round(RamTotal - RamAvailable, 5)
         Dim RamEmpty As Double = Math.Round(MathClamp(RamTotal - RamUsed - RamGame, 0, 1000), 1)
@@ -273,7 +276,7 @@
         Dim RamGive As Double
         If Setup.Get("LaunchRamType") = 0 Then
             '自动配置
-            Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10
+            Dim RamAvailable As Double = Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10
             '确定需求的内存值
             Dim RamMininum As Double '无论如何也需要保证的最低限度内存
             Dim RamTarget1 As Double '估计能勉强带动了的内存

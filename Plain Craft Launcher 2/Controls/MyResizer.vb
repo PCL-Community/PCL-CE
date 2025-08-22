@@ -109,7 +109,7 @@ Public Class MyResizer
         Dim mINMAXINFO As MINMAXINFO = CType(Marshal.PtrToStructure(lParam, GetType(MINMAXINFO)), MINMAXINFO)
         Dim flags As Integer = 2
         Dim intPtr As IntPtr = MonitorFromWindow(hwnd, flags)
-        Dim flag As Boolean = intPtr <> IntPtr.Zero
+        Dim flag As Boolean = Not intPtr.Equals(IntPtr.Zero)
         If flag Then
             Dim mONITORINFO As New MONITORINFO()
             GetMonitorInfo(intPtr, mONITORINFO)

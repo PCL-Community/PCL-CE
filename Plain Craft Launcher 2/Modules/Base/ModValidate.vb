@@ -1,4 +1,6 @@
 ﻿'提供不同的输入验证方法，名称以 Validate 开头
+Imports Microsoft.VisualBasic.FileIO
+
 Public Module ModValidate
 
     ''' <summary>
@@ -377,7 +379,7 @@ Public Class ValidateFolderPath
         If LengthCheck <> "" Then Return LengthCheck
         '检查开头
         If Str.StartsWithF("\\Mac\") Then GoTo Fin
-        For Each Drive As DriveInfo In My.Computer.FileSystem.Drives
+        For Each Drive As DriveInfo In FileSystem.Drives
             If Str.ToUpper = Drive.Name Then Return ""
             If Str.StartsWithF(Drive.Name, True) Then GoTo Fin
         Next

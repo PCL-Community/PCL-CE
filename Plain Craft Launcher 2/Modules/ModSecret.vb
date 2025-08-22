@@ -2,6 +2,7 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
+Imports System.Runtime.InteropServices
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -42,10 +43,11 @@ Friend Module ModSecret
             Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
         End Try
         '检测当前文件夹权限
+        Dim dataPath = FileService.DataPath
         Try
-            Directory.CreateDirectory(Path & "PCL")
+            Directory.CreateDirectory(dataPath)
         Catch ex As Exception
-            MsgBox($"PCL 无法创建 PCL 文件夹（{Path & "PCL"}），请尝试：" & vbCrLf &
+            MsgBox($"PCL 无法创建 PCL 文件夹（{dataPath}），请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
                   "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
@@ -130,7 +132,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Case 2
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
         End Select
-        McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
+        McLaunchLog("当前剩余内存：" & Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024) & "m")
         If Not DataList.Any(Function(d) d.Contains("-Dlog4j2.formatMsgNoLookups=true")) Then DataList.Add("-Dlog4j2.formatMsgNoLookups=true")
@@ -983,11 +985,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' <summary>
     ''' 已安装物理内存大小，单位 MB
     ''' </summary>
-    Friend SystemMemorySize As Long = My.Computer.Info.TotalPhysicalMemory / 1024 / 1024
+    Friend SystemMemorySize As Long = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024
     ''' <summary>
     ''' 系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
     ''' </summary>
-    Public OSInfo As String = My.Computer.Info.OSFullName & " " & My.Computer.Info.OSVersion
+    Public OSInfo As String = RuntimeInformation.OSDescription & " " & Environment.OSVersion.Version.ToString()
     Class GPUInfo
         Friend Name As String
         ''' <summary>

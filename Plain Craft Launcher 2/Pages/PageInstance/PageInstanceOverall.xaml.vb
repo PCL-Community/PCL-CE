@@ -1,5 +1,5 @@
+Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.Minecraft
-Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class PageInstanceOverall
@@ -129,28 +129,28 @@ Public Class PageInstanceOverall
                 JsonObject = PageInstanceLeft.Instance.JsonObject
             End Try
             '重命名主文件夹
-            My.Computer.FileSystem.RenameDirectory(OldPath, TempName)
-            My.Computer.FileSystem.RenameDirectory(TempPath, NewName)
+            FileSystem.RenameDirectory(OldPath, TempName)
+            FileSystem.RenameDirectory(TempPath, NewName)
             '清理 ini 缓存
             IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
             '重命名 Jar 文件与 natives 文件夹
             '不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             If Directory.Exists($"{NewPath}{OldName}-natives") Then
                 If IsCaseChangedOnly Then
-                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp")
-                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives")
+                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp")
+                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives")
                 Else
                     DeleteDirectory($"{NewPath}{NewName}-natives")
-                    My.Computer.FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives")
+                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives")
                 End If
             End If
             If File.Exists($"{NewPath}{OldName}.jar") Then
                 If IsCaseChangedOnly Then
-                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{OldName}_temp.jar")
-                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}_temp.jar", $"{NewName}.jar")
+                    FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{OldName}_temp.jar")
+                    FileSystem.RenameFile($"{NewPath}{OldName}_temp.jar", $"{NewName}.jar")
                 Else
                     File.Delete($"{NewPath}{NewName}.jar")
-                    My.Computer.FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{NewName}.jar")
+                    FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{NewName}.jar")
                 End If
             End If
             '替换实例设置文件中的路径
@@ -372,7 +372,7 @@ Public Class PageInstanceOverall
     '修补游戏核心
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
-            Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
+            Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
             Dim IsHintIndie As Boolean = PageInstanceLeft.Instance.State <> McInstanceState.Error AndAlso PageInstanceLeft.Instance.PathIndie <> PathMcFolder
             Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {PageInstanceLeft.Instance.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
@@ -383,7 +383,7 @@ Public Class PageInstanceOverall
                         DeleteDirectory(PageInstanceLeft.Instance.Path)
                         Hint("实例 " & PageInstanceLeft.Instance.Name & " 已永久删除！", HintType.Finish)
                     Else
-                        FileIO.FileSystem.DeleteDirectory(PageInstanceLeft.Instance.Path, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                        FileSystem.DeleteDirectory(PageInstanceLeft.Instance.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
                         Hint("实例 " & PageInstanceLeft.Instance.Name & " 已删除到回收站！", HintType.Finish)
                     End If
                 Case 2

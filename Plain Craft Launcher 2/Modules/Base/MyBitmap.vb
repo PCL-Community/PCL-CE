@@ -36,7 +36,7 @@ Public Class MyBitmap
         Dim bitmapData = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb)
         Try
             Dim size = rect.Width * rect.Height * 4
-            Return BitmapSource.Create(Bitmap.Width, Bitmap.Height, Bitmap.HorizontalResolution, Bitmap.VerticalResolution, Media.PixelFormats.Bgra32, Nothing, bitmapData.Scan0, size, bitmapData.Stride)
+            Return BitmapSource.Create(Bitmap.Width, Bitmap.Height, Bitmap.HorizontalResolution, Bitmap.VerticalResolution, PixelFormats.Bgra32, Nothing, bitmapData.Scan0, size, bitmapData.Stride)
         Finally
             Bitmap.UnlockBits(bitmapData)
         End Try
@@ -87,7 +87,7 @@ Public Class MyBitmap
                 End Using
             End If
         Catch ex As Exception
-            Pic = My.Application.TryFindResource(FilePathOrResourceName)
+            Pic = Application.Current.TryFindResource(FilePathOrResourceName)
             If Pic Is Nothing Then
                 Pic = New System.Drawing.Bitmap(1, 1)
                 Throw New Exception($"加载 MyBitmap 失败（{FilePathOrResourceName}）", ex)

@@ -1095,7 +1095,7 @@ Public Class PageDownloadInstall
             Next
             If Not Versions.Any() Then Return
             '排序
-            Versions = Versions.Sort(
+            Versions.Sort(
             Function(Left As DlOptiFineListEntry, Right As DlOptiFineListEntry) As Boolean
                 If Not Left.IsPreview AndAlso Right.IsPreview Then Return True
                 If Left.IsPreview AndAlso Not Right.IsPreview Then Return False

@@ -1,4 +1,5 @@
 ﻿
+Imports Microsoft.VisualBasic.FileIO
 
 Public Class PageInstanceScreenshot
     Implements IRefreshable
@@ -32,7 +33,7 @@ Public Class PageInstanceScreenshot
     ''' <summary>
     ''' 确保当前页面上的信息已正确显示。
     ''' </summary>
-    Public Async Function Reload() As Tasks.Task
+    Public Async Function Reload() As Task
         AniControlEnabled += 1
         PanBack.ScrollToHome()
         Await LoadFileList()
@@ -49,16 +50,16 @@ Public Class PageInstanceScreenshot
         End If
     End Sub
 
-    Private Async Function LoadFileList() As Tasks.Task
+    Private Async Function LoadFileList() As Task
         Log("[Screenshot] 刷新截图文件")
         FileList.Clear()
-        If Directory.Exists(ScreenshotPath) Then FileList = Directory.EnumerateFiles(ScreenshotPath, "*", SearchOption.TopDirectoryOnly).ToList()
+        If Directory.Exists(ScreenshotPath) Then FileList = Directory.EnumerateFiles(ScreenshotPath, "*", IO.SearchOption.TopDirectoryOnly).ToList()
         Dim AllowedSuffix As String() = {".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff"}
         FileList = FileList.Where(Function(e) AllowedSuffix.Contains(New FileInfo(e).Extension.ToLower())).ToList()
         PanList.Children.Clear()
         RefreshTip()
         FileList = FileList.Where(Function(e) Not e.ContainsF("\debug\")).ToList() ' 排除资源包调试输出
-        FileList = FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
+        FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
         Log("[Screenshot] 共发现 " & FileList.Count & " 个截图文件")
         If FileList.Count = 0 Then Return
         Await ListAppend(20, 0)
@@ -72,7 +73,7 @@ Public Class PageInstanceScreenshot
 
     Private _AppendLock As Boolean = False
     Private _Offset As Integer = 0
-    Private Async Function ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1) As Tasks.Task
+    Private Async Function ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1) As Task
         _AppendLock = True
         If Offset = -1 Then
             If _Offset * Count > FileList.Count Then Return
@@ -105,29 +106,29 @@ Public Class PageInstanceScreenshot
 
                 '图片
                 Dim image As New Image
-                image.Source = Await Tasks.Task.Run(Function()
-                                                        Dim bitmapImage As New BitmapImage()
-                                                        Dim loadSource As String = i
-                                                        Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
-                                                            bitmapImage.BeginInit()
-                                                            bitmapImage.DecodePixelHeight = 200
-                                                            bitmapImage.DecodePixelWidth = 400
-                                                            bitmapImage.CacheOption = BitmapCacheOption.OnLoad
-                                                            bitmapImage.StreamSource = fs
-                                                            bitmapImage.EndInit()
-                                                            bitmapImage.Freeze()
-                                                        End Using
-                                                        Return bitmapImage
-                                                    End Function)
+                image.Source = Await Task.Run(Function()
+                    Dim bitmapImage As New BitmapImage()
+                    Dim loadSource As String = i
+                    Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
+                        bitmapImage.BeginInit()
+                        bitmapImage.DecodePixelHeight = 200
+                        bitmapImage.DecodePixelWidth = 400
+                        bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+                        bitmapImage.StreamSource = fs
+                        bitmapImage.EndInit()
+                        bitmapImage.Freeze()
+                    End Using
+                    Return bitmapImage
+                End Function)
                 image.Stretch = Stretch.Uniform ' 使图片自适应控件大小
                 image.Cursor = Cursors.Hand
                 AddHandler image.MouseLeftButtonDown, Sub(sender, e)
-                                                          Try
-                                                              Process.Start(i) ' 使用系统默认程序打开
-                                                          Catch ex As Exception
-                                                              Log(ex, "打开截图失败！", LogLevel.Hint)
-                                                          End Try
-                                                      End Sub
+                    Try
+                        Process.Start(i) ' 使用系统默认程序打开
+                    Catch ex As Exception
+                        Log(ex, "打开截图失败！", LogLevel.Hint)
+                    End Try
+                End Sub
                 Grid.SetRow(image, 1)
                 grid.Children.Add(image)
 
@@ -203,7 +204,7 @@ Public Class PageInstanceScreenshot
         Path = GetPathFromSender(sender)
         RemoveItem(Path)
         Try
-            My.Computer.FileSystem.DeleteFile(Path, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
+            FileSystem.DeleteFile(Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
             Hint("已将截图移至回收站！")
         Catch ex As Exception
             Log(ex, "删除截图失败！", LogLevel.Hint)
