@@ -231,7 +231,6 @@ Public Class PageOtherTest
         Public Flags As UInteger
     End Structure
     Private Declare Ansi Function GetCurrentProcess Lib "kernel32.dll" () As IntPtr
-    <ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)>
     Private Declare Auto Function CloseHandle Lib "kernel32.dll" (handle As IntPtr) As Boolean
     Private Declare Auto Function OpenProcessToken Lib "advapi32.dll" (ProcessHandle As HandleRef, DesiredAccess As Integer, <System.Runtime.InteropServices.OutAttribute()> ByRef TokenHandle As IntPtr) As Boolean
     Private Declare Auto Function LookupPrivilegeValue Lib "advapi32.dll" (<MarshalAs(UnmanagedType.LPTStr)> lpSystemName As String, <MarshalAs(UnmanagedType.LPTStr)> lpName As String, <System.Runtime.InteropServices.OutAttribute()> ByRef lpLuid As LUID) As Boolean

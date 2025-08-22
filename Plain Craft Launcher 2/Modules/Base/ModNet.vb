@@ -14,18 +14,16 @@ Public Module ModNet
     Public ReadOnly MyHttpClient As New HttpClient(New HttpClientHandler() With {
                                                 .Proxy = HttpProxyManager.Instance,
                                                 .MaxConnectionsPerServer = 256,
-                                                .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
-                                                    System.Security.Authentication.SslProtocols.Tls12,
-                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .SslProtocols = System.Security.Authentication.SslProtocols.None,
+                                                .AutomaticDecompression = DecompressionMethods.All,
                                                 .AllowAutoRedirect = True,
                                                 .UseCookies = False
                                             })
 
     Public ReadOnly MyHttpCacheClient As HttpClient = ClientExtensions.CreateClient(New NetCacheStorage(IO.Path.Combine(PathTemp, "Cache", "Net")), New HttpClientHandler() With {
                                                 .Proxy = HttpProxyManager.Instance,
-                                                .SslProtocols = System.Security.Authentication.SslProtocols.Tls13 Or
-                                                    System.Security.Authentication.SslProtocols.Tls12,
-                                                .AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate,
+                                                .SslProtocols = System.Security.Authentication.SslProtocols.None,
+                                                .AutomaticDecompression = DecompressionMethods.All,
                                                 .AllowAutoRedirect = True,
                                                 .UseCookies = False
                                             })
@@ -146,7 +144,7 @@ Public Module ModNet
     ''' </summary>
     Public Class HttpRequestFailedException
         Inherits HttpRequestException
-        Public ReadOnly Property StatusCode As HttpStatusCode
+        Public Overloads ReadOnly Property StatusCode As HttpStatusCode
         Public ReadOnly Property ReasonPhrase As String
         ''' <summary>
         ''' 不要尝试读取 <c>Content</c> 属性的内容，它已经被 dispose 了
@@ -269,6 +267,9 @@ Public Module ModNet
     ''' <param name="Url">网页的 Url。</param>
     ''' <param name="Encode">网页的编码，通常为 UTF-8。</param>
     ''' <param name="BackupUrl">如果第一次尝试失败，换用的备用 URL。</param>
+    ''' <param name="IsJson">是否解析为 Json。</param>
+    ''' <param name="Accept">请求的套接字类型。</param>
+    ''' <param name="UseBrowserUserAgent">是否使用浏览器 User-Agent。</param>
     Public Function NetGetCodeByRequestRetry(Url As String, Optional Encode As Encoding = Nothing, Optional Accept As String = "",
                                              Optional IsJson As Boolean = False, Optional BackupUrl As String = Nothing, Optional UseBrowserUserAgent As Boolean = False)
         Dim RetryCount As Integer = 0
@@ -979,7 +980,8 @@ Public Module ModNet
                     Case NetState.Finish, NetState.Error
                         Return 1
                     Case Else
-                        Throw New ArgumentOutOfRangeException("文件状态未知：" & State)
+                        Return 0.5
+                        'Throw New ArgumentOutOfRangeException("文件状态未知：" & State)
                 End Select
             End Get
         End Property
@@ -1029,7 +1031,7 @@ Public Module ModNet
                 Sources.Add(New NetSource With {.FailCount = 0, .Url = SecretCdnSign(Source.Replace(vbCr, "").Replace(vbLf, "").Trim), .Id = Count, .IsFailed = False, .Ex = Nothing})
                 Count += 1
             Next
-            Me.Sources = Sources
+            Me.Sources = New SafeList(Of NetSource)(Sources)
             Me.LocalPath = LocalPath
             Me.Check = Check
             Me.UseBrowserUserAgent = UseBrowserUserAgent

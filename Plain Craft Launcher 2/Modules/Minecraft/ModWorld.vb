@@ -1,5 +1,5 @@
-﻿Imports System.Xml.XPath
-Imports PlainNamedBinaryTag
+﻿
+Imports fNbt
 
 Public Module ModWorld
 
@@ -70,19 +70,17 @@ Public Module ModWorld
                     Log("[World] 存档没有 level.dat 文件，读取失败")
                     Return False
                 End If
-                '读取 NBT 数据
-                Dim rootTag As XElement
-                Using reader As NbtReader = VbNbtReaderCreator.FromPath(LevelDatPath, True)
-                    rootTag = reader.ReadNbtAsXml(NbtType.TCompound)
+                Using fs As new FileStream(LevelDatPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                    Dim gameData as new NbtFile
+                    gameData.LoadFromStream(fs, NbtCompression.AutoDetect)
+                    Dim gameVersion = gameData.RootTag.Get(Of NbtCompound)("Version")
+                    if gameVersion Is Nothing Then
+                        Log("[World] Version 标签存在问题，读取失败")
+                        Return False
+                    End If
+                    VersionName = gameVersion.Get(Of NbtString)("Name").Value
+                    VersionId = gameVersion.Get(Of NbtInt)("Id").Value
                 End Using
-
-                Dim versionTag As XElement = rootTag.XPathSelectElement("//TCompound[@Name='Version']")
-                If versionTag Is Nothing Then
-                    Log("[World] Version 标签存在问题，读取失败")
-                    Return False
-                End If
-                VersionName = rootTag.XPathSelectElement("//TCompound[@Name='Version']/TString[@Name='Name']")
-                VersionId = rootTag.XPathSelectElement("//TCompound[@Name='Version']/TInt32[@Name='Id']")
 
                 Return True
             Catch ex As Exception

@@ -1,6 +1,7 @@
 ﻿Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Text.RegularExpressions
+Imports PCL.Core.App
 Imports PCL.Core.Logging
 
 Class PageOtherLog
@@ -55,7 +56,7 @@ Class PageOtherLog
                 Sub(sender, e)
                     Dim s = CType(sender, MyListItem)
                     Dim file = CType(s.Tag, String)
-                    Process.Start(file)
+                    Basics.OpenPath(file)
                 End Sub
             PanList.Children.Add(ele)
         Next
@@ -90,7 +91,7 @@ Class PageOtherLog
     End Sub
 
     Private Sub ButtonOpenDir_OnClick(sender As Object, e As MouseButtonEventArgs)
-        Process.Start(LogDirectory)
+        Basics.OpenPath(LogDirectory)
     End Sub
 
     Private Sub ButtonClean_OnClick(sender As Object, e As MouseButtonEventArgs)

@@ -1395,19 +1395,19 @@ LoginFinish:
         Log("[Java] 选定的 Java Wrapper 路径：" & WrapperPath)
         SyncLock ExtractJavaWrapperLock '避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
             Try
-                WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                WriteJavaWrapper(WrapperPath)
             Catch ex As Exception
                 If File.Exists(WrapperPath) Then
                     '因为未知原因 Java Wrapper 可能变为只读文件（#4243）
                     Log(ex, "Java Wrapper 文件释放失败，但文件已存在，将在删除后尝试重新生成", LogLevel.Developer)
                     Try
                         File.Delete(WrapperPath)
-                        WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                        WriteJavaWrapper(WrapperPath)
                     Catch ex2 As Exception
                         Log(ex2, "Java Wrapper 文件重新释放失败，将尝试更换文件名重新生成", LogLevel.Developer)
                         WrapperPath = PathPure & "JavaWrapper2.jar"
                         Try
-                            WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                            WriteJavaWrapper(WrapperPath)
                         Catch ex3 As Exception
                             Throw New FileNotFoundException("释放 Java Wrapper 最终尝试失败", ex3)
                         End Try
@@ -1420,7 +1420,10 @@ LoginFinish:
         Return WrapperPath
     End Function
     Private ExtractJavaWrapperLock As New Object
-    
+    Private Sub WriteJavaWrapper(Path As String)
+        WriteFile(Path, GetResourceStream("Resources/java-wrapper.jar"))
+    End Sub
+
     ''' <summary>
     ''' 释放 linkd 并返回完整文件路径。
     ''' </summary>
@@ -1428,13 +1431,13 @@ LoginFinish:
         Dim LinkDPath As String = PathPure & "linkd.exe"
         SyncLock ExtractLinkDLock '避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
             Try
-                WriteFile(LinkDPath, GetResources("linkd"))
+                WriteLinkD(LinkDPath)
             Catch ex As Exception
                 If File.Exists(LinkDPath) Then
                     Log(ex, "linkd 文件释放失败，但文件已存在，将在删除后尝试重新生成", LogLevel.Developer)
                     Try
                         File.Delete(LinkDPath)
-                        WriteFile(LinkDPath, GetResources("linkd"))
+                        WriteLinkD(LinkDPath)
                     Catch ex2 As Exception
                         Throw New FileNotFoundException("释放 linkd 失败", ex2)
                     End Try
@@ -1446,6 +1449,9 @@ LoginFinish:
         Return LinkDPath
     End Function
     Private ExtractLinkDLock As New Object
+    Private Sub WriteLinkD(Path As String)
+        WriteFile(Path, GetResourceStream("Resources/linkd.exe"))
+    End Sub
 
     ''' <summary>
     ''' 判断是否使用 RetroWrapper。
@@ -1890,7 +1896,7 @@ NextInstance:
         If McLaunchNeedsRetroWrapper(instance) Then
             Dim WrapperPath As String = PathMcFolder & "libraries\retrowrapper\RetroWrapper.jar"
             Try
-                WriteFile(WrapperPath, GetResources("RetroWrapper"))
+                WriteFile(WrapperPath, GetResourceStream("Resources/retro-wrapper.jar"))
                 CpStrings.Add(WrapperPath)
             Catch ex As Exception
                 Log(ex, "RetroWrapper 释放失败")
@@ -2165,7 +2171,7 @@ NextInstance:
             End If
         Catch ex As Exception
             Log(ex, "输出启动脚本失败")
-            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw ex '直接触发启动失败
+            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw '直接触发启动失败
         End Try
 
         '执行自定义命令

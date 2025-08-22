@@ -493,7 +493,7 @@ Refresh:
                 '删除文件
                 Try
                     DeleteDirectory(Path & "PCL\Musics")
-                    DisableSMTCSupport()
+                    'DisableSMTCSupport()
                     Hint("背景音乐已删除！", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "删除背景音乐失败", LogLevel.Msgbox)
@@ -522,7 +522,7 @@ Refresh:
             If File.Exists(Path & "PCL\Custom.xaml") Then
                 If MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn:=True) = 2 Then Return
             End If
-            WriteFile(Path & "PCL\Custom.xaml", GetResources("Custom"))
+            WriteFile(Path & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
             Hint("教学文件已生成！", HintType.Finish)
             OpenExplorer(Path & "PCL\Custom.xaml")
         Catch ex As Exception

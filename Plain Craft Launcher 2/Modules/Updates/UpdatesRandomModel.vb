@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Utils
+Imports PCL.Core.Utils
 
 Public Class UpdatesRandomModel '社区自己的更新系统格式
     Implements IUpdateSource

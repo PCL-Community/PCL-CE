@@ -26,6 +26,7 @@ Public Class Application
     '开始
     Private Sub Application_Startup() '(sender As Object, e As StartupEventArgs) Handles Me.Startup
         Try
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
             '创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(New BindingErrorTraceListener())
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
@@ -180,11 +181,6 @@ WaitRetry:
                 Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
-            '释放资源
-            Directory.CreateDirectory(PathPure & "CE")
-            SetDllDirectory(PathPure & "CE")
-            Dim WebpPath = $"{PathPure}CE\libwebp.dll"
-            If Not File.Exists(WebpPath) Then WriteFile(WebpPath, GetResources("libwebp64"))
             'Pipe RPC 初始化
             StartEchoPipe()
             '计时

@@ -519,7 +519,7 @@ Write:
             Dim FullUuid As String = StrFill(UserName.Length.ToString("X"), "0", 16) & StrFill(GetHash(UserName).ToString("X"), "0", 16)
             Return FullUuid.Substring(0, 12) & "3" & FullUuid.Substring(13, 3) & "9" & FullUuid.Substring(17, 15)
         Else
-            Dim MD5 As New MD5CryptoServiceProvider
+            Dim MD5 As MD5 = MD5.Create()
             Dim Hash As Byte() = MD5.ComputeHash(Encoding.UTF8.GetBytes("OfflinePlayer:" + UserName))
             Hash(6) = Hash(6) And &HF
             Hash(6) = Hash(6) Or &H30
