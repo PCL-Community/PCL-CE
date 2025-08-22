@@ -642,7 +642,7 @@
             VersionName = Version
             Me.Version = New Version(Version)
             Me.Inherit = Inherit
-            FileVersion = Version & If(Branch Is Nothing, ""， "-" & Branch)
+            FileVersion = Version & If(Branch Is Nothing, "", "-" & Branch)
         End Sub
     End Class
 

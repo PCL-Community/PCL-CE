@@ -2078,8 +2078,8 @@ Retry:
         Public Shared Sub GetClipboardResource()
             Dim Text As String = Nothing
             RunInUiWait(Sub()
-                            Text = My.Computer.Clipboard.GetText()
-                        End Sub)
+                Text = Clipboard.GetText()
+            End Sub)
             If Text = CurrentText Then Exit Sub
             CurrentText = Text
             

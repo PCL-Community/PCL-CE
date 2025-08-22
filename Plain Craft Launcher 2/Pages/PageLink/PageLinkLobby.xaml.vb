@@ -759,7 +759,8 @@ Public Class PageLinkLobby
     Public Shared PublicIPPort As String = Nothing
     '退出
     Private Sub BtnFinishExit_Click(sender As Object, e As EventArgs) Handles BtnFinishExit.Click
-        If MyMsgBox($"你确定要退出大厅吗？{If(IsHost, vbCrLf & "由于你是大厅创建者，退出后此大厅将会自动解散。", "")}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
+        Dim creatorHint = If(IsHost, vbCrLf & "由于你是大厅创建者，退出后此大厅将会自动解散。", "")
+        If MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             BtnFinishExit.Text = "退出大厅"
             ExitEasyTier()

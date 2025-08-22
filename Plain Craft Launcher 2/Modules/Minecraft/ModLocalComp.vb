@@ -663,7 +663,8 @@ Public Module ModLocalComp
                 If LogoFile IsNot Nothing Then
                     Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                     If LogoItem IsNot Nothing Then
-                        Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                        Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
+                        Logo = $"{PathTemp}MyImage\{md5}.png"
                         Using EntryStream As Stream = LogoItem.Open()
                             Using FileStream As FileStream = File.Create(Logo)
                                 EntryStream.CopyTo(FileStream)
@@ -732,7 +733,8 @@ GotFabric:
                     If LogoFile IsNot Nothing Then
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
-                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
+                            Logo = $"{PathTemp}MyImage\{md5}.png"
                             Using EntryStream As Stream = LogoItem.Open()
                                 Using FileStream As FileStream = File.Create(Logo)
                                     EntryStream.CopyTo(FileStream)
@@ -790,7 +792,8 @@ GotFabric:
                     If LogoFile IsNot Nothing Then
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
-                            Logo = $"{PathTemp}MyImage\{GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)}.png"
+                            Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
+                            Logo = $"{PathTemp}MyImage\{md5}.png"
                             Using EntryStream As Stream = LogoItem.Open()
                                 Using FileStream As FileStream = File.Create(Logo)
                                     EntryStream.CopyTo(FileStream)

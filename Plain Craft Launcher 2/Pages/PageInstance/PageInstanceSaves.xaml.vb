@@ -1,4 +1,5 @@
 ﻿
+Imports Microsoft.VisualBasic.FileIO
 
 Public Class PageInstanceSaves
     Implements IRefreshable
@@ -83,6 +84,7 @@ Public Class PageInstanceSaves
 
             For Each curFolder In saveFolders
                 Dim saveLogo = curFolder + "\icon.png"
+                Dim tmpCurFolder = curFolder
                 If File.Exists(saveLogo) Then
                     Dim target = $"{PageInstanceLeft.Instance.Path}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
                     CopyFile(saveLogo, target)
@@ -97,68 +99,68 @@ Public Class PageInstanceSaves
                     .Type = MyListItem.CheckType.Clickable
                 }
                 AddHandler worldItem.Click, Sub()
-                                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
-                                            End Sub
+                    FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = tmpCurFolder})
+                End Sub
 
                 Dim BtnOpen As New MyIconButton With {
                     .Logo = Logo.IconButtonOpen,
                     .ToolTip = "打开"
                 }
                 AddHandler BtnOpen.Click, Sub()
-                                              OpenExplorer(curFolder)
-                                          End Sub
+                    OpenExplorer(tmpCurFolder)
+                End Sub
                 Dim BtnDelete As New MyIconButton With {
                     .Logo = Logo.IconButtonDelete,
                     .ToolTip = "删除"
                 }
                 AddHandler BtnDelete.Click, Sub()
-                                                worldItem.IsEnabled = False
-                                                worldItem.Info = "删除中……"
-                                                RunInNewThread(Sub()
-                                                                   Try
-                                                                       My.Computer.FileSystem.DeleteDirectory(curFolder, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.SendToRecycleBin)
-                                                                       Hint("已将存档移至回收站！")
-                                                                       RunInUiWait(Sub() RemoveItem(worldItem))
-                                                                   Catch ex As Exception
-                                                                       Log(ex, "删除存档失败！", LogLevel.Hint)
-                                                                   End Try
-                                                               End Sub)
-                                            End Sub
+                    worldItem.IsEnabled = False
+                    worldItem.Info = "删除中……"
+                    RunInNewThread(Sub()
+                        Try
+                            FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
+                            Hint("已将存档移至回收站！")
+                            RunInUiWait(Sub() RemoveItem(worldItem))
+                        Catch ex As Exception
+                            Log(ex, "删除存档失败！", LogLevel.Hint)
+                        End Try
+                    End Sub)
+                End Sub
                 Dim BtnCopy As New MyIconButton With {
                     .Logo = Logo.IconButtonCopy,
                     .ToolTip = "复制"
                 }
                 AddHandler BtnCopy.Click, Sub()
-                                              Try
-                                                  If Directory.Exists(curFolder) Then
-                                                      Clipboard.SetFileDropList(New Specialized.StringCollection() From {curFolder})
-                                                      Hint("已复制存档文件夹到剪贴板！")
-                                                      Hint("注意！在粘贴之前进行删除操作会导致存档丢失！")
-                                                  Else
-                                                      Hint("存档文件夹不存在！")
-                                                  End If
-                                              Catch ex As Exception
-                                                  Log(ex, "复制失败……", LogLevel.Hint)
-                                              End Try
-                                          End Sub
+                    Try
+                        If Directory.Exists(tmpCurFolder) Then
+                            Clipboard.SetFileDropList(New Specialized.StringCollection() From {tmpCurFolder})
+                            Hint("已复制存档文件夹到剪贴板！")
+                            Hint("注意！在粘贴之前进行删除操作会导致存档丢失！")
+                        Else
+                            Hint("存档文件夹不存在！")
+                        End If
+                    Catch ex As Exception
+                        Log(ex, "复制失败……", LogLevel.Hint)
+                    End Try
+                End Sub
                 Dim BtnInfo As New MyIconButton With {
                     .Logo = Logo.IconButtonInfo,
                     .ToolTip = "详情"
                 }
                 AddHandler BtnInfo.Click, Sub()
-                                              FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = curFolder})
-                                          End Sub
+                    FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.VersionSaves, .Additional = tmpCurFolder})
+                End Sub
 
                 Dim BtnLaunch As New MyIconButton With {
                         .Logo = Logo.IconPlayGame,
                         .ToolTip = "快捷启动"
                     }
                 AddHandler BtnLaunch.Click, Sub()
-                                                Dim WorldName = GetFileNameFromPath(curFolder)
-                                                Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
-                                                ModLaunch.McLaunchStart(LaunchOptions)
-                                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                                            End Sub
+                    Dim WorldName = GetFileNameFromPath(tmpCurFolder)
+                    Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
+                    McLaunchStart(LaunchOptions)
+                    FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
+                End Sub
                 If QuickPlayFeature Then
                     worldItem.Buttons = {BtnOpen, BtnDelete, BtnCopy, BtnInfo, BtnLaunch}
                 Else
@@ -185,27 +187,27 @@ Public Class PageInstanceSaves
         Dim files As Specialized.StringCollection = Clipboard.GetFileDropList()
         Dim loaders As New List(Of LoaderBase)
         loaders.Add(New LoaderTask(Of Integer, Integer)("Copy saves", Sub()
-                                                                          Dim Copied = 0
-                                                                          For Each i In files
-                                                                              Try
-                                                                                  If Directory.Exists(i) Then
-                                                                                      If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
-                                                                                          Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
-                                                                                      Else
-                                                                                          CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
-                                                                                          Copied += 1
-                                                                                      End If
-                                                                                  Else
-                                                                                      Hint("源文件夹不存在或源目标不是文件夹")
-                                                                                  End If
-                                                                              Catch ex As Exception
-                                                                                  Log(ex, "粘贴存档文件夹失败", LogLevel.Hint)
-                                                                                  Continue For
-                                                                              End Try
-                                                                          Next
-                                                                          If Copied > 0 Then Hint("已粘贴 " & Copied & " 个文件夹", HintType.Finish)
-                                                                          RunInUi(Sub() FrmInstanceSaves?.RefreshUI())
-                                                                      End Sub))
+            Dim Copied = 0
+            For Each i In files
+                Try
+                    If Directory.Exists(i) Then
+                        If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
+                            Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
+                        Else
+                            CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
+                            Copied += 1
+                        End If
+                    Else
+                        Hint("源文件夹不存在或源目标不是文件夹")
+                    End If
+                Catch ex As Exception
+                    Log(ex, "粘贴存档文件夹失败", LogLevel.Hint)
+                    Continue For
+                End Try
+            Next
+            If Copied > 0 Then Hint("已粘贴 " & Copied & " 个文件夹", HintType.Finish)
+            RunInUi(Sub() FrmInstanceSaves?.RefreshUI())
+        End Sub))
         Dim loader As New LoaderCombo(Of Integer)($"{PageInstanceLeft.Instance.Name} - 复制存档", loaders) With {
             .OnStateChanged = AddressOf LoaderStateChangedHintOnly
         }

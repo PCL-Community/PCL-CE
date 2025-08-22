@@ -799,7 +799,7 @@ Refresh:
         SliderLauncherHue.GetHintText = Function(v) v & "°"
         SliderLauncherSat.GetHintText = Function(v) v & "%"
         SliderLauncherDelta.GetHintText =
-        Function(Value As Integer)
+        Function(Value As Integer) As String
             If Value > 90 Then
                 Return "+" & (Value - 90)
             ElseIf Value = 90 Then
@@ -809,7 +809,7 @@ Refresh:
             End If
         End Function
         SliderLauncherLight.GetHintText =
-        Function(Value As Integer)
+        Function(Value As Integer) As String
             If Value > 20 Then
                 Return "+" & (Value - 20)
             ElseIf Value = 20 Then
@@ -823,6 +823,6 @@ Refresh:
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
     End Sub
     Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
-        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket}）
+        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket})
     End Sub
 End Class

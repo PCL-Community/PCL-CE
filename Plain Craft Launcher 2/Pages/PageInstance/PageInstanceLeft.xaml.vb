@@ -133,7 +133,7 @@ Public Class PageInstanceLeft
 
 #End Region
 
-    Public Sub Refresh(sender As Object, e As EventArgs) '由边栏按钮匿名调用
+    Private Sub RefreshButton_Click(sender As Object, e As EventArgs) '由边栏按钮匿名调用
         Refresh(Val(sender.Tag))
     End Sub
     Public Sub Refresh() Implements IRefreshable.Refresh
