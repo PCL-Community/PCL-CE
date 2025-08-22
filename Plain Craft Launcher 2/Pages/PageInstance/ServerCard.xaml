@@ -35,18 +35,20 @@
                    HorizontalAlignment="Left" ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
                    ToolTipService.Placement="Top" MaxWidth="200"/>
         <!-- ping 值与玩家人数 -->
-        <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
             <ContentPresenter x:Name="Signal" Content="{Binding SelectedIcon.XamlContent}" 
                               Width="20" Height="20" />
             <TextBlock x:Name="ServerPlayer" HorizontalAlignment="Left" 
                        TextTrimming="CharacterEllipsis" FontSize="12" 
-                       Foreground="{DynamicResource ColorBrushGray3}" Opacity="0.4" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource ColorBrushGray3}" Opacity="0.4" VerticalAlignment="Bottom" />
         </StackPanel>
         
         <!-- MotD -->
         <TextBlock Grid.Row="1" x:Name="ServerMotD" Grid.RowSpan="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,1"
                    TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource ColorBrushGray4}"
-                   IsHitTestVisible="False" HorizontalAlignment="Center" />
+                   IsHitTestVisible="False" HorizontalAlignment="Center" Visibility="Visible" />
+        <Canvas x:Name="MotdCanvas" Grid.Row="1" Grid.RowSpan="2" Grid.Column="4" Margin="0,-15,3,1"
+                IsHitTestVisible="False" HorizontalAlignment="Center" Width="300" Height="34"/>
 
         <StackPanel Grid.Row="1" Grid.Column="5" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
             <local:MyIconButton
