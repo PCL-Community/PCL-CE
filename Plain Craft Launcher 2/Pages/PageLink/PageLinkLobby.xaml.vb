@@ -7,7 +7,6 @@ Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
-Imports PCL.Core.Link.Lobby.LobbyTextHandler
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -233,9 +232,9 @@ Public Class PageLinkLobby
         If info.IsHost Then details += "[主机] "
         If String.IsNullOrEmpty(info.Username) Then details += "[第三方] "
         If info.Cost = ETConnectionType.Local Then
-            details += $"[本机] NAT {GetNatTypeChinese(info.NatType)}"
+            details += $"[本机] NAT {LobbyTextHandler.GetNatTypeChinese(info.NatType)}"
         Else
-            details += $"{info.Ping}ms / {GetConnectTypeChinese(info.Cost)}"
+            details += $"{info.Ping}ms / {LobbyTextHandler.GetConnectTypeChinese(info.Cost)}"
         End If
         Dim newItem As New MyListItem With {
                 .Title = If(Not String.IsNullOrEmpty(info.Username), info.Username, info.Hostname),
@@ -258,7 +257,7 @@ Public Class PageLinkLobby
             msg += $"主机名称：{info.Hostname}"
         End If
         msg += vbCrLf
-        msg += $"{If(info.Cost = ETConnectionType.Local, "本机 ", $"延迟：{info.Ping}ms，丢包率：{info.Loss}%，连接方式：{GetConnectTypeChinese(info.Cost)}，")}NAT 类型：{GetNatTypeChinese(info.NatType)}"
+        msg += $"{If(info.Cost = ETConnectionType.Local, "本机 ", $"延迟：{info.Ping}ms，丢包率：{info.Loss}%，连接方式：{LobbyTextHandler.GetConnectTypeChinese(info.Cost)}，")}NAT 类型：{LobbyTextHandler.GetNatTypeChinese(info.NatType)}"
         msg += vbCrLf
         msg += "此处数据仅供参考，请以实际游玩体验为准。"
         msg += vbCrLf + vbCrLf
@@ -379,7 +378,7 @@ Public Class PageLinkLobby
             If hostInfo.Ping > 150 Then
                 quality -= 1
             End If
-            RunInUi(Sub() LabFinishQuality.Text = GetQualityDesc(quality))
+            RunInUi(Sub() LabFinishQuality.Text = LobbyTextHandler.GetQualityDesc(quality))
 
             If IsHost AndAlso Not LobbyController.IsHostInstanceAvailable(TargetLobby.Port) Then '确认创建者实例存活状态
                 RunInUi(Sub()
@@ -400,7 +399,7 @@ Public Class PageLinkLobby
                             hostInfo.Ping = 0
                         End If
                         LabFinishPing.Text = hostInfo.Ping.ToString() & "ms"
-                        LabConnectType.Text = GetConnectTypeChinese(hostInfo.Cost)
+                        LabConnectType.Text = LobbyTextHandler.GetConnectTypeChinese(hostInfo.Cost)
                     End Sub)
 
             '刷新大厅成员列表 UI
@@ -568,7 +567,7 @@ Public Class PageLinkLobby
                            Thread.Sleep(1000)
                            StartETWatcher()
                            Thread.Sleep(500)
-                           While Not IsWatcherStarted OrElse McPortForward.LocalPort Is Nothing OrElse HostInfo Is Nothing
+                           While Not IsWatcherStarted OrElse McForward Is Nothing OrElse HostInfo Is Nothing
                                Thread.Sleep(500)
                            End While
                            Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.Username), HostInfo.Hostname, HostInfo.Username)
@@ -654,7 +653,7 @@ Public Class PageLinkLobby
 
     '复制 IP
     Private Sub BtnFinishCopyIp_Click(sender As Object, e As EventArgs) Handles BtnFinishCopyIp.Click
-        Dim Ip As String = "127.0.0.1:" & McPortForward.LocalPort
+        Dim Ip As String = "127.0.0.1:" & McForward.LocalPort
         MyMsgBox("大厅创建者的游戏地址：" & Ip & vbCrLf & "仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接。通过 IP 连接将可能要求使用正版档案。", "复制 IP",
                  Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(Ip))
     End Sub

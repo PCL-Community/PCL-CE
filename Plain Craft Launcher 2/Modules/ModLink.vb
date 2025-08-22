@@ -7,9 +7,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
-Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
-Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
 Public Module ModLink
@@ -79,7 +77,7 @@ Public Module ModLink
 #End Region
 
 #Region "Minecraft 实例探测"
-    Public Async Function MCInstanceFinding() As Tasks.Task(Of List(Of Tuple(Of Integer, McPingResult, String)))
+    Public Async Function MCInstanceFinding() As Task(Of List(Of Tuple(Of Integer, McPingResult, String)))
         'Java 进程 PID 查询
         Dim PIDLookupResult As New List(Of String)
         Dim JavaNames As New List(Of String)
@@ -190,7 +188,9 @@ Public Module ModLink
                     CleanupEasyTierCache()
                 End Sub))
                 If LaunchAfterDownload Then
-                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Function() LobbyController.Launch(isHost, lobbyInfo, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))))
+                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Sub()
+                        LobbyController.Launch(isHost, lobbyInfo, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                    End Sub))
                 End If
                 Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
                     FrmLinkLobby.BtnCreate.IsEnabled = True
@@ -203,11 +203,9 @@ Public Module ModLink
                 LoaderTaskbarAdd(DlEasyTierLoader)
                 FrmMain.BtnExtraDownload.ShowRefresh()
                 FrmMain.BtnExtraDownload.Ribble()
-                Return 0
             Catch ex As Exception
                 Log(ex, "[Link] 下载 EasyTier 依赖文件失败", LogLevel.Hint)
                 Hint("下载 EasyTier 依赖文件失败，请检查网络连接", HintType.Critical)
-                Return 1
             End Try
         End Sub)
         Return 0
@@ -230,7 +228,7 @@ Public Module ModLink
 
 #Region "大厅操作"
     Public Function LobbyPrecheck() As Boolean
-        If Not IsLobbyAvailable Then
+        If Not LobbyInfoProvider.IsLobbyAvailable Then
             Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
             Return False
         End If
@@ -240,7 +238,7 @@ Public Module ModLink
                 Return False
             End If
         End If
-        If RequiresLogin Then
+        If LobbyInfoProvider.RequiresLogin Then
             If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
                 Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", HintType.Critical)
                 Return False
@@ -262,7 +260,7 @@ Public Module ModLink
                 Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)
                 Return False
             End If
-            If RequiresRealName AndAlso Not NaidProfile.IsRealNamed Then
+            If LobbyInfoProvider.RequiresRealName AndAlso Not NaidProfile.IsRealNamed Then
                 Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", HintType.Critical)
                 Return False
             End If
@@ -323,19 +321,12 @@ Public Module ModLink
         Dim Output As String = Nothing
 
         ETCliProcess.Start()
-        Output = ETCliProcess.StandardOutput.ReadToEnd()
-        Output.Replace("stun info: StunInfo ", "")
+        Output = ETCliProcess.StandardOutput.ReadToEnd().Replace("stun info: StunInfo ", "")
 
         Dim OutJObj As JObject = JObject.Parse(Output)
         Dim NatType As String = OutJObj("udp_nat_type")
-        Dim SupportIPv6 As Boolean = False
         Dim Ips As Array = OutJObj("public_ip").ToArray()
-        For Each Ip In Ips
-            If Ip.contains(":") Then
-                SupportIPv6 = True
-                Exit For
-            End If
-        Next
+        Dim SupportIPv6 As Boolean = Ips.Cast(Of Object)().Any(Function(Ip) Ip.contains(":"))
         Return {NatType, SupportIPv6}
     End Function
     ''' <summary>
