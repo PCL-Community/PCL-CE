@@ -130,7 +130,7 @@
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="成就名" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementTitleTextBox" MaxLength="50">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateRegex Regex="^[a-zA-Z0-9\s]+$" ErrorDescription="只能包含英文字母、数字和空格！"/>
+                                <local:ValidateNullOrEmpty/>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         
