@@ -161,7 +161,7 @@
                         <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8"/>
                     </local:MyCard>
                 </Grid>
-                <Grid x:Name="PanAlways" Margin="5" Opacity="0.5" Grid.Row="2">
+                <Grid x:Name="PanAlways" Margin="0,0,0,20" Opacity="0.5" Grid.Row="2">
                     <TextBlock VerticalAlignment="Bottom" Text="联机技术由 EasyTier 提供 | 账号验证服务由 Natayark Network 提供" TextAlignment="Center"/>
                 </Grid>
             </Grid>
