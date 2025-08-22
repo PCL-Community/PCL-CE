@@ -2,9 +2,12 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
+Imports System.Runtime.InteropServices
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
 
 Friend Module ModSecret
@@ -13,31 +16,21 @@ Friend Module ModSecret
 
 #If DEBUG Then
     Public Const RegFolder As String = "PCLCEDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
-    '用于微软登录的 ClientId
-    Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
-    'CurseForge API Key
-    Public CurseForgeAPIKey = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-    'LittleSkin OAuth ClientId
-    Public LittleSkinClientId = If(Environment.GetEnvironmentVariable("PCL_LITTLESKIN_CLIENT_ID"), "")
-    '遥测鉴权密钥
-    Public TelemetryKey = If(Environment.GetEnvironmentVariable("PCL_TELEMETRY_KEY"), "")
-    'Natayark ID Client Id
-    Public NatayarkClientId As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_ID"), "")
-    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
-    Public NatayarkClientSecret As String = If(Environment.GetEnvironmentVariable("PCL_NAID_CLIENT_SECRET"), "")
-    '联机服务根地址
-    Public LinkServerRoots As String = If(Environment.GetEnvironmentVariable("PCL_LINK_SERVER_ROOT"), "")
 #Else
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-    Public Const OAuthClientId As String = ""
-    Public Const CurseForgeAPIKey As String = ""
-    Public Const LittleSkinClientId As String = ""
-    Public Const TelemetryKey As String = ""
-    Public Const NatayarkClientId As String = ""
-    Public Const NatayarkClientSecret As String = ""
-    Public Const LinkServerRoots As String = ""
 #End If
-    Public LinkServers As String() = LinkServerRoots.Split(";")
+    '用于微软登录的 ClientId
+    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    'CurseForge API Key
+    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    '遥测鉴权密钥
+    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    'Natayark ID Client Id
+    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
+    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).EmptyIfNull()
+    '联机服务根地址
+    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).EmptyIfNull().Split(";")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -50,10 +43,11 @@ Friend Module ModSecret
             Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
         End Try
         '检测当前文件夹权限
+        Dim dataPath = FileService.DataPath
         Try
-            Directory.CreateDirectory(Path & "PCL")
+            Directory.CreateDirectory(dataPath)
         Catch ex As Exception
-            MsgBox($"PCL 无法创建 PCL 文件夹（{Path & "PCL"}），请尝试：" & vbCrLf &
+            MsgBox($"PCL 无法创建 PCL 文件夹（{dataPath}），请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
                   "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
@@ -138,7 +132,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Case 2
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
         End Select
-        McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
+        McLaunchLog("当前剩余内存：" & Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024) & "m")
         If Not DataList.Any(Function(d) d.Contains("-Dlog4j2.formatMsgNoLookups=true")) Then DataList.Add("-Dlog4j2.formatMsgNoLookups=true")
@@ -180,13 +174,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim Key = "00000000"
         Dim btKey As Byte() = Encoding.UTF8.GetBytes(Key)
         Dim btIV As Byte() = Encoding.UTF8.GetBytes("87160295")
-        Dim des As New DESCryptoServiceProvider
-        Using MS As New MemoryStream
-            Dim inData As Byte() = Convert.FromBase64String(SourceString)
-            Using cs As New CryptoStream(MS, des.CreateDecryptor(btKey, btIV), CryptoStreamMode.Write)
-                cs.Write(inData, 0, inData.Length)
-                cs.FlushFinalBlock()
-                Return Encoding.UTF8.GetString(MS.ToArray())
+        Using des As DES = DES.Create()
+            Using MS As New MemoryStream
+                Dim inData As Byte() = Convert.FromBase64String(SourceString)
+                Using cs As New CryptoStream(MS, des.CreateDecryptor(btKey, btIV), CryptoStreamMode.Write)
+                    cs.Write(inData, 0, inData.Length)
+                    cs.FlushFinalBlock()
+                    Return Encoding.UTF8.GetString(MS.ToArray())
+                End Using
             End Using
         End Using
     End Function
@@ -206,11 +201,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             aes.Padding = PaddingMode.PKCS7
 
             Dim salt As Byte() = New Byte(31) {}
-            Using rng = New RNGCryptoServiceProvider()
+            Using rng = RandomNumberGenerator.Create()
                 rng.GetBytes(salt)
             End Using
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
                 aes.GenerateIV()
             End Using
@@ -255,7 +250,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Throw New ArgumentException("加密数据格式无效或已损坏")
             End If
 
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000)
+            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
                 aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
             End Using
 
@@ -917,7 +912,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Exit Sub
         End Select
         If AnnouncementDesire <= 1 Then
-            Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|").ToList()
+            Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList()
             Dim ShowAnnounce = RemoteServer.GetAnnouncementList().content.Where(Function(x) Not ShowedAnnounced.Contains(x.id)).ToList()
             Log("[System] 需要展示的公告数量：" + ShowAnnounce.Count.ToString())
             RunInNewThread(Sub()
@@ -934,7 +929,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                    Button2Action:=Sub()
                                                       TryStartEvent(item.btn2.command, item.btn2.command_paramter)
                                                   End Sub
-)
+                                    )
                                Next
                            End Sub)
             ShowedAnnounced.AddRange(ShowAnnounce.Select(Function(x) x.id).ToList())
@@ -990,11 +985,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' <summary>
     ''' 已安装物理内存大小，单位 MB
     ''' </summary>
-    Friend SystemMemorySize As Long = My.Computer.Info.TotalPhysicalMemory / 1024 / 1024
+    Friend SystemMemorySize As Long = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024
     ''' <summary>
     ''' 系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
     ''' </summary>
-    Public OSInfo As String = My.Computer.Info.OSFullName & " " & My.Computer.Info.OSVersion
+    Public OSInfo As String = RuntimeInformation.OSDescription & " " & Environment.OSVersion.Version.ToString()
     Class GPUInfo
         Friend Name As String
         ''' <summary>

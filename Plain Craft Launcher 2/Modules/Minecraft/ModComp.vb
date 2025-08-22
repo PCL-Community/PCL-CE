@@ -108,7 +108,7 @@ Public Module ModComp
             If _CompDatabase IsNot Nothing Then Return _CompDatabase
             '初始化数据库
             Dim dbPath = $"{PathTemp}Cache\ModData.db"
-            Using compressedDbData As New MemoryStream(GetResources("ModData"))
+            Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
                 Log($"[DB] 解压 ModData 中")
                 If File.Exists(dbPath) Then File.Delete(dbPath)
                 Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
@@ -707,7 +707,7 @@ Public Module ModComp
             End Select
             '实例化 UI
             Dim NewItem As New MyCompItem With {.Tag = Me, .Logo = GetControlLogo()}
-            NewItem.showFavoriteBtn = CompFavorites.IsFavourite(Id)
+            NewItem.ShowFavoriteBtn = CompFavorites.IsFavourite(Id)
             Dim Title = GetControlTitle(True)
             NewItem.Title = Title.Key
             If Title.Value = "" Then
@@ -1256,6 +1256,11 @@ Retry:
             If ModrinthThread IsNot Nothing Then ModrinthThread.Join()
             If Task.IsAborted Then Return
 
+            '筛除不是 Forge 的 Mod
+            If IsOldForgeRequest Then
+                RawResults = RawResults.Where(Function(p) Not p.ModLoaders.Any() OrElse p.ModLoaders.Contains(CompLoaderType.Forge)).ToList
+            End If
+
             '确保存在结果
             Storage.ErrorMessage = Nothing
             If Not RawResults.Any() Then
@@ -1285,11 +1290,6 @@ Retry:
             CurseForgeThread?.Interrupt()
             ModrinthThread?.Interrupt()
         End Try
-
-        '筛除不是 Forge 的 Mod
-        If IsOldForgeRequest Then
-            RawResults = RawResults.Where(Function(p) Not p.ModLoaders.Any() OrElse p.ModLoaders.Contains(CompLoaderType.Forge)).ToList
-        End If
 
 #End Region
 
@@ -2078,8 +2078,8 @@ Retry:
         Public Shared Sub GetClipboardResource()
             Dim Text As String = Nothing
             RunInUiWait(Sub()
-                            Text = My.Computer.Clipboard.GetText()
-                        End Sub)
+                Text = Clipboard.GetText()
+            End Sub)
             If Text = CurrentText Then Exit Sub
             CurrentText = Text
             

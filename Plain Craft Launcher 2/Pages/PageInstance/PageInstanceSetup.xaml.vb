@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils.OS
 
 Public Class PageInstanceSetup
 
@@ -53,6 +54,7 @@ Public Class PageInstanceSetup
             TextServerAuthRegister.Text = Setup.Get("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
 
             '高级设置
+            ComboAdvanceRenderer.SelectedIndex = Setup.Get("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
             TextAdvanceJvm.Text = Setup.Get("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
             TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
             TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
@@ -104,6 +106,7 @@ Public Class PageInstanceSetup
             Setup.Reset("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
             Setup.Reset("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             Setup.Reset("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
 
             Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
 
@@ -131,7 +134,7 @@ Public Class PageInstanceSetup
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value, instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged, ComboAdvanceRenderer.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged
@@ -155,8 +158,9 @@ Public Class PageInstanceSetup
         If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.InstanceSetup OrElse FrmInstanceLeft.PageID <> FormMain.PageSubType.VersionSetup Then Return
         '获取内存情况
         Dim RamGame As Double = Math.Round(GetRam(PageInstanceLeft.Instance), 5)
-        Dim RamTotal As Double = Math.Round(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024 / 1024, 1)
-        Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024, 1)
+        Dim phyRam = KernelInterop.GetPhysicalMemoryBytes()
+        Dim RamTotal As Double = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1)
+        Dim RamAvailable As Double = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1)
         Dim RamGameActual As Double = Math.Round(Math.Min(RamGame, RamAvailable), 5)
         Dim RamUsed As Double = Math.Round(RamTotal - RamAvailable, 5)
         Dim RamEmpty As Double = Math.Round(MathClamp(RamTotal - RamUsed - RamGame, 0, 1000), 1)
@@ -294,7 +298,7 @@ Public Class PageInstanceSetup
         Dim RamGive As Double
         If Setup.Get("VersionRamType", instance:=Version) = 0 Then
             '自动配置
-            Dim RamAvailable As Double = Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10
+            Dim RamAvailable As Double = Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10
             '确定需求的内存值
             Dim RamMininum As Double '无论如何也需要保证的最低限度内存
             Dim RamTarget1 As Double '估计能勉强带动了的内存

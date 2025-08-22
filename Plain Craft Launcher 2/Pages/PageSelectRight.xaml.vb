@@ -357,7 +357,7 @@ Public Class PageSelectRight
     '修改此代码时，同时修改 PageInstanceOverall 中的代码
     Public Shared Sub DeleteVersion(Item As MyListItem, Version As McInstance)
         Try
-            Dim IsShiftPressed As Boolean = My.Computer.Keyboard.ShiftKeyDown
+            Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
             Dim IsHintIndie As Boolean = Version.State <> McInstanceState.Error AndAlso Version.PathIndie <> PathMcFolder
             Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {Version.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),

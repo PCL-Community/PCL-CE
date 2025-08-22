@@ -73,7 +73,7 @@ Public Module ModMinecraft
             Try
                 If Directory.Exists(Path & "versions\") Then originalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path, .Type = McFolderType.Original})
                 For Each folder As DirectoryInfo In New DirectoryInfo(Path).GetDirectories
-                    If Directory.Exists(folder.FullName & "versions\") OrElse folder.Name = ".minecraft" Then 
+                    If Directory.Exists(folder.FullName & "versions\") OrElse folder.Name = ".minecraft" Then
                         Dim newCurrentFolder As New McFolder With {.Name = folder.Name, .Path = folder.FullName & "\", .Type = McFolderType.Original}
                         originalMcFolderList.Add(newCurrentFolder)
                         currentMcFolderList.Add(newCurrentFolder)
@@ -84,21 +84,21 @@ Public Module ModMinecraft
             End Try
 
             '扫描官启文件夹
-            Dim mojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
+            Dim MojangPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\"
             If (Not currentMcFolderList.Any OrElse MojangPath <> currentMcFolderList(0).Path) AndAlso '当前文件夹不是官启文件夹
                 Directory.Exists(MojangPath & "versions\") Then '具有权限且存在 versions 文件夹
                 originalMcFolderList.Add(New McFolder With {.Name = "官方启动器文件夹", .Path = MojangPath, .Type = McFolderType.Original})
             End If
-            
+
             Log(cacheMcFolderList.Count & " 个自定义文件夹，" & originalMcFolderList.Count & " 个原始文件夹")
-            
+
             Dim unAdded = False
             For Each newOriginalFolder As McFolder In originalMcFolderList
                 For Each cacheFolder As McFolder In cacheMcFolderList
                     If cacheFolder.Path = newOriginalFolder.Path Then
-                        If cacheFolder.Name <> newOriginalFolder.Name
+                        If cacheFolder.Name <> newOriginalFolder.Name Then
                             cacheFolder.Type = McFolderType.RenamedOriginal
-                        Else 
+                        Else
                             cacheFolder.Type = McFolderType.Original
                         End If
                         unAdded = True
@@ -514,8 +514,7 @@ VersionSearchFinish:
                             For Each Subjson As JObject In _JsonObject("patches")
                                 SubjsonList.Add(Subjson)
                             Next
-                            SubjsonList = SubjsonList.Sort(
-                                Function(Left, Right) Val(If(Left("priority"), "0").ToString) < Val(If(Right("priority"), "0").ToString))
+                            SubjsonList.Sort(Function(left, right) Val(If(left("priority"), "0").ToString) < Val(If(right("priority"), "0").ToString))
                             For Each Subjson As JObject In SubjsonList
                                 Dim Id As String = Subjson("id")
                                 If Id IsNot Nothing Then
@@ -1330,7 +1329,7 @@ OnLoaded:
                         Dim Instance As New McInstance(VersionFolder)
                         InstanceList.Add(Instance)
                         Instance.Info = NEWSetup.Instance.CustomInfo(Instance.Path)
-                        
+
                         If Instance.Info = "" Then Instance.Info = NEWSetup.Instance.Info(Instance.Path)
                         If Not SetupService.IsUnset(SetupEntries.Instance.LogoPath, Instance.Path) Then _
                             Instance.Logo = NEWSetup.Instance.LogoPath(Instance.Path)
@@ -1573,7 +1572,7 @@ OnLoaded:
 
         '不常用实例：按发布时间新旧排序，如果不可用则按名称排序
         If ResultInstanceList.ContainsKey(McInstanceCardType.Rubbish) Then
-            ResultInstanceList(McInstanceCardType.Rubbish) = ResultInstanceList(McInstanceCardType.Rubbish).Sort(
+            ResultInstanceList(McInstanceCardType.Rubbish).Sort(
             Function(Left As McInstance, Right As McInstance)
                 Dim LeftYear As Integer = Left.ReleaseTime.Year '+ If(Left.State = McInstanceState.Original OrElse Left.Version.HasOptiFine, 100, 0)
                 Dim RightYear As Integer = Right.ReleaseTime.Year '+ If(Right.State = McInstanceState.Original OrElse Left.Version.HasOptiFine, 100, 0)
@@ -1595,7 +1594,7 @@ OnLoaded:
 
         'API 实例：优先按版本排序，此后【先放 Fabric / Quilt / Legacy Fabric，再放 Neo/Forge（按版本号从高到低排序），然后放 Cleanroom / LabyMod，最后放 LiteLoader（按名称排序）】
         If ResultInstanceList.ContainsKey(McInstanceCardType.API) Then
-            ResultInstanceList(McInstanceCardType.API) = ResultInstanceList(McInstanceCardType.API).Sort(
+            ResultInstanceList(McInstanceCardType.API).Sort(
             Function(Left As McInstance, Right As McInstance)
                 Dim Basic = VersionSortInteger(Left.Version.McName, Right.Version.McName)
                 If Basic <> 0 Then
@@ -1924,7 +1923,7 @@ OnLoaded:
         Next
         Return Required
     End Function
-    Private OSVersion As String = My.Computer.Info.OSVersion
+    Private OSVersion As String = Environment.OSVersion.Version.ToString()
 
     ''' <summary>
     ''' 递归获取 Minecraft 某一实例的完整支持库列表。
@@ -2137,6 +2136,14 @@ OnLoaded:
             End If
         End If
 
+        '修改渲染器
+        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
+        If Setup.Get("VersionAdvanceRenderer", Instance) <> 0 AndAlso Not File.Exists(MesaLoaderWindowsTargetFile) Then
+            Dim DownloadAddress As String = "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" & MesaLoaderWindowsVersion & "/mesa-loader-windows-" & MesaLoaderWindowsVersion & "-" & If(ModBase.Is32BitSystem, "x86", If(ModBase.IsArm64System, "arm64", "x64")) & ".jar"
+            Result.Add(New NetFile({DownloadAddress}, MesaLoaderWindowsTargetFile))
+        End If
+
         'LabyMod Assets 文件
         If Instance.Version.HasLabyMod Then
             If Instance.PathIndie = Instance.Path Then
@@ -2223,7 +2230,7 @@ OnLoaded:
             End If
             If Token.LocalPath.Contains("transformer-discovery-service") Then
                 'Transformer 文件释放
-                If Not File.Exists(Token.LocalPath) Then WriteFile(Token.LocalPath, GetResources("Transformer"))
+                If Not File.Exists(Token.LocalPath) Then WriteFile(Token.LocalPath, GetResourceStream("Resources/transformer.jar"))
                 Log("[Download] 已自动释放 Transformer Discovery Service", LogLevel.Developer)
                 Continue For
             ElseIf Token.LocalPath.Contains("optifine\OptiFine") Then
@@ -2384,13 +2391,13 @@ OnLoaded:
                     LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Name.Replace("/", "\")
                 Else
                     '正常
-                    LocalPath = PathMcFolder & "assets\objects\" & Left(File.Value("hash").ToString, 2) & "\" & File.Value("hash").ToString
+                    LocalPath = PathMcFolder & "assets\objects\" & Left(File("hash").ToString, 2) & "\" & File("hash").ToString
                 End If
                 Result.Add(New McAssetsToken With {
                     .LocalPath = LocalPath,
                     .SourcePath = File.Name,
-                    .Hash = File.Value("hash").ToString,
-                    .Size = File.Value("size").ToString
+                    .Hash = File("hash").ToString,
+                    .Size = File("size").ToString
                 })
             Next
             Return Result

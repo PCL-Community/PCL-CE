@@ -56,7 +56,7 @@ Public Class PageDownloadCompDetail
             '特殊版本
             Dim IsXSpecial As Boolean = x.EndsWithF("版本")
             Dim IsYSpecial As Boolean = y.EndsWithF("版本")
-            If IsXSpecial AndAlso IsYSpecial Then Return x.CompareTo(y)
+            If IsXSpecial AndAlso IsYSpecial Then Return String.Compare(x, y, StringComparison.Ordinal)
             If IsXSpecial Then Return 1
             If IsYSpecial Then Return -1
             '比较版本号
@@ -144,8 +144,9 @@ Public Class PageDownloadCompDetail
     Private Sub UpdateFilterResult()
         Dim Results = GetResults()
 
+        Dim targetVersionText = If(TargetLoader <> CompLoaderType.Any, TargetLoader.ToString & " ", "")
         Dim TargetCardName As String = If(TargetVersion <> "" OrElse TargetLoader <> CompLoaderType.Any,
-            $"所选版本：{If(TargetLoader <> CompLoaderType.Any, TargetLoader.ToString & " ", "")}{TargetVersion}", "")
+            $"所选版本：{targetVersionText}{TargetVersion}", "")
         '归类到卡片下
         Dim Dict As New SortedDictionary(Of String, List(Of CompFile))(New CardSorter(TargetCardName))
         Dict.Add("其他版本", New List(Of CompFile))
@@ -269,7 +270,7 @@ Public Class PageDownloadCompDetail
         If CompItem IsNot Nothing Then PanIntro.Children.Remove(CompItem)
         CompItem = Project.ToCompItem(True, True)
         CompItem.CanInteraction = False
-        CompItem.showFavoriteBtn = false
+        CompItem.ShowFavoriteBtn = false
         CompItem.Margin = New Thickness(-7, -7, 0, 8)
         PanIntro.Children.Insert(0, CompItem)
 

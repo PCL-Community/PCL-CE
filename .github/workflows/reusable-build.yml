@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     name: Build ${{ inputs.configuration }}-${{ inputs.architecture }}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       LANG: en_US.UTF-8
 
@@ -24,53 +24,46 @@ jobs:
           submodules: true
 
       - name: Set Describe
-        shell: bash
         run: |
           describe=`git describe --tags --always`
           echo "describe=$describe" >> $GITHUB_ENV
 
-      - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v2
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          msbuild-architecture: ${{ inputs.architecture }}
+          dotnet-version: '9.0.x'
 
       - name: Update Help
+        continue-on-error: true
         run: |
-          Set-Location ..
+          cd ..
           git clone https://github.com/PCL-Community/PCL2CEHelp.git -b master --single-branch --depth 1
-          Set-Location PCL2CEHelp
-          Remove-Item -Path *.* -Recurse -Force
-          Compress-Archive -Path .\* -DestinationPath .\Help.zip
-          Copy-Item -Path .\Help.zip -Destination "${{ GITHUB.WORKSPACE }}\Plain Craft Launcher 2\Resources\Help.zip" -Force
-          Set-Location ..
-          Remove-Item PCL2CEHelp -Recurse -Force
-          Set-Location ${{ GITHUB.WORKSPACE }}
-
-      - name: Restore NuGet Packages
-        run: msbuild "Plain Craft Launcher 2.sln" /t:Restore
-
-      - name: Replace Secrets and Commit Hash
-        run: |
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const OAuthClientId As String = ""', 'Public Const OAuthClientId As String = "${{ secrets.CLIENT_ID }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const CurseForgeAPIKey As String = ""', 'Public Const CurseForgeAPIKey As String = "${{ secrets.CURSEFORGE_API_KEY }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const LittleSkinClientId As String = ""', 'Public Const LittleSkinClientId As String = "${{ secrets.LITTLESKIN_CLIENT_ID }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const TelemetryKey As String = ""', 'Public Const TelemetryKey As String = "${{ secrets.TELEMETRY_KEY }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const NatayarkClientId As String = ""', 'Public Const NatayarkClientId As String = "${{ secrets.NAID_CLIENT_ID }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const NatayarkClientSecret As String = ""', 'Public Const NatayarkClientSecret As String = "${{ secrets.NAID_CLIENT_SECRET }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModLink.vb") -replace 'Public Const ETNetworkDefaultSecret As String = "PCLCELobbyDebug"', 'Public Const ETNetworkDefaultSecret As String = "${{ secrets.LOBBY_DEFAULT_SECRET }}"' | Out-File "Plain Craft Launcher 2\Modules\ModLink.vb"
-          (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public Const LinkServerRoots As String = ""', 'Public Const LinkServerRoots As String = "${{ secrets.LINK_SERVER_ROOTS }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-          (gc "Plain Craft Launcher 2\Modules\Base\ModBase.vb") -replace 'Public Const CommitHash As String = "native"', 'Public Const CommitHash As String = "${{ github.sha }}"' | Out-File "Plain Craft Launcher 2\Modules\Base\ModBase.vb"
-          (gc "Plain Craft Launcher 2\Pages\PageOther\PageOtherAbout.xaml") -replace 'https://github.com/PCL-Community/PCL2-CE', 'https://github.com/PCL-Community/PCL2-CE/tree/${{ github.sha }}' | Out-File "Plain Craft Launcher 2\Pages\PageOther\PageOtherAbout.xaml"
+          cd PCL2CEHelp
+          rm -f ./* || true
+          zip -r Help.zip . -x "./.*/*"
+          cp -f Help.zip "${{ github.workspace }}/Plain Craft Launcher 2/Resources/Help.zip"
+          cd ..
+          rm -rf PCL2CEHelp
+          cd "${{ github.workspace }}"
 
       - name: Build
+        env:
+          PCL_WRITE_SECRET: '1'
+          PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          PCL_TELEMETRY_KEY: ${{ secrets.TELEMETRY_KEY }}
+          PCL_NAID_CLIENT_ID: ${{ secrets.NAID_CLIENT_ID }}
+          PCL_NAID_CLIENT_SECRET: ${{ secrets.NAID_CLIENT_SECRET }}
+          PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}
+          PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
+          PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          chcp 65001
-          $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
-          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-          msbuild "Plain Craft Launcher 2.sln" -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }}
+          dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
+          -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
+          -p:DeleteExistingFiles=true -o ./artifact --self-contained false
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}
-          path: Plain Craft Launcher 2\obj\${{ inputs.architecture }}\${{ inputs.configuration }}\Plain Craft Launcher 2.exe
+          path: artifact/Plain Craft Launcher 2.exe

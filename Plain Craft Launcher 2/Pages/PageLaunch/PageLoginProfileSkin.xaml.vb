@@ -32,9 +32,12 @@
     Private Sub ShowPanel(sender As Object, e As MouseEventArgs) Handles PanData.MouseEnter
         AniStart(AaOpacity(PanButtons, 1 - PanButtons.Opacity, 120), "PageLoginProfileSkin Button")
     End Sub
-    Public Sub HidePanel() Handles PanData.MouseLeave
+    Private Sub HidePanel() Handles PanData.MouseLeave
         If BtnEdit.ContextMenu.IsOpen OrElse BtnSkin.ContextMenu.IsOpen OrElse PanData.IsMouseOver Then Exit Sub
         AniStart(AaOpacity(PanButtons, -PanButtons.Opacity, 120), "PageLoginProfileSkin Button")
+    End Sub
+    Private Sub MenuAccountOptions_Closed(sender As Object, e As RoutedEventArgs)
+        HidePanel()
     End Sub
     '皮肤与披风子菜单
     Private Sub BtnSkin_Click(sender As Object, e As RoutedEventArgs) Handles BtnSkin.Click
@@ -45,7 +48,7 @@
         BtnEdit.ContextMenu.IsOpen = True
     End Sub
     '修改密码
-    Public Sub BtnEditPassword_Click(sender As Object, e As RoutedEventArgs)
+    Private Sub BtnEditPassword_Click(sender As Object, e As RoutedEventArgs)
         If SelectedProfile.Type = McLoginType.Ms Then
             OpenWebsite("https://account.live.com/password/Change")
         ElseIf SelectedProfile.Type = McLoginType.Auth Then
@@ -56,7 +59,7 @@
         End If
     End Sub
     '修改 ID
-    Public Sub BtnEditName_Click(sender As Object, e As RoutedEventArgs)
+    Private Sub BtnEditName_Click(sender As Object, e As RoutedEventArgs)
         EditProfileID()
     End Sub
     '选择档案
@@ -96,5 +99,4 @@
         End If
     End Sub
 #End Region
-
 End Class

@@ -413,7 +413,9 @@ Finish:
     '启动按钮
     Public Sub LaunchButtonClick() Handles BtnLaunch.Click
         If McLaunchLoader.State = LoadState.Loading OrElse Not BtnLaunch.IsEnabled OrElse
-            （FrmMain.PageRight IsNot Nothing AndAlso FrmMain.PageRight.PageState <> MyPageRight.PageStates.ContentStay AndAlso FrmMain.PageRight.PageState <> MyPageRight.PageStates.ContentEnter） Then Return
+            (FrmMain.PageRight IsNot Nothing AndAlso
+             FrmMain.PageRight.PageState <> MyPageRight.PageStates.ContentStay AndAlso
+             FrmMain.PageRight.PageState <> MyPageRight.PageStates.ContentEnter) Then Return
         '愚人节处理
         If IsAprilEnabled AndAlso Not IsAprilGiveup Then
             ThemeUnlock(12, False, "隐藏主题 滑稽彩 已解锁！")

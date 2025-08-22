@@ -489,11 +489,11 @@ NextInner:
         Dim Input As McLoginMs = Data.Input
         Dim LogUsername As String = Input.UserName
         Dim IsNewProfile As Boolean = True
-        ProfileLog("验证方式：正版（" & If(LogUsername = "", "尚未登录", LogUsername) & "）")
+        ProfileLog("验证方式：正版（" & If(String.IsNullOrEmpty(LogUsername), "尚未登录", LogUsername) & "）")
         Data.Progress = 0.05
         '检查是否已经登录完成
         If Not Data.IsForceRestarting AndAlso '不要求强行重启
-           Input.AccessToken <> "" AndAlso '已经登录过了
+           Not String.IsNullOrEmpty(Input.AccessToken) AndAlso '已经登录过了
            (McLoginMsRefreshTime > 0 AndAlso GetTimeTick() - McLoginMsRefreshTime < 1000 * 60 * 10) Then '完成时间在 10 分钟内
             Data.Output = New McLoginResult With
                 {.AccessToken = Input.AccessToken, .Name = Input.UserName, .Uuid = Input.Uuid, .Type = "Microsoft", .ClientToken = Input.Uuid, .ProfileJson = Input.ProfileJson}
@@ -637,7 +637,7 @@ Retry:
     ''' <returns></returns>
     Private Function MsLoginStep1Refresh(Code As String) As String()
         McLaunchLog("开始正版验证 Step 1/6（刷新登录）")
-
+        If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
         Dim Result As String = Nothing
         Try
             Result = NetRequestRetry("https://login.live.com/oauth20_token.srf", "POST",
@@ -676,7 +676,7 @@ Retry:
     ''' <returns>XBLToken</returns>
     Private Function MsLoginStep2(AccessToken As String) As String
         ProfileLog("开始正版验证 Step 2/6: 获取 XBLToken")
-
+        If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
         Dim Request As String = New JObject(
                                         New JProperty("Properties", New JObject(
                                             New JProperty("AuthMethod", "RPS"),
@@ -717,6 +717,7 @@ Retry:
     ''' <returns>包含 XSTSToken 与 UHS 的字符串组</returns>
     Private Function MsLoginStep3(XBLToken As String) As String()
         ProfileLog("开始正版验证 Step 3/6: 获取 XSTSToken")
+        If String.IsNullOrEmpty(XBLToken) Then Throw New ArgumentException("XBLToken 为空，无法获取数据", NameOf(XBLToken))
         Dim Request As String = New JObject(
                                     New JProperty("Properties", New JObject(
                                         New JProperty("SandboxId", "RETAIL"),
@@ -785,7 +786,7 @@ Retry:
     ''' <returns>Minecraft AccessToken</returns>
     Private Function MsLoginStep4(Tokens As String()) As String
         ProfileLog("开始正版验证 Step 4/6: 获取 Minecraft AccessToken")
-
+        If Tokens.Length < 2 OrElse String.IsNullOrEmpty(Tokens.ElementAt(0)) OrElse String.IsNullOrEmpty(Tokens.ElementAt(1)) Then Throw New ArgumentException("传入的 XSTSToken 或者 UHS 错误", NameOf(Tokens))
         Dim Request As String = New JObject(New JProperty("identityToken", $"XBL3.0 x={Tokens(1)};{Tokens(0)}")).ToString(0)
         Dim Result As String
         Try
@@ -829,7 +830,7 @@ Retry:
     ''' <param name="AccessToken">Minecraft AccessToken</param>
     Private Sub MsLoginStep5(AccessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
-
+        If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
         Dim Result As String = NetRequestRetry(
             "https://api.minecraftservices.com/entitlements",
             "GET",
@@ -858,7 +859,7 @@ Retry:
     ''' <returns>包含 UUID, UserName 和 ProfileJson 的字符串组</returns>
     Private Function MsLoginStep6(AccessToken As String) As String()
         ProfileLog("开始正版验证 Step 6/6: 获取玩家 ID 与 UUID 等相关信息")
-
+        If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
         Dim Result As String
         Try
             Result = NetRequestRetry(
@@ -1394,19 +1395,19 @@ LoginFinish:
         Log("[Java] 选定的 Java Wrapper 路径：" & WrapperPath)
         SyncLock ExtractJavaWrapperLock '避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
             Try
-                WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                WriteJavaWrapper(WrapperPath)
             Catch ex As Exception
                 If File.Exists(WrapperPath) Then
                     '因为未知原因 Java Wrapper 可能变为只读文件（#4243）
                     Log(ex, "Java Wrapper 文件释放失败，但文件已存在，将在删除后尝试重新生成", LogLevel.Developer)
                     Try
                         File.Delete(WrapperPath)
-                        WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                        WriteJavaWrapper(WrapperPath)
                     Catch ex2 As Exception
                         Log(ex2, "Java Wrapper 文件重新释放失败，将尝试更换文件名重新生成", LogLevel.Developer)
                         WrapperPath = PathPure & "JavaWrapper2.jar"
                         Try
-                            WriteFile(WrapperPath, GetResources("JavaWrapper"))
+                            WriteJavaWrapper(WrapperPath)
                         Catch ex3 As Exception
                             Throw New FileNotFoundException("释放 Java Wrapper 最终尝试失败", ex3)
                         End Try
@@ -1419,6 +1420,9 @@ LoginFinish:
         Return WrapperPath
     End Function
     Private ExtractJavaWrapperLock As New Object
+    Private Sub WriteJavaWrapper(Path As String)
+        WriteFile(Path, GetResourceStream("Resources/java-wrapper.jar"))
+    End Sub
 
     ''' <summary>
     ''' 释放 linkd 并返回完整文件路径。
@@ -1427,13 +1431,13 @@ LoginFinish:
         Dim LinkDPath As String = PathPure & "linkd.exe"
         SyncLock ExtractLinkDLock '避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
             Try
-                WriteFile(LinkDPath, GetResources("linkd"))
+                WriteLinkD(LinkDPath)
             Catch ex As Exception
                 If File.Exists(LinkDPath) Then
                     Log(ex, "linkd 文件释放失败，但文件已存在，将在删除后尝试重新生成", LogLevel.Developer)
                     Try
                         File.Delete(LinkDPath)
-                        WriteFile(LinkDPath, GetResources("linkd"))
+                        WriteLinkD(LinkDPath)
                     Catch ex2 As Exception
                         Throw New FileNotFoundException("释放 linkd 失败", ex2)
                     End Try
@@ -1445,6 +1449,9 @@ LoginFinish:
         Return LinkDPath
     End Function
     Private ExtractLinkDLock As New Object
+    Private Sub WriteLinkD(Path As String)
+        WriteFile(Path, GetResourceStream("Resources/linkd.exe"))
+    End Sub
 
     ''' <summary>
     ''' 判断是否使用 RetroWrapper。
@@ -1580,6 +1587,15 @@ LoginFinish:
             End Try
         End If
 
+        '渲染器
+        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
+
+        If Renderer <> 0 Then
+            DataList.Insert(0, "-javaagent:""" & MesaLoaderWindowsTargetFile & """=" & If(Renderer = 1, "llvmpipe", If(Renderer = 2, "d3d12", "zink")))
+        End If
+
         '设置代理
         If Setup.Get("VersionAdvanceUseProxyV2", instance:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
             Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
@@ -1648,6 +1664,15 @@ NextInstance:
             Catch ex As Exception
                 Throw New Exception("无法连接到第三方登录服务器（" & If(Server, Nothing) & "）", ex)
             End Try
+        End If
+
+        '渲染器
+        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
+
+        If Renderer <> 0 Then
+            DataList.Insert(0, "-javaagent:""" & MesaLoaderWindowsTargetFile & """=" & If(Renderer = 1, "llvmpipe", If(Renderer = 2, "d3d12", "zink")))
         End If
 
         '设置代理
@@ -1871,7 +1896,7 @@ NextInstance:
         If McLaunchNeedsRetroWrapper(instance) Then
             Dim WrapperPath As String = PathMcFolder & "libraries\retrowrapper\RetroWrapper.jar"
             Try
-                WriteFile(WrapperPath, GetResources("RetroWrapper"))
+                WriteFile(WrapperPath, GetResourceStream("Resources/retro-wrapper.jar"))
                 CpStrings.Add(WrapperPath)
             Catch ex As Exception
                 Log(ex, "RetroWrapper 释放失败")
@@ -2146,7 +2171,7 @@ NextInstance:
             End If
         Catch ex As Exception
             Log(ex, "输出启动脚本失败")
-            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw ex '直接触发启动失败
+            If CurrentLaunchOptions.SaveBatch IsNot Nothing Then Throw '直接触发启动失败
         End Try
 
         '执行自定义命令

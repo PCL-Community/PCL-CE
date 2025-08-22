@@ -209,27 +209,56 @@
             </local:MyCard> -->
 
             <local:MyCard Margin="0,0,0,15" Title="网络">
-                <Grid Margin="25,40,25,20">
+                <Grid Margin="25,40,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
                     </Grid.RowDefinitions>
-                    <local:MyHint Grid.Row="0" Grid.ColumnSpan="2" Text="如果你不确定以下设置的作用，请保持默认。" Theme="Red"/>
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="HTTP 代理" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextSystemHttpProxy" Grid.Row="2" Grid.ColumnSpan="2" Tag="SystemHttpProxy" Grid.Column="1" HintText="比如 http://127.0.0.1:1080/" ToolTip="不正确的代理服务器地址会导致无法连接网络，因使用代理导致的网络问题不予处理。&#xa;请勿填写不信任的代理服务器地址，这可能会导致你的账号信息泄露，甚至账号被盗。"/>
-                    <local:MyCheckBox Text="使用系统代理" Grid.Row="4" Height="22" Grid.Column="0"
-                                    x:Name="CheckUseDefaultProxy" Tag="SystemUseDefaultProxy" 
-                                    ToolTip="使用系统设置的代理，若未设置则不使用代理。" />
-                    <local:MyCheckBox Margin="30,2,0,4" Text="验证 SSL 证书" Grid.Row="4" Height="22" Grid.Column="6"
-                                    x:Name="CheckDownloadCert" Tag="ToolDownloadCert" 
+                    <local:MyCheckBox Margin="0,2,0,4" Text="验证 SSL 证书" Grid.Row="0" Height="22" Grid.Column="0" Grid.ColumnSpan="2"
+                                    x:Name="CheckDownloadCert" Tag="ToolDownloadCert"
                                     ToolTip="开启验证会提高安全性、降低盗号风险（见 #2767），但也可能导致正版登录失败（见 #3018）。" />
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="HTTP 代理" Margin="0,0,25,0" />
+                    <Grid Grid.Row="2" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="0.2*" />
+                        </Grid.ColumnDefinitions>
+                        <local:MyRadioBox Text="不使用代理" x:Name="RadioHttpProxyType0" Height="22" Tag="SystemHttpProxyType/0" Grid.Column="0" />
+                        <local:MyRadioBox Text="使用系统代理" x:Name="RadioHttpProxyType1" Height="22" Tag="SystemHttpProxyType/1" Grid.Column="1" />
+                        <local:MyRadioBox Text="自定义代理" x:Name="RadioHttpProxyType2" Height="22" Tag="SystemHttpProxyType/2" Grid.Column="2" />
+                    </Grid>
+                    <Grid Grid.Row="4" Grid.Column="1" x:Name="HttpProxyCustom" Visibility="{Binding ElementName=RadioHttpProxyType2,Path=Checked,Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28"/>
+                            <RowDefinition Height="9"/>
+                            <RowDefinition Height="28"/>
+                            <RowDefinition Height="9"/>
+                            <RowDefinition Height="28"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <local:MyHint Text="请勿填写不信任的代理地址" Grid.Row="0" Grid.ColumnSpan="5" Theme="Yellow"/>
+                        <local:MyTextBox x:Name="TextSystemHttpProxy" Grid.Row="2" Grid.ColumnSpan="5" Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/" ToolTip="不正确的代理服务器地址会导致无法连接网络，因使用代理导致的网络问题不予处理。&#xa;请勿填写不信任的代理服务器地址，这可能会导致你的账号信息泄露，甚至账号被盗。"/>
+                        <TextBlock Grid.Column="0" Grid.Row="4" Text="账号" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,5,0"/>
+                        <local:MyTextBox Grid.Column="1" Grid.Row="4" HintText="如有" Tag="SystemHttpProxyCustomUsername" x:Name="TextSystemHttpProxyCustomUsername" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Column="2" Grid.Row="4" Text="密码" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,5,0"/>
+                        <local:MyTextBox Grid.Column="3" Grid.Row="4" HintText="如有" Tag="SystemHttpProxyCustomPassword" x:Name="TextSystemHttpProxyCustomPassword" Margin="0,0,5,0"/>
+                        <local:MyButton Text="应用代理信息" TextPadding="3" Grid.Row="4" Grid.Column="5" x:Name="BtnApplyHttpProxy"/>
+                    </Grid>
                 </Grid>
             </local:MyCard>
 
