@@ -3,7 +3,7 @@ Imports System.Threading.Tasks
 Imports fNbt
 Imports PCL.Core.IO
 Imports PCL.Core.Link
-Imports PCL.Core.Net
+Imports PCL.Core.Minecraft
 
 Public Class PageInstanceServer
     Inherits MyPageRight

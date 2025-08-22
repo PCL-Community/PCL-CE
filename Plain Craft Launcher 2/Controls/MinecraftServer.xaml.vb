@@ -1,8 +1,6 @@
-﻿Imports System.Net
-Imports System.Net.Sockets
-Imports System.Threading.Tasks
+﻿Imports System.Threading.Tasks
 Imports PCL.Core.Link
-Imports PCL.Core.Net
+Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
 Class MinecraftServer
