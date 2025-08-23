@@ -20,6 +20,7 @@
                 RaiseEvent TextChanged(Me, Nothing)
             End If
             If HintText.Length > 0 Then TextBox.HintText = HintText
+            TextBox.SetResourceReference(MyTextBox.CaretBrushProperty, "ColorBrushGray1")
         Catch ex As Exception
             Log(ex, "初始化可编辑文本框失败（" & If(Name, "") & "）", LogLevel.Feedback)
         End Try
