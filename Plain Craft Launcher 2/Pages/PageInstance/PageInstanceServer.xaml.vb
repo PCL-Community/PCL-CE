@@ -102,11 +102,13 @@ Public Class PageInstanceServer
     Public Shared Function GetServerInfo(server As MinecraftServerInfo) As (Name As String, Address As String, Success As Boolean)
         Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name)
         If String.IsNullOrEmpty(newName) Then 
+            Hint("服务器名称不能为空", HintType.Info)
             Return (String.Empty, String.Empty, False)
         End If
 
         Dim newAddress As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address)
         If String.IsNullOrEmpty(newAddress) Then 
+            Hint("服务器地址不能为空", HintType.Info)
             Return (String.Empty, String.Empty, False)
         End If
     
