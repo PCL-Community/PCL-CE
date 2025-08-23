@@ -3,6 +3,10 @@
 Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
     Private Sub Reload() Handles Me.Loaded
+        Dim serverItems = TextServer.Items
+        For Each serverName In PredefinedAuthServers.Keys
+            serverItems.Add(New MyComboBoxItem() With {.Content = serverName})
+        Next
         If DraggedAuthServer IsNot Nothing Then
             TextServer.Text = DraggedAuthServer
             DraggedAuthServer = Nothing
@@ -16,8 +20,9 @@ Public Class PageLoginAuth
                     FrmLaunchLeft.RefreshPage(True)
                 End Sub)
     End Sub
+    Private Shared ReadOnly ValidateHttp As New ValidateHttp()
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
-        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then 
+        If Not ValidateHttp.Validate(TextServer.Text) Then 
             Hint("输入的验证服务器地址无效", HintType.Critical)
             Exit Sub
         End If
@@ -69,6 +74,7 @@ Public Class PageLoginAuth
     '获取验证服务器名称
     Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
         Dim serverUriInput = TextServer.Text
+        If String.IsNullOrWhiteSpace(serverUriInput) Then Exit Sub
         RunInNewThread(Sub()
             Dim serverUri As String = Nothing
             Dim serverName As String = Nothing
@@ -106,5 +112,17 @@ Public Class PageLoginAuth
     Private Sub ReloadRegisterButton() Handles Me.Loaded
         Dim Address As String = If(McInstanceCurrent IsNot Nothing, Setup.Get("VersionServerAuthRegister", instance:=McInstanceCurrent), "")
         BtnLink.Visibility = If(String.IsNullOrEmpty(New ValidateHttp().Validate(Address)), Visibility.Visible, Visibility.Collapsed)
+    End Sub
+    '预设服务器
+    Private Shared ReadOnly PredefinedAuthServers As New Dictionary(Of String, String) From {
+        {"预设 - LittleSkin", "https://littleskin.cn/api/yggdrasil"},
+        {"自定义", ""}
+    }
+    Private Sub TextServer_TextChanged(sender As Object, e As TextChangedEventArgs)
+        Dim server As String = Nothing
+        PredefinedAuthServers.TryGetValue(TextServer.Text, server)
+        If server IsNot Nothing Then
+            TextServer.Text = server
+        End If
     End Sub
 End Class
