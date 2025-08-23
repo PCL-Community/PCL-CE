@@ -26,7 +26,7 @@
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center" Text="暂时没有服务器" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
                     <Rectangle Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
                     <TextBlock Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5" Text="暂时没有找到服务器，在游戏内添加服务器或点击下方按钮添加新服务器" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" MinWidth="140" Text="刷新所有服务器" Padding="13,0" Margin="10,10,10,0" HorizontalAlignment="Center" Click="BtnRefresh_Click" ColorType="Highlight"/>
+                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" MinWidth="140" Text="刷新服务器信息" Padding="13,0" Margin="10,10,10,0" HorizontalAlignment="Center" Click="BtnRefresh_Click" ColorType="Highlight"/>
                     <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" Click="BtnAddServer_Click" MinWidth="140" Text="添加新服务器" Margin="10,10,10,0" Padding="13,0" />
                 </Grid>
             </local:MyCard>
