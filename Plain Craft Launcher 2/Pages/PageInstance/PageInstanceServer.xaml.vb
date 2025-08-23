@@ -17,6 +17,8 @@ Public Class PageInstanceServer
         PanServers.Children.Clear()
         
         LoadServersFromFile()
+        
+        RefreshTip()
         For Each server In _serverList
             Dim serverCard = New ServerCard()
             serverCard.UpdateServerInfo(server)
@@ -67,6 +69,8 @@ Public Class PageInstanceServer
                 .Status = ServerStatus.Unknown
             }
             _serverList.Add(newServer)
+            
+            RefreshTip()
             
             Dim serverCard = New ServerCard()
             serverCard.UpdateServerInfo(newServer)
@@ -160,14 +164,8 @@ Public Class PageInstanceServer
     ''' </summary>
     Private Sub UpdateServerUi()
         PanServers.Children.Clear()
-
-        'If _serverList.Count = 0 Then
-         '   HintNoServers.Visibility = Visibility.Visible
-          '  Return
-        'End If
-
         
-        'HintNoServers.Visibility = Visibility.Collapsed
+        RefreshTip()
         
         For Each server In _serverList
             Dim serverCard = New ServerCard()
@@ -175,6 +173,20 @@ Public Class PageInstanceServer
             _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
         Next
+    End Sub
+    
+    Public Sub RefreshTip()
+        If _serverList.Count = 0 Then
+            Log("没有找到任何服务器")
+            PanNoServer.Visibility = Visibility.Visible
+            PanContent.Visibility = Visibility.Collapsed
+            PanServers.Visibility = Visibility.Collapsed
+            Return
+        End If
+        Log("找到服务器列表")
+        PanNoServer.Visibility = Visibility.Collapsed
+        PanContent.Visibility = Visibility.Visible
+        PanServers.Visibility = Visibility.Visible
     End Sub
 
     ''' <summary>
@@ -220,12 +232,10 @@ Public Class PageInstanceServer
     End Function
     
     Public Shared Sub RemoveServer(server As ServerCard)
-        If _serverCardList.Contains(server) Then
-            _serverCardList.Remove(server)
-            Dim index = GetServerIndex(server)
-            If index >= 0 AndAlso index < _serverList.Count Then
-                _serverList.RemoveAt(index)
-            End If
+        _serverCardList.Remove(server)
+        Dim index = GetServerIndex(server)
+        If index >= 0 AndAlso index < _serverList.Count Then
+            _serverList.RemoveAt(index)
         End If
     End Sub
 End Class
