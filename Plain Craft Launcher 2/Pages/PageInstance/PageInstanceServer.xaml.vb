@@ -8,7 +8,7 @@ Imports PCL.Core.Minecraft
 Public Class PageInstanceServer
     Inherits MyPageRight
 
-    Private Shared _serverList As New List(Of MinecraftServerInfo)
+    Public Shared _serverList As New List(Of MinecraftServerInfo)
     Private Shared _serverCardList As New List(Of ServerCard)
 
     Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
@@ -21,6 +21,7 @@ Public Class PageInstanceServer
         RefreshTip()
         For Each server In _serverList
             Dim serverCard = New ServerCard()
+            AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(server)
             _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
@@ -28,6 +29,10 @@ Public Class PageInstanceServer
                 Await serverCard.RefreshServerStatus(False)
             End Function)
         Next
+    End Sub
+    
+    Private Sub MyChild_ChildCountZero(sender As Object, e As EventArgs)
+        RefreshTip()
     End Sub
     
     Public Shared Function GetServerIndex(serverCard) As Integer
@@ -73,6 +78,7 @@ Public Class PageInstanceServer
             RefreshTip()
             
             Dim serverCard = New ServerCard()
+            AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(newServer)
             _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
@@ -169,6 +175,7 @@ Public Class PageInstanceServer
         
         For Each server In _serverList
             Dim serverCard = New ServerCard()
+            AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(server)
             _serverCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
@@ -232,8 +239,10 @@ Public Class PageInstanceServer
     End Function
     
     Public Shared Sub RemoveServer(server As ServerCard)
-        _serverCardList.Remove(server)
         Dim index = GetServerIndex(server)
+        _serverCardList.Remove(server)
+        Log("index: " & index)
+        Log("_serverList.Count: " & _serverList.Count)
         If index >= 0 AndAlso index < _serverList.Count Then
             _serverList.RemoveAt(index)
         End If

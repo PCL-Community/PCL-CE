@@ -7,6 +7,18 @@ Public Class ServerCard
     Dim _server As MinecraftServerInfo
     Dim ReadOnly _manager As IconManager
     
+    Public Event ChildCountZero As EventHandler
+
+    ' 这是一个例子，在某个方法中检查条件并触发事件
+    Public Sub CheckAndUpdateVisibility()
+        ' 假设这是你的逻辑，判断子组件是否已全部移除
+        Log(PageInstanceServer._serverList.Count)
+        If PageInstanceServer._serverList.Count = 0 Then
+            Log("触发 ChildCountZero 事件")
+            RaiseEvent ChildCountZero(Me, EventArgs.Empty)
+        End If
+    End Sub
+    
     Public Sub New()
         InitializeComponent()
         
@@ -177,6 +189,7 @@ Public Class ServerCard
             Dim index = PageInstanceServer.GetServerIndex(Me)
             If index >= 0 Then
                 PageInstanceServer.RemoveServer(Me)
+                CheckAndUpdateVisibility()
                 
                 ' 更新NBT文件
                 Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
