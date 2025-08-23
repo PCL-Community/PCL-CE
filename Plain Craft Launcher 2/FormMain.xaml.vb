@@ -383,6 +383,10 @@ Public Class FormMain
         '关闭
         RunInUiWait(
         Sub()
+            '清理视频背景
+            VideoBack.Stop()
+            VideoBack.Source = Nothing
+            VideoBack.Close()
             IsHitTestVisible = False
             If PanBack.RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)

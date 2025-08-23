@@ -40,6 +40,19 @@ Public Module ModWatcher
         ElseIf Setup.Get("UiMusicStart") Then
             RunInUi(Sub() If MusicPause() Then Log("[Music] 已根据设置，在结束后暂停音乐播放"))
         End If
+        '开始视频背景播放
+        RunInUi(
+            Sub()
+                If FrmMain.VideoBack.Source IsNot Nothing Then
+                    Try
+                        FrmMain.VideoBack.Play()
+                        Log("[UI] 已开始视频背景播放")
+                    Catch ex As Exception
+                        Log(ex, "[UI] 开始视频背景播放失败")
+                    End Try
+                End If
+            End Sub
+            )
         '启动器可见性
         Select Case Setup.Get("LaunchArgumentVisible")
             Case 2
