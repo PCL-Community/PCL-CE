@@ -1,34 +1,29 @@
 ﻿Imports PCL.Core.Minecraft.Yggdrasil
 
 Public Class PageLoginAuth
-    Public Shared DraggedAuthServer As String = Nothing
+    Public Shared SelectedAuthServer As String
     Private Sub Reload() Handles Me.Loaded
-        If DraggedAuthServer IsNot Nothing Then
-            TextServer.Text = DraggedAuthServer
-            DraggedAuthServer = Nothing
+        If SelectedAuthServer IsNot Nothing Then
+            GetServerName()
         End If
     End Sub
     Private Sub BtnBack_Click(sender As Object, e As EventArgs) Handles BtnBack.Click
         RunInUi(Sub()
-                    TextServer.Text = Nothing
+                    SelectedAuthServer = Nothing
                     TextName.Text = Nothing
                     TextPass.Password = Nothing
                     FrmLaunchLeft.RefreshPage(True)
                 End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
-        If Not String.IsNullOrWhiteSpace(TextServer.ValidateResult) Then 
-            Hint("输入的验证服务器地址无效", HintType.Critical)
-            Exit Sub
-        End If
-        If String.IsNullOrWhiteSpace(TextServer.Text) OrElse String.IsNullOrWhiteSpace(TextName.Text) OrElse String.IsNullOrWhiteSpace(TextPass.Password) Then
+        If String.IsNullOrWhiteSpace(SelectedAuthServer) OrElse String.IsNullOrWhiteSpace(TextName.Text) OrElse String.IsNullOrWhiteSpace(TextPass.Password) Then
             Hint("验证服务器、用户名与密码均不能为空！", HintType.Critical)
             Exit Sub
         End If
         BtnLogin.IsEnabled = False
         BtnBack.IsEnabled = False
-        Dim LoginData As New McLoginServer(McLoginType.Auth) With {.BaseUrl = If(TextServer.Text.EndsWithF("/"),
-            TextServer.Text & "authserver", TextServer.Text & "/authserver"), .UserName = TextName.Text, .Password = TextPass.Password, .Description = "Authlib-Injector", .Type = McLoginType.Auth}
+        Dim LoginData As New McLoginServer(McLoginType.Auth) With {.BaseUrl = If(SelectedAuthServer.EndsWithF("/"),
+            SelectedAuthServer & "authserver", SelectedAuthServer & "/authserver"), .UserName = TextName.Text, .Password = TextPass.Password, .Description = "Authlib-Injector", .Type = McLoginType.Auth}
         RunInNewThread(Sub()
                            Try
                                IsCreatingProfile = True
@@ -38,7 +33,12 @@ Public Class PageLoginAuth
                                    Thread.Sleep(50)
                                Loop
                                If McLoginAuthLoader.State = LoadState.Finished Then
-                                   RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
+                                   RunInUi(Sub()
+                                               SelectedAuthServer = Nothing
+                                               TextName.Text = Nothing
+                                               TextPass.Password = Nothing
+                                               FrmLaunchLeft.RefreshPage(True)
+                                           End Sub)
                                ElseIf McLoginAuthLoader.State = LoadState.Aborted Then
                                    Throw New ThreadInterruptedException
                                ElseIf McLoginAuthLoader.Error Is Nothing Then
@@ -66,29 +66,45 @@ Public Class PageLoginAuth
                            End Try
                        End Sub)
     End Sub
-    '获取验证服务器名称
-    Private Sub GetServerName() Handles TextServer.LostKeyboardFocus
-        Dim serverUriInput = TextServer.Text
-        RunInNewThread(Sub()
-            Dim serverUri As String = Nothing
-            Dim serverName As String = Nothing
-            Try
-                serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
-                Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
-                serverName = JObject.Parse(response)("meta")("serverName").ToString()
-            Catch ex As Exception
-                Log(ex, "从服务器获取名称失败", LogLevel.Debug)
-            End Try
-            RunInUi(Sub()
-                If serverUri IsNot Nothing Then TextServer.Text = serverUri
-                If serverName Is Nothing Then
-                    TextServerName.Visibility = Visibility.Hidden
+    '处理选择的服务器
+    Private Sub SetServer(sender As Object, e As SelectionChangedEventArgs) Handles ComboServer.SelectionChanged
+        Select Case ComboServer.SelectedIndex
+            Case 0
+                SelectedAuthServer = "https://littleskin.cn/api/yggdrasil"
+                GetServerName()
+            Case 1
+                Dim Validate As New ValidateHttp()
+                SelectedAuthServer = MyMsgBoxInput("请输入验证服务器", "", "", New ObjectModel.Collection(Of Validate) From {Validate}, "请输入服务器地址")
+                If String.IsNullOrEmpty(SelectedAuthServer) Then
+                    ComboServer.SelectedIndex = -1
                 Else
-                    TextServerName.Text = "验证服务器: " & serverName
-                    TextServerName.Visibility = Visibility.Visible
+                    GetServerName()
                 End If
-            End Sub)
-        End Sub)
+        End Select
+    End Sub
+    '获取验证服务器名称
+    Private Sub GetServerName()
+        Dim serverUriInput = SelectedAuthServer
+        RunInNewThread(Sub()
+                           Dim serverUri As String = Nothing
+                           Dim serverName As String = Nothing
+                           Try
+                               serverUri = ApiLocation.TryRequest(serverUriInput).GetAwaiter().GetResult()
+                               Dim response As String = NetGetCodeByRequestRetry(serverUri, Encoding.UTF8)
+                               serverName = JObject.Parse(response)("meta")("serverName").ToString()
+                           Catch ex As Exception
+                               Log(ex, "从服务器获取名称失败", LogLevel.Debug)
+                           End Try
+                           RunInUi(Sub()
+                                       If serverUri IsNot Nothing Then SelectedAuthServer = serverUri
+                                       If serverName Is Nothing Then
+                                           TextServerName.Visibility = Visibility.Hidden
+                                       Else
+                                           TextServerName.Text = "验证服务器: " & serverName
+                                           TextServerName.Visibility = Visibility.Visible
+                                       End If
+                                   End Sub)
+                       End Sub)
     End Sub
     '链接处理
     Private Sub ComboName_TextChanged() Handles TextName.TextChanged

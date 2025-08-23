@@ -480,7 +480,7 @@ PreFin:
     '跳转新建档案
     Private Sub BtnServerNewProfile_Click() Handles BtnServerNewProfile.Click
         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-        PageLoginAuth.DraggedAuthServer = TextServerAuthServer.Text
+        PageLoginAuth.SelectedAuthServer = TextServerAuthServer.Text
         RunInNewThread(Sub()
                            Thread.Sleep(150)
                            RunInUi(Sub() FrmLaunchLeft.RefreshPage(True, McLoginType.Auth))

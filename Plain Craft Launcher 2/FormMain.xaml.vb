@@ -644,7 +644,7 @@ Public Class FormMain
                         End If
                         If MyMsgBox($"是否要创建新的第三方验证档案？{vbCrLf}验证服务器地址：{AuthlibServer}", "创建新的第三方验证档案", "确定", "取消") = 2 Then Exit Sub
                         RunInUi(Sub()
-                                    PageLoginAuth.DraggedAuthServer = AuthlibServer
+                                    PageLoginAuth.SelectedAuthServer = AuthlibServer
                                     FrmLaunchLeft.RefreshPage(True, McLoginType.Auth)
                                 End Sub)
                         If PageCurrent = PageType.InstanceSetup AndAlso PageCurrentSub = PageSubType.VersionSetup Then
