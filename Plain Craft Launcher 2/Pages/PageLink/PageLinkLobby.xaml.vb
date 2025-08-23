@@ -332,8 +332,8 @@ Public Class PageLinkLobby
                     Return 1
                 End If
                 If IsETFirstCheckFinished Then
-                    Hint("大厅已被解散", HintType.Critical)
-                    ToastNotification.SendToast("大厅已被解散", "PCL CE 大厅")
+                    MyMsgBox($"大厅创建者关闭了大厅。{vbCrLf}有可能是创建者累了，或者是他的游戏 / 网络连接炸了。", "大厅已解散")
+                    ToastNotification.SendToast("大厅已解散", "PCL CE 大厅")
                 Else
                     If IsHost Then
                         Hint("大厅创建失败", HintType.Critical)
@@ -621,6 +621,7 @@ Public Class PageLinkLobby
             CurrentSubpage = Subpages.PanSelect
             BtnFinishExit.Text = "退出大厅"
             LobbyController.Close()
+            DetectMcInstance()
         End If
     End Sub
 
