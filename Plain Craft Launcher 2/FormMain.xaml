@@ -97,7 +97,9 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" RenderOptions.BitmapScalingMode="LowQuality" />
+                <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" RenderOptions.BitmapScalingMode="LowQuality">
+                    <MediaElement x:Name="VideoBack" Grid.Row="0" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible" MediaEnded="VideoEnded" Volume="0"/>
+                </Canvas>
                 <Grid x:Name="PanTitle" Height="48">
                     <Grid.Background>
                         <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">

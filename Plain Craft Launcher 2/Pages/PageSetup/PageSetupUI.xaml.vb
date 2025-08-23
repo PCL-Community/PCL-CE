@@ -329,7 +329,7 @@ Public Class PageSetupUI
         If MyMsgBox("即将删除背景图片文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
             DeleteDirectory(Path & "PCL\Pictures")
             BackgroundRefresh(False, True)
-            Hint("背景图片已清空！", HintType.Finish)
+            Hint("背景图片和视频已清空！", HintType.Finish)
         End If
     End Sub
     ''' <summary>
@@ -348,14 +348,32 @@ Public Class PageSetupUI
                     Pic.Add(File.FullName)
                 End If
             Next
+            '视频加载异常处理
+            Dim videoEx As Exception = Nothing
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = Sub(sender, e)
+                                                                                If FrmMain.VideoBack.Source IsNot Nothing Then
+                                                                                    Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
+                                                                                    FrmMain.VideoBack.Source = Nothing
+                                                                                    FrmMain.VideoBack.Stop()
+                                                                                    Log("[UI] 尝试将文件作为视频播放失败：" & videoAddress)
+                                                                                    If videoEx.Message.Contains("参数无效") Then
+                                                                                        Log("刷新背景图片失败，该图片文件可能并非标准格式。" & vbCrLf &
+                                                                                        "你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。" & vbCrLf &
+                                                                                        "文件：" & videoAddress, LogLevel.Msgbox)
+                                                                                    Else
+                                                                                        Log(videoEx, "刷新背景图片失败（" & videoAddress & "）", LogLevel.Msgbox)
+                                                                                    End If
+                                                                                End If
+                                                                            End Sub
+            RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
             '加载
             If Not Pic.Any() Then
                 If Refresh Then
                     If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
-                        If IsHint Then Hint("未检测到可用背景图片！", HintType.Critical)
+                        If IsHint Then Hint("未检测到可用背景图片和视频！", HintType.Critical)
                     Else
                         FrmMain.ImgBack.Visibility = Visibility.Collapsed
-                        If IsHint Then Hint("背景图片已清除！", HintType.Finish)
+                        If IsHint Then Hint("背景图片和视频已清除！", HintType.Finish)
                     End If
                 End If
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(False, 0)
@@ -363,19 +381,27 @@ Public Class PageSetupUI
                 If Refresh Then
                     Dim Address As String = RandomOne(Pic)
                     Try
+                        FrmMain.ImgBack.Background = Nothing
+                        FrmMain.VideoBack.Source = Nothing
+                        FrmMain.VideoBack.Stop()
+                        FrmMain.VideoBack.Position = TimeSpan.Zero
                         Log("[UI] 加载背景图片：" & Address)
                         FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景图片已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
-                        If ex.Message.Contains("参数无效") Then
-                            Log("刷新背景图片失败，该图片文件可能并非标准格式。" & vbCrLf &
-                                "你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。" & vbCrLf &
-                                "文件：" & Address, LogLevel.Msgbox)
-                        Else
-                            Log(ex, "刷新背景图片失败（" & Address & "）", LogLevel.Msgbox)
-                        End If
+                        videoEx = ex
+                        Try
+                            AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
+                            Log("[UI] 图片加载失败，尝试将文件作为视频播放：" & Address)
+                            FrmMain.ImgBack.Visibility = Visibility.Visible
+                            FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
+                            FrmMain.VideoBack.Play()
+                            If IsHint Then Hint("背景视频已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
+                        Catch playEx As Exception
+                            Log(playEx, "播放视频时出现未知错误：" & Address, LogLevel.Feedback)
+                        End Try
                     End Try
                 End If
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(True, Pic.Count)

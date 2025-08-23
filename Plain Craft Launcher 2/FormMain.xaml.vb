@@ -460,6 +460,8 @@ Public Class FormMain
         PanForm.Height = BorderForm.ActualHeight + 0.001
         PanMain.Width = PanForm.Width
         PanMain.Height = Math.Max(0, PanForm.Height - PanTitle.ActualHeight)
+        VideoBack.Width = PanForm.Width
+        VideoBack.Height = PanForm.Height
         If WindowState = WindowState.Maximized Then WindowState = WindowState.Normal '修复 #1938
     End Sub
 
@@ -900,6 +902,11 @@ Public Class FormMain
             Focus()
             Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}")
         End Sub)
+    End Sub
+    '背景视频循环播放
+    Private Sub VideoEnded(sender As Object, e As RoutedEventArgs)
+        VideoBack.Position = TimeSpan.Zero
+        VideoBack.Play()
     End Sub
 
 #End Region
