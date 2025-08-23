@@ -53,6 +53,7 @@
             </local:MyCard>
             <local:MyCard Margin="0,10,0,0" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
+                    <local:MyHint Text="修改此处的设置后，需要重新启动大厅以使设置生效。" Theme="Yellow" Margin="0,0,0,10"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="TextBlock"/>
