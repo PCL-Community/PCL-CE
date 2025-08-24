@@ -3,7 +3,6 @@
 Public Module ModVideoBack
     Public IsGaming As Boolean = False '判断用户是否在游戏中
     Public ForcePlay As Boolean = False '判断是否强行播放
-    Private _isFirstload As Boolean = True
     ''' <summary>
     ''' 尝试开始视频背景播放
     ''' </summary>
@@ -16,8 +15,7 @@ Public Module ModVideoBack
                 If FrmMain.VideoBack.Source IsNot Nothing Then
                     If IsGaming = False Or ForcePlay = True Then
                         Try
-                            If _isFirstload = False Then FrmSetupUI.BtnBackgroundRefresh.IsEnabled = True
-                            _isFirstload = False
+                            If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BtnBackgroundRefresh.IsEnabled = True
                             FrmMain.VideoBack.Play()
                             Log("[UI] 已开始视频背景播放")
                         Catch ex As Exception
@@ -48,13 +46,15 @@ Public Module ModVideoBack
     ''' <summary>
     ''' 尝试暂停视频背景播放
     ''' </summary>
-    ''' <param name="StartGaming">用户是否启动游戏。</param>
-    'StartGaming只在ModLaunch里（即启动游戏后）能设为True
+    ''' <param name="startGaming">用户是否启动游戏。</param>
+    'startGaming只在ModLaunch里（即启动游戏后）能设为True
     Public Sub VideoPause(startGaming As Boolean)
         RunInUi(
             Sub()
                 If startGaming = True Then IsGaming = True
-                If FrmMain.VideoBack.Source IsNot Nothing Then
+                If ForcePlay = True Then
+                    Return
+                ElseIf FrmMain.VideoBack.Source IsNot Nothing Then
                     Try
                         FrmSetupUI.BtnBackgroundRefresh.IsEnabled = False
                         FrmMain.VideoBack.Pause()

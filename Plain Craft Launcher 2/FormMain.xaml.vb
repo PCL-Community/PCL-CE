@@ -4,6 +4,7 @@ Imports System.Windows.Interop
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
+Imports PCL.Core.ProgramSetup
 
 Public Class FormMain
 
@@ -116,7 +117,7 @@ Public Class FormMain
         Setup.Load("UiBackgroundBlur")
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
-        Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
+        SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) '智能暂停视频背景
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
@@ -702,7 +703,7 @@ Public Class FormMain
                 '检查是否为同类型文件
                 Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
                 Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
-                
+
                 If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic", "schem"}.Contains(FirstExtension) Then
                     '允许同类型的 Mod 文件或投影文件批量拖拽
                 Else

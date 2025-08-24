@@ -1,6 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Threading.Tasks
+Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.Exts
 
 Public Class PageSetupUI
@@ -41,7 +42,7 @@ Public Class PageSetupUI
                 End If
             Next
         End If
-        
+
 #If DEBUG Then
         If EnableCustomTheme Then
             LabLauncherDelta.Visibility = Visibility.Visible
@@ -151,7 +152,7 @@ Public Class PageSetupUI
             SliderBackgroundBlur.Value = Setup.Get("UiBackgroundBlur")
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
-            CheckAutoPauseVideo.Checked = Setup.Get("UiAutoPauseVideo")
+            CheckAutoPauseVideo.Checked = SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo)
             BackgroundRefresh(False, False)
 
             '标题栏
@@ -267,7 +268,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
             Setup.Reset("UiHiddenVersionSchematic")
-            Setup.Reset("UiAutoPauseVideo")
+            SetupService.DeleteBool(SetupEntries.Ui.AutoPauseVideo)
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -316,12 +317,14 @@ Public Class PageSetupUI
             PanBackgroundBlur.Visibility = Visibility.Visible
             PanBackgroundSuit.Visibility = Visibility.Visible
             BtnBackgroundClear.Visibility = Visibility.Visible
+            CheckAutoPauseVideo.Visibility = Visibility.Visible
             CardBackground.Title = "背景图片/视频（" & Count & " 张）"
         Else
             PanBackgroundOpacity.Visibility = Visibility.Collapsed
             PanBackgroundBlur.Visibility = Visibility.Collapsed
             PanBackgroundSuit.Visibility = Visibility.Collapsed
             BtnBackgroundClear.Visibility = Visibility.Collapsed
+            CheckAutoPauseVideo.Visibility = Visibility.Collapsed
             CardBackground.Title = "背景图片/视频"
         End If
         CardBackground.TriggerForceResize()
