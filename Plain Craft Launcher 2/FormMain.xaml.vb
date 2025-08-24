@@ -918,9 +918,9 @@ Public Class FormMain
     Private Sub WindowStateChanged(sender As Object, e As EventArgs) Handles Me.StateChanged
         Select Case Me.WindowState
             Case WindowState.Minimized
-                VideoPause(False)
+                VideoPause(True)
             Case WindowState.Normal
-                VideoPlay(False)
+                VideoPlay()
         End Select
     End Sub
 

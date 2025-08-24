@@ -2323,7 +2323,8 @@ NextInstance:
             RunInUi(Sub() If MusicResume() Then Log("[Music] 已根据设置，在启动后开始音乐播放"))
         End If
         '暂停视频背景播放
-        VideoPause(True)
+        ModVideoBack.IsGaming = True
+        VideoPause(False)
         '启动器可见性
         McLaunchLog("启动器可见性：" & Setup.Get("LaunchArgumentVisible"))
         Select Case Setup.Get("LaunchArgumentVisible")

@@ -153,6 +153,11 @@ Public Class PageSetupUI
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
             CheckAutoPauseVideo.Checked = SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo)
+            If ModVideoBack.IsGaming = True Then
+                If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = True Then
+                    BtnBackgroundRefresh.IsEnabled = False
+                End If
+            End If
             BackgroundRefresh(False, False)
 
             '标题栏
@@ -370,6 +375,9 @@ Public Class PageSetupUI
                         End If
                     End Sub
             RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
+            AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
+            If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = False Then ModVideoBack.ForcePlay = True
             '加载
             If Pic.Count = 0 Then
                 If Refresh Then
@@ -399,7 +407,7 @@ Public Class PageSetupUI
                             Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
-                            VideoPlay(False)
+                            VideoPlay()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
                             Log(playEx,"播放背景内容时出现未知错误：")
