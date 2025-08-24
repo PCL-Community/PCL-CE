@@ -116,6 +116,7 @@ Public Class FormMain
         Setup.Load("UiBackgroundBlur")
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
+        Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮

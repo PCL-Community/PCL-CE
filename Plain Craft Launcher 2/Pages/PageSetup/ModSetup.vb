@@ -179,6 +179,20 @@ Public Class ModSetup
         End If
     End Sub
 
+    '视频背景
+    Public Sub UiAutoPauseVideo(Value As Boolean)
+        If Value = False Then
+            ModVideoBack.ForcePlay = True
+            Try
+                VideoPlay(False)
+            Catch ex As Exception
+                Log(ex, "[UI] 尝试播放视频背景失败，组件可能未初始化")
+            End Try
+        Else
+            ModVideoBack.ForcePlay = False
+            If ModVideoBack.IsGaming = True Then VideoPause(False)
+        End If
+    End Sub
     '背景图片
     Public Sub UiBackgroundOpacity(Value As Integer)
         FrmMain.ImgBack.Opacity = Value / 1000

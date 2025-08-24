@@ -1,26 +1,29 @@
 ﻿Imports PCL.Core.Logging
 
 Public Module ModVideoBack
-    Private isGaming As Boolean = False '判断用户是否在游戏中
+    Public IsGaming As Boolean = False '判断用户是否在游戏中
+    Public ForcePlay As Boolean = False '判断是否强行播放
+    Private _isFirstload As Boolean = True
     ''' <summary>
     ''' 尝试开始视频背景播放
     ''' </summary>
-    ''' <param name="EndGaming">用户是否停止游戏。</param>
-    'EndGaming只在ModWatcher里（即结束游戏后）能设为True
-    Public Sub VideoPlay(EndGaming As Boolean)
+    ''' <param name="endGaming">用户是否停止游戏。</param>
+    'endGaming只在ModWatcher里（即结束游戏后）能设为True
+    Public Sub VideoPlay(endGaming As Boolean)
         RunInUi(
             Sub()
-                If EndGaming = True Then
-                    isGaming = False
-                End If
-                If FrmMain.VideoBack.Source IsNot Nothing And isGaming = False Then
-                    Try
-                        FrmMain.VideoBack.Play()
-                        Log("[UI] 已开始视频背景播放")
-                    Catch ex As Exception
-                        Log(ex, "[UI] 开始视频背景播放失败")
-                        Throw
-                    End Try
+                If endGaming = True Then IsGaming = False
+                If FrmMain.VideoBack.Source IsNot Nothing Then
+                    If IsGaming = False Or ForcePlay = True Then
+                        Try
+                            If _isFirstload = False Then FrmSetupUI.BtnBackgroundRefresh.IsEnabled = True
+                            _isFirstload = False
+                            FrmMain.VideoBack.Play()
+                            Log("[UI] 已开始视频背景播放")
+                        Catch ex As Exception
+                            Log(ex, "[UI] 开始视频背景播放失败")
+                        End Try
+                    End If
                 End If
             End Sub
             )
@@ -47,14 +50,13 @@ Public Module ModVideoBack
     ''' </summary>
     ''' <param name="StartGaming">用户是否启动游戏。</param>
     'StartGaming只在ModLaunch里（即启动游戏后）能设为True
-    Public Sub VideoPause(StartGaming As Boolean)
+    Public Sub VideoPause(startGaming As Boolean)
         RunInUi(
             Sub()
-                If StartGaming = True Then
-                    isGaming = True
-                End If
+                If startGaming = True Then IsGaming = True
                 If FrmMain.VideoBack.Source IsNot Nothing Then
                     Try
+                        FrmSetupUI.BtnBackgroundRefresh.IsEnabled = False
                         FrmMain.VideoBack.Pause()
                         Log("[UI] 已暂停视频背景播放")
                     Catch ex As Exception
