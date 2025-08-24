@@ -75,6 +75,14 @@ Public Class FormMain
         '加载 UI
         InitializeComponent()
         Opacity = 0
+        Try
+            Height = Setup.Get("WindowHeight")
+            Width = Setup.Get("WindowWidth")
+        Catch ex As Exception '修复 #2019
+            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
+            Height = MinHeight + 100
+            Width = MinWidth + 100
+        End Try
         ''开启管理员权限下的文件拖拽，但下列代码也没用（#2531）
         'If IsAdmin() Then
         '    Log("[Start] PCL 正以管理员权限运行")
@@ -136,14 +144,6 @@ Public Class FormMain
             Application.Current.Resources("BlurValue") = CType(0, Double)
         End If
 
-        Try
-            Height = Setup.Get("WindowHeight")
-            Width = Setup.Get("WindowWidth")
-        Catch ex As Exception '修复 #2019
-            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
-            Height = MinHeight + 100
-            Width = MinWidth + 100
-        End Try
         '#If DEBUG Then
         '        MinHeight = 50
         '        MinWidth = 50
