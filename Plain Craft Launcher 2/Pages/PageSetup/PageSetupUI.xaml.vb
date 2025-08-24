@@ -375,6 +375,8 @@ Public Class PageSetupUI
                         End If
                     End Sub
             RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
+            RemoveHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            RemoveHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
             AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
             AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
             If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = False Then ModVideoBack.ForcePlay = True
