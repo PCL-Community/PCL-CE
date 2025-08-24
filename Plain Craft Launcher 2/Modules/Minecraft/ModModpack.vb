@@ -26,7 +26,7 @@ Public Module ModModpack
     ''' 必须在工作线程执行。
     ''' </summary>
     ''' <exception cref="CancelledException" />
-    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
         Log("[ModPack] 整合包安装请求：" & If(File, "null"))
         Dim Archive As ZipArchive = Nothing
         Dim ArchiveBaseFolder As String = ""
@@ -87,7 +87,7 @@ Public Module ModModpack
             Select Case PackType
                 Case 0
                     Log("[ModPack] 整合包种类：CurseForge")
-                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo)
+                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
                 Case 1
                     Log("[ModPack] 整合包种类：HMCL")
                     Return InstallPackHMCL(File, Archive, ArchiveBaseFolder)
@@ -99,7 +99,7 @@ Public Module ModModpack
                     Return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName)
                 Case 4
                     Log("[ModPack] 整合包种类：Modrinth")
-                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo)
+                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
                 Case 9
                     Log("[ModPack] 整合包种类：带启动器的压缩包")
                     Return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder)
@@ -171,7 +171,7 @@ Retry:
 
 #Region "CurseForge"
     Private Function InstallPackCurseForge(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String,
-                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -361,6 +361,19 @@ Retry:
                 Log("[ModPack] 删除安装整合包文件：" & FileAddress)
                 File.Delete(FileAddress)
             End If
+            '整合包版本
+            If Json("version") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+            End If
+            NEWSetup.Instance.ModpackSource(VersionFolder) = "CurseForge"
+            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Try
+                Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
+                If projects.Count = 0 Then Exit Try
+                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+            Catch ex As Exception
+                Log(ex, "[ModPack] 获取整合包描述文本失败")
+            End Try
         End Sub) With {.ProgressWeight = 0.1, .Show = False})
 
         '重复任务检查
@@ -381,7 +394,7 @@ Retry:
 #End Region
 
 #Region "Modrinth"
-    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -507,6 +520,19 @@ Retry:
                 Log("[ModPack] 删除安装整合包文件：" & FileAddress)
                 File.Delete(FileAddress)
             End If
+            '整合包版本
+            If Json("versionId") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
+            End If
+            NEWSetup.Instance.ModpackSource(VersionFolder) = "Modrinth"
+            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Try
+                Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
+                If projects.Count = 0 Then Exit Try
+                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+            Catch ex As Exception
+                Log(ex, "[ModPack] 获取整合包描述文本失败")
+            End Try
         End Sub) With {.ProgressWeight = 0.1, .Show = False})
 
         '重复任务检查
@@ -944,6 +970,10 @@ Retry:
                 Dim LaunchInfo As JObject = Json("launchInfo")
                 NEWSetup.Instance.JvmArgs(VersionFolder) = String.Join(" ", LaunchInfo("javaArgument"))
                 NEWSetup.Instance.GameArgs(VersionFolder) = String.Join(" ", LaunchInfo("launchArgument"))
+            End If
+            '整合包版本
+            If Json("version") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
             End If
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造加载器

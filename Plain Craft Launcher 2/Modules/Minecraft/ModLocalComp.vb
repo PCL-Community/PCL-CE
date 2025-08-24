@@ -1,4 +1,5 @@
 Imports System.IO.Compression
+Imports System.Text.RegularExpressions
 
 Imports fNbt
 
@@ -13,7 +14,7 @@ Public Module ModLocalComp
         ''' 资源的文件的地址。
         ''' </summary>
         Public ReadOnly Path As String
-        
+
         ''' <summary>
         ''' 是否为文件夹项。
         ''' </summary>
@@ -22,7 +23,7 @@ Public Module ModLocalComp
                 Return Path.EndsWithF("\__FOLDER__", True)
             End Get
         End Property
-        
+
         ''' <summary>
         ''' 获取实际的文件夹路径（去除 __FOLDER__ 标记）。
         ''' </summary>
@@ -35,11 +36,11 @@ Public Module ModLocalComp
                 End If
             End Get
         End Property
-        
+
         Public Sub New(Path As String)
             Me.Path = If(Path, "")
         End Sub
-        
+
         ''' <summary>
         ''' NBT数据是否已加载（用于延迟加载优化）。
         ''' </summary>
@@ -252,7 +253,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicTimeCreated As Long?
-        
+
         ''' <summary>
         ''' Litematic 文件的修改时间戳。
         ''' </summary>
@@ -263,7 +264,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicTimeModified As Long?
-        
+
         ''' <summary>
         ''' Schem 读取到的原始名称。
         ''' </summary>
@@ -274,7 +275,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _schemOriginalName As String
-        
+
         ''' <summary>
         ''' Litematic 读取到的原始名称。
         ''' </summary>
@@ -285,7 +286,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicOriginalName As String
-        
+
         ''' <summary>
         ''' Litematic 文件的版本。
         ''' </summary>
@@ -296,7 +297,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicVersion As Integer?
-        
+
         ''' <summary>
         ''' Litematic 文件的包围盒大小。
         ''' </summary>
@@ -307,7 +308,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicEnclosingSize As String
-        
+
         ''' <summary>
         ''' Litematic 文件的区域数量。
         ''' </summary>
@@ -318,7 +319,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicRegionCount As Integer?
-        
+
         ''' <summary>
         ''' Litematic 文件的总方块数。
         ''' </summary>
@@ -329,7 +330,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicTotalBlocks As Integer?
-        
+
         ''' <summary>
         ''' Litematic 文件的总体积。
         ''' </summary>
@@ -340,7 +341,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _litematicTotalVolume As Integer?
-        
+
         ''' <summary>
         ''' 原版结构文件的游戏版本。
         ''' </summary>
@@ -351,7 +352,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _structureGameVersion As String
-        
+
         ''' <summary>
         ''' 原版结构文件的数据版本。
         ''' </summary>
@@ -362,7 +363,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _structureDataVersion As Integer?
-        
+
         ''' <summary>
         ''' 原版结构文件的作者。
         ''' </summary>
@@ -373,7 +374,7 @@ Public Module ModLocalComp
             End Get
         End Property
         Private _structureAuthor As String
-        
+
         ''' <summary>
         ''' Sponge Schematic 文件的版本。
         ''' </summary>
@@ -500,20 +501,20 @@ Public Module ModLocalComp
                     IsLoaded = True
                     Return
                 End If
-                
-                If Not File.Exists(Path) Then 
-                    _fileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & ")")
+
+                If Not File.Exists(Path) Then
+                    _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & ")")
                     IsLoaded = True
                     Return
                 End If
-                
+
                 '对于原理图文件，只设置基本状态，不解析NBT数据
                 If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
-                    _name = GetFileNameWithoutExtentionFromPath(Path)
+                    _Name = GetFileNameWithoutExtentionFromPath(Path)
                     IsLoaded = True
                     Return
                 End If
-                
+
                 '对于其他文件类型，正常加载
                 Load()
             Catch ex As Exception
@@ -528,7 +529,7 @@ Public Module ModLocalComp
             Try
                 '如果已经加载过NBT数据，则跳过
                 If _nbtDataLoaded Then Return
-                
+
                 '根据文件类型加载NBT数据
                 If Path.EndsWithF(".litematic", True) Then
                     LoadLitematicNbtData()
@@ -539,7 +540,7 @@ Public Module ModLocalComp
                 ElseIf Path.EndsWithF(".schematic", True) Then
                     LoadSchematicNbtData()
                 End If
-                
+
                 _nbtDataLoaded = True
             Catch ex As Exception
                 Log(ex, $"延迟加载NBT数据失败：{Path}")
@@ -553,14 +554,14 @@ Public Module ModLocalComp
             If IsLoaded AndAlso Not ForceReload Then Return
             '初始化
             Init()
-            
+
             '基础可用性检查
-            If Path.Length < 2 Then 
+            If Path.Length < 2 Then
                 _FileUnavailableReason = New FileNotFoundException("错误的资源文件路径（" & If(Path, "null") & "）")
                 IsLoaded = True
                 Return
             End If
-            
+
             '对于文件夹项，检查实际文件夹路径是否存在
             If IsFolder Then
                 If Not Directory.Exists(ActualPath) Then
@@ -572,17 +573,17 @@ Public Module ModLocalComp
                 IsLoaded = True
                 Return
             End If
-            
-            If Not File.Exists(Path) Then 
+
+            If Not File.Exists(Path) Then
                 _FileUnavailableReason = New FileNotFoundException("未找到资源文件（" & Path & "）")
                 IsLoaded = True
                 Return
             End If
-            
+
             '对于投影文件，跳过 zip 解析
             If Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schem", True) OrElse Path.EndsWithF(".schematic", True) Then
                 Try
-                    _name = GetFileNameWithoutExtentionFromPath(Path)                    
+                    _Name = GetFileNameWithoutExtentionFromPath(Path)
                     ' 根据文件类型加载数据
                     If Path.EndsWithF(".litematic", True) Then
                         LoadLitematicNbtData()
@@ -603,7 +604,7 @@ Public Module ModLocalComp
                 IsLoaded = True
                 Return
             End If
-            
+
             '对于其他文件，尝试作为 Jar 文件打开
             Dim Jar As ZipArchive = Nothing
             Try
@@ -1236,12 +1237,12 @@ Finished:
         Public Function GetLogo() As String
             If Comp IsNot Nothing AndAlso Comp.LogoUrl IsNot Nothing Then Return Comp.LogoUrl
             If Logo IsNot Nothing Then Return Logo
-            
+
             ' 为文件夹设置特定图标
             If IsFolder Then
                 Return "pack://application:,,,/images/Icons/Folder.png"
             End If
-            
+
             Return PathImage & "Icons/NoIcon.png"
         End Function
 
@@ -1328,7 +1329,7 @@ Finished:
                         Log($"未找到 Litematic Metadata 节点", LogLevel.Debug)
                     End If
                 End Using
-                    Log($"Litematic NBT 数据读取完成", LogLevel.Debug)
+                Log($"Litematic NBT 数据读取完成", LogLevel.Debug)
             Catch ex As Exception
                 Log(ex, "读取 Litematic NBT 数据时出错（" & Path & "）", LogLevel.Debug)
             End Try
@@ -1344,9 +1345,9 @@ Finished:
         Private Sub LoadSchemNbtData()
             Try
                 Log($"开始读取 Schem NBT 数据：{Path}", LogLevel.Debug)
-                
+
                 ' 使用自动检测压缩格式
-                using fs As New FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read)
+                Using fs As New FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read)
                     Dim scheNbt As New NbtFile()
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect)
 
@@ -1614,7 +1615,7 @@ Finished:
                 Loader.Progress += 0.94 / ModList.Count
                 If Loader.IsAborted Then Return
                 If ModEntry.IsFolder Then Continue For
-                
+
                 '优化：对于原理图文件，只进行基础加载，不解析NBT数据
                 If Loader.Input.CompType = CompType.Schematic Then
                     ModEntry.LoadBasicInfo()
@@ -1902,6 +1903,35 @@ Finished:
         Return "Nothing"
     End Function
 
+    Private ReadOnly RegexIsJarFile As New Regex("\.jar(\.disabled)?$")
+    ''' <summary>
+    ''' 通过文件名关键字和 Mod ID 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 Mod 的 <see cref="LocalCompFile"/> 对象
+    ''' <br />
+    ''' <b>为了不浪费性能，关键字统一用小写</b> 
+    ''' </summary>
+    ''' <returns>
+    ''' 如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
+    ''' </returns>
+    Public Function GetModLocalCompByKeywords(instance As McInstance, modId As String, mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
+        If modId Is Nothing Then Return Nothing
+        Return GetModLocalCompByKeywords(instance, {modId}, mainKeyword, keywords)
+    End Function
+
+    Public Function GetModLocalCompByKeywords(instance As McInstance, modIds As String(), mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
+        If Not instance.Modable Then Return Nothing '跳过不可安装 Mod 实例
+        Dim modFolder = $"{instance.Path}mods"
+        If Not Directory.Exists(modFolder) Then Return Nothing '确保 mods 目录存在
+        For Each file In Directory.EnumerateFiles(modFolder, $"*{mainKeyword}*")
+            Dim lowerFilePath = file.ToLower() '统一转为小写
+            If Not RegexIsJarFile.IsMatch(lowerFilePath) Then Continue For '检查是否是 jar 文件
+            If keywords.Length > 0 And Not keywords.Any(Function(keyword) lowerFilePath.Contains(keyword)) Then Continue For '检查是否包含关键字
+            Dim localComp = New LocalCompFile(file)
+            localComp.Load()
+            If (modIds.Any(Function(modId) localComp.ModId = modId)) Then Return localComp
+        Next
+        Return Nothing
+    End Function
+
 #If DEBUGRESERVED Then
     ''' <summary>
     ''' 检查 Mod 列表中存在的错误，返回错误信息的集合。
@@ -2031,7 +2061,5 @@ Finished:
         Return Result
     End Function
 #End If
-
-
 
 End Module

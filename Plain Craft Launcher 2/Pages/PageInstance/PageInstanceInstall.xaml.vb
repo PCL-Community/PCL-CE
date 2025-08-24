@@ -923,43 +923,12 @@ Public Class PageInstanceInstall
     Private IsSelectNameEdited As Boolean = False
     Private IsSelectNameChanging As Boolean = False
 
-    Private Shared ReadOnly RegexIsJarFile As New Regex("\.jar(\.disabled)?$")
-
-    ''' <summary>
-    ''' 通过文件名关键字和 mod id 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 mod 的 <see cref="LocalCompFile"/> 对象
-    ''' <br />
-    ''' <b>为了不浪费性能，关键字统一用小写</b> 
-    ''' </summary>
-    ''' <returns>
-    ''' 如果文件名包含主关键字，以及其他关键字中的任意一个，同时 mod id 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
-    ''' </returns>
-    Private Shared Function GetModLocalCompByKeywords(modId As String, mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
-        If modId Is Nothing Then Return Nothing
-        Return GetModLocalCompByKeywords({modId}, mainKeyword, keywords)
-    End Function
-
-    Private Shared Function GetModLocalCompByKeywords(modIds As String(), mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
-        Dim version = PageInstanceLeft.Instance
-        If Not version.Modable Then Return Nothing '跳过不可安装 Mod 实例
-        Dim modFolder = $"{version.Path}mods"
-        If Not Directory.Exists(modFolder) Then Return Nothing '确保 mods 目录存在
-        For Each file In Directory.EnumerateFiles(modFolder, $"*{mainKeyword}*")
-            Dim lowerFilePath = file.ToLower() '统一转为小写
-            If Not RegexIsJarFile.IsMatch(lowerFilePath) Then Continue For '检查是否是 jar 文件
-            If keywords.Length > 0 And Not keywords.Any(Function(keyword) lowerFilePath.Contains(keyword)) Then Continue For '检查是否包含关键字
-            Dim localComp = New LocalCompFile(file)
-            localComp.Load()
-            If (modIds.Any(Function(modId) localComp.ModId = modId)) Then Return localComp
-        Next
-        Return Nothing
-    End Function
-
     Private _currentFabricApi As CompFile = Nothing '加载完成后直接调用以提高性能
     Private _currentFabricApiPath As String = Nothing
     Private Function GetCurrentFabricApi() '进入页面和联网加载时调用
         Dim loaderOutput = DlFabricApiLoader.Output
         If loaderOutput Is Nothing Then Return Nothing '确保联网信息已加载
-        Dim localComp = GetModLocalCompByKeywords({"fabric-api", "fabric"}, "fabric", "api")
+        Dim localComp = GetModLocalCompByKeywords(PageInstanceLeft.Instance, {"fabric-api", "fabric"}, "fabric", "api")
         If localComp Is Nothing Then Return Nothing
         Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
         If result IsNot Nothing Then
@@ -974,7 +943,7 @@ Public Class PageInstanceInstall
     Private Function GetCurrentLegacyFabricApi() '进入页面和联网加载时调用
         Dim loaderOutput = DlLegacyFabricApiLoader.Output
         If loaderOutput Is Nothing Then Return Nothing '确保联网信息已加载
-        Dim localComp = GetModLocalCompByKeywords({"legacy-fabric-api", "legacy-fabric"}, "legacy-fabric", "api")
+        Dim localComp = GetModLocalCompByKeywords(PageInstanceLeft.Instance, {"legacy-fabric-api", "legacy-fabric"}, "legacy-fabric", "api")
         If localComp Is Nothing Then Return Nothing
         Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
         If result IsNot Nothing Then
@@ -989,9 +958,9 @@ Public Class PageInstanceInstall
     Private Function GetCurrentQsl()
         Dim loaderOutput = DlQSLLoader.Output
         If loaderOutput Is Nothing Then Return Nothing
-        Dim localComp = GetModLocalCompByKeywords("quilted_fabric_api", "qsl", "qf", "fabric", "api")
+        Dim localComp = GetModLocalCompByKeywords(PageInstanceLeft.Instance, "quilted_fabric_api", "qsl", "qf", "fabric", "api")
         '兼容测试版的文件名 没错这玩意测试版命名方式甚至与正式版不一样
-        If localComp Is Nothing Then localComp = GetModLocalCompByKeywords("quilted_fabric_api", "quilted-fabric-api")
+        If localComp Is Nothing Then localComp = GetModLocalCompByKeywords(PageInstanceLeft.Instance, "quilted_fabric_api", "quilted-fabric-api")
         If localComp Is Nothing Then Return Nothing
         Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
         If result IsNot Nothing Then
@@ -1006,7 +975,7 @@ Public Class PageInstanceInstall
     Private Function GetCurrentOptiFabric()
         Dim loaderOutput = DlOptiFabricLoader.Output
         If loaderOutput Is Nothing Then Return Nothing
-        Dim localComp = GetModLocalCompByKeywords("optifabric", "optifabric", "opti")
+        Dim localComp = GetModLocalCompByKeywords(PageInstanceLeft.Instance, "optifabric", "optifabric", "opti")
         If localComp Is Nothing Then Return Nothing
         Dim result = loaderOutput.FirstOrDefault(Function(comp) comp.Hash = localComp.ModrinthHash)
         If result IsNot Nothing Then
@@ -1026,7 +995,7 @@ Public Class PageInstanceInstall
             SelectedLiteLoader = New DlLiteLoaderListEntry With {.Inherit = CurrentInstance.McName}
         End If
         If CurrentInstance.HasOptiFine Then
-            SelectedOptiFine = New DlOptiFineListEntry With {.NameDisplay = CurrentInstance.McName + " " + CurrentInstance.OptiFineVersion, .IsPreview = CurrentInstance.OptiFineVersion.ContainsF("pre"), .Inherit = CurrentInstance.McName, .NameVersion = CurrentInstance.McName & "-OptiFine_HD_U_" & CurrentInstance.OptiFineVersion}
+            SelectedOptiFine = New DlOptiFineListEntry With {.NameDisplay = CurrentInstance.McName + " " + CurrentInstance.OptiFineVersion.Replace("_", " "), .IsPreview = CurrentInstance.OptiFineVersion.ContainsF("pre"), .Inherit = CurrentInstance.McName, .NameVersion = CurrentInstance.McName & "-OptiFine_HD_U_" & CurrentInstance.OptiFineVersion}
         End If
         If CurrentInstance.HasCleanroom Then
             SelectedAPIName = "Cleanroom"

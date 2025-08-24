@@ -165,6 +165,9 @@ Public Class MyCompItem
                         TargetVersion = FrmDownloadWorld.Content.Loader.Input.GameVersion
                 End Select
             End If
+        ElseIf FrmMain.PageCurrent.Page = FormMain.PageType.InstanceSetup Then
+            '从实例设置页进入（查看整合包信息）
+            TargetType = CompType.ModPack
         Else
             '从详情页进入（查看前置）
             TargetType = CompType.Any '允许任意类别
