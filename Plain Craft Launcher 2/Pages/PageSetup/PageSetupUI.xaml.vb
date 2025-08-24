@@ -342,32 +342,33 @@ Public Class PageSetupUI
 
             '获取可用的图片文件
             Directory.CreateDirectory(Path & "PCL\Pictures\")
-            Dim Pic As New List(Of String)
-            For Each File In EnumerateFiles(Path & "PCL\Pictures\")
-                If File.Extension.ToLower <> ".ini" AndAlso File.Extension.ToLower <> ".db" Then '文件夹可能会被加入 .ini 和 thumbs.db
-                    Pic.Add(File.FullName)
-                End If
-            Next
+            Dim Pic As List(Of String) = EnumerateFiles(Path & "PCL\Pictures\").
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
+                    Select(Function(file) file.FullName).
+                    ToList() 
             '视频加载异常处理
-            Dim videoEx As Exception = Nothing
-            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = Sub(sender, e)
-                                                                                If FrmMain.VideoBack.Source IsNot Nothing Then
-                                                                                    Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
-                                                                                    FrmMain.VideoBack.Source = Nothing
-                                                                                    FrmMain.VideoBack.Stop()
-                                                                                    Log("[UI] 尝试将文件作为视频播放失败：" & videoAddress)
-                                                                                    If videoEx.Message.Contains("参数无效") Then
-                                                                                        Log("刷新背景图片失败，该图片文件可能并非标准格式。" & vbCrLf &
-                                                                                        "你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。" & vbCrLf &
-                                                                                        "文件：" & videoAddress, LogLevel.Msgbox)
-                                                                                    Else
-                                                                                        Log(videoEx, "刷新背景内容失败（" & videoAddress & "）", LogLevel.Msgbox)
-                                                                                    End If
-                                                                                End If
-                                                                            End Sub
+
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
+                    Sub(sender, e)
+                        Dim videoEx = e.ErrorException
+                        Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
+                        If FrmMain.VideoBack.Source IsNot Nothing Then
+                            FrmMain.VideoBack.Source = Nothing
+                            FrmMain.VideoBack.Stop()
+                            
+                            If videoEx.Message.Contains("0xC00D109B") Then
+                                Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
+                                    "你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。" & vbCrLf &
+                                    "文件：" & videoAddress, LogLevel.Msgbox)
+                            Else
+                                Log(videoEx, "刷新背景内容失败（" & videoAddress & "）", LogLevel.Msgbox)
+                            End If
+                        End If
+                    End Sub
             RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
             '加载
-            If Not Pic.Any() Then
+            If Pic.Count = 0 Then
                 If Refresh Then
                     If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
                         If IsHint Then Hint("未检测到可用背景内容！", HintType.Critical)
@@ -391,16 +392,16 @@ Public Class PageSetupUI
                         FrmMain.ImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
-                        videoEx = ex
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
-                            Log("[UI] 图片加载失败，尝试将文件作为视频播放：" & Address)
+                            Log(ex,"[UI] 加载背景图片失败" & Address)
+                            Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
                             FrmMain.VideoBack.Play()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
-                            Log(playEx, "播放背景内容时出现未知错误：" & Address, LogLevel.Feedback)
+                            Log(playEx,"播放背景内容时出现未知错误：")
                         End Try
                     End Try
                 End If
