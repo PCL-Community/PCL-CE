@@ -1,7 +1,8 @@
 ﻿Imports System.Net.Http
-Imports System.Text.RegularExpressions
 Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.Net
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
@@ -22,13 +23,12 @@ Public Class PageLoginAuth
         TextPass.Password = Nothing
         FrmLaunchLeft.RefreshPage(True)
     End Sub
-    Private Shared ReadOnly PatternHttpUri As New Regex("^(http[s]?)\://")
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles BtnLogin.Click
         If String.IsNullOrWhiteSpace(TextServer.Text) OrElse String.IsNullOrWhiteSpace(TextName.Text) OrElse String.IsNullOrWhiteSpace(TextPass.Password) Then
             Hint("验证服务器、用户名与密码均不能为空！", HintType.Critical)
             Exit Sub
         End If
-        If Not PatternHttpUri.IsMatch(TextServer.Text) Then
+        If Not TextServer.Text.IsMatch(RegexPatterns.HttpUri) Then
             Hint("输入的验证服务器地址无效", HintType.Critical)
             Exit Sub
         End If

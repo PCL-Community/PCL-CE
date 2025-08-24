@@ -3,6 +3,8 @@ Imports System.IO.Compression
 Imports System.Text.RegularExpressions
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Class PageOtherLog
     Private Sub PageOtherLog_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -108,12 +110,10 @@ Class PageOtherLog
     Private Sub ButtonExportAll_OnClick(sender As Object, e As MouseButtonEventArgs)
         ExportLog(Directory.GetFiles(LogDirectory))
     End Sub
-    
-    Private Shared ReadOnly PatternPendingLogPath As New Regex("LastPending[_]?[^\\]*\.log$")
 
     Private Sub ButtonExport_OnClick(sender As Object, e As MouseButtonEventArgs)
         Dim pendingLogs = Array.FindAll(
-            Directory.GetFiles(LogDirectory), Function(s) PatternPendingLogPath.IsMatch(s))
+            Directory.GetFiles(LogDirectory), Function(s) s.IsMatch(RegexPatterns.LastPendingLogPath))
         ExportLog(CurrentLogs.Concat(pendingLogs))
     End Sub
 End Class
