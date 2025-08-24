@@ -302,7 +302,7 @@ Public Class PageDownloadCompDetail
             Dim LogoFileAddress As String = MyImage.GetTempPath(CompItem.Logo)
             Loaders.Add(New LoaderDownload("下载整合包文件", New List(Of NetFile) From {File.ToNetFile(Target)}) With {.ProgressWeight = 10, .Block = True})
             Loaders.Add(New LoaderTask(Of Integer, Integer)("准备安装整合包",
-            Sub() ModpackInstall(Target, InstanceName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing))) With {.ProgressWeight = 0.1})
+            Sub() ModpackInstall(Target, InstanceName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing), File.ProjectId)) With {.ProgressWeight = 0.1})
 
             '启动
             Dim Loader As New LoaderCombo(Of String)(LoaderName, Loaders) With {.OnStateChanged =
