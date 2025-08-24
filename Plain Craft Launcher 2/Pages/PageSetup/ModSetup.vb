@@ -186,7 +186,7 @@ Public Class ModSetup
             VideoPlay()
         Else
             ModVideoBack.ForcePlay = False
-            If ModVideoBack.IsGaming = True Then VideoPause(False)
+            If ModVideoBack.IsGaming = True Then VideoPause()
         End If
     End Sub
     '背景图片

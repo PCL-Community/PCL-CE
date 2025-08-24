@@ -67,13 +67,14 @@
             End Sub
             )
     End Sub
+    Public IsMinimized As Boolean = False '窗口是否被最小化
     ''' <summary>
     ''' 尝试开始视频背景播放
     ''' </summary>
     Public Sub VideoPlay()
         RunInUi(
             Sub()
-                If FrmMain.VideoBack.Source IsNot Nothing Then
+                If FrmMain.VideoBack.Source IsNot Nothing And IsMinimized = False Then
                     If IsGaming = False Or ForcePlay = True Then
                         Try
                             FrmMain.VideoBack.Play()
@@ -106,12 +107,10 @@
     ''' <summary>
     ''' 尝试暂停视频背景播放
     ''' </summary>
-    ''' <param name="isMinimized">是否为最小化。</param>
-    'isMinimized只在窗口最小化后能设为True
-    Public Sub VideoPause(isMinimized As Boolean)
+    Public Sub VideoPause()
         RunInUi(
             Sub()
-                If isMinimized = True Then
+                If IsMinimized = True Then
                     If FrmMain.VideoBack.Source IsNot Nothing Then
                         '窗口最小化后暂停
                         Try

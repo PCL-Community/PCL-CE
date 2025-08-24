@@ -918,8 +918,10 @@ Public Class FormMain
     Private Sub WindowStateChanged(sender As Object, e As EventArgs) Handles Me.StateChanged
         Select Case Me.WindowState
             Case WindowState.Minimized
-                VideoPause(True)
+                ModVideoBack.IsMinimized = True
+                VideoPause()
             Case WindowState.Normal
+                ModVideoBack.IsMinimized = False
                 VideoPlay()
         End Select
     End Sub

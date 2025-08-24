@@ -2324,7 +2324,7 @@ NextInstance:
         End If
         '暂停视频背景播放
         ModVideoBack.IsGaming = True
-        VideoPause(False)
+        VideoPause()
         '启动器可见性
         McLaunchLog("启动器可见性：" & Setup.Get("LaunchArgumentVisible"))
         Select Case Setup.Get("LaunchArgumentVisible")
