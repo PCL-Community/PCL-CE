@@ -353,8 +353,7 @@ Public Class PageSetupUI
                         Dim videoEx = e.ErrorException
                         Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
                         If FrmMain.VideoBack.Source IsNot Nothing Then
-                            FrmMain.VideoBack.Source = Nothing
-                            FrmMain.VideoBack.Stop()
+                            VideoStop()
                             
                             If videoEx.Message.Contains("0xC00D109B") Then
                                 Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
@@ -382,10 +381,8 @@ Public Class PageSetupUI
                     Dim Address As String = RandomOne(Pic)
                     Try
                         FrmMain.ImgBack.Background = Nothing
-                        FrmMain.VideoBack.Source = Nothing
-                        FrmMain.VideoBack.Stop()
-                        FrmMain.VideoBack.Position = TimeSpan.Zero
-                        Log("[UI] 加载背景图片：" & Address)
+                        VideoStop()
+                        Log("[UI] 加载背景内容：" & Address)
                         FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
@@ -397,7 +394,7 @@ Public Class PageSetupUI
                             Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
-                            FrmMain.VideoBack.Play()
+                            VideoPlay(False)
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
                             Log(playEx,"播放背景内容时出现未知错误：")
