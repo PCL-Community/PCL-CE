@@ -885,6 +885,11 @@ Public Class FormMain
             End If
         End Set
     End Property
+    '解决龙猫的非通用实现史山
+    Protected Overrides Sub OnActivated(e As EventArgs)
+        MyBase.OnActivated(e)
+        If Hidden Then Hidden = False
+    End Sub
     ''' <summary>
     ''' 把当前窗口拖到最前面。
     ''' </summary>
