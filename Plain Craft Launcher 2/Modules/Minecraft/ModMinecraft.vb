@@ -1,6 +1,7 @@
 ﻿Imports System.IO.Compression
 Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
+Imports System.Text.Json.Nodes
 
 Public Module ModMinecraft
 
@@ -2378,26 +2379,26 @@ OnLoaded:
             '初始化
             If Not File.Exists($"{PathMcFolder}assets\indexes\{IndexName}.json") Then Throw New FileNotFoundException("未找到 Asset Index", PathMcFolder & "assets\indexes\" & IndexName & ".json")
             Dim Result As New List(Of McAssetsToken)
-            Dim Json As JObject = GetJson(ReadFile($"{PathMcFolder}assets\indexes\{IndexName}.json"))
+            Dim Json As JsonObject = JsonObject.Parse(ReadFile($"{PathMcFolder}assets\indexes\{IndexName}.json"))
 
             '读取列表
-            For Each File As JProperty In Json("objects").Children
+            For Each File As KeyValuePair(Of String,JsonNode) In Json("objects").AsObject()
                 Dim LocalPath As String
-                If Json("map_to_resources") IsNot Nothing AndAlso Json("map_to_resources").ToObject(Of Boolean) Then
+                If Json("map_to_resources") IsNot Nothing AndAlso Json("map_to_resources").GetValue(Of Boolean) Then
                     'Remap
-                    LocalPath = Instance.PathIndie & "resources\" & File.Name.Replace("/", "\")
-                ElseIf Json("virtual") IsNot Nothing AndAlso Json("virtual").ToObject(Of Boolean) Then
+                    LocalPath = Instance.PathIndie & "resources\" & File.Key.Replace("/", "\")
+                ElseIf Json("virtual") IsNot Nothing AndAlso Json("virtual").GetValue(Of Boolean) Then
                     'Virtual
-                    LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Name.Replace("/", "\")
+                    LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Key.Replace("/", "\")
                 Else
                     '正常
-                    LocalPath = PathMcFolder & "assets\objects\" & Left(File("hash").ToString, 2) & "\" & File("hash").ToString
+                    LocalPath = PathMcFolder & "assets\objects\" & Left(File.Value("hash").ToString, 2) & "\" & File.Value("hash").ToString
                 End If
                 Result.Add(New McAssetsToken With {
                     .LocalPath = LocalPath,
-                    .SourcePath = File.Name,
-                    .Hash = File("hash").ToString,
-                    .Size = File("size").ToString
+                    .SourcePath = File.Key,
+                    .Hash = File.Value("hash").ToString,
+                    .Size = File.Value("size").ToString
                 })
             Next
             Return Result
