@@ -78,9 +78,9 @@
                                 <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版" Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0" ColorType="Highlight" />
                             </StackPanel>
                         </Border>
-                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,0,0,7">
+                        <Grid Height="28" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="92" SharedSizeGroup="SubName" />
                                 <ColumnDefinition />
@@ -104,12 +104,19 @@
                         </Grid>
                         <Grid Height="28" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
+                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1" ItemsSource="{Binding CustomFontCollection}">
+                                <local:MyComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" TextAlignment="Center"
+                                                FontFamily="{Binding Font}" Tag="{Binding Tag}"/>
+                                    </DataTemplate>
+                                </local:MyComboBox.ItemTemplate>
+                            </local:MyComboBox>
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />

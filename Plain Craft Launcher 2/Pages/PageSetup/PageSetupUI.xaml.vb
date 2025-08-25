@@ -1,3 +1,5 @@
+Imports System.Collections.ObjectModel
+Imports System.ComponentModel
 Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 
@@ -70,9 +72,14 @@ Public Class PageSetupUI
         '极客蓝的处理在 ThemeCheck 中
 
     End Sub
+    Public Class CustomFontProperties
+        Public Property Name As String
+        Public Property Font As FontFamily
+        Public Property Tag As String
+    End Class
+    Public ReadOnly Property CustomFontCollection As New ObservableCollection(Of CustomFontProperties)
     Public Sub Reload()
         Try
-
             '启动器
             SliderLauncherOpacity.Value = Setup.Get("UiLauncherTransparent")
             SliderLauncherHue.Value = Setup.Get("UiLauncherHue")
@@ -87,54 +94,46 @@ Public Class PageSetupUI
             Dispatcher.BeginInvoke(
                 Async Sub()
                     ComboUiFont.IsEnabled = False
-                    Dim uiFonts = ComboUiFont.Items
-                    If uiFonts.Count = 0 Then
-                        uiFonts.Add(New MyComboBoxItem With {.Content = New TextBlock With {.Text = "加载中..."}})
+                    If CustomFontCollection.Count = 0 Then
+                        CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
                         ComboUiFont.SelectedIndex = 0
-                        Dim availableFonts As New List(Of FontFamily)
+                        Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
                         Await Task.Run(Sub()
-                                           For Each Font In Fonts.SystemFontFamilies
-                                               Try
-                                                   '忽略 Global 系列字体
-                                                   If Font.Source.StartsWith("Global ") Then Continue For
-                                                   '尝试加载字体以检测是否可用
-                                                   For Each Typeface In Font.GetTypefaces()
-                                                       Dim glyph As GlyphTypeface = Nothing
-                                                       Typeface.TryGetGlyphTypeface(glyph)
-                                                       If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                                       'ReSharper disable once UnusedVariable
-                                                       Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                                   Next
-                                                   availableFonts.Add(Font)
-                                               Catch ex As Exception
-                                                   Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                                               End Try
-                                           Next
-                                       End Sub)
-                        uiFonts.Clear()
-                        uiFonts.Add(New MyComboBoxItem With {
-                        .Content = New TextBlock With {
-                                .Text = "默认",
-                                .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                .IsHitTestVisible = False,
-                                .TextAlignment = TextAlignment.Center
-                            },
+                            For Each Font In Fonts.SystemFontFamilies
+                                Try
+                                    '忽略 Global 系列字体
+                                    If Font.Source.StartsWith("Global ") Then Continue For
+                                    '尝试加载字体以检测是否可用
+                                    For Each Typeface In Font.GetTypefaces()
+                                        Dim glyph As GlyphTypeface = Nothing
+                                        Typeface.TryGetGlyphTypeface(glyph)
+                                        If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                                        'ReSharper disable once UnusedVariable
+                                        Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                                    Next
+                                    availableFonts.Add(New KeyValuePair(Of String,FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
+                                Catch ex As Exception
+                                    Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                                End Try
+                            Next
+                            availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
+                        End Sub)
+                        CustomFontCollection.Clear()
+                        CustomFontCollection.Add(New CustomFontProperties With {
+                            .Name = "默认",
+                            .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
                             .Tag = ""
                         })
-                        For Each Font In availableFonts
-                            uiFonts.Add(New MyComboBoxItem With {
-                                .Content = New TextBlock With {
-                                    .Text = Font.FamilyNames.GetForCurrentUiCulture(),
-                                    .FontFamily = Font,
-                                    .IsHitTestVisible = False,
-                                    .TextAlignment = TextAlignment.Center
-                                },
-                                .Tag = Font.Source
+                        For Each font In availableFonts
+                            CustomFontCollection.Add(New CustomFontProperties With {
+                                .Name = font.Key,
+                                .Font = font.Value,
+                                .Tag = font.Value.Source
                             })
                         Next
                     End If
                     Dim targetFont As String = Setup.Get("UiFont")
-                    Dim targetSelection = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function(x) x.Tag = targetFont)
+                    Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
                     If targetSelection Is Nothing Then
                         ComboUiFont.SelectedIndex = 0
                     Else
