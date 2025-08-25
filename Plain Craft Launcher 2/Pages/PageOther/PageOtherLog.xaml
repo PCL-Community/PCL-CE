@@ -18,7 +18,7 @@
                 </WrapPanel>
             </local:MyCard>
             <local:MyCard Title="所有日志" Margin="25,10,25,25" x:Name="PanContent">
-                <StackPanel Name="PanList" Orientation="Vertical" Margin="20,36,18,22">
+                <StackPanel Name="PanList" Orientation="Vertical" Margin="20,36,18,18">
 
                 </StackPanel>
             </local:MyCard>

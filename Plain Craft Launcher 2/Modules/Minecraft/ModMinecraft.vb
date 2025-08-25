@@ -514,8 +514,7 @@ VersionSearchFinish:
                             For Each Subjson As JObject In _JsonObject("patches")
                                 SubjsonList.Add(Subjson)
                             Next
-                            SubjsonList = SubjsonList.Sort(
-                                Function(Left, Right) Val(If(Left("priority"), "0").ToString) < Val(If(Right("priority"), "0").ToString))
+                            SubjsonList.Sort(Function(left, right) Val(If(left("priority"), "0").ToString) < Val(If(right("priority"), "0").ToString))
                             For Each Subjson As JObject In SubjsonList
                                 Dim Id As String = Subjson("id")
                                 If Id IsNot Nothing Then
@@ -1573,7 +1572,7 @@ OnLoaded:
 
         '不常用实例：按发布时间新旧排序，如果不可用则按名称排序
         If ResultInstanceList.ContainsKey(McInstanceCardType.Rubbish) Then
-            ResultInstanceList(McInstanceCardType.Rubbish) = ResultInstanceList(McInstanceCardType.Rubbish).Sort(
+            ResultInstanceList(McInstanceCardType.Rubbish).Sort(
             Function(Left As McInstance, Right As McInstance)
                 Dim LeftYear As Integer = Left.ReleaseTime.Year '+ If(Left.State = McInstanceState.Original OrElse Left.Version.HasOptiFine, 100, 0)
                 Dim RightYear As Integer = Right.ReleaseTime.Year '+ If(Right.State = McInstanceState.Original OrElse Left.Version.HasOptiFine, 100, 0)
@@ -1595,7 +1594,7 @@ OnLoaded:
 
         'API 实例：优先按版本排序，此后【先放 Fabric / Quilt / Legacy Fabric，再放 Neo/Forge（按版本号从高到低排序），然后放 Cleanroom / LabyMod，最后放 LiteLoader（按名称排序）】
         If ResultInstanceList.ContainsKey(McInstanceCardType.API) Then
-            ResultInstanceList(McInstanceCardType.API) = ResultInstanceList(McInstanceCardType.API).Sort(
+            ResultInstanceList(McInstanceCardType.API).Sort(
             Function(Left As McInstance, Right As McInstance)
                 Dim Basic = VersionSortInteger(Left.Version.McName, Right.Version.McName)
                 If Basic <> 0 Then
@@ -1924,7 +1923,7 @@ OnLoaded:
         Next
         Return Required
     End Function
-    Private OSVersion As String = My.Computer.Info.OSVersion
+    Private OSVersion As String = Environment.OSVersion.Version.ToString()
 
     ''' <summary>
     ''' 递归获取 Minecraft 某一实例的完整支持库列表。
@@ -2392,13 +2391,13 @@ OnLoaded:
                     LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Name.Replace("/", "\")
                 Else
                     '正常
-                    LocalPath = PathMcFolder & "assets\objects\" & Left(File.Value("hash").ToString, 2) & "\" & File.Value("hash").ToString
+                    LocalPath = PathMcFolder & "assets\objects\" & Left(File("hash").ToString, 2) & "\" & File("hash").ToString
                 End If
                 Result.Add(New McAssetsToken With {
                     .LocalPath = LocalPath,
                     .SourcePath = File.Name,
-                    .Hash = File.Value("hash").ToString,
-                    .Size = File.Value("size").ToString
+                    .Hash = File("hash").ToString,
+                    .Size = File("size").ToString
                 })
             Next
             Return Result

@@ -1,5 +1,6 @@
 Imports System.Windows.Interop
 Imports System.Windows.Threading
+Imports Microsoft.Win32
 
 Public Module ModMain
 
@@ -908,7 +909,8 @@ NextFile:
 
         Dim IsCurrentHighPerformance As Boolean = False
         '查看现有设置
-        Using ReadOnlyKey = My.Computer.Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, False)
+        '就知道 My.Computer，改个注册表 Microsoft.Win32.Registry 几年前的 API 了不用，还在这 My.Computer 都 5202 年了 My 你大爷
+        Using ReadOnlyKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, False)
             If ReadOnlyKey IsNot Nothing Then
                 Dim CurrentValue = ReadOnlyKey.GetValue(Executeable)
                 If GPU_PERFERENCE_REG_VALUE_HIGH = CurrentValue?.ToString() Then
@@ -917,13 +919,13 @@ NextFile:
             Else
                 '创建父级键
                 Log($"[System] 需要创建显卡设置的父级键")
-                My.Computer.Registry.CurrentUser.CreateSubKey(GPU_PERFERENCE_REG_KEY)
+                Registry.CurrentUser.CreateSubKey(GPU_PERFERENCE_REG_KEY)
             End If
         End Using
         Log($"[System] 当前程序 ({Executeable}) 的显卡设置为高性能: {IsCurrentHighPerformance}")
         If IsCurrentHighPerformance Xor WantHighPerformance Then
             '写入新设置
-            Using WriteKey = My.Computer.Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, True)
+            Using WriteKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, True)
                 WriteKey.SetValue(Executeable, If(WantHighPerformance, GPU_PERFERENCE_REG_VALUE_HIGH, GPU_PERFERENCE_REG_VALUE_DEFAULT))
                 Log($"[System] 已调整程序 ({Executeable}) 显卡设置: {WantHighPerformance}")
             End Using
@@ -1050,10 +1052,10 @@ NextFile:
         RunInNewThread(
         Sub()
             Try
-                Dim LastTime = My.Computer.Clock.TickCount
+                Dim LastTime = Environment.TickCount
                 Do While True
-                    If LastTime <> My.Computer.Clock.TickCount Then
-                        LastTime = My.Computer.Clock.TickCount
+                    If LastTime <> Environment.TickCount Then
+                        LastTime = Environment.TickCount
                         RunInUiWait(AddressOf TimerFool)
                     End If
                     Thread.Sleep(1)

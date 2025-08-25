@@ -118,7 +118,7 @@
 #End Region
 
     '强制刷新
-    Public Sub Refresh(sender As Object, e As EventArgs) '由边栏按钮匿名调用
+    Public Sub RefreshButton_Click(sender As Object, e As EventArgs) '由边栏按钮匿名调用
         Refresh(Val(sender.Tag))
     End Sub
     Public Sub Refresh() Implements IRefreshable.Refresh

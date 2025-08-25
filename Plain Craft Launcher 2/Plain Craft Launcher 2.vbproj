@@ -26,8 +26,8 @@
     <Description>Minecraft 启动器 (作者: 龙腾猫跃; 经社区二次开发版本)</Description>
     <Product>Plain Craft Launcher Community Edition</Product>
     <Copyright>Copyright © 龙腾猫跃 2016. All Rights Reserved.</Copyright>
-    <AssemblyVersion>2.12.2.0</AssemblyVersion>
-    <FileVersion>2.12.2.0</FileVersion>
+    <AssemblyVersion>2.13.0.0</AssemblyVersion>
+    <FileVersion>2.13.0.0</FileVersion>
     <NoWarn>41999;42016;42017;42018;42019;42020;42021;42022;42032;42036;42314</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -92,22 +92,6 @@
     <Import Include="System.Windows.Shapes" />
     <Import Include="System.Windows.Media" />
     <Import Include="System.Windows.Media.Imaging" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="My Project\MyExtensions\MyWpfExtension.vb">
-      <VBMyExtensionTemplateID>Microsoft.VisualBasic.WPF.MyExtension</VBMyExtensionTemplateID>
-      <VBMyExtensionTemplateVersion>1.0.0.0</VBMyExtensionTemplateVersion>
-    </Compile>
-    <Compile Update="My Project\Resources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="My Project\Settings.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
   <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
   <PropertyGroup>

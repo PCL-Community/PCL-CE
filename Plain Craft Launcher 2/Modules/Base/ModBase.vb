@@ -1,6 +1,7 @@
 Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
@@ -16,12 +17,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.12.3" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.12.3." & VersionBranchCode
+    Public Const VersionBaseName As String = "2.13.0-beta.1" '不含分支前缀的显示用版本名
+    Public Const VersionStandardCode As String = "2.13.0." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 402 '内部版本号
+    Public Const VersionCode As Integer = 403 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -649,8 +650,8 @@ Public Module ModBase
     ''' </summary>
     Public Function ReadReg(Key As String, Optional DefaultValue As String = "", Optional Path As String = "") As String
         Try
-            Dim parentKey As Microsoft.Win32.RegistryKey, softKey As Microsoft.Win32.RegistryKey
-            parentKey = My.Computer.Registry.CurrentUser
+            Dim parentKey As RegistryKey, softKey As RegistryKey
+            parentKey = Registry.CurrentUser
             softKey = parentKey.OpenSubKey("Software\" & If(Path = "", RegFolder, Path), True)
             If softKey Is Nothing Then
                 ReadReg = DefaultValue '不存在则返回默认值
@@ -670,8 +671,8 @@ Public Module ModBase
     ''' </summary>
     Public Sub WriteReg(Key As String, Value As String, Optional ShowException As Boolean = False, Optional Path As String = "", Optional ThrowException As Boolean = False)
         Try
-            Dim parentKey As Microsoft.Win32.RegistryKey, softKey As Microsoft.Win32.RegistryKey
-            parentKey = My.Computer.Registry.CurrentUser
+            Dim parentKey As RegistryKey, softKey As RegistryKey
+            parentKey = Registry.CurrentUser
             softKey = parentKey.OpenSubKey("Software\" & If(Path = "", RegFolder, Path), True)
             If softKey Is Nothing Then softKey = parentKey.CreateSubKey("Software\" & If(Path = "", RegFolder, Path)) '如果不存在就创建  
             softKey.SetValue(Key, Value)
@@ -691,7 +692,7 @@ Public Module ModBase
     ''' </summary>
     Public Sub DeleteReg(Key As String, Optional ThrowException As Boolean = False)
         Try
-            Dim SubKey As Microsoft.Win32.RegistryKey = My.Computer.Registry.CurrentUser.OpenSubKey("Software\" & RegFolder, True)
+            Dim SubKey As Microsoft.Win32.RegistryKey = Registry.CurrentUser.OpenSubKey("Software\" & RegFolder, True)
             SubKey?.DeleteValue(Key)
         Catch ex As Exception
             Log(ex, "删除注册表出错：" & Key, If(ThrowException, LogLevel.Hint, LogLevel.Developer))
@@ -1048,7 +1049,11 @@ Public Module ModBase
             fileDialog.FileName = FileName
             If FileFilter IsNot Nothing Then fileDialog.Filter = FileFilter
             If Not String.IsNullOrEmpty(InitialDirectory) AndAlso Directory.Exists(InitialDirectory) Then fileDialog.InitialDirectory = InitialDirectory
-            fileDialog.ShowDialog()
+            Dim result = fileDialog.ShowDialog()
+            If result <> Forms.DialogResult.OK Then
+                Log("[UI] 选择文件被取消")
+                Return ""
+            End If
             SelectSaveFile = If(fileDialog.FileName.Contains(":\"), fileDialog.FileName, "")
             Log("[UI] 选择文件返回：" & SelectSaveFile)
         End Using
@@ -2345,7 +2350,7 @@ NextElement:
     ''' 获取系统运行时间（毫秒），保证为正 Long 且大于 1，但可能突变减小。
     ''' </summary>
     Public Function GetTimeTick() As Long
-        Return My.Computer.Clock.TickCount + 2147483651L
+        Return Environment.TickCount + 2147483651L
     End Function
     ''' <summary>
     ''' 将时间间隔转换为类似“5 分 10 秒前”的易于阅读的形式。
@@ -2832,14 +2837,9 @@ NextElement:
     End Function
 
     ''' <summary>
-    ''' 以 Byte() 形式获取程序中的资源。
+    ''' 获取程序打包资源的输入流。该资源必须声明为 <c>Resource</c> 类型，否则将会报错，<c>Images</c>
+    ''' 和 <c>Resources</c> 目录已默认声明该类型。
     ''' </summary>
-    Public Function GetResources(ResourceName As String) As Byte()
-        Log("[System] 获取资源：" & ResourceName)
-        Dim Raw As Byte() = My.Resources.ResourceManager.GetObject(ResourceName)
-        Return Raw
-    End Function
-
     Public Function GetResourceStream(path As String) As Stream
         Dim resourceInfo = Application.GetResourceStream(New Uri($"pack://application:,,,/{path}", UriKind.Absolute))
         Return resourceInfo?.Stream
@@ -3286,9 +3286,10 @@ NextElement:
     ''' </summary>
     Public Sub FeedbackInfo()
         On Error Resume Next
+        Dim phyRam = KernelInterop.GetPhysicalMemoryBytes()
         Log("[System] 诊断信息：" & vbCrLf &
-            "操作系统：" & My.Computer.Info.OSFullName & "（32 位：" & Is32BitSystem & "）" & vbCrLf &
-            "剩余内存：" & Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M / " & Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M" & vbCrLf &
+            "操作系统：" & RuntimeInformation.OSDescription & "（32 位：" & Is32BitSystem & "）" & vbCrLf &
+            "剩余内存：" & Int(phyRam.Available / 1024 / 1024) & " M / " & Int(phyRam.Total / 1024 / 1024) & " M" & vbCrLf &
             "DPI：" & DPI & "（" & Math.Round(DPI / 96, 2) * 100 & "%）" & vbCrLf &
             "MC 文件夹：" & If(PathMcFolder, "Nothing") & vbCrLf &
             "文件位置：" & Path)

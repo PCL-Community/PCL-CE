@@ -34,8 +34,8 @@ body:
   attributes:
     label: 原因
     description: "详细描述你为什么需要这项优化，这有助于开发者评估它的优先度。"
-    value: |
-      （示例）
+    placeholder: |
+      示例：
       这项优化让我可以更方便地xxxx。
       如果没有这项优化，我每次都必须xxxx，让操作变得很麻烦。
   validations:

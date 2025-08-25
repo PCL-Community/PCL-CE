@@ -2,6 +2,7 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
+Imports System.Runtime.InteropServices
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -19,17 +20,17 @@ Friend Module ModSecret
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
 #End If
     '用于微软登录的 ClientId
-    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
     'CurseForge API Key
-    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
     '遥测鉴权密钥
-    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).EmptyIfNull()
+    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
     'Natayark ID Client Id
-    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).EmptyIfNull()
+    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
     'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
-    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).EmptyIfNull()
+    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).ReplaceNullOrEmpty()
     '联机服务根地址
-    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).EmptyIfNull().Split(";")
+    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).ReplaceNullOrEmpty().Split(";")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -42,10 +43,11 @@ Friend Module ModSecret
             Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
         End Try
         '检测当前文件夹权限
+        Dim dataPath = FileService.DataPath
         Try
-            Directory.CreateDirectory(Path & "PCL")
+            Directory.CreateDirectory(dataPath)
         Catch ex As Exception
-            MsgBox($"PCL 无法创建 PCL 文件夹（{Path & "PCL"}），请尝试：" & vbCrLf &
+            MsgBox($"PCL 无法创建 PCL 文件夹（{dataPath}），请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
                   "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
@@ -130,7 +132,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Case 2
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
         End Select
-        McLaunchLog("当前剩余内存：" & Math.Round(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 / 1024 * 10) / 10 & "G")
+        McLaunchLog("当前剩余内存：" & Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024) & "m")
         If Not DataList.Any(Function(d) d.Contains("-Dlog4j2.formatMsgNoLookups=true")) Then DataList.Add("-Dlog4j2.formatMsgNoLookups=true")
@@ -983,11 +985,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' <summary>
     ''' 已安装物理内存大小，单位 MB
     ''' </summary>
-    Friend SystemMemorySize As Long = My.Computer.Info.TotalPhysicalMemory / 1024 / 1024
+    Friend SystemMemorySize As Long = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024
     ''' <summary>
     ''' 系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
     ''' </summary>
-    Public OSInfo As String = My.Computer.Info.OSFullName & " " & My.Computer.Info.OSVersion
+    Public OSInfo As String = RuntimeInformation.OSDescription & " " & Environment.OSVersion.Version.ToString()
     Class GPUInfo
         Friend Name As String
         ''' <summary>

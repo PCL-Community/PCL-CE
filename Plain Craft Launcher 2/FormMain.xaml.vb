@@ -3,6 +3,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.Link.Lobby
 
 Public Class FormMain
 
@@ -150,8 +151,8 @@ Public Class FormMain
         Topmost = False
         If FrmStart IsNot Nothing Then FrmStart.Close(New TimeSpan(0, 0, 0, 0, 400 / AniSpeed))
         '更改窗口
-        Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
-        Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
+        'Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
+        'Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
         IsSizeSaveable = True
         ShowWindowToTop()
         Dim HwndSource As Interop.HwndSource = PresentationSource.FromVisual(Me)
@@ -375,9 +376,8 @@ Public Class FormMain
                 Return
             End If
         End If
-        '关闭 EasyTier 联机
-        ModLink.ExitEasyTier()
-        StopMcPortForward()
+        '关闭联机大厅
+        LobbyController.Close()
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -415,9 +415,8 @@ Public Class FormMain
     Private Shared IsLogShown As Boolean = False
     Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
         On Error Resume Next
-        '关闭 EasyTier 联机
-        ModLink.ExitEasyTier()
-        StopMcPortForward()
+        '关闭联机大厅
+        LobbyController.Close()
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
@@ -460,6 +459,8 @@ Public Class FormMain
         PanForm.Height = BorderForm.ActualHeight + 0.001
         PanMain.Width = PanForm.Width
         PanMain.Height = Math.Max(0, PanForm.Height - PanTitle.ActualHeight)
+        VideoBack.Width = PanForm.Width
+        VideoBack.Height = PanForm.Height
         If WindowState = WindowState.Maximized Then WindowState = WindowState.Normal '修复 #1938
     End Sub
 
@@ -643,6 +644,7 @@ Public Class FormMain
                             Return
                         End If
                         If MyMsgBox($"是否要创建新的第三方验证档案？{vbCrLf}验证服务器地址：{AuthlibServer}", "创建新的第三方验证档案", "确定", "取消") = 2 Then Exit Sub
+                        SelectedProfile = Nothing
                         RunInUi(Sub()
                                     PageLoginAuth.DraggedAuthServer = AuthlibServer
                                     FrmLaunchLeft.RefreshPage(True, McLoginType.Auth)
@@ -900,6 +902,11 @@ Public Class FormMain
             Focus()
             Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}")
         End Sub)
+    End Sub
+    '背景视频循环播放
+    Private Sub VideoEnded(sender As Object, e As RoutedEventArgs)
+        VideoBack.Position = TimeSpan.Zero
+        VideoBack.Play()
     End Sub
 
 #End Region

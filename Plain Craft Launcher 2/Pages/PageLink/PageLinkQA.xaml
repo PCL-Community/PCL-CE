@@ -6,24 +6,35 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
-            <local:MyCard Title="加入大厅超时怎么办" Margin="0,0,0,15">
+            <local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="加入大厅超时的时候请先检查设置中的 EasyTier 设置。在节点设置中双方有至少一个相同的节点以确保能够被相互发现。"/>
+                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置。在节点设置中双方应当有至少一个相同的节点以确保能够被相互发现。"/>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Title="启动 EasyTier 失败怎么办" Margin="0,0,0,15">
+            <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，网络是否可以正常连接到数据服务器。"/>
+                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，网络是否可以正常连接到数据服务器。有问题可以加入用户群，或是前往 GitHub 反馈。"/>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Title="联机可以用服务端么" Margin="0,0,0,15">
+            <local:MyCard Title="联机可以用服务端么？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="可以的，Minecraft 服务端也可以用于联机。"/>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Title="联机是否需要实名认证" Margin="0,0,0,15">
+            <local:MyCard Title="是否需要实名认证？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="目前无此要求，登录 Natayark 账号即可联机，如有变动，请以公告提示为准。"/>
+                    <TextBlock TextWrapping="Wrap" Text="目前无此要求，在联机设置中填入用户名或登录 Natayark 账号即可联机，如有变动，请以公告提示与实际情况为准。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="跨启动器联机行不行？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="简单来说：会，但是在使用大厅的过程中影响不大。如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
+                    <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
                 </StackPanel>
             </local:MyCard>
         </StackPanel>
