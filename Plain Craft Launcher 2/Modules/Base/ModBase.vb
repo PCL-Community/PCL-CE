@@ -1049,7 +1049,11 @@ Public Module ModBase
             fileDialog.FileName = FileName
             If FileFilter IsNot Nothing Then fileDialog.Filter = FileFilter
             If Not String.IsNullOrEmpty(InitialDirectory) AndAlso Directory.Exists(InitialDirectory) Then fileDialog.InitialDirectory = InitialDirectory
-            fileDialog.ShowDialog()
+            Dim result = fileDialog.ShowDialog()
+            If result <> Forms.DialogResult.OK Then
+                Log("[UI] 选择文件被取消")
+                Return ""
+            End If
             SelectSaveFile = If(fileDialog.FileName.Contains(":\"), fileDialog.FileName, "")
             Log("[UI] 选择文件返回：" & SelectSaveFile)
         End Using
