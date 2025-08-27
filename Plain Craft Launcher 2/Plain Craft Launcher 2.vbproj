@@ -41,7 +41,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'DebugCI' ">
     <OutputPath>bin\DebugCI\</OutputPath>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <DefineTrace>true</DefineTrace>
     <DefineConstants>DEBUGCI</DefineConstants>
