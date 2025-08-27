@@ -105,6 +105,59 @@
             <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
                 <local:MinecraftServerQuery Margin="15,40,15,15"/>
             </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器" CanSwap="True" IsSwapped="True">
+                <StackPanel Margin="25,30,25,15">
+                    <Grid Margin="0,4,0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="物品名（ID）" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10" >
+                            <local:MyTextBox.ValidateRules>
+                                <local:ValidateRegex Regex="^[a-z0-9_]+$" ErrorDescription="请输入正确的物品 ID！"/>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        
+                        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="成就名" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementTitleTextBox" MaxLength="50">
+                            <local:MyTextBox.ValidateRules>
+                                <local:ValidateNullOrEmpty/>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        
+                        <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="第一行" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
+                            <local:MyTextBox.ValidateRules>
+                                <local:ValidateNullOrEmpty/>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        
+                        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" Text="第二行（可选）" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" x:Name="AchievementString2TextBox" MaxLength="50" />
+                    </Grid>
+                    <Grid Margin="0,15,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="35"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <local:MyButton x:Name="BtnAchievementPreview" Grid.Column="0" Width="140" Text="预览成就图像" ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right" Click="BtnAchievementPreview_Click"/>
+                        <local:MyButton x:Name="BtnAchievementSave" Grid.Column="1" Width="140" Text="保存图片" Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnAchievementSave_Click"/>
+                    </Grid>
+                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed"/>
+                </StackPanel>
+            </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

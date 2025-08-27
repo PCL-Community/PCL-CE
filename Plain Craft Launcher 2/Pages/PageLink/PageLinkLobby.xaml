@@ -97,8 +97,8 @@
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
                         <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion" Text="当前联机双方所使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再次发起联机" Theme="Yellow" Visibility="Collapsed"/>
                     </StackPanel>
-                    <!--网络信息栏-->
-                    <local:MyCard x:Name="PanNetInfo" Title="网络信息" Margin="10" Grid.Row="2">
+                    <!--大厅信息栏-->
+                    <local:MyCard x:Name="PanNetInfo" Title="大厅信息" Margin="10" Grid.Row="2">
                         <StackPanel Orientation="Vertical" Margin="10,35,10,10">
                             <StackPanel x:Name="BtnFinishQuality" Margin="5" Orientation="Horizontal" Background="{StaticResource ColorBrushSemiTransparent}"
                                         ToolTip="连接状况" ToolTipService.Placement="MousePoint"  ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
@@ -160,9 +160,6 @@
                     <local:MyCard x:Name="CardPlayerList" Title="大厅成员列表（正在获取信息）" Margin="10" MinWidth="300" Grid.Row="1" Grid.RowSpan="4" Grid.Column="1">
                         <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8"/>
                     </local:MyCard>
-                </Grid>
-                <Grid x:Name="PanAlways" Margin="0,0,0,20" Opacity="0.5" Grid.Row="2">
-                    <TextBlock VerticalAlignment="Bottom" Text="联机技术由 EasyTier 提供 | 账号验证服务由 Natayark Network 提供" TextAlignment="Center"/>
                 </Grid>
             </Grid>
         </local:MyScrollViewer>

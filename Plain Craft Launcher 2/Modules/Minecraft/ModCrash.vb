@@ -1,5 +1,7 @@
 ﻿Imports System.Text.RegularExpressions
 Imports PCL.Core.Logging
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class CrashAnalyzer
 
@@ -964,8 +966,6 @@ NextStack:
         End Select
     End Sub
     
-    Private Shared ReadOnly PatternIncompatibleModLoader As New Regex("(incompatible[\s\S]+'Fabric Loader' \(fabricloader\)|Mod ID: '(?:neo)?forge', Requested by '([^']+)')")
-    
     ''' <summary>
     ''' 获取崩溃分析的结果描述。
     ''' </summary>
@@ -1011,7 +1011,7 @@ NextStack:
                 Case CrashReason.Mod缺少前置或MC版本错误
                     If Additional.Any Then
                         Dim info = Additional.Join("\n - ")
-                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                        If info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint) Then
                             Results.Add(LoaderIncompatibleResultText & info)
                         Else
                             Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
@@ -1118,7 +1118,7 @@ NextStack:
                 Case CrashReason.Mod互不兼容
                     If Additional.Count = 1 Then
                         Dim info = Additional.First
-                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                        If info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint) Then
                             Results.Add(LoaderIncompatibleResultText & info)
                         Else
                             Results.Add("你所安装的 Mod 不兼容：\n" & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")

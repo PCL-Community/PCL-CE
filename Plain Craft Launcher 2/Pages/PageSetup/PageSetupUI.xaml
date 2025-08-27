@@ -78,9 +78,9 @@
                                 <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版" Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0" ColorType="Highlight" />
                             </StackPanel>
                         </Border>
-                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,0,0,7">
+                        <Grid Height="28" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="92" SharedSizeGroup="SubName" />
                                 <ColumnDefinition />
@@ -104,12 +104,19 @@
                         </Grid>
                         <Grid Height="28" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
+                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1" ItemsSource="{Binding CustomFontCollection}">
+                                <local:MyComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" TextAlignment="Center"
+                                                FontFamily="{Binding Font}" Tag="{Binding Tag}"/>
+                                    </DataTemplate>
+                                </local:MyComboBox.ItemTemplate>
+                            </local:MyComboBox>
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
@@ -128,14 +135,14 @@
                     </StackPanel>
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景图片">
+            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景图片/视频">
                 <StackPanel Margin="25,40,25,20">
                     <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="自适应方式" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="图片自适应方式" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1">
                             <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当图片较小时选择平铺，较大时选择适应" />
                             <local:MyComboBoxItem Content="居中" />
@@ -171,9 +178,9 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="打开文件夹" Padding="13,0" Margin="0,0,20,0" ToolTip="将背景图片放到该文件夹，PCL 将会在每次打开时随机加载其中的一张图片"/>
-                        <local:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="刷新背景图片" Padding="13,0" Margin="0,0,20,0" ToolTip="随机加载文件夹内的一张背景图片" Grid.Column="1"/>
-                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="清空背景图片" Visibility="Collapsed" Padding="13,0" Margin="0,0,20,0" ColorType="Red" Grid.Column="2"/>
+                        <local:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="打开文件夹" Padding="13,0" Margin="0,0,20,0" ToolTip="将背景图片和视频放到该文件夹，PCL 将会在每次打开时随机加载其中的一张图片或视频&#xa;为提高播放时的流畅度，视频推荐使用H264格式编码"/>
+                        <local:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="刷新背景内容" Padding="13,0" Margin="0,0,20,0" ToolTip="随机加载文件夹内的一张背景图片或视频&#xa;为提高播放时的流畅度，视频推荐使用H264格式编码" Grid.Column="1"/>
+                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="清空背景内容" Visibility="Collapsed" Padding="13,0" Margin="0,0,20,0" ColorType="Red" Grid.Column="2"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

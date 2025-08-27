@@ -1,3 +1,5 @@
+Imports System.Collections.ObjectModel
+Imports System.ComponentModel
 Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 
@@ -70,9 +72,14 @@ Public Class PageSetupUI
         '极客蓝的处理在 ThemeCheck 中
 
     End Sub
+    Public Class CustomFontProperties
+        Public Property Name As String
+        Public Property Font As FontFamily
+        Public Property Tag As String
+    End Class
+    Public ReadOnly Property CustomFontCollection As New ObservableCollection(Of CustomFontProperties)
     Public Sub Reload()
         Try
-
             '启动器
             SliderLauncherOpacity.Value = Setup.Get("UiLauncherTransparent")
             SliderLauncherHue.Value = Setup.Get("UiLauncherHue")
@@ -87,54 +94,46 @@ Public Class PageSetupUI
             Dispatcher.BeginInvoke(
                 Async Sub()
                     ComboUiFont.IsEnabled = False
-                    Dim uiFonts = ComboUiFont.Items
-                    If uiFonts.Count = 0 Then
-                        uiFonts.Add(New MyComboBoxItem With {.Content = New TextBlock With {.Text = "加载中..."}})
+                    If CustomFontCollection.Count = 0 Then
+                        CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
                         ComboUiFont.SelectedIndex = 0
-                        Dim availableFonts As New List(Of FontFamily)
+                        Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
                         Await Task.Run(Sub()
-                                           For Each Font In Fonts.SystemFontFamilies
-                                               Try
-                                                   '忽略 Global 系列字体
-                                                   If Font.Source.StartsWith("Global ") Then Continue For
-                                                   '尝试加载字体以检测是否可用
-                                                   For Each Typeface In Font.GetTypefaces()
-                                                       Dim glyph As GlyphTypeface = Nothing
-                                                       Typeface.TryGetGlyphTypeface(glyph)
-                                                       If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                                       'ReSharper disable once UnusedVariable
-                                                       Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                                   Next
-                                                   availableFonts.Add(Font)
-                                               Catch ex As Exception
-                                                   Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                                               End Try
-                                           Next
-                                       End Sub)
-                        uiFonts.Clear()
-                        uiFonts.Add(New MyComboBoxItem With {
-                        .Content = New TextBlock With {
-                                .Text = "默认",
-                                .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                .IsHitTestVisible = False,
-                                .TextAlignment = TextAlignment.Center
-                            },
+                            For Each Font In Fonts.SystemFontFamilies
+                                Try
+                                    '忽略 Global 系列字体
+                                    If Font.Source.StartsWith("Global ") Then Continue For
+                                    '尝试加载字体以检测是否可用
+                                    For Each Typeface In Font.GetTypefaces()
+                                        Dim glyph As GlyphTypeface = Nothing
+                                        Typeface.TryGetGlyphTypeface(glyph)
+                                        If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                                        'ReSharper disable once UnusedVariable
+                                        Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                                    Next
+                                    availableFonts.Add(New KeyValuePair(Of String,FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
+                                Catch ex As Exception
+                                    Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                                End Try
+                            Next
+                            availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
+                        End Sub)
+                        CustomFontCollection.Clear()
+                        CustomFontCollection.Add(New CustomFontProperties With {
+                            .Name = "默认",
+                            .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
                             .Tag = ""
                         })
-                        For Each Font In availableFonts
-                            uiFonts.Add(New MyComboBoxItem With {
-                                .Content = New TextBlock With {
-                                    .Text = Font.FamilyNames.GetForCurrentUiCulture(),
-                                    .FontFamily = Font,
-                                    .IsHitTestVisible = False,
-                                    .TextAlignment = TextAlignment.Center
-                                },
-                                .Tag = Font.Source
+                        For Each font In availableFonts
+                            CustomFontCollection.Add(New CustomFontProperties With {
+                                .Name = font.Key,
+                                .Font = font.Value,
+                                .Tag = font.Value.Source
                             })
                         Next
                     End If
                     Dim targetFont As String = Setup.Get("UiFont")
-                    Dim targetSelection = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function(x) x.Tag = targetFont)
+                    Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
                     If targetSelection Is Nothing Then
                         ComboUiFont.SelectedIndex = 0
                     Else
@@ -315,21 +314,21 @@ Public Class PageSetupUI
             PanBackgroundBlur.Visibility = Visibility.Visible
             PanBackgroundSuit.Visibility = Visibility.Visible
             BtnBackgroundClear.Visibility = Visibility.Visible
-            CardBackground.Title = "背景图片（" & Count & " 张）"
+            CardBackground.Title = "背景图片/视频（" & Count & " 张）"
         Else
             PanBackgroundOpacity.Visibility = Visibility.Collapsed
             PanBackgroundBlur.Visibility = Visibility.Collapsed
             PanBackgroundSuit.Visibility = Visibility.Collapsed
             BtnBackgroundClear.Visibility = Visibility.Collapsed
-            CardBackground.Title = "背景图片"
+            CardBackground.Title = "背景图片/视频"
         End If
         CardBackground.TriggerForceResize()
     End Sub
     Private Sub BtnBackgroundClear_Click(sender As Object, e As EventArgs) Handles BtnBackgroundClear.Click
-        If MyMsgBox("即将删除背景图片文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
+        If MyMsgBox("即将删除背景内容文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
             DeleteDirectory(Path & "PCL\Pictures")
             BackgroundRefresh(False, True)
-            Hint("背景图片已清空！", HintType.Finish)
+            Hint("背景内容已清空！", HintType.Finish)
         End If
     End Sub
     ''' <summary>
@@ -342,20 +341,39 @@ Public Class PageSetupUI
 
             '获取可用的图片文件
             Directory.CreateDirectory(Path & "PCL\Pictures\")
-            Dim Pic As New List(Of String)
-            For Each File In EnumerateFiles(Path & "PCL\Pictures\")
-                If File.Extension.ToLower <> ".ini" AndAlso File.Extension.ToLower <> ".db" Then '文件夹可能会被加入 .ini 和 thumbs.db
-                    Pic.Add(File.FullName)
-                End If
-            Next
+            Dim Pic As List(Of String) = EnumerateFiles(Path & "PCL\Pictures\").
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
+                    Select(Function(file) file.FullName).
+                    ToList() 
+            '视频加载异常处理
+
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
+                    Sub(sender, e)
+                        Dim videoEx = e.ErrorException
+                        Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
+                        If FrmMain.VideoBack.Source IsNot Nothing Then
+                            FrmMain.VideoBack.Source = Nothing
+                            FrmMain.VideoBack.Stop()
+                            
+                            If videoEx.Message.Contains("0xC00D109B") Then
+                                Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
+                                    "你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。" & vbCrLf &
+                                    "文件：" & videoAddress, LogLevel.Msgbox)
+                            Else
+                                Log(videoEx, "刷新背景内容失败（" & videoAddress & "）", LogLevel.Msgbox)
+                            End If
+                        End If
+                    End Sub
+            RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
             '加载
-            If Not Pic.Any() Then
+            If Pic.Count = 0 Then
                 If Refresh Then
                     If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
-                        If IsHint Then Hint("未检测到可用背景图片！", HintType.Critical)
+                        If IsHint Then Hint("未检测到可用背景内容！", HintType.Critical)
                     Else
                         FrmMain.ImgBack.Visibility = Visibility.Collapsed
-                        If IsHint Then Hint("背景图片已清除！", HintType.Finish)
+                        If IsHint Then Hint("背景内容已清除！", HintType.Finish)
                     End If
                 End If
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(False, 0)
@@ -363,26 +381,34 @@ Public Class PageSetupUI
                 If Refresh Then
                     Dim Address As String = RandomOne(Pic)
                     Try
+                        FrmMain.ImgBack.Background = Nothing
+                        FrmMain.VideoBack.Source = Nothing
+                        FrmMain.VideoBack.Stop()
+                        FrmMain.VideoBack.Position = TimeSpan.Zero
                         Log("[UI] 加载背景图片：" & Address)
                         FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
-                        If IsHint Then Hint("背景图片已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
+                        If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
-                        If ex.Message.Contains("参数无效") Then
-                            Log("刷新背景图片失败，该图片文件可能并非标准格式。" & vbCrLf &
-                                "你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。" & vbCrLf &
-                                "文件：" & Address, LogLevel.Msgbox)
-                        Else
-                            Log(ex, "刷新背景图片失败（" & Address & "）", LogLevel.Msgbox)
-                        End If
+                        Try
+                            AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
+                            Log(ex,"[UI] 加载背景图片失败" & Address)
+                            Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
+                            FrmMain.ImgBack.Visibility = Visibility.Visible
+                            FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
+                            FrmMain.VideoBack.Play()
+                            If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
+                        Catch playEx As Exception
+                            Log(playEx,"播放背景内容时出现未知错误：")
+                        End Try
                     End Try
                 End If
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(True, Pic.Count)
             End If
 
         Catch ex As Exception
-            Log(ex, "刷新背景图片时出现未知错误", LogLevel.Feedback)
+            Log(ex, "刷新背景内容时出现未知错误", LogLevel.Feedback)
         End Try
     End Sub
 

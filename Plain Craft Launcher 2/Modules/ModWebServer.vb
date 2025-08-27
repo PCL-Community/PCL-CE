@@ -1,6 +1,6 @@
 Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
-Imports Newtonsoft.Json
+Imports PCL.Core.Link.Natayark
 Imports PCL.Core.Net
 
 Public Module ModWebServer
@@ -205,11 +205,16 @@ Public Module ModWebServer
                 End If
                 Dim status As OAuthCompleteStatus = Nothing
                 Dim code = parameters("code")
-                Dim result = GetNaidDataSync(code)
-                If result Then
-                    status = OAuthCompleteStatus.Complete(NaidProfile.Username)
+                Dim resultEx As Exception = Nothing
+                Try
+                    NatayarkProfileManager.GetNaidDataSync(code).Wait()
+                Catch ex As AggregateException
+                    resultEx = ex.InnerExceptions(0)
+                End Try
+                If resultEx Is Nothing Then
+                    status = OAuthCompleteStatus.Complete(NatayarkProfileManager.NaidProfile.Username)
                 Else
-                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", NaidProfileException)
+                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", resultEx)
                 End If
                 completeCallback?.Invoke()
                 Return status
@@ -219,7 +224,7 @@ Public Module ModWebServer
 #End Region
 
 #Region "旧的 HTTP 服务端实现"
-
+#If False
     Private Server As HttpListener
     Public Class HttpServer
         Public Sub New()
@@ -267,14 +272,14 @@ Public Module ModWebServer
 
                     '设置状态信息
                     If OAuthCode IsNot Nothing Then
-                        Dim result = GetNaidDataSync(OAuthCode)
+                        Dim result = NatayarkProfileManager.GetNaidDataSync(OAuthCode)
                         If result Then
                             CurrentStatus.success = True
-                            CurrentStatus.username = NaidProfile.Username
+                            CurrentStatus.username = NatayarkProfileManager.NaidProfile.Username
                         Else
                             CurrentStatus.success = False
                             CurrentStatus.message = $"获取用户信息失败，请尝试重新登录"
-                            CurrentStatus.stacktrace = NaidProfileException.ToString()
+                            CurrentStatus.stacktrace = NatayarkProfileManager.Exception.ToString()
                         End If
                     Else
                         CurrentStatus.success = False
@@ -339,7 +344,7 @@ NotFound:
             End Select
         End Sub
     End Class
-
+#End If
 #End Region
 
 End Module
