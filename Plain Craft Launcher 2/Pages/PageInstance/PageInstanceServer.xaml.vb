@@ -8,22 +8,22 @@ Imports PCL.Core.Minecraft
 Public Class PageInstanceServer
     Inherits MyPageRight
 
-    Public Shared _serverList As New List(Of MinecraftServerInfo)
-    Private Shared _serverCardList As New List(Of ServerCard)
+    Public ReadOnly Shared ServerList As New List(Of MinecraftServerInfo)
+    Private ReadOnly Shared ServerCardList As New List(Of ServerCard)
 
     Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
-        _serverList.Clear()
-        _serverCardList.Clear()
+        ServerList.Clear()
+        ServerCardList.Clear()
         PanServers.Children.Clear()
         
         LoadServersFromFile()
         
         RefreshTip()
-        For Each server In _serverList
+        For Each server In ServerList
             Dim serverCard = New ServerCard()
             AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(server)
-            _serverCardList.Add(serverCard)
+            ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
             Task.Run(Async Function() 
                 Await serverCard.RefreshServerStatus(False)
@@ -37,7 +37,7 @@ Public Class PageInstanceServer
     
     Public Shared Function GetServerIndex(serverCard) As Integer
         ' 查找服务器在列表中的索引
-        Return _serverCardList.IndexOf(serverCard)
+        Return ServerCardList.IndexOf(serverCard)
     End Function
 
     ''' <summary>
@@ -73,14 +73,14 @@ Public Class PageInstanceServer
                 .Address = result.Address,
                 .Status = ServerStatus.Unknown
             }
-            _serverList.Add(newServer)
+            ServerList.Add(newServer)
             
             RefreshTip()
             
             Dim serverCard = New ServerCard()
             AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(newServer)
-            _serverCardList.Add(serverCard)
+            ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
             
             Task.Run(Async Function() 
@@ -119,7 +119,7 @@ Public Class PageInstanceServer
     ''' 从servers.dat文件读取服务器信息
     ''' </summary>
     Private Sub LoadServersFromFile()
-        _serverList.Clear()
+        ServerList.Clear()
 
         Dim serversFile As String = PageInstanceLeft.Instance.PathIndie + "servers.dat"
         If Not File.Exists(serversFile) Then Return
@@ -150,11 +150,11 @@ Public Class PageInstanceServer
                     Dim name As String = If(server.Get(Of NbtString)("name")?.Value, "Unknown")
                     Dim iconBase64 As String = server.Get(Of NbtString)("icon")?.Value
                     
-                    Log(vbCrLf & $"Server {i + 1}:")
-                    Log($"  Name: {name}")
+                    Log(vbCrLf & $"服务器 {i + 1}:")
+                    Log($"  名字: {name}")
                     Log($"  IP: {ip}")
                     ' Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
-                    _serverList.Add(New MinecraftServerInfo With {
+                    ServerList.Add(New MinecraftServerInfo With {
                                        .Name = name,
                                        .Address = ip,
                                        .Status = ServerStatus.Unknown,
@@ -175,17 +175,17 @@ Public Class PageInstanceServer
         
         RefreshTip()
         
-        For Each server In _serverList
+        For Each server In ServerList
             Dim serverCard = New ServerCard()
             AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(server)
-            _serverCardList.Add(serverCard)
+            ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
         Next
     End Sub
     
     Public Sub RefreshTip()
-        If _serverList.Count = 0 Then
+        If ServerList.Count = 0 Then
             Log("没有找到任何服务器")
             PanNoServer.Visibility = Visibility.Visible
             PanContent.Visibility = Visibility.Collapsed
@@ -202,7 +202,7 @@ Public Class PageInstanceServer
     ''' 异步ping所有服务器
     ''' </summary>
     Private Sub PingAllServers()
-        For Each server In _serverCardList
+        For Each server In ServerCardList
             Dim currentServer = server
             Task.Run(Async Function() 
                 Await currentServer.RefreshServerStatus(False) 
@@ -242,11 +242,11 @@ Public Class PageInstanceServer
     
     Public Shared Sub RemoveServer(server As ServerCard)
         Dim index = GetServerIndex(server)
-        _serverCardList.Remove(server)
+        ServerCardList.Remove(server)
         Log("index: " & index)
-        Log("_serverList.Count: " & _serverList.Count)
-        If index >= 0 AndAlso index < _serverList.Count Then
-            _serverList.RemoveAt(index)
+        Log("_serverList.Count: " & ServerList.Count)
+        If index >= 0 AndAlso index < ServerList.Count Then
+            ServerList.RemoveAt(index)
         End If
     End Sub
 End Class

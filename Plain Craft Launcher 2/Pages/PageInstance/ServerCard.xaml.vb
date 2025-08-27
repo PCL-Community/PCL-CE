@@ -8,12 +8,10 @@ Public Class ServerCard
     Dim ReadOnly _manager As IconManager
     
     Public Event ChildCountZero As EventHandler
-
-    ' 这是一个例子，在某个方法中检查条件并触发事件
-    Public Sub CheckAndUpdateVisibility()
-        ' 假设这是你的逻辑，判断子组件是否已全部移除
-        Log(PageInstanceServer._serverList.Count)
-        If PageInstanceServer._serverList.Count = 0 Then
+    
+    Private Sub CheckAndUpdateVisibility()
+        Log(PageInstanceServer.ServerList.Count)
+        If PageInstanceServer.ServerList.Count = 0 Then
             Log("触发 ChildCountZero 事件")
             RaiseEvent ChildCountZero(Me, EventArgs.Empty)
         End If
@@ -155,62 +153,113 @@ Public Class ServerCard
     ''' </summary>
     Private Sub BtnEdit_Click(sender As Object, e As RoutedEventArgs)
         Try
+            ' Get server information
             Dim result = PageInstanceServer.GetServerInfo(_server)
-            If result.Success Then
-                Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
-                If nbtData IsNot Nothing Then
-                    Dim index = PageInstanceServer.GetServerIndex(Me)
-                    Dim server = TryCast(nbtData(index), NbtCompound)
-                    If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
-                       server.Get(Of NbtString)("ip").Value = _server.Address Then
-                        server("name") = New NbtString("name", result.Name)
-                        server("ip") = New NbtString("ip", result.Address)
-                        Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
-                        NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
-                        ' 更改地址和端口
-                        _server.Name = result.Name
-                        _server.Address = result.Address
-                
-                        ' 刷新UI
-                        RunInUi(Sub() UpdateServerUi())
-                
-                        Hint("服务器信息已更新", HintType.Finish)
-                    End If
-                End If
+            If Not result.Success Then
+                Hint("获取服务器信息失败", HintType.Critical)
+                Exit Sub
             End If
+
+            ' Validate server data
+            If String.IsNullOrEmpty(result.Name) OrElse String.IsNullOrEmpty(result.Address) Then
+                Hint("服务器名称或地址无效", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Read NBT file
+            Dim nbtData As NbtList = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            If nbtData Is Nothing Then
+                Hint("无法读取服务器数据文件", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Get server index
+            Dim index As Integer = PageInstanceServer.GetServerIndex(Me)
+            If index < 0 OrElse index >= nbtData.Count Then
+                Hint("无法找到服务器在列表中的索引", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Verify server data
+            Dim server = TryCast(nbtData(index), NbtCompound)
+            If server Is Nothing OrElse server.Get(Of NbtString)("name")?.Value <> _server.Name OrElse server.Get(Of NbtString)("ip")?.Value <> _server.Address Then
+                Hint("服务器数据验证失败", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Update server data
+            server("name") = New NbtString("name", result.Name)
+            server("ip") = New NbtString("ip", result.Address)
+
+            ' Write updated NBT data
+            Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
+            If Not NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
+                Hint("无法写入服务器数据文件", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Update server object
+            _server.Name = result.Name
+            _server.Address = result.Address
+
+            ' Refresh UI
+            RunInUi(Sub() UpdateServerUi())
+
+            ' Success message
+            Hint("服务器信息已更新", HintType.Finish)
+
         Catch ex As Exception
-            Log(ex, "编辑服务器信息失败", LogLevel.Feedback)
             Hint("编辑服务器信息失败：" & ex.Message, HintType.Critical)
         End Try
     End Sub
     
     Private Sub BtnRemove_Click(sender As Object, e As RoutedEventArgs)
         If MyMsgBox("你确定要移除服务器 " & _server.Name & " 吗？" & vbCrLf & "'" & _server.Address & "' 将从您的列表中移除，包括游戏内列表，且无法恢复。", "移除服务器确认", "确认", "取消") = 1 Then
-            Dim index = PageInstanceServer.GetServerIndex(Me)
-            If index >= 0 Then
-                PageInstanceServer.RemoveServer(Me)
-                CheckAndUpdateVisibility()
-                
-                ' 更新NBT文件
-                Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
-                If nbtData IsNot Nothing Then
-                    Dim server = TryCast(nbtData(index), NbtCompound)
-                    If server.Get(Of NbtString)("name").Value = _server.Name AndAlso
-                       server.Get(Of NbtString)("ip").Value = _server.Address Then
-                        nbtData.RemoveAt(index)
-                        Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
-                        NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
-                    End If
-                End If
-                
-                Hint("服务器已移除", HintType.Finish)
-                Dim parent = TryCast(Me.Parent, Panel)
-                If parent IsNot Nothing Then
-                    parent.Children.Remove(Me)
-                End If
-            Else
+            ' Get server index
+            Dim index As Integer = PageInstanceServer.GetServerIndex(Me)
+            If index < 0 Then
                 Hint("无法找到服务器在列表中的索引", HintType.Critical)
+                Exit Sub
             End If
+
+            ' Read NBT file
+            Dim nbtData As NbtList = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            If nbtData Is Nothing Then
+                Hint("无法读取服务器数据文件", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Verify server data
+            Dim server As NbtCompound = TryCast(nbtData(index), NbtCompound)
+            If server Is Nothing OrElse server.Get(Of NbtString)("name").Value <> _server.Name OrElse server.Get(Of NbtString)("ip").Value <> _server.Address Then
+                Hint("服务器数据验证失败", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Remove server from NBT data
+            nbtData.RemoveAt(index)
+            Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
+    
+            ' Write back to NBT file
+            If Not NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
+                Hint("无法写入服务器数据文件", HintType.Critical)
+                Exit Sub
+            End If
+
+            ' Remove server from list and UI
+            PageInstanceServer.RemoveServer(Me)
+            CheckAndUpdateVisibility()
+
+            ' Remove UI element
+            Dim parent = TryCast(Me.Parent, Panel)
+            If parent Is Nothing Then
+                Hint("无法找到父容器", HintType.Critical)
+                Exit Sub
+            End If
+            parent.Children.Remove(Me)
+
+            ' Success message
+            Hint("服务器已移除", HintType.Finish)
         End If
     End Sub
 End Class
