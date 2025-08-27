@@ -34,7 +34,7 @@
         <!-- 标题 -->
         <TextBlock Grid.Column="3" Grid.Row="1" VerticalAlignment="Bottom" x:Name="ServerName" TextTrimming="CharacterEllipsis" FontSize="14"
                    HorizontalAlignment="Left" ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
-                   ToolTipService.Placement="Top" MaxWidth="200"/>
+                   ToolTipService.Placement="Top" MaxWidth="180"/>
         <!-- ping 值与玩家人数 -->
         <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
             <ContentPresenter x:Name="Signal" Content="{Binding SelectedIcon.XamlContent}" 
