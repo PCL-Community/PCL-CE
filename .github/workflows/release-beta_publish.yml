@@ -88,8 +88,6 @@ jobs:
       - name: Trigger update-release-discussion workflow
         shell: bash
         run: |
-          curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          " https://api.github.com/repos/$ {{ github.repository }}/actions/workflows/update-release-discussion.yml/dispatches" \
-          -d '{"ref":"${{ github.ref }}"}'  
+            gh workflow run update-release-discussion.yml
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
