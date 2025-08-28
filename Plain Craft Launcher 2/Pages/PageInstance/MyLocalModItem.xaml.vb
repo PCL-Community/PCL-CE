@@ -1,5 +1,6 @@
 Imports System.Windows.Forms
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class MyLocalCompItem
 
@@ -202,7 +203,7 @@ Public Class MyLocalCompItem
                     If CheckEventArgs.Handled Then Return
                 End If
                 '更改动画
-                If IsVisibleInForm() Then
+                If IsVisibleInWindow(FrmMain) Then
                     Dim Anim As New List(Of AniData)
                     If Checked Then
                         '由无变有
@@ -553,13 +554,13 @@ Public Class MyLocalCompItem
             Case 1
                 If ColumnSubtitle.ActualWidth < 0.5 Then
                     NewCompressLevel = 2
-                ElseIf Not LabSubtitle.IsTextTrimmed Then
+                ElseIf Not LabSubtitle.IsTextTrimmed() Then
                     NewCompressLevel = 0
                 Else
                     Return
                 End If
             Case 2
-                If Not LabTitle.IsTextTrimmed Then
+                If Not LabTitle.IsTextTrimmed() Then
                     NewCompressLevel = If(LabSubtitle.Visibility = Visibility.Collapsed, 0, 1)
                 Else
                     Return

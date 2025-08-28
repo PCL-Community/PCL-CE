@@ -2749,24 +2749,6 @@ NextElement:
     End Function
 
     ''' <summary>
-    ''' 检查某个控件是否位于主窗口可视区域内，且控件本身可见。
-    ''' </summary>
-    <Extension> Public Function IsVisibleInForm(element As FrameworkElement) As Boolean
-        If Not element.IsVisible Then Return False
-        Dim bounds As Rect = element.TransformToAncestor(FrmMain).TransformBounds(New Rect(0, 0, element.ActualWidth, element.ActualHeight))
-        Dim rect As New Rect(0, 0, FrmMain.ActualWidth, FrmMain.ActualHeight)
-        Return rect.Contains(bounds.TopLeft) OrElse rect.Contains(bounds.BottomRight)
-    End Function
-
-    ''' <summary>
-    ''' 控件是否受到 TextTrimming 属性影响，导致内容被截取。
-    ''' </summary>
-    <Extension> Public Function IsTextTrimmed(Control As TextBlock) As Boolean
-        Control.Measure(New Size(Double.MaxValue, Double.MaxValue))
-        Return Control.DesiredSize.Width > Control.ActualWidth
-    End Function
-
-    ''' <summary>
     ''' 获取系统是否是深色模式。
     ''' </summary>
     ''' <returns></returns>
