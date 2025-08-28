@@ -82,6 +82,14 @@ LogoScale="0.87" Logo="M1091.291429 0H78.935771C35.34848 0.035109 0.029257 35.35
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
+            <local:MyListItem x:Name="ItemServer" IsScaleAnimationEnabled="False" Type="RadioBox" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="服务器" Tag="11"
+                              Logo="M810.666667 213.333333v170.666667H213.333333v-170.666667h597.333334m85.333333-85.333333H128v341.333333h768V128z m-85.333333 512v170.666667H213.333333v-170.666667h597.333334m85.333333-85.333333H128v341.333333h768V554.666667zM341.333333 256h-85.333333v85.333333h85.333333z m0 426.666667h-85.333333v85.333333h85.333333z">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="11" ToolTip="刷新" ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1" Click="RefreshButton_Click" LogoScale="0.85" Logo="M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageLeft>

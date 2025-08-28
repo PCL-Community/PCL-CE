@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ inputs.configuration }}-${{ inputs.architecture }}
+    name: Build
     runs-on: ubuntu-latest
     env:
       LANG: en_US.UTF-8
@@ -46,7 +46,7 @@ jobs:
           rm -rf PCL2CEHelp
           cd "${{ github.workspace }}"
 
-      - name: Build
+      - name: Build Project
         env:
           PCL_WRITE_SECRET: '1'
           PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
@@ -62,8 +62,8 @@ jobs:
           -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
           -p:DeleteExistingFiles=true -o ./artifact --self-contained false
 
-      - name: Upload a Build Artifact
+      - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}
-          path: artifact/Plain Craft Launcher 2.exe
+          path: artifact/**

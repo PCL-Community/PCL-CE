@@ -179,6 +179,16 @@ Public Class ModSetup
         End If
     End Sub
 
+    '视频背景
+    Public Sub UiAutoPauseVideo(Value As Boolean)
+        If Value = False Then
+            ModVideoBack.ForcePlay = True
+            VideoPlay()
+        Else
+            ModVideoBack.ForcePlay = False
+            If ModVideoBack.IsGaming = True Then VideoPause()
+        End If
+    End Sub
     '背景图片
     Public Sub UiBackgroundOpacity(Value As Integer)
         FrmMain.ImgBack.Opacity = Value / 1000
