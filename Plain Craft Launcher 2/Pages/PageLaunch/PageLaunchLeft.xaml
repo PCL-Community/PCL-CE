@@ -100,7 +100,7 @@
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="当前步骤" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载支持" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Left" Name="LabLaunchingStage" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="验证方式" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="正版验证" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" Name="LabLaunchingMethod" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="正版验证" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow" Name="LabLaunchingMethod" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="启动进度" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="69.28 %" Grid.Row="2" Grid.Column="3" HorizontalAlignment="Left" Name="LabLaunchingProgress" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载速度" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft" Visibility="Collapsed" />

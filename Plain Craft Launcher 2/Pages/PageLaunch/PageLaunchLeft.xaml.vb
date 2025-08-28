@@ -21,6 +21,12 @@ Public Class PageLaunchLeft
         AddHandler McFolderListLoader.LoadingStateChanged, AddressOf RefreshButtonsUI
         RefreshButtonsUI()
 
+        '初始化档案
+        GetProfile()
+        If Not ProfileList.Count = 0 AndAlso LastUsedProfile >= 0 AndAlso LastUsedProfile < ProfileList.Count Then
+            SelectedProfile = ProfileList(LastUsedProfile)
+        End If
+
         '加载实例
         RunInNewThread(
         Sub()

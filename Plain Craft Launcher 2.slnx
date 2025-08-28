@@ -1,0 +1,17 @@
+﻿<Solution>
+  <Configurations>
+    <BuildType Name="CI" />
+    <BuildType Name="Beta" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="AnyCPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="PCL.Core\PCL.Core.csproj" Type="Classic C#"/>
+  <Project Path="PCL.Core\SourceGenerators\PCL.Core.SourceGenerators.csproj" Type="Classic C#" />
+  <Project Path="PCL.Test\PCL.Test.csproj" Type="Classic C#">
+    <Configuration Solution="*|*" Project="*|*|NoBuild" />
+  </Project>
+  <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.vbproj" Type="Classic VB" />
+</Solution>

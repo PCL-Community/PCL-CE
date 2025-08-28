@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <Configurations>Debug;CI;Publish</Configurations>
+    <Configurations>Debug;CI;Release;Beta</Configurations>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
     <AssemblyTitle>PCL.Test</AssemblyTitle>
     <Product>PCL.Test</Product>
@@ -15,26 +15,11 @@
     <FileVersion>1.0.0.0</FileVersion>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug' ">
+  <PropertyGroup>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug-$(Platform)\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <PlatformTarget>$(Platform)</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Publish'">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Publish-$(Platform)\</OutputPath>
-    <DefineConstants>PUBLISH</DefineConstants>
-    <PlatformTarget>$(Platform)</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'CI'">
-    <DebugType>embedded</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\CI-$(Platform)\</OutputPath>
-    <DefineConstants>CI;TRACE</DefineConstants>
+    <OutputPath>bin\</OutputPath>
     <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>

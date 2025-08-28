@@ -17,7 +17,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <LangVersion>default</LangVersion>
     <UseWPF>true</UseWPF>
-    <Configurations>Beta;Debug;Release;DebugCI</Configurations>
+    <Configurations>Beta;Debug;Release;CI</Configurations>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -38,8 +38,8 @@
     <DefineTrace>true</DefineTrace>
     <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'DebugCI' ">
-    <OutputPath>bin\DebugCI\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">
+    <OutputPath>bin\CI\</OutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -109,7 +109,5 @@
     <Page Include="**\*.xaml" Exclude="bin\**;obj\**;@(ApplicationDefinition)" />
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
-    <Resource Remove="Resources\linkd.exe" />
-    <Content Include="Resources\linkd.exe" />
   </ItemGroup>
 </Project>

@@ -136,10 +136,6 @@ Public Module ModProfile
                 ProfileList.Add(NewProfile)
             Next
             ProfileLog($"获取到 {ProfileList.Count} 个档案")
-            '确保根据 LastUsedProfile 设置当前选定的档案
-            If Not ProfileList.Count = 0 AndAlso LastUsedProfile >= 0 AndAlso LastUsedProfile < ProfileList.Count Then
-                SelectedProfile = ProfileList(LastUsedProfile)
-            End If
         Catch ex As Exception
             Log(ex, "读取档案列表失败", LogLevel.Feedback)
         End Try
