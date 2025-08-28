@@ -95,7 +95,6 @@ Public Class PageLinkLobby
 #End Region
 
 #Region "公告"
-    Private Const AllowedVersion As Integer = 4
     Public Shared LobbyAnnouncementLoader As LoaderCombo(Of Integer) = Nothing
     Private _linkAnnounces As New ObservableCollection(Of LinkAnnounceInfo)
     Private _linkAnnounceUpdateCancelSource As CancellationTokenSource = Nothing
@@ -171,7 +170,7 @@ Public Class PageLinkLobby
                     AllowCustomName = jObj("allowCustomName")
                     RequiresLogin = jObj("requireLogin")
                     RequiresRealName = jObj("requireRealname")
-                    If Not Val(jObj("version")) = AllowedVersion Then
+                    If Not Val(jObj("version")) <= ProtocolVersion Then
                         RunInUi(
                             Sub()
                                 HintAnnounce.Theme = MyHint.Themes.Red
