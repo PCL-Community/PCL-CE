@@ -6,6 +6,7 @@ Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Class FormMain
 
@@ -41,7 +42,7 @@ Public Class FormMain
             Case 1
                 IsDarkMode = True
             Case 2
-                IsDarkMode = IsSystemInDarkMode()
+                IsDarkMode = SystemTheme.IsSystemInDarkMode()
         End Select
         ThemeRefreshColor()
         '窗体参数初始化
@@ -859,9 +860,9 @@ Public Class FormMain
             handled = True
         ElseIf msg = 26 Then 'WM_SETTINGCHANGE
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
-                Log($"[System] 系统主题更改，深色模式：{IsSystemInDarkMode()}")
-                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> IsSystemInDarkMode() Then
-                    IsDarkMode = IsSystemInDarkMode()
+                Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
+                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
+                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
                     ThemeRefresh()
                 End If
             End If

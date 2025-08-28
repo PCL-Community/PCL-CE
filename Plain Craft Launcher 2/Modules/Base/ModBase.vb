@@ -2749,17 +2749,6 @@ NextElement:
     End Function
 
     ''' <summary>
-    ''' 获取系统是否是深色模式。
-    ''' </summary>
-    ''' <returns></returns>
-    Public Function IsSystemInDarkMode() As Boolean
-        Dim RegistryKey As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
-        If RegistryKey Is Nothing Then Return False
-        Dim Value As Object = RegistryKey.GetValue("AppsUseLightTheme")
-        Return Value IsNot Nothing AndAlso Value.ToString = "0"
-    End Function
-
-    ''' <summary>
     ''' 获取文本在被渲染后的宽度。
     ''' </summary>
     Public Function MeasureStringWidth(text As String, Optional fontSize As Double = 14, Optional fontFamily As FontFamily = Nothing) As Double
