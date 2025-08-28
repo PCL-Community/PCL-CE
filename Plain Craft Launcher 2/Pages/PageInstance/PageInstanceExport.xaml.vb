@@ -1,4 +1,5 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
 Public Class ExportOption
@@ -651,7 +652,7 @@ Public Class PageInstanceExport
                 Dim ModFile As LocalCompFile = Pair.Key
                 Files.Add(New JObject From {
                     {"path", ModFile.Path.AfterFirst(OverridesFolder).Replace("\", "/")},
-                    {"hashes", New JObject From {{"sha1", ModFile.ModrinthHash}, {"sha512", GetFileSHA512(ModFile.Path)}}},
+                    {"hashes", New JObject From {{"sha1", ModFile.ModrinthHash}, {"sha512", FileHashUtils.GetFileSHA256(ModFile.Path)}}},
                     {"downloads", New JArray(Pair.Value.OrderByDescending(Function(u) u.Contains("modrinth.com")))},
                     {"fileSize", New FileInfo(ModFile.Path).Length}
                 })

@@ -7,6 +7,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
 
@@ -767,7 +768,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                                 If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
                                                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
-                                                                                           Dim curHash = GetFileSHA256(DlTargetPath)
+                                                                                           Dim curHash = FileHashUtils.GetFileSHA256(DlTargetPath)
                                                                                            If curHash <> version.SHA256 Then
                                                                                                Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
                                                                                            End If
@@ -877,11 +878,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim LatestPCLPath As String = PathTemp & "CE-Latest.exe"
         Dim target = RemoteServer.GetLatestVersion(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
         If target Is Nothing Then Throw New Exception("无法获取更新")
-        If File.Exists(LatestPCLPath) AndAlso GetFileSHA256(LatestPCLPath) = target.SHA256 Then
+        If File.Exists(LatestPCLPath) AndAlso FileHashUtils.GetFileSHA256(LatestPCLPath) = target.SHA256 Then
             Log("[System] 最新版 PCL 已存在，跳过下载")
             Exit Sub
         End If
-        If GetFileSHA256(PathWithName) = target.SHA256 Then '正在使用的版本符合要求，直接拿来用
+        If FileHashUtils.GetFileSHA256(PathWithName) = target.SHA256 Then '正在使用的版本符合要求，直接拿来用
             CopyFile(PathWithName, LatestPCLPath)
             Exit Sub
         End If

@@ -4,6 +4,7 @@ Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 Imports System.Text.Json.Nodes
 Imports PCL.Core.IO
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
 Public Module ModMinecraft
@@ -2431,7 +2432,7 @@ OnLoaded:
                 '检查文件是否存在
                 Dim File As New FileInfo(Token.LocalPath)
                 If File.Exists AndAlso (Token.Size = 0 OrElse Token.Size = File.Length) AndAlso
-                    (Not CheckHash OrElse Token.Hash Is Nothing OrElse Token.Hash = GetFileSHA1(Token.LocalPath)) Then Continue For
+                    (Not CheckHash OrElse Token.Hash Is Nothing OrElse Token.Hash = FileHashUtils.GetFileSHA1(Token.LocalPath)) Then Continue For
                 '文件不存在，添加下载
                 Result.Add(New NetFile(DlSourceAssetsGet($"https://resources.download.minecraft.net/{Left(Token.Hash, 2)}/{Token.Hash}"), Token.LocalPath, New FileChecker(ActualSize:=If(Token.Size = 0, -1, Token.Size), Hash:=Token.Hash)))
             Next

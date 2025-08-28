@@ -12,6 +12,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
 Public Module ModBase
@@ -1006,115 +1007,7 @@ Public Module ModBase
             Return UTF8
         End If
     End Function
-
-    '文件校验
-    ''' <summary>
-    ''' 获取文件 MD5，若失败则返回空字符串。
-    ''' </summary>
-    Public Function GetFileMD5(FilePath As String) As String
-        Dim Retry As Boolean = False
-Re:
-        Try
-            '获取 MD5
-            Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Hash.MD5Provider.Instance.ComputeHash(fs)
-            End Using
-        Catch ex As Exception
-            If Retry OrElse TypeOf ex Is FileNotFoundException Then
-                Log(ex, "获取文件 MD5 失败：" & FilePath)
-                Return ""
-            Else
-                Retry = True
-                Log(ex, "获取文件 MD5 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomUtils.NextInt(200, 500))
-                GoTo Re
-            End If
-        End Try
-    End Function
-    ''' <summary>
-    ''' 获取文件 SHA512，若失败则返回空字符串。
-    ''' </summary>
-    Public Function GetFileSHA512(FilePath As String) As String
-        Dim Retry As Boolean = False
-Re:
-        Try
-            ''检测该文件是否在下载中，若在下载则放弃检测
-            'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
-            '获取 SHA512
-            Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA512Provider.Instance.ComputeHash(fs)
-            End Using
-        Catch ex As Exception
-            If Retry OrElse TypeOf ex Is FileNotFoundException Then
-                Log(ex, "获取文件 SHA512 失败：" & FilePath)
-                Return ""
-            Else
-                Retry = True
-                Log(ex, "获取文件 SHA512 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomUtils.NextInt(200, 500))
-                GoTo Re
-            End If
-        End Try
-    End Function
-    ''' <summary>
-    ''' 获取文件 SHA256，若失败则返回空字符串。
-    ''' </summary>
-    Public Function GetFileSHA256(FilePath As String) As String
-        Dim Retry As Boolean = False
-Re:
-        Try
-            ''检测该文件是否在下载中，若在下载则放弃检测
-            'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
-            '获取 SHA256
-            Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA256Provider.Instance.ComputeHash(fs)
-            End Using
-        Catch ex As Exception
-            If Retry OrElse TypeOf ex Is FileNotFoundException Then
-                Log(ex, "获取文件 SHA256 失败：" & FilePath)
-                Return ""
-            Else
-                Retry = True
-                Log(ex, "获取文件 SHA256 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomUtils.NextInt(200, 500))
-                GoTo Re
-            End If
-        End Try
-    End Function
-    ''' <summary>
-    ''' 获取文件 SHA1，若失败则返回空字符串。
-    ''' </summary>
-    Public Function GetFileSHA1(FilePath As String) As String
-        Dim Retry As Boolean = False
-Re:
-        Try
-            '获取 SHA1
-            Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA1Provider.Instance.ComputeHash(fs)
-            End Using
-        Catch ex As Exception
-            If Retry OrElse TypeOf ex Is FileNotFoundException Then
-                Log(ex, "获取文件 SHA1 失败：" & FilePath)
-                Return ""
-            Else
-                Retry = True
-                Log(ex, "获取文件 SHA1 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomUtils.NextInt(200, 500))
-                GoTo Re
-            End If
-        End Try
-    End Function
-    ''' <summary>
-    ''' 获取流的 SHA1，若失败则返回空字符串。
-    ''' </summary>
-    Public Function GetAuthSHA1(inputStream As Stream) As String
-        Try
-            Return Core.Utils.Hash.SHA1Provider.Instance.ComputeHash(inputStream)
-        Catch ex As Exception
-            Log(ex, "获取流 SHA1 失败")
-            Return ""
-        End Try
-    End Function
+    
     ''' <summary>
     ''' 文件的校验规则。
     ''' </summary>
@@ -1159,17 +1052,17 @@ Re:
                 Dim AllowIgnore As Boolean = False '允许相信哈希正确但是大小不正确
                 If Not String.IsNullOrEmpty(Hash) Then
                     If Hash.Length < 35 Then 'MD5
-                        Dim ComputedHash As String = GetFileMD5(LocalPath)
+                        Dim ComputedHash As String = FileHashUtils.GetFileMD5(LocalPath)
                         If Hash.ToLowerInvariant <> ComputedHash Then
                             ErrorMessage.Add("文件 MD5 应为 " & Hash & "，实际为 " & ComputedHash)
                         End If
                     ElseIf Hash.Length = 64 Then 'SHA256
-                        Dim ComputedHash As String = GetFileSHA256(LocalPath)
+                        Dim ComputedHash As String = FileHashUtils.GetFileSHA256(LocalPath)
                         If Hash.ToLowerInvariant <> ComputedHash Then
                             ErrorMessage.Add("文件 SHA256 应为 " & Hash & "，实际为 " & ComputedHash)
                         End If
                     Else 'SHA1 (40)
-                        Dim ComputedHash As String = GetFileSHA1(LocalPath)
+                        Dim ComputedHash As String = FileHashUtils.GetFileSHA1(LocalPath)
                         If Hash.ToLowerInvariant <> ComputedHash Then
                             ErrorMessage.Add("文件 SHA1 应为 " & Hash & "，实际为 " & ComputedHash)
                         End If

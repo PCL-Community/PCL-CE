@@ -1,6 +1,7 @@
 ﻿Imports System.IO.Compression
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Diff
+Imports PCL.Core.Utils.Hash
 
 Public Class UpdatesMinioModel '社区自己的更新系统格式
     Implements IUpdateSource
@@ -78,7 +79,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
     Private Function IsCacheValid(path As String, hash As String) As Boolean
         Dim cacheFile = IO.Path.Combine(PathTemp, "Cache", "Update", path)
         Dim fileInfo As New FileInfo(cacheFile)
-        Return fileInfo.Exists AndAlso (DateTime.Now - fileInfo.LastWriteTime).Hours < 1 AndAlso GetFileMD5(cacheFile) = hash
+        Return fileInfo.Exists AndAlso (DateTime.Now - fileInfo.LastWriteTime).Hours < 1 AndAlso FileHashUtils.GetFileMD5(cacheFile) = hash
     End Function
 
     Private Function GetChannelName(channel As UpdateChannel, arch As UpdateArch) As String
@@ -111,7 +112,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
                                                                                Dim channelName = GetChannelName(channel, arch)
                                                                                Dim deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject(Of MinioUpdateModel).assets.FirstOrDefault()
                                                                                If deJsonData Is Nothing Then Throw New Exception("No assets can download!")
-                                                                               Dim selfSha256 = GetFileSHA256(PathWithName)
+                                                                               Dim selfSha256 = FileHashUtils.GetFileSHA256(PathWithName)
                                                                                Dim remoteUpdSha256 = deJsonData.sha256
                                                                                Dim patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch"
                                                                                If deJsonData.patches.Contains(patchFileName) Then

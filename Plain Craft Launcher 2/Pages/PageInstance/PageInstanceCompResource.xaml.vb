@@ -1,4 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
 Public Class PageInstanceCompResource
@@ -1258,7 +1259,7 @@ Install:
                 If File.Exists(NewPath) Then
                     If File.Exists(ModEntity.Path) Then
                         '同时存在两个名称的 Mod
-                        If GetFileMD5(ModEntity.Path) <> GetFileMD5(NewPath) Then
+                        If FileHashUtils.GetFileMD5(ModEntity.Path) <> FileHashUtils.GetFileMD5(NewPath) Then
                             MyMsgBox($"目前同时存在启用和禁用的两个 Mod 文件：{vbCrLf} - {NewPath}{vbCrLf} - {ModEntity.Path}{vbCrLf}{vbCrLf}注意，这两个文件的内容并不相同。{vbCrLf}在手动删除或重命名其中一个文件后，才能继续操作。", "存在文件冲突")
                             Continue For
                         End If

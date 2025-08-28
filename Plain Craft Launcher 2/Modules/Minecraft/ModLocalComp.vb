@@ -2,6 +2,7 @@ Imports System.IO.Compression
 
 Imports fNbt
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Hash
 
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
@@ -1171,7 +1172,7 @@ Finished:
                         Return _ModrinthHash
                     End If
                     '计算 SHA1
-                    _ModrinthHash = GetFileSHA1(Path)
+                    _ModrinthHash = FileHashUtils.GetFileSHA1(Path)
                     '写入缓存
                     WriteIni(PathTemp & "Cache\CompHash.ini", CacheKey, _ModrinthHash)
                 End If
