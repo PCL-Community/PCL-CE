@@ -520,6 +520,7 @@ EndHint:
     Public FrmInstanceSetup As PageInstanceSetup
     Public FrmInstanceInstall As PageInstanceInstall
     Public FrmInstanceExport As PageInstanceExport
+    Public FrmInstanceServer As PageInstanceServer
     '实例存档页面
     Public FrmInstanceSavesLeft As PageInstanceSavesLeft
     Public FrmInstanceSavesInfo As PageInstanceSavesInfo

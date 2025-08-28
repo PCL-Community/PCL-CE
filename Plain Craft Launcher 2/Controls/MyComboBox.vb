@@ -138,4 +138,11 @@
         End Get
     End Property
 
+    '用于 ItemsSource 的自定义容器
+    Protected Overrides Function GetContainerForItemOverride() As DependencyObject
+        Return New MyComboBoxItem()
+    End Function
+    Protected Overrides Function IsItemItsOwnContainerOverride(item As Object) As Boolean
+        Return TypeOf item Is MyComboBoxItem OrElse MyBase.IsItemItsOwnContainerOverride(item)
+    End Function
 End Class

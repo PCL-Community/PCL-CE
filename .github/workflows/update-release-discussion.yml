@@ -1,0 +1,114 @@
+name: Update Release Discussion
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-discussion:
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest release info
+        id: get_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_info=$(gh release view --json name,body --jq '.name,.body')
+          echo "release_info<<EOF" >> $GITHUB_OUTPUT
+          echo "$release_info" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get Discussion Category ID
+        id: get_category
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          category_id=$(gh api graphql -f query='
+            query {
+              repository(owner: "'${{ github.repository_owner }}'", name: "'${{ github.event.repository.name }}'") {
+                discussionCategories(first: 10) {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }' | jq -r '.data.repository.discussionCategories.edges[].node | select(.name == "更新日志") | .id')
+          echo "category_id=$category_id" >> $GITHUB_OUTPUT
+
+      - name: Find or create discussion
+        id: find_discussion
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_NAME="${{ steps.get_release.outputs.name }}"
+          discussion_id=$(gh api graphql -f query='
+            query {
+              repository(owner: "'${{ github.repository_owner }}'", name: "'${{ github.event.repository.name }}'") {
+                discussions(first: 20, orderBy: {field: UPDATED_AT, direction: DESC}) {
+                  edges {
+                    node {
+                      id
+                      title
+                    }
+                  }
+                }
+              }
+            }' | jq -r --arg title "$RELEASE_NAME" '.data.repository.discussions.edges[].node | select(.title == $title) | .id')
+
+          if [ -z "$discussion_id" ]; then
+            discussion_id=$(gh api graphql -f query='
+              mutation {
+                createDiscussion(input: {
+                  repositoryId: "'${{ github.repository_id }}'",
+                  title: "'"$RELEASE_NAME"'",
+                  body: "'"$RELEASE_BODY"'",
+                  categoryId: "'${{ steps.get_category.outputs.category_id }}'"
+                }) {
+                  discussion {
+                    id
+                  }
+                }
+              }' | jq -r '.data.createDiscussion.discussion.id')
+            echo "Created new discussion"
+          else
+            echo "Found existing discussion"
+          fi
+          echo "discussion_id=$discussion_id" >> $GITHUB_OUTPUT
+
+      - name: Update discussion body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BODY="${{ steps.get_release.outputs.body }}"
+          DISCUSSION_ID="${{ steps.find_discussion.outputs.discussion_id }}"
+          
+          current_body=$(gh api graphql -f query='
+            query {
+              node(id: "'"$DISCUSSION_ID"'") {
+                ... on Discussion {
+                  body
+                }
+              }
+            }' | jq -r '.data.node.body')
+          
+          new_body="$RELEASE_BODY$current_body"
+          
+          gh api graphql -f query='
+            mutation {
+              updateDiscussion(input: {
+                discussionId: "'"$DISCUSSION_ID"'",
+                body: '"$(echo -n "$new_body" | jq -Rs .)"'
+              }) {
+                discussion {
+                  title
+                }
+              }
+            }'

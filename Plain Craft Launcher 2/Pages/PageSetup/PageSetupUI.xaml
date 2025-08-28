@@ -78,9 +78,9 @@
                                 <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版" Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0" ColorType="Highlight" />
                             </StackPanel>
                         </Border>
-                        <Grid x:Name="PanDarkMode" Height="28" Margin="0,0,0,7">
+                        <Grid Height="28" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="92" SharedSizeGroup="SubName" />
                                 <ColumnDefinition />
@@ -104,12 +104,19 @@
                         </Grid>
                         <Grid Height="28" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1"/>
+                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1" ItemsSource="{Binding CustomFontCollection}">
+                                <local:MyComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" TextAlignment="Center"
+                                                FontFamily="{Binding Font}" Tag="{Binding Tag}"/>
+                                    </DataTemplate>
+                                </local:MyComboBox.ItemTemplate>
+                            </local:MyComboBox>
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
@@ -164,6 +171,7 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="背景模糊" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderBackgroundBlur" Tag="UiBackgroundBlur" MaxValue="40" Grid.Column="1" ToolTip="较强的模糊会导致启动器严重掉帧，请谨慎使用。&#13;不建议在制作整合包时开启模糊，以确保 PCL 在低性能电脑上可以流畅运行。" />
                     </Grid>
+                    <local:MyCheckBox Text="游戏启动后暂停视频背景，游戏退出后重新播放" Margin="-1,0,0,8" Height="22" x:Name="CheckAutoPauseVideo" Tag="UiAutoPauseVideo" ToolTip="若启用此项设置，游戏时将无法刷新背景" IsEnabled="True"/>
                     <local:MyCheckBox Text="叠加彩色背景" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful" Tag="UiBackgroundColorful" />
                     <Grid Height="35" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>

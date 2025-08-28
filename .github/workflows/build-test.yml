@@ -7,13 +7,13 @@ on:
       - 'Plain Craft Launcher 2/**'
       - 'Plain Craft Launcher 2.sln'
       - '.github/workflows/**'
-      - 'PCL.Core/**'
+      - 'PCL.Core'
   pull_request:
     paths:
       - 'Plain Craft Launcher 2/**'
       - 'Plain Craft Launcher 2.sln'
       - '.github/workflows/**'
-      - 'PCL.Core/**'
+      - 'PCL.Core'
   workflow_dispatch:
 
 jobs:
@@ -21,9 +21,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - configuration: DebugCI
+          - configuration: CI
             architecture: x64
-          - configuration: DebugCI
+          - configuration: CI
             architecture: ARM64
       fail-fast: false
 

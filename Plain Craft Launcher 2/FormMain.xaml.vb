@@ -4,6 +4,7 @@ Imports System.Windows.Interop
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
+Imports PCL.Core.ProgramSetup
 
 Public Class FormMain
 
@@ -75,6 +76,14 @@ Public Class FormMain
         '加载 UI
         InitializeComponent()
         Opacity = 0
+        Try
+            Height = Setup.Get("WindowHeight")
+            Width = Setup.Get("WindowWidth")
+        Catch ex As Exception '修复 #2019
+            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
+            Height = MinHeight + 100
+            Width = MinWidth + 100
+        End Try
         ''开启管理员权限下的文件拖拽，但下列代码也没用（#2531）
         'If IsAdmin() Then
         '    Log("[Start] PCL 正以管理员权限运行")
@@ -108,6 +117,7 @@ Public Class FormMain
         Setup.Load("UiBackgroundBlur")
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
+        SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) '智能暂停视频背景
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
@@ -136,14 +146,6 @@ Public Class FormMain
             Application.Current.Resources("BlurValue") = CType(0, Double)
         End If
 
-        Try
-            Height = Setup.Get("WindowHeight")
-            Width = Setup.Get("WindowWidth")
-        Catch ex As Exception '修复 #2019
-            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
-            Height = MinHeight + 100
-            Width = MinWidth + 100
-        End Try
         '#If DEBUG Then
         '        MinHeight = 50
         '        MinWidth = 50
@@ -383,6 +385,10 @@ Public Class FormMain
         '关闭
         RunInUiWait(
         Sub()
+            '清理视频背景
+            VideoBack.Stop()
+            VideoBack.Source = Nothing
+            VideoBack.Close()
             IsHitTestVisible = False
             If PanBack.RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)
@@ -697,7 +703,7 @@ Public Class FormMain
                 '检查是否为同类型文件
                 Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
                 Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
-                
+
                 If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic", "schem"}.Contains(FirstExtension) Then
                     '允许同类型的 Mod 文件或投影文件批量拖拽
                 Else
@@ -885,6 +891,11 @@ Public Class FormMain
             End If
         End Set
     End Property
+    '解决龙猫的非通用实现史山
+    Protected Overrides Sub OnActivated(e As EventArgs)
+        MyBase.OnActivated(e)
+        If Hidden Then Hidden = False
+    End Sub
     ''' <summary>
     ''' 把当前窗口拖到最前面。
     ''' </summary>
@@ -907,6 +918,17 @@ Public Class FormMain
     Private Sub VideoEnded(sender As Object, e As RoutedEventArgs)
         VideoBack.Position = TimeSpan.Zero
         VideoBack.Play()
+    End Sub
+    '最小化时暂停背景视频
+    Private Sub WindowStateChanged(sender As Object, e As EventArgs) Handles Me.StateChanged
+        Select Case Me.WindowState
+            Case WindowState.Minimized
+                ModVideoBack.IsMinimized = True
+                VideoPause()
+            Case WindowState.Normal
+                ModVideoBack.IsMinimized = False
+                VideoPlay()
+        End Select
     End Sub
 
 #End Region
@@ -1024,6 +1046,7 @@ Public Class FormMain
         VersionShader = 8
         VersionSchematic = 9
         VersionInstall = 10
+        VersionServer = 11
         VersionSavesInfo = 0
         VersionSavesBackup = 1
     End Enum

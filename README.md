@@ -32,21 +32,32 @@
 
 用户群 1 群：1028074835
 
-### 💻 支持平台
-
-PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。
-
-| 操作系统 | 支持的最新启动器版本 | 环境要求 | 社区支持 |
-|---|---|---|---|
-| Windows 10 20H2 (19041) 或更高 | [2.12.3](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.12.3) | [.NET Framework 4.8.1](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net481-offline-installer) | ✅ 仅对最新版本提供完整支持 |
-| Windows 10 1809 (17763) 或更高 | 2.13.0 (尚未发布) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | 🚧 在正式发布后对最新版本提供完整支持 |
-| Windows 10 1809 (17763) 以下 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社区支持 |
-| Windows 7 / 8 / 8.1 等 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社区支持 |
-| macOS / Linux / 其他操作系统 | 暂不支持 | [.NET 9 SDK](http://get.dot.net/9) | ⚠️ 仅跨平台开发支持（交叉编译） |
-
 ### ✨ 隐藏提示
 
 在全局配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False` (文本型)
+
+## 💻 支持平台
+
+| 操作系统 | 支持的启动器版本 | 环境要求 | 社区技术支持 |
+|---|---|---|---|
+| Windows 10 20H2 (19041) 或更高 | [2.12.3](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.12.3) | [.NET Framework 4.8.1](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net481-offline-installer) | ✅ 完整支持 |
+| Windows 10 1809 (17763) 或更高 | [2.13.0-beta.2](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.13.0-beta.2) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ 完整支持 |
+| Windows 8 - Windows 10 1809- (17763-) | [2.13.0-beta.2](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.13.0-beta.2) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ 理论能跑，但不提供社区支持 |
+| Windows 7 或更低版本 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社区支持 |
+| macOS / Linux / 其他操作系统 | 暂不支持 | [.NET 9 SDK](http://get.dot.net/9) | ⚠️ 仅跨平台开发支持（交叉编译） |
+
+**✅ 完整支持**：尽可能提供一切相关支持，但必须确保启动器为最新版本。
+
+**⚠️ 理论能跑，但不提供社区支持**：PCL CE 应该可以在这些平台上运行，但不保证功能完全可用。你必须升级到完整支持的系统版本以获得社区技术支持。
+
+**❌ 不提供社区支持**：不保证 PCL CE 在这些平台的可用性，甚至压根打不开。请升级操作系统以使用 PCL CE。
+
+**⚠️ 仅跨平台开发支持（交叉编译）**：PCL CE 的源代码可以在 macOS 与 Linux 平台编译，但无法直接运行。作为开发者，你可以在这些平台上进行开发，然后将编译产物转移到 Windows 系统测试。
+
+**注**：    
+社区仅对最新版本的启动器提供支持。    
+取决于部分问题的特殊性（如系统不完整），有时你仍然必须升级操作系统以继续获得支持。    
+PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。
 
 ## 🔒 许可证
 

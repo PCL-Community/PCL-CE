@@ -124,7 +124,7 @@ Retry:
             ExtractFile(FileAddress, InstallTemp, Encode, ProgressIncrementHandler:=Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Catch ex As Exception
             Log(ex, "第 " & RetryCount & " 次解压尝试失败")
-            If TypeOf ex Is ArgumentException Then
+            If TypeOf ex Is ArgumentException OrElse TypeOf ex Is IOException Then
                 Encode = Encoding.UTF8
                 Log("[ModPack] 已切换压缩包解压编码为 UTF8")
             End If

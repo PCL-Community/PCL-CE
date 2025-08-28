@@ -1,0 +1,55 @@
+﻿<local:MyPageRight x:Class="PageInstanceServer"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:local="clr-namespace:PCL"
+      mc:Ignorable="d"
+      PanScroll="{Binding ElementName=PanBack}" Grid.IsSharedSizeScope="True">
+    
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" x:Name="PanBack">
+        <Grid>
+            <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanNoServer">
+                <Grid Margin="20,17">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center" Text="暂时没有服务器" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5" Text="暂时没有找到服务器，在游戏内添加服务器或点击下方按钮添加新服务器" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" MinWidth="140" Text="刷新服务器信息" Padding="13,0" Margin="10,10,10,0" HorizontalAlignment="Center" Click="BtnRefresh_Click" ColorType="Highlight"/>
+                    <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" Click="BtnAddServer_Click" MinWidth="140" Text="添加新服务器" Margin="10,10,10,0" Padding="13,0" />
+                </Grid>
+            </local:MyCard>
+            <StackPanel Margin="10,25,10,10">
+                <!-- 页面标题 -->
+                <local:MyCard Title="快捷操作" Margin="15,0,15,15" x:Name="PanContent">
+                    <Grid Height="35" Margin="25,40,23,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <local:MyButton Grid.Column="0" MinWidth="140" Text="刷新所有服务器" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" Click="BtnRefresh_Click" ColorType="Highlight"/>
+                        <local:MyButton Grid.Column="1" MinWidth="140" Text="添加新服务器" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" Click="BtnAddServer_Click"/>
+                    </Grid>
+                </local:MyCard>
+                
+                <!-- 服务器列表 -->
+                <StackPanel x:Name="PanServers" Margin="15,0,15,15">
+                    <!-- 服务器项目将动态添加到这里 -->
+                </StackPanel>
+                
+            </StackPanel>
+        </Grid>
+    </local:MyScrollViewer>
+</local:MyPageRight>
+
