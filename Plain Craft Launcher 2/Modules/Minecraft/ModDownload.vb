@@ -683,7 +683,7 @@ Public Module ModDownload
                                           Loader.Input.Replace("-", "_") & '兼容 Forge 1.7.10-pre4，#4057
                                           ".html", UseBrowserUserAgent:=True)
         Catch ex As Exception
-            If GetExceptionSummary(ex).Contains("(404)") Then
+            If ex.Message.Contains("(404)") Then
                 Throw New Exception("不可用")
             Else
                 Throw

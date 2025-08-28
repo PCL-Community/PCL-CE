@@ -1282,7 +1282,7 @@ Re:
                 Return Nothing
             Catch ex As Exception
                 Log(ex, "检查文件出错")
-                Return GetExceptionSummary(ex)
+                Return ex.ToString()
             End Try
         End Function
     End Class
@@ -1440,107 +1440,6 @@ RetryDir:
 #Region "文本"
     Public vbLQ As Char = Convert.ToChar(8220)
     Public vbRQ As Char = Convert.ToChar(8221)
-
-    ''' <summary>
-    ''' 提取 Exception 的具体描述与堆栈。
-    ''' </summary>
-    ''' <param name="ShowAllStacks">是否必须显示所有堆栈。通常用于判定堆栈信息。</param>
-    Public Function GetExceptionDetail(Ex As Exception, Optional ShowAllStacks As Boolean = False) As String
-        If Ex Is Nothing Then Return "无可用错误信息！"
-
-        '获取最底层的异常
-        Dim InnerEx As Exception = Ex
-        Do Until InnerEx.InnerException Is Nothing
-            InnerEx = InnerEx.InnerException
-        Loop
-
-        '获取各级错误的描述与堆栈信息
-        Dim DescList As New List(Of String)
-        Dim IsInner As Boolean = False
-        Do Until Ex Is Nothing
-            DescList.Add(If(IsInner, "→ ", "") & Ex.Message.Replace(vbLf, vbCr).Replace(vbCr & vbCr, vbCr).Replace(vbCr, vbCrLf))
-            If Ex.StackTrace IsNot Nothing Then
-                For Each Stack As String In Ex.StackTrace.Split(vbCrLf.ToCharArray, StringSplitOptions.RemoveEmptyEntries)
-                    If ShowAllStacks OrElse Stack.ContainsF("pcl", True) Then
-                        DescList.Add(Stack.Replace(vbCr, String.Empty).Replace(vbLf, String.Empty))
-                    End If
-                Next
-            End If
-            If Ex.GetType.FullName <> "System.Exception" Then DescList.Add("   错误类型：" & Ex.GetType.FullName)
-            Ex = Ex.InnerException
-            IsInner = True
-        Loop
-
-        '常见错误（记得同时修改下面的）
-        Dim CommonReason As String = Nothing
-        If TypeOf InnerEx Is TypeLoadException OrElse TypeOf InnerEx Is BadImageFormatException OrElse TypeOf InnerEx Is MissingMethodException OrElse TypeOf InnerEx Is NotImplementedException OrElse TypeOf InnerEx Is TypeInitializationException Then
-            CommonReason = "PCL 的运行环境存在问题。请尝试重新安装 .NET Framework 4.8.1 然后再试。若无法安装，请先卸载较新版本的 .NET Framework，然后再尝试安装。"
-        ElseIf TypeOf InnerEx Is UnauthorizedAccessException Then
-            CommonReason = "PCL 的权限不足。请尝试右键 PCL，选择以管理员身份运行。"
-        ElseIf TypeOf InnerEx Is OutOfMemoryException Then
-            CommonReason = "你的电脑运行内存不足，导致 PCL 无法继续运行。请在关闭一部分不需要的程序后再试。"
-        ElseIf TypeOf InnerEx Is Runtime.InteropServices.COMException Then
-            CommonReason = "由于操作系统或显卡存在问题，导致出现错误。请尝试重启 PCL。"
-        ElseIf {"远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝",
-                "操作已超时", "操作超时", "服务器超时", "连接超时"}.Any(Function(s) DescList.Any(Function(l) l.Contains(s))) Then
-            CommonReason = "你的网络环境不佳，导致难以连接到服务器。请稍后重试，或使用 VPN 以改善网络环境。"
-        ElseIf TypeOf InnerEx Is PlatformNotSupportedException Then
-            CommonReason = "你当前的 Windows 版本过低，无法运行当前版本的 PCL。请升级到 Windows 10 或更高版本后再试。"
-        End If
-
-        '构造输出信息
-        If CommonReason Is Nothing Then
-            Return DescList.Join(vbCrLf)
-        Else
-            Return CommonReason & vbCrLf & vbCrLf & "————————————" & vbCrLf & "详细错误信息：" & vbCrLf & DescList.Join(vbCrLf)
-        End If
-    End Function
-    ''' <summary>
-    ''' 提取 Exception 描述，汇总到一行。
-    ''' </summary>
-    Public Function GetExceptionSummary(Ex As Exception) As String
-        If Ex Is Nothing Then Return "无可用错误信息！"
-
-        '获取最底层的异常
-        Dim InnerEx As Exception = Ex
-        Do Until InnerEx.InnerException Is Nothing
-            InnerEx = InnerEx.InnerException
-        Loop
-
-        '获取各级错误的描述
-        Dim DescList As New List(Of String)
-        Do Until Ex Is Nothing
-            DescList.Add(Ex.Message.Replace(vbCrLf, vbCr).Replace(vbLf, vbCr).Replace(vbCr & vbCr, vbCr).Replace(vbCr, " "))
-            Ex = Ex.InnerException
-        Loop
-        DescList = DescList.Distinct.ToList
-        Dim Desc As String = Join(DescList, vbCrLf & "→ ")
-
-        '常见错误（记得同时修改上面的）
-        Dim CommonReason As String = Nothing
-        If TypeOf InnerEx Is TypeLoadException OrElse TypeOf InnerEx Is BadImageFormatException OrElse TypeOf InnerEx Is MissingMethodException OrElse TypeOf InnerEx Is NotImplementedException OrElse TypeOf InnerEx Is TypeInitializationException Then
-            CommonReason = "PCL 的运行环境存在问题。请尝试重新安装 .NET Framework 4.8.1 然后再试。若无法安装，请先卸载较新版本的 .NET Framework，然后再尝试安装。"
-        ElseIf TypeOf InnerEx Is UnauthorizedAccessException Then
-            CommonReason = "PCL 的权限不足。请尝试右键 PCL，选择以管理员身份运行。"
-        ElseIf TypeOf InnerEx Is OutOfMemoryException Then
-            CommonReason = "你的电脑运行内存不足，导致 PCL 无法继续运行。请在关闭一部分不需要的程序后再试。"
-        ElseIf TypeOf InnerEx Is Runtime.InteropServices.COMException Then
-            CommonReason = "由于操作系统或显卡存在问题，导致出现错误。请尝试重启 PCL。"
-        ElseIf {"远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝",
-                "操作已超时", "操作超时", "服务器超时", "连接超时"}.Any(Function(s) Desc.Contains(s)) Then
-            CommonReason = "你的网络环境不佳，导致难以连接到服务器。请稍后重试，或使用 VPN 以改善网络环境。"
-        ElseIf TypeOf InnerEx Is PlatformNotSupportedException Then
-            CommonReason = "你当前的 Windows 版本过低，无法运行当前版本的 PCL。请升级到 Windows 10 或更高版本后再试。"
-        End If
-
-        '构造输出信息
-        If CommonReason IsNot Nothing Then
-            Return CommonReason & "详细错误：" & DescList.First
-        Else
-            DescList.Reverse() '让最深层错误在最左边
-            Return Join(DescList, " ← ")
-        End If
-    End Function
 
     ''' <summary>
     ''' 返回一个枚举对应的字符串。
@@ -2262,13 +2161,6 @@ RetryDir:
 NextElement:
         Next i
         Return ResultArray
-    End Function
-    
-    ''' <summary>
-    ''' 获取十进制 Unix 时间戳。
-    ''' </summary>
-    Public Function GetUnixTimestamp() As Long
-        Return (Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000
     End Function
 
     ''' <summary>
@@ -3009,7 +2901,7 @@ NextElement:
         If TypeOf Ex Is ThreadInterruptedException Then Return
 
         '获取错误信息
-        Dim ExFull As String = Desc & "：" & GetExceptionDetail(Ex)
+        Dim ExFull As String = Desc & "：" & Ex.Message
 
         '输出日志
         If {LogLevel.Msgbox, LogLevel.Hint}.Contains(Level) Then
@@ -3035,19 +2927,19 @@ NextElement:
             Case LogLevel.Normal
 #If DEBUGRESERVED Then
             Case LogLevel.Developer
-                Dim ExLine As String = Desc & "：" & GetExceptionSummary(Ex)
+                Dim ExLine As String = Desc & "：" & Ex.ToString()
                 Hint("[开发者模式] " & ExLine, HintType.Info, False)
             Case LogLevel.Debug
-                Dim ExLine As String = Desc & "：" & GetExceptionSummary(Ex)
+                Dim ExLine As String = Desc & "：" & Ex.ToString()
                 Hint("[调试模式] " & ExLine, HintType.Info, False)
 #Else
             Case LogLevel.Developer
             Case LogLevel.Debug
-                Dim ExLine As String = Desc & "：" & GetExceptionSummary(Ex)
+                Dim ExLine As String = Desc & "：" & Ex.ToString()
                 If ModeDebug Then Hint("[调试模式] " & ExLine, HintType.Info, False)
 #End If
             Case LogLevel.Hint
-                Dim ExLine As String = Desc & "：" & GetExceptionSummary(Ex)
+                Dim ExLine As String = Desc & "：" & Ex.ToString()
                 Hint(ExLine, HintType.Critical, False)
             Case LogLevel.Msgbox
                 MyMsgBox(ExFull, Title, IsWarn:=True)

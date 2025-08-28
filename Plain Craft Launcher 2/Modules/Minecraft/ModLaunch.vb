@@ -190,7 +190,7 @@ NextInner:
                 GoTo NextInner
             Else
                 '没有特殊处理过的错误信息
-                McLaunchLog("错误：" & GetExceptionDetail(ex))
+                McLaunchLog("错误：" & ex.ToString())
                 Log(ex,
                     If(CurrentLaunchOptions?.SaveBatch Is Nothing, "Minecraft 启动失败", "导出启动脚本失败"), LogLevel.Msgbox,
                     If(CurrentLaunchOptions?.SaveBatch Is Nothing, "启动失败", "导出启动脚本失败"))
@@ -800,7 +800,7 @@ Retry:
                 "application/json",
                 False)
         Catch ex As PCL.ModNet.HttpWebException
-            Dim Message As String = GetExceptionSummary(ex)
+            Dim Message As String = ex.Message
             If CType(ex.StatusCode, Integer) = 429 Then
                 Log(ex, "正版验证 Step 4 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
@@ -873,7 +873,7 @@ Retry:
                 False,
                 New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
         Catch ex As PCL.ModNet.HttpWebException
-            Dim Message As String = GetExceptionSummary(ex)
+            Dim Message As String = ex.Message
             If CType(ex.StatusCode, Integer) = 429 Then '微软！我的 TooManyRequests 枚举呢？
                 Log(ex, "正版验证 Step 6 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
@@ -922,14 +922,14 @@ Retry:
                 McLoginRequestValidate(Data)
                 GoTo LoginFinish
             Catch ex As HttpWebException
-                Dim AllMessage = GetExceptionDetail(ex)
+                Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
                     Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
                 End If
             Catch ex As Exception
-                Dim AllMessage = GetExceptionDetail(ex)
+                Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
                 Throw
             End Try
@@ -941,7 +941,7 @@ Refresh:
                 McLoginRequestRefresh(Data, NeedRefresh)
                 GoTo LoginFinish
             Catch ex As Exception
-                ProfileLog("刷新登录失败：" & GetExceptionDetail(ex))
+                ProfileLog("刷新登录失败：" & ex.ToString())
                 If WasRefreshed Then Throw New Exception("二轮刷新登录失败", ex)
             End Try
             Data.Progress = If(NeedRefresh, 0.85, 0.45)
@@ -951,7 +951,7 @@ Refresh:
             If Data.IsAborted Then Throw New ThreadInterruptedException
             NeedRefresh = McLoginRequestLogin(Data)
         Catch ex As HttpWebException
-            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            ProfileLog("验证失败：" & ex.ToString())
             Dim message As String = Nothing
             Dim responseText = ex.InnerHttpException.WebResponse
             Try
@@ -963,7 +963,7 @@ Refresh:
             If message Is Nothing Then message = "第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & responseText
             Throw New Exception("$" & message)
         Catch ex As Exception
-            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            ProfileLog("验证失败：" & ex.ToString())
             Throw New Exception("$第三方验证登录失败" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
         End Try
         If NeedRefresh Then
@@ -1138,7 +1138,7 @@ LoginFinish:
         Catch ex As HttpWebException
             Throw
         Catch ex As Exception
-            Dim AllMessage As String = GetExceptionSummary(ex)
+            Dim AllMessage As String = ex.ToString()
             ProfileLog("第三方验证失败: " & ex.ToString())
             If ex.Message.StartsWithF("$") Then
                 Throw
@@ -1944,7 +1944,7 @@ NextInstance:
                             File.Delete(FilePath)
                         Catch ex As UnauthorizedAccessException
                             McLaunchLog("删除原 dll 访问被拒绝，这通常代表有一个 MC 正在运行，跳过解压：" & FilePath)
-                            McLaunchLog("实际的错误信息：" & GetExceptionSummary(ex))
+                            McLaunchLog("实际的错误信息：" & ex.ToString())
                             Exit For
                         End Try
                     End If
@@ -1964,7 +1964,7 @@ NextInstance:
                 File.Delete(FileName)
             Catch ex As UnauthorizedAccessException
                 McLaunchLog("删除多余文件访问被拒绝，跳过删除步骤")
-                McLaunchLog("实际的错误信息：" & GetExceptionSummary(ex))
+                McLaunchLog("实际的错误信息：" & ex.ToString())
                 Return
             End Try
         Next

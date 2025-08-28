@@ -234,7 +234,7 @@ Download:
             Catch ex As Exception
                 If ModeDebug Then
                     Log(ex, "加载失败的主页内容：" & vbCrLf & Content)
-                    If MyMsgBox(If(TypeOf ex Is UnauthorizedAccessException, ex.Message, $"主页内容编写有误，请根据下列错误信息进行检查：{vbCrLf}{GetExceptionSummary(ex)}"),
+                    If MyMsgBox(If(TypeOf ex Is UnauthorizedAccessException, ex.Message, $"主页内容编写有误，请根据下列错误信息进行检查：{vbCrLf}{ex.ToString()}"),
                                 "加载主页界面失败", "重试", "取消") = 1 Then
                         GoTo Refresh '防止 SyncLock 死锁
                     End If

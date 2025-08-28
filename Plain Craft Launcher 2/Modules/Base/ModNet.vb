@@ -1341,11 +1341,11 @@ SourceBreak:
                         Task.FailCount += 1
                     Next
                 End SyncLock
-                Dim IsTimeoutString As String = GetExceptionSummary(ex).ToLower.Replace(" ", "")
+                Dim IsTimeoutString As String = Ex.ToString().ToLower.Replace(" ", "")
                 Dim IsTimeout As Boolean = IsTimeoutString.Contains("由于连接方在一段时间后没有正确答复或连接的主机没有反应") OrElse
                                            IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout") OrElse
                                            ex.GetType() = GetType(TimeoutException) OrElse ex.GetType() = GetType(TaskCanceledException) OrElse (ex.GetType() = GetType(AggregateException) AndAlso CType(ex, AggregateException).InnerExceptions.Any(Function(x) x.GetType() = GetType(TaskCanceledException) OrElse x.GetType() = GetType(TimeoutException)))
-                Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & GetExceptionDetail(ex)))
+                Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & ex.ToString()))
                 Info.State = NetState.Error
                 ''使用该下载源的线程是否没有速度
                 ''下载超时也会导致没有速度，容易误判下载失败，所以已弃用此方法
@@ -1854,7 +1854,7 @@ Retry:
             '在退出同步锁后再进行日志输出
             Dim ErrOutput As New List(Of String)
             For Each Ex As Exception In ExList
-                ErrOutput.Add(GetExceptionDetail(Ex))
+                ErrOutput.Add(Ex.Message)
             Next
             Log("[Download] " & Join(ErrOutput.Distinct.ToArray, vbCrLf))
         End Sub

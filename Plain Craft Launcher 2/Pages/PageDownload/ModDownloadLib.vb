@@ -2620,7 +2620,7 @@ Retry:
             Case LoadState.Finished
                 Hint(Loader.Name & "成功！", HintType.Finish)
             Case LoadState.Failed
-                Hint(Loader.Name & "失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
             Case LoadState.Aborted
                 Hint(Loader.Name & "已取消！", HintType.Info)
         End Select
@@ -2639,7 +2639,7 @@ Retry:
                 DeleteDirectory(Loader.Input & "PCLInstallBackups\")
                 Hint(Loader.Name & "成功！", HintType.Finish)
             Case LoadState.Failed
-                Hint(Loader.Name & "失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
             Case LoadState.Aborted
                 Hint(Loader.Name & "已取消！", HintType.Info)
             Case LoadState.Loading

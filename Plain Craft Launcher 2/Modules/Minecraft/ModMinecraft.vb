@@ -61,7 +61,7 @@ Public Module ModMinecraft
                     Files.CheckPermissionWithException(path)
                     cacheMcFolderList.Add(New McFolder With {.Name = name, .Path = path, .Type = McFolderType.Custom})
                 Catch ex As Exception
-                    MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & GetExceptionSummary(ex), "Minecraft 文件夹失效", IsWarn:=True)
+                    MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & ex.Message, "Minecraft 文件夹失效", IsWarn:=True)
                     Log(ex, $"无法访问 Minecraft 文件夹 {path}")
                 End Try
             Next
@@ -686,7 +686,7 @@ Recheck:
             Catch ex As Exception
                 Log(ex, "依赖实例检查出错（" & Name & "）")
                 State = McInstanceState.Error
-                Info = "未知错误：" & GetExceptionSummary(ex)
+                Info = "未知错误：" & ex.ToString()
                 Return False
             End Try
 
@@ -827,7 +827,7 @@ ExitDataLoad:
                     NEWSetup.Instance.VersionMinor(Path) = Version.McCodeSub
                 End If
             Catch ex As Exception
-                Info = "未知错误：" & GetExceptionSummary(ex)
+                Info = "未知错误：" & ex.ToString()
                 Logo = PathImage & "Blocks/RedstoneBlock.png"
                 State = McInstanceState.Error
                 Log(ex, "加载实例失败（" & Name & "）", LogLevel.Feedback)

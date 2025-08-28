@@ -462,7 +462,7 @@ Public Class PageOtherTest
                                            End Sub)
                                End If
                            Catch ex As Exception
-                               If GetExceptionSummary(ex).Contains("429") Then
+                               If ex.ToString().Contains("429") Then
                                    Hint("获取皮肤太过频繁，请 5 分钟之后再试！", HintType.Critical)
                                    Log("获取正版皮肤失败（" & ID & "）：获取皮肤太过频繁，请 5 分钟后再试！")
                                Else

@@ -1417,7 +1417,7 @@ Install:
                                 Hint($"已成功更新 {FinishedFileNames.Count} 个资源！", HintType.Finish)
                         End Select
                     Case LoadState.Failed
-                        Hint("资源更新失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                        Hint("资源更新失败：" & Loader.Error.Message, HintType.Critical)
                     Case LoadState.Aborted
                         Hint("资源更新已中止！", HintType.Info)
                     Case Else
@@ -1572,7 +1572,7 @@ Install:
             Dim ModdedLabyMod = PageInstanceLeft.Instance.Version.HasLabyMod AndAlso PageInstanceLeft.Instance.Modable
             '加载失败信息
             If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then
-                MyMsgBox("无法读取此资源的信息。" & vbCrLf & vbCrLf & "详细的错误信息：" & GetExceptionDetail(ModEntry.FileUnavailableReason), "资源读取失败")
+                MyMsgBox("无法读取此资源的信息。" & vbCrLf & vbCrLf & "详细的错误信息：" & ModEntry.FileUnavailableReason.Message, "资源读取失败")
                 Return
             End If
             If ModEntry.Comp IsNot Nothing Then
