@@ -171,6 +171,7 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="背景模糊" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderBackgroundBlur" Tag="UiBackgroundBlur" MaxValue="40" Grid.Column="1" ToolTip="较强的模糊会导致启动器严重掉帧，请谨慎使用。&#13;不建议在制作整合包时开启模糊，以确保 PCL 在低性能电脑上可以流畅运行。" />
                     </Grid>
+                    <local:MyCheckBox Text="游戏启动后暂停视频背景，游戏退出后重新播放" Margin="-1,0,0,8" Height="22" x:Name="CheckAutoPauseVideo" Tag="UiAutoPauseVideo" ToolTip="若启用此项设置，游戏时将无法刷新背景" IsEnabled="True"/>
                     <local:MyCheckBox Text="叠加彩色背景" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful" Tag="UiBackgroundColorful" />
                     <Grid Height="35" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>

@@ -1,6 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Threading.Tasks
+Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.Exts
 
 Public Class PageSetupUI
@@ -41,7 +42,7 @@ Public Class PageSetupUI
                 End If
             Next
         End If
-        
+
 #If DEBUG Then
         If EnableCustomTheme Then
             LabLauncherDelta.Visibility = Visibility.Visible
@@ -151,6 +152,12 @@ Public Class PageSetupUI
             SliderBackgroundBlur.Value = Setup.Get("UiBackgroundBlur")
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
+            CheckAutoPauseVideo.Checked = SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo)
+            If ModVideoBack.IsGaming = True Then
+                If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = True Then
+                    BtnBackgroundRefresh.IsEnabled = False
+                End If
+            End If
             BackgroundRefresh(False, False)
 
             '标题栏
@@ -266,6 +273,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
             Setup.Reset("UiHiddenVersionSchematic")
+            SetupService.DeleteBool(SetupEntries.Ui.AutoPauseVideo)
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -283,7 +291,7 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckAutoPauseVideo.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -314,12 +322,14 @@ Public Class PageSetupUI
             PanBackgroundBlur.Visibility = Visibility.Visible
             PanBackgroundSuit.Visibility = Visibility.Visible
             BtnBackgroundClear.Visibility = Visibility.Visible
+            CheckAutoPauseVideo.Visibility = Visibility.Visible
             CardBackground.Title = "背景图片/视频（" & Count & " 张）"
         Else
             PanBackgroundOpacity.Visibility = Visibility.Collapsed
             PanBackgroundBlur.Visibility = Visibility.Collapsed
             PanBackgroundSuit.Visibility = Visibility.Collapsed
             BtnBackgroundClear.Visibility = Visibility.Collapsed
+            CheckAutoPauseVideo.Visibility = Visibility.Collapsed
             CardBackground.Title = "背景图片/视频"
         End If
         CardBackground.TriggerForceResize()
@@ -353,8 +363,7 @@ Public Class PageSetupUI
                         Dim videoEx = e.ErrorException
                         Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
                         If FrmMain.VideoBack.Source IsNot Nothing Then
-                            FrmMain.VideoBack.Source = Nothing
-                            FrmMain.VideoBack.Stop()
+                            VideoStop()
                             
                             If videoEx.Message.Contains("0xC00D109B") Then
                                 Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
@@ -366,6 +375,11 @@ Public Class PageSetupUI
                         End If
                     End Sub
             RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
+            RemoveHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            RemoveHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
+            AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
+            If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = False Then ModVideoBack.ForcePlay = True
             '加载
             If Pic.Count = 0 Then
                 If Refresh Then
@@ -382,10 +396,8 @@ Public Class PageSetupUI
                     Dim Address As String = RandomOne(Pic)
                     Try
                         FrmMain.ImgBack.Background = Nothing
-                        FrmMain.VideoBack.Source = Nothing
-                        FrmMain.VideoBack.Stop()
-                        FrmMain.VideoBack.Position = TimeSpan.Zero
-                        Log("[UI] 加载背景图片：" & Address)
+                        VideoStop()
+                        Log("[UI] 加载背景内容：" & Address)
                         FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
@@ -397,7 +409,7 @@ Public Class PageSetupUI
                             Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
-                            FrmMain.VideoBack.Play()
+                            VideoPlay()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
                             Log(playEx,"播放背景内容时出现未知错误：")
