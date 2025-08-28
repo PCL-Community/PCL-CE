@@ -2801,7 +2801,7 @@ NextElement:
 
         If IsProgramEnded Then Return
 
-        If Ex.GetType() = GetType(ComponentModel.Win32Exception) Then ExFull += vbCrLf & "与系统底层交互失败，请尝试重新安装 .NET Framework 4.8.1 解决此问题"
+        If Ex.GetType() = GetType(ComponentModel.Win32Exception) Then ExFull += vbCrLf & "与系统底层交互失败，请尝试重新安装 .NET 8 解决此问题"
 
         '输出提示
         Select Case Level
