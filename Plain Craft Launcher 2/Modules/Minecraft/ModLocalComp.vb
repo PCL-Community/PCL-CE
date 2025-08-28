@@ -1,6 +1,7 @@
 Imports System.IO.Compression
 
 Imports fNbt
+Imports PCL.Core.Utils
 
 Public Module ModLocalComp
     Private Const LocalModCacheVersion As Integer = 7
@@ -1648,7 +1649,7 @@ Finished:
             Log($"[Mod] 共有 {ModList.Count} 个 Mod，其中 {ModUpdateList.Where(Function(m) m.Comp Is Nothing).Count} 个需要联网获取信息，{ModUpdateList.Where(Function(m) m.Comp IsNot Nothing).Count} 个需要更新信息")
 
             '排序
-            ModList = Sort(ModList,
+            ModList = SortUtils.Sort(ModList,
                 Function(Left As LocalCompFile, Right As LocalCompFile) As Boolean
                     If (Left.State = LocalCompFile.LocalFileStatus.Unavailable) <> (Right.State = LocalCompFile.LocalFileStatus.Unavailable) Then
                         Return Left.State = LocalCompFile.LocalFileStatus.Unavailable

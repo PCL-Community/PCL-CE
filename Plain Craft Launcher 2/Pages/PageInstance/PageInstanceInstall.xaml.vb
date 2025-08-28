@@ -1,4 +1,5 @@
 Imports System.Text.RegularExpressions
+Imports PCL.Core.Utils
 
 Public Class PageInstanceInstall
 
@@ -1120,7 +1121,7 @@ Public Class PageInstanceInstall
             Next
             '排序
             For i = 0 To Dict.Keys.Count - 1
-                Dict(Dict.Keys(i)) = Sort(Dict.Values(i), Function(Left As JObject, Right As JObject) As Boolean
+                Dict(Dict.Keys(i)) = SortUtils.Sort(Dict.Values(i), Function(Left As JObject, Right As JObject) As Boolean
                                                               Return Left("releaseTime").Value(Of Date) > Right("releaseTime").Value(Of Date)
                                                           End Function)
             Next
@@ -1253,7 +1254,7 @@ Public Class PageInstanceInstall
             Next
             If Not Versions.Any() Then Exit Sub
             '排序
-            Versions = Sort(Versions,
+            Versions = SortUtils.Sort(Versions,
             Function(Left As DlOptiFineListEntry, Right As DlOptiFineListEntry) As Boolean
                 If Not Left.IsPreview AndAlso Right.IsPreview Then Return True
                 If Left.IsPreview AndAlso Not Right.IsPreview Then Return False
@@ -1404,7 +1405,7 @@ Public Class PageInstanceInstall
             Dim Versions = Loader.Output.ToList '复制数组，以免 Output 在实例化后变空
             If Not Loader.Output.Any() Then Exit Sub
             PanForge.Children.Clear()
-            Versions = Sort(Versions, Function(a, b) a.Version > b.Version).Where(
+            Versions = SortUtils.Sort(Versions, Function(a, b) a.Version > b.Version).Where(
             Function(v)
                 If v.Category = "universal" OrElse v.Category = "client" Then Return False '跳过无法自动安装的版本
                 If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, v) Then Return False
@@ -1722,7 +1723,7 @@ Public Class PageInstanceInstall
                 End If
             Next
             If Not Versions.Any() Then Exit Sub
-            Versions = Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
+            Versions = SortUtils.Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
             '可视化
             PanFabricApi.Children.Clear()
             For Each Version In Versions
@@ -2053,7 +2054,7 @@ Public Class PageInstanceInstall
                 End If
             Next
             If Not Versions.Any() Then Exit Sub
-            Versions = Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
+            Versions = SortUtils.Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
             '可视化
             PanQSL.Children.Clear()
             For Each Version In Versions
@@ -2246,7 +2247,7 @@ Public Class PageInstanceInstall
             Next
             If Not Versions.Any() Then Exit Sub
             '排序
-            Versions = Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
+            Versions = SortUtils.Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
             '可视化
             PanOptiFabric.Children.Clear()
             For Each Version In Versions

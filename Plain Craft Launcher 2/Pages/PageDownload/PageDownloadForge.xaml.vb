@@ -1,4 +1,6 @@
-﻿Public Class PageDownloadForge
+﻿Imports PCL.Core.Utils
+
+Public Class PageDownloadForge
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlForgeListLoader, AddressOf Load_OnFinish)
@@ -13,7 +15,7 @@
             '清空当前
             PanMain.Children.Clear()
             '转化为 UI
-            For Each Version As String In DlForgeListLoader.Output.Value.Sort(AddressOf VersionSortBoolean)
+            For Each Version As String In SortUtils.Sort(DlForgeListLoader.Output.Value, AddressOf VersionSortBoolean)
                 '增加卡片
                 Dim NewCard As New MyCard With {.Title = Version.Replace("_p", " P"), .Margin = New Thickness(0, 0, 0, 15)}
                 Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Version}
@@ -59,7 +61,7 @@
         Card.SwapControl.Children.Clear()
         Card.SwapControl.Tag = Loader.Output
         Card.InstallMethod = Sub(Stack As StackPanel)
-                                 Stack.Tag = Sort(CType(Stack.Tag, List(Of DlForgeVersionEntry)), Function(a, b) a.Version > b.Version)
+                                 Stack.Tag = SortUtils.Sort(CType(Stack.Tag, List(Of DlForgeVersionEntry)), Function(a, b) a.Version > b.Version)
                                  ForgeDownloadListItemPreload(Stack, Stack.Tag, AddressOf ForgeSave_Click, True)
                                  For Each item In Stack.Tag
                                      Stack.Children.Add(ForgeDownloadListItem(item, AddressOf ForgeSave_Click, True))

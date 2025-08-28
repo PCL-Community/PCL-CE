@@ -1,3 +1,5 @@
+Imports PCL.Core.Utils
+
 Public Class PageDownloadInstall
 
     Private Sub LoaderInit() Handles Me.Initialized
@@ -1888,7 +1890,7 @@ Public Class PageDownloadInstall
                 End If
             Next
             If Not Versions.Any() Then Exit Sub
-            Versions = Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
+            Versions = SortUtils.Sort(Versions, Function(a, b) a.ReleaseDate > b.ReleaseDate)
             '可视化
             PanQSL.Children.Clear()
             For Each Version In Versions

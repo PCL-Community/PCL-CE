@@ -1,4 +1,6 @@
 ﻿
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Class PageDownloadCompDetail
     Private CompItem As MyCompItem = Nothing
@@ -200,7 +202,7 @@ Public Class PageDownloadCompDetail
                 Dim NewStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = Pair.Value}
                 NewCard.Children.Add(NewStack)
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
-                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of CompFile)), Function(a, b) a.ReleaseDate > b.ReleaseDate)
+                                            Stack.Tag = SortUtils.Sort(CType(Stack.Tag, List(Of CompFile)), Function(a, b) a.ReleaseDate > b.ReleaseDate)
                                             Dim BadDisplayName = CType(Stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(Stack.Tag, List(Of CompFile)).Count
                                             If Project.Type = CompType.ModPack Then
                                                 For Each item In Stack.Tag
@@ -309,7 +311,7 @@ Public Class PageDownloadCompDetail
             Sub(MyLoader)
                 Select Case MyLoader.State
                     Case LoadState.Failed
-                        Hint(MyLoader.Name & "失败：" & GetExceptionSummary(MyLoader.Error), HintType.Critical)
+                        Hint(MyLoader.Name & "失败：" & MyLoader.Error.Message, HintType.Critical)
                     Case LoadState.Aborted
                         Hint(MyLoader.Name & "已取消！", HintType.Info)
                     Case LoadState.Loading
@@ -392,7 +394,7 @@ Public Class PageDownloadCompDetail
                 End If
             End If
 
-            Dim Target As String = SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" & "*.zip", DefaultFolder)
+            Dim Target As String = DialogUtils.SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" & "*.zip", DefaultFolder)
             If String.IsNullOrEmpty(Target) Then Return
 
             '构造步骤加载器
@@ -527,7 +529,7 @@ Public Class PageDownloadCompDetail
                 Sub()
                     '弹窗要求选择保存位置
                     Dim Target As String
-                    Target = SelectSaveFile("选择保存位置", FileName,
+                    Target = DialogUtils.SelectSaveFile("选择保存位置", FileName,
                         Desc & "文件|" &
                         If(File.Type = CompType.Mod,
                             If(File.FileName.EndsWith(".litemod"), "*.litemod", "*.jar"),

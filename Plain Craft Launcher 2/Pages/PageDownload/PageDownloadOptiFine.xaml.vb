@@ -1,4 +1,6 @@
-﻿Public Class PageDownloadOptiFine
+﻿Imports PCL.Core.Utils
+
+Public Class PageDownloadOptiFine
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlOptiFineListLoader, AddressOf Load_OnFinish)
@@ -40,7 +42,7 @@
                 NewCard.SwapControl = NewStack
                 NewCard.IsSwapped = True
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
-                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) VersionSortBoolean(a.NameDisplay, b.NameDisplay))
+                                            Stack.Tag = SortUtils.Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) VersionSortBoolean(a.NameDisplay, b.NameDisplay))
                                             For Each item In Stack.Tag
                                                 Stack.Children.Add(OptiFineDownloadListItem(item, AddressOf OptiFineSave_Click, True))
                                             Next

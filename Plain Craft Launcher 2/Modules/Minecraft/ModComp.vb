@@ -1530,7 +1530,7 @@ Retry:
                     Dim RawVersions As List(Of String) = Data("gameVersions").Select(Function(t) t.ToString.Trim.ToLower).ToList
                     GameVersions = RawVersions.Where(Function(v) v.StartsWithF("1.")).Select(Function(v) v.Replace("-snapshot", " 预览版")).ToList
                     If GameVersions.Count > 1 Then
-                        GameVersions = GameVersions.Sort(AddressOf VersionSortBoolean).ToList
+                        GameVersions.Sort(AddressOf VersionSortBoolean)
                         If Type = CompType.ModPack Then GameVersions = New List(Of String) From {GameVersions(0)} '整合包理应只 "支持" 一个版本
                     ElseIf GameVersions.Count = 1 Then
                         GameVersions = GameVersions.ToList
@@ -1590,7 +1590,7 @@ Retry:
                     GameVersions = RawVersions.Where(Function(v) v.StartsWithF("1.") OrElse v.StartsWithF("b1.")).
                                                Select(Function(v) If(v.Contains("-"), v.BeforeFirst("-") & " 预览版", If(v.StartsWithF("b1."), "远古版本", v))).ToList
                     If GameVersions.Count > 1 Then
-                        GameVersions = GameVersions.Sort(AddressOf VersionSortBoolean).ToList
+                        GameVersions.Sort(AddressOf VersionSortBoolean)
                         If Type = CompType.ModPack Then GameVersions = New List(Of String) From {GameVersions(0)} '整合包理应只 "支持" 一个版本
                     ElseIf GameVersions.Count = 1 Then
                         '无需处理
