@@ -101,6 +101,7 @@ Public Class PageInstanceOverall
                                                                                   Dim wrapPanel As New WrapPanel With {.Margin = New Thickness(0, -5, -20, 7)}
                                                                                   For Each item In items
                                                                                       wrapPanel.Children.Add(item)
+                                                                                      wrapPanel.Children.Add(New TextBlock With{.Width = 2})
                                                                                   Next
                                                                                   PanInfo.Children.Clear()
                                                                                   If ModpackCompItem IsNot Nothing Then
