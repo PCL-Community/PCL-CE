@@ -2,6 +2,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
 Imports PCL.Core.IO
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 
 Public Module ModMain
@@ -68,18 +69,18 @@ Public Module ModMain
                     If stack.Tag(0) AndAlso CType(stack.Child, TextBlock).Text = CurrentHint.Text Then DoubleStack = stack
                 Next
                 '获取渐变颜色
-                Dim TargetColor0, TargetColor1 As MyColor
+                Dim TargetColor0, TargetColor1 As ModernColor
                 Dim Percent As Double = 0.3
                 Select Case CurrentHint.Type
                     Case HintType.Info
-                        TargetColor0 = New MyColor(215, 37, 155, 252)
-                        TargetColor1 = New MyColor(215, 10, 142, 252)
+                        TargetColor0 = New ModernColor(215, 37, 155, 252)
+                        TargetColor1 = New ModernColor(215, 10, 142, 252)
                     Case HintType.Finish
-                        TargetColor0 = New MyColor(215, 33, 177, 33)
-                        TargetColor1 = New MyColor(215, 29, 160, 29)
+                        TargetColor0 = New ModernColor(215, 33, 177, 33)
+                        TargetColor1 = New ModernColor(215, 29, 160, 29)
                     Case Else 'HintType.Critical
-                        TargetColor0 = New MyColor(215, 255, 53, 11)
-                        TargetColor1 = New MyColor(215, 255, 43, 0)
+                        TargetColor0 = New ModernColor(215, 255, 53, 11)
+                        TargetColor1 = New ModernColor(215, 255, 43, 0)
                 End Select
                 If Not IsNothing(DoubleStack) Then
                     '有重复提示，且该提示的进入动画已播放
@@ -94,8 +95,8 @@ Public Module ModMain
                             AaDouble(Sub(i)
                                          Percent += i
                                          Dim Gradient As LinearGradientBrush = DoubleStack.Background
-                                         Gradient.GradientStops(0).Color = TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
-                                         Gradient.GradientStops(1).Color = TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
+                                         Gradient.GradientStops(0).Color = TargetColor0 * Percent + ModernColor.White * (1 - Percent)
+                                         Gradient.GradientStops(1).Color = TargetColor1 * Percent + ModernColor.White * (1 - Percent)
                                      End Sub, 0.7, 250),
                             AaX(DoubleStack, -50, 200, Delay, New AniEaseInFluent),
                             AaOpacity(DoubleStack, -1, 150, Delay),
@@ -108,9 +109,9 @@ Public Module ModMain
                     '准备控件
                     Dim NewHintControl As New Border With {.Tag = {True, GetUuid()}, .Margin = New Thickness(-70, 0, 20, 0), .Opacity = 0, .Height = 0, .HorizontalAlignment = HorizontalAlignment.Left, .CornerRadius = New CornerRadius(0, 6, 6, 0)}
                     NewHintControl.Background = New LinearGradientBrush(New GradientStopCollection(New List(Of GradientStop) From {
-                        New GradientStop(TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 0),
-                        New GradientStop(TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 1)}), 90)
-                    NewHintControl.Child = New TextBlock With {.TextTrimming = TextTrimming.CharacterEllipsis, .FontSize = 13, .Text = CurrentHint.Text, .Foreground = New MyColor(255, 255, 255), .Margin = New Thickness(33, 5, 8, 5)}
+                        New GradientStop(TargetColor0 * Percent + ModernColor.White * (1 - Percent), 0),
+                        New GradientStop(TargetColor1 * Percent + ModernColor.White * (1 - Percent), 1)}), 90)
+                    NewHintControl.Child = New TextBlock With {.TextTrimming = TextTrimming.CharacterEllipsis, .FontSize = 13, .Text = CurrentHint.Text, .Foreground = ModernColor.White, .Margin = New Thickness(33, 5, 8, 5)}
                     'AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
                     FrmMain.PanHint.Children.Add(NewHintControl)
                     '控件动画
@@ -130,8 +131,8 @@ Public Module ModMain
                         AaDouble(Sub(i)
                                      Percent += i
                                      Dim Gradient As LinearGradientBrush = NewHintControl.Background
-                                     Gradient.GradientStops(0).Color = TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
-                                     Gradient.GradientStops(1).Color = TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
+                                     Gradient.GradientStops(0).Color = TargetColor0 * Percent + ModernColor.White * (1 - Percent)
+                                     Gradient.GradientStops(1).Color = TargetColor1 * Percent + ModernColor.White * (1 - Percent)
                                  End Sub, 0.7, 250, 100)
                     })
                     AniStart(Animations, "Hint Show " & NewHintControl.Tag(1))

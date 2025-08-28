@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.UI
 
 <ContentProperty("Inlines")>
 Public Class MyRadioBox
@@ -208,8 +209,8 @@ Public Class MyRadioBox
                 Radiobox_MouseLeaveAnimation()
             Else
                 '不可用
-                AniStart(AaColor(ShapeBorder, Ellipse.StrokeProperty, ColorGray4 - ShapeBorder.Stroke, AnimationTimeOfMouseOut), "MyRadioBox BorderColor " & Uuid)
-                AniStart(AaColor(LabText, TextBlock.ForegroundProperty, ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut), "MyRadioBox TextColor " & Uuid)
+                AniStart(AaColor(ShapeBorder, Ellipse.StrokeProperty, ColorGray4 - ShapeBorder.Stroke.AsColor(), AnimationTimeOfMouseOut), "MyRadioBox BorderColor " & Uuid)
+                AniStart(AaColor(LabText, TextBlock.ForegroundProperty, ColorGray4 - LabText.Foreground.AsColor(), AnimationTimeOfMouseOut), "MyRadioBox TextColor " & Uuid)
             End If
         Else
             '无动画

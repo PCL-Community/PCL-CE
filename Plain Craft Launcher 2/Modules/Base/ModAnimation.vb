@@ -1,5 +1,6 @@
 ﻿'动画引擎模块
 '使用 Ani 作为方法或属性的开头，使用 Aa 作为单个动画对象的开头（便于自动补全）
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 
 Public Module ModAnimation
@@ -369,8 +370,8 @@ Public Module ModAnimation
     ''' <param name="After">是否等到以前的动画完成后才继续本动画。</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function AaColor(Obj As FrameworkElement, Prop As DependencyProperty, Value As MyColor, Optional Time As Integer = 400, Optional Delay As Integer = 0, Optional Ease As AniEase = Nothing, Optional After As Boolean = False) As AniData
-        Return New AniData With {.TypeMain = AniType.Color, .TimeTotal = Time, .Ease = If(Ease, New AniEaseLinear), .Obj = {Obj, Prop, ""}, .Value = Value, .IsAfter = After, .TimeFinished = -Delay, .ValueLast = New MyColor(0, 0, 0, 0)}
+    Public Function AaColor(Obj As FrameworkElement, Prop As DependencyProperty, Value As ModernColor, Optional Time As Integer = 400, Optional Delay As Integer = 0, Optional Ease As AniEase = Nothing, Optional After As Boolean = False) As AniData
+        Return New AniData With {.TypeMain = AniType.Color, .TimeTotal = Time, .Ease = If(Ease, New AniEaseLinear), .Obj = {Obj, Prop, ""}, .Value = Value, .IsAfter = After, .TimeFinished = -Delay, .ValueLast = New ModernColor(0, 0, 0, 0)}
     End Function
     ''' <summary>
     ''' 改变颜色属性为一个资源的动画。
@@ -385,7 +386,7 @@ Public Module ModAnimation
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function AaColor(Obj As FrameworkElement, Prop As DependencyProperty, Res As String, Optional Time As Integer = 400, Optional Delay As Integer = 0, Optional Ease As AniEase = Nothing, Optional After As Boolean = False) As AniData
-        Return New AniData With {.TypeMain = AniType.Color, .TimeTotal = Time, .Ease = If(Ease, New AniEaseLinear), .Obj = {Obj, Prop, Res}, .Value = New MyColor(Application.Current.FindResource(Res)) - New MyColor(Obj.GetValue(Prop)), .IsAfter = After, .TimeFinished = -Delay, .ValueLast = New MyColor(0, 0, 0, 0)}
+        Return New AniData With {.TypeMain = AniType.Color, .TimeTotal = Time, .Ease = If(Ease, New AniEaseLinear), .Obj = {Obj, Prop, Res}, .Value = ModernColor.TryFromObject(Application.Current.FindResource(Res)) - ModernColor.TryFromObject(Obj.GetValue(Prop)), .IsAfter = After, .TimeFinished = -Delay, .ValueLast = New ModernColor(0, 0, 0, 0)}
     End Function
 
     'Scale
@@ -961,12 +962,12 @@ NextAni:
 
                 Case AniType.Color
                     '利用 Last 记录了余下的小数值
-                    Dim Delta As MyColor = MathPercent(New MyColor(0, 0, 0, 0), Ani.Value, Ani.Ease.GetDelta(Ani.TimeFinished / Ani.TimeTotal, Ani.TimePercent)) + Ani.ValueLast
+                    Dim Delta As ModernColor = MathPercent(ModernColor.Transparent, Ani.Value, Ani.Ease.GetDelta(Ani.TimeFinished / Ani.TimeTotal, Ani.TimePercent)) + Ani.ValueLast
                     Dim Obj As FrameworkElement = Ani.Obj(0)
                     Dim Prop As DependencyProperty = Ani.Obj(1)
-                    Dim NewColor As MyColor = New MyColor(Obj.GetValue(Prop)) + Delta
+                    Dim NewColor As ModernColor = ModernColor.TryFromObject(Obj.GetValue(Prop)) + Delta
                     Obj.SetValue(Prop, If(Prop.PropertyType.Name = "Color", CType(NewColor, Color), CType(NewColor, SolidColorBrush)))
-                    Ani.ValueLast = NewColor - New MyColor(Obj.GetValue(Prop))
+                    Ani.ValueLast = NewColor - ModernColor.TryFromObject(Obj.GetValue(Prop))
 
                 Case AniType.Scale
                     Dim Obj As FrameworkElement = Ani.Obj

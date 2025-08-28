@@ -1,5 +1,7 @@
 Imports System.Threading.Tasks
+Imports PCL.Core.UI
 Imports PCL.Core.UI.Controls
+Imports PCL.Core.Utils.Exts
 
 Public Class MyCard
 
@@ -68,7 +70,7 @@ Public Class MyCard
     Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
         Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
         IsThemeChanging = True
-        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
+        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New ModernColor(bgBrush) - New ModernColor(MainBorder.Background), 300)}, "MyCard Theme " & Uuid)
         Await Task.Delay(300)
         MainBorder.Background = bgBrush
         IsThemeChanging = False

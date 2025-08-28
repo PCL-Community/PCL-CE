@@ -1,4 +1,6 @@
-﻿Public Class MyTextBox
+﻿Imports PCL.Core.UI
+
+Public Class MyTextBox
     Inherits TextBox
 
     '自定义属性
@@ -279,7 +281,7 @@
         End Try
     End Sub
     Private Sub RefreshTextColor() Handles Me.IsEnabledChanged
-        Dim NewColor As MyColor = If(IsEnabled, ColorGray1, ColorGray4)
+        Dim NewColor As ModernColor = If(IsEnabled, ColorGray1, ColorGray4)
         If CType(Foreground, SolidColorBrush).Color.R = NewColor.R Then Return
         If IsLoaded AndAlso AniControlEnabled = 0 AndAlso Not Text = "" Then
             '有动画

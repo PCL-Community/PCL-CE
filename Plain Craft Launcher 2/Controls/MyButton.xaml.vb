@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.UI
 
 <ContentProperty("Inlines")>
 Public Class MyButton
@@ -104,7 +105,7 @@ Public Class MyButton
                     End Select
                 Else
                     '不可用（Gray 4）
-                    AniStart({AaColor(PanFore, Border.BorderBrushProperty, ColorGray4 - PanFore.BorderBrush, AnimationColorOut)}, "MyButton Color " & Uuid)
+                    AniStart({AaColor(PanFore, Border.BorderBrushProperty, ColorGray4 - New ModernColor(PanFore.BorderBrush), AnimationColorOut)}, "MyButton Color " & Uuid)
                 End If
             Else
 

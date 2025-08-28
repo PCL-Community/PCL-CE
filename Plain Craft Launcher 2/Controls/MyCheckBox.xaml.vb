@@ -1,4 +1,5 @@
 Imports System.Windows.Markup
+Imports PCL.Core.UI
 
 <ContentProperty("Inlines")>
 Public Class MyCheckBox
@@ -270,10 +271,10 @@ Public Class MyCheckBox
             Else
                 '不可用
                 AniStart({
-                         AaColor(ShapeBorder, Border.BorderBrushProperty, ColorGray4 - ShapeBorder.BorderBrush, AnimationTimeOfMouseOut)
+                         AaColor(ShapeBorder, Border.BorderBrushProperty, ColorGray4 - ShapeBorder.BorderBrush.AsColor(), AnimationTimeOfMouseOut)
                  }, "MyCheckBox BorderColor " & Uuid)
                 AniStart({
-                         AaColor(LabText, TextBlock.ForegroundProperty, ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut)
+                         AaColor(LabText, TextBlock.ForegroundProperty, ColorGray4 - LabText.Foreground.AsColor(), AnimationTimeOfMouseOut)
                  }, "MyCheckBox TextColor " & Uuid)
             End If
         Else

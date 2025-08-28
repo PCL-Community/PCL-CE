@@ -1,4 +1,6 @@
-﻿Public Class MyIconButton
+﻿Imports PCL.Core.UI
+
+Public Class MyIconButton
 
     '自定义事件
     Public Event Click(sender As Object, e As EventArgs)
@@ -110,19 +112,19 @@
         Try
             If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
 
-                If PanBack.Background Is Nothing Then PanBack.Background = New MyColor(0, 255, 255, 255)
+                If PanBack.Background Is Nothing Then PanBack.Background = New ModernColor(0, 255, 255, 255)
                 If Path.Fill Is Nothing Then
                     Select Case Theme
                         Case Themes.Red
-                            Path.Fill = New MyColor(160, 255, 76, 76)
+                            Path.Fill = New ModernColor(160, 255, 76, 76)
                         Case Themes.Black
                             If IsDarkMode Then
-                                Path.Fill = New MyColor(160, 255, 255, 255)
+                                Path.Fill = New ModernColor(160, 255, 255, 255)
                             Else
-                                Path.Fill = New MyColor(160, 0, 0, 0)
+                                Path.Fill = New ModernColor(160, 0, 0, 0)
                             End If
                         Case Themes.Custom
-                            Path.Fill = New MyColor(160, Foreground)
+                            Path.Fill = New ModernColor(160, Foreground)
                     End Select
                 End If
                 If IsMouseOver Then
@@ -132,13 +134,13 @@
                         Case Themes.Color
                             AnimList.Add(AaColor(Path, Shape.FillProperty, "ColorBrush2", AnimationColorIn))
                         Case Themes.White
-                            AnimList.Add(AaColor(PanBack, BackgroundProperty, New MyColor(50, 255, 255, 255) - PanBack.Background, AnimationColorIn))
+                            AnimList.Add(AaColor(PanBack, BackgroundProperty, New ModernColor(50, 255, 255, 255) - New ModernColor(PanBack.Background), AnimationColorIn))
                         Case Themes.Red
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(255, 76, 76) - Path.Fill, AnimationColorIn))
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, New ModernColor(255, 76, 76) - New ModernColor(Path.Fill), AnimationColorIn))
                         Case Themes.Black
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, If(IsDarkMode, New MyColor(230, 255, 255, 255), New MyColor(230, 0, 0, 0)) - Path.Fill, AnimationColorIn))
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, If(IsDarkMode, New ModernColor(230, 255, 255, 255), New ModernColor(230, 0, 0, 0)) - New ModernColor(Path.Fill), AnimationColorIn))
                         Case Themes.Custom
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(255, Foreground) - Path.Fill, AnimationColorIn))
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, New ModernColor(255, Foreground) - New ModernColor(Path.Fill), AnimationColorIn))
                     End Select
                     AniStart(AnimList, "MyIconButton Color " & Uuid)
                 Else
@@ -147,19 +149,19 @@
                     Select Case Theme
                         Case Themes.Color
                             AnimList.Add(AaColor(Path, Shape.FillProperty, "ColorBrush4", AnimationColorOut))
-                            PanBack.Background = New MyColor(0, 255, 255, 255)
+                            PanBack.Background = ModernColor.White.WithAlpha(0)
                         Case Themes.White
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(234, 242, 254), AnimationColorOut))
-                            AnimList.Add(AaColor(PanBack, BackgroundProperty, New MyColor(0, 255, 255, 255) - PanBack.Background, AnimationColorOut))
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, New ModernColor(234, 242, 254), AnimationColorOut))
+                            AnimList.Add(AaColor(PanBack, BackgroundProperty, ModernColor.White.WithAlpha(0) - PanBack.Background.AsColor(), AnimationColorOut))
                         Case Themes.Red
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(160, 255, 76, 76) - Path.Fill, AnimationColorOut))
-                            PanBack.Background = New MyColor(0, 255, 255, 255)
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, New ModernColor(160, 255, 76, 76) - Path.Fill.AsColor(), AnimationColorOut))
+                            PanBack.Background = ModernColor.White.WithAlpha(0)
                         Case Themes.Black
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, If(IsDarkMode, New MyColor(160, 255, 255, 255), New MyColor(160, 0, 0, 0)) - Path.Fill, AnimationColorOut))
-                            PanBack.Background = New MyColor(0, 255, 255, 255)
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, If(IsDarkMode, ModernColor.White.WithAlpha(160), ModernColor.Black.WithAlpha(160)) - Path.Fill.AsColor(), AnimationColorOut))
+                            PanBack.Background = ModernColor.White.WithAlpha(0)
                         Case Themes.Custom
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(160, Foreground) - Path.Fill, AnimationColorOut))
-                            PanBack.Background = New MyColor(0, 255, 255, 255)
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, New ModernColor(160, Foreground) - Path.Fill.AsColor(), AnimationColorOut))
+                            PanBack.Background = ModernColor.White.WithAlpha(0)
                     End Select
                     AniStart(AnimList, "MyIconButton Color " & Uuid)
                 End If
@@ -171,19 +173,19 @@
                     Case Themes.Color
                         Path.SetResourceReference(Shape.FillProperty, "ColorBrush5")
                     Case Themes.White
-                        Path.Fill = New MyColor(234, 242, 254)
+                        Path.Fill = New ModernColor(234, 242, 254)
                     Case Themes.Red
-                        Path.Fill = New MyColor(160, 255, 76, 76)
+                        Path.Fill = New ModernColor(160, 255, 76, 76)
                     Case Themes.Black
                         If IsDarkMode Then
-                            Path.Fill = New MyColor(160, 255, 255, 255)
+                            Path.Fill = New ModernColor(160, 255, 255, 255)
                         Else
-                            Path.Fill = New MyColor(160, 0, 0, 0)
+                            Path.Fill = New ModernColor(160, 0, 0, 0)
                         End If
                     Case Themes.Custom
-                        Path.Fill = New MyColor(160, Foreground)
+                        Path.Fill = New ModernColor(160, Foreground)
                 End Select
-                PanBack.Background = New MyColor(0, 255, 255, 255)
+                PanBack.Background = New ModernColor(0, 255, 255, 255)
 
             End If
         Catch ex As Exception

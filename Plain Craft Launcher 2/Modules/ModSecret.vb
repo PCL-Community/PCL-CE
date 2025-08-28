@@ -38,10 +38,10 @@ Friend Module ModSecret
         Thread.CurrentThread.Priority = ThreadPriority.Highest
         '确保 .NET Framework 版本
         Try
-            Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
+            Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New ModernColor, DPI)
         Catch ex As UriFormatException '修复 #3555
             Environment.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"), EnvironmentVariableTarget.User)
-            Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
+            Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New ModernColor, DPI)
         End Try
         '检测当前文件夹权限
         Dim dataPath = FileService.DataPath
@@ -284,33 +284,33 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     Public IsDarkMode As Boolean = False
 
-    Public ReadOnly Property ColorGray1 As MyColor
+    Public ReadOnly Property ColorGray1 As ModernColor
         Get
             Return If(StaticColors?.Gray1, LightStaticColors.Gray1)
         End Get
     End Property
 
-    Public ReadOnly Property ColorGray4 As MyColor
+    Public ReadOnly Property ColorGray4 As ModernColor
         Get
             Return If(StaticColors?.Gray4, LightStaticColors.Gray4)
         End Get
     End Property
 
-    Public ReadOnly Property ColorGray5 As MyColor
+    Public ReadOnly Property ColorGray5 As ModernColor
         Get
             Return If(StaticColors?.Gray5, LightStaticColors.Gray5)
         End Get
     End Property
 
-    Public ReadOnly Property ColorSemiTransparent As MyColor
+    Public ReadOnly Property ColorSemiTransparent As ModernColor
         Get
             Return DynamicColors.SemiTransparent
         End Get
     End Property
 
-    Private ReadOnly Property NewColor As MyColor
+    Private ReadOnly Property NewColor As ModernColor
         Get
-            Return New MyColor()
+            Return New ModernColor()
         End Get
     End Property
 
@@ -348,21 +348,21 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
 
         Public Sub New(style As GrayProfile)
-            Gray1 = NewColor.FromHSL2(0, 0, style.L1)
-            Gray2 = NewColor.FromHSL2(0, 0, style.L2)
-            Gray3 = NewColor.FromHSL2(0, 0, style.L3)
-            Gray4 = NewColor.FromHSL2(0, 0, style.L4)
-            Gray5 = NewColor.FromHSL2(0, 0, style.L5)
-            Gray6 = NewColor.FromHSL2(0, 0, style.L6)
-            Gray7 = NewColor.FromHSL2(0, 0, style.L7)
-            Gray8 = NewColor.FromHSL2(0, 0, style.L8)
-            White = NewColor.FromHSL2(0, 0, style.G2)
-            HalfWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Ahw)
-            SemiWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Asw)
-            Transparent = NewColor.FromHSL2(0, 0, style.L8).Alpha(style.At)
-            Memory = NewColor.FromHSL2(0, 0, style.G3)
-            Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Atb)
-            BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(style.Asb)
+            Gray1 = ModernColor.FromHslEnhanced(0, 0, style.L1)
+            Gray2 = ModernColor.FromHslEnhanced(0, 0, style.L2)
+            Gray3 = ModernColor.FromHslEnhanced(0, 0, style.L3)
+            Gray4 = ModernColor.FromHslEnhanced(0, 0, style.L4)
+            Gray5 = ModernColor.FromHslEnhanced(0, 0, style.L5)
+            Gray6 = ModernColor.FromHslEnhanced(0, 0, style.L6)
+            Gray7 = ModernColor.FromHslEnhanced(0, 0, style.L7)
+            Gray8 = ModernColor.FromHslEnhanced(0, 0, style.L8)
+            White = ModernColor.FromHslEnhanced(0, 0, style.G2)
+            HalfWhite = ModernColor.FromHslEnhanced(0, 0, style.G2).WithAlpha(style.Ahw)
+            SemiWhite = ModernColor.FromHslEnhanced(0, 0, style.G2).WithAlpha(style.Asw)
+            Transparent = ModernColor.FromHslEnhanced(0, 0, style.L8).WithAlpha(style.At)
+            Memory = ModernColor.FromHslEnhanced(0, 0, style.G3)
+            Tooltip = ModernColor.FromHslEnhanced(0, 0, style.G2).WithAlpha(style.Atb)
+            BackgroundTransparentSidebar = ModernColor.FromHslEnhanced(0, 0, style.G1).WithAlpha(style.Asb)
 
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
@@ -431,17 +431,17 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Dim sat0 = sat * style.Sa0
             Dim sat1 = sat * style.Sa1
 
-            Color1 = NewColor.FromHSL2(hue, sat0 * 0.2, style.L1)
-            Color2 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L2, lightAdjust, style))
-            Color3 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L3, lightAdjust, style))
-            Color4 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L4, lightAdjust, style))
-            Color5 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L5, lightAdjust, style))
-            Color6 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L6, lightAdjust, style))
-            Color7 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L7, lightAdjust, style))
-            Color8 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
-            ColorBg0 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
-            ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(style.Ab)
-            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(style.Ast)
+            Color1 = ModernColor.FromHslEnhanced(hue, sat0 * 0.2, style.L1)
+            Color2 = ModernColor.FromHslEnhanced(hue, sat0, AdjustLight(style.L2, lightAdjust, style))
+            Color3 = ModernColor.FromHslEnhanced(hue, sat0, AdjustLight(style.L3, lightAdjust, style))
+            Color4 = ModernColor.FromHslEnhanced(hue, sat0, AdjustLight(style.L4, lightAdjust, style))
+            Color5 = ModernColor.FromHslEnhanced(hue, sat1, AdjustLight(style.L5, lightAdjust, style))
+            Color6 = ModernColor.FromHslEnhanced(hue, sat1, AdjustLight(style.L6, lightAdjust, style))
+            Color7 = ModernColor.FromHslEnhanced(hue, sat1, AdjustLight(style.L7, lightAdjust, style))
+            Color8 = ModernColor.FromHslEnhanced(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
+            ColorBg0 = ModernColor.FromHslEnhanced(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
+            ColorBg1 = ModernColor.FromHslEnhanced(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).WithAlpha(style.Ab)
+            SemiTransparent = ModernColor.FromHslEnhanced(hue, sat, AdjustLight(style.L8, lightAdjust, style)).WithAlpha(style.Ast)
 
             Color1Brush = New SolidColorBrush(Color1)
             Color2Brush = New SolidColorBrush(Color2)
@@ -608,28 +608,28 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(1, 0), .StartPoint = New Point(0, 0)}
             Dim lightAdjust = ColorLightAdjust * 1.2
             If ThemeNow = 5 Then
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 25)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 15)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 25)})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = ModernColor.FromHslEnhanced(ColorHue, ColorSat, 25)})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = ModernColor.FromHslEnhanced(ColorHue, ColorSat, 15)})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = ModernColor.FromHslEnhanced(ColorHue, ColorSat, 25)})
                 FrmMain.PanTitle.Background = Brush
                 FrmMain.PanTitle.Background.Freeze()
             ElseIf Not (ThemeNow = 12 OrElse ThemeDontClick = 2) Then
                 If TypeOf ColorHueTopbarDelta Is Integer Then
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue - ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, AdjustLight(54, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = ModernColor.FromHslEnhanced(ColorHue - ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = ModernColor.FromHslEnhanced(ColorHue, ColorSat, AdjustLight(54, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = ModernColor.FromHslEnhanced(ColorHue + ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
                 Else
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(0), ColorSat, AdjustLight(48, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(1), ColorSat, AdjustLight(54, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(2), ColorSat, AdjustLight(48, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = ModernColor.FromHslEnhanced(ColorHue + ColorHueTopbarDelta(0), ColorSat, AdjustLight(48, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = ModernColor.FromHslEnhanced(ColorHue + ColorHueTopbarDelta(1), ColorSat, AdjustLight(54, lightAdjust))})
+                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = ModernColor.FromHslEnhanced(ColorHue + ColorHueTopbarDelta(2), ColorSat, AdjustLight(48, lightAdjust))})
                 End If
                 FrmMain.PanTitle.Background = Brush
                 FrmMain.PanTitle.Background.Freeze()
             Else
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue - 21, ColorSat, AdjustLight(53, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.33, .Color = New MyColor().FromHSL2(ColorHue - 7, ColorSat, AdjustLight(47, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.67, .Color = New MyColor().FromHSL2(ColorHue + 7, ColorSat, AdjustLight(47, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + 21, ColorSat, AdjustLight(53, lightAdjust))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = ModernColor.FromHslEnhanced(ColorHue - 21, ColorSat, AdjustLight(53, lightAdjust))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.33, .Color = ModernColor.FromHslEnhanced(ColorHue - 7, ColorSat, AdjustLight(47, lightAdjust))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.67, .Color = ModernColor.FromHslEnhanced(ColorHue + 7, ColorSat, AdjustLight(47, lightAdjust))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = ModernColor.FromHslEnhanced(ColorHue + 21, ColorSat, AdjustLight(53, lightAdjust))})
                 FrmMain.PanTitle.Background = Brush
             End If
             '主页面背景
@@ -643,12 +643,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     hue1 = ColorHue - 15
                     hue2 = ColorHue + 15
                 End If
-                Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = New MyColor().FromHSL2(hue1, ColorSat * 0.8, GetDarkThemeLight(80))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = New MyColor().FromHSL2(ColorHue, ColorSat * 0.8, GetDarkThemeLight(90))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = New MyColor().FromHSL2(hue2, ColorSat * 0.8, GetDarkThemeLight(80))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = ModernColor.FromHslEnhanced(hue1, ColorSat * 0.8, GetDarkThemeLight(80))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = ModernColor.FromHslEnhanced(ColorHue, ColorSat * 0.8, GetDarkThemeLight(90))})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = ModernColor.FromHslEnhanced(hue2, ColorSat * 0.8, GetDarkThemeLight(80))})
                 FrmMain.PanForm.Background = Brush
             Else
-                FrmMain.PanForm.Background = New MyColor(If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245))
+                FrmMain.PanForm.Background = New ModernColor(If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245))
             End If
             FrmMain.PanForm.Background.Freeze()
 

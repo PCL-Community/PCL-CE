@@ -13,6 +13,7 @@ Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
 Imports PCL.Core.IO
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
@@ -239,202 +240,6 @@ Public Module ModBase
 #End Region
 
 #Region "自定义类"
-
-    ''' <summary>
-    ''' 支持小数与常见类型隐式转换的颜色。
-    ''' </summary>
-    Public Class MyColor
-
-        Public A As Double = 255
-        Public R As Double = 0
-        Public G As Double = 0
-        Public B As Double = 0
-
-        '类型转换
-        Public Shared Widening Operator CType(str As String) As MyColor
-            Return New MyColor(str)
-        End Operator
-        Public Shared Widening Operator CType(col As Color) As MyColor
-            Return New MyColor(col)
-        End Operator
-        Public Shared Widening Operator CType(conv As MyColor) As Color
-            Return Color.FromArgb(MathByte(conv.A), MathByte(conv.R), MathByte(conv.G), MathByte(conv.B))
-        End Operator
-        Public Shared Widening Operator CType(conv As MyColor) As System.Drawing.Color
-            Return System.Drawing.Color.FromArgb(MathByte(conv.A), MathByte(conv.R), MathByte(conv.G), MathByte(conv.B))
-        End Operator
-        Public Shared Widening Operator CType(bru As SolidColorBrush) As MyColor
-            Return New MyColor(bru.Color)
-        End Operator
-        Public Shared Widening Operator CType(conv As MyColor) As SolidColorBrush
-            Return New SolidColorBrush(Color.FromArgb(MathByte(conv.A), MathByte(conv.R), MathByte(conv.G), MathByte(conv.B)))
-        End Operator
-        Public Shared Widening Operator CType(bru As Brush) As MyColor
-            Return New MyColor(bru)
-        End Operator
-        Public Shared Widening Operator CType(conv As MyColor) As Brush
-            Return New SolidColorBrush(Color.FromArgb(MathByte(conv.A), MathByte(conv.R), MathByte(conv.G), MathByte(conv.B)))
-        End Operator
-
-        '颜色运算
-        Public Shared Operator +(a As MyColor, b As MyColor) As MyColor
-            Return New MyColor With {.A = a.A + b.A, .B = a.B + b.B, .G = a.G + b.G, .R = a.R + b.R}
-        End Operator
-        Public Shared Operator -(a As MyColor, b As MyColor) As MyColor
-            Return New MyColor With {.A = a.A - b.A, .B = a.B - b.B, .G = a.G - b.G, .R = a.R - b.R}
-        End Operator
-        Public Shared Operator *(a As MyColor, b As Double) As MyColor
-            Return New MyColor With {.A = a.A * b, .B = a.B * b, .G = a.G * b, .R = a.R * b}
-        End Operator
-        Public Shared Operator /(a As MyColor, b As Double) As MyColor
-            Return New MyColor With {.A = a.A / b, .B = a.B / b, .G = a.G / b, .R = a.R / b}
-        End Operator
-        Public Shared Operator =(a As MyColor, b As MyColor) As Boolean
-            If IsNothing(a) AndAlso IsNothing(b) Then Return True
-            If IsNothing(a) OrElse IsNothing(b) Then Return False
-            Return a.A = b.A AndAlso a.R = b.R AndAlso a.G = b.G AndAlso a.B = b.B
-        End Operator
-        Public Shared Operator <>(a As MyColor, b As MyColor) As Boolean
-            If IsNothing(a) AndAlso IsNothing(b) Then Return False
-            If IsNothing(a) OrElse IsNothing(b) Then Return True
-            Return Not (a.A = b.A AndAlso a.R = b.R AndAlso a.G = b.G AndAlso a.B = b.B)
-        End Operator
-
-        '构造函数
-        Public Sub New()
-        End Sub
-        Public Sub New(col As Color)
-            Me.A = col.A
-            Me.R = col.R
-            Me.G = col.G
-            Me.B = col.B
-        End Sub
-        Public Sub New(HexString As String)
-            Dim StringColor As Media.Color = ColorConverter.ConvertFromString(HexString)
-            A = StringColor.A
-            R = StringColor.R
-            G = StringColor.G
-            B = StringColor.B
-        End Sub
-        Public Sub New(newA As Double, col As MyColor)
-            Me.A = newA
-            Me.R = col.R
-            Me.G = col.G
-            Me.B = col.B
-        End Sub
-        Public Sub New(newR As Double, newG As Double, newB As Double)
-            Me.A = 255
-            Me.R = newR
-            Me.G = newG
-            Me.B = newB
-        End Sub
-        Public Sub New(newA As Double, newR As Double, newG As Double, newB As Double)
-            Me.A = newA
-            Me.R = newR
-            Me.G = newG
-            Me.B = newB
-        End Sub
-        Public Sub New(brush As Brush)
-            Dim Color As Color = CType(brush, SolidColorBrush).Color
-            A = Color.A
-            R = Color.R
-            G = Color.G
-            B = Color.B
-        End Sub
-        Public Sub New(brush As SolidColorBrush)
-            Dim Color As Color = brush.Color
-            A = Color.A
-            R = Color.R
-            G = Color.G
-            B = Color.B
-        End Sub
-        Public Sub New(obj As Object)
-            If obj Is Nothing Then
-                A = 255 : R = 255 : G = 255 : B = 255
-            Else
-                If TypeOf obj Is SolidColorBrush Then
-                    '避免反复获取 Color 对象造成性能下降
-                    Dim Color As Color = CType(obj, SolidColorBrush).Color
-                    A = Color.A
-                    R = Color.R
-                    G = Color.G
-                    B = Color.B
-                Else
-                    A = obj.A
-                    R = obj.R
-                    G = obj.G
-                    B = obj.B
-                End If
-            End If
-        End Sub
-
-        'HSL
-        Public Function Hue(v1 As Double, v2 As Double, vH As Double) As Double
-            If vH < 0 Then vH += 1
-            If vH > 1 Then vH -= 1
-            If vH < 0.16667 Then Return v1 + (v2 - v1) * 6 * vH
-            If vH < 0.5 Then Return v2
-            If vH < 0.66667 Then Return v1 + (v2 - v1) * (4 - vH * 6)
-            Return v1
-        End Function
-        Public Function FromHSL(sH As Double, sS As Double, sL As Double) As MyColor
-            If sS = 0 Then
-                R = sL * 2.55
-                G = R
-                B = R
-            Else
-                Dim H = sH / 360
-                Dim S = sS / 100
-                Dim L = sL / 100
-                S = If(L < 0.5, S * L + L, S * (1.0 - L) + L)
-                L = 2 * L - S
-                R = 255 * Hue(L, S, H + 1 / 3)
-                G = 255 * Hue(L, S, H)
-                B = 255 * Hue(L, S, H - 1 / 3)
-            End If
-            A = 255
-            Return Me
-        End Function
-        Public Function FromHSL2(sH As Double, sS As Double, sL As Double) As MyColor
-            If sS = 0 Then
-                R = sL * 2.55 : G = R : B = R
-            Else
-                '初始化
-                sH = (sH + 3600000) Mod 360
-                Dim cent As Double() = {
-                    +0.1, -0.06, -0.3, '0, 30, 60
-                    -0.19, -0.15, -0.24, '90, 120, 150
-                    -0.32, -0.09, +0.18, '180, 210, 240
-                    +0.05, -0.12, -0.02, '270, 300, 330
-                    +0.1, -0.06} '最后两位与前两位一致，加是变亮，减是变暗
-                '计算色调对应的亮度片区
-                Dim center As Double = sH / 30.0
-                Dim intCenter As Integer = Math.Floor(center) '亮度片区编号
-                center = 50 - (
-                     (1 - center + intCenter) * cent(intCenter) + (center - intCenter) * cent(intCenter + 1)
-                    ) * sS
-                'center = 50 + (cent(intCenter) + (center - intCenter) * (cent(intCenter + 1) - cent(intCenter))) * sS
-                sL = If(sL < center, sL / center, 1 + (sL - center) / (100 - center)) * 50
-                FromHSL(sH, sS, sL)
-            End If
-            A = 255
-            Return Me
-        End Function
-
-        Public Function Alpha(sA As Double) As MyColor
-            A = sA
-            Return Me
-        End Function
-
-        Public Overrides Function ToString() As String
-            Return "(" & A & "," & R & "," & G & "," & B & ")"
-        End Function
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me = obj
-        End Function
-
-    End Class
-
     ''' <summary>
     ''' 支持负数与浮点数的矩形。
     ''' </summary>
@@ -585,10 +390,10 @@ Public Module ModBase
     End Function
 
     ''' <summary>
-    ''' 提供 MyColor 类型支持的 Math.Round。
+    ''' 提供 ModernColor 类型支持的 Math.Round。
     ''' </summary>
-    Public Function MathRound(col As MyColor, Optional w As Integer = 0) As MyColor
-        Return New MyColor With {.A = Math.Round(col.A, w), .R = Math.Round(col.R, w), .G = Math.Round(col.G, w), .B = Math.Round(col.B, w)}
+    Public Function MathRound(col As ModernColor, Optional w As Integer = 0) As ModernColor
+        Return New ModernColor With {.A = Math.Round(col.A, w), .R = Math.Round(col.R, w), .G = Math.Round(col.G, w), .B = Math.Round(col.B, w)}
     End Function
 
     ''' <summary>
@@ -601,7 +406,7 @@ Public Module ModBase
     ''' <summary>
     ''' 获取两颜色间的百分比，根据 RGB 计算。小数点精确到 6 位。
     ''' </summary>
-    Public Function MathPercent(ValueA As MyColor, ValueB As MyColor, Percent As Double) As MyColor
+    Public Function MathPercent(ValueA As ModernColor, ValueB As ModernColor, Percent As Double) As ModernColor
         Return MathRound(ValueA * (1 - Percent) + ValueB * Percent, 6) '解决Double计算错误
     End Function
 

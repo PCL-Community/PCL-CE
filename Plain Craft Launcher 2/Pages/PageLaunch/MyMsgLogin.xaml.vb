@@ -1,3 +1,4 @@
+Imports PCL.Core.UI
 Imports PCL.Core.UI.Controls
 
 Public Class MyMsgLogin
@@ -33,7 +34,7 @@ Public Class MyMsgLogin
         Try
             '动画
             Opacity = 0
-            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(MyConverter.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background, 200), "PanMsgBackground Background")
+            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(MyConverter.IsWarn, New ModernColor(140, 80, 0, 0), New ModernColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background.AsColor(), 200), "PanMsgBackground Background")
             AniStart({
                 AaOpacity(Me, 1, 120, 60),
                 AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 300, 60, New AniEaseOutBack(AniEasePower.Weak)),
@@ -51,7 +52,7 @@ Public Class MyMsgLogin
             AaCode(
             Sub()
                 If Not WaitingMyMsgBox.Any() Then
-                    AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, New MyColor(0, 0, 0, 0) - FrmMain.PanMsgBackground.Background, 200, Ease:=New AniEaseOutFluent(AniEasePower.Weak)))
+                    AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, New ModernColor(0, 0, 0, 0) - FrmMain.PanMsgBackground.Background.AsColor(), 200, Ease:=New AniEaseOutFluent(AniEasePower.Weak)))
                 End If
             End Sub, 30),
             AaOpacity(Me, -Opacity, 80, 20),

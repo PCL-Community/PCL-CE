@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.UI
 
 <ContentProperty("Inlines")>
 Public Class MyIconTextButton
@@ -132,14 +133,14 @@ Public Class MyIconTextButton
                                 AaColor(ShapeLogo, Shapes.Path.FillProperty, "ColorBrush1", AnimationTimeOfMouseOut),
                                 AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush1", AnimationTimeOfMouseOut)
                             }, "MyIconTextButton Checked " & Uuid)
-                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background, AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
+                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background.AsColor(), AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
                         Else
                             '禁用
                             AniStart({
                                 AaColor(ShapeLogo, Shapes.Path.FillProperty, "ColorBrushGray5", 100),
                                 AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
                             }, "MyIconTextButton Checked " & Uuid)
-                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background, AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
+                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background.AsColor(), AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
                         End If
                     Case ColorState.Highlight
                         If IsMouseDown Then
@@ -158,14 +159,14 @@ Public Class MyIconTextButton
                                 AaColor(ShapeLogo, Shapes.Path.FillProperty, "ColorBrush3", AnimationTimeOfMouseOut),
                                 AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3", AnimationTimeOfMouseOut)
                             }, "MyIconTextButton Checked " & Uuid)
-                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background, AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
+                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background.AsColor(), AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
                         Else
                             '禁用
                             AniStart({
                                 AaColor(ShapeLogo, Shapes.Path.FillProperty, "ColorBrushGray5", 100),
                                 AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
                             }, "MyIconTextButton Checked " & Uuid)
-                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background, AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
+                            AniStart(AaColor(Me, BackgroundProperty, ColorSemiTransparent - Background.AsColor(), AnimationTimeOfMouseOut), "MyIconTextButton Color " & Uuid)
                         End If
                 End Select
 
