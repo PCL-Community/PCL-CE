@@ -2547,21 +2547,6 @@ NextElement:
     End Function
 
     ''' <summary>
-    ''' 时间戳转化为日期。
-    ''' </summary>
-    Public Function GetDate(timeStamp As Integer) As Date
-        Dim dtStart As Date = TimeZoneInfo.ConvertTimeFromUtc(New Date(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Local)
-        Dim lTime As Long = (CLng(timeStamp) * 10000000)
-        Return dtStart.Add(New TimeSpan(lTime))
-    End Function
-    ''' <summary>
-    ''' 将 UTC 时间转化为当前时区的时间。
-    ''' </summary>
-    Public Function GetLocalTime(UtcDate As Date) As Date
-        Return DateTime.SpecifyKind(UtcDate, DateTimeKind.Utc).ToLocalTime
-    End Function
-
-    ''' <summary>
     ''' 打开网页。
     ''' </summary>
     Public Sub OpenWebsite(Url As String)

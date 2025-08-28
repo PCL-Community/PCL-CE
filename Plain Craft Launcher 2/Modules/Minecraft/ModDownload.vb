@@ -1118,7 +1118,7 @@ Public Module ModDownload
                              .IsPreview = RealEntry("stream").ToString.ToLower = "snapshot",
                              .FileName = "liteloader-installer-" & Pair.Key & If(Pair.Key = "1.8" OrElse Pair.Key = "1.9", ".0", "") & "-00-SNAPSHOT.jar",
                              .MD5 = RealEntry("md5"),
-                             .ReleaseTime = GetLocalTime(GetDate(RealEntry("timestamp"))).ToString("yyyy'/'MM'/'dd HH':'mm"),
+                             .ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry("timestamp")),
                              .JsonToken = RealEntry
                          })
             Next
@@ -1146,7 +1146,7 @@ Public Module ModDownload
                              .IsPreview = RealEntry("stream").ToString.ToLower = "snapshot",
                              .FileName = "liteloader-installer-" & Pair.Key & If(Pair.Key = "1.8" OrElse Pair.Key = "1.9", ".0", "") & "-00-SNAPSHOT.jar",
                              .MD5 = RealEntry("md5"),
-                             .ReleaseTime = GetLocalTime(GetDate(RealEntry("timestamp"))).ToString("yyyy'/'MM'/'dd HH':'mm"),
+                             .ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry("timestamp")),
                              .JsonToken = RealEntry
                          })
             Next
