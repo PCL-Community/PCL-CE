@@ -54,7 +54,7 @@ Friend Module ModSecret
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End Try
-        If Not CheckPermission(Path & "PCL") Then
+        If Not Files.CheckPermission(Path & "PCL") Then
             MsgBox("PCL 没有对当前文件夹的写入权限，请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
@@ -842,16 +842,16 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Try
                 CopyFile(NewFileName, OldFileName)
             Catch ex4 As UnauthorizedAccessException
-                MsgBox("PCL 更新失败：权限不足。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf & "若 PCL 位于桌面或 C 盘，你可以尝试将其挪到其他文件夹，这可能可以解决权限问题。" & vbCrLf + GetExceptionSummary(ex4), MsgBoxStyle.Critical, "更新失败")
+                MsgBox("PCL 更新失败：权限不足。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf & "若 PCL 位于桌面或 C 盘，你可以尝试将其挪到其他文件夹，这可能可以解决权限问题。" & vbCrLf + ex4.Message, MsgBoxStyle.Critical, "更新失败")
             Catch ex5 As Exception
-                MsgBox("PCL 更新失败：无法复制新文件。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf + GetExceptionSummary(ex5), MsgBoxStyle.Critical, "更新失败")
+                MsgBox("PCL 更新失败：无法复制新文件。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf + ex5.Message, MsgBoxStyle.Critical, "更新失败")
                 Return
             End Try
             If TriggerRestart Then
                 Try
                     Process.Start(OldFileName)
                 Catch ex6 As Exception
-                    MsgBox("PCL 更新失败：无法重新启动。" & vbCrLf + GetExceptionSummary(ex6), MsgBoxStyle.Critical, "更新失败")
+                    MsgBox("PCL 更新失败：无法重新启动。" & vbCrLf + ex6.Message, MsgBoxStyle.Critical, "更新失败")
                 End Try
             End If
             Return
@@ -863,10 +863,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                  If(Path.StartsWithF("C", True),
                                  " - 将 PCL 文件移动到 C 盘以外的文件夹（这或许可以一劳永逸地解决权限问题）" & vbCrLf, ""),
                                  " - 右键以管理员身份运行 PCL" & vbCrLf & " - 手动复制已下载到 PCL 文件夹下的新版本程序，覆盖原程序" & vbCrLf & vbCrLf,
-                                 GetExceptionSummary(ex2)}), MsgBoxStyle.Critical, "更新失败")
+                                 ex2.Message}), MsgBoxStyle.Critical, "更新失败")
             Return
         End If
-        MsgBox("PCL 更新失败：无法删除原文件。请手动复制已下载到 PCL 文件夹下的新版本程序覆盖原程序。" & vbCrLf + GetExceptionSummary(ex2), MsgBoxStyle.Critical, "更新失败")
+        MsgBox("PCL 更新失败：无法删除原文件。请手动复制已下载到 PCL 文件夹下的新版本程序覆盖原程序。" & vbCrLf + ex2.Message, MsgBoxStyle.Critical, "更新失败")
     End Sub
     ''' <summary>
     ''' 确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。

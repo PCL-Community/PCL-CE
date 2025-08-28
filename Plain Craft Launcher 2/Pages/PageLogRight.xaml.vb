@@ -1,4 +1,6 @@
-﻿Public Class PageLogRight
+﻿Imports PCL.Core.Utils.OS
+
+Public Class PageLogRight
     Public Sub Init() Handles Me.Initialized
         PanLogCard.Inlines.Clear()
         'TODO(i18n): 文本 @ 标题栏 - 实时日志卡片标题
@@ -92,7 +94,7 @@
 
     Private Sub BtnOperationExport_Click(sender As Object, e As RouteEventArgs) Handles BtnOperationExport.Click
         'TODO(i18n): 文本 @ 文件选择弹窗 - 窗口标题 & 类型选择器选项
-        Dim SavePath As String = SelectSaveFile("选择导出位置", $"游戏日志 - {FrmLogLeft.CurrentLog.Version.Name}.log", "游戏日志(*.log)|*.log")
+        Dim SavePath As String = DialogUtils.SelectSaveFile("选择导出位置", $"游戏日志 - {FrmLogLeft.CurrentLog.Version.Name}.log", "游戏日志(*.log)|*.log")
         If SavePath.Length < 3 Then Exit Sub
         File.WriteAllLines(SavePath, FrmLogLeft.CurrentLog.FullLog)
         'TODO(i18n): 文本 @ 左下角提示 - 导出成功提示
@@ -109,7 +111,7 @@
     End Sub
 
     Private Sub BtnOperationExportStackDump_Click(sender As Object, e As RouteEventArgs) Handles BtnOperationExportStackDump.Click
-        Dim SavePath As String = SelectSaveFile("选择导出位置", $"游戏运行栈 - {Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log", "游戏运行栈(*.log)|*.log")
+        Dim SavePath As String = DialogUtils.SelectSaveFile("选择导出位置", $"游戏运行栈 - {Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log", "游戏运行栈(*.log)|*.log")
         If SavePath.Length < 3 Then Exit Sub
         'TODO(i18n): 文本 @ 左下角提示 - 导出运行栈提示
         Hint("正在导出运行栈，请稍等（可能需要 15 秒 ~ 1 分钟）", HintType.Info)

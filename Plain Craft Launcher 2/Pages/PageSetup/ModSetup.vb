@@ -1,6 +1,7 @@
 Imports System.Reflection
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
 #Region "基础"
@@ -324,7 +325,7 @@ Public Class ModSetup
         ElseIf Value = 1 Then
             IsDarkMode = True
         Else
-            IsDarkMode = IsSystemInDarkMode()
+            IsDarkMode = SystemTheme.IsSystemInDarkMode()
         End If
         ThemeRefresh()
     End Sub

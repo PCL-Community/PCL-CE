@@ -1,5 +1,6 @@
 Imports System.IO.Compression
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils.OS
 
 Public Module ModDownloadLib
 
@@ -67,7 +68,7 @@ Public Module ModDownloadLib
     ''' <param name="JsonUrl">Json 文件的 Mojang 官方地址。</param>
     Public Sub McDownloadClientCore(Id As String, JsonUrl As String, Behaviour As NetPreDownloadBehaviour)
         Try
-            Dim VersionFolder As String = SelectFolder()
+            Dim VersionFolder As String = DialogUtils.SelectFolder()
             If Not VersionFolder.Contains("\") Then Exit Sub
             VersionFolder = VersionFolder & Id & "\"
 
@@ -266,7 +267,7 @@ Public Module ModDownloadLib
         Try
             Dim Id = Version.Title
             Dim JsonUrl = Version.Tag("url").ToString
-            Dim VersionFolder As String = SelectFolder()
+            Dim VersionFolder As String = DialogUtils.SelectFolder()
             If Not VersionFolder.Contains("\") Then Return
             VersionFolder = VersionFolder & Id & "\"
 
@@ -343,7 +344,7 @@ pause"
         Try
             Dim Id = Version.Title
             Dim JsonUrl = Version.Tag("url").ToString
-            Dim VersionFolder As String = SelectFolder()
+            Dim VersionFolder As String = DialogUtils.SelectFolder()
             If Not VersionFolder.Contains("\") Then Return
             VersionFolder = VersionFolder & Id & "\"
 
@@ -508,7 +509,7 @@ pause"
     Private Sub McDownloadOptiFineSave(DownloadInfo As DlOptiFineListEntry)
         Try
             Dim Id As String = DownloadInfo.NameVersion
-            Dim Target As String = SelectSaveFile("选择保存位置", DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar")
             If Not Target.Contains("\") Then Return
 
             '重复任务检查
@@ -971,7 +972,7 @@ Retry:
     Private Sub McDownloadLiteLoaderSave(DownloadInfo As DlLiteLoaderListEntry)
         Try
             Dim Id As String = DownloadInfo.Inherit
-            Dim Target As String = SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""), "LiteLoader 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""), "LiteLoader 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Return
 
             '重复任务检查
@@ -1151,7 +1152,7 @@ Retry:
 
     Public Sub McDownloadForgelikeSave(Info As DlForgelikeEntry)
         Try
-            Dim Target As String = SelectSaveFile("选择保存位置", $"{Info.LoaderName}-{Info.Inherit}-{Info.VersionName}.{Info.FileExtension}",
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", $"{Info.LoaderName}-{Info.Inherit}-{Info.VersionName}.{Info.FileExtension}",
                                             $"{Info.LoaderName} 安装器 (*.{Info.FileExtension})|*.{Info.FileExtension}")
             Dim DisplayName As String = $"{Info.LoaderName} {Info.Inherit} - {Info.VersionName}"
             If Not Target.Contains("\") Then Return
@@ -2007,7 +2008,7 @@ Retry:
             Dim Url As String = DownloadInfo("url").ToString
             Dim FileName As String = GetFileNameFromPath(Url)
             Dim Version As String = GetFileNameFromPath(DownloadInfo("version").ToString)
-            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "Fabric 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", FileName, "Fabric 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Return
 
             '重复任务检查
@@ -2084,7 +2085,7 @@ Retry:
             Dim Url As String = DownloadInfo("url").ToString
             Dim FileName As String = GetFileNameFromPath(Url)
             Dim Version As String = GetFileNameFromPath(DownloadInfo("version").ToString)
-            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Return
 
             '重复任务检查
@@ -2223,7 +2224,7 @@ Retry:
             Dim Url As String = DownloadInfo("url").ToString
             Dim FileName As String = GetFileNameFromPath(Url)
             Dim Version As String = GetFileNameFromPath(DownloadInfo("version").ToString)
-            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "Quilt 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", FileName, "Quilt 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Exit Sub
 
             '重复任务检查
@@ -2327,7 +2328,7 @@ Retry:
         Try
             Dim Url As String = "https://releases.labymod.net/api/v1/installer/production/java"
             Dim FileName As String = "LabyMod4ProductionInstaller.jar"
-            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Exit Sub
 
             '重复任务检查
@@ -2358,7 +2359,7 @@ Retry:
         Try
             Dim Url As String = "https://releases.labymod.net/api/v1/installer/snapshot/java"
             Dim FileName As String = "LabyMod4SnapshotInstaller.jar"
-            Dim Target As String = SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar")
+            Dim Target As String = DialogUtils.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar")
             If Not Target.Contains("\") Then Exit Sub
 
             '重复任务检查
@@ -2620,7 +2621,7 @@ Retry:
             Case LoadState.Finished
                 Hint(Loader.Name & "成功！", HintType.Finish)
             Case LoadState.Failed
-                Hint(Loader.Name & "失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
             Case LoadState.Aborted
                 Hint(Loader.Name & "已取消！", HintType.Info)
         End Select
@@ -2639,7 +2640,7 @@ Retry:
                 DeleteDirectory(Loader.Input & "PCLInstallBackups\")
                 Hint(Loader.Name & "成功！", HintType.Finish)
             Case LoadState.Failed
-                Hint(Loader.Name & "失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
             Case LoadState.Aborted
                 Hint(Loader.Name & "已取消！", HintType.Info)
             Case LoadState.Loading

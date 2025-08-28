@@ -5,6 +5,8 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Class FormMain
 
@@ -30,7 +32,7 @@ Public Class FormMain
     '窗口加载
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
-        ApplicationStartTick = GetTimeTick()
+        ApplicationStartTick = TimeUtils.GetTimeTick()
         '刷新主题
         ThemeCheckAll(False)
         Dim dark As Int32 = Setup.Get("UiDarkMode")
@@ -40,7 +42,7 @@ Public Class FormMain
             Case 1
                 IsDarkMode = True
             Case 2
-                IsDarkMode = IsSystemInDarkMode()
+                IsDarkMode = SystemTheme.IsSystemInDarkMode()
         End Select
         ThemeRefreshColor()
         '窗体参数初始化
@@ -104,13 +106,13 @@ Public Class FormMain
         '尽早执行的加载池
         McFolderListLoader.Start(0) '为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
-        Log("[Start] 第二阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        Log("[Start] 第二阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
         '注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
 
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        ApplicationStartTick = GetTimeTick()
+        ApplicationStartTick = TimeUtils.GetTimeTick()
         Handle = New WindowInteropHelper(Me).Handle
         '读取设置
         Setup.Load("UiBackgroundOpacity")
@@ -133,7 +135,7 @@ Public Class FormMain
             AddResizer()
         End If
         'PLC 彩蛋
-        If RandomInteger(1, 1000) = 233 Then
+        If RandomUtils.NextInt(1, 1000) = 233 Then
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
         End If
         '加载窗口
@@ -247,7 +249,7 @@ Public Class FormMain
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
-        Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        Log("[Start] 第三阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
     '根据打开次数触发的事件
     Private Sub RunCountSub()
@@ -858,9 +860,9 @@ Public Class FormMain
             handled = True
         ElseIf msg = 26 Then 'WM_SETTINGCHANGE
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
-                Log($"[System] 系统主题更改，深色模式：{IsSystemInDarkMode()}")
-                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> IsSystemInDarkMode() Then
-                    IsDarkMode = IsSystemInDarkMode()
+                Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
+                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
+                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
                     ThemeRefresh()
                 End If
             End If

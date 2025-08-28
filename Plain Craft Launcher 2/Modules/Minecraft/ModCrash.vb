@@ -2,6 +2,7 @@
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Public Class CrashAnalyzer
 
@@ -900,7 +901,7 @@ NextStack:
                 Dim FileAddress As String = Nothing
                 Try
                     '获取文件路径
-                    RunInUiWait(Sub() FileAddress = SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
+                    RunInUiWait(Sub() FileAddress = DialogUtils.SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
                     If String.IsNullOrEmpty(FileAddress) Then Return
                     Directory.CreateDirectory(GetPathFromFullPath(FileAddress))
                     If File.Exists(FileAddress) Then File.Delete(FileAddress)
@@ -923,7 +924,7 @@ NextStack:
                             FileEncoding = Encoding.UTF8
                         End If
                         If File.Exists(OutputFile) Then
-                            If FileEncoding Is Nothing Then FileEncoding = GetEncoding(ReadFileBytes(OutputFile))
+                            If FileEncoding Is Nothing Then FileEncoding = EncodingDetector.DetectEncoding(ReadFileBytes(OutputFile))
                             Dim FileContent As String = ReadFile(OutputFile, FileEncoding)
                             FileContent = FilterAccessToken(FileContent, If(FileName = "启动脚本.bat", "F", "*"))
                             FileContent = FilterUserName(FileContent, "*")

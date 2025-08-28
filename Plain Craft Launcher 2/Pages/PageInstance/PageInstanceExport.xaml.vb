@@ -1,4 +1,5 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.Utils.OS
 
 Public Class ExportOption
     Public Property Title As String
@@ -311,7 +312,7 @@ Public Class PageInstanceExport
     '保存配置文件
     Private Sub ExportConfig() Handles BtnAdvancedExport.Click
         Try
-            Dim ConfigPath As String = SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = DialogUtils.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim ConfigLines As New List(Of String)
@@ -357,7 +358,7 @@ Public Class PageInstanceExport
     '读取配置文件
     Private Sub ImportConfig() Handles BtnAdvancedImport.Click
         Try
-            Dim ConfigPath As String = SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = DialogUtils.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim Segments As String() = ReadFile(ConfigPath).Split(Sperator)
@@ -425,14 +426,14 @@ Public Class PageInstanceExport
                 Log($"[Export] 使用配置文件中指定的导出路径：{ConfigPackPath}")
             Catch ex As Exception
                 Log(ex, $"无法使用配置文件中指定的导出路径（{ConfigPackPath}）", LogLevel.Debug)
-                If MyMsgBox($"指定的路径：{ConfigPackPath}{vbCrLf}{vbCrLf}{GetExceptionDetail(ex)}", "无法使用配置文件中指定的导出路径", "确定", "取消") = 2 Then Return
+                If MyMsgBox($"指定的路径：{ConfigPackPath}{vbCrLf}{vbCrLf}{ex.ToString()}", "无法使用配置文件中指定的导出路径", "确定", "取消") = 2 Then Return
             End Try
         End If
         If PackPath Is Nothing Then
             Dim Extensions As New List(Of String)
             If Not CheckAdvancedModrinth.Checked Then Extensions.Add("压缩文件(*.zip)|*.zip")
             If Not CheckOptionsPcl.Checked Then Extensions.Add("Modrinth 整合包文件(*.mrpack)|*.mrpack")
-            PackPath = SelectSaveFile("选择导出位置",
+            PackPath = DialogUtils.SelectSaveFile("选择导出位置",
                 PackName & If(String.IsNullOrEmpty(TextExportVersion.Text), "", " " & TextExportVersion.Text), Extensions.Join("|"))
             Log($"[Export] 手动指定的导出路径：{PackPath}")
         End If

@@ -5,6 +5,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Class PageOtherLog
     Private Sub PageOtherLog_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -70,7 +71,7 @@ Class PageOtherLog
         Dim baseName = "PCL_CE_Logs_" & DateTime.Now.ToString("yyyyMMddHHmmss")
         Dim tempDirName = baseName & ".tmp"
         Dim fileName = baseName & ".zip"
-        Dim selectedPath = SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
+        Dim selectedPath = DialogUtils.SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
         If String.IsNullOrEmpty(selectedPath) Then Exit Sub
         Try
             Directory.CreateDirectory(tempDirName)

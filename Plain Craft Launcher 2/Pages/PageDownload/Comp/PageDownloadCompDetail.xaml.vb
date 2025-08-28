@@ -1,6 +1,4 @@
-﻿
 Imports PCL.Core.Utils
-Imports PCL.Core.Utils.OS
 
 Public Class PageDownloadCompDetail
     Private CompItem As MyCompItem = Nothing

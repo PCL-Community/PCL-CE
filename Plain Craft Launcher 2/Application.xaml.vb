@@ -1,6 +1,8 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
+Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
@@ -77,12 +79,12 @@ Public Class Application
             Directory.CreateDirectory(Path & "PCL\Musics")
             Try
                 Directory.CreateDirectory(PathTemp)
-                If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
+                If Not Files.CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
             Catch ex As Exception
                 If PathTemp = IO.Path.GetTempPath() & "PCL\" Then
-                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & GetExceptionDetail(ex), "缓存文件夹不可用")
+                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
                 Else
-                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & GetExceptionDetail(ex), "缓存文件夹不可用")
+                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
                     Setup.Set("SystemSystemCache", "")
                     PathTemp = IO.Path.GetTempPath() & "PCL\"
                 End If
@@ -128,7 +130,7 @@ WaitRetry:
             Log($"[Start] 程序路径：{PathWithName}")
             Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
             Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
-            Log($"[Start] 管理员权限：{IsAdmin()}")
+            Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
             '检测异常环境
             If Path.Contains(IO.Path.GetTempPath()) OrElse Path.Contains("AppData\Local\Temp\") Then
                 MyMsgBox("请将 PCL 从压缩包中解压之后再使用！" & vbCrLf & "在当前环境下运行可能会导致丢失游戏存档或设置，部分功能也可能无法使用！", "环境警告", "我知道了", IsWarn:=True)
@@ -185,8 +187,8 @@ WaitRetry:
             'Pipe RPC 初始化
             StartEchoPipe()
             '计时
-            Log("[Start] 第一阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
-            ApplicationStartTick = GetTimeTick()
+            Log("[Start] 第一阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
+            ApplicationStartTick = TimeUtils.GetTimeTick()
             '执行测试
 #If DEBUGRESERVED Then
             Test()
@@ -198,7 +200,7 @@ WaitRetry:
                 FilePath = PathWithName
             Catch
             End Try
-            MsgBox(GetExceptionDetail(ex, True) & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")
+            MsgBox(ex.ToString() & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")
             FormMain.EndProgramForce(ProcessReturnValues.Exception)
         End Try
     End Sub
@@ -214,7 +216,7 @@ WaitRetry:
         e.Handled = True
         If IsProgramEnded Then Return
         FeedbackInfo()
-        Dim Detail As String = GetExceptionDetail(e.Exception, True)
+        Dim Detail As String = e.Exception.ToString()
         If Detail.Contains("System.Windows.Threading.Dispatcher.Invoke") OrElse Detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") OrElse Detail.Contains("未能加载文件或程序集") OrElse
            Detail.Contains(".NET Framework") Then ' “自动错误判断” 的结果分析
             OpenWebsite("https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net481-offline-installer")

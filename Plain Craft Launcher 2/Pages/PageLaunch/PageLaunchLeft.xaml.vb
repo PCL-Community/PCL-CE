@@ -1,4 +1,7 @@
-﻿Public Class PageLaunchLeft
+﻿Imports PCL.Core.Utils
+Imports System.Windows
+
+Public Class PageLaunchLeft
 
     '加载当前实例
     Private IsLoad As Boolean = False
@@ -55,7 +58,7 @@
                 Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(Path, "$"))
             End If
             Log("[Launch] Minecraft 文件夹：" & PathMcFolder)
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(500, 3000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(500, 3000))
             '自动整合包安装
             If PackInstallPath IsNot Nothing Then
                 Try
@@ -320,10 +323,10 @@
                 Data.Output = ""
                 Log("[Minecraft] 已取消皮肤获取：" & UserName)
                 Return
-            ElseIf GetExceptionSummary(ex).Contains("429") Then
+            ElseIf ex.ToString().Contains("429") Then
                 Data.Output = PathImage & "Skins/" & McSkinSex(GetOfflineUuid(UserName)) & ".png"
                 Log("[Minecraft] 获取正版皮肤失败（" & UserName & "）：获取皮肤太过频繁，请 5 分钟后再试！", LogLevel.Hint)
-            ElseIf GetExceptionSummary(ex).Contains("未设置自定义皮肤") Then
+            ElseIf ex.ToString().Contains("未设置自定义皮肤") Then
                 Data.Output = PathImage & "Skins/" & McSkinSex(GetOfflineUuid(UserName)) & ".png"
                 Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载")
             Else
@@ -385,10 +388,10 @@ Finish:
             If ex.GetType.Name = "ThreadInterruptedException" Then
                 Data.Output = ""
                 Return
-            ElseIf GetExceptionSummary(ex).Contains("429") Then
+            ElseIf ex.ToString().Contains("429") Then
                 Data.Output = PathImage & "Skins/Steve.png"
                 Log("[Minecraft] 获取 Authlib-Injector 皮肤失败（" & UserName & "）：获取皮肤太过频繁，请 5 分钟后再试！", LogLevel.Hint)
-            ElseIf GetExceptionSummary(ex).Contains("未设置自定义皮肤") Then
+            ElseIf ex.ToString().Contains("未设置自定义皮肤") Then
                 Data.Output = PathImage & "Skins/Steve.png"
                 Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载")
             Else

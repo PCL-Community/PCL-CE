@@ -8,6 +8,7 @@ Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
 Public Module ModLink
@@ -338,7 +339,7 @@ Public Module ModLink
         Dim RetryTime As Integer = 0
         Try
 PortRetry:
-            Dim TestTcpListener = TcpListener.Create(RandomInteger(20000, 65000))
+            Dim TestTcpListener = TcpListener.Create(RandomUtils.NextInt(20000, 65000))
             TestTcpListener.Start()
             Thread.Sleep(200)
             TestTcpListener.Stop()

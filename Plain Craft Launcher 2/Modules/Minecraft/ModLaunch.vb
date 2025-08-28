@@ -2,6 +2,8 @@
 Imports System.IO.Compression
 Imports System.Text.Json.Nodes
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Module ModLaunch
 
@@ -83,7 +85,7 @@ Public Module ModLaunch
     ''' </summary>
     Public Sub McLaunchLog(Text As String)
         Text = FilterUserName(FilterAccessToken(Text, "*"), "*")
-        RunInUi(Sub() FrmLaunchRight.LabLog.Text += vbCrLf & "[" & GetTimeNow() & "] " & Text)
+        RunInUi(Sub() FrmLaunchRight.LabLog.Text += vbCrLf & "[" & TimeUtils.GetTimeNow() & "] " & Text)
         Log("[Launch] " & Text)
     End Sub
 
@@ -188,7 +190,7 @@ NextInner:
                 GoTo NextInner
             Else
                 '没有特殊处理过的错误信息
-                McLaunchLog("错误：" & GetExceptionDetail(ex))
+                McLaunchLog("错误：" & ex.ToString())
                 Log(ex,
                     If(CurrentLaunchOptions?.SaveBatch Is Nothing, "Minecraft 启动失败", "导出启动脚本失败"), LogLevel.Msgbox,
                     If(CurrentLaunchOptions?.SaveBatch Is Nothing, "启动失败", "导出启动脚本失败"))
@@ -224,7 +226,7 @@ NextInner:
 #Region "预检测"
 
     Private Sub McLaunchPrecheck()
-        If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(100, 2000))
+        If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(100, 2000))
         '检查路径
         If McInstanceCurrent.PathIndie.Contains("!") OrElse McInstanceCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.PathIndie & "）")
         If McInstanceCurrent.Path.Contains("!") OrElse McInstanceCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.Path & "）")
@@ -495,7 +497,7 @@ NextInner:
         '检查是否已经登录完成
         If Not Data.IsForceRestarting AndAlso '不要求强行重启
            Not String.IsNullOrEmpty(Input.AccessToken) AndAlso '已经登录过了
-           (McLoginMsRefreshTime > 0 AndAlso GetTimeTick() - McLoginMsRefreshTime < 1000 * 60 * 10) Then '完成时间在 10 分钟内
+           (McLoginMsRefreshTime > 0 AndAlso TimeUtils.GetTimeTick() - McLoginMsRefreshTime < 1000 * 60 * 10) Then '完成时间在 10 分钟内
             Data.Output = New McLoginResult With
                 {.AccessToken = Input.AccessToken, .Name = Input.UserName, .Uuid = Input.Uuid, .Type = "Microsoft", .ClientToken = Input.Uuid, .ProfileJson = Input.ProfileJson}
             GoTo SkipLogin
@@ -586,7 +588,7 @@ Relogin:
             .ProfileJson = Result(2)}
 SkipLogin:
         '结束
-        McLoginMsRefreshTime = GetTimeTick()
+        McLoginMsRefreshTime = TimeUtils.GetTimeTick()
         ProfileLog("正版验证完成")
         Setup.Set("HintBuy", True) '关闭正版购买提示
         If IsSkipAuth Then
@@ -798,7 +800,7 @@ Retry:
                 "application/json",
                 False)
         Catch ex As PCL.ModNet.HttpWebException
-            Dim Message As String = GetExceptionSummary(ex)
+            Dim Message As String = ex.Message
             If CType(ex.StatusCode, Integer) = 429 Then
                 Log(ex, "正版验证 Step 4 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
@@ -871,7 +873,7 @@ Retry:
                 False,
                 New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
         Catch ex As PCL.ModNet.HttpWebException
-            Dim Message As String = GetExceptionSummary(ex)
+            Dim Message As String = ex.Message
             If CType(ex.StatusCode, Integer) = 429 Then '微软！我的 TooManyRequests 枚举呢？
                 Log(ex, "正版验证 Step 6 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
@@ -920,14 +922,14 @@ Retry:
                 McLoginRequestValidate(Data)
                 GoTo LoginFinish
             Catch ex As HttpWebException
-                Dim AllMessage = GetExceptionDetail(ex)
+                Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
                     Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
                 End If
             Catch ex As Exception
-                Dim AllMessage = GetExceptionDetail(ex)
+                Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
                 Throw
             End Try
@@ -939,7 +941,7 @@ Refresh:
                 McLoginRequestRefresh(Data, NeedRefresh)
                 GoTo LoginFinish
             Catch ex As Exception
-                ProfileLog("刷新登录失败：" & GetExceptionDetail(ex))
+                ProfileLog("刷新登录失败：" & ex.ToString())
                 If WasRefreshed Then Throw New Exception("二轮刷新登录失败", ex)
             End Try
             Data.Progress = If(NeedRefresh, 0.85, 0.45)
@@ -949,7 +951,7 @@ Refresh:
             If Data.IsAborted Then Throw New ThreadInterruptedException
             NeedRefresh = McLoginRequestLogin(Data)
         Catch ex As HttpWebException
-            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            ProfileLog("验证失败：" & ex.ToString())
             Dim message As String = Nothing
             Dim responseText = ex.InnerHttpException.WebResponse
             Try
@@ -961,7 +963,7 @@ Refresh:
             If message Is Nothing Then message = "第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & responseText
             Throw New Exception("$" & message)
         Catch ex As Exception
-            ProfileLog("验证失败：" & GetExceptionDetail(ex))
+            ProfileLog("验证失败：" & ex.ToString())
             Throw New Exception("$第三方验证登录失败" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
         End Try
         If NeedRefresh Then
@@ -1136,7 +1138,7 @@ LoginFinish:
         Catch ex As HttpWebException
             Throw
         Catch ex As Exception
-            Dim AllMessage As String = GetExceptionSummary(ex)
+            Dim AllMessage As String = ex.ToString()
             ProfileLog("第三方验证失败: " & ex.ToString())
             If ex.Message.StartsWithF("$") Then
                 Throw
@@ -1942,7 +1944,7 @@ NextInstance:
                             File.Delete(FilePath)
                         Catch ex As UnauthorizedAccessException
                             McLaunchLog("删除原 dll 访问被拒绝，这通常代表有一个 MC 正在运行，跳过解压：" & FilePath)
-                            McLaunchLog("实际的错误信息：" & GetExceptionSummary(ex))
+                            McLaunchLog("实际的错误信息：" & ex.ToString())
                             Exit For
                         End Try
                     End If
@@ -1962,7 +1964,7 @@ NextInstance:
                 File.Delete(FileName)
             Catch ex As UnauthorizedAccessException
                 McLaunchLog("删除多余文件访问被拒绝，跳过删除步骤")
-                McLaunchLog("实际的错误信息：" & GetExceptionSummary(ex))
+                McLaunchLog("实际的错误信息：" & ex.ToString())
                 Return
             End Try
         Next
@@ -1990,12 +1992,12 @@ NextInstance:
             SetGPUPreference(McLaunchJavaSelected.JavawExePath, Setup.Get("LaunchAdvanceGraphicCard"))
             SetGPUPreference(PathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
         Catch ex As Exception
-            If IsAdmin() Then
+            If ProcessInterop.IsAdmin() Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
                 Try
-                    If RunAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""") = ProcessReturnValues.TaskDone Then
+                    If ProcessInterop.StartAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功")
                     Else
                         Throw New Exception("调整过程中出现异常")
