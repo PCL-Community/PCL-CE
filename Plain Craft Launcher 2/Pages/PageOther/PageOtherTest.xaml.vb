@@ -1,9 +1,12 @@
 Imports System.Net
+Imports System.Net.Http
 Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
 Imports PCL.Core.App
 
 Imports PCL.Core.IO
+Imports PCL.Core.Net
 Imports PCL.Core.Utils.OS
 
 Public Class PageOtherTest
@@ -33,6 +36,14 @@ Public Class PageOtherTest
                                      String.IsNullOrEmpty(TextDownloadName.ValidateResult)
 
         BtnDownloadOpen.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult)
+        
+        BtnAchievementPreview.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
+                                     String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
+                                     String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
+        
+        BtnAchievementSave.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
+                                          String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
+                                          String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
     End Sub
     Private Sub SaveCacheDownloadFolder() Handles TextDownloadFolder.ValidatedTextChanged
         Setup.Set("CacheDownloadFolder", TextDownloadFolder.Text)
@@ -431,7 +442,6 @@ Public Class PageOtherTest
     Private Sub BtnMemory_Click(sender As Object, e As MouseButtonEventArgs)
         RunInThread(Sub() MemoryOptimize(True))
     End Sub
-    Private _IsQueryServer As Boolean = False
 
     '下载正版玩家皮肤
     Private Sub BtnSkinSave_Click(sender As Object, e As EventArgs) Handles BtnSkinSave.Click
@@ -510,4 +520,103 @@ Public Class PageOtherTest
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
         MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数")
     End Sub
+
+    Private Async Sub BtnAchievementPreview_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim url = GetAchievementUrl()
+        Log("[Net] 获取网络结果" & url)
+        Await LoadImageAsync(url)
+    End Sub
+    
+    Private Async Function LoadImageAsync(imageUrl As String) As Task
+        Dim client = NetworkService.GetClient() 
+        Try
+            Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
+            If response.IsSuccessStatusCode Then
+                Using stream As Stream = Await response.Content.ReadAsStreamAsync()
+                    Dim bitmapImage As New BitmapImage()
+                    bitmapImage.BeginInit()
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+                    bitmapImage.StreamSource = stream
+                    bitmapImage.EndInit()
+                    bitmapImage.Freeze()
+
+                    Dispatcher.Invoke(Sub()
+                        AchievementImage.Source = bitmapImage
+                        AchievementImage.Visibility = Visibility.Visible
+                    End Sub)
+                End Using
+            ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
+                Dispatcher.Invoke(Sub()
+                    Log("获取成就图片失败（404）")
+                    Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+                End Sub)
+            Else
+                Dispatcher.Invoke(Sub()
+                    Log("获取成就图片失败（" & response.StatusCode & "）")
+                End Sub)
+            End If
+
+        Catch ex As Exception
+            Dispatcher.Invoke(Sub()
+                Log(ex, "获取成就图片失败")
+            End Sub)
+        End Try
+    End Function
+
+    Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
+        Dim url = GetAchievementUrl()
+        await DownloadImageToLocalAsync(url)
+    End Sub
+    
+    Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
+        Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
+        Dim client = NetworkService.GetClient()
+        Try
+            ' 异步发送 GET 请求
+            Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
+            
+            ' 如果响应状态码是成功的，则继续
+            If response.IsSuccessStatusCode Then
+                ' 异步读取响应内容为字节流
+                Dim imageBytes As Byte() = Await response.Content.ReadAsByteArrayAsync()
+                
+                ' 将字节写入本地文件
+                File.WriteAllBytes(savePath, imageBytes)
+                
+                Dim path As String = SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
+                If(path = "") Then
+                    Log("用户取消了保存操作")
+                    File.Delete(savePath)
+                    Return
+                End If
+                CopyFile(savePath, path)
+                File.Delete(savePath)
+                Hint("自定义成就图片已保存！", HintType.Finish)
+                ' 下载成功，返回 True
+            ElseIf response.StatusCode = HttpStatusCode.NotFound Then
+                ' 捕获 404 错误
+                Log("获取成就图片失败（404）")
+                Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+            Else
+                ' 处理其他非成功状态码
+                Log("获取成就图片失败（" & response.StatusCode & "）")
+            End If
+            
+        Catch ex As Exception
+            ' 捕获所有其他异常（如网络连接问题）
+            Log(ex, "获取成就图片失败")
+        End Try
+    End Function
+    
+    Private Function GetAchievementUrl() As String
+        Dim block = AchievementBlockTextBox.Text.Trim()
+        Dim title = AchievementTitleTextBox.Text.Replace(" ", "..")
+        Dim str1 = AchievementString1TextBox.Text.Replace(" ", "..")
+        Dim str2 = AchievementString2TextBox.Text.Replace(" ", "..")
+        Dim url = $"https://minecraft-api.com/api/achivements/{block}/{title}/{str1}"
+        If Not String.IsNullOrEmpty(str2) Then
+            url &= $"/{str2}"
+        End If
+        Return url
+    End Function
 End Class
