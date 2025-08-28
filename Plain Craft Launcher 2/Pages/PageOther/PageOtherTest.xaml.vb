@@ -258,7 +258,7 @@ Public Class PageOtherTest
         Else
             IsMemoryOptimizing = True
             Dim num As Long
-            If ModBase.IsAdmin() Then
+            If ProcessInterop.IsAdmin() Then
                 num = CLng(KernelInterop.GetAvailablePhysicalMemoryBytes())
                 Try
                     MemoryOptimizeInternal(ShowHint)
@@ -272,7 +272,7 @@ Public Class PageOtherTest
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
-                    num = CLng(RunAsAdmin("--memory")) * 1024L
+                    num = CLng(ProcessInterop.StartAsAdmin("--memory").ExitCode) * 1024L
                 Catch ex2 As Exception
                     Log(ex2, "命令行形式内存优化失败")
                     If ShowHint Then
@@ -299,7 +299,7 @@ Public Class PageOtherTest
         End If
     End Sub
     Public Shared Sub MemoryOptimizeInternal(ShowHint As Boolean)
-        If Not IsAdmin() Then
+        If Not ProcessInterop.IsAdmin() Then
             Throw New Exception("内存优化功能需要管理员权限！" & vbCrLf & "如果需要自动以管理员身份启动 PCL，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")
         End If
         Log("[Test] 获取内存优化权限")

@@ -2214,25 +2214,6 @@ RetryDir:
         Inherits Exception
     End Class
 
-    ''' <summary>
-    ''' 当前程序是否拥有管理员权限。
-    ''' </summary>
-    Public Function IsAdmin() As Boolean
-        Dim id As WindowsIdentity = WindowsIdentity.GetCurrent()
-        Dim principal As New WindowsPrincipal(id)
-        Return principal.IsInRole(WindowsBuiltInRole.Administrator)
-    End Function
-    ''' <summary>
-    ''' 以管理员权限运行当前程序，并等待程序运行结束。
-    ''' 返回程序的返回代码，如果运行失败将抛出异常。
-    ''' </summary>
-    Public Function RunAsAdmin(Argument As String) As Integer
-        Dim newProcess = ProcessInterop.StartAsAdmin(PathWithName, Argument)
-        If newProcess Is Nothing Then Throw New Exception("以管理员权限启动进程失败")
-        newProcess.WaitForExit()
-        Return newProcess.ExitCode
-    End Function
-
     Public IsRestrictedFeatAllowed As Boolean = False
     ''' <summary>
     ''' 获取区域限制状态，用于判断是否允许使用部分区域限制功能。

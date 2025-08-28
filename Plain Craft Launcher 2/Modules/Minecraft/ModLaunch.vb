@@ -3,6 +3,7 @@ Imports System.IO.Compression
 Imports System.Text.Json.Nodes
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Module ModLaunch
 
@@ -1991,12 +1992,12 @@ NextInstance:
             SetGPUPreference(McLaunchJavaSelected.JavawExePath, Setup.Get("LaunchAdvanceGraphicCard"))
             SetGPUPreference(PathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
         Catch ex As Exception
-            If IsAdmin() Then
+            If ProcessInterop.IsAdmin() Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
                 Try
-                    If RunAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""") = ProcessReturnValues.TaskDone Then
+                    If ProcessInterop.StartAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功")
                     Else
                         Throw New Exception("调整过程中出现异常")
