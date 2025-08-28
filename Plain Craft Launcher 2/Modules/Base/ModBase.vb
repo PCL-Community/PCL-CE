@@ -1026,7 +1026,7 @@ Re:
             Else
                 Retry = True
                 Log(ex, "获取文件 MD5 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomInteger(200, 500))
+                Thread.Sleep(RandomUtils.NextInt(200, 500))
                 GoTo Re
             End If
         End Try
@@ -1051,7 +1051,7 @@ Re:
             Else
                 Retry = True
                 Log(ex, "获取文件 SHA512 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomInteger(200, 500))
+                Thread.Sleep(RandomUtils.NextInt(200, 500))
                 GoTo Re
             End If
         End Try
@@ -1076,7 +1076,7 @@ Re:
             Else
                 Retry = True
                 Log(ex, "获取文件 SHA256 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomInteger(200, 500))
+                Thread.Sleep(RandomUtils.NextInt(200, 500))
                 GoTo Re
             End If
         End Try
@@ -1099,7 +1099,7 @@ Re:
             Else
                 Retry = True
                 Log(ex, "获取文件 SHA1 可重试失败：" & FilePath, LogLevel.Normal)
-                Thread.Sleep(RandomInteger(200, 500))
+                Thread.Sleep(RandomUtils.NextInt(200, 500))
                 GoTo Re
             End If
         End Try
@@ -2905,38 +2905,6 @@ NextElement:
         Return Join(Stack.GetFrames().Skip(1).Select(Function(f) f.GetMethod).
                     Select(Function(f) f.Name & "(" & Join(f.GetParameters.Select(Function(p) p.ToString).ToList, ", ") & ") - " & f.Module.ToString).ToList,
                     vbCrLf).Replace(vbCrLf & vbCrLf, vbCrLf)
-    End Function
-
-#End Region
-
-#Region "随机"
-
-    Private ReadOnly Random As New Random
-
-    ''' <summary>
-    ''' 随机选择其一。
-    ''' </summary>
-    Public Function RandomOne(Of T)(objects As ICollection(Of T)) As T
-        Return objects(RandomInteger(0, objects.Count - 1))
-    End Function
-
-    ''' <summary>
-    ''' 取随机整数。
-    ''' </summary>
-    Public Function RandomInteger(min As Integer, max As Integer) As Integer
-        Return Math.Floor((max - min + 1) * Random.NextDouble()) + min
-    End Function
-
-    ''' <summary>
-    ''' 将数组随机打乱。
-    ''' </summary>
-    Public Function Shuffle(Of T)(array As IList(Of T)) As IList(Of T)
-        Shuffle = New List(Of T)
-        Do While array.Any
-            Dim i As Integer = RandomInteger(0, array.Count - 1)
-            Shuffle.Add(array(i))
-            array.RemoveAt(i)
-        Loop
     End Function
 
 #End Region

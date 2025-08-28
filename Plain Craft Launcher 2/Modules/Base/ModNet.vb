@@ -1244,12 +1244,12 @@ NotSupportRange:
                             Info.Temp = Nothing
                             SmailFileCache = New Queue(Of Byte)
                         Else
-                            Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomInteger(0, 999999)}.tmp"
+                            Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomUtils.NextInt(0, 999999)}.tmp"
                             ResultStream = New FileStream(Info.Temp, FileMode.Create, FileAccess.Write, FileShare.Read)
                         End If
                         '开始下载
                         Using HttpStream = response.Content.ReadAsStreamAsync().Result
-                            If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomInteger(50, 3000))
+                            If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
                             Const bufferSize As Integer = 16384
                             Dim HttpData As Byte() = New Byte(bufferSize) {}
                             HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
@@ -1514,7 +1514,7 @@ Retry:
                 End If
                 '重试
                 If RetryCount <= 3 Then
-                    Threading.Thread.Sleep(RandomInteger(500, 1000))
+                    Threading.Thread.Sleep(RandomUtils.NextInt(500, 1000))
                     RetryCount += 1
                     GoTo Retry
                 End If

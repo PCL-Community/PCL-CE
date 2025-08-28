@@ -136,7 +136,7 @@ Public Module ModMinecraft
                 McFolderLauncherProfilesJsonCreate(Folder.Path)
 #End Region
             Next
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(200, 2000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(200, 2000))
 
             '回设
             McFolderList = cacheMcFolderList
@@ -1296,7 +1296,7 @@ OnLoaded:
                 Setup.Set("LaunchInstanceSelect", "")
                 Log("[Minecraft] 未找到可用 Minecraft 实例")
             End If
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(200, 3000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(200, 3000))
         Catch ex As ThreadInterruptedException
         Catch ex As Exception
             WriteIni(Path & "PCL.ini", "InstanceCache", "") '要求下次重新加载

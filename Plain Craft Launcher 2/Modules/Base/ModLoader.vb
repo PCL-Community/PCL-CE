@@ -89,7 +89,7 @@ Public Module ModLoader
             Set(value As LoadState)
                 If _State = value Then Return
                 Dim OldState = _State
-                If value = LoadState.Finished AndAlso Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(100, 2000))
+                If value = LoadState.Finished AndAlso Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(100, 2000))
                 _State = value
                 Log("[Loader] 加载器 " & Name & " 状态改变：" & GetStringFromEnum(value))
                 '实现 ILoadingTrigger 接口与 OnStateChanged 回调

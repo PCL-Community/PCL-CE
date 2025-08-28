@@ -135,7 +135,7 @@ Public Class FormMain
             AddResizer()
         End If
         'PLC 彩蛋
-        If RandomInteger(1, 1000) = 233 Then
+        If RandomUtils.NextInt(1, 1000) = 233 Then
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
         End If
         '加载窗口

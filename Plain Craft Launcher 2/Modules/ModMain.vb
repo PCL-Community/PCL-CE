@@ -2,6 +2,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
 Imports PCL.Core.IO
+Imports PCL.Core.Utils
 
 Public Module ModMain
 
@@ -862,7 +863,7 @@ NextFile:
             '放弃提示
             If AprilDistance > 4000 Then
                 AprilDistance = -4000
-                Select Case RandomInteger(0, 3)
+                Select Case RandomUtils.NextInt(0, 3)
                     Case 0
                         Hint("放弃吧！只需要点一下右下角的小白旗……")
                     Case 1
@@ -975,7 +976,7 @@ NextFile:
         TryClearTaskTemp()
         Dim ResultFolder As String
         Try
-            ResultFolder = $"{PathTemp}TaskTemp\{GetUuid()}-{RandomInteger(0, 1000000)}\"
+            ResultFolder = $"{PathTemp}TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
             If RequireNonSpace AndAlso ResultFolder.Contains(" ") Then Exit Try '带空格
             Directory.CreateDirectory(ResultFolder)
             Files.CheckPermissionWithException(ResultFolder)
@@ -983,7 +984,7 @@ NextFile:
         Catch
         End Try
         '使用备用路径
-        ResultFolder = $"{OsDrive}ProgramData\PCL\TaskTemp\{GetUuid()}-{RandomInteger(0, 1000000)}\"
+        ResultFolder = $"{OsDrive}ProgramData\PCL\TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
         Directory.CreateDirectory(ResultFolder)
         Files.CheckPermission(ResultFolder)
         Return ResultFolder

@@ -1,4 +1,7 @@
-﻿Public Class PageLaunchLeft
+﻿Imports PCL.Core.Utils
+Imports System.Windows
+
+Public Class PageLaunchLeft
 
     '加载当前实例
     Private IsLoad As Boolean = False
@@ -49,7 +52,7 @@
                 Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(Path, "$"))
             End If
             Log("[Launch] Minecraft 文件夹：" & PathMcFolder)
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(500, 3000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(500, 3000))
             '自动整合包安装
             If PackInstallPath IsNot Nothing Then
                 Try

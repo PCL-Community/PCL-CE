@@ -226,7 +226,7 @@ NextInner:
 #Region "预检测"
 
     Private Sub McLaunchPrecheck()
-        If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(100, 2000))
+        If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(100, 2000))
         '检查路径
         If McInstanceCurrent.PathIndie.Contains("!") OrElse McInstanceCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.PathIndie & "）")
         If McInstanceCurrent.Path.Contains("!") OrElse McInstanceCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.Path & "）")

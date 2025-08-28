@@ -7,6 +7,7 @@ Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Utils
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -446,8 +447,8 @@ Public Class PageLinkLobby
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
-                           Dim id As String = RandomInteger(10000000, 99999999).ToString()
-                           Dim secret As String = RandomInteger(10, 99).ToString()
+                           Dim id As String = RandomUtils.NextInt(10000000, 99999999).ToString()
+                           Dim secret As String = RandomUtils.NextInt(10, 99).ToString()
                            TargetLobby = New LobbyInfo With {
                                .NetworkName = id,
                                .NetworkSecret = secret,

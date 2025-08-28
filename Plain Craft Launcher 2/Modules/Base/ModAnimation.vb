@@ -826,7 +826,7 @@ Public Module ModAnimation
                                                    '#Else
                                                    '    If ModeDebug Then FrmMain.Title = "FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManage.FileRemain
                                                    '#End If
-                                                   If RandomInteger(0, 64 * If(ModeDebug, 5, 30)) = 0 AndAlso ((AniFPS < 62 AndAlso AniFPS > 0) OrElse AniCount > 4 OrElse NetManager.FileRemain <> 0) Then
+                                                   If RandomUtils.NextInt(0, 64 * If(ModeDebug, 5, 30)) = 0 AndAlso ((AniFPS < 62 AndAlso AniFPS > 0) OrElse AniCount > 4 OrElse NetManager.FileRemain <> 0) Then
                                                        Log("[Report] FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManager.FileRemain & "（" & GetString(NetManager.Speed) & "/s）")
                                                    End If
                                                End Sub)
@@ -983,9 +983,9 @@ NextAni:
                     If TextCount < Ani.Value(0).ToString.Length Then
                         Dim NextText As String = Mid(Ani.Value(0), TextCount + 1, 1)
                         If Convert.ToInt32(Convert.ToChar(NextText)) >= Convert.ToInt32(Convert.ToChar(128)) Then
-                            NewText &= Encoding.GetEncoding("GB18030").GetString(New Byte() {RandomInteger(16 + 160, 87 + 160), RandomInteger(1 + 160, 89 + 160)})
+                            NewText &= Encoding.GetEncoding("GB18030").GetString(New Byte() {RandomUtils.NextInt(16 + 160, 87 + 160), RandomUtils.NextInt(1 + 160, 89 + 160)})
                         Else
-                            NewText &= RandomOne("0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray)
+                            NewText &= RandomUtils.PickRandom("0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray)
                         End If
                     End If
                     '设置文本

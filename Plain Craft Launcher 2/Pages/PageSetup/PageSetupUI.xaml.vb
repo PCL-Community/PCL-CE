@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Threading.Tasks
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 
@@ -394,7 +395,7 @@ Public Class PageSetupUI
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(False, 0)
             Else
                 If Refresh Then
-                    Dim Address As String = RandomOne(Pic)
+                    Dim Address As String = RandomUtils.PickRandom(Pic)
                     Try
                         FrmMain.ImgBack.Background = Nothing
                         VideoStop()
