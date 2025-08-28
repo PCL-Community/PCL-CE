@@ -1007,85 +1007,6 @@ Public Module ModBase
         End If
     End Function
 
-    '对话框
-    ''' <summary>
-    ''' 弹出保存对话框并且要求保存位置，返回用户输入的完整路径。
-    ''' </summary>
-    ''' <param name="FileFilter">要求的格式。如：“常用图片文件(*.png;*.jpg)|*.png;*.jpg”。</param>
-    ''' <param name="Title">弹窗的标题。</param>
-    ''' <param name="FileName">默认的文件名。</param>
-    Public Function SelectSaveFile(Title As String, FileName As String, Optional FileFilter As String = Nothing, Optional InitialDirectory As String = Nothing) As String
-        Using fileDialog As New Forms.SaveFileDialog
-            fileDialog.AddExtension = True
-            fileDialog.AutoUpgradeEnabled = True
-            fileDialog.Title = Title
-            fileDialog.FileName = FileName
-            If FileFilter IsNot Nothing Then fileDialog.Filter = FileFilter
-            If Not String.IsNullOrEmpty(InitialDirectory) AndAlso Directory.Exists(InitialDirectory) Then fileDialog.InitialDirectory = InitialDirectory
-            Dim result = fileDialog.ShowDialog()
-            If result <> Forms.DialogResult.OK Then
-                Log("[UI] 选择文件被取消")
-                Return ""
-            End If
-            SelectSaveFile = If(fileDialog.FileName.Contains(":\"), fileDialog.FileName, "")
-            Log("[UI] 选择文件返回：" & SelectSaveFile)
-        End Using
-    End Function
-    ''' <summary>
-    ''' 弹出选取文件对话框，要求选择一个文件。
-    ''' </summary>
-    ''' <param name="FileFilter">要求的格式。如：“常用图片文件(*.png;*.jpg)|*.png;*.jpg”。</param>
-    ''' <param name="Title">弹窗的标题。</param>
-    Public Function SelectFile(FileFilter As String, Title As String, Optional InitialDirectory As String = Nothing) As String
-        Using fileDialog As New Forms.OpenFileDialog
-            fileDialog.AddExtension = True
-            fileDialog.AutoUpgradeEnabled = True
-            fileDialog.CheckFileExists = True
-            fileDialog.Filter = FileFilter
-            fileDialog.Multiselect = False
-            fileDialog.Title = Title
-            fileDialog.ValidateNames = True
-            If Not String.IsNullOrEmpty(InitialDirectory) AndAlso Directory.Exists(InitialDirectory) Then fileDialog.InitialDirectory = InitialDirectory
-            fileDialog.ShowDialog()
-            Log("[UI] 选择单个文件返回：" & fileDialog.FileName)
-            Return fileDialog.FileName
-        End Using
-    End Function
-    ''' <summary>
-    ''' 弹出选取文件对话框，要求选择多个文件。
-    ''' </summary>
-    ''' <param name="FileFilter">要求的格式。如：“常用图片文件(*.png;*.jpg)|*.png;*.jpg”。</param>
-    ''' <param name="Title">弹窗的标题。</param>
-    Public Function SelectFiles(FileFilter As String, Title As String) As String()
-        Using fileDialog As New Forms.OpenFileDialog
-            fileDialog.AddExtension = True
-            fileDialog.AutoUpgradeEnabled = True
-            fileDialog.CheckFileExists = True
-            fileDialog.Filter = FileFilter
-            fileDialog.Multiselect = True
-            fileDialog.Title = Title
-            fileDialog.ValidateNames = True
-            fileDialog.ShowDialog()
-            Log("[UI] 选择多个文件返回：" & fileDialog.FileNames.Join(","))
-            Return fileDialog.FileNames
-        End Using
-    End Function
-    ''' <summary>
-    ''' 弹出选取文件夹对话框，要求选取文件夹。
-    ''' 返回以 \ 结尾的完整路径，如果没有选择则返回空字符串。
-    ''' </summary>
-    Public Function SelectFolder(Optional Title As String = "选择文件夹") As String
-        Dim folderDialog As New OpenFolderDialog With {
-                .InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                .Title = Title,
-                .Multiselect = False
-        }
-        folderDialog.ShowDialog()
-        Dim selected = folderDialog.FolderName
-        SelectFolder = If(String.IsNullOrEmpty(selected), "", selected & If(selected.EndsWithF("\"), "", "\"))
-        Log("[UI] 选择文件夹返回：" & SelectFolder)
-    End Function
-
     '文件校验
     ''' <summary>
     ''' 获取文件 MD5，若失败则返回空字符串。
@@ -1096,7 +1017,7 @@ Re:
         Try
             '获取 MD5
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.MD5Provider.Instance.ComputeHash(fs)
+                Return Hash.MD5Provider.Instance.ComputeHash(fs)
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -2746,17 +2667,6 @@ NextElement:
     ''' </summary>
     Public Function RunInUi() As Boolean
         Return Thread.CurrentThread.ManagedThreadId = UiThreadId
-    End Function
-
-    ''' <summary>
-    ''' 获取文本在被渲染后的宽度。
-    ''' </summary>
-    Public Function MeasureStringWidth(text As String, Optional fontSize As Double = 14, Optional fontFamily As FontFamily = Nothing) As Double
-        If fontFamily Is Nothing Then fontFamily = New FontFamily("微软雅黑")
-        Dim formattedText = New FormattedText(
-            text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, New Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            fontSize, Brushes.Black, New NumberSubstitution(), TextFormattingMode.Display, New DpiScale(1, 1).PixelsPerDip)
-        Return formattedText.Width
     End Function
 
 #End Region

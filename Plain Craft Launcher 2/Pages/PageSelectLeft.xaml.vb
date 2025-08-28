@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.IO
+Imports PCL.Core.Utils.OS
 
 Public Class PageSelectLeft
     Implements IRefreshable
@@ -231,7 +232,7 @@ Public Class PageSelectLeft
         End If
         Try
             '获取输入
-            NewFolder = SelectFolder()
+            NewFolder = DialogUtils.SelectFolder()
             If NewFolder = "" Then Return
             If NewFolder.Contains("!") OrElse NewFolder.Contains(";") Then Hint("Minecraft 文件夹路径中不能含有感叹号或分号！", HintType.Critical) : Return
             '要求输入显示名称

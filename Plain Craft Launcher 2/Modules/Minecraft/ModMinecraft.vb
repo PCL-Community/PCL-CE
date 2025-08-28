@@ -4,6 +4,7 @@ Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 Imports System.Text.Json.Nodes
 Imports PCL.Core.IO
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Module ModMinecraft
 
@@ -1697,7 +1698,7 @@ OnLoaded:
     ''' 要求玩家选择一个皮肤文件，并进行相关校验。
     ''' </summary>
     Public Function McSkinSelect() As McSkinInfo
-        Dim FileName As String = SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件")
+        Dim FileName As String = DialogUtils.SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件")
 
         '验证有效性
         If FileName = "" Then Return New McSkinInfo With {.IsVaild = False}

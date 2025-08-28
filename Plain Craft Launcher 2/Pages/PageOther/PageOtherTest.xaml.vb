@@ -73,7 +73,7 @@ Public Class PageOtherTest
 
         Try
             If String.IsNullOrWhiteSpace(Folder) Then
-                Folder = SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
+                Folder = DialogUtils.SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
                 If Not Folder.Contains("\") Then
                     Return
                 End If
@@ -400,7 +400,7 @@ Public Class PageOtherTest
     End Sub
 
     Private Sub MyTextButton_Click(sender As Object, e As EventArgs)
-        Dim text = SelectFolder("选择文件夹")
+        Dim text = DialogUtils.SelectFolder("选择文件夹")
         If Not String.IsNullOrEmpty(text) Then
             TextDownloadFolder.Text = text
         End If
@@ -456,7 +456,7 @@ Public Class PageOtherTest
                                    Result = McSkinGetAddress(Result, "Mojang")
                                    Result = McSkinDownload(Result)
                                    RunInUi(Sub()
-                                               Dim Path As String = SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
+                                               Dim Path As String = DialogUtils.SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
                                                CopyFile(Result, Path)
                                                Hint($"玩家 {ID} 的皮肤已保存！", HintType.Finish)
                                            End Sub)
@@ -583,7 +583,7 @@ Public Class PageOtherTest
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
                 
-                Dim path As String = SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
+                Dim path As String = DialogUtils.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
                 If(path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)

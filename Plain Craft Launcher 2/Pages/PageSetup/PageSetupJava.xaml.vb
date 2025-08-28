@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils.OS
 
 Public Class PageSetupJava
 
@@ -117,7 +118,7 @@ Public Class PageSetupJava
     End Sub
 
     Private Sub BtnAdd_Click(sender As Object, e As RouteEventArgs) Handles BtnAdd.Click
-        Dim ret = SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
+        Dim ret = DialogUtils.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
         If String.IsNullOrEmpty(ret) OrElse Not File.Exists(ret) Then Return
         If JavaAddNew(ret) Then
             Hint("已添加 Java！", HintType.Finish)
