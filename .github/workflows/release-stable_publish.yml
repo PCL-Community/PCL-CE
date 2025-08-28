@@ -86,6 +86,6 @@ jobs:
       - name: Trigger update-release-discussion workflow
         shell: bash
         run: |
-              gh workflow run update-release-discussion.yml
+          gh workflow run --repo $GITHUB_REPOSITORY update-release-discussion.yml
         env:
               GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
