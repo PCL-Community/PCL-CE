@@ -1,4 +1,5 @@
 ﻿Imports System.Text.RegularExpressions
+Imports PCL.Core.IO
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
@@ -105,7 +106,7 @@ Public Class CrashAnalyzer
         Try
             Dim Info As New FileInfo(FilePath)
             If Info.Exists AndAlso Info.Length > 0 AndAlso Not FilePath.EndsWithF(".jar", True) Then
-                ExtractFile(FilePath, TempFolder & "Temp\")
+                FileCompressionUtils.ExtractFile(FilePath, TempFolder & "Temp\")
                 Log("[Crash] 已解压导入的日志文件：" & FilePath)
                 GoTo Extracted
             End If

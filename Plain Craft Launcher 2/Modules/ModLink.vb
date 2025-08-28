@@ -183,7 +183,7 @@ Public Module ModLink
                 Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
 
                 Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
+                Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() FileCompressionUtils.ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
                 Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
                     File.Delete(DlTargetPath)
                     CleanupEasyTierCache()

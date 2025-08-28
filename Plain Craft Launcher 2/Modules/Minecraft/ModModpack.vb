@@ -1,4 +1,5 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
@@ -122,7 +123,7 @@ Public Module ModModpack
 Retry:
             Loader.Progress = InitialProgress
             DeleteDirectory(InstallTemp)
-            ExtractFile(FileAddress, InstallTemp, Encode, ProgressIncrementHandler:=Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
+            FileCompressionUtils.ExtractFile(FileAddress, InstallTemp, Encode, ProgressIncrementHandler:=Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Catch ex As Exception
             Log(ex, "第 " & RetryCount & " 次解压尝试失败")
             If TypeOf ex Is ArgumentException OrElse TypeOf ex Is IOException Then

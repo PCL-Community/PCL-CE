@@ -1,3 +1,4 @@
+Imports PCL.Core.IO
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -401,7 +402,7 @@ Public Class PageDownloadCompDetail
             Dim TargetPath As String = Target.BeforeLast("\")
             Dim LogoFileAddress As String = MyImage.GetTempPath(CompItem.Logo)
             Loaders.Add(New LoaderDownload("下载世界文件", New List(Of NetFile) From {File.ToNetFile(Target)}) With {.ProgressWeight = 10, .Block = True})
-            Loaders.Add(New LoaderTask(Of Integer, Integer)("安装世界", Sub() ExtractFile(Target, TargetPath, Encoding.UTF8)) With {.ProgressWeight = 0.1, .Block = True})
+            Loaders.Add(New LoaderTask(Of Integer, Integer)("安装世界", Sub() FileCompressionUtils.ExtractFile(Target, TargetPath, Encoding.UTF8)) With {.ProgressWeight = 0.1, .Block = True})
             Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存", Sub() IO.File.Delete(Target)))
 
             '启动

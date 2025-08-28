@@ -1102,40 +1102,6 @@ Public Module ModBase
     End Class
 
     ''' <summary>
-    ''' 尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 Jar 以 zip 方式解压。
-    ''' 会尝试创建，但不会清空目标文件夹。
-    ''' </summary>
-    Public Sub ExtractFile(CompressFilePath As String, DestDirectory As String, Optional Encode As Encoding = Nothing,
-                           Optional ProgressIncrementHandler As Action(Of Double) = Nothing)
-        Directory.CreateDirectory(DestDirectory)
-        If CompressFilePath.EndsWithF(".gz", True) Then
-            '以 gz 方式解压
-            Using compressedFile As New FileStream(CompressFilePath, FileMode.Open, FileAccess.Read)
-                Using decompressStream As New GZipStream(compressedFile, CompressionMode.Decompress)
-                    Using extractFileStream As New FileStream(IO.Path.Combine(DestDirectory, GetFileNameFromPath(CompressFilePath).ToLower.Replace(".tar", "").Replace(".gz", "")), FileMode.OpenOrCreate, FileAccess.Write)
-                        decompressStream.CopyTo(extractFileStream)
-                    End Using
-                End Using
-            End Using
-        Else
-            '以 zip 方式解压
-            Using Archive = ZipFile.Open(CompressFilePath, ZipArchiveMode.Read, If(Encode, Encoding.GetEncoding("GB18030")))
-                Dim TotalCount As Integer = Archive.Entries.Count
-                For Each Entry As ZipArchiveEntry In Archive.Entries
-                    If ProgressIncrementHandler IsNot Nothing Then ProgressIncrementHandler(1 / TotalCount)
-                    Dim DestinationPath As String = IO.Path.Combine(DestDirectory, Entry.FullName)
-                    If DestinationPath.EndsWithF("\") OrElse DestinationPath.EndsWithF("/") Then
-                        Continue For '不创建空文件夹
-                    Else
-                        Directory.CreateDirectory(GetPathFromFullPath(DestinationPath))
-                        Entry.ExtractToFile(DestinationPath, True)
-                    End If
-                Next
-            End Using
-        End If
-    End Sub
-
-    ''' <summary>
     ''' 删除文件夹，返回删除的文件个数。通过参数选择是否抛出异常。
     ''' </summary>
     Public Function DeleteDirectory(Path As String, Optional IgnoreIssue As Boolean = False) As Integer

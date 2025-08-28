@@ -1,5 +1,6 @@
 ﻿
 Imports fNbt
+Imports PCL.Core.IO
 Imports PCL.Core.Utils
 
 Public Module ModWorld
@@ -14,7 +15,7 @@ Public Module ModWorld
         If File.Exists(SavePath) Then
             Dim ExtractPath As String = $"{PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\"
             If Directory.Exists(ExtractPath) Then DeleteDirectory(ExtractPath)
-            ExtractFile(SavePath, ExtractPath)
+            FileCompressionUtils.ExtractFile(SavePath, ExtractPath)
             SavePath = ExtractPath
         End If
         Dim world As New McWorld(SavePath)

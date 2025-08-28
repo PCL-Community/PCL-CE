@@ -2,6 +2,7 @@ Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports PCL.Core.App
+Imports PCL.Core.IO
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.ProgramSetup
@@ -754,7 +755,7 @@ Public Class FormMain
                             Hint("发现同名文件夹，无法粘贴：" + DestFolder, HintType.Critical)
                             Exit Sub
                         End If
-                        ExtractFile(FilePath, DestFolder)
+                        FileCompressionUtils.ExtractFile(FilePath, DestFolder)
                         Hint($"已导入 {GetFileNameWithoutExtentionFromPath(FilePath)}", HintType.Finish)
                         If FrmInstanceSaves IsNot Nothing Then RunInUi(Sub() FrmInstanceSaves.Reload())
                         Exit Sub

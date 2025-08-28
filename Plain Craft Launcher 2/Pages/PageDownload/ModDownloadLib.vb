@@ -1,4 +1,5 @@
 Imports System.IO.Compression
+Imports PCL.Core.IO
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils.OS
 
@@ -1627,7 +1628,7 @@ Retry:
                         Task.Progress = 0.6
                         '解压支持库文件
                         Installer.Dispose()
-                        ExtractFile(InstallerAddress, InstallerAddress & "_unrar\")
+                        FileCompressionUtils.ExtractFile(InstallerAddress, InstallerAddress & "_unrar\")
                         CopyDirectory(InstallerAddress & "_unrar\maven\", McFolder & "libraries\")
                         DeleteDirectory(InstallerAddress & "_unrar\")
                     Else
