@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Threading
+Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
@@ -365,7 +366,7 @@ Public Class PageSelectRight
                 Case 1
                     IniClearCache(Version.PathIndie & "options.txt")
                     If IsShiftPressed Then
-                        DeleteDirectory(Version.Path)
+                        Files.DeleteDirectory(Version.Path)
                         Hint("实例 " & Version.Name & " 已永久删除！", HintType.Finish)
                     Else
                         FileIO.FileSystem.DeleteDirectory(Version.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)

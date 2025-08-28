@@ -690,7 +690,7 @@ EndHint:
                     Dim IgnoreList As New List(Of String)
                     '读取自定义文件
                     If Directory.Exists(Path & "PCL\Help\") Then
-                        For Each File In EnumerateFiles(Path & "PCL\Help\")
+                        For Each File In Files.EnumerateFiles(Path & "PCL\Help\")
                             Select Case File.Extension.ToLower
                                 Case ".helpignore"
                                     '加载忽略列表
@@ -708,7 +708,7 @@ EndHint:
                     End If
                     Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " & FileList.Count & " 条")
                     '读取自带文件
-                    For Each File In EnumerateFiles(PathHelpFolder)
+                    For Each File In Files.EnumerateFiles(PathHelpFolder)
                         '跳过非 Json 文件与以 . 开头的文件夹
                         If File.Extension.ToLower <> ".json" OrElse File.Directory.FullName.Replace(PathHelpFolder.TrimEnd("\"c), "").Contains("\.") Then Continue For
                         '检查忽略列表
@@ -755,7 +755,7 @@ NextFile:
     ''' 解压内置帮助文件。
     ''' </summary>
     Public Sub HelpExtract()
-        DeleteDirectory(PathTemp & "CE\Help")
+        Files.DeleteDirectory(PathTemp & "CE\Help")
         Directory.CreateDirectory(PathTemp & "CE\Help")
         WriteFile(PathTemp & "CE\Cache\Help.zip", GetResourceStream("Resources/Help.zip"))
         FileCompressionUtils.ExtractFile(PathTemp & "CE\Cache\Help.zip", PathTemp & "CE\Help", Encoding.UTF8)
@@ -952,8 +952,8 @@ NextFile:
             IsTaskTempClearing = True
             Try
                 Log("[System] 开始清理任务缓存文件夹")
-                DeleteDirectory($"{OsDrive}ProgramData\PCL\TaskTemp\")
-                DeleteDirectory($"{PathTemp}TaskTemp\")
+                Files.DeleteDirectory($"{OsDrive}ProgramData\PCL\TaskTemp\")
+                Files.DeleteDirectory($"{PathTemp}TaskTemp\")
                 Log("[System] 已清理任务缓存文件夹")
             Catch ex As Exception
                 Log(ex, "清理任务缓存文件夹失败")

@@ -175,8 +175,8 @@ Public Class PageOtherTest
                         '删除 Minecraft 的缓存
                         For Each dirInfo As DirectoryInfo In cleanMcFolderList
                             '删除日志和崩溃报告并计数
-                            num += DeleteDirectory(dirInfo.FullName + If(dirInfo.FullName.EndsWith("\"), "", "\") + "crash-reports\", True)
-                            num += DeleteDirectory(dirInfo.FullName + If(dirInfo.FullName.EndsWith("\"), "", "\") + "logs\", True)
+                            num += Files.DeleteDirectory(dirInfo.FullName + If(dirInfo.FullName.EndsWith("\"), "", "\") + "crash-reports\", True)
+                            num += Files.DeleteDirectory(dirInfo.FullName + If(dirInfo.FullName.EndsWith("\"), "", "\") + "logs\", True)
                             For Each fileInfo As FileInfo In dirInfo.EnumerateFiles("*")
                                 If fileInfo.Name.StartsWith("hs_err_pid") OrElse fileInfo.Name.EndsWith(".log") OrElse fileInfo.Name = "WailaErrorOutput.txt" Then
                                     fileInfo.Delete()
@@ -187,14 +187,14 @@ Public Class PageOtherTest
                             '删除 Natives 文件
                             For Each dirInfo2 As DirectoryInfo In dirInfo.EnumerateDirectories()
                                 If dirInfo2.Name = dirInfo2.Name + "-natives" OrElse dirInfo2.Name = "natives-windows-x86_64" Then
-                                    num += DeleteDirectory(dirInfo2.FullName, True)
+                                    num += Files.DeleteDirectory(dirInfo2.FullName, True)
                                 End If
                             Next
                         Next
 
                         '删除 PCL 的缓存
-                        num += DeleteDirectory(PathTemp, True)
-                        num += DeleteDirectory(OsDrive + "ProgramData\PCL\", True)
+                        num += Files.DeleteDirectory(PathTemp, True)
+                        num += Files.DeleteDirectory(OsDrive + "ProgramData\PCL\", True)
 
                         MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
 

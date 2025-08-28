@@ -12,6 +12,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
@@ -1100,108 +1101,7 @@ Public Module ModBase
             End Try
         End Function
     End Class
-
-    ''' <summary>
-    ''' 删除文件夹，返回删除的文件个数。通过参数选择是否抛出异常。
-    ''' </summary>
-    Public Function DeleteDirectory(Path As String, Optional IgnoreIssue As Boolean = False) As Integer
-        If Not Directory.Exists(Path) Then Return 0
-        Dim DeletedCount As Integer = 0
-        Dim Files As String()
-        Try
-            Files = Directory.GetFiles(Path)
-        Catch ex As DirectoryNotFoundException '#4549
-            Log(ex, $"疑似为孤立符号链接，尝试直接删除（{Path}）", LogLevel.Developer)
-            Directory.Delete(Path)
-            Return 0
-        End Try
-        For Each FilePath As String In Files
-            Dim RetriedFile As Boolean = False
-RetryFile:
-            Try
-                File.Delete(FilePath)
-                DeletedCount += 1
-            Catch ex As Exception
-                If Not RetriedFile Then
-                    RetriedFile = True
-                    Log(ex, $"删除文件失败，将在 0.3s 后重试（{FilePath}）")
-                    Thread.Sleep(300)
-                    GoTo RetryFile
-                ElseIf IgnoreIssue Then
-                    Log(ex, "删除单个文件可忽略地失败")
-                Else
-                    Throw
-                End If
-            End Try
-        Next
-        For Each str As String In Directory.GetDirectories(Path)
-            DeleteDirectory(str, IgnoreIssue)
-        Next
-        Dim RetriedDir As Boolean = False
-RetryDir:
-        Try
-            Directory.Delete(Path, True)
-        Catch ex As Exception
-            If Not RetriedDir AndAlso Not RunInUi() Then
-                RetriedDir = True
-                Log(ex, $"删除文件夹失败，将在 0.3s 后重试（{Path}）")
-                Thread.Sleep(300)
-                GoTo RetryDir
-            ElseIf IgnoreIssue Then
-                Log(ex, "删除单个文件夹可忽略地失败")
-            Else
-                Throw
-            End If
-        End Try
-        Return DeletedCount
-    End Function
-    ''' <summary>
-    ''' 复制文件夹，失败会抛出异常。
-    ''' </summary>
-    Public Sub CopyDirectory(FromPath As String, ToPath As String, Optional ProgressIncrementHandler As Action(Of Double) = Nothing)
-        FromPath = FromPath.Replace("/", "\")
-        If Not FromPath.EndsWithF("\") Then FromPath &= "\"
-        ToPath = ToPath.Replace("/", "\")
-        If Not ToPath.EndsWithF("\") Then ToPath &= "\"
-        Dim AllFiles = EnumerateFiles(FromPath).ToList
-        Dim FileCount As Integer = AllFiles.Count
-        For Each File In AllFiles
-            CopyFile(File.FullName, File.FullName.Replace(FromPath, ToPath))
-            If ProgressIncrementHandler IsNot Nothing Then ProgressIncrementHandler(1 / FileCount)
-        Next
-    End Sub
-    ''' <summary>
-    ''' 遍历文件夹中的所有文件。
-    ''' </summary>
-    Public Function EnumerateFiles(Directory As String) As IEnumerable(Of FileInfo)
-        Dim Info As New DirectoryInfo(ShortenPath(Directory))
-        If Not Info.Exists Then Return New List(Of FileInfo)
-        Return Info.EnumerateFiles("*", SearchOption.AllDirectories)
-    End Function
-
-    ''' <summary>
-    ''' 若路径长度大于指定值，则将长路径转换为短路径。
-    ''' </summary>
-    Public Function ShortenPath(LongPath As String, Optional ShortenThreshold As Integer = 247) As String
-        If LongPath.Length <= ShortenThreshold Then Return LongPath
-        Dim ShortPath As New StringBuilder(260)
-        GetShortPathName(LongPath, ShortPath, 260)
-        Return ShortPath.ToString
-    End Function
-
-    Public Sub MoveDirectory(SourceDir As String, TargetDir As String)
-        If Not Directory.Exists(TargetDir) Then Directory.CreateDirectory(TargetDir)
-        For Each FilePath In Directory.GetFiles(SourceDir)
-            Dim FileName = GetFileNameFromPath(FilePath)
-            File.Move(FilePath, IO.Path.Combine(TargetDir, FileName))
-        Next
-        For Each DirPath In Directory.GetDirectories(SourceDir)
-            Dim DirName = GetFolderNameFromPath(DirPath)
-            MoveDirectory(DirPath, IO.Path.Combine(TargetDir, DirName))
-        Next
-    End Sub
-    Private Declare Function GetShortPathName Lib "kernel32" Alias "GetShortPathNameA" (ByVal lpszLongPath As String, ByVal lpszShortPath As StringBuilder, ByVal cchBuffer As Integer) As Integer
-
+    
     Public Sub CreateSymbolicLink(ByVal LinkPath As String, ByVal TargetPath As String, ByVal Flags As Integer)
         Dim CMDProcess As New Process
         Dim LinkDPath = ExtractLinkD()
@@ -1962,7 +1862,6 @@ NextElement:
     ''' <param name="Arguments">运行参数。</param>
     Public Sub ShellOnly(FileName As String, Optional Arguments As String = "")
         Try
-            FileName = ShortenPath(FileName)
             Using Program As New Process
                 Program.StartInfo.Arguments = Arguments
                 Program.StartInfo.FileName = FileName
@@ -2178,7 +2077,7 @@ NextElement:
     ''' </summary>
     Public Sub OpenExplorer(Location As String)
         Try
-            Location = ShortenPath(Location.Replace("/", "\").Trim(" "c, """"c))
+            Location = Location.Replace("/", "\").Trim(" "c, """"c)
             Log("[System] 正在打开资源管理器：" & Location)
             If Location.EndsWithF("\") Then
                 ShellOnly(Location)
@@ -2227,14 +2126,14 @@ NextElement:
     Public Function PasteFileFromClipboard(dest As String, Optional copyFile As Boolean = True, Optional copyDir As Boolean = True) As Integer
         Log("[System] 从剪贴板粘贴文件到：" & dest)
         Try
-            Dim files As Specialized.StringCollection = Clipboard.GetFileDropList()
-            If files.Count.Equals(0) Then
+            Dim fileDrops As Specialized.StringCollection = Clipboard.GetFileDropList()
+            If fileDrops.Count.Equals(0) Then
                 Log("[System] 剪贴板内无文件可粘贴")
                 Return 0
             End If
             Dim CopiedFiles = 0
             Dim CopiedFolders = 0
-            For Each i In files
+            For Each i In fileDrops
                 If copyFile AndAlso File.Exists(i) Then '文件
                     Try
                         Dim thisDest = dest & GetFileNameFromPath(i)
@@ -2255,7 +2154,7 @@ NextElement:
                         If Directory.Exists(thisDest) Then
                             Log("[System] 已存在同名文件夹：" & thisDest)
                         Else
-                            CopyDirectory(i, thisDest)
+                            Files.CopyDirectory(i, thisDest)
                             CopiedFolders += 1
                         End If
                     Catch ex As Exception

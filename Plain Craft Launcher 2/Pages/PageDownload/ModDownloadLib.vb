@@ -570,7 +570,7 @@ pause"
                 .CreateNoWindow = True,
                 .RedirectStandardError = True,
                 .RedirectStandardOutput = True,
-                .WorkingDirectory = ShortenPath(BaseMcFolderHome)
+                .WorkingDirectory = BaseMcFolderHome
             }
             If Info.EnvironmentVariables.ContainsKey("appdata") Then
                 Info.EnvironmentVariables("appdata") = BaseMcFolderHome
@@ -733,7 +733,7 @@ pause"
                 Try
                     '准备安装环境
                     If Directory.Exists(BaseMcFolder & "versions\" & DownloadInfo.Inherit) Then
-                        DeleteDirectory(BaseMcFolder & "versions\" & DownloadInfo.Inherit)
+                        Files.DeleteDirectory(BaseMcFolder & "versions\" & DownloadInfo.Inherit)
                     End If
                     Directory.CreateDirectory(BaseMcFolder & "versions\" & DownloadInfo.Inherit & "\")
                     McFolderLauncherProfilesJsonCreate(BaseMcFolder)
@@ -759,11 +759,11 @@ Retry:
                     Task.Progress = 0.96
                     '复制文件
                     File.Delete(BaseMcFolder & "launcher_profiles.json")
-                    CopyDirectory(BaseMcFolder, McFolder)
+                    Files.CopyDirectory(BaseMcFolder, McFolder)
                     Task.Progress = 0.98
                     '清理文件
                     File.Delete(Target)
-                    DeleteDirectory(BaseMcFolderHome)
+                    Files.DeleteDirectory(BaseMcFolderHome)
                 Catch ex As Exception
                     Throw New Exception("安装 OptiFine（方式 A）失败", ex)
                 End Try
@@ -1629,8 +1629,8 @@ Retry:
                         '解压支持库文件
                         Installer.Dispose()
                         FileCompressionUtils.ExtractFile(InstallerAddress, InstallerAddress & "_unrar\")
-                        CopyDirectory(InstallerAddress & "_unrar\maven\", McFolder & "libraries\")
-                        DeleteDirectory(InstallerAddress & "_unrar\")
+                        Files.CopyDirectory(InstallerAddress & "_unrar\maven\", McFolder & "libraries\")
+                        Files.DeleteDirectory(InstallerAddress & "_unrar\")
                     Else
                         '旧版：Legacy 方式 2
                         Log("[Download] 开始进行 Forge 安装，Legacy 方式 2：" & InstallerAddress)
@@ -1651,7 +1651,7 @@ Retry:
                         '清理文件
                         If Installer IsNot Nothing Then Installer.Dispose()
                         If File.Exists(InstallerAddress) Then File.Delete(InstallerAddress)
-                        If Directory.Exists(InstallerAddress & "_unrar\") Then DeleteDirectory(InstallerAddress & "_unrar\")
+                        If Directory.Exists(InstallerAddress & "_unrar\") Then Files.DeleteDirectory(InstallerAddress & "_unrar\")
                     Catch ex As Exception
                         Log(ex, "非新版方式安装 Forge 清理文件时出错")
                     End Try
@@ -2638,7 +2638,7 @@ Retry:
                     WriteIni(PathMcFolder & "PCL.ini", "Version", VersionName.Remove(VersionName.Length - 3, 3))
                 End If
                 WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
-                DeleteDirectory(Loader.Input & "PCLInstallBackups\")
+                Files.DeleteDirectory(Loader.Input & "PCLInstallBackups\")
                 Hint(Loader.Name & "成功！", HintType.Finish)
             Case LoadState.Failed
                 Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
@@ -2648,9 +2648,9 @@ Retry:
                 Return '不重新加载实例列表
         End Select
         If Not Loader.State = LoadState.Finished AndAlso Directory.Exists(Loader.Input & "PCLInstallBackups\") Then '实例修改失败回滚
-            CopyDirectory(Loader.Input & "PCLInstallBackups\", Loader.Input)
+            Files.CopyDirectory(Loader.Input & "PCLInstallBackups\", Loader.Input)
             File.Delete(Loader.Input & ".pclignore")
-            DeleteDirectory(Loader.Input & "PCLInstallBackups\")
+            Files.DeleteDirectory(Loader.Input & "PCLInstallBackups\")
         Else
             McInstallFailedClearFolder(Loader)
         End If
@@ -2665,7 +2665,7 @@ Retry:
                     Log("[Download] 由于实例已被独立启动，不清理实例文件夹：" & Loader.Input, LogLevel.Developer)
                 Else
                     Log("[Download] 由于下载失败或取消，清理实例文件夹：" & Loader.Input, LogLevel.Developer)
-                    DeleteDirectory(Loader.Input)
+                    Files.DeleteDirectory(Loader.Input)
                 End If
             End If
         Catch ex As Exception
@@ -2709,7 +2709,7 @@ Retry:
 
         '获取参数
         Dim InstanceFolder As String = PathMcFolder & "versions\" & Request.TargetInstanceName & "\"
-        If Directory.Exists(TempMcFolder) Then DeleteDirectory(TempMcFolder)
+        If Directory.Exists(TempMcFolder) Then Files.DeleteDirectory(TempMcFolder)
         Dim OptiFineFolder As String = Nothing
         If Request.OptiFineVersion IsNot Nothing Then
             If Request.OptiFineVersion.Contains("_HD_U_") Then Request.OptiFineVersion = "HD_U_" & Request.OptiFineVersion.AfterLast("_HD_U_") '#735
@@ -2847,12 +2847,12 @@ LabyModSkip:
             MergeJson(InstanceFolder, InstanceFolder, OptiFineFolder, OptiFineAsMod, ForgeFolder, Request.ForgeVersion, NeoForgeFolder, Request.NeoForgeVersion, CleanroomFolder, Request.CleanroomVersion, FabricFolder, QuiltFolder, LabyModFolder, Request.LabyModChannel, LiteLoaderFolder, Request.MMCPackInfo, LegacyFabricFolder)
             Task.Progress = 0.2
             '迁移文件
-            If Directory.Exists(TempMcFolder & "libraries") Then CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
+            If Directory.Exists(TempMcFolder & "libraries") Then Files.CopyDirectory(TempMcFolder & "libraries", PathMcFolder & "libraries")
             Task.Progress = 0.8
             '创建 Mod 和资源包文件夹
             Dim ModsFolder = New McInstance(InstanceFolder).PathIndie & "mods\" '版本隔离信息在此时被决定
             If Directory.Exists(ModsTempFolder) Then
-                CopyDirectory(ModsTempFolder, ModsFolder)
+                Files.CopyDirectory(ModsTempFolder, ModsFolder)
             ElseIf Modable Then
                 Directory.CreateDirectory(ModsFolder)
                 Log("[Download] 自动创建 Mod 文件夹：" & ModsFolder)

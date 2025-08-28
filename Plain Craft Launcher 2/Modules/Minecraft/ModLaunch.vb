@@ -1824,16 +1824,16 @@ NextInstance:
 
         '基础参数
         GameArguments.Add("${classpath_separator}", ";")
-        GameArguments.Add("${natives_directory}", ShortenPath(GetNativesFolder()))
-        GameArguments.Add("${library_directory}", ShortenPath(PathMcFolder & "libraries"))
-        GameArguments.Add("${libraries_directory}", ShortenPath(PathMcFolder & "libraries"))
+        GameArguments.Add("${natives_directory}", GetNativesFolder())
+        GameArguments.Add("${library_directory}", PathMcFolder & "libraries")
+        GameArguments.Add("${libraries_directory}", PathMcFolder & "libraries")
         GameArguments.Add("${launcher_name}", "PCLCE")
         GameArguments.Add("${launcher_version}", VersionCode)
         GameArguments.Add("${version_name}", instance.Name)
         Dim ArgumentInfo As String = Setup.Get("VersionArgumentInfo", instance:=McInstanceCurrent)
         GameArguments.Add("${version_type}", If(ArgumentInfo = "", Setup.Get("LaunchArgumentInfo"), ArgumentInfo))
-        GameArguments.Add("${game_directory}", ShortenPath(Left(McInstanceCurrent.PathIndie, McInstanceCurrent.PathIndie.Count - 1)))
-        GameArguments.Add("${assets_root}", ShortenPath(PathMcFolder & "assets"))
+        GameArguments.Add("${game_directory}", Left(McInstanceCurrent.PathIndie, McInstanceCurrent.PathIndie.Count - 1))
+        GameArguments.Add("${assets_root}", PathMcFolder & "assets")
         GameArguments.Add("${user_properties}", "{}")
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name)
         GameArguments.Add("${auth_uuid}", McLoginLoader.Output.Uuid)
@@ -1867,7 +1867,7 @@ NextInstance:
         GameArguments.Add("${resolution_height}", Math.Round(GameSize.Height))
 
         'Assets 相关参数
-        GameArguments.Add("${game_assets}", ShortenPath(PathMcFolder & "assets\virtual\legacy")) '1.5.2 的 pre-1.6 资源索引应与 legacy 合并
+        GameArguments.Add("${game_assets}", PathMcFolder & "assets\virtual\legacy") '1.5.2 的 pre-1.6 资源索引应与 legacy 合并
         GameArguments.Add("${assets_index_name}", McAssetsGetIndexName(instance))
 
         '支持库参数
@@ -1899,7 +1899,7 @@ NextInstance:
             End If
         Next
         If OptiFineCp IsNot Nothing Then CpStrings.Insert(CpStrings.Count - 2, OptiFineCp) 'OptiFine 的总是需要放到倒数第二位
-        GameArguments.Add("${classpath}", Join(CpStrings.Select(Function(c) ShortenPath(c)), ";"))
+        GameArguments.Add("${classpath}", Join(CpStrings, ";"))
 
         Return GameArguments
     End Function
@@ -2138,7 +2138,7 @@ NextInstance:
                 "@echo off" & vbCrLf &
                 $"title 启动 - {McInstanceCurrent.Name}" & vbCrLf &
                 "echo 游戏正在启动，请稍候。" & vbCrLf &
-                $"cd /D ""{ShortenPath(McInstanceCurrent.PathIndie)}""" & vbCrLf &
+                $"cd /D ""{McInstanceCurrent.PathIndie}""" & vbCrLf &
                 CustomCommandGlobal & vbCrLf &
                 CustomCommandVersion & vbCrLf &
                 $"""{McLaunchJavaSelected.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
@@ -2165,7 +2165,7 @@ NextInstance:
             Try
                 CustomProcess.StartInfo.FileName = "cmd.exe"
                 CustomProcess.StartInfo.Arguments = "/c """ & CustomCommandGlobal & """"
-                CustomProcess.StartInfo.WorkingDirectory = ShortenPath(PathMcFolder)
+                CustomProcess.StartInfo.WorkingDirectory = PathMcFolder
                 CustomProcess.StartInfo.UseShellExecute = False
                 CustomProcess.StartInfo.CreateNoWindow = True
                 CustomProcess.Start()
@@ -2189,7 +2189,7 @@ NextInstance:
             Try
                 CustomProcess.StartInfo.FileName = "cmd.exe"
                 CustomProcess.StartInfo.Arguments = "/c """ & CustomCommandVersion & """"
-                CustomProcess.StartInfo.WorkingDirectory = ShortenPath(PathMcFolder)
+                CustomProcess.StartInfo.WorkingDirectory = PathMcFolder
                 CustomProcess.StartInfo.UseShellExecute = False
                 CustomProcess.StartInfo.CreateNoWindow = True
                 CustomProcess.Start()
@@ -2218,12 +2218,12 @@ NextInstance:
 
         '设置环境变量
         Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"))
-        Paths.Add(ShortenPath(McLaunchJavaSelected.JavaFolder))
+        Paths.Add(McLaunchJavaSelected.JavaFolder)
         StartInfo.EnvironmentVariables("Path") = Join(Paths.Distinct.ToList, ";")
-        StartInfo.EnvironmentVariables("appdata") = ShortenPath(PathMcFolder)
+        StartInfo.EnvironmentVariables("appdata") = PathMcFolder
 
         '设置其他参数
-        StartInfo.WorkingDirectory = ShortenPath(McInstanceCurrent.PathIndie)
+        StartInfo.WorkingDirectory = McInstanceCurrent.PathIndie
         StartInfo.UseShellExecute = False
         StartInfo.RedirectStandardOutput = True
         StartInfo.RedirectStandardError = True

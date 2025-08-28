@@ -6,6 +6,7 @@ Imports System
 Imports System.IO.Compression
 Imports CacheCow.Client
 Imports CacheCow.Common
+Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash
@@ -1950,7 +1951,7 @@ Retry:
         ''' <summary>
         ''' 需要下载的文件。为“本地地址 - 文件对象”键值对。
         ''' </summary>
-        Public Files As New Dictionary(Of String, NetFile)
+        Public ReadOnly FileDownloads As New Dictionary(Of String, NetFile)
         Public ReadOnly LockFiles As New Object
 
         ''' <summary>
@@ -2054,8 +2055,8 @@ Retry:
                         '获取文件列表
                         Dim AllFiles As List(Of NetFile)
                         SyncLock LockFiles
-                            If Id = 0 AndAlso FileRemain = 0 AndAlso Files.Any() Then Files.Clear() '若已完成，则清空
-                            AllFiles = Files.Values.ToList()
+                            If Id = 0 AndAlso FileRemain = 0 AndAlso FileDownloads.Any() Then FileDownloads.Clear() '若已完成，则清空
+                            AllFiles = FileDownloads.Values.ToList()
                         End SyncLock
                         Dim WaitingFiles As New List(Of NetFile)
                         Dim OngoingFiles As New List(Of NetFile)
@@ -2135,7 +2136,7 @@ Retry:
             '清理缓存
             If Not IsDownloadCacheCleared Then
                 Try
-                    DeleteDirectory(PathTemp & "Download")
+                    Files.DeleteDirectory(PathTemp & "Download")
                 Catch ex As Exception
                     Log(ex, "清理下载缓存失败")
                 End Try
@@ -2147,13 +2148,13 @@ Retry:
                 '添加每个文件
                 For i = 0 To Task.Files.Count - 1
                     Dim File = Task.Files(i)
-                    If Files.ContainsKey(File.LocalPath) Then
+                    If FileDownloads.ContainsKey(File.LocalPath) Then
                         '已有该文件
-                        If Files(File.LocalPath).State >= NetState.Finish Then
+                        If FileDownloads(File.LocalPath).State >= NetState.Finish Then
                             '该文件已经下载过一次，且下载完成
                             '将已下载的文件替换成当前文件，重新下载
                             File.Tasks.Add(Task)
-                            Files(File.LocalPath) = File
+                            FileDownloads(File.LocalPath) = File
                             SyncLock LockRemain
                                 FileRemain += 1
                                 If ModeDebug Then Log("[Download] " & File.LocalName & "：已替换列表，剩余文件 " & FileRemain)
@@ -2162,13 +2163,13 @@ Retry:
                         Else
                             '该文件正在下载中
                             '将当前文件替换成下载中的文件，即两个任务指向同一个文件
-                            File = Files(File.LocalPath)
+                            File = FileDownloads(File.LocalPath)
                             File.Tasks.Add(Task)
                         End If
                     Else
                         '没有该文件
                         File.Tasks.Add(Task)
-                        Files.Add(File.LocalPath, File)
+                        FileDownloads.Add(File.LocalPath, File)
                         SyncLock LockRemain
                             FileRemain += 1
                             If ModeDebug Then Log("[Download] " & File.LocalName & "：已加入列表，剩余文件 " & FileRemain)

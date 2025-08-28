@@ -1,4 +1,5 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
@@ -524,7 +525,7 @@ Public Class PageInstanceExport
             For Each Line In AllExtraFiles
                 If Line.EndsWithF("\") OrElse Line.EndsWithF("/") Then
                     If Directory.Exists(Line) Then
-                        CopyDirectory(Line, BaseFolder & GetFolderNameFromPath(Line) & "\")
+                        Files.CopyDirectory(Line, BaseFolder & GetFolderNameFromPath(Line) & "\")
                     Else
                         Hint($"未找到配置文件中指定的文件夹：{Line}", HintType.Critical)
                     End If
@@ -538,16 +539,16 @@ Public Class PageInstanceExport
             Next
             Loader.Progress = 0.97
             '复制 PCL 实例设置
-            CopyDirectory(McInstance.Path & "PCL\", OverridesFolder & "PCL\")
+            Files.CopyDirectory(McInstance.Path & "PCL\", OverridesFolder & "PCL\")
 #If RELEASE Then
             '复制 PCL 本体
             If IncludePCL Then CopyFile(PathWithName, CacheFolder & "Plain Craft Launcher.exe")
 #End If
             '复制 PCL 个性化内容
             If IncludePCLCustom Then
-                If Directory.Exists(Path & "PCL\Pictures\") Then CopyDirectory(Path & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
-                If Directory.Exists(Path & "PCL\Musics\") Then CopyDirectory(Path & "PCL\Musics\", CacheFolder & "PCL\Musics\")
-                If Directory.Exists(Path & "PCL\Help\") Then CopyDirectory(Path & "PCL\Help\", CacheFolder & "PCL\Help\")
+                If Directory.Exists(Path & "PCL\Pictures\") Then Files.CopyDirectory(Path & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
+                If Directory.Exists(Path & "PCL\Musics\") Then Files.CopyDirectory(Path & "PCL\Musics\", CacheFolder & "PCL\Musics\")
+                If Directory.Exists(Path & "PCL\Help\") Then Files.CopyDirectory(Path & "PCL\Help\", CacheFolder & "PCL\Help\")
                 If File.Exists(Path & "PCL\Custom.xaml") Then CopyFile(Path & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
                 If File.Exists(Path & "PCL\Setup.ini") Then CopyFile(Path & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
                 If File.Exists(Path & "PCL\hints.txt") Then CopyFile(Path & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")

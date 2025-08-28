@@ -411,7 +411,7 @@ Public Class PageSelectLeft
             '删除文件夹
             Try
                 Hint("正在" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Info)
-                DeleteDirectory(Folder.Path)
+                Files.DeleteDirectory(Folder.Path)
                 If DeleteText = "清空" Then Directory.CreateDirectory(Folder.Path)
                 Hint("已" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Finish)
             Catch ex As Exception

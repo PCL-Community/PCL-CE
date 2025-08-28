@@ -1,6 +1,7 @@
 Imports System.IO.Compression
 
 Imports fNbt
+Imports PCL.Core.IO
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash
 
@@ -1568,7 +1569,7 @@ Finished:
                     End Try
                 Else
                     Try
-                        For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
+                        For Each File As FileInfo In Files.EnumerateFiles(Loader.Input.CompPath)
                             Try
                                 If File.DirectoryName.ToLower & "\" <> RawName Then
                                     If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Version.HasForge AndAlso

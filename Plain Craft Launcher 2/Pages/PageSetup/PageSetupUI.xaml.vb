@@ -1,6 +1,7 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Threading.Tasks
+Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
@@ -338,7 +339,7 @@ Public Class PageSetupUI
     End Sub
     Private Sub BtnBackgroundClear_Click(sender As Object, e As EventArgs) Handles BtnBackgroundClear.Click
         If MyMsgBox("即将删除背景内容文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
-            DeleteDirectory(Path & "PCL\Pictures")
+            Files.DeleteDirectory(Path & "PCL\Pictures")
             BackgroundRefresh(False, True)
             Hint("背景内容已清空！", HintType.Finish)
         End If
@@ -353,7 +354,7 @@ Public Class PageSetupUI
 
             '获取可用的图片文件
             Directory.CreateDirectory(Path & "PCL\Pictures\")
-            Dim Pic As List(Of String) = EnumerateFiles(Path & "PCL\Pictures\").
+            Dim Pic As List(Of String) = Files.EnumerateFiles(Path & "PCL\Pictures\").
                     Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
                                        file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
                     Select(Function(file) file.FullName).
@@ -511,7 +512,7 @@ Refresh:
             PanMusicVolume.Visibility = Visibility.Visible
             PanMusicDetail.Visibility = Visibility.Visible
             BtnMusicClear.Visibility = Visibility.Visible
-            CardMusic.Title = "背景音乐（" & EnumerateFiles(Path & "PCL\Musics\").Count & " 首）"
+            CardMusic.Title = "背景音乐（" & Files.EnumerateFiles(Path & "PCL\Musics\").Count & " 首）"
         Else
             PanMusicVolume.Visibility = Visibility.Collapsed
             PanMusicDetail.Visibility = Visibility.Collapsed
@@ -532,7 +533,7 @@ Refresh:
                 Thread.Sleep(200)
                 '删除文件
                 Try
-                    DeleteDirectory(Path & "PCL\Musics")
+                    Files.DeleteDirectory(Path & "PCL\Musics")
                     'DisableSMTCSupport()
                     Hint("背景音乐已删除！", HintType.Finish)
                 Catch ex As Exception

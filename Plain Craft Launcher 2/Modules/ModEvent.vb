@@ -45,7 +45,7 @@
                                 Dim Info As New ProcessStartInfo With {
                                     .Arguments = If(Data.Length >= 2, Data(1), ""),
                                     .FileName = Location,
-                                    .WorkingDirectory = ShortenPath(WorkingDir),
+                                    .WorkingDirectory = WorkingDir,
                                     .UseShellExecute = True
                                 }
                                 Process.Start(Info)

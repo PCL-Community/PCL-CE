@@ -1,5 +1,6 @@
 ﻿
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.IO
 
 Public Class PageInstanceSaves
     Implements IRefreshable
@@ -184,17 +185,17 @@ Public Class PageInstanceSaves
         OpenExplorer(WorldPath)
     End Sub
     Private Sub BtnPaste_Click(sender As Object, e As MouseButtonEventArgs)
-        Dim files As Specialized.StringCollection = Clipboard.GetFileDropList()
+        Dim filedrops As Specialized.StringCollection = Clipboard.GetFileDropList()
         Dim loaders As New List(Of LoaderBase)
         loaders.Add(New LoaderTask(Of Integer, Integer)("Copy saves", Sub()
             Dim Copied = 0
-            For Each i In files
+            For Each i In filedrops
                 Try
                     If Directory.Exists(i) Then
                         If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
                             Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
                         Else
-                            CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
+                            Files.CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
                             Copied += 1
                         End If
                     Else

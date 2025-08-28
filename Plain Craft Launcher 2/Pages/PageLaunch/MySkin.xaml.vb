@@ -1,4 +1,5 @@
 ﻿Imports System.Drawing
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.OS
 
 Public Class MySkin
@@ -192,8 +193,8 @@ Public Class MySkin
                     Hint("正在刷新头像……")
                     '清空缓存
                     Log("[Skin] 正在清空皮肤缓存")
-                    If Directory.Exists(PathTemp & "Cache\Skin") Then DeleteDirectory(PathTemp & "Cache\Skin")
-                    If Directory.Exists(PathTemp & "Cache\Uuid") Then DeleteDirectory(PathTemp & "Cache\Uuid")
+                    If Directory.Exists(PathTemp & "Cache\Skin") Then Files.DeleteDirectory(PathTemp & "Cache\Skin")
+                    If Directory.Exists(PathTemp & "Cache\Uuid") Then Files.DeleteDirectory(PathTemp & "Cache\Uuid")
                     IniClearCache(PathTemp & "Cache\Skin\IndexMs.ini")
                     IniClearCache(PathTemp & "Cache\Skin\IndexAuth.ini")
                     IniClearCache(PathTemp & "Cache\Uuid\Mojang.ini")

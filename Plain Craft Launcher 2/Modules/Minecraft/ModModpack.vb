@@ -122,7 +122,7 @@ Public Module ModModpack
         Try
 Retry:
             Loader.Progress = InitialProgress
-            DeleteDirectory(InstallTemp)
+            Files.DeleteDirectory(InstallTemp)
             FileCompressionUtils.ExtractFile(FileAddress, InstallTemp, Encode, ProgressIncrementHandler:=Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Catch ex As Exception
             Log(ex, "第 " & RetryCount & " 次解压尝试失败")
@@ -152,7 +152,7 @@ Retry:
         '复制文件
         If Directory.Exists(OverridesFolder) Then
             Log($"[ModPack] 处理整合包覆写文件夹：{OverridesFolder} → {VersionFolder}")
-            CopyDirectory(OverridesFolder, VersionFolder, Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
+            Files.CopyDirectory(OverridesFolder, VersionFolder, Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Else
             Log($"[ModPack] 整合包中没有覆写文件夹：{OverridesFolder}")
             Loader.Progress += ProgressIncrement

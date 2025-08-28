@@ -1,4 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.IO
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
@@ -141,7 +142,7 @@ Public Class PageInstanceOverall
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp")
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives")
                 Else
-                    DeleteDirectory($"{NewPath}{NewName}-natives")
+                    Files.DeleteDirectory($"{NewPath}{NewName}-natives")
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives")
                 End If
             End If
@@ -381,7 +382,7 @@ Public Class PageInstanceOverall
                 Case 1
                     IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
                     If IsShiftPressed Then
-                        DeleteDirectory(PageInstanceLeft.Instance.Path)
+                        Files.DeleteDirectory(PageInstanceLeft.Instance.Path)
                         Hint("实例 " & PageInstanceLeft.Instance.Name & " 已永久删除！", HintType.Finish)
                     Else
                         FileSystem.DeleteDirectory(PageInstanceLeft.Instance.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
