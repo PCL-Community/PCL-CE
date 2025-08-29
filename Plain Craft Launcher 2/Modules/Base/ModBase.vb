@@ -2010,7 +2010,7 @@ RetryDir:
     ''' </summary>
     Public PathPure As String = GetPureASCIIDir()
     Private Function GetPureASCIIDir() As String
-        If (ExePath & "PCL").IsASCII() Then
+        If ExePath.IsASCII() Then
             Return ExePath & "PCL\"
         ElseIf PathAppdata.IsASCII() Then
             Return PathAppdata
