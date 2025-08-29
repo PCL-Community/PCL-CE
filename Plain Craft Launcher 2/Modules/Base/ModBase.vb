@@ -13,7 +13,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS

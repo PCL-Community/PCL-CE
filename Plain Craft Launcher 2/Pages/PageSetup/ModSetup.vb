@@ -1,5 +1,5 @@
 Imports System.Reflection
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS

@@ -1,6 +1,6 @@
 ﻿
 Imports System.Threading.Tasks
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Minecraft
 
 Public Module ModJava

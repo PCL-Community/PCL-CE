@@ -5,7 +5,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
 
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Net
 Imports PCL.Core.Utils.OS
 

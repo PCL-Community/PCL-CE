@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.IO;
+using PCL.Core.IO.FileFormats;
 
 namespace PCL.Test;
 

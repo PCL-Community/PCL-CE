@@ -1,7 +1,7 @@
 Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 

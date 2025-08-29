@@ -1,5 +1,5 @@
 ﻿Imports System.Text.RegularExpressions
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts

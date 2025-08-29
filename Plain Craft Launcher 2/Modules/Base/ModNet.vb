@@ -6,7 +6,7 @@ Imports System
 Imports System.IO.Compression
 Imports CacheCow.Client
 Imports CacheCow.Common
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash

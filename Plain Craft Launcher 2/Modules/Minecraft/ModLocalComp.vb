@@ -1,7 +1,7 @@
 Imports System.IO.Compression
 
 Imports fNbt
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash
 

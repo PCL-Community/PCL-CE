@@ -1,5 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup

@@ -2,7 +2,7 @@ Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports PCL.Core.App
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.ProgramSetup

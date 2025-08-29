@@ -1,5 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup

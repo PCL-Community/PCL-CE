@@ -1,5 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 

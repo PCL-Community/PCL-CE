@@ -1,6 +1,6 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports fNbt
-Imports PCL.Core.IO
+Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.UI
 
 Public Class ServerCard
