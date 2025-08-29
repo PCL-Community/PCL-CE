@@ -272,7 +272,7 @@ Class PageSetupSystem
 #Region "导出 / 导入设置"
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
-        Dim savePath As String = DialogUtils.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", Path).Replace("/", "\")
+        Dim savePath As String = DialogUtils.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
         If savePath = "" Then Exit Sub
         File.Copy(Core.IO.PredefinedFileItems.GlobalSetup.TargetPath, savePath, True)
         Hint("配置导出成功！", HintType.Finish)
@@ -283,7 +283,7 @@ Class PageSetupSystem
         If sourcePath = "" Then Exit Sub
         File.Copy(sourcePath, Core.IO.PredefinedFileItems.GlobalSetup.TargetPath, True)
         MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1:="重启", ForceWait:=True)
-        Process.Start(New ProcessStartInfo(PathWithName))
+        Process.Start(New ProcessStartInfo(ExePathWithName))
         FormMain.EndProgramForce(ProcessReturnValues.Success)
     End Sub
 

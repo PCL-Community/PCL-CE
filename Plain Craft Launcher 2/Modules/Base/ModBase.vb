@@ -45,20 +45,20 @@ Public Module ModBase
     ''' <summary>
     ''' 主窗口句柄。
     ''' </summary>
-    Public Handle As IntPtr
+    Public FrmHandle As IntPtr
     '龙猫味石山小记: 用最不靠谱的实现写出能跑的代码 (AppDomain.CurrentDomain.SetupInformation.ApplicationBase 获取到的是当前工作目录而不是可执行文件所在目录)
     ''' <summary>
     ''' 程序可执行文件所在目录，以“\”结尾。
     ''' </summary>
-    Public Path As String = If(Basics.ExecutableDirectory.EndsWith("\"), Basics.ExecutableDirectory, Basics.ExecutableDirectory & "\")
+    Public ReadOnly ExePath As String = If(Basics.ExecutableDirectory.EndsWith("\"), Basics.ExecutableDirectory, Basics.ExecutableDirectory & "\")
     ''' <summary>
     ''' 程序可执行文件完整路径。
     ''' </summary>
-    Public PathWithName As String = Basics.ExecutablePath
+    Public ReadOnly ExePathWithName As String = Basics.ExecutablePath
     ''' <summary>
     ''' 程序内嵌图片文件夹路径，以“/”结尾。
     ''' </summary>
-    Public PathImage As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/"
+    Public ReadOnly PathImage As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/"
     ''' <summary>
     ''' 当前程序的语言。
     ''' </summary>
@@ -565,8 +565,8 @@ Public Module ModBase
     Public Sub CopyFile(FromPath As String, ToPath As String)
         Try
             '还原文件路径
-            If Not FromPath.Contains(":\") Then FromPath = Path & FromPath
-            If Not ToPath.Contains(":\") Then ToPath = Path & ToPath
+            If Not FromPath.Contains(":\") Then FromPath = ExePath & FromPath
+            If Not ToPath.Contains(":\") Then ToPath = ExePath & ToPath
             '如果复制同一个文件则跳过
             If FromPath = ToPath Then Return
             '确保目录存在
@@ -583,7 +583,7 @@ Public Module ModBase
     Public Function ReadFileBytes(FilePath As String, Optional Encoding As Encoding = Nothing) As Byte()
         Try
             '还原文件路径
-            If Not FilePath.Contains(":\") Then FilePath = Path & FilePath
+            If Not FilePath.Contains(":\") Then FilePath = ExePath & FilePath
             If File.Exists(FilePath) Then
                 Using ReadStream As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) '支持读取使用中的文件
                     Using ms As New MemoryStream
@@ -630,7 +630,7 @@ Public Module ModBase
     ''' <param name="Append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
     Public Sub WriteFile(FilePath As String, Text As String, Optional Append As Boolean = False, Optional Encoding As Encoding = Nothing)
         '处理相对路径
-        If Not FilePath.Contains(":\") Then FilePath = Path & FilePath
+        If Not FilePath.Contains(":\") Then FilePath = ExePath & FilePath
         '确保目录存在
         Directory.CreateDirectory(GetPathFromFullPath(FilePath))
         '写入文件
@@ -653,7 +653,7 @@ Public Module ModBase
     ''' <param name="Append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
     Public Sub WriteFile(FilePath As String, Content As Byte(), Optional Append As Boolean = False)
         '处理相对路径
-        If Not FilePath.Contains(":\") Then FilePath = Path & FilePath
+        If Not FilePath.Contains(":\") Then FilePath = ExePath & FilePath
         '确保目录存在
         Directory.CreateDirectory(GetPathFromFullPath(FilePath))
         '写入文件
@@ -666,7 +666,7 @@ Public Module ModBase
     Public Function WriteFile(FilePath As String, Stream As Stream) As Boolean
         Try
             '还原文件路径
-            If Not FilePath.Contains(":\") Then FilePath = Path & FilePath
+            If Not FilePath.Contains(":\") Then FilePath = ExePath & FilePath
             '确保目录存在
             Directory.CreateDirectory(GetPathFromFullPath(FilePath))
             '读取流
@@ -1117,8 +1117,8 @@ Public Module ModBase
     ''' </summary>
     Public PathPure As String = GetPureASCIIDir()
     Private Function GetPureASCIIDir() As String
-        If (Path & "PCL").IsASCII() Then
-            Return Path & "PCL\"
+        If ExePath.IsASCII() Then
+            Return ExePath & "PCL\"
         ElseIf PathAppdata.IsASCII() Then
             Return PathAppdata
         ElseIf PathTemp.IsASCII() Then
@@ -1846,7 +1846,7 @@ NextElement:
         currentDate = Format(Now, "yyyy-M-dd")
 
         If ForceOpenLog OrElse (ShowMsgbox AndAlso MyMsgBox("若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" & currentDate & "-[一串数字].log 中包含错误信息的文件。" & vbCrLf & "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") = 1) Then
-            OpenExplorer(Path & "PCL\Log\")
+            OpenExplorer(ExePath & "PCL\Log\")
         End If
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
     End Sub
@@ -1873,7 +1873,7 @@ NextElement:
             "剩余内存：" & Int(phyRam.Available / 1024 / 1024) & " M / " & Int(phyRam.Total / 1024 / 1024) & " M" & vbCrLf &
             "DPI：" & DPI & "（" & Math.Round(DPI / 96, 2) * 100 & "%）" & vbCrLf &
             "MC 文件夹：" & If(PathMcFolder, "Nothing") & vbCrLf &
-            "文件位置：" & Path)
+            "文件位置：" & ExePath)
     End Sub
 
     '断言
