@@ -173,7 +173,7 @@ Public Class FormMain
             Sub()
                 PanBack.RenderTransform = Nothing
                 IsWindowLoadFinished = True
-                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
+                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Paths.ExePathWithName}")
             End Sub, , True)
         }, "Form Show")
         'Timer 启动
@@ -244,7 +244,7 @@ Public Class FormMain
             End Try
             '清理自动更新文件
             Try
-                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
+                If File.Exists(Paths.ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Paths.ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
@@ -309,8 +309,8 @@ Public Class FormMain
                      "多谢各位的理解啦！", "重新解锁提醒")
         End If
         '移动自定义皮肤
-        If LastVersionCode <= 161 AndAlso File.Exists(ExePath & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
-            CopyFile(ExePath & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
+        If LastVersionCode <= 161 AndAlso File.Exists(Paths.ExePath & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
+            CopyFile(Paths.ExePath & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
             Log("[Start] 已移动离线自定义皮肤 (162)")
         End If
         If LastVersionCode <= 263 AndAlso File.Exists(PathTemp & "CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
@@ -720,12 +720,12 @@ Public Class FormMain
             Dim Extension As String = FilePath.AfterLast(".").ToLower
             If Extension = "xaml" Then
                 Log("[System] 文件后缀为 XAML，作为主页加载")
-                If File.Exists(ExePath & "PCL\Custom.xaml") Then
+                If File.Exists(Paths.ExePath & "PCL\Custom.xaml") Then
                     If MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") = 2 Then
                         Return
                     End If
                 End If
-                CopyFile(FilePath, ExePath & "PCL\Custom.xaml")
+                CopyFile(FilePath, Paths.ExePath & "PCL\Custom.xaml")
                 RunInUi(
                 Sub()
                     Setup.Set("UiCustomType", 1)

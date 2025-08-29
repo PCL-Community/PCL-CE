@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.Utils.Exts
+﻿Imports PCL.Core.IO
+Imports PCL.Core.Utils.Exts
 
 Public Module ModEvent
 
@@ -166,20 +167,20 @@ Public Module ModEvent
         RelativeUrl = RelativeUrl.Replace("/", "\").ToLower.TrimStart("\")
 
         '确认实际路径
-        Dim Location As String, WorkingDir As String = ExePath & "PCL"
+        Dim Location As String, WorkingDir As String = Paths.ExePath & "PCL"
         HelpExtract()
         If RelativeUrl.Contains(":\") Then
             '绝对路径
             Location = RelativeUrl
             Log("[Control] 自定义事件中由绝对路径" & EventType & "：" & Location)
-        ElseIf File.Exists(ExePath & "PCL\" & RelativeUrl) Then
+        ElseIf File.Exists(Paths.ExePath & "PCL\" & RelativeUrl) Then
             '相对 PCL 文件夹的路径
-            Location = ExePath & "PCL\" & RelativeUrl
+            Location = Paths.ExePath & "PCL\" & RelativeUrl
             Log("[Control] 自定义事件中由相对 PCL 文件夹的路径" & EventType & "：" & Location)
-        ElseIf File.Exists(ExePath & "PCL\Help\" & RelativeUrl) Then
+        ElseIf File.Exists(Paths.ExePath & "PCL\Help\" & RelativeUrl) Then
             '相对 PCL 本地帮助文件夹的路径
-            Location = ExePath & "PCL\Help\" & RelativeUrl
-            WorkingDir = ExePath & "PCL\Help\"
+            Location = Paths.ExePath & "PCL\Help\" & RelativeUrl
+            WorkingDir = Paths.ExePath & "PCL\Help\"
             Log("[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径" & EventType & "：" & Location)
         ElseIf EventType = "打开帮助" AndAlso File.Exists(PathHelpFolder & RelativeUrl) Then
             '相对 PCL 自带帮助文件夹的路径

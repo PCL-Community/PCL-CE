@@ -1,4 +1,6 @@
-﻿Public Class PageLaunchRight
+﻿Imports PCL.Core.IO
+
+Public Class PageLaunchRight
     Implements IRefreshable
 
     Private Sub Init() Handles Me.Loaded
@@ -40,7 +42,7 @@
             Case 1
                 '加载本地文件
                 Log("[Page] 主页自定义数据来源：本地文件")
-                Content = ReadFile(ExePath & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
+                Content = ReadFile(Paths.ExePath & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
             Case 2
                 Url = Setup.Get("UiCustomNet")
 Download:

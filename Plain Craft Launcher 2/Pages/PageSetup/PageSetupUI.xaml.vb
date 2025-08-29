@@ -313,7 +313,7 @@ Public Class PageSetupUI
 
     '背景图片
     Private Sub BtnUIBgOpen_Click(sender As Object, e As EventArgs) Handles BtnBackgroundOpen.Click
-        OpenExplorer(ExePath & "PCL\Pictures\")
+        OpenExplorer(Paths.ExePath & "PCL\Pictures\")
     End Sub
     Private Sub BtnBackgroundRefresh_Click(sender As Object, e As EventArgs) Handles BtnBackgroundRefresh.Click
         BackgroundRefresh(True, True)
@@ -339,7 +339,7 @@ Public Class PageSetupUI
     End Sub
     Private Sub BtnBackgroundClear_Click(sender As Object, e As EventArgs) Handles BtnBackgroundClear.Click
         If MyMsgBox("即将删除背景内容文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
-            Directories.DeleteDirectory(Path & "PCL\Pictures")
+            Directories.DeleteDirectory(Paths.ExePath & "PCL\Pictures")
             BackgroundRefresh(False, True)
             Hint("背景内容已清空！", HintType.Finish)
         End If
@@ -353,8 +353,8 @@ Public Class PageSetupUI
         Try
 
             '获取可用的图片文件
-            Directory.CreateDirectory(Path & "PCL\Pictures\")
-            Dim Pic As List(Of String) = Directories.EnumerateFiles(Path & "PCL\Pictures\").
+            Directory.CreateDirectory(Paths.ExePath & "PCL\Pictures\")
+            Dim Pic As List(Of String) = Directories.EnumerateFiles(Paths.ExePath & "PCL\Pictures\").
                     Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
                                        file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
                     Select(Function(file) file.FullName).
@@ -433,11 +433,11 @@ Public Class PageSetupUI
         If FileName = "" Then Return
         Try
             '拷贝文件
-            File.Delete(ExePath & "PCL\Logo.png")
-            CopyFile(FileName, ExePath & "PCL\Logo.png")
+            File.Delete(Paths.ExePath & "PCL\Logo.png")
+            CopyFile(FileName, Paths.ExePath & "PCL\Logo.png")
             '设置当前显示
             FrmMain.ImageTitleLogo.Source = Nothing '防止因为 Source 属性前后的值相同而不更新 (#5628)
-            FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
+            FrmMain.ImageTitleLogo.Source = Paths.ExePath & "PCL\Logo.png"
         Catch ex As Exception
             If ex.Message.Contains("参数无效") Then
                 Log("改变标题栏图片失败，该图片文件可能并非标准格式。" & vbCrLf &
@@ -452,10 +452,10 @@ Public Class PageSetupUI
         If Not (AniControlEnabled = 0 AndAlso e.RaiseByMouse) Then Return
 Refresh:
         '已有图片则不再选择
-        If File.Exists(ExePath & "PCL\Logo.png") Then
+        If File.Exists(Paths.ExePath & "PCL\Logo.png") Then
             Try
                 FrmMain.ImageTitleLogo.Source = Nothing '防止因为 Source 属性前后的值相同而不更新 (#5628)
-                FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
+                FrmMain.ImageTitleLogo.Source = Paths.ExePath & "PCL\Logo.png"
             Catch ex As Exception
                 If ex.Message.Contains("参数无效") Then
                     Log("调整标题栏图片失败，该图片文件可能并非标准格式。" & vbCrLf &
@@ -466,7 +466,7 @@ Refresh:
                 FrmMain.ImageTitleLogo.Source = Nothing
                 e.Handled = True
                 Try
-                    File.Delete(ExePath & "PCL\Logo.png")
+                    File.Delete(Paths.ExePath & "PCL\Logo.png")
                 Catch exx As Exception
                     Log(exx, "清理错误的标题栏图片失败", LogLevel.Msgbox)
                 End Try
@@ -481,8 +481,8 @@ Refresh:
         Else
             Try
                 '拷贝文件
-                File.Delete(ExePath & "PCL\Logo.png")
-                CopyFile(FileName, ExePath & "PCL\Logo.png")
+                File.Delete(Paths.ExePath & "PCL\Logo.png")
+                CopyFile(FileName, Paths.ExePath & "PCL\Logo.png")
                 GoTo Refresh
             Catch ex As Exception
                 Log(ex, "复制标题栏图片失败", LogLevel.Msgbox)
@@ -491,7 +491,7 @@ Refresh:
     End Sub
     Private Sub BtnLogoDelete_Click(sender As Object, e As EventArgs) Handles BtnLogoDelete.Click
         Try
-            File.Delete(ExePath & "PCL\Logo.png")
+            File.Delete(Paths.ExePath & "PCL\Logo.png")
             RadioLogoType1.SetChecked(True, True)
             Hint("标题栏图片已清空！", HintType.Finish)
         Catch ex As Exception
@@ -501,7 +501,7 @@ Refresh:
 
     '背景音乐
     Private Sub BtnMusicOpen_Click(sender As Object, e As EventArgs) Handles BtnMusicOpen.Click
-        OpenExplorer(ExePath & "PCL\Musics\")
+        OpenExplorer(Paths.ExePath & "PCL\Musics\")
     End Sub
     Private Sub BtnMusicRefresh_Click(sender As Object, e As EventArgs) Handles BtnMusicRefresh.Click
         MusicRefreshPlay(True)
@@ -512,7 +512,7 @@ Refresh:
             PanMusicVolume.Visibility = Visibility.Visible
             PanMusicDetail.Visibility = Visibility.Visible
             BtnMusicClear.Visibility = Visibility.Visible
-            CardMusic.Title = "背景音乐（" & Directories.EnumerateFiles(Path & "PCL\Musics\").Count & " 首）"
+            CardMusic.Title = "背景音乐（" & Directories.EnumerateFiles(Paths.ExePath & "PCL\Musics\").Count & " 首）"
         Else
             PanMusicVolume.Visibility = Visibility.Collapsed
             PanMusicDetail.Visibility = Visibility.Collapsed
@@ -533,14 +533,14 @@ Refresh:
                 Thread.Sleep(200)
                 '删除文件
                 Try
-                    Directories.DeleteDirectory(Path & "PCL\Musics")
+                    Directories.DeleteDirectory(Paths.ExePath & "PCL\Musics")
                     'DisableSMTCSupport()
                     Hint("背景音乐已删除！", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "删除背景音乐失败", LogLevel.Msgbox)
                 End Try
                 Try
-                    Directory.CreateDirectory(ExePath & "PCL\Musics")
+                    Directory.CreateDirectory(Paths.ExePath & "PCL\Musics")
                     RunInUi(Sub() MusicRefreshPlay(False))
                 Catch ex As Exception
                     Log(ex, "重建背景音乐文件夹失败", LogLevel.Msgbox)
@@ -560,12 +560,12 @@ Refresh:
     '主页
     Private Sub BtnCustomFile_Click(sender As Object, e As EventArgs) Handles BtnCustomFile.Click
         Try
-            If File.Exists(ExePath & "PCL\Custom.xaml") Then
+            If File.Exists(Paths.ExePath & "PCL\Custom.xaml") Then
                 If MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn:=True) = 2 Then Return
             End If
-            WriteFile(ExePath & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
+            WriteFile(Paths.ExePath & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
             Hint("教学文件已生成！", HintType.Finish)
-            OpenExplorer(ExePath & "PCL\Custom.xaml")
+            OpenExplorer(Paths.ExePath & "PCL\Custom.xaml")
         Catch ex As Exception
             Log(ex, "生成教学文件失败", LogLevel.Feedback)
         End Try

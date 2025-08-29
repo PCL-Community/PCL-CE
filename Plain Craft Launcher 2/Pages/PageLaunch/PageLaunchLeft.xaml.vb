@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Exts
 
 Public Class PageLaunchLeft
@@ -33,21 +34,21 @@ Public Class PageLaunchLeft
         Sub()
             '自动整合包安装：准备
             Dim PackInstallPath As String = Nothing
-            If File.Exists(ExePath & "modpack.zip") Then PackInstallPath = ExePath & "modpack.zip"
-            If File.Exists(ExePath & "modpack.mrpack") Then PackInstallPath = ExePath & "modpack.mrpack"
+            If File.Exists(Paths.ExePath & "modpack.zip") Then PackInstallPath = Paths.ExePath & "modpack.zip"
+            If File.Exists(Paths.ExePath & "modpack.mrpack") Then PackInstallPath = Paths.ExePath & "modpack.mrpack"
             If PackInstallPath IsNot Nothing Then
                 Log("[Launch] 需自动安装整合包：" & PackInstallPath, LogLevel.Debug)
                 Setup.Set("LaunchFolderSelect", "$.minecraft\")
-                If Not Directory.Exists(ExePath & ".minecraft\") Then
-                    Directory.CreateDirectory(ExePath & ".minecraft\")
-                    Directory.CreateDirectory(ExePath & ".minecraft\versions\")
-                    McFolderLauncherProfilesJsonCreate(ExePath & ".minecraft\")
+                If Not Directory.Exists(Paths.ExePath & ".minecraft\") Then
+                    Directory.CreateDirectory(Paths.ExePath & ".minecraft\")
+                    Directory.CreateDirectory(Paths.ExePath & ".minecraft\versions\")
+                    McFolderLauncherProfilesJsonCreate(Paths.ExePath & ".minecraft\")
                 End If
-                PageSelectLeft.AddFolder(ExePath & ".minecraft\", GetFolderNameFromPath(ExePath), False)
+                PageSelectLeft.AddFolder(Paths.ExePath & ".minecraft\", GetFolderNameFromPath(Paths.ExePath), False)
                 McFolderListLoader.WaitForExit()
             End If
             '确认 Minecraft 文件夹存在
-            PathMcFolder = Setup.Get("LaunchFolderSelect").ToString.Replace("$", ExePath)
+            PathMcFolder = Setup.Get("LaunchFolderSelect").ToString.Replace("$", Paths.ExePath)
             If PathMcFolder = "" OrElse Not Directory.Exists(PathMcFolder) Then
                 '无效的文件夹
                 If PathMcFolder = "" Then
@@ -56,7 +57,7 @@ Public Class PageLaunchLeft
                     Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" & PathMcFolder, LogLevel.Debug)
                 End If
                 McFolderListLoader.WaitForExit(IsForceRestart:=True)
-                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(ExePath, "$"))
+                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(Paths.ExePath, "$"))
             End If
             Log("[Launch] Minecraft 文件夹：" & PathMcFolder)
             If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(500, 3000))

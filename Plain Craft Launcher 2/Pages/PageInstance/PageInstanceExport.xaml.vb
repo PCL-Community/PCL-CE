@@ -547,13 +547,13 @@ Public Class PageInstanceExport
 #End If
             '复制 PCL 个性化内容
             If IncludePCLCustom Then
-                If Directory.Exists(Path & "PCL\Pictures\") Then Directories.CopyDirectory(Path & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
-                If Directory.Exists(Path & "PCL\Musics\") Then Directories.CopyDirectory(Path & "PCL\Musics\", CacheFolder & "PCL\Musics\")
-                If Directory.Exists(Path & "PCL\Help\") Then Directories.CopyDirectory(Path & "PCL\Help\", CacheFolder & "PCL\Help\")
-                If File.Exists(Path & "PCL\Custom.xaml") Then CopyFile(Path & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
-                If File.Exists(Path & "PCL\Setup.ini") Then CopyFile(Path & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
-                If File.Exists(Path & "PCL\hints.txt") Then CopyFile(Path & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
-                If File.Exists(Path & "PCL\Logo.png") Then CopyFile(Path & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
+                If Directory.Exists(Paths.ExePath & "PCL\Pictures\") Then Directories.CopyDirectory(Paths.ExePath & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
+                If Directory.Exists(Paths.ExePath & "PCL\Musics\") Then Directories.CopyDirectory(Paths.ExePath & "PCL\Musics\", CacheFolder & "PCL\Musics\")
+                If Directory.Exists(Paths.ExePath & "PCL\Help\") Then Directories.CopyDirectory(Paths.ExePath & "PCL\Help\", CacheFolder & "PCL\Help\")
+                If File.Exists(Paths.ExePath & "PCL\Custom.xaml") Then CopyFile(Paths.ExePath & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
+                If File.Exists(Paths.ExePath & "PCL\Setup.ini") Then CopyFile(Paths.ExePath & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
+                If File.Exists(Paths.ExePath & "PCL\hints.txt") Then CopyFile(Paths.ExePath & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
+                If File.Exists(Paths.ExePath & "PCL\Logo.png") Then CopyFile(Paths.ExePath & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
             End If
         End Sub) With {.ProgressWeight = 5})
 

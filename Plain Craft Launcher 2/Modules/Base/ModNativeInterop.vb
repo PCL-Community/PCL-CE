@@ -26,7 +26,7 @@ Public Module ModNativeInterop
 
     ' 用于序列化 JSON 并响应客户端 info 请求的类型
     Private Class RPCLauncherInfo
-        Public path As String = ExePathWithName
+        Public path As String = Paths.ExePathWithName
         Public config_path As String = PathAppdataConfig
         Public window As Long = FrmHandle.ToInt64()
         Public version As New LauncherVersion()

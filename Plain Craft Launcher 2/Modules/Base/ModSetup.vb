@@ -115,8 +115,8 @@ Public Class ModSetup
         IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
     End Sub
     Public Sub LaunchFolderSelect(Value As String)
-        Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", ExePath))
-        PathMcFolder = Value.ToString.Replace("$", ExePath)
+        Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", Paths.ExePath))
+        PathMcFolder = Value.ToString.Replace("$", Paths.ExePath)
     End Sub
 
     '游戏内存
@@ -389,7 +389,7 @@ Public Class ModSetup
                     FrmSetupUI.PanLogoChange.Visibility = Visibility.Visible
                 End If
                 Try
-                    FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
+                    FrmMain.ImageTitleLogo.Source = Paths.ExePath & "PCL\Logo.png"
                 Catch ex As Exception
                     FrmMain.ImageTitleLogo.Source = Nothing
                     Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)
