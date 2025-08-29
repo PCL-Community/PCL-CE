@@ -1,5 +1,6 @@
 ﻿Imports System.Net.Http
 Imports System.Security.Cryptography
+Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 
 Public Module ModProfile

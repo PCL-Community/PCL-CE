@@ -3,7 +3,7 @@ Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Management
 Imports System.Runtime.InteropServices
-Imports PCL.Core.IO.FileFormats
+Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts

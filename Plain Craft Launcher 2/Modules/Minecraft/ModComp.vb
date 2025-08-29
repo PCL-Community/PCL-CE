@@ -1,6 +1,7 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Net.Http
 Imports LiteDB
+Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Utils
 

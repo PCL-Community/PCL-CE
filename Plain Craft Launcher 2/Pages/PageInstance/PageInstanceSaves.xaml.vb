@@ -1,6 +1,6 @@
 ﻿
 Imports Microsoft.VisualBasic.FileIO
-Imports PCL.Core.IO.FileFormats
+Imports PCL.Core.IO
 
 Public Class PageInstanceSaves
     Implements IRefreshable

@@ -2,6 +2,7 @@
 Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 Imports System.Text.Json.Nodes
+Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash
