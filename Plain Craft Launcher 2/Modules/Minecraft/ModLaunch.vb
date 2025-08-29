@@ -233,7 +233,7 @@ NextInner:
         '检查路径
         If McInstanceCurrent.PathIndie.Contains("!") OrElse McInstanceCurrent.PathIndie.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.PathIndie & "）")
         If McInstanceCurrent.Path.Contains("!") OrElse McInstanceCurrent.Path.Contains(";") Then Throw New Exception("游戏路径中不可包含 ! 或 ;（" & McInstanceCurrent.Path & "）")
-        If IsUtf8CodePage() AndAlso Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McInstanceCurrent.Path.IsASCII() Then
+        If EncodingUtils.IsDefaultEncodingUtf8() AndAlso Not Setup.Get("HintDisableGamePathCheckTip") AndAlso Not McInstanceCurrent.Path.IsASCII() Then
             Dim userChoice = MyMsgBox(
                 $"欲启动实例 ""{McInstanceCurrent.Name}"" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{vbCrLf}{vbCrLf}如果不清楚具体作用，你可以先选择 ""继续""，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
                 "游戏路径检查",
@@ -1590,7 +1590,7 @@ LoginFinish:
             DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
         End If
         '添加 Java Wrapper 作为主 Jar
-        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
+        If EncodingUtils.IsDefaultEncodingUtf8() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
@@ -1674,7 +1674,7 @@ NextInstance:
             DataList.Add("-Dretrowrapper.doUpdateCheck=false")
         End If
         '添加 Java Wrapper 作为主 Jar
-        If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
+        If EncodingUtils.IsDefaultEncodingUtf8() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")

@@ -1110,15 +1110,20 @@ NoSubtitle:
             Dim searchRes = datas.Find(queryCmd)
             For Each searchItem In searchRes
                 If searchItem.ChineseName.Contains("动态的树") Then Continue For
-                SearchEntries.Add(New SearchEntry(Of CompDatabaseEntry) With {
-                    .Item = searchItem,
-                    .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
-                        New KeyValuePair(Of String, Double)(searchItem.ChineseName & If(searchItem.CurseForgeSlug, "") & If(searchItem.ModrinthSlug, ""), 1)
-                    }
-                })
+                ' 使用字符串内插来构建搜索源，代码更整洁
+                Dim searchString = $"{searchItem.ChineseName}{If(searchItem.CurseForgeSlug, "")}{If(searchItem.ModrinthSlug, "")}"
+                
+                Dim sourceList = New List(Of KeyValuePair(Of String, Double)) From {
+                        New KeyValuePair(Of String, Double)(
+                            $"{searchItem.ChineseName}{If(searchItem.CurseForgeSlug, "")}{If(searchItem.ModrinthSlug, "")}",
+                            1.0
+                            )
+                        }
+                Dim newEntry = New SearchEntry(Of CompDatabaseEntry)(searchItem, sourceList)
+                SearchEntries.Add(newEntry)
             Next
             '获取搜索结果
-            Dim SearchResults = Search(SearchEntries, Request.SearchText, 3)
+            Dim SearchResults = SimilaritySearch.Search(SearchEntries, Request.SearchText, 3)
             If Not SearchResults.Any() Then Throw New Exception("无搜索结果，请尝试搜索英文名称")
             Dim SearchResult As String = ""
             For i = 0 To Math.Min(4, SearchResults.Count - 1) '就算全是准确的，也最多只要 5 个
@@ -1355,11 +1360,11 @@ Retry:
             For Each Result As CompProject In RealResults
                 Scores.Add(Result, If(Result.WikiId > 0, 0.2, 0) +
                            Math.Log10(Math.Max(Result.DownloadCount, 1) * GetDownloadCountMult(Result)) / 9)
-                Entry.Add(New SearchEntry(Of CompProject) With {.Item = Result, .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
+                Entry.Add(New SearchEntry(Of CompProject)(Result, New List(Of KeyValuePair(Of String, Double)) From {
                           New KeyValuePair(Of String, Double)(If(IsChineseSearch, Result.TranslatedName, Result.RawName), 1),
-                          New KeyValuePair(Of String, Double)(Result.Description, 0.05)}})
+                          New KeyValuePair(Of String, Double)(Result.Description, 0.05)}))
             Next
-            Dim SearchResult = Search(Entry, RawFilter, 101, -1)
+            Dim SearchResult = SimilaritySearch.Search(Entry, RawFilter, 101, -1)
             For Each OneResult In SearchResult
                 Scores(OneResult.Item) += OneResult.Similarity / SearchResult(0).Similarity '最高 1 分的相似度分
             Next

@@ -2,6 +2,7 @@ Imports System.IO.Compression
 Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 
@@ -745,7 +746,7 @@ pause"
                               BaseMcFolder & "versions\" & DownloadInfo.Inherit & "\" & DownloadInfo.Inherit & ".jar")
                     Task.Progress = 0.06
                     '进行安装
-                    Dim UseJavaWrapper As Boolean = IsUtf8CodePage()
+                    Dim UseJavaWrapper As Boolean = EncodingUtils.IsDefaultEncodingUtf8()
 Retry:
                     Try
                         McDownloadOptiFineInstall(BaseMcFolderHome, Target, Task, UseJavaWrapper)
@@ -1555,7 +1556,7 @@ Retry:
                     McFolderLauncherProfilesJsonCreate(McFolder)
                     Task.Progress = 0.05
                     '运行 Forge 安装器
-                    Dim UseJavaWrapper As Boolean = IsUtf8CodePage()
+                    Dim UseJavaWrapper As Boolean = EncodingUtils.IsDefaultEncodingUtf8()
 Retry:
                     Try
                         '释放 Forge 注入器

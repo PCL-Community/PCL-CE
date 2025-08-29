@@ -1,4 +1,6 @@
-﻿Public Class PageOtherHelp
+﻿Imports PCL.Core.Utils
+
+Public Class PageOtherHelp
     Implements IRefreshable
 
 #Region "初始化"
@@ -144,18 +146,17 @@
             For Each Entry As HelpEntry In HelpLoader.Output
                 If Not Entry.ShowInSearch OrElse (Val(VersionBranchCode) = 50 AndAlso Not Entry.ShowInPublic) Then Continue For
                 If Not Entry.ShowInSearch OrElse (Val(VersionBranchCode) <> 50 AndAlso Not Entry.ShowInSnapshot) Then Continue For
-                QueryList.Add(New SearchEntry(Of HelpEntry) With {
-                    .Item = Entry,
-                    .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
+                QueryList.Add(New SearchEntry(Of HelpEntry) (Entry,
+                    New List(Of KeyValuePair(Of String, Double)) From {
                         New KeyValuePair(Of String, Double)(Entry.Title, 1),
                         New KeyValuePair(Of String, Double)(Entry.Desc, 0.5),
                         New KeyValuePair(Of String, Double)(Entry.Search, 1.5)
                     }
-                })
+                ))
                 'New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
             Next
             '进行搜索，构造列表
-            Dim SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=5, MinBlurSimilarity:=0.08)
+            Dim SearchResult = SimilaritySearch.Search(QueryList, SearchBox.Text, MaxBlurCount:=5, MinBlurSimilarity:=0.08)
             PanSearchList.Children.Clear()
             If Not SearchResult.Any() Then
                 PanSearch.Title = "无搜索结果"

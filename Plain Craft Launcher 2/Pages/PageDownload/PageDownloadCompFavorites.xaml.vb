@@ -1,3 +1,4 @@
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
 Public Class PageDownloadCompFavorites
@@ -692,10 +693,10 @@ Public Class PageDownloadCompFavorites
                 End If
                 If Entry.TranslatedName <> Entry.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.TranslatedName, 1))
                 SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Tags), 0.2))
-                QueryList.Add(New SearchEntry(Of MyListItem) With {.Item = Item, .SearchSource = SearchSource})
+                QueryList.Add(New SearchEntry(Of MyListItem)(Item, SearchSource))
             Next
             '进行搜索
-            SearchResult = Search(QueryList, PanSearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+            SearchResult = SimilaritySearch.Search(QueryList, PanSearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
         End If
         RefreshContent()
         RefreshCardTitle()

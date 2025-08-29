@@ -1,4 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
@@ -2014,10 +2015,10 @@ Install:
                         If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
                         SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
                     End If
-                    QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+                    QueryList.Add(New SearchEntry(Of LocalCompFile)(Entry, SearchSource))
                 Next
                 '进行搜索
-                SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+                SearchResult = SimilaritySearch.Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
             End If
             RefreshUI()
         Catch ex As Exception
