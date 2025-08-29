@@ -1,6 +1,7 @@
 
 Imports System.IO.Compression
 Imports System.Text.Json.Nodes
+Imports PCL.Core.IO
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
@@ -2081,7 +2082,7 @@ NextInstance:
             If File.Exists(YosbrFileAddress) Then
                 McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
                 SetupFileAddress = YosbrFileAddress
-                WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
+                IniFileHandler.WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
             End If
         End If
         Try
@@ -2091,7 +2092,7 @@ NextInstance:
             '1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
             '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
             '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-            Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
+            Dim CurrentLang As String = IniFileHandler.ReadIni(SetupFileAddress, "lang", "none")
             Dim RequiredLang As String = If(CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves"), '#3844，整合包可能已经自带了 options.txt
                 If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us"), CurrentLang.ToLower)
             If McInstanceCurrent.Version.McCodeMain < 12 Then '注意老版本（包含 MC 1.1）的 McCodeMain 可能为 -1
@@ -2101,22 +2102,22 @@ NextInstance:
             If CurrentLang = RequiredLang Then
                 McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
             Else
-                WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
-                WriteIni(SetupFileAddress, "lang", RequiredLang)
+                IniFileHandler.WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
+                IniFileHandler.WriteIni(SetupFileAddress, "lang", RequiredLang)
                 McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
             End If
             ''如果是初次设置，一并修改 forceUnicodeFont
             'If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves")) Then
-            '    WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
+            '    IniFileHandler.WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
             '    McLaunchLog("已开启 forceUnicodeFont")
             'End If
             '窗口
             Select Case Setup.Get("LaunchArgumentWindowType")
                 Case 0 '全屏
-                    WriteIni(SetupFileAddress, "fullscreen", "true")
+                    IniFileHandler.WriteIni(SetupFileAddress, "fullscreen", "true")
                 Case 1 '默认
                 Case Else '其他
-                    WriteIni(SetupFileAddress, "fullscreen", "false")
+                    IniFileHandler.WriteIni(SetupFileAddress, "fullscreen", "false")
             End Select
         Catch ex As Exception
             Log(ex, "更新 options.txt 失败", LogLevel.Hint)

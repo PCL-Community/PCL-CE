@@ -1,5 +1,6 @@
 ﻿Imports System.Net.Http
 Imports System.Security.Cryptography
+Imports PCL.Core.IO
 
 Public Module ModProfile
 
@@ -781,7 +782,7 @@ Retry:
     Public Function McLoginMojangUuid(Name As String, ThrowOnNotFound As Boolean)
         If Name.Trim.Length = 0 Then Return StrFill("", "0", 32)
         '从缓存获取
-        Dim Uuid As String = ReadIni(PathTemp & "Cache\Uuid\Mojang.ini", Name, "")
+        Dim Uuid As String = IniFileHandler.ReadIni(PathTemp & "Cache\Uuid\Mojang.ini", Name, "")
         If Len(Uuid) = 32 Then Return Uuid
         '从官网获取
         Try
@@ -810,7 +811,7 @@ Retry:
         End Try
         '写入缓存
         If Not Len(Uuid) = 32 Then Throw New Exception("获取的正版 UUID 长度不足（" & Uuid & "）")
-        WriteIni(PathTemp & "Cache\Uuid\Mojang.ini", Name, Uuid)
+        IniFileHandler.WriteIni(PathTemp & "Cache\Uuid\Mojang.ini", Name, Uuid)
         Return Uuid
     End Function
 #End Region

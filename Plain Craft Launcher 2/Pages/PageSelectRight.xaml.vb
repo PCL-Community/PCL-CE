@@ -364,9 +364,9 @@ Public Class PageSelectRight
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, True)
                 Case 1
-                    IniClearCache(Version.PathIndie & "options.txt")
+                    IniFileHandler.IniClearCache(Version.PathIndie & "options.txt")
                     If IsShiftPressed Then
-                        Files.DeleteDirectory(Version.Path)
+                        Directories.DeleteDirectory(Version.Path)
                         Hint("实例 " & Version.Name & " 已永久删除！", HintType.Finish)
                     Else
                         FileIO.FileSystem.DeleteDirectory(Version.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)

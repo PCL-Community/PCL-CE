@@ -1,3 +1,4 @@
+Imports System.Collections.Concurrent
 Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
@@ -508,112 +509,6 @@ Public Module ModBase
             If ThrowException Then Throw
         End Try
     End Sub
-
-    '=============================
-    '  ini
-    '=============================
-
-    Private ReadOnly IniCache As New SafeDictionary(Of String, SafeDictionary(Of String, String))
-    ''' <summary>
-    ''' 清除某 ini 文件的运行时缓存。
-    ''' </summary>
-    ''' <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    Public Sub IniClearCache(FileName As String)
-        If Not FileName.Contains(":\") Then FileName = $"{Path}PCL\{FileName}.ini"
-        If IniCache.ContainsKey(FileName) Then IniCache.Remove(FileName)
-    End Sub
-    ''' <summary>
-    ''' 获取 ini 文件缓存。如果没有，则新读取 ini 文件内容。
-    ''' 在文件不存在或读取失败时返回 Nothing。
-    ''' </summary>
-    ''' <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    Private Function IniGetContent(FileName As String) As SafeDictionary(Of String, String)
-        Try
-            '还原文件路径
-            If Not FileName.Contains(":\") Then FileName = $"{Path}PCL\{FileName}.ini"
-            '检索缓存
-            If IniCache.ContainsKey(FileName) Then Return IniCache(FileName)
-            '读取文件
-            If Not File.Exists(FileName) Then Return Nothing
-            Dim Ini As New SafeDictionary(Of String, String)
-            For Each Line In ReadFile(FileName).Split(vbCrLf.ToArray(), StringSplitOptions.RemoveEmptyEntries)
-                Dim Index As Integer = Line.IndexOfF(":")
-                If Index > 0 Then Ini(Line.Substring(0, Index)) = Line.Substring(Index + 1) '可能会有重复键，见 #3616
-            Next
-            IniCache(FileName) = Ini
-            Return Ini
-        Catch ex As Exception
-            Log(ex, $"生成 ini 文件缓存失败（{FileName}）", LogLevel.Hint)
-            Return Nothing
-        End Try
-    End Function
-    ''' <summary>
-    ''' 读取 ini 文件。这可能会使用到缓存。
-    ''' </summary>
-    ''' <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    ''' <param name="Key">键。</param>
-    ''' <param name="DefaultValue">没有找到键时返回的默认值。</param>
-    Public Function ReadIni(FileName As String, Key As String, Optional DefaultValue As String = "") As String
-        Dim Content = IniGetContent(FileName)
-        If Content Is Nothing OrElse Not Content.ContainsKey(Key) Then Return DefaultValue
-        Return Content(Key)
-    End Function
-    ''' <summary>
-    ''' 判断 ini 文件中是否包含某个键。这可能会使用到缓存。
-    ''' </summary>
-    Public Function HasIniKey(FileName As String, Key As String) As Boolean
-        Dim Content = IniGetContent(FileName)
-        Return Content IsNot Nothing AndAlso Content.ContainsKey(Key)
-    End Function
-    ''' <summary>
-    ''' 从 ini 文件中移除某个键。这会更新缓存。
-    ''' </summary>
-    Public Sub DeleteIniKey(FileName As String, Key As String)
-        WriteIni(FileName, Key, Nothing)
-    End Sub
-    ''' <summary>
-    ''' 写入 ini 文件，这会更新缓存。
-    ''' 若 Value 为 Nothing，则删除该键。
-    ''' </summary>
-    ''' <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    ''' <param name="Key">键。</param>
-    ''' <param name="Value">值。</param>
-    ''' <remarks></remarks>
-    Public Sub WriteIni(FileName As String, Key As String, Value As String)
-        Try
-            '预处理
-            If Key.Contains(":") Then Throw New Exception($"尝试写入 ini 文件 {FileName} 的键名中包含了冒号：{Key}")
-            Key = Key.Replace(vbCr, "").Replace(vbLf, "")
-            Value = Value?.Replace(vbCr, "").Replace(vbLf, "")
-            '防止争用
-            SyncLock WriteIniLock
-                '获取目前文件
-                Dim Content As SafeDictionary(Of String, String) = IniGetContent(FileName)
-                If Content Is Nothing Then Content = New SafeDictionary(Of String, String)
-                '更新值
-                If Value Is Nothing Then
-                    If Not Content.ContainsKey(Key) Then Return '无需处理
-                    Content.Remove(Key)
-                Else
-                    If Content.ContainsKey(Key) AndAlso Content(Key) = Value Then Return '无需处理
-                    Content(Key) = Value
-                End If
-                '写入文件
-                Dim FileContent As New StringBuilder
-                For Each Pair In Content
-                    FileContent.Append(Pair.Key)
-                    FileContent.Append(":")
-                    FileContent.Append(Pair.Value)
-                    FileContent.Append(vbCrLf)
-                Next
-                If Not FileName.Contains(":\") Then FileName = $"{Path}PCL\{FileName}.ini"
-                WriteFile(FileName, FileContent.ToString)
-            End SyncLock
-        Catch ex As Exception
-            Log(ex, $"写入文件失败（{FileName} → {Key}:{Value}）", LogLevel.Hint)
-        End Try
-    End Sub
-    Private WriteIniLock As New Object
 
     '路径处理
     ''' <summary>
@@ -1454,122 +1349,6 @@ Public Module ModBase
     End Class
 
     ''' <summary>
-    ''' 线程安全的字典。
-    ''' 通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
-    ''' </summary>
-    Public Class SafeDictionary(Of TKey, TValue)
-        Implements IDictionary(Of TKey, TValue)
-        Implements IEnumerable(Of KeyValuePair(Of TKey, TValue))
-
-        Private ReadOnly SyncRoot As New Object
-        Private ReadOnly _Dictionary As New Dictionary(Of TKey, TValue)
-
-        '构造函数
-        Public Sub New()
-        End Sub
-        Public Sub New(data As IEnumerable(Of KeyValuePair(Of TKey, TValue)))
-            For Each DataItem In data
-                _Dictionary.Add(DataItem.Key, DataItem.Value)
-            Next
-        End Sub
-
-        '线程安全的方法实现
-        Public Sub Add(key As TKey, value As TValue) Implements IDictionary(Of TKey, TValue).Add
-            SyncLock SyncRoot
-                _Dictionary.Add(key, value)
-            End SyncLock
-        End Sub
-        Public Function ContainsKey(key As TKey) As Boolean Implements IDictionary(Of TKey, TValue).ContainsKey
-            SyncLock SyncRoot
-                Return _Dictionary.ContainsKey(key)
-            End SyncLock
-        End Function
-        Public ReadOnly Property Keys As ICollection(Of TKey) Implements IDictionary(Of TKey, TValue).Keys
-            Get
-                SyncLock SyncRoot
-                    Return New List(Of TKey)(_Dictionary.Keys)
-                End SyncLock
-            End Get
-        End Property
-        Public Function Remove(key As TKey) As Boolean Implements IDictionary(Of TKey, TValue).Remove
-            SyncLock SyncRoot
-                Return _Dictionary.Remove(key)
-            End SyncLock
-        End Function
-        Public Function TryGetValue(key As TKey, ByRef value As TValue) As Boolean Implements IDictionary(Of TKey, TValue).TryGetValue
-            SyncLock SyncRoot
-                Return _Dictionary.TryGetValue(key, value)
-            End SyncLock
-        End Function
-        Public ReadOnly Property Values As ICollection(Of TValue) Implements IDictionary(Of TKey, TValue).Values
-            Get
-                SyncLock SyncRoot
-                    Return New List(Of TValue)(_Dictionary.Values)
-                End SyncLock
-            End Get
-        End Property
-        Default Public Property Item(key As TKey) As TValue Implements IDictionary(Of TKey, TValue).Item
-            Get
-                SyncLock SyncRoot
-                    Return _Dictionary(key)
-                End SyncLock
-            End Get
-            Set(value As TValue)
-                SyncLock SyncRoot
-                    _Dictionary(key) = value
-                End SyncLock
-            End Set
-        End Property
-        Public Sub Add(item As KeyValuePair(Of TKey, TValue)) Implements ICollection(Of KeyValuePair(Of TKey, TValue)).Add
-            SyncLock SyncRoot
-                _Dictionary.Add(item.Key, item.Value)
-            End SyncLock
-        End Sub
-        Public Sub Clear() Implements ICollection(Of KeyValuePair(Of TKey, TValue)).Clear
-            SyncLock SyncRoot
-                _Dictionary.Clear()
-            End SyncLock
-        End Sub
-        Public Function Contains(item As KeyValuePair(Of TKey, TValue)) As Boolean Implements ICollection(Of KeyValuePair(Of TKey, TValue)).Contains
-            SyncLock SyncRoot
-                Return DirectCast(_Dictionary, IDictionary(Of TKey, TValue)).Contains(item)
-            End SyncLock
-        End Function
-        Public Sub CopyTo(array() As KeyValuePair(Of TKey, TValue), arrayIndex As Integer) Implements ICollection(Of KeyValuePair(Of TKey, TValue)).CopyTo
-            SyncLock SyncRoot
-                DirectCast(_Dictionary, IDictionary(Of TKey, TValue)).CopyTo(array, arrayIndex)
-            End SyncLock
-        End Sub
-        Public ReadOnly Property Count As Integer Implements ICollection(Of KeyValuePair(Of TKey, TValue)).Count
-            Get
-                SyncLock SyncRoot
-                    Return _Dictionary.Count
-                End SyncLock
-            End Get
-        End Property
-        Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of KeyValuePair(Of TKey, TValue)).IsReadOnly
-            Get
-                Return False
-            End Get
-        End Property
-        Public Function Remove(item As KeyValuePair(Of TKey, TValue)) As Boolean Implements ICollection(Of KeyValuePair(Of TKey, TValue)).Remove
-            SyncLock SyncRoot
-                Return DirectCast(_Dictionary, IDictionary(Of TKey, TValue)).Remove(item)
-            End SyncLock
-        End Function
-
-        '枚举器
-        Public Function GetEnumerator() As IEnumerator(Of KeyValuePair(Of TKey, TValue)) Implements IEnumerable(Of KeyValuePair(Of TKey, TValue)).GetEnumerator
-            SyncLock SyncRoot
-                Return New List(Of KeyValuePair(Of TKey, TValue))(_Dictionary).GetEnumerator()
-            End SyncLock
-        End Function
-        Private Function GetEnumeratorGeneral() As IEnumerator Implements IEnumerable.GetEnumerator
-            Return GetEnumerator()
-        End Function
-    End Class
-
-    ''' <summary>
     ''' 可用于临时存放文件的，不含任何特殊字符的文件夹路径，以“\”结尾。
     ''' </summary>
     Public PathPure As String = GetPureASCIIDir()
@@ -1959,7 +1738,7 @@ NextElement:
                         If Directory.Exists(thisDest) Then
                             Log("[System] 已存在同名文件夹：" & thisDest)
                         Else
-                            Files.CopyDirectory(i, thisDest)
+                            Directories.CopyDirectory(i, thisDest)
                             CopiedFolders += 1
                         End If
                     Catch ex As Exception

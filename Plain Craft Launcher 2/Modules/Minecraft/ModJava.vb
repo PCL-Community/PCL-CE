@@ -211,7 +211,7 @@ Public Module ModJava
         Sub(Raw As LoaderBase, NewState As LoadState, OldState As LoadState)
             If (NewState = LoadState.Failed OrElse NewState = LoadState.Aborted) AndAlso LastJavaBaseDir IsNot Nothing Then
                 Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", LogLevel.Debug)
-                Files.DeleteDirectory(LastJavaBaseDir)
+                Directories.DeleteDirectory(LastJavaBaseDir)
             ElseIf NewState = LoadState.Finished Then
                 Javas.ScanJava().GetAwaiter().GetResult()
                 LastJavaBaseDir = Nothing

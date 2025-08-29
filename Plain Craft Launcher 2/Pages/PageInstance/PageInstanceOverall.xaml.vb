@@ -69,7 +69,7 @@ Public Class PageInstanceOverall
                 PageInstanceLeft.Instance.DisplayType = NEWSetup.Instance.DisplayType(PageInstanceLeft.Instance.Path)
                 FrmInstanceLeft.RefreshModDisabled()
 
-                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
                 LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "修改实例分类失败（" & PageInstanceLeft.Instance.Name & "）", LogLevel.Feedback)
@@ -86,7 +86,7 @@ Public Class PageInstanceOverall
                     Setup.Set("HintHide", True)
                 End If
                 NEWSetup.Instance.DisplayType(PageInstanceLeft.Instance.Path) = CInt(McInstanceCardType.Hidden)
-                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
                 LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "隐藏实例 " & PageInstanceLeft.Instance.Name & " 失败", LogLevel.Feedback)
@@ -134,7 +134,7 @@ Public Class PageInstanceOverall
             FileSystem.RenameDirectory(OldPath, TempName)
             FileSystem.RenameDirectory(TempPath, NewName)
             '清理 ini 缓存
-            IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
+            IniFileHandler.IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
             '重命名 Jar 文件与 natives 文件夹
             '不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             If Directory.Exists($"{NewPath}{OldName}-natives") Then
@@ -142,7 +142,7 @@ Public Class PageInstanceOverall
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp")
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives")
                 Else
-                    Files.DeleteDirectory($"{NewPath}{NewName}-natives")
+                    Directories.DeleteDirectory($"{NewPath}{NewName}-natives")
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives")
                 End If
             End If
@@ -160,8 +160,8 @@ Public Class PageInstanceOverall
                 WriteFile(NewPath & "PCL\Setup.ini", ReadFile(NewPath & "PCL\Setup.ini").Replace(OldPath, NewPath))
             End If
             '更改已选中的实例
-            If ReadIni(PathMcFolder & "PCL.ini", "Version") = OldName Then
-                WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
+            If IniFileHandler.ReadIni(PathMcFolder & "PCL.ini", "Version") = OldName Then
+                IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
             End If
             '写入实例 Json
             Try
@@ -173,7 +173,7 @@ Public Class PageInstanceOverall
             '刷新与提示
             Hint("重命名成功！", HintType.Finish)
             PageInstanceLeft.Instance = New McInstance(NewName).Load()
-            If Not IsNothing(McInstanceCurrent) AndAlso McInstanceCurrent.Equals(PageInstanceLeft.Instance) Then WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
+            If Not IsNothing(McInstanceCurrent) AndAlso McInstanceCurrent.Equals(PageInstanceLeft.Instance) Then IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
             Reload()
             LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
@@ -205,7 +205,7 @@ Public Class PageInstanceOverall
             NEWSetup.Instance.LogoPath(PageInstanceLeft.Instance.Path) = NewLogo
             NEWSetup.Instance.IsLogoCustom(PageInstanceLeft.Instance.Path) = Not NewLogo = ""
             '刷新显示
-            WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+            IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
             LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
@@ -380,9 +380,9 @@ Public Class PageInstanceOverall
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, IsHintIndie OrElse IsShiftPressed)
                 Case 1
-                    IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
+                    IniFileHandler.IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
                     If IsShiftPressed Then
-                        Files.DeleteDirectory(PageInstanceLeft.Instance.Path)
+                        Directories.DeleteDirectory(PageInstanceLeft.Instance.Path)
                         Hint("实例 " & PageInstanceLeft.Instance.Name & " 已永久删除！", HintType.Finish)
                     Else
                         FileSystem.DeleteDirectory(PageInstanceLeft.Instance.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)

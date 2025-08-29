@@ -193,11 +193,11 @@ Public Class MySkin
                     Hint("正在刷新头像……")
                     '清空缓存
                     Log("[Skin] 正在清空皮肤缓存")
-                    If Directory.Exists(PathTemp & "Cache\Skin") Then Files.DeleteDirectory(PathTemp & "Cache\Skin")
-                    If Directory.Exists(PathTemp & "Cache\Uuid") Then Files.DeleteDirectory(PathTemp & "Cache\Uuid")
-                    IniClearCache(PathTemp & "Cache\Skin\IndexMs.ini")
-                    IniClearCache(PathTemp & "Cache\Skin\IndexAuth.ini")
-                    IniClearCache(PathTemp & "Cache\Uuid\Mojang.ini")
+                    If Directory.Exists(PathTemp & "Cache\Skin") Then Directories.DeleteDirectory(PathTemp & "Cache\Skin")
+                    If Directory.Exists(PathTemp & "Cache\Uuid") Then Directories.DeleteDirectory(PathTemp & "Cache\Uuid")
+                    IniFileHandler.IniClearCache(PathTemp & "Cache\Skin\IndexMs.ini")
+                    IniFileHandler.IniClearCache(PathTemp & "Cache\Skin\IndexAuth.ini")
+                    IniFileHandler.IniClearCache(PathTemp & "Cache\Uuid\Mojang.ini")
                     '刷新控件
                     For Each SkinLoader In If(sender IsNot Nothing, {sender}, {PageLaunchLeft.SkinLegacy, PageLaunchLeft.SkinMs})
                         SkinLoader.WaitForExit(IsForceRestart:=True)
@@ -218,7 +218,7 @@ Public Class MySkin
         Sub()
             Try
                 '更新缓存
-                WriteIni(PathTemp & "Cache\Skin\IndexMs.ini", SelectedProfile.Uuid, SkinAddress)
+                IniFileHandler.WriteIni(PathTemp & "Cache\Skin\IndexMs.ini", SelectedProfile.Uuid, SkinAddress)
                 Log(String.Format("[Skin] 已写入皮肤地址缓存 {0} -> {1}", SelectedProfile.Uuid, SkinAddress))
                 '刷新控件
                 For Each SkinLoader In {PageLaunchLeft.SkinMs, PageLaunchLeft.SkinLegacy}

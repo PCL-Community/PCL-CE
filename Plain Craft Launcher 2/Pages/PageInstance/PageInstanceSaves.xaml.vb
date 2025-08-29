@@ -195,7 +195,7 @@ Public Class PageInstanceSaves
                         If (Directory.Exists(WorldPath & GetFolderNameFromPath(i))) Then
                             Hint("发现同名文件夹，无法粘贴：" & GetFolderNameFromPath(i))
                         Else
-                            Files.CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
+                            Directories.CopyDirectory(i, WorldPath & GetFolderNameFromPath(i))
                             Copied += 1
                         End If
                     Else

@@ -1,4 +1,5 @@
 Imports System.Reflection
+Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS
@@ -109,7 +110,7 @@ Public Class ModSetup
     '切换选择
     Public Sub LaunchInstanceSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 版本：" & Value)
-        WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
+        IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
     End Sub
     Public Sub LaunchFolderSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", Path))
@@ -529,7 +530,7 @@ Public Class ModSetup
     Public Sub VersionServerLogin(Type As Integer)
         If FrmInstanceSetup Is Nothing Then Return
         '为第三方登录清空缓存以更新描述
-        WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "")
+        IniFileHandler.WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "")
         If PageInstanceLeft.Instance Is Nothing Then Return
         PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
         LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")

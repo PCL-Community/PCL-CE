@@ -958,7 +958,7 @@ NextStack:
                     WriteFile(TempFolder & "Report\环境与启动信息.txt", EnvInfo, Encoding:=Encoding.UTF8)
                     '导出报告
                     Compression.ZipFile.CreateFromDirectory(TempFolder & "Report\", FileAddress)
-                    Files.DeleteDirectory(TempFolder & "Report\")
+                    Directories.DeleteDirectory(TempFolder & "Report\")
                     Hint("错误报告已导出！", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "导出错误报告失败", LogLevel.Feedback)

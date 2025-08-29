@@ -257,7 +257,7 @@ Public Class PageSelectLeft
             Try
                 If Not FolderPath.EndsWith("\") Then FolderPath &= "\" '加上斜杠……
                 '检查文件夹权限
-                If Not Files.CheckPermission(FolderPath) Then
+                If Not Directories.CheckPermission(FolderPath) Then
                     If ShowHint Then
                         Hint("添加文件夹失败：PCL 没有访问该文件夹的权限！", HintType.Critical)
                         Return
@@ -266,9 +266,9 @@ Public Class PageSelectLeft
                     End If
                 End If
                 '检查实际的 Minecraft 文件夹位置（没有问题，或是在子文件夹中）
-                If Not Files.CheckPermission(FolderPath & "versions\") Then
+                If Not Directories.CheckPermission(FolderPath & "versions\") Then
                     For Each Folder As DirectoryInfo In New DirectoryInfo(FolderPath).GetDirectories
-                        If Files.CheckPermission(Folder.FullName & "\versions\") Then
+                        If Directories.CheckPermission(Folder.FullName & "\versions\") Then
                             FolderPath = Folder.FullName & "\"
                             Exit For
                         End If
@@ -411,7 +411,7 @@ Public Class PageSelectLeft
             '删除文件夹
             Try
                 Hint("正在" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Info)
-                Files.DeleteDirectory(Folder.Path)
+                Directories.DeleteDirectory(Folder.Path)
                 If DeleteText = "清空" Then Directory.CreateDirectory(Folder.Path)
                 Hint("已" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Finish)
             Catch ex As Exception
@@ -433,7 +433,7 @@ Public Class PageSelectLeft
         RefreshCurrent(PathMcFolder)
     End Sub
     Public Shared Sub RefreshCurrent(Folder As String)
-        WriteIni(Folder & "PCL.ini", "InstanceCache", "") '删除缓存以强制要求下一次加载时更新列表
+        IniFileHandler.WriteIni(Folder & "PCL.ini", "InstanceCache", "") '删除缓存以强制要求下一次加载时更新列表
         If Folder = PathMcFolder Then LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
     Public Sub Rename_Click(sender As Object, e As RoutedEventArgs)

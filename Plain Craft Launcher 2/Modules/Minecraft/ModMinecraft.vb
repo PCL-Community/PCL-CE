@@ -60,7 +60,7 @@ Public Module ModMinecraft
                 Dim name As String = folder.Split(">")(0)
                 Dim path As String = folder.Split(">")(1)
                 Try
-                    Files.CheckPermissionWithException(path)
+                    Directories.CheckPermissionWithException(path)
                     cacheMcFolderList.Add(New McFolder With {.Name = name, .Path = path, .Type = McFolderType.Custom})
                 Catch ex As Exception
                     MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & ex.Message, "Minecraft 文件夹失效", IsWarn:=True)
@@ -658,7 +658,7 @@ Recheck:
             '检查权限
             Try
                 Directory.CreateDirectory(Path & "PCL\")
-                Files.CheckPermissionWithException(Path & "PCL\")
+                Directories.CheckPermissionWithException(Path & "PCL\")
             Catch ex As Exception
                 State = McInstanceState.Error
                 Info = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL"
@@ -1244,12 +1244,12 @@ ExitDataLoad:
             End If
             '不可用
             If Not FolderList.Any() Then
-                WriteIni(Path & "PCL.ini", "InstanceCache", "") '清空缓存
+                IniFileHandler.WriteIni(Path & "PCL.ini", "InstanceCache", "") '清空缓存
                 GoTo OnLoaded
             End If
             '有可用实例
             Dim FolderListCheck As Integer = GetHash(McInstanceCacheVersion & "#" & Join(FolderList.ToArray, "#")) Mod (Integer.MaxValue - 1) '根据文件夹名列表生成辨识码
-            If Not McInstanceListForceRefresh AndAlso Val(ReadIni(Path & "PCL.ini", "InstanceCache")) = FolderListCheck Then
+            If Not McInstanceListForceRefresh AndAlso Val(IniFileHandler.ReadIni(Path & "PCL.ini", "InstanceCache")) = FolderListCheck Then
                 '可以使用缓存
                 Dim Result = McInstanceListLoadCache(Path)
                 If Result Is Nothing Then
@@ -1262,7 +1262,7 @@ ExitDataLoad:
 Reload:
                 McInstanceListForceRefresh = False
                 Log("[Minecraft] 文件夹列表变更，重载所有实例")
-                WriteIni(Path & "PCL.ini", "InstanceCache", FolderListCheck)
+                IniFileHandler.WriteIni(Path & "PCL.ini", "InstanceCache", FolderListCheck)
                 McInstanceList = McInstanceListLoadNoCache(Path)
             End If
             IsFirstMcInstanceListLoad = False
@@ -1272,7 +1272,7 @@ OnLoaded:
             If Loader.IsAborted Then Return
             If McInstanceList.Any(Function(v) v.Key <> McInstanceCardType.Error) Then
                 '尝试读取已储存的选择
-                Dim SavedSelection As String = ReadIni(Path & "PCL.ini", "Version")
+                Dim SavedSelection As String = IniFileHandler.ReadIni(Path & "PCL.ini", "Version")
                 If SavedSelection <> "" Then
                     For Each Card As KeyValuePair(Of McInstanceCardType, List(Of McInstance)) In McInstanceList
                         For Each Instance As McInstance In Card.Value
@@ -1300,7 +1300,7 @@ OnLoaded:
             If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(200, 3000))
         Catch ex As ThreadInterruptedException
         Catch ex As Exception
-            WriteIni(Path & "PCL.ini", "InstanceCache", "") '要求下次重新加载
+            IniFileHandler.WriteIni(Path & "PCL.ini", "InstanceCache", "") '要求下次重新加载
             Log(ex, "加载 .minecraft 实例列表失败", LogLevel.Feedback)
         End Try
     End Sub
@@ -1309,14 +1309,14 @@ OnLoaded:
     Private Function McInstanceListLoadCache(Path As String) As Dictionary(Of McInstanceCardType, List(Of McInstance))
         Dim ResultInstanceList As New Dictionary(Of McInstanceCardType, List(Of McInstance))
         Try
-            Dim CardCount As Integer = ReadIni(Path & "PCL.ini", "CardCount", -1)
+            Dim CardCount As Integer = IniFileHandler.ReadIni(Path & "PCL.ini", "CardCount", -1)
             If CardCount = -1 Then Return Nothing
             For i = 0 To CardCount - 1
-                Dim CardType As McInstanceCardType = ReadIni(Path & "PCL.ini", "CardKey" & (i + 1), ":")
+                Dim CardType As McInstanceCardType = IniFileHandler.ReadIni(Path & "PCL.ini", "CardKey" & (i + 1), ":")
                 Dim InstanceList As New List(Of McInstance)
 
                 '循环读取实例
-                For Each Folder As String In ReadIni(Path & "PCL.ini", "CardValue" & (i + 1), ":").Split(":")
+                For Each Folder As String In IniFileHandler.ReadIni(Path & "PCL.ini", "CardValue" & (i + 1), ":").Split(":")
                     If Folder = "" Then Continue For
                     Dim VersionFolder As String = $"{Path}versions\{Folder}\"
                     If File.Exists(VersionFolder & ".pclignore") Then
@@ -1631,14 +1631,14 @@ OnLoaded:
 #End Region
 
 #Region "保存卡片缓存"
-        WriteIni(Path & "PCL.ini", "CardCount", ResultInstanceList.Count)
+        IniFileHandler.WriteIni(Path & "PCL.ini", "CardCount", ResultInstanceList.Count)
         For i = 0 To ResultInstanceList.Count - 1
-            WriteIni(Path & "PCL.ini", "CardKey" & (i + 1), ResultInstanceList.Keys(i))
+            IniFileHandler.WriteIni(Path & "PCL.ini", "CardKey" & (i + 1), ResultInstanceList.Keys(i))
             Dim Value As String = ""
             For Each Instance As McInstance In ResultInstanceList.Values(i)
                 Value += Instance.Name & ":"
             Next
-            WriteIni(Path & "PCL.ini", "CardValue" & (i + 1), Value)
+            IniFileHandler.WriteIni(Path & "PCL.ini", "CardValue" & (i + 1), Value)
         Next
 #End Region
 
@@ -1736,7 +1736,7 @@ OnLoaded:
         If Uuid = "" Then Throw New Exception("Uuid 为空。")
         If Uuid.StartsWithF("00000") Then Throw New Exception("离线 Uuid 无正版皮肤文件。")
         '尝试读取缓存
-        Dim CacheSkinAddress As String = ReadIni(PathTemp & "Cache\Skin\Index" & Type & ".ini", Uuid)
+        Dim CacheSkinAddress As String = IniFileHandler.ReadIni(PathTemp & "Cache\Skin\Index" & Type & ".ini", Uuid)
         If Not CacheSkinAddress = "" Then Return CacheSkinAddress
         '获取皮肤地址
         Dim Url As String
@@ -1774,7 +1774,7 @@ OnLoaded:
             SkinValue = If(SkinUrl.Contains("minecraft.net/"), SkinUrl.Replace("http://", "https://"), SkinUrl)
         End If
         '保存缓存
-        WriteIni(PathTemp & "Cache\Skin\Index" & Type & ".ini", Uuid, SkinValue)
+        IniFileHandler.WriteIni(PathTemp & "Cache\Skin\Index" & Type & ".ini", Uuid, SkinValue)
         Log("[Skin] UUID " & Uuid & " 对应的皮肤文件为 " & SkinValue)
         Return SkinValue
     End Function

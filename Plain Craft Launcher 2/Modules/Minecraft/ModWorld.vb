@@ -14,7 +14,7 @@ Public Module ModWorld
     Public Sub ReadWorld(SavePath As String)
         If File.Exists(SavePath) Then
             Dim ExtractPath As String = $"{PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\"
-            If Directory.Exists(ExtractPath) Then Files.DeleteDirectory(ExtractPath)
+            If Directory.Exists(ExtractPath) Then Directories.DeleteDirectory(ExtractPath)
             FileCompressionUtils.ExtractFile(SavePath, ExtractPath)
             SavePath = ExtractPath
         End If

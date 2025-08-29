@@ -122,7 +122,7 @@ Public Module ModModpack
         Try
 Retry:
             Loader.Progress = InitialProgress
-            Files.DeleteDirectory(InstallTemp)
+            Directories.DeleteDirectory(InstallTemp)
             FileCompressionUtils.ExtractFile(FileAddress, InstallTemp, Encode, ProgressIncrementHandler:=Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Catch ex As Exception
             Log(ex, "第 " & RetryCount & " 次解压尝试失败")
@@ -152,7 +152,7 @@ Retry:
         '复制文件
         If Directory.Exists(OverridesFolder) Then
             Log($"[ModPack] 处理整合包覆写文件夹：{OverridesFolder} → {VersionFolder}")
-            Files.CopyDirectory(OverridesFolder, VersionFolder, Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
+            Directories.CopyDirectory(OverridesFolder, VersionFolder, Sub(Delta) Loader.Progress += Delta * ProgressIncrement)
         Else
             Log($"[ModPack] 整合包中没有覆写文件夹：{OverridesFolder}")
             Loader.Progress += ProgressIncrement
@@ -161,14 +161,14 @@ Retry:
         Dim OverridesIni As String = $"{OverridesFolder}PCL\Setup.ini"
         Dim VersionIni As String = $"{VersionFolder}PCL\Setup.ini"
         If File.Exists(OverridesIni) Then
-            WriteIni(OverridesIni, "VersionArgumentIndie", 1) '开启版本隔离
-            WriteIni(OverridesIni, "VersionArgumentIndieV2", True)
+            IniFileHandler.WriteIni(OverridesIni, "VersionArgumentIndie", 1) '开启版本隔离
+            IniFileHandler.WriteIni(OverridesIni, "VersionArgumentIndieV2", True)
             CopyFile(OverridesIni, VersionIni) '覆写已有的 ini
         Else
-            WriteIni(VersionIni, "VersionArgumentIndie", 1) '开启版本隔离
-            WriteIni(VersionIni, "VersionArgumentIndieV2", True)
+            IniFileHandler.WriteIni(VersionIni, "VersionArgumentIndie", 1) '开启版本隔离
+            IniFileHandler.WriteIni(VersionIni, "VersionArgumentIndieV2", True)
         End If
-        IniClearCache(VersionIni) '重置缓存，避免被安装过程中写入的 ini 覆盖
+        IniFileHandler.IniClearCache(VersionIni) '重置缓存，避免被安装过程中写入的 ini 覆盖
     End Sub
 
 #Region "CurseForge"
@@ -816,8 +816,8 @@ Retry:
                     Next
                     WriteFile(MMCSetupFile, Join(Lines, vbCrLf))
                     '读取文件
-                    If ReadIni(MMCSetupFile, "OverrideCommands", False) Then
-                        Dim PreLaunchCommand As String = ReadIni(MMCSetupFile, "PreLaunchCommand")
+                    If IniFileHandler.ReadIni(MMCSetupFile, "OverrideCommands", False) Then
+                        Dim PreLaunchCommand As String = IniFileHandler.ReadIni(MMCSetupFile, "PreLaunchCommand")
                         If PreLaunchCommand <> "" Then
                             PreLaunchCommand = PreLaunchCommand.Replace("\""", """").
                                 Replace("$INST_JAVA", "{java}javaw.exe").
@@ -828,16 +828,16 @@ Retry:
                             Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" & PreLaunchCommand)
                         End If
                     End If
-                    If ReadIni(MMCSetupFile, "JoinServerOnLaunch", False) Then
-                        Dim ServerAddress As String = ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress").Replace("\""", """")
+                    If IniFileHandler.ReadIni(MMCSetupFile, "JoinServerOnLaunch", False) Then
+                        Dim ServerAddress As String = IniFileHandler.ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress").Replace("\""", """")
                         NEWSetup.Instance.ServerToEnter(VersionFolder) = ServerAddress
                         Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" & ServerAddress)
                     End If
-                    If ReadIni(MMCSetupFile, "IgnoreJavaCompatibility", False) Then
+                    If IniFileHandler.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility", False) Then
                         NEWSetup.Instance.IgnoreJavaCompatibility(VersionFolder) = True
                         Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告")
                     End If
-                    Dim Logo As String = ReadIni(MMCSetupFile, "iconKey", "")
+                    Dim Logo As String = IniFileHandler.ReadIni(MMCSetupFile, "iconKey", "")
                     If Logo <> "" AndAlso File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png") Then
                         NEWSetup.Instance.IsLogoCustom(VersionFolder) = True
                         NEWSetup.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
@@ -845,9 +845,9 @@ Retry:
                         Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）")
                     End If
                     'JVM 参数
-                    Dim JvmArgs As String = ReadIni(MMCSetupFile, "JvmArgs", "")
+                    Dim JvmArgs As String = IniFileHandler.ReadIni(MMCSetupFile, "JvmArgs", "")
                     If JvmArgs <> "" Then
-                        If ReadIni(MMCSetupFile, "OverrideJavaArgs", False) Then
+                        If IniFileHandler.ReadIni(MMCSetupFile, "OverrideJavaArgs", False) Then
                             NEWSetup.Instance.JvmArgs(VersionFolder) = JvmArgs
                             Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" & JvmArgs)
                         Else

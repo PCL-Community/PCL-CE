@@ -1,6 +1,7 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Net.Http
 Imports LiteDB
+Imports PCL.Core.IO
 Imports PCL.Core.Utils
 
 Public Module ModComp
@@ -290,7 +291,7 @@ Public Module ModComp
 
             Dim DescHash As String = $"{Id}{GetStringMD5(Description)}"
             Dim CacheFilePath As String = $"{PathTemp}Cache\CompTranslation.ini"
-            Dim CacheTranslation As String = ReadIni(CacheFilePath, DescHash)
+            Dim CacheTranslation As String = IniFileHandler.ReadIni(CacheFilePath, DescHash)
             If Not String.IsNullOrWhiteSpace(CacheTranslation) Then
                 result = Base64Decode(CacheTranslation)
                 Return result
@@ -300,7 +301,7 @@ Public Module ModComp
                 Dim jsonObject = Await Task.Run(Function() NetGetCodeByRequestOnce($"https://mod.mcimirror.top/translate/{from}/{Id}", Encode:=Encoding.UTF8, IsJson:=True))
                 If jsonObject.ContainsKey("translated") Then
                     result = jsonObject("translated").ToString()
-                    WriteIni(CacheFilePath, DescHash, Base64Encode(result))
+                    IniFileHandler.WriteIni(CacheFilePath, DescHash, Base64Encode(result))
                 End If
             Catch ex As HttpRequestException
                 If ex.Message.Contains("404") Then

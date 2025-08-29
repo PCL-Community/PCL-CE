@@ -2136,7 +2136,7 @@ Retry:
             '清理缓存
             If Not IsDownloadCacheCleared Then
                 Try
-                    Files.DeleteDirectory(PathTemp & "Download")
+                    Directories.DeleteDirectory(PathTemp & "Download")
                 Catch ex As Exception
                     Log(ex, "清理下载缓存失败")
                 End Try

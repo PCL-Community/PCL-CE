@@ -1111,7 +1111,7 @@ Finished:
                     '读取缓存
                     Dim Info As New FileInfo(Path)
                     Dim CacheKey As String = GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString}-{Info.Length}-C")
-                    Dim Cached As String = ReadIni(PathTemp & "Cache\CompHash.ini", CacheKey)
+                    Dim Cached As String = IniFileHandler.ReadIni(PathTemp & "Cache\CompHash.ini", CacheKey)
                     If Cached <> "" AndAlso RegexCheck(Cached, "^\d+$") Then '#5062
                         _CurseForgeHash = Cached
                         Return _CurseForgeHash
@@ -1151,7 +1151,7 @@ Finished:
                     h = h Xor (h >> 15)
                     _CurseForgeHash = h
                     '写入缓存
-                    WriteIni(PathTemp & "Cache\CompHash.ini", CacheKey, h.ToString)
+                    IniFileHandler.WriteIni(PathTemp & "Cache\CompHash.ini", CacheKey, h.ToString)
                 End If
                 Return _CurseForgeHash
             End Get
@@ -1167,7 +1167,7 @@ Finished:
                     '读取缓存
                     Dim Info As New FileInfo(Path)
                     Dim CacheKey As String = GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString}-{Info.Length}-M")
-                    Dim Cached As String = ReadIni(PathTemp & "Cache\CompHash.ini", CacheKey)
+                    Dim Cached As String = IniFileHandler.ReadIni(PathTemp & "Cache\CompHash.ini", CacheKey)
                     If Cached <> "" Then
                         _ModrinthHash = Cached
                         Return _ModrinthHash
@@ -1175,7 +1175,7 @@ Finished:
                     '计算 SHA1
                     _ModrinthHash = FileHashUtils.GetFileSHA1(Path)
                     '写入缓存
-                    WriteIni(PathTemp & "Cache\CompHash.ini", CacheKey, _ModrinthHash)
+                    IniFileHandler.WriteIni(PathTemp & "Cache\CompHash.ini", CacheKey, _ModrinthHash)
                 End If
                 Return _ModrinthHash
             End Get
@@ -1569,7 +1569,7 @@ Finished:
                     End Try
                 Else
                     Try
-                        For Each File As FileInfo In Files.EnumerateFiles(Loader.Input.CompPath)
+                        For Each File As FileInfo In Directories.EnumerateFiles(Loader.Input.CompPath)
                             Try
                                 If File.DirectoryName.ToLower & "\" <> RawName Then
                                     If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Version.HasForge AndAlso
