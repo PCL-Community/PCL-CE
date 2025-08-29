@@ -371,7 +371,11 @@ Public Class PageLinkLobby
             If hostInfo.Ping > 150 Then
                 quality -= 1
             End If
-            RunInUi(Sub() LabFinishQuality.Text = LobbyTextHandler.GetQualityDesc(quality))
+            RunInUi(Sub() 
+                    Dim strings = LobbyTextHandler.GetQualityDesc(quality)
+                    LabFinishQuality.Text = strings(0)
+                    BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & strings(1)
+                End Sub)
 
             If IsHost AndAlso Not LobbyController.IsHostInstanceAvailable(TargetLobby.Port) Then '确认创建者实例存活状态
                 RunInUi(Sub()
