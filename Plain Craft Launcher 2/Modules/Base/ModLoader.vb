@@ -575,7 +575,7 @@ Restart:
     End Class
 
     '任务栏进度条
-    Public LoaderTaskbar As New SafeList(Of LoaderBase)
+    Public LoaderTaskbar As New ThreadSafeList(Of LoaderBase)
     Public LoaderTaskbarProgress As Double = 0 '平滑后的进度
     Private LoaderTaskbarProgressLast As Shell.TaskbarItemProgressState = Shell.TaskbarItemProgressState.None
 

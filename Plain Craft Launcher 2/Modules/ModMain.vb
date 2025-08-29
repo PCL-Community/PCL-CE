@@ -1,3 +1,4 @@
+Imports System.Collections.Concurrent
 Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
@@ -39,12 +40,12 @@ Public Module ModMain
     ''' <summary>
     ''' 等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
     ''' </summary>
-    Private HintWaiting As SafeList(Of HintMessage) = If(HintWaiting, New SafeList(Of HintMessage))
+    Private HintWaiting As ConcurrentBag(Of HintMessage) = If(HintWaiting, New ConcurrentBag(Of HintMessage))
     ''' <summary>
     ''' 在窗口左下角弹出提示文本。
     ''' </summary>
     Public Sub Hint(Text As String, Optional Type As HintType = HintType.Info, Optional Log As Boolean = True)
-        If HintWaiting Is Nothing Then HintWaiting = New SafeList(Of HintMessage)
+        If HintWaiting Is Nothing Then HintWaiting = New ConcurrentBag(Of HintMessage)
         HintWaiting.Add(New HintMessage With {.Text = If(Text, ""), .Type = Type, .Log = Log})
     End Sub
 
@@ -59,7 +60,8 @@ Public Module ModMain
                 '    HintWaiting.RemoveAt(0)
                 '    Continue Do
                 'End If
-                Dim CurrentHint = HintWaiting(0)
+                Dim CurrentHint
+                HintWaiting.TryTake(CurrentHint)
                 '去回车
                 CurrentHint.Text = CurrentHint.Text.Replace(vbCrLf, " ").Replace(vbCr, " ").Replace(vbLf, " ")
                 '超量提示直接忽略
@@ -150,7 +152,6 @@ Public Module ModMain
                 '结束处理
 EndHint:
                 If CurrentHint.Log Then Log("[UI] 弹出提示：" & CurrentHint.Text)
-                HintWaiting.RemoveAt(0)
             Loop
         Catch ex As Exception
             Log(ex, "显示弹出提示失败", LogLevel.Normal)

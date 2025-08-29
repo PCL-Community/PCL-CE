@@ -811,11 +811,11 @@ Public Module ModNet
         ''' <summary>
         ''' 所属的文件列表任务。
         ''' </summary>
-        Public Tasks As New SafeList(Of LoaderDownload)
+        Public Tasks As New ThreadSafeList(Of LoaderDownload)
         ''' <summary>
         ''' 所有下载源。
         ''' </summary>
-        Public Sources As SafeList(Of NetSource)
+        Public Sources As ThreadSafeList(Of NetSource)
         ''' <summary>
         ''' 用于在第一个线程出错时切换下载源。
         ''' </summary>
@@ -823,7 +823,7 @@ Public Module ModNet
         ''' <summary>
         ''' 所有已经被标记为失败的，但未完整尝试过的，不允许断点续传的下载源。
         ''' </summary>
-        Public SourcesOnce As New SafeList(Of NetSource)
+        Public SourcesOnce As New ThreadSafeList(Of NetSource)
         ''' <summary>
         ''' 获取从某个源开始，第一个可用的源。
         ''' </summary>
@@ -1035,7 +1035,7 @@ Public Module ModNet
                 Sources.Add(New NetSource With {.FailCount = 0, .Url = SecretCdnSign(Source.Replace(vbCr, "").Replace(vbLf, "").Trim), .Id = Count, .IsFailed = False, .Ex = Nothing})
                 Count += 1
             Next
-            Me.Sources = New SafeList(Of NetSource)(Sources)
+            Me.Sources = New ThreadSafeList(Of NetSource)(Sources)
             Me.LocalPath = LocalPath
             Me.Check = Check
             Me.UseBrowserUserAgent = UseBrowserUserAgent
@@ -1591,7 +1591,7 @@ Retry:
         ''' <summary>
         ''' 需要下载的文件。
         ''' </summary>
-        Public Files As SafeList(Of NetFile)
+        Public Files As ThreadSafeList(Of NetFile)
         ''' <summary>
         ''' 剩余未完成的文件数。（用于减轻 FilesLock 的占用）
         ''' </summary>
@@ -1666,12 +1666,12 @@ FinishExCatch:
 
         Public Sub New(Name As String, FileTasks As List(Of NetFile))
             Me.Name = Name
-            Files = New SafeList(Of NetFile)(FileTasks)
+            Files = New ThreadSafeList(Of NetFile)(FileTasks)
         End Sub
         Public Overrides Sub Start(Optional Input As Object = Nothing, Optional IsForceRestart As Boolean = False)
-            If Input IsNot Nothing Then Files = New SafeList(Of NetFile)(Input)
+            If Input IsNot Nothing Then Files = New ThreadSafeList(Of NetFile)(Input)
             '去重
-            Dim ResultArray As New SafeList(Of NetFile)
+            Dim ResultArray As New ThreadSafeList(Of NetFile)
             For i = 0 To Files.Count - 1
                 For ii = i + 1 To Files.Count - 1
                     If Files(i).LocalPath = Files(ii).LocalPath Then GoTo NextElement
@@ -1958,7 +1958,7 @@ Retry:
         ''' <summary>
         ''' 当前的所有下载任务。
         ''' </summary>
-        Public Tasks As New SafeList(Of LoaderDownload)
+        Public Tasks As New ThreadSafeList(Of LoaderDownload)
 
         ''' <summary>
         ''' 已下载完成的大小。
