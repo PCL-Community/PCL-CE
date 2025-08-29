@@ -11,7 +11,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Markdown.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <sys:Double x:Key="BlurValue">16</sys:Double>
+            <sys:Double x:Key="BlurRadius">0.0</sys:Double>
+            <sys:Double x:Key="BlurSamplingRate">0.7</sys:Double>
+            <KernelType x:Key="BlurType">Gaussian</KernelType>
             
             <!-- Converter -->
             <local:AdditionConverter x:Key="AdditionConverter"/>
@@ -567,13 +569,15 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <!--Calendar-->
+            <!-- Calendar -->
             <Style TargetType="Calendar">
                 <Setter Property="Background" Value="{DynamicResource ColorBrush8}"/>
             </Style>
-            <!--BlurBorder-->
+            <!-- BlurBorder -->
             <Style TargetType="controls:BlurBorder">
-                <Setter Property="BlurRadius" Value="{DynamicResource BlurValue}"/>
+                <Setter Property="BlurRadius" Value="{DynamicResource BlurRadius}"/>
+                <Setter Property="BlurSamplingRate" Value="{DynamicResource BlurSamplingRate}" />
+                <Setter Property="BlurKernelType" Value="{DynamicResource BlurType}" />
             </Style>
             
         </ResourceDictionary>
