@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.Utils.Exts
 
 <ContentProperty("Inlines")>
 Public Class MyListItem

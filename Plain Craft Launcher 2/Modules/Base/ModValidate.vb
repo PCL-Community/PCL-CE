@@ -1,5 +1,6 @@
 ﻿'提供不同的输入验证方法，名称以 Validate 开头
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.Utils.Exts
 
 Public Module ModValidate
 

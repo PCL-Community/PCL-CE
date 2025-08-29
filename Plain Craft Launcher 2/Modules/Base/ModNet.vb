@@ -9,6 +9,7 @@ Imports CacheCow.Common
 Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.Hash
 
 Public Module ModNet

@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class PageOtherFeedback
 

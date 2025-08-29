@@ -1,4 +1,6 @@
-﻿Public Module ModEvent
+﻿Imports PCL.Core.Utils.Exts
+
+Public Module ModEvent
 
     Public Sub TryStartEvent(Type As String, Data As String)
         If String.IsNullOrWhiteSpace(Type) Then Return

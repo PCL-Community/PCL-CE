@@ -2,6 +2,7 @@
 Imports System.Threading.Tasks
 Imports PCL.Core.IO
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils.Exts
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7

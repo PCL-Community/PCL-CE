@@ -1,4 +1,6 @@
-﻿Class PageLoginProfileSkin
+﻿Imports PCL.Core.Utils.Exts
+
+Class PageLoginProfileSkin
     Public Sub New()
         InitializeComponent()
     End Sub

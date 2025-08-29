@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.Utils.Exts
 
 Public Class PageLaunchLeft
 

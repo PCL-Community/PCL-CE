@@ -1,6 +1,7 @@
 ﻿
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
+Imports PCL.Core.Utils.Exts
 
 Public Class PageInstanceScreenshot
     Implements IRefreshable

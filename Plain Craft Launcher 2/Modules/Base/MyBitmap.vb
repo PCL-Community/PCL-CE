@@ -2,6 +2,7 @@
 
 Imports System.Drawing.Imaging
 Imports PCL.Core.UI.Media
+Imports PCL.Core.Utils.Exts
 
 Public Class MyBitmap
 

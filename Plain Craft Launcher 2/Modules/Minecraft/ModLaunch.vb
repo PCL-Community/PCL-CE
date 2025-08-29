@@ -5,6 +5,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 
 Public Module ModLaunch

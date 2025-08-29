@@ -2,6 +2,7 @@
 Imports System.Security.Cryptography
 Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
+Imports PCL.Core.Utils.Exts
 
 Public Module ModProfile
 

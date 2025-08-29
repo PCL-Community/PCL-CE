@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 
 Public Class PageInstanceSetup

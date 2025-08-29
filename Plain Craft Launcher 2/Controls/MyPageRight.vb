@@ -1,4 +1,6 @@
-﻿Public Class MyPageRight
+﻿Imports PCL.Core.Utils.Exts
+
+Public Class MyPageRight
     Inherits AdornerDecorator
     Public PageUuid As Integer = GetUuid()
 

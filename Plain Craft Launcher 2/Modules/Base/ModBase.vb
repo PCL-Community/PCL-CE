@@ -15,6 +15,7 @@ Imports PCL.Core.Utils
 Imports System.Windows
 Imports PCL.Core.IO
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.Hash
 Imports PCL.Core.Utils.OS
 
@@ -1015,56 +1016,6 @@ Public Module ModBase
         Else
             Return Str
         End If
-    End Function
-
-    ''' <summary>
-    ''' 高速的 StartsWith。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function StartsWithF(Str As String, Prefix As String, Optional IgnoreCase As Boolean = False) As Boolean
-        Return Str.StartsWith(Prefix, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
-    End Function
-    ''' <summary>
-    ''' 高速的 EndsWith。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function EndsWithF(Str As String, Suffix As String, Optional IgnoreCase As Boolean = False) As Boolean
-        Return Str.EndsWith(Suffix, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
-    End Function
-    ''' <summary>
-    ''' 支持可变大小写判断的 Contains。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function ContainsF(Str As String, SubStr As String, Optional IgnoreCase As Boolean = False) As Boolean
-        Return Str.IndexOf(SubStr, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)) >= 0
-    End Function
-    ''' <summary>
-    ''' 高速的 IndexOf。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function IndexOfF(Str As String, SubStr As String, Optional IgnoreCase As Boolean = False) As Integer
-        Return Str.IndexOf(SubStr, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
-    End Function
-    ''' <summary>
-    ''' 高速的 IndexOf。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function IndexOfF(Str As String, SubStr As String, StartIndex As Integer, Optional IgnoreCase As Boolean = False) As Integer
-        Return Str.IndexOf(SubStr, StartIndex, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
-    End Function
-    ''' <summary>
-    ''' 高速的 LastIndexOf。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function LastIndexOfF(Str As String, SubStr As String, Optional IgnoreCase As Boolean = False) As Integer
-        Return Str.LastIndexOf(SubStr, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
-    End Function
-    ''' <summary>
-    ''' 高速的 LastIndexOf。
-    ''' </summary>
-    <Extension> <MethodImpl(MethodImplOptions.AggressiveInlining)>
-    Public Function LastIndexOfF(Str As String, SubStr As String, StartIndex As Integer, Optional IgnoreCase As Boolean = False) As Integer
-        Return Str.LastIndexOf(SubStr, StartIndex, If(IgnoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal))
     End Function
 
     ''' <summary>

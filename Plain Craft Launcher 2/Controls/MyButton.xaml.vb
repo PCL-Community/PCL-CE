@@ -1,5 +1,6 @@
 ﻿Imports System.Windows.Markup
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 
 <ContentProperty("Inlines")>
 Public Class MyButton

@@ -1,5 +1,6 @@
 Imports PCL.Core.IO
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Module ModMusic
 

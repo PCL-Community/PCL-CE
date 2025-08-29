@@ -8,6 +8,7 @@ Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 
 Public Class FormMain
