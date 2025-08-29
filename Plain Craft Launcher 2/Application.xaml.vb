@@ -73,8 +73,8 @@ Public Class Application
                 End If
             End If
             '初始化文件结构
-            Directory.CreateDirectory(Path & "PCL\Pictures")
-            Directory.CreateDirectory(Path & "PCL\Musics")
+            Directory.CreateDirectory(ExePath & "PCL\Pictures")
+            Directory.CreateDirectory(ExePath & "PCL\Musics")
             Try
                 Directory.CreateDirectory(PathTemp)
                 If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
@@ -125,15 +125,15 @@ WaitRetry:
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{PathWithName}")
+            Log($"[Start] 程序路径：{ExePathWithName}")
             Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
             Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
             Log($"[Start] 管理员权限：{IsAdmin()}")
             '检测异常环境
-            If Path.Contains(IO.Path.GetTempPath()) OrElse Path.Contains("AppData\Local\Temp\") Then
+            If ExePath.Contains(IO.Path.GetTempPath()) OrElse ExePath.Contains("AppData\Local\Temp\") Then
                 MyMsgBox("请将 PCL 从压缩包中解压之后再使用！" & vbCrLf & "在当前环境下运行可能会导致丢失游戏存档或设置，部分功能也可能无法使用！", "环境警告", "我知道了", IsWarn:=True)
             End If
-            If Path.ContainsF("wechat_files", True) OrElse Path.ContainsF("WeChat Files", True) OrElse Path.ContainsF("Tencent Files", True) Then
+            If ExePath.ContainsF("wechat_files", True) OrElse ExePath.ContainsF("WeChat Files", True) OrElse ExePath.ContainsF("Tencent Files", True) Then
                 MyMsgBox("请不要将 PCL 放置在 QQ、微信、TIM 等社交软件的下载目录！" & vbCrLf & "在这些地方运行可能会导致丢失游戏存档或设置，部分功能也可能无法使用！", "环境警告", "我知道了", IsWarn:=True)
             End If
             If Is32BitSystem Then
@@ -179,7 +179,7 @@ WaitRetry:
             End If
             '删除旧日志
             For i = 1 To 5
-                Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
+                Dim oldLogFile = $"{ExePath}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
             'Pipe RPC 初始化
@@ -195,7 +195,7 @@ WaitRetry:
         Catch ex As Exception
             Dim FilePath As String = Nothing
             Try
-                FilePath = PathWithName
+                FilePath = ExePathWithName
             Catch
             End Try
             MsgBox(GetExceptionDetail(ex, True) & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")

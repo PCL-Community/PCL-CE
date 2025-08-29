@@ -111,7 +111,7 @@ Public Class FormMain
 
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         ApplicationStartTick = GetTimeTick()
-        Handle = New WindowInteropHelper(Me).Handle
+        FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
         Setup.Load("UiBackgroundOpacity")
         Setup.Load("UiBackgroundBlur")
@@ -168,7 +168,7 @@ Public Class FormMain
             Sub()
                 PanBack.RenderTransform = Nothing
                 IsWindowLoadFinished = True
-                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{PathWithName}")
+                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
             End Sub, , True)
         }, "Form Show")
         'Timer 启动
@@ -239,7 +239,7 @@ Public Class FormMain
             End Try
             '清理自动更新文件
             Try
-                If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")
+                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
@@ -304,8 +304,8 @@ Public Class FormMain
                      "多谢各位的理解啦！", "重新解锁提醒")
         End If
         '移动自定义皮肤
-        If LastVersionCode <= 161 AndAlso File.Exists(Path & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
-            CopyFile(Path & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
+        If LastVersionCode <= 161 AndAlso File.Exists(ExePath & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
+            CopyFile(ExePath & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
             Log("[Start] 已移动离线自定义皮肤 (162)")
         End If
         If LastVersionCode <= 263 AndAlso File.Exists(PathTemp & "CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
@@ -715,12 +715,12 @@ Public Class FormMain
             Dim Extension As String = FilePath.AfterLast(".").ToLower
             If Extension = "xaml" Then
                 Log("[System] 文件后缀为 XAML，作为主页加载")
-                If File.Exists(Path & "PCL\Custom.xaml") Then
+                If File.Exists(ExePath & "PCL\Custom.xaml") Then
                     If MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") = 2 Then
                         Return
                     End If
                 End If
-                CopyFile(FilePath, Path & "PCL\Custom.xaml")
+                CopyFile(FilePath, ExePath & "PCL\Custom.xaml")
                 RunInUi(
                 Sub()
                     Setup.Set("UiCustomType", 1)
@@ -909,7 +909,7 @@ Public Class FormMain
             Hidden = False
             Topmost = True '偶尔 SetForegroundWindow 失效
             Topmost = False
-            SetForegroundWindow(Handle)
+            SetForegroundWindow(FrmHandle)
             Focus()
             Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}")
         End Sub)
