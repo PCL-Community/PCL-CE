@@ -1,4 +1,5 @@
 Imports System.Reflection
+Imports System.Windows.Media.Effects
 Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Net
@@ -201,7 +202,7 @@ Public Class ModSetup
         If Value = 0 Then
             FrmMain.ImgBack.Effect = Nothing
         Else
-            FrmMain.ImgBack.Effect = New Effects.BlurEffect With {.Radius = Value + 1}
+            FrmMain.ImgBack.Effect = New BlurEffect With {.Radius = Value + 1}
         End If
         FrmMain.ImgBack.Margin = New Thickness(-(Value + 1) / 1.8)
     End Sub
