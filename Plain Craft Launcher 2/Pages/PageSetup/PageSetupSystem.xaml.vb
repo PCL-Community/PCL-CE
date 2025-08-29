@@ -45,20 +45,12 @@ Class PageSetupSystem
 
         '系统设置
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
-        If Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 Then
-            Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
-            ComboSystemUpdateBranch.SelectedIndex = branch
-            If branch = 1 Then
-                ComboSystemUpdateBranch.IsEnabled = False
-            Else
-                ComboSystemUpdateBranch.IsEnabled = True
-            End If
-        Else '不满足系统要求
-            ComboSystemUpdateBranch.Items.Clear()
-            ComboSystemUpdateBranch.Items.Add("Legacy")
-            ComboSystemUpdateBranch.SelectedIndex = 0
-            ComboSystemUpdateBranch.ToolTip = "由于你的 Windows 版本过低，不满足新版本要求，只能获取 Legacy 分支的更新。&#xa;升级到 Windows 10 20H2 或以上版本以获取最新更新。"
+        Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
+        ComboSystemUpdateBranch.SelectedIndex = branch
+        If branch = 1 Then
             ComboSystemUpdateBranch.IsEnabled = False
+        Else
+            ComboSystemUpdateBranch.IsEnabled = True
         End If
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
         TextSystemCache.Text = Setup.Get("SystemSystemCache")

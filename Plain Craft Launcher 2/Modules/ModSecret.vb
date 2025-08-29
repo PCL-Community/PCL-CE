@@ -740,9 +740,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
                 MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
                          "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
-            ElseIf Not Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 AndAlso Not latest.VersionName.StartsWithF("2.9.") Then
-                If MyMsgBox($"发现了启动器更新（版本 {latest.VersionName}），但是由于你的 Windows 版本过低，不满足新版本要求。{vbCrLf}你需要更新到 Windows 10 20H2 或更高版本才可以继续更新。", "启动器更新 - 系统版本过低", "升级 Windows 10", "取消", IsWarn:=True, ForceWait:=True) = 1 Then OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10")
-                Exit Sub
+                Return
             End If
             If MyMsgBoxMarkdown($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "取消") = 1 Then
                 UpdateStart(False)
