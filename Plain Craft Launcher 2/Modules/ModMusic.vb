@@ -1,3 +1,5 @@
+Imports PCL.Core.Utils
+
 Public Module ModMusic
 
 #Region "播放列表"
@@ -30,7 +32,7 @@ Public Module ModMusic
                 Next
             End If
             '打乱顺序播放
-            MusicWaitingList = If(Setup.Get("UiMusicRandom"), Shuffle(New List(Of String)(MusicAllList)), New List(Of String)(MusicAllList))
+            MusicWaitingList = If(Setup.Get("UiMusicRandom"), RandomUtils.Shuffle(New List(Of String)(MusicAllList)), New List(Of String)(MusicAllList))
             If PreventFirst IsNot Nothing AndAlso MusicWaitingList.FirstOrDefault = PreventFirst Then
                 '若需要避免成为第一项的为第一项，则将它放在最后
                 MusicWaitingList.RemoveAt(0)

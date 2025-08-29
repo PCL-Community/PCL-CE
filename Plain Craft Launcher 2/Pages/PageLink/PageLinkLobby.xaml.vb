@@ -7,6 +7,7 @@ Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Utils
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -95,7 +96,6 @@ Public Class PageLinkLobby
 #End Region
 
 #Region "公告"
-    Private Const AllowedVersion As Integer = 4
     Public Shared LobbyAnnouncementLoader As LoaderCombo(Of Integer) = Nothing
     Private _linkAnnounces As New ObservableCollection(Of LinkAnnounceInfo)
     Private _linkAnnounceUpdateCancelSource As CancellationTokenSource = Nothing
@@ -171,7 +171,7 @@ Public Class PageLinkLobby
                     AllowCustomName = jObj("allowCustomName")
                     RequiresLogin = jObj("requireLogin")
                     RequiresRealName = jObj("requireRealname")
-                    If Not Val(jObj("version")) = AllowedVersion Then
+                    If Not Val(jObj("version")) <= ProtocolVersion Then
                         RunInUi(
                             Sub()
                                 HintAnnounce.Theme = MyHint.Themes.Red
@@ -446,8 +446,8 @@ Public Class PageLinkLobby
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
-                           Dim id As String = RandomInteger(10000000, 99999999).ToString()
-                           Dim secret As String = RandomInteger(10, 99).ToString()
+                           Dim id As String = RandomUtils.NextInt(10000000, 99999999).ToString()
+                           Dim secret As String = RandomUtils.NextInt(10, 99).ToString()
                            TargetLobby = New LobbyInfo With {
                                .NetworkName = id,
                                .NetworkSecret = secret,

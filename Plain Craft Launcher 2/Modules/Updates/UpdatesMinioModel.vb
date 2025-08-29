@@ -128,7 +128,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
                                                                                    tempPath += $"{deJsonData.sha256}.bin"
                                                                                    load.Output = New List(Of NetFile) From {
                                                                                    New NetFile(
-                                                                                   Shuffle(deJsonData.downloads),
+                                                                                   RandomUtils.Shuffle(deJsonData.downloads),
                                                                                    tempPath)
                                                                                    }
                                                                                End If

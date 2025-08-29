@@ -2019,7 +2019,7 @@ Finished:
                     End If
                 Next
             Catch ex As Exception
-                Result.Add("检查 Mod 时出错：" & GetExceptionSummary(ex) & vbCrLf & " - " & ModEntity.FileName)
+                Result.Add("检查 Mod 时出错：" & ex.ToString() & vbCrLf & " - " & ModEntity.FileName)
                 Log(ex, "检查 Mod 时出错")
             End Try
         Next

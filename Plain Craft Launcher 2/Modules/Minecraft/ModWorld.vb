@@ -1,5 +1,6 @@
 ﻿
 Imports fNbt
+Imports PCL.Core.Utils
 
 Public Module ModWorld
 
@@ -11,7 +12,7 @@ Public Module ModWorld
     ''' <exception cref="Exception"></exception>
     Public Sub ReadWorld(SavePath As String)
         If File.Exists(SavePath) Then
-            Dim ExtractPath As String = $"{PathTemp}Cache\{RandomInteger(0, 1000_0000)}\"
+            Dim ExtractPath As String = $"{PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\"
             If Directory.Exists(ExtractPath) Then DeleteDirectory(ExtractPath)
             ExtractFile(SavePath, ExtractPath)
             SavePath = ExtractPath

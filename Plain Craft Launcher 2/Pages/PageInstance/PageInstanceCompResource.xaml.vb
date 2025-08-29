@@ -1,4 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
+Imports PCL.Core.Utils.OS
 
 Public Class PageInstanceCompResource
     Implements IRefreshable
@@ -674,10 +675,10 @@ Public Class PageInstanceCompResource
     Private Sub BtnManageInstall_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageInstall.Click, BtnHintInstall.Click
         Dim FileList As String() = Nothing
         Select Case CurrentCompType
-            Case CompType.Mod : FileList = SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
-            Case CompType.ResourcePack : FileList = SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
-            Case CompType.Shader : FileList = SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
-            Case CompType.Schematic : FileList = SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
+            Case CompType.Mod : FileList = DialogUtils.SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
+            Case CompType.ResourcePack : FileList = DialogUtils.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
+            Case CompType.Shader : FileList = DialogUtils.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
+            Case CompType.Schematic : FileList = DialogUtils.SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
         End Select
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
         InstallCompFiles(FileList, CurrentCompType, CurrentFolderPath)
@@ -881,7 +882,7 @@ Install:
                                 Button3:="取消")
         Dim ExportText = Sub(Content As String, FileName As String)
                              Try
-                                 Dim savePath = SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv")
+                                 Dim savePath = DialogUtils.SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv")
                                  If String.IsNullOrWhiteSpace(savePath) Then Exit Sub
                                  File.WriteAllText(savePath, Content, Encoding.UTF8)
                                  OpenExplorer(savePath)
@@ -1417,7 +1418,7 @@ Install:
                                 Hint($"已成功更新 {FinishedFileNames.Count} 个资源！", HintType.Finish)
                         End Select
                     Case LoadState.Failed
-                        Hint("资源更新失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                        Hint("资源更新失败：" & Loader.Error.Message, HintType.Critical)
                     Case LoadState.Aborted
                         Hint("资源更新已中止！", HintType.Info)
                     Case Else
@@ -1572,7 +1573,7 @@ Install:
             Dim ModdedLabyMod = PageInstanceLeft.Instance.Version.HasLabyMod AndAlso PageInstanceLeft.Instance.Modable
             '加载失败信息
             If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then
-                MyMsgBox("无法读取此资源的信息。" & vbCrLf & vbCrLf & "详细的错误信息：" & GetExceptionDetail(ModEntry.FileUnavailableReason), "资源读取失败")
+                MyMsgBox("无法读取此资源的信息。" & vbCrLf & vbCrLf & "详细的错误信息：" & ModEntry.FileUnavailableReason.Message, "资源读取失败")
                 Return
             End If
             If ModEntry.Comp IsNot Nothing Then
