@@ -1766,21 +1766,6 @@ NextElement:
 #End Region
 
 #Region "UI"
-
-    Public Sub SetLaunchFont(Optional FontName As String = Nothing)
-        Try
-            Dim TargetFont As FontFamily
-            If String.IsNullOrEmpty(FontName) Then
-                TargetFont = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI")
-            Else
-                TargetFont = New FontFamily($"{FontName}, Segoe UI, Microsoft YaHei UI")
-            End If
-            Application.Current.Resources("LaunchFontFamily") = TargetFont
-        Catch ex As Exception
-            Log(ex, "设置字体失败", LogLevel.Hint)
-        End Try
-    End Sub
-
     '边距改变
     ''' <summary>
     ''' 相对增减控件的左边距。
@@ -1836,15 +1821,6 @@ NextElement:
                     DebugAssert(False)
             End Select
         End If
-
-        'If Double.IsNaN(newValue) OrElse Double.IsInfinity(newValue) Then Return '安全性检查
-        'Select Case control.VerticalAlignment
-        '  Case VerticalAlignment.Top, VerticalAlignment.Stretch, VerticalAlignment.Center
-        '      control.Margin = New Thickness(control.Margin.Left, newValue, control.Margin.Right, control.Margin.Bottom)
-        '  Case VerticalAlignment.Bottom
-        '      control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right, -newValue)
-        '      'control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right, CType(control.Parent, Object).ActualHeight - control.ActualHeight - newValue)
-        'End Select
     End Sub
     ''' <summary>
     ''' 设置控件的顶边距。（仅针对置上控件）
@@ -1868,43 +1844,6 @@ NextElement:
     Public Function GetWPFSize(PixelSize As Double) As Double
         Return PixelSize * 96 / DPI
     End Function
-
-    'UI 截图
-    ''' <summary>
-    ''' 将某个控件的呈现转换为图片。
-    ''' </summary>
-    Public Function ControlBrush(UI As FrameworkElement) As ImageBrush
-        Dim Width = UI.ActualWidth, Height = UI.ActualHeight
-        If Width < 1 OrElse Height < 1 Then Return New ImageBrush
-        Dim bmp As New RenderTargetBitmap(GetPixelSize(Width), GetPixelSize(Height), DPI, DPI, PixelFormats.Pbgra32)
-        bmp.Render(UI)
-        Return New ImageBrush(bmp)
-    End Function
-    ''' <summary>
-    ''' 将某个控件的模拟呈现转换为图片。
-    ''' </summary>
-    Public Function ControlBrush(UI As FrameworkElement, Width As Double, Height As Double, Optional Left As Double = 0, Optional Top As Double = 0) As ImageBrush
-        UI.Measure(New Size(Width, Height))
-        UI.Arrange(New Rect(0, 0, Width, Height))
-        Dim bmp As New RenderTargetBitmap(GetPixelSize(Width), GetPixelSize(Height), DPI, DPI, PixelFormats.Default)
-        bmp.Render(UI)
-        If Not (Left = 0 AndAlso Top = 0) Then UI.Arrange(New Rect(Left, Top, Width, Height))
-        Return New ImageBrush(bmp)
-    End Function
-    ''' <summary>
-    ''' 将 UI 内容固定为图片并进行 Clear。
-    ''' </summary>
-    Public Sub ControlFreeze(UI As Panel)
-        UI.Background = ControlBrush(UI)
-        UI.Children.Clear()
-    End Sub
-    ''' <summary>
-    ''' 将 UI 内容固定为图片并进行 Clear。
-    ''' </summary>
-    Public Sub ControlFreeze(UI As Border)
-        UI.Background = ControlBrush(UI)
-        UI.Child = Nothing
-    End Sub
 
     ''' <summary>
     ''' 将 XML 转换为对应 UI 对象。

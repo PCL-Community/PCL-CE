@@ -3,6 +3,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.IO.FileFormats
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
@@ -273,11 +274,11 @@ Public Class ModSetup
                 FrmMain.ImgBack.Height = CType(FrmMain.ImgBack.Background, ImageBrush).ImageSource.Height
         End Select
     End Sub
-
+    
     '字体
     Public Sub UiFont(value As String)
         Try
-            SetLaunchFont(value)
+            FontManager.SetLaunchFont(value)
         Catch ex As Exception
             Log(ex, "字体加载失败", LogLevel.Hint)
         End Try
