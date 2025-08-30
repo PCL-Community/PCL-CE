@@ -146,6 +146,8 @@ Public Class PageSetupUI
                 End Sub)
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
+            SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
+            ComboBlurType.SelectedIndex = Setup.Get("UiBlurType")
             PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)
             CheckLockWindowSize.Checked = Setup.Get("UiLockWindowSize")
 
@@ -234,6 +236,8 @@ Public Class PageSetupUI
             Setup.Reset("UiLockWindowSize")
             Setup.Reset("UiBlur")
             Setup.Reset("UiBlurValue")
+            Setup.Reset("UiBlurSamplingRate")
+            Setup.Reset("UiBlurType")
             Setup.Reset("UiBackgroundColorful")
             Setup.Reset("UiBackgroundOpacity")
             Setup.Reset("UiBackgroundBlur")
@@ -287,10 +291,10 @@ Public Class PageSetupUI
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
+    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBlurSamplingRate.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckAutoPauseVideo.Change
@@ -861,6 +865,7 @@ Refresh:
         SliderBackgroundOpacity.GetHintText = Function(v) Math.Round(v * 0.1) & "%"
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
+        SliderBlurSamplingRate.GetHintText = Function(v) v & "%"
     End Sub
     Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket})
