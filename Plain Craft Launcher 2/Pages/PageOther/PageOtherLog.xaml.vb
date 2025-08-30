@@ -66,32 +66,12 @@ Class PageOtherLog
         Next
     End Sub
 
-    Private Shared Sub ExportLog(sourceFiles As IEnumerable(Of String))
-        Const filter = "PCL CE 日志压缩包|*.zip"
-        Dim desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
-        Dim baseName = "PCL_CE_Logs_" & DateTime.Now.ToString("yyyyMMddHHmmss")
-        Dim tempDirName = baseName & ".tmp"
-        Dim fileName = baseName & ".zip"
-        Dim selectedPath = SystemDialogs.SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
-        If String.IsNullOrEmpty(selectedPath) Then Exit Sub
-        Try
-            Directory.CreateDirectory(tempDirName)
-            If File.Exists(selectedPath) Then File.Delete(selectedPath)
-            Using zip = ZipFile.Open(selectedPath, ZipArchiveMode.Create)
-                For Each item In sourceFiles
-                    Dim itemFileName = IO.Path.GetFileName(item)
-                    Dim tempPath = IO.Path.Combine(tempDirName, itemFileName)
-                    File.Copy(item, tempPath)
-                    zip.CreateEntryFromFile(tempPath, itemFileName, CompressionLevel.Fastest)
-                    File.Delete(tempPath)
-                Next
-            End Using
+    Private Shared Async Function ExportLog(sourceFiles As IEnumerable(Of String)) As Task
+        If Await LogManager.ExportLogAsync(sourceFiles)
             Hint("日志保存成功！", HintType.Finish)
-        Catch ex As Exception
-            Log(ex, "日志保存失败", LogLevel.Hint)
-        Finally
-            If Directory.Exists(tempDirName) Then Directory.Delete(tempDirName)
-        End Try
+        Else
+            Hint("日志保存失败！", HintType.Critical)
+        End If
     End Sub
 
     Private Sub ButtonOpenDir_OnClick(sender As Object, e As MouseButtonEventArgs)
