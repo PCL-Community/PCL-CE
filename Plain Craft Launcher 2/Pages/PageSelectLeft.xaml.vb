@@ -254,7 +254,7 @@ Public Class PageSelectLeft
     ''' </summary>
     Public Shared Sub AddFolder(FolderPath As String, DisplayName As String, ShowHint As Boolean)
         RunInThread(
-        Async Sub()
+        Sub()
             Try
                 If Not FolderPath.EndsWith("\") Then FolderPath &= "\" '加上斜杠……
                 '检查文件夹权限

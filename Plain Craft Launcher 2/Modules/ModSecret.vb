@@ -32,7 +32,7 @@ Friend Module ModSecret
     '联机服务根地址
     Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).ReplaceNullOrEmpty().Split(";")
 
-    Friend Async Function SecretOnApplicationStart() As Task
+    Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
         Thread.CurrentThread.Priority = ThreadPriority.Highest
         '确保 .NET Framework 版本
@@ -71,7 +71,7 @@ Friend Module ModSecret
             End If
             Setup.Set("UiLauncherCEHintCount", count - 1)
         End If
-    End Function
+    End Sub
     ''' <summary>
     ''' 展示社区版提示
     ''' </summary>
