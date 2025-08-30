@@ -382,86 +382,8 @@ pause"
     ''' </summary>
     ''' <param name="VersionJson">在 version_manifest.json 中的对应项。</param>
     Public Sub McUpdateLogShow(VersionJson As JToken)
-        Dim WikiName As String
-        Dim Id As String = VersionJson("id").ToString.ToLower
-        Select Case Id
-            Case "3d shareware v1.34"
-                WikiName = "3D_Shareware_v1.34"
-            Case "2.0", "2point0"
-                WikiName = "Java版2.0"
-            Case "1.rv-pre1"
-                WikiName = "Java版1.RV-Pre1"
-            Case "combat test 1", "combat-1", "combat-212796"
-                WikiName = "Java版1.14.3_-_Combat_Test"
-            Case "combat test 2", "combat-2", "combat-0"
-                WikiName = "Java版Combat_Test_2"
-            Case "combat test 3", "1_14_combat-3"
-                WikiName = "Java版Combat_Test_3"
-            Case "combat test 4", "1_15_combat-1"
-                WikiName = "Java版Combat_Test_4"
-            Case "combat test 5", "1_15_combat-6"
-                WikiName = "Java版Combat_Test_5"
-            Case "combat test 6", "1_16_combat-0"
-                WikiName = "Java版Combat_Test_6"
-            Case "combat test 7c", "1_16_combat-3"
-                WikiName = "Java版Combat_Test_7c"
-            Case "combat test 8b", "1_16_combat-5"
-                WikiName = "Java版Combat_Test_8b"
-            Case "combat test 8c", "1_16_combat-6"
-                WikiName = "Java版Combat_Test_8c"
-            Case "1.0.0-rc1"
-                WikiName = "Java版RC1"
-            Case "in-20100206-2103"
-                WikiName = "Java版Indev_20100206"
-            Case Else
-                If Id.StartsWith("1.0.0-rc2") Then
-                    WikiName = "Java版RC2"
-                ElseIf Id.StartsWith("b1.8-pre1") Then
-                    WikiName = "Java版Beta_1.8-pre1"
-                ElseIf Id.StartsWith("b1.1-") Then
-                    WikiName = "Java版Beta_1.1"
-                ElseIf Id.StartsWith("a1.2.2") Then
-                    WikiName = "Java版Alpha_v1.2.2"
-                ElseIf Id.StartsWith("a1.1.0") Then
-                    WikiName = "Java版Alpha_v1.1.0"
-                ElseIf Id.StartsWith("a1.0.14") Then
-                    WikiName = "Java版Alpha_v1.0.14"
-                ElseIf Id.StartsWith("a1.0.13_01") Then
-                    WikiName = "Java版Alpha_v1.0.13_01"
-                ElseIf Id.StartsWith("inf-20100630") Then
-                    WikiName = "Java版Infdev_20100630"
-                ElseIf Id.StartsWith("in-20100214") Then
-                    WikiName = "Java版Indev_20100214"
-                ElseIf Id.StartsWith("1.19_deep_dark_experimental_snapshot-") OrElse Id.StartsWith("1_19_deep_dark_experimental_snapshot-") Then
-                    WikiName = Id.Replace("1_19", "1.19").Replace("1.19_deep_dark_experimental_snapshot-", "Java版Deep_Dark_Experimental_Snapshot_")
-                ElseIf Id.Contains("b1.9") Then
-                    WikiName = "Java版" & Id.Replace("b", "Beta_").Replace("-pre", "_Prerelease_")
-                ElseIf Id = "c0.30_01c" OrElse Id = "c0.30_survival" OrElse Id.Contains("生存测试") OrElse Id = "c0.30-1" OrElse Id = "c0.30-2" Then
-                    WikiName = "Java版Classic_0.30（生存模式）"
-                ElseIf Id.StartsWith("c0.31") OrElse Id = "in-20100130" Then
-                    WikiName = "Java版Indev_0.31_20100130"
-                ElseIf Id = "b1.6-tb3" Then
-                    WikiName = "Java版Beta_1.6_Test_Build_3"
-                ElseIf VersionJson("type") = "release" OrElse VersionJson("type") = "snapshot" OrElse VersionJson("type") = "special" Then
-                    WikiName = If(Id.Contains("w"), "", "Java版") & Id.Replace(" Pre-Release ", "-pre")
-                ElseIf Id.StartsWith("b") Then
-                    WikiName = "Java版" & Id.Replace("b", "Beta_").Replace("tb3", "Test_Build_3")
-                ElseIf Id.StartsWith("a") Then
-                    WikiName = "Java版" & Id.Replace("a", "Alpha_v")
-                ElseIf Id.StartsWith("inf-") Then
-                    WikiName = "Java版" & Id.Replace("inf-", "Infdev_")
-                ElseIf Id.StartsWith("in-") Then
-                    WikiName = "Java版" & Id.Replace("in-", "Indev_")
-                ElseIf Id.StartsWith("c") Then
-                    WikiName = "Java版" & Id.Replace("c", "Classic_").Replace("st", "SURVIVAL_TEST")
-                ElseIf Id.StartsWith("rd-") Then
-                    WikiName = "Java版Pre-classic_" & Id
-                Else
-                    Log("[Error] 未知的版本格式：" & Id & "。", LogLevel.Feedback)
-                    Exit Sub
-                End If
-        End Select
-        OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" & WikiName.Replace("_experimental-snapshot-", "-exp"))
+        Dim wikiName = WikiMapper.GetWikiUrlSuffix(VersionJson("id").ToString())
+        OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" & WikiName)
     End Sub
 
 #End Region
