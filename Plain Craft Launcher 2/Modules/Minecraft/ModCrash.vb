@@ -1,5 +1,6 @@
 ﻿Imports System.Text.RegularExpressions
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
@@ -901,7 +902,7 @@ NextStack:
                 Dim FileAddress As String = Nothing
                 Try
                     '获取文件路径
-                    RunInUiWait(Sub() FileAddress = DialogUtils.SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
+                    RunInUiWait(Sub() FileAddress = SystemDialogs.SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
                     If String.IsNullOrEmpty(FileAddress) Then Return
                     Directory.CreateDirectory(GetPathFromFullPath(FileAddress))
                     If File.Exists(FileAddress) Then File.Delete(FileAddress)

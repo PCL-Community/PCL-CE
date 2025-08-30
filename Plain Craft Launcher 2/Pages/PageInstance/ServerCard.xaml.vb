@@ -1,6 +1,7 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports fNbt
 Imports PCL.Core.IO
+Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
 Public Class ServerCard

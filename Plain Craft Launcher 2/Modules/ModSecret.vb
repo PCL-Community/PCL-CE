@@ -32,7 +32,7 @@ Friend Module ModSecret
     '联机服务根地址
     Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).ReplaceNullOrEmpty().Split(";")
 
-    Friend Sub SecretOnApplicationStart()
+    Friend Async Function SecretOnApplicationStart() As Task
         '提升 UI 线程优先级
         Thread.CurrentThread.Priority = ThreadPriority.Highest
         '确保 .NET Framework 版本
@@ -54,7 +54,7 @@ Friend Module ModSecret
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End Try
-        If Not Files.CheckPermission(ExePath & "PCL") Then
+        If Not Await Directories.CheckPermissionAsync(ExePath & "PCL") Then
             MsgBox("PCL 没有对当前文件夹的写入权限，请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(ExePath.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
@@ -71,7 +71,7 @@ Friend Module ModSecret
             End If
             Setup.Set("UiLauncherCEHintCount", count - 1)
         End If
-    End Sub
+    End Function
     ''' <summary>
     ''' 展示社区版提示
     ''' </summary>

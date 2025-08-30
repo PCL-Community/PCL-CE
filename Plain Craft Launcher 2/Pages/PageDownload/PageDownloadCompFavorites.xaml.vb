@@ -1,3 +1,4 @@
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 
 Public Class PageDownloadCompFavorites
@@ -473,7 +474,7 @@ Public Class PageDownloadCompFavorites
                                                             End Sub)
                                                 Dim SelectedVersionStr = SuitVersion(SelectedVersion)
                                                 Hint($"已选择 {SelectedVersionStr} 版本，下面请选择保存位置")
-                                                Dim SaveFolder As String = DialogUtils.SelectFolder()
+                                                Dim SaveFolder As String = SystemDialogs.SelectFolder()
                                                 If String.IsNullOrWhiteSpace(SaveFolder) Then
                                                     Ts.Abort()
                                                     Exit Sub

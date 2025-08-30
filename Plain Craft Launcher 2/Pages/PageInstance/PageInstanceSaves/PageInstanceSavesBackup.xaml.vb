@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.IO
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.VersionControl
 
@@ -79,7 +80,7 @@ Class PageInstanceSavesBackup
 
                 AddHandler btnExport.Click, Sub()
                                                 Try
-                                                    Dim savePath = DialogUtils.SelectSaveFile(
+                                                    Dim savePath = SystemDialogs.SelectSaveFile(
                                                     "选择保存备份导出的位置",
                                                     $"{item.Name}.zip",
                                                     "压缩文件(*.zip)|*.zip",
