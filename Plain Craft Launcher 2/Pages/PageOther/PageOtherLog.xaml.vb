@@ -89,13 +89,13 @@ Class PageOtherLog
         LoadList()
     End Sub
 
-    Private Sub ButtonExportAll_OnClick(sender As Object, e As MouseButtonEventArgs)
-        ExportLog(Directory.GetFiles(LogDirectory))
+    Private Async Sub ButtonExportAll_OnClick(sender As Object, e As MouseButtonEventArgs)
+        Await ExportLog(Directory.GetFiles(LogDirectory))
     End Sub
 
-    Private Sub ButtonExport_OnClick(sender As Object, e As MouseButtonEventArgs)
+    Private Async Sub ButtonExport_OnClick(sender As Object, e As MouseButtonEventArgs)
         Dim pendingLogs = Array.FindAll(
             Directory.GetFiles(LogDirectory), Function(s) s.IsMatch(RegexPatterns.LastPendingLogPath))
-        ExportLog(CurrentLogs.Concat(pendingLogs))
+        Await ExportLog(CurrentLogs.Concat(pendingLogs))
     End Sub
 End Class
