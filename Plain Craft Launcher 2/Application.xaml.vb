@@ -1,4 +1,5 @@
 ﻿Imports System.Windows.Threading
+Imports System.IO
 Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
