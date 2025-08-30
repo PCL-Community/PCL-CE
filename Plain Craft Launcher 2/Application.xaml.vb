@@ -27,7 +27,7 @@ Public Class Application
     End Sub
 
     '开始
-    Private Sub Application_Startup() '(sender As Object, e As StartupEventArgs) Handles Me.Startup
+    Private Async Sub Application_Startup() '(sender As Object, e As StartupEventArgs) Handles Me.Startup
         Try
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
             '创建自定义跟踪监听器，用于检测是否存在 Binding 失败
@@ -79,7 +79,7 @@ Public Class Application
             Directory.CreateDirectory(ExePath & "PCL\Musics")
             Try
                 Directory.CreateDirectory(PathTemp)
-                If Not Files.CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
+                If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
             Catch ex As Exception
                 If PathTemp = IO.Path.GetTempPath() & "PCL\" Then
                     MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")

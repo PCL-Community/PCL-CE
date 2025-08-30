@@ -1,6 +1,6 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports fNbt
-Imports PCL.Core.IO
+Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
 Public Class ServerCard
@@ -151,7 +151,7 @@ Public Class ServerCard
     ''' <summary>
     ''' 编辑服务器信息
     ''' </summary>
-    Private Sub BtnEdit_Click(sender As Object, e As RoutedEventArgs)
+    Private Async Sub BtnEdit_Click(sender As Object, e As RoutedEventArgs)
         Try
             ' Get server information
             Dim result = PageInstanceServer.GetServerInfo(_server)
@@ -167,7 +167,7 @@ Public Class ServerCard
             End If
 
             ' Read NBT file
-            Dim nbtData As NbtList = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData As NbtList = await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData Is Nothing Then
                 Hint("无法读取服务器数据文件", HintType.Critical)
                 Exit Sub
@@ -193,7 +193,7 @@ Public Class ServerCard
 
             ' Write updated NBT data
             Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
-            If Not NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
+            If Not Await NbtFileHandler.WriteNbtFileAsync(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
                 Hint("无法写入服务器数据文件", HintType.Critical)
                 Exit Sub
             End If
@@ -213,7 +213,7 @@ Public Class ServerCard
         End Try
     End Sub
     
-    Private Sub BtnRemove_Click(sender As Object, e As RoutedEventArgs)
+    Private Async Sub BtnRemove_Click(sender As Object, e As RoutedEventArgs)
         If MyMsgBox("你确定要移除服务器 " & _server.Name & " 吗？" & vbCrLf & "'" & _server.Address & "' 将从您的列表中移除，包括游戏内列表，且无法恢复。", "移除服务器确认", "确认", "取消") = 1 Then
             ' Get server index
             Dim index As Integer = PageInstanceServer.GetServerIndex(Me)
@@ -223,7 +223,7 @@ Public Class ServerCard
             End If
 
             ' Read NBT file
-            Dim nbtData As NbtList = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData As NbtList = Await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData Is Nothing Then
                 Hint("无法读取服务器数据文件", HintType.Critical)
                 Exit Sub
@@ -241,7 +241,7 @@ Public Class ServerCard
             Dim clonedNbtData As NbtList = CType(nbtData.Clone(), NbtList)
     
             ' Write back to NBT file
-            If Not NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
+            If Not await NbtFileHandler.WriteNbtFileAsync(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat") Then
                 Hint("无法写入服务器数据文件", HintType.Critical)
                 Exit Sub
             End If

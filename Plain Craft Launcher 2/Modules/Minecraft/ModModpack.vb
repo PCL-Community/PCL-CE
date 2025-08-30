@@ -1,6 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.ProgramSetup
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Module ModModpack
@@ -10,7 +9,7 @@ Public Module ModModpack
     ''' 弹窗要求选择一个整合包文件并进行安装。
     ''' </summary>
     Public Sub ModpackInstall()
-        Dim File As String = DialogUtils.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件") '选择整合包文件
+        Dim File As String = SystemDialogs.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件") '选择整合包文件
         If String.IsNullOrEmpty(File) Then Return
         RunInThread(
         Sub()
@@ -995,7 +994,7 @@ Retry:
     Private Function InstallPackLauncherPack(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
         '获取解压路径
         MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait:=True)
-        Dim TargetFolder As String = DialogUtils.SelectFolder("选择安装目标（必须是一个空文件夹）")
+        Dim TargetFolder As String = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）")
         If String.IsNullOrEmpty(TargetFolder) Then Throw New CancelledException
         If Directory.GetFileSystemEntries(TargetFolder).Length > 0 Then Hint("请选择一个空文件夹作为安装目标！", HintType.Critical) : Throw New CancelledException
         '解压
@@ -1073,7 +1072,7 @@ Retry:
         Log("[ModPack] 检测到压缩包的 .minecraft 根目录：" & ArchiveBaseFolder & "，命中的实例名：" & InstanceName)
         '获取解压路径
         MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait:=True)
-        Dim TargetFolder As String = DialogUtils.SelectFolder("选择安装目标（必须是一个空文件夹）")
+        Dim TargetFolder As String = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）")
         If String.IsNullOrEmpty(TargetFolder) Then Throw New CancelledException
         If TargetFolder.Contains("!") OrElse TargetFolder.Contains(";") Then Hint("Minecraft 文件夹路径中不能含有感叹号或分号！", HintType.Critical) : Throw New CancelledException
         If Directory.GetFileSystemEntries(TargetFolder).Length > 0 Then Hint("请选择一个空文件夹作为安装目标！", HintType.Critical) : Throw New CancelledException

@@ -54,7 +54,7 @@ Friend Module ModSecret
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End Try
-        If Not Files.CheckPermission(ExePath & "PCL") Then
+        If Not CheckPermission(ExePath & "PCL") Then
             MsgBox("PCL 没有对当前文件夹的写入权限，请尝试：" & vbCrLf &
                   "1. 将 PCL 移动到其他文件夹" & If(ExePath.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &

@@ -980,14 +980,14 @@ NextFile:
             ResultFolder = $"{PathTemp}TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
             If RequireNonSpace AndAlso ResultFolder.Contains(" ") Then Exit Try '带空格
             Directory.CreateDirectory(ResultFolder)
-            Files.CheckPermissionWithException(ResultFolder)
+            CheckPermissionWithException(ResultFolder)
             Return ResultFolder
         Catch
         End Try
         '使用备用路径
         ResultFolder = $"{OsDrive}ProgramData\PCL\TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
         Directory.CreateDirectory(ResultFolder)
-        Files.CheckPermission(ResultFolder)
+        CheckPermission(ResultFolder)
         Return ResultFolder
     End Function
 

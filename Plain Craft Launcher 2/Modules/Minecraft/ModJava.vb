@@ -1,5 +1,6 @@
 ﻿
 Imports System.Threading.Tasks
+Imports PCL.Core.App
 Imports PCL.Core.Minecraft
 
 Public Module ModJava
@@ -11,34 +12,37 @@ Public Module ModJava
     ''' </summary>
     Public ReadOnly Property Javas As JavaManager
         Get
-            InitJava().GetAwaiter().GetResult()
+            _javas = JavaSerivce.JavaManager
             Return _javas
+
+            'InitJava().GetAwaiter().GetResult()
+            'Return _javas
         End Get
     End Property
 
-    Private _javaInitTask As Task = Nothing
-    Private ReadOnly _javasInitLock As New Object
-    Public Function InitJava() As Task
-        SyncLock _javasInitLock
-            If _javas IsNot Nothing Then
-                Return Task.CompletedTask
-            End If
-            If _javaInitTask Is Nothing Then
-                _javaInitTask = Task.Run(Sub()
-                                             Dim storeCache = JavaGetCache()
-                                             _javas = New JavaManager()
-                                             If storeCache IsNot Nothing Then
-                                                 _javas.SetCache(storeCache)
-                                             End If
-                                             Log("[Java] 开始搜索 Java")
-                                             _javas.ScanJava().GetAwaiter().GetResult()
-                                             JavaSetCache(_javas.GetCache())
-                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString(True)).Join(vbCrLf))
-                                         End Sub)
-            End If
-            Return _javaInitTask
-        End SyncLock
-    End Function
+    '    Private _javaInitTask As Task = Nothing
+    '    Private ReadOnly _javasInitLock As New Object
+    '    Public Function InitJava() As Task
+    '        SyncLock _javasInitLock
+    '            If _javas IsNot Nothing Then
+    '                Return Task.CompletedTask
+    '            End If
+    '            If _javaInitTask Is Nothing Then
+    '                _javaInitTask = Task.Run(Sub()
+    '                                             Dim storeCache = JavaGetCache()
+    '                                             _javas = New JavaManager()
+    '                                             If storeCache IsNot Nothing Then
+    '                                                 _javas.SetCache(storeCache)
+    '                                             End If
+    '                                             Log("[Java] 开始搜索 Java")
+    '                                             _javas.ScanJava().GetAwaiter().GetResult()
+    '                                             JavaSetCache(_javas.GetCache())
+    '                                             Log("[Java] 搜索到如下 Java:" & vbCrLf & _javas.JavaList.Select(Function(x) x.ToString(True)).Join(vbCrLf))
+    '                                         End Sub)
+    '            End If
+    '            Return _javaInitTask
+    '        End SyncLock
+    '    End Function
 
     Public Sub JavaSetCache(caches As List(Of JavaLocalCache))
         Dim newCache = JToken.FromObject(caches).ToString(Newtonsoft.Json.Formatting.None)
@@ -46,15 +50,15 @@ Public Module ModJava
     End Sub
 
 
-    Public Function JavaGetCache() As List(Of JavaLocalCache)
-        Dim storeCache = Nothing
-        Try
-            storeCache = JToken.Parse(Setup.Get("LaunchArgumentJavaUser")).ToObject(Of List(Of JavaLocalCache))
-        Catch ex As Exception
-            Log("[Java] 解析原有记录错误，可能由于旧版本配置导致")
-        End Try
-        Return storeCache
-    End Function
+    '    Public Function JavaGetCache() As List(Of JavaLocalCache)
+    '        Dim storeCache = Nothing
+    '        Try
+    '            storeCache = JToken.Parse(Setup.Get("LaunchArgumentJavaUser")).ToObject(Of List(Of JavaLocalCache))
+    '        Catch ex As Exception
+    '            Log("[Java] 解析原有记录错误，可能由于旧版本配置导致")
+    '        End Try
+    '        Return storeCache
+    '    End Function
 
     ''' <summary>
     ''' 添加一个用户导入的 Java

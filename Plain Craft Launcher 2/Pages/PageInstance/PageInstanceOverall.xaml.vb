@@ -1,6 +1,6 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.Minecraft
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class PageInstanceOverall
@@ -186,7 +186,7 @@ Public Class PageInstanceOverall
         '选择 自定义 时修改图片
         Try
             If ComboDisplayLogo.SelectedItem Is ItemDisplayLogoCustom Then
-                Dim FileName As String = DialogUtils.SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片")
+                Dim FileName As String = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片")
                 If FileName = "" Then
                     Reload() '还原选项
                     Return
@@ -260,7 +260,7 @@ Public Class PageInstanceOverall
     Private Sub BtnManageScript_Click() Handles BtnManageScript.Click
         Try
             '弹窗要求指定脚本的保存位置
-            Dim SavePath As String = DialogUtils.SelectSaveFile("选择脚本保存位置", "启动 " & PageInstanceLeft.Instance.Name & ".bat", "批处理文件(*.bat)|*.bat")
+            Dim SavePath As String = SystemDialogs.SelectSaveFile("选择脚本保存位置", "启动 " & PageInstanceLeft.Instance.Name & ".bat", "批处理文件(*.bat)|*.bat")
             If SavePath = "" Then Return
             '检查中断（等玩家选完弹窗指不定任务就结束了呢……）
             If McLaunchLoader.State = LoadState.Loading Then
@@ -404,7 +404,7 @@ Public Class PageInstanceOverall
     Private Sub BtnManagePatch_Click(sender As Object, e As EventArgs) Handles BtnManagePatch.Click
         Select Case MyMsgBox($"你确定要修补 {PageInstanceLeft.Instance.Name} 吗？ {vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修补核心后，文件校验会自动关闭。", Title:="修补提示", Button2:="取消")
             Case 1
-                Dim UserInput As String = DialogUtils.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
+                Dim UserInput As String = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
                 If UserInput Is Nothing Or String.IsNullOrWhiteSpace(UserInput) Then Return
                 Hint("正在修补游戏核心，这可能需要一段时间")
                 RunInNewThread(
