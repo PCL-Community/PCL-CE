@@ -1,7 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.ProgramSetup
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Module ModModpack

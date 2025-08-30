@@ -1,6 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 
 Public Class PageInstanceCompResource
     Implements IRefreshable

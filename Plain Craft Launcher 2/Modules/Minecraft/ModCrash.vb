@@ -1,9 +1,7 @@
-﻿Imports System.Text.RegularExpressions
-Imports PCL.Core.Logging
+﻿Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
-Imports PCL.Core.Utils.OS
 
 Public Class CrashAnalyzer
 

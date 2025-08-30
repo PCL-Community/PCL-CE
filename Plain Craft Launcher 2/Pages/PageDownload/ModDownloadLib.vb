@@ -1,7 +1,6 @@
 Imports System.IO.Compression
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 
 Public Module ModDownloadLib
 

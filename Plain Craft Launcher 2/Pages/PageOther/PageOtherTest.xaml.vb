@@ -1,6 +1,5 @@
 Imports System.Net
 Imports System.Net.Http
-Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
@@ -85,7 +84,7 @@ Public Class PageOtherTest
             Folder = Folder.Replace("/", "\").TrimEnd(New Char() {"\"c}) + "\"
             Try
                 Directory.CreateDirectory(Folder)
-                Directories.CheckPermissionWithExceptionAsync(Folder)
+                CheckPermissionWithException(Folder)
             Catch ex As Exception
                 Log(ex, "访问文件夹失败（" + Folder + "）", ModBase.LogLevel.Hint, "出现错误")
                 Return

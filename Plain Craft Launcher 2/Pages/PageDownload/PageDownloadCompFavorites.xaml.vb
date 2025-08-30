@@ -1,5 +1,4 @@
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 
 Public Class PageDownloadCompFavorites
 

@@ -5,7 +5,6 @@ Imports System.Text.Json.Nodes
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
-Imports PCL.Core.Utils.OS
 
 Public Module ModMinecraft
 
@@ -60,7 +59,7 @@ Public Module ModMinecraft
                 Dim name As String = folder.Split(">")(0)
                 Dim path As String = folder.Split(">")(1)
                 Try
-                    Directories.CheckPermissionWithExceptionAsync(path)
+                    CheckPermissionWithException(path)
                     cacheMcFolderList.Add(New McFolder With {.Name = name, .Path = path, .Type = McFolderType.Custom})
                 Catch ex As Exception
                     MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & ex.Message, "Minecraft 文件夹失效", IsWarn:=True)
@@ -658,7 +657,7 @@ Recheck:
             '检查权限
             Try
                 Directory.CreateDirectory(Path & "PCL\")
-                Directories.CheckPermissionWithExceptionAsync(Path & "PCL\")
+                CheckPermissionWithException(Path & "PCL\")
             Catch ex As Exception
                 State = McInstanceState.Error
                 Info = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL"

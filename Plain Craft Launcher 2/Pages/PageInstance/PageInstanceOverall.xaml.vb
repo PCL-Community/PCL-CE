@@ -1,7 +1,6 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class PageInstanceOverall
