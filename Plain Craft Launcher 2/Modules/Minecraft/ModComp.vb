@@ -1396,6 +1396,10 @@ Retry:
         ''' 用于唯一性鉴别该文件的 ID。CurseForge 中为 123456 的大整数，Modrinth 中为英文乱码的 Version 字段。
         ''' </summary>
         Public ReadOnly Id As String
+        ''' <summary>
+        ''' 该文件所属项目的 ID。
+        ''' </summary>
+        Public ReadOnly ProjectId As String
 
         '描述性信息
 
@@ -1506,6 +1510,7 @@ Retry:
 #Region "CurseForge"
                     '简单信息
                     Id = Data("id")
+                    ProjectId = Data("modId")
                     DisplayName = Data("displayName").ToString.Replace("	", "").Trim(" ")
                     ReleaseDate = Data("fileDate")
                     Status = CType(Data("releaseType").ToObject(Of Integer), CompFileStatus)
@@ -1549,6 +1554,7 @@ Retry:
 #Region "Modrinth"
                     '简单信息
                     Id = Data("id")
+                    ProjectId = Data("project_id")
                     DisplayName = Data("name").ToString.Replace("	", "").Trim(" ")
                     ReleaseDate = Data("date_published")
                     Status = If(Data("version_type").ToString = "release", CompFileStatus.Release, If(Data("version_type").ToString = "beta", CompFileStatus.Beta, CompFileStatus.Alpha))

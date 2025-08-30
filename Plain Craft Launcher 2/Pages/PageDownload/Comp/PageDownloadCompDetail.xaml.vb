@@ -1,5 +1,5 @@
 ﻿
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 
 Public Class PageDownloadCompDetail
     Private CompItem As MyCompItem = Nothing
@@ -303,7 +303,7 @@ Public Class PageDownloadCompDetail
             Dim LogoFileAddress As String = MyImage.GetTempPath(CompItem.Logo)
             Loaders.Add(New LoaderDownload("下载整合包文件", New List(Of NetFile) From {File.ToNetFile(Target)}) With {.ProgressWeight = 10, .Block = True})
             Loaders.Add(New LoaderTask(Of Integer, Integer)("准备安装整合包",
-            Sub() ModpackInstall(Target, InstanceName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing))) With {.ProgressWeight = 0.1})
+            Sub() ModpackInstall(Target, InstanceName, If(IO.File.Exists(LogoFileAddress), LogoFileAddress, Nothing), File.ProjectId)) With {.ProgressWeight = 0.1})
 
             '启动
             Dim Loader As New LoaderCombo(Of String)(LoaderName, Loaders) With {.OnStateChanged =
@@ -393,7 +393,7 @@ Public Class PageDownloadCompDetail
                 End If
             End If
 
-            Dim Target As String = DialogUtils.SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" & "*.zip", DefaultFolder)
+            Dim Target As String = SystemDialogs.SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" & "*.zip", DefaultFolder)
             If String.IsNullOrEmpty(Target) Then Return
 
             '构造步骤加载器
@@ -528,7 +528,7 @@ Public Class PageDownloadCompDetail
                 Sub()
                     '弹窗要求选择保存位置
                     Dim Target As String
-                    Target = DialogUtils.SelectSaveFile("选择保存位置", FileName,
+                    Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName,
                         Desc & "文件|" &
                         If(File.Type = CompType.Mod,
                             If(File.FileName.EndsWith(".litemod"), "*.litemod", "*.jar"),

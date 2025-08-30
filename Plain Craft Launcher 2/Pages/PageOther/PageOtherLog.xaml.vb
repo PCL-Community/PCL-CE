@@ -3,6 +3,7 @@ Imports System.IO.Compression
 Imports System.Text.RegularExpressions
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
@@ -71,7 +72,7 @@ Class PageOtherLog
         Dim baseName = "PCL_CE_Logs_" & DateTime.Now.ToString("yyyyMMddHHmmss")
         Dim tempDirName = baseName & ".tmp"
         Dim fileName = baseName & ".zip"
-        Dim selectedPath = DialogUtils.SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
+        Dim selectedPath = SystemDialogs.SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
         If String.IsNullOrEmpty(selectedPath) Then Exit Sub
         Try
             Directory.CreateDirectory(tempDirName)

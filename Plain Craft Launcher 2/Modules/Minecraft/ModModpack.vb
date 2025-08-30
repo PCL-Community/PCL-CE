@@ -1,6 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.ProgramSetup
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Module ModModpack
@@ -10,7 +9,7 @@ Public Module ModModpack
     ''' 弹窗要求选择一个整合包文件并进行安装。
     ''' </summary>
     Public Sub ModpackInstall()
-        Dim File As String = DialogUtils.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件") '选择整合包文件
+        Dim File As String = SystemDialogs.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件") '选择整合包文件
         If String.IsNullOrEmpty(File) Then Return
         RunInThread(
         Sub()
@@ -27,7 +26,7 @@ Public Module ModModpack
     ''' 必须在工作线程执行。
     ''' </summary>
     ''' <exception cref="CancelledException" />
-    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
         Log("[ModPack] 整合包安装请求：" & If(File, "null"))
         Dim Archive As ZipArchive = Nothing
         Dim ArchiveBaseFolder As String = ""
@@ -88,7 +87,7 @@ Public Module ModModpack
             Select Case PackType
                 Case 0
                     Log("[ModPack] 整合包种类：CurseForge")
-                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo)
+                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
                 Case 1
                     Log("[ModPack] 整合包种类：HMCL")
                     Return InstallPackHMCL(File, Archive, ArchiveBaseFolder)
@@ -100,7 +99,7 @@ Public Module ModModpack
                     Return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName)
                 Case 4
                     Log("[ModPack] 整合包种类：Modrinth")
-                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo)
+                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
                 Case 9
                     Log("[ModPack] 整合包种类：带启动器的压缩包")
                     Return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder)
@@ -172,7 +171,7 @@ Retry:
 
 #Region "CurseForge"
     Private Function InstallPackCurseForge(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String,
-                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -362,6 +361,19 @@ Retry:
                 Log("[ModPack] 删除安装整合包文件：" & FileAddress)
                 File.Delete(FileAddress)
             End If
+            '整合包版本
+            If Json("version") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+            End If
+            NEWSetup.Instance.ModpackSource(VersionFolder) = "CurseForge"
+            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Try
+                Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
+                If projects.Count = 0 Then Exit Try
+                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+            Catch ex As Exception
+                Log(ex, "[ModPack] 获取整合包描述文本失败")
+            End Try
         End Sub) With {.ProgressWeight = 0.1, .Show = False})
 
         '重复任务检查
@@ -382,7 +394,7 @@ Retry:
 #End Region
 
 #Region "Modrinth"
-    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing) As LoaderCombo(Of String)
+    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -508,6 +520,19 @@ Retry:
                 Log("[ModPack] 删除安装整合包文件：" & FileAddress)
                 File.Delete(FileAddress)
             End If
+            '整合包版本
+            If Json("versionId") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
+            End If
+            NEWSetup.Instance.ModpackSource(VersionFolder) = "Modrinth"
+            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Try
+                Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
+                If projects.Count = 0 Then Exit Try
+                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+            Catch ex As Exception
+                Log(ex, "[ModPack] 获取整合包描述文本失败")
+            End Try
         End Sub) With {.ProgressWeight = 0.1, .Show = False})
 
         '重复任务检查
@@ -946,6 +971,10 @@ Retry:
                 NEWSetup.Instance.JvmArgs(VersionFolder) = String.Join(" ", LaunchInfo("javaArgument"))
                 NEWSetup.Instance.GameArgs(VersionFolder) = String.Join(" ", LaunchInfo("launchArgument"))
             End If
+            '整合包版本
+            If Json("version") IsNot Nothing Then
+                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+            End If
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造加载器
         If Json("addons") Is Nothing Then Throw New Exception("该 MCBBS 整合包未提供游戏版本附加信息，无法安装！")
@@ -995,7 +1024,7 @@ Retry:
     Private Function InstallPackLauncherPack(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String) As LoaderCombo(Of String)
         '获取解压路径
         MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait:=True)
-        Dim TargetFolder As String = DialogUtils.SelectFolder("选择安装目标（必须是一个空文件夹）")
+        Dim TargetFolder As String = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）")
         If String.IsNullOrEmpty(TargetFolder) Then Throw New CancelledException
         If Directory.GetFileSystemEntries(TargetFolder).Length > 0 Then Hint("请选择一个空文件夹作为安装目标！", HintType.Critical) : Throw New CancelledException
         '解压
@@ -1073,7 +1102,7 @@ Retry:
         Log("[ModPack] 检测到压缩包的 .minecraft 根目录：" & ArchiveBaseFolder & "，命中的实例名：" & InstanceName)
         '获取解压路径
         MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait:=True)
-        Dim TargetFolder As String = DialogUtils.SelectFolder("选择安装目标（必须是一个空文件夹）")
+        Dim TargetFolder As String = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）")
         If String.IsNullOrEmpty(TargetFolder) Then Throw New CancelledException
         If TargetFolder.Contains("!") OrElse TargetFolder.Contains(";") Then Hint("Minecraft 文件夹路径中不能含有感叹号或分号！", HintType.Critical) : Throw New CancelledException
         If Directory.GetFileSystemEntries(TargetFolder).Length > 0 Then Hint("请选择一个空文件夹作为安装目标！", HintType.Critical) : Throw New CancelledException

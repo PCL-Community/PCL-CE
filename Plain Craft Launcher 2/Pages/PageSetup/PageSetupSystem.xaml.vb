@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.Utils.OS
+﻿Imports PCL.Core.UI
+Imports PCL.Core.Utils.OS
 
 Class PageSetupSystem
 
@@ -45,20 +46,12 @@ Class PageSetupSystem
 
         '系统设置
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
-        If Val(Environment.OSVersion.Version.ToString().Split(".")(2)) >= 19042 Then
-            Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
-            ComboSystemUpdateBranch.SelectedIndex = branch
-            If branch = 1 Then
-                ComboSystemUpdateBranch.IsEnabled = False
-            Else
-                ComboSystemUpdateBranch.IsEnabled = True
-            End If
-        Else '不满足系统要求
-            ComboSystemUpdateBranch.Items.Clear()
-            ComboSystemUpdateBranch.Items.Add("Legacy")
-            ComboSystemUpdateBranch.SelectedIndex = 0
-            ComboSystemUpdateBranch.ToolTip = "由于你的 Windows 版本过低，不满足新版本要求，只能获取 Legacy 分支的更新。&#xa;升级到 Windows 10 20H2 或以上版本以获取最新更新。"
+        Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
+        ComboSystemUpdateBranch.SelectedIndex = branch
+        If branch = 1 Then
             ComboSystemUpdateBranch.IsEnabled = False
+        Else
+            ComboSystemUpdateBranch.IsEnabled = True
         End If
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
         TextSystemCache.Text = Setup.Get("SystemSystemCache")
@@ -272,14 +265,14 @@ Class PageSetupSystem
 #Region "导出 / 导入设置"
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
-        Dim savePath As String = DialogUtils.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
+        Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
         If savePath = "" Then Exit Sub
         File.Copy(Core.IO.PredefinedFileItems.GlobalSetup.TargetPath, savePath, True)
         Hint("配置导出成功！", HintType.Finish)
         OpenExplorer(savePath)
     End Sub
     Private Sub BtnSystemSettingImp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingImp.Click
-        Dim sourcePath As String = DialogUtils.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件")
+        Dim sourcePath As String = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件")
         If sourcePath = "" Then Exit Sub
         File.Copy(sourcePath, Core.IO.PredefinedFileItems.GlobalSetup.TargetPath, True)
         MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1:="重启", ForceWait:=True)

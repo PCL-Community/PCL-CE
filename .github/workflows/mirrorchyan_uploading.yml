@@ -1,4 +1,4 @@
-name: mirrorchyan_uploading
+name: Mirror Chyan (Upload)
 
 on:
   workflow_dispatch:

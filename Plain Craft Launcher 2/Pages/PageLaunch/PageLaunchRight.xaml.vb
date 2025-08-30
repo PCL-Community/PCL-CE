@@ -83,11 +83,11 @@ Download:
                             </local:MyCard>"
                     Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
-                        Url = "http://pcl.mcnews.thestack.top"
+                        Url = "https://pcl.mcnews.thestack.top"
                         GoTo Download
                     Case 3
                         Log("[Page] 主页预设：简单主页")
-                        Url = "https://raw.gitcode.com/mfn233/PCL-Mainpage/raw/main/Custom.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
                         GoTo Download
                     Case 4
                         Log("[Page] 主页预设：每日整合包推荐")
@@ -123,7 +123,7 @@ Download:
                         GoTo Download
                     Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
-                        Url = "https://raw.gitcode.com/Deep-Dark-Forest/PCL2-GitHub-Dashboard-Homepage/raw/main/custom.xaml"
+                        Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
                 End Select
         End Select

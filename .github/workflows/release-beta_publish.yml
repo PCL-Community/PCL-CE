@@ -1,4 +1,4 @@
-name: release-beta_publish
+name: Publish (Beta)
 
 on:
   release:
@@ -12,10 +12,8 @@ jobs:
         include:
           - configuration: Beta
             architecture: x64
-            os: windows-latest
           - configuration: Beta
             architecture: ARM64
-            os: windows-latest
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
@@ -50,7 +48,7 @@ jobs:
 
   rename_and_release:
     needs: [build, changelog]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -78,9 +76,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger MirrorChyanUploading
-        shell: bash
         run: |
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading -f channel=beta -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=beta -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
