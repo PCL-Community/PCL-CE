@@ -33,7 +33,7 @@ Public Class Application
             '创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(New BindingErrorTraceListener())
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
-            Await SecretOnApplicationStart()
+            SecretOnApplicationStart()
             '检查参数调用
             Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
             If args.Length > 0 Then
