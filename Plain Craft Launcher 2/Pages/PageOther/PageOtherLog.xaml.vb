@@ -72,7 +72,7 @@ Class PageOtherLog
         Else
             Hint("日志保存失败！", HintType.Critical)
         End If
-    End Sub
+    End Function
 
     Private Sub ButtonOpenDir_OnClick(sender As Object, e As MouseButtonEventArgs)
         Basics.OpenPath(LogDirectory)
