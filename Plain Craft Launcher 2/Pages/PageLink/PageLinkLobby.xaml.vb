@@ -373,8 +373,8 @@ Public Class PageLinkLobby
             End If
             RunInUi(Sub() 
                     Dim texts = LobbyTextHandler.GetQualityDesc(quality)
-                    LabFinishQuality.Text = texts.Item1
-                    BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Item2
+                    LabFinishQuality.Text = texts.Keyword
+                    BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
                 End Sub)
 
             If IsHost AndAlso Not LobbyController.IsHostInstanceAvailable(TargetLobby.Port) Then '确认创建者实例存活状态
