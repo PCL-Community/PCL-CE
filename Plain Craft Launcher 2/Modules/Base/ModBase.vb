@@ -2485,6 +2485,37 @@ NextElement:
     End Function
 
 #End Region
+    
+    ''' 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
+    ''' </summary>
+    Public Function CheckPermission(Path As String) As Boolean
+        Try
+            If String.IsNullOrEmpty(Path) Then Return False
+            If Not Path.EndsWithF("\") Then Path += "\"
+            If Path.EndsWithF(":\System Volume Information\") OrElse Path.EndsWithF(":\$RECYCLE.BIN\") Then Return False
+            If Not Directory.Exists(Path) Then Return False
+            Dim FileName As String = "CheckPermission" & GetUuid()
+            If File.Exists(Path & FileName) Then File.Delete(Path & FileName)
+            File.Create(Path & FileName).Dispose()
+            File.Delete(Path & FileName)
+            Return True
+        Catch ex As Exception
+            Log(ex, "没有对文件夹 " & Path & " 的权限，请尝试以管理员权限运行 PCL")
+            Return False
+        End Try
+    End Function
+    ''' <summary>
+    ''' 检查是否拥有某一文件夹的 I/O 权限。如果出错，则抛出异常。
+    ''' </summary>
+    Public Sub CheckPermissionWithException(Path As String)
+        If String.IsNullOrWhiteSpace(Path) Then Throw New ArgumentNullException("文件夹名不能为空！")
+        If Not Path.EndsWithF("\") Then Path += "\"
+        If Not Directory.Exists(Path) Then Throw New DirectoryNotFoundException("文件夹不存在！")
+        If File.Exists(Path & "CheckPermission") Then File.Delete(Path & "CheckPermission")
+        File.Create(Path & "CheckPermission").Dispose()
+        File.Delete(Path & "CheckPermission")
+    End Sub
+    ''' <summary>
 
 #Region "UI"
 

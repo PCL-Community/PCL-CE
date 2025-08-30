@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports System.Threading.Tasks
 Imports fNbt
-Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Minecraft
 
@@ -11,12 +10,12 @@ Public Class PageInstanceServer
     Public ReadOnly Shared ServerList As New List(Of MinecraftServerInfo)
     Private ReadOnly Shared ServerCardList As New List(Of ServerCard)
 
-    Private Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
+    Private Async Sub PageLoaded(e As Object, sender As RoutedEventArgs) Handles Me.Loaded
         ServerList.Clear()
         ServerCardList.Clear()
         PanServers.Children.Clear()
         
-        LoadServersFromFile()
+        await LoadServersFromFile()
         
         RefreshTip()
         For Each server In ServerList
@@ -43,11 +42,11 @@ Public Class PageInstanceServer
     ''' <summary>
     ''' 刷新服务器列表
     ''' </summary>
-    Public Sub RefreshServers()
+    Public Async Sub RefreshServers()
         Log("刷新服务器列表")
         Try
             ' 读取服务器信息
-            LoadServersFromFile()
+            await LoadServersFromFile()
 
             ' 在UI线程中更新界面
             RunInUi(Sub() UpdateServerUi())
@@ -65,7 +64,7 @@ Public Class PageInstanceServer
         RefreshServers()
     End Sub
     
-    Private Sub BtnAddServer_Click(sender As Object, e As MouseButtonEventArgs)
+    Private Async Sub BtnAddServer_Click(sender As Object, e As MouseButtonEventArgs)
         Dim result = GetServerInfo(New MinecraftServerInfo() With {.Name = "Minecraft服务器", .Address = ""})
         If result.Success Then
             Dim newServer As New MinecraftServerInfo With {
@@ -83,18 +82,16 @@ Public Class PageInstanceServer
             ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
             
-            Task.Run(Async Function() 
-                Await serverCard.RefreshServerStatus(False)
-            End Function)
+            Await serverCard.RefreshServerStatus(False)
             
-            Dim nbtData = NbtFileHandler.ReadNbTFile(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData = await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData IsNot Nothing Then
                 Dim server = new NbtCompound()
                 server("name") = New NbtString("name", result.Name)
                 server("ip") = New NbtString("ip", result.Address)
                 nbtData.Add(server)
                 Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
-                NbtFileHandler.WriteNbtFile(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                await NbtFileHandler.WriteNbtFileAsync(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
             End If
         End If
     End Sub
@@ -118,7 +115,7 @@ Public Class PageInstanceServer
     ''' <summary>
     ''' 从servers.dat文件读取服务器信息
     ''' </summary>
-    Private Sub LoadServersFromFile()
+    Private Async Function LoadServersFromFile() As Task
         ServerList.Clear()
 
         Dim serversFile As String = PageInstanceLeft.Instance.PathIndie + "servers.dat"
@@ -126,12 +123,12 @@ Public Class PageInstanceServer
 
         Try
             ' 读取NBT格式的servers.dat文件
-            Dim nbtData = NbtFileHandler.ReadNbtFile(serversFile, "servers")
+            Dim nbtData = await NbtFileHandler.ReadNbtFileAsync(serversFile, "servers")
             ParseServersFromNBT(nbtData)
         Catch ex As Exception
             Log(ex, "读取servers.dat文件失败", LogLevel.Debug)
         End Try
-    End Sub
+    End Function
 
     ''' <summary>
     ''' 解析NBT格式的服务器数据

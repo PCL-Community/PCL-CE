@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.IO
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 
 Public Class PageSelectLeft
@@ -232,7 +233,7 @@ Public Class PageSelectLeft
         End If
         Try
             '获取输入
-            NewFolder = DialogUtils.SelectFolder()
+            NewFolder = SystemDialogs.SelectFolder()
             If NewFolder = "" Then Return
             If NewFolder.Contains("!") OrElse NewFolder.Contains(";") Then Hint("Minecraft 文件夹路径中不能含有感叹号或分号！", HintType.Critical) : Return
             '要求输入显示名称
@@ -257,7 +258,7 @@ Public Class PageSelectLeft
             Try
                 If Not FolderPath.EndsWith("\") Then FolderPath &= "\" '加上斜杠……
                 '检查文件夹权限
-                If Not Files.CheckPermission(FolderPath) Then
+                If Not CheckPermission(FolderPath) Then
                     If ShowHint Then
                         Hint("添加文件夹失败：PCL 没有访问该文件夹的权限！", HintType.Critical)
                         Return
@@ -266,9 +267,9 @@ Public Class PageSelectLeft
                     End If
                 End If
                 '检查实际的 Minecraft 文件夹位置（没有问题，或是在子文件夹中）
-                If Not Files.CheckPermission(FolderPath & "versions\") Then
+                If Not CheckPermission(FolderPath & "versions\") Then
                     For Each Folder As DirectoryInfo In New DirectoryInfo(FolderPath).GetDirectories
-                        If Files.CheckPermission(Folder.FullName & "\versions\") Then
+                        If CheckPermission(Folder.FullName & "\versions\") Then
                             FolderPath = Folder.FullName & "\"
                             Exit For
                         End If

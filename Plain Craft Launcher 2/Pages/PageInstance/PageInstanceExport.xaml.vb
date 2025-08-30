@@ -1,5 +1,5 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 
 Public Class ExportOption
     Public Property Title As String
@@ -312,7 +312,7 @@ Public Class PageInstanceExport
     '保存配置文件
     Private Sub ExportConfig() Handles BtnAdvancedExport.Click
         Try
-            Dim ConfigPath As String = DialogUtils.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim ConfigLines As New List(Of String)
@@ -358,7 +358,7 @@ Public Class PageInstanceExport
     '读取配置文件
     Private Sub ImportConfig() Handles BtnAdvancedImport.Click
         Try
-            Dim ConfigPath As String = DialogUtils.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim Segments As String() = ReadFile(ConfigPath).Split(Sperator)
@@ -433,7 +433,7 @@ Public Class PageInstanceExport
             Dim Extensions As New List(Of String)
             If Not CheckAdvancedModrinth.Checked Then Extensions.Add("压缩文件(*.zip)|*.zip")
             If Not CheckOptionsPcl.Checked Then Extensions.Add("Modrinth 整合包文件(*.mrpack)|*.mrpack")
-            PackPath = DialogUtils.SelectSaveFile("选择导出位置",
+            PackPath = SystemDialogs.SelectSaveFile("选择导出位置",
                 PackName & If(String.IsNullOrEmpty(TextExportVersion.Text), "", " " & TextExportVersion.Text), Extensions.Join("|"))
             Log($"[Export] 手动指定的导出路径：{PackPath}")
         End If

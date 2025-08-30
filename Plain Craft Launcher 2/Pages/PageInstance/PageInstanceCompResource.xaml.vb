@@ -1,5 +1,5 @@
 Imports Microsoft.VisualBasic.FileIO
-Imports PCL.Core.Utils.OS
+Imports PCL.Core.UI
 
 Public Class PageInstanceCompResource
     Implements IRefreshable
@@ -675,10 +675,10 @@ Public Class PageInstanceCompResource
     Private Sub BtnManageInstall_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageInstall.Click, BtnHintInstall.Click
         Dim FileList As String() = Nothing
         Select Case CurrentCompType
-            Case CompType.Mod : FileList = DialogUtils.SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
-            Case CompType.ResourcePack : FileList = DialogUtils.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
-            Case CompType.Shader : FileList = DialogUtils.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
-            Case CompType.Schematic : FileList = DialogUtils.SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
+            Case CompType.Mod : FileList = SystemDialogs.SelectFiles("Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod")
+            Case CompType.ResourcePack : FileList = SystemDialogs.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包")
+            Case CompType.Shader : FileList = SystemDialogs.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包")
+            Case CompType.Schematic : FileList = SystemDialogs.SelectFiles("投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem", "选择要安装的投影原理图")
         End Select
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
         InstallCompFiles(FileList, CurrentCompType, CurrentFolderPath)
@@ -882,7 +882,7 @@ Install:
                                 Button3:="取消")
         Dim ExportText = Sub(Content As String, FileName As String)
                              Try
-                                 Dim savePath = DialogUtils.SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv")
+                                 Dim savePath = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv")
                                  If String.IsNullOrWhiteSpace(savePath) Then Exit Sub
                                  File.WriteAllText(savePath, Content, Encoding.UTF8)
                                  OpenExplorer(savePath)
