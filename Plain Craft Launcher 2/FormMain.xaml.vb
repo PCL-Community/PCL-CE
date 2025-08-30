@@ -1,6 +1,7 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
+Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
@@ -142,10 +143,12 @@ Public Class FormMain
 
         ThemeRefresh()
 
+        Application.Current.Resources("BlurSamplingRate") = Setup.Get("UiBlurSamplingRate") * 0.01
+        Application.Current.Resources("BlurType") = CType(Setup.Get("UiBlurType"), KernelType)
         If Setup.Get("UiBlur") Then
-            Application.Current.Resources("BlurValue") = CType(Setup.Get("UiBlurValue"), Double)
+            Application.Current.Resources("BlurRadius") = Setup.Get("UiBlurValue") * 1.0
         Else
-            Application.Current.Resources("BlurValue") = CType(0, Double)
+            Application.Current.Resources("BlurRadius") = 0.0
         End If
 
         '#If DEBUG Then

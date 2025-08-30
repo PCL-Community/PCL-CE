@@ -16,99 +16,56 @@ jobs:
       - name: Get latest release info
         id: get_release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          release_info=$(gh release view --json name,body --jq '.name,.body')
-          echo "release_info<<EOF" >> $GITHUB_OUTPUT
-          echo "$release_info" >> $GITHUB_OUTPUT
+          release_json=$(gh release view --json name,body)
+          release_name=$(echo "$release_json" | jq -r '.name')
+          release_body=$(echo "$release_json" | jq -r '.body')
+          echo "release_name=$release_name" >> $GITHUB_OUTPUT
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$release_body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get Discussion Category ID
         id: get_category
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          category_id=$(gh api graphql -f query='
-            query {
-              repository(owner: "'${{ github.repository_owner }}'", name: "'${{ github.event.repository.name }}'") {
-                discussionCategories(first: 10) {
-                  edges {
-                    node {
-                      id
-                      name
-                    }
-                  }
-                }
-              }
-            }' | jq -r '.data.repository.discussionCategories.edges[].node | select(.name == "更新日志") | .id')
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
+          category_id=$(gh api graphql -F owner="$owner" -F repo="$repo" -f query='query($owner: String!, $repo: String!) {repository(owner: $owner, name: $repo) {discussionCategories(first: 10) {nodes {id name}}}}}' | jq -r '.data.repository.discussionCategories.nodes[] | select(.name == "更新日志") | .id')
+          if [ -z "$category_id" ]; then
+            echo "Error: Discussion category not found"
+            exit 1
+          fi
           echo "category_id=$category_id" >> $GITHUB_OUTPUT
 
       - name: Find or create discussion
         id: find_discussion
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          RELEASE_NAME="${{ steps.get_release.outputs.name }}"
-          discussion_id=$(gh api graphql -f query='
-            query {
-              repository(owner: "'${{ github.repository_owner }}'", name: "'${{ github.event.repository.name }}'") {
-                discussions(first: 20, orderBy: {field: UPDATED_AT, direction: DESC}) {
-                  edges {
-                    node {
-                      id
-                      title
-                    }
-                  }
-                }
-              }
-            }' | jq -r --arg title "$RELEASE_NAME" '.data.repository.discussions.edges[].node | select(.title == $title) | .id')
-
+          RELEASE_NAME="${{ steps.get_release.outputs.release_name }}"
+          RELEASE_BODY="${{ steps.get_release.outputs.release_body }}"
+          CATEGORY_ID="${{ steps.get_category.outputs.category_id }}"
+          REPOSITORY_ID="${{ github.repository_id }}"
+          OWNER="${{ github.repository_owner }}"
+          REPO="${{ github.event.repository.name }}"
+          discussion_id=$(gh api graphql -F owner="$OWNER" -F repo="$REPO" -F categoryId="$CATEGORY_ID" -f query='query($owner: String!, $repo: String!, $categoryId: ID!) {repository(owner: $owner, name: $repo) {discussions(first: 20, categoryId: $categoryId, orderBy: {field: UPDATED_AT, direction: DESC}) {nodes {id title}}}}}' | jq -r --arg title "$RELEASE_NAME" '.data.repository.discussions.nodes[] | select(.title == $title) | .id')
           if [ -z "$discussion_id" ]; then
-            discussion_id=$(gh api graphql -f query='
-              mutation {
-                createDiscussion(input: {
-                  repositoryId: "'${{ github.repository_id }}'",
-                  title: "'"$RELEASE_NAME"'",
-                  body: "'"$RELEASE_BODY"'",
-                  categoryId: "'${{ steps.get_category.outputs.category_id }}'"
-                }) {
-                  discussion {
-                    id
-                  }
-                }
-              }' | jq -r '.data.createDiscussion.discussion.id')
-            echo "Created new discussion"
-          else
-            echo "Found existing discussion"
+            discussion_id=$(gh api graphql -F repositoryId="$REPOSITORY_ID" -F title="$RELEASE_NAME" -F body="$RELEASE_BODY" -F categoryId="$CATEGORY_ID" -f query='mutation($repositoryId: ID!, $title: String!, $body: String!, $categoryId: ID!) {createDiscussion(input: {repositoryId: $repositoryId, title: $title, body: $body, categoryId: $categoryId}) {discussion {id}}}' | jq -r '.data.createDiscussion.discussion.id')
+          fi
+          if [ -z "$discussion_id" ]; then
+            echo "Error: Failed to create discussion"
+            exit 1
           fi
           echo "discussion_id=$discussion_id" >> $GITHUB_OUTPUT
 
       - name: Update discussion body
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          RELEASE_BODY="${{ steps.get_release.outputs.body }}"
           DISCUSSION_ID="${{ steps.find_discussion.outputs.discussion_id }}"
-          
-          current_body=$(gh api graphql -f query='
-            query {
-              node(id: "'"$DISCUSSION_ID"'") {
-                ... on Discussion {
-                  body
-                }
-              }
-            }' | jq -r '.data.node.body')
-          
-          new_body="$RELEASE_BODY$current_body"
-          
-          gh api graphql -f query='
-            mutation {
-              updateDiscussion(input: {
-                discussionId: "'"$DISCUSSION_ID"'",
-                body: '"$(echo -n "$new_body" | jq -Rs .)"'
-              }) {
-                discussion {
-                  title
-                }
-              }
-            }'
+          RELEASE_BODY="${{ steps.get_release.outputs.release_body }}"
+          ESCAPED_BODY=$(echo "$RELEASE_BODY" | jq -Rs .)
+          gh api graphql -F discussionId="$DISCUSSION_ID" -F body="$ESCAPED_BODY" -f query='mutation($discussionId: ID!, $body: String!) {updateDiscussion(input: {discussionId: $discussionId, body: $body}) {discussion {id title}}}'

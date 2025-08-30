@@ -1,4 +1,5 @@
 Imports System.Reflection
+Imports System.Windows.Media.Effects
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS
@@ -339,7 +340,13 @@ Public Class ModSetup
         End If
     End Sub
     Public Sub UiBlurValue(Value As Integer)
-        Application.Current.Resources("BlurValue") = CType(Value, Double)
+        Application.Current.Resources("BlurRadius") = Value * 1.0
+    End Sub
+    Public Sub UiBlurSamplingRate(Value As Integer)
+        Application.Current.Resources("BlurSamplingRate") = Value * 0.01
+    End Sub
+    Public Sub UiBlurType(Value As Integer)
+        Application.Current.Resources("BlurType") = CType(Value, KernelType)
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)
