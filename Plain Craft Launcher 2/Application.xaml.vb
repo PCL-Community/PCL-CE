@@ -173,7 +173,6 @@ WaitRetry:
             Setup.Load("SystemHttpProxyCustomUsername")
             Setup.Load("SystemHttpProxyType")
             Setup.Load("ToolDownloadThread")
-            Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
             If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
