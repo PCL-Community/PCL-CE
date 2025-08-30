@@ -48,15 +48,15 @@ Friend Module ModSecret
             Directory.CreateDirectory(dataPath)
         Catch ex As Exception
             MsgBox($"PCL 无法创建 PCL 文件夹（{dataPath}），请尝试：" & vbCrLf &
-                  "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
+                  "1. 将 PCL 移动到其他文件夹" & If(ExePath.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
                   "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End Try
-        If Not Files.CheckPermission(Path & "PCL") Then
+        If Not Files.CheckPermission(ExePath & "PCL") Then
             MsgBox("PCL 没有对当前文件夹的写入权限，请尝试：" & vbCrLf &
-                  "1. 将 PCL 移动到其他文件夹" & If(Path.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
+                  "1. 将 PCL 移动到其他文件夹" & If(ExePath.StartsWithF("C:", True), "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
                   "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
                 MsgBoxStyle.Critical, "运行环境错误")
@@ -751,7 +751,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
 
     Public Sub UpdateStart(Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
-        Dim DlTargetPath As String = Path + "PCL\Plain Craft Launcher Community Edition.exe"
+        Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
         RunInNewThread(Sub()
                            Try
                                Dim version = RemoteServer.GetLatestVersion(
@@ -791,13 +791,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
     Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
         Try
-            Dim fileName As String = Path + "PCL\Plain Craft Launcher Community Edition.exe"
+            Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
             If Not File.Exists(fileName) Then
                 Log("[System] 更新失败：未找到更新文件")
                 Exit Sub
             End If
             ' id old new restart
-            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{PathWithName}"" ""{fileName}"" true"
+            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{ExePathWithName}"" ""{fileName}"" true"
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If TriggerRestartAndByEnd Then
@@ -806,7 +806,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             End If
         Catch ex As Win32Exception
             Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", LogLevel.Debug, "出现错误")
-            If MyMsgBox(String.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！", vbCrLf, ModBase.Path), "更新失败", "查看帮助", "确定", "", True, True, False, Nothing, Nothing, Nothing) = 1 Then
+            If MyMsgBox(String.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！", vbCrLf, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", True, True, False, Nothing, Nothing, Nothing) = 1 Then
                 TryStartEvent("打开帮助", "启动器/Microsoft Defender 添加排除项.json")
             End If
         End Try
@@ -856,9 +856,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End If
         If TypeOf ex2 Is UnauthorizedAccessException Then
             MsgBox(String.Concat(New String() {"由于权限不足，PCL 无法完成更新。请尝试：" & vbCrLf,
-                                 If((Path.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), False) OrElse Path.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Personal), False)),
+                                 If((ExePath.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), False) OrElse ExePath.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Personal), False)),
                                  " - 将 PCL 文件移动到桌面、文档以外的文件夹（这或许可以一劳永逸地解决权限问题）" & vbCrLf, ""),
-                                 If(Path.StartsWithF("C", True),
+                                 If(ExePath.StartsWithF("C", True),
                                  " - 将 PCL 文件移动到 C 盘以外的文件夹（这或许可以一劳永逸地解决权限问题）" & vbCrLf, ""),
                                  " - 右键以管理员身份运行 PCL" & vbCrLf & " - 手动复制已下载到 PCL 文件夹下的新版本程序，覆盖原程序" & vbCrLf & vbCrLf,
                                  ex2.Message}), MsgBoxStyle.Critical, "更新失败")
@@ -879,8 +879,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log("[System] 最新版 PCL 已存在，跳过下载")
             Exit Sub
         End If
-        If GetFileSHA256(PathWithName) = target.SHA256 Then '正在使用的版本符合要求，直接拿来用
-            CopyFile(PathWithName, LatestPCLPath)
+        If GetFileSHA256(ExePathWithName) = target.SHA256 Then '正在使用的版本符合要求，直接拿来用
+            CopyFile(ExePathWithName, LatestPCLPath)
             Exit Sub
         End If
 

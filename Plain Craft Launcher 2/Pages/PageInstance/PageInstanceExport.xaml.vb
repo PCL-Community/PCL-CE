@@ -544,13 +544,13 @@ Public Class PageInstanceExport
 #End If
             '复制 PCL 个性化内容
             If IncludePCLCustom Then
-                If Directory.Exists(Path & "PCL\Pictures\") Then CopyDirectory(Path & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
-                If Directory.Exists(Path & "PCL\Musics\") Then CopyDirectory(Path & "PCL\Musics\", CacheFolder & "PCL\Musics\")
-                If Directory.Exists(Path & "PCL\Help\") Then CopyDirectory(Path & "PCL\Help\", CacheFolder & "PCL\Help\")
-                If File.Exists(Path & "PCL\Custom.xaml") Then CopyFile(Path & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
-                If File.Exists(Path & "PCL\Setup.ini") Then CopyFile(Path & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
-                If File.Exists(Path & "PCL\hints.txt") Then CopyFile(Path & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
-                If File.Exists(Path & "PCL\Logo.png") Then CopyFile(Path & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
+                If Directory.Exists(ExePath & "PCL\Pictures\") Then CopyDirectory(ExePath & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
+                If Directory.Exists(ExePath & "PCL\Musics\") Then CopyDirectory(ExePath & "PCL\Musics\", CacheFolder & "PCL\Musics\")
+                If Directory.Exists(ExePath & "PCL\Help\") Then CopyDirectory(ExePath & "PCL\Help\", CacheFolder & "PCL\Help\")
+                If File.Exists(ExePath & "PCL\Custom.xaml") Then CopyFile(ExePath & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
+                If File.Exists(ExePath & "PCL\Setup.ini") Then CopyFile(ExePath & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
+                If File.Exists(ExePath & "PCL\hints.txt") Then CopyFile(ExePath & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
+                If File.Exists(ExePath & "PCL\Logo.png") Then CopyFile(ExePath & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
             End If
         End Sub) With {.ProgressWeight = 5})
 

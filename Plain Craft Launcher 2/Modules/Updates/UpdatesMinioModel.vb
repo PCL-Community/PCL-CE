@@ -111,7 +111,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
                                                                                Dim channelName = GetChannelName(channel, arch)
                                                                                Dim deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject(Of MinioUpdateModel).assets.FirstOrDefault()
                                                                                If deJsonData Is Nothing Then Throw New Exception("No assets can download!")
-                                                                               Dim selfSha256 = GetFileSHA256(PathWithName)
+                                                                               Dim selfSha256 = GetFileSHA256(ExePathWithName)
                                                                                Dim remoteUpdSha256 = deJsonData.sha256
                                                                                Dim patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch"
                                                                                If deJsonData.patches.Contains(patchFileName) Then
@@ -137,7 +137,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
         loaders.Add(New LoaderTask(Of String, Integer)("应用文件", Sub()
                                                                    If patchUpdate Then
                                                                        Dim diff As New BsDiff()
-                                                                       Dim newFile = diff.Apply(ReadFileBytes(PathWithName), ReadFileBytes(tempPath)).GetAwaiter().GetResult()
+                                                                       Dim newFile = diff.Apply(ReadFileBytes(ExePathWithName), ReadFileBytes(tempPath)).GetAwaiter().GetResult()
                                                                        WriteFile(output, newFile)
                                                                    Else
                                                                        Using fs As New FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read)

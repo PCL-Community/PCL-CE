@@ -360,7 +360,7 @@ Public Class PageDownloadCompDetail
                     End Function
             '获取常规资源默认下载位置
             If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, Path))
+                DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, ExePath))
                 Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
             ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
                 DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"
@@ -471,7 +471,7 @@ Public Class PageDownloadCompDetail
                     End Function
                     '获取常规资源默认下载位置
                     If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, Path))
+                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, ExePath))
                         Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
                     ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
                         DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"

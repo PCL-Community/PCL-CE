@@ -23,8 +23,8 @@ Public Module ModMusic
             '初始化全部可用音乐列表
             If MusicAllList Is Nothing Then
                 MusicAllList = New List(Of String)
-                Directory.CreateDirectory(Path & "PCL\Musics\")
-                For Each File In EnumerateFiles(Path & "PCL\Musics\")
+                Directory.CreateDirectory(ExePath & "PCL\Musics\")
+                For Each File In EnumerateFiles(ExePath & "PCL\Musics\")
                     '文件夹可能会被加入 .ini 文件夹配置文件、一些乱七八糟的 .jpg 文件啥的
                     Dim Ext As String = File.Extension.ToLower
                     If {".ini", ".jpg", ".txt", ".cfg", ".lrc", ".db", ".png"}.Contains(Ext) Then Continue For

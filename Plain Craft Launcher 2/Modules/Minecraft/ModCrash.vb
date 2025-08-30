@@ -54,7 +54,7 @@ Public Class CrashAnalyzer
             Log(ex, "收集 Minecraft 隔离文件夹下的日志失败")
         End Try
         PossibleLogs.Add(VersionPathIndie & "logs\latest.log") 'Minecraft 日志
-        Dim LaunchScript As String = ReadFile(Path & "PCL\LatestLaunch.bat")
+        Dim LaunchScript As String = ReadFile(ExePath & "PCL\LatestLaunch.bat")
         If LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false") Then
             PossibleLogs.Add(VersionPathIndie & "logs\debug.log") 'Minecraft Debug 日志
         End If

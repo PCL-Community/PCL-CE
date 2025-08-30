@@ -75,8 +75,8 @@ Public Class Application
                 End If
             End If
             '初始化文件结构
-            Directory.CreateDirectory(Path & "PCL\Pictures")
-            Directory.CreateDirectory(Path & "PCL\Musics")
+            Directory.CreateDirectory(ExePath & "PCL\Pictures")
+            Directory.CreateDirectory(ExePath & "PCL\Musics")
             Try
                 Directory.CreateDirectory(PathTemp)
                 If Not Files.CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
@@ -127,7 +127,7 @@ WaitRetry:
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{PathWithName}")
+            Log($"[Start] 程序路径：{ExePathWithName}")
             Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
             Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
             Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
@@ -157,7 +157,7 @@ WaitRetry:
             End If
             '删除旧日志
             For i = 1 To 5
-                Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
+                Dim oldLogFile = $"{ExePath}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
             'Pipe RPC 初始化
@@ -173,7 +173,7 @@ WaitRetry:
         Catch ex As Exception
             Dim FilePath As String = Nothing
             Try
-                FilePath = PathWithName
+                FilePath = ExePathWithName
             Catch
             End Try
             MsgBox(ex.ToString() & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")

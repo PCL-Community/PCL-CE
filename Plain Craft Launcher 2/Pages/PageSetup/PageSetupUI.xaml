@@ -120,16 +120,32 @@
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
-                        <StackPanel x:Name="PanelBlur" Margin="0,0,0,7">
-                            <local:MyCheckBox Text="高级材质" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="选中此功能后会在部分透明区域（例如卡片）实现高斯模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
-                            <Grid x:Name="PanBlurValue" Margin="0,5,0,5" Height="35">
+                        <StackPanel x:Name="PanelBlur" Margin="0,0,0,10">
+                            <local:MyCheckBox Text="高级材质" Height="22" x:Name="CheckBlur" Tag="UiBlur" ToolTip="启用此功能后会在部分透明区域（例如卡片）实现模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"/>
+                            <Grid x:Name="PanBlurValue" Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="SubName" />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition Height="10" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
 
-                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="模糊半径" Margin="0,0,25,0" />
-                                <local:MySlider Grid.Column="1" x:Name="SliderBlurValue" Tag="UiBlurValue" MaxValue="40" ValueByKey="10"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="模糊半径" />
+                                <local:MySlider Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" x:Name="SliderBlurValue" Tag="UiBlurValue" MaxValue="40" ValueByKey="10"
+                                        ToolTip="设定模糊效果的采样半径，值越大模糊效果越强。" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="采样率" />
+                                <local:MySlider Grid.Row="2" Grid.Column="3" x:Name="SliderBlurSamplingRate" Tag="UiBlurSamplingRate" MaxValue="100" ValueByKey="5"
+                                        ToolTip="设定模糊效果的采样率，值越大模糊效果越细致。&#xa;若设备性能不佳，可尝试降低该值以获得更好的性能。" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="模糊方法" />
+                                <local:MyComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboBlurType" Tag="UiBlurType" Height="28" MinWidth="100" ToolTip="设定模糊方法。">
+                                    <local:MyComboBoxItem Content="高斯模糊" ToolTip="对每个像素周围较大范围的像素使用高斯卷积算法的带权重均值采样，速度较慢。&#xa;该模糊质量较高，对细节的处理较为细致，推荐性能较好的设备使用。"/>
+                                    <local:MyComboBoxItem Content="方框模糊" ToolTip="对每个像素周围较小范围的像素使用线性均值采样，速度较快，但容易产生色块。&#xa;该模糊容易丢失细节信息，但性能较好，若设备性能不佳可选择使用。"/>
+                                </local:MyComboBox>
                             </Grid>
                         </StackPanel>
                     </StackPanel>

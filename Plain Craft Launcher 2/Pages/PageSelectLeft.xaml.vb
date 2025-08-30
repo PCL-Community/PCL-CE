@@ -91,7 +91,7 @@ Public Class PageSelectLeft
                     moveDownItem.Visibility = Visibility.Collapsed
                 End If
                 
-                If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = Path & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
+                If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
                 '注册事件
                 If Folder.Type = McFolderType.Custom Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
                 If Folder.Type = McFolderType.RenamedOriginal Then CType(ContMenu.FindName("Restore"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Restore_Click))
@@ -128,7 +128,7 @@ Public Class PageSelectLeft
             FrmSelectLeft.PanList.Children.Add(New TextBlock With {.Text = "添加或导入", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
 
             '确认创建按钮状态
-            If Not Directory.Exists(Path & ".minecraft\") Then
+            If Not Directory.Exists(ExePath & ".minecraft\") Then
                 Dim ItemCreate As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.Clickable, .Title = "新建 .minecraft 文件夹", .Height = 34,
                     .ToolTip = "在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹",
                     .LogoScale = 0.9,
@@ -173,7 +173,7 @@ Public Class PageSelectLeft
             If Not McFolderList.Any() Then
                 Throw New ArgumentNullException("没有可用的 Minecraft 文件夹")
             Else
-                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(Path, "$"))
+                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(ExePath, "$"))
                 CType(FrmSelectLeft.PanList.Children(1), MyListItem).Checked = True
             End If
 
@@ -299,7 +299,7 @@ Public Class PageSelectLeft
                 '保存
                 Setup.Set("LaunchFolders", Join(Folders.ToArray, "|"))
                 '切换选择并更新列表
-                Setup.Set("LaunchFolderSelect", FolderPath.Replace(Path, "$"))
+                Setup.Set("LaunchFolderSelect", FolderPath.Replace(ExePath, "$"))
                 McFolderListLoader.Start(IsForceRestart:=True)
                 '提示
                 If IsReplace Then Return
@@ -337,11 +337,11 @@ Public Class PageSelectLeft
             Hint("在下载任务进行时，无法创建游戏文件夹！", HintType.Critical)
             Return
         End If
-        If Not Directory.Exists(Path & ".minecraft\") Then
-            Directory.CreateDirectory(Path & ".minecraft\")
-            Directory.CreateDirectory(Path & ".minecraft\versions\")
+        If Not Directory.Exists(ExePath & ".minecraft\") Then
+            Directory.CreateDirectory(ExePath & ".minecraft\")
+            Directory.CreateDirectory(ExePath & ".minecraft\versions\")
             Setup.Set("LaunchFolderSelect", "$.minecraft\")
-            McFolderLauncherProfilesJsonCreate(Path & ".minecraft\")
+            McFolderLauncherProfilesJsonCreate(ExePath & ".minecraft\")
             Hint("新建 .minecraft 文件夹成功！", HintType.Finish)
         End If
         McFolderListLoader.Start(IsForceRestart:=True)
@@ -390,7 +390,7 @@ Public Class PageSelectLeft
     End Sub
     Public Sub Delete_Click(sender As Object, e As RoutedEventArgs)
         Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-        Dim DeleteText As String = If((Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = Path & ".minecraft\" AndAlso McFolderList.Count = 1, "清空", "删除")
+        Dim DeleteText As String = If((Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1, "清空", "删除")
         If MyMsgBox("你确定要" & DeleteText & "这个文件夹吗？" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！", "删除警告", "取消", "确认", "取消") <> 2 Then Return
         If MyMsgBox("如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！" & vbCrLf & "继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这是最后一次警告！", "删除警告", "确认" & DeleteText, "取消", IsWarn:=True) <> 1 Then Return
         '移出列表
@@ -482,7 +482,7 @@ Public Class PageSelectLeft
             Return
         End If
         '更换
-        Setup.Set("LaunchFolderSelect", CType(sender.Tag, McFolder).Path.Replace(Path, "$"))
+        Setup.Set("LaunchFolderSelect", CType(sender.Tag, McFolder).Path.Replace(ExePath, "$"))
         McFolderListLoader.Start(IsForceRestart:=True)
         LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
     End Sub

@@ -1990,7 +1990,7 @@ NextInstance:
         '要求 Java 使用高性能显卡
         Try
             SetGPUPreference(McLaunchJavaSelected.JavawExePath, Setup.Get("LaunchAdvanceGraphicCard"))
-            SetGPUPreference(PathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
+            SetGPUPreference(ExePathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
         Catch ex As Exception
             If ProcessInterop.IsAdmin() Then
                 Log(ex, "直接调整显卡设置失败")
@@ -2144,7 +2144,7 @@ NextInstance:
                 $"""{McLaunchJavaSelected.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
                 "echo 游戏已退出。" & vbCrLf &
                 "pause"
-            WriteFile(If(CurrentLaunchOptions.SaveBatch, Path & "PCL\LatestLaunch.bat"), FilterAccessToken(CmdString, "F"),
+            WriteFile(If(CurrentLaunchOptions.SaveBatch, ExePath & "PCL\LatestLaunch.bat"), FilterAccessToken(CmdString, "F"),
                       Encoding:=If(McLaunchJavaSelected.JavaMajorVersion > 8, Encoding.UTF8, Encoding.Default))
             If CurrentLaunchOptions.SaveBatch IsNot Nothing Then
                 McLaunchLog("导出启动脚本完成，强制结束启动过程")
@@ -2384,7 +2384,7 @@ NextInstance:
         Else
             Raw = Raw.Replace("{version}", McInstanceCurrent.Version.McName)
         End If
-        Raw = Raw.Replace("{path}", Path)
+        Raw = Raw.Replace("{path}", ExePath)
         Return Raw
     End Function
 

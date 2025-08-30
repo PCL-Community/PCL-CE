@@ -40,7 +40,7 @@
             Case 1
                 '加载本地文件
                 Log("[Page] 主页自定义数据来源：本地文件")
-                Content = ReadFile(Path & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
+                Content = ReadFile(ExePath & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
             Case 2
                 Url = Setup.Get("UiCustomNet")
 Download:

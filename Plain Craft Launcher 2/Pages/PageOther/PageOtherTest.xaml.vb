@@ -23,7 +23,7 @@ Public Class PageOtherTest
         TextDownloadFolder.Validate()
 
         If Not String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) OrElse String.IsNullOrEmpty(TextDownloadFolder.Text) Then
-            TextDownloadFolder.Text = ModBase.Path + "PCL\MyDownload\"
+            TextDownloadFolder.Text = ExePath + "PCL\MyDownload\"
         End If
 
         TextDownloadFolder.Validate()
@@ -198,7 +198,7 @@ Public Class PageOtherTest
 
                         MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
 
-                        Process.Start(New ProcessStartInfo(PathWithName))
+                        Process.Start(New ProcessStartInfo(ExePathWithName))
                         FormMain.EndProgramForce(ProcessReturnValues.Success)
                     End If
                     Hint("请先关闭所有运行中的游戏……")

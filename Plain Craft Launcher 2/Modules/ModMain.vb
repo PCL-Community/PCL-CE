@@ -689,8 +689,8 @@ EndHint:
                 Try
                     Dim IgnoreList As New List(Of String)
                     '读取自定义文件
-                    If Directory.Exists(Path & "PCL\Help\") Then
-                        For Each File In EnumerateFiles(Path & "PCL\Help\")
+                    If Directory.Exists(ExePath & "PCL\Help\") Then
+                        For Each File In EnumerateFiles(ExePath & "PCL\Help\")
                             Select Case File.Extension.ToLower
                                 Case ".helpignore"
                                     '加载忽略列表
@@ -765,7 +765,7 @@ NextFile:
     ''' 对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
     ''' </summary>
     Public Function HelpArgumentReplace(Xaml As String) As String
-        Dim Result = Xaml.Replace("{path}", EscapeXML(Path))
+        Dim Result = Xaml.Replace("{path}", EscapeXML(ExePath))
         Result = Result.RegexReplaceEach("\{hint\}", Function() EscapeXML(PageOtherTest.GetRandomHint()))
         Result = Result.RegexReplaceEach("\{cave\}", Function() EscapeXML(PageOtherTest.GetRandomCave()))
         Return Result

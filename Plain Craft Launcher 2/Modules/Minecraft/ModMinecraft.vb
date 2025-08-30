@@ -75,8 +75,8 @@ Public Module ModMinecraft
             Dim originalMcFolderList = New List(Of McFolder)
             '扫描当前文件夹
             Try
-                If Directory.Exists(Path & "versions\") Then originalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path, .Type = McFolderType.Original})
-                For Each folder As DirectoryInfo In New DirectoryInfo(Path).GetDirectories
+                If Directory.Exists(ExePath & "versions\") Then originalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = ExePath, .Type = McFolderType.Original})
+                For Each folder As DirectoryInfo In New DirectoryInfo(ExePath).GetDirectories
                     If Directory.Exists(folder.FullName & "versions\") OrElse folder.Name = ".minecraft" Then
                         Dim newCurrentFolder As New McFolder With {.Name = folder.Name, .Path = folder.FullName & "\", .Type = McFolderType.Original}
                         originalMcFolderList.Add(newCurrentFolder)
@@ -127,8 +127,8 @@ Public Module ModMinecraft
 
             '若没有可用文件夹，则创建 .minecraft
             If Not cacheMcFolderList.Any() Then
-                Directory.CreateDirectory(Path & ".minecraft\versions\")
-                cacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path & ".minecraft\", .Type = McFolderType.Original})
+                Directory.CreateDirectory(ExePath & ".minecraft\versions\")
+                cacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = ExePath & ".minecraft\", .Type = McFolderType.Original})
             End If
 
             For Each Folder As McFolder In cacheMcFolderList

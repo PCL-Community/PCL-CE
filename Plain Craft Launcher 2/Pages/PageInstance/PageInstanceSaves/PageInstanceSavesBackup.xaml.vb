@@ -83,7 +83,7 @@ Class PageInstanceSavesBackup
                                                     "选择保存备份导出的位置",
                                                     $"{item.Name}.zip",
                                                     "压缩文件(*.zip)|*.zip",
-                                                    Path)
+                                                    ExePath)
                                                     If String.IsNullOrEmpty(savePath) Then Return
                                                     Hint("快照导出中，请勿执行其他操作！")
                                                     Dim loaders As New List(Of LoaderBase)
