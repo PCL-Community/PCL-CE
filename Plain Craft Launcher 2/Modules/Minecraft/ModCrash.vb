@@ -405,6 +405,14 @@ Extracted:
         _version = version
         Log("[Crash] 步骤 3：分析崩溃原因")
         LogAll = If(LogMc, If(LogMcDebug, "")) & If(LogHs, "") & If(LogCrash, "")
+        
+        '处理 Quilt Mod Table 以避免错误分析 (CE #107)
+        If LogAll.Contains("quilt") AndAlso LogAll.Contains("Mod Table Version") Then
+            Log("[Crash] 处理 Quilt Mod Table 后再继续分析")
+            Dim beforeTable = LogAll.BeforeFirst("| Index")
+            Dim afterTable = LogAll.AfterFirst("Mod Table Version:")
+            LogAll = beforeTable & afterTable
+        End If
 
         '1. 精准日志匹配，中/高优先级
         AnalyzeCrit1()
@@ -698,7 +706,7 @@ Done:
             'If Not Stack.Contains(".") Then Continue For
             For Each IgnoreStack In {
                 "java", "sun", "javax", "jdk", "oolloo",
-                "org.lwjgl", "com.sun", "net.minecraftforge", "paulscode.sound", "com.mojang", "net.minecraft", "cpw.mods", "com.google", "org.apache", "org.spongepowered", "net.fabricmc", "com.mumfrey",
+                "org.lwjgl", "com.sun", "net.minecraftforge", "paulscode.sound", "com.mojang", "net.minecraft", "cpw.mods", "com.google", "org.apache", "org.spongepowered", "net.fabricmc", "com.mumfrey", "org.quiltmc",
                 "com.electronwill.nightconfig", "it.unimi.dsi",
                 "MojangTricksIntelDriversForPerformance_javaw"}
                 If Stack.StartsWithF(IgnoreStack) Then GoTo NextStack
@@ -707,6 +715,7 @@ Done:
 NextStack:
         Next
         PossibleStacks = PossibleStacks.Distinct.ToList
+        
         Log("[Crash] 找到 " & PossibleStacks.Count & " 条可能的堆栈信息")
         If Not PossibleStacks.Any() Then Return New List(Of String)
         For Each Stack As String In PossibleStacks
@@ -766,6 +775,11 @@ NextStack:
             If IsFabricDetail Then
                 Details = Details.Replace("Fabric Mods", "¨")
                 Log("[Crash] 崩溃报告中检测到 Fabric Mod 信息格式")
+            End If
+            Dim isQuiltDetail As Boolean = Details.Contains("quilt-loader")
+            If isQuiltDetail Then
+                Details = Details.Replace("Mod Table Version", "¨")
+                Log("[Crash] 崩溃报告中检测到 Quilt Mod 信息格式")
             End If
             Details = Details.AfterLast("¨")
 
