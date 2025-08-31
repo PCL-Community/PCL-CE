@@ -1,12 +1,10 @@
 ﻿Imports System.Globalization
 Imports System.IO.Compression
-Imports System.Text.RegularExpressions
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
-Imports PCL.Core.Utils.OS
 
 Class PageOtherLog
     Private Sub PageOtherLog_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
