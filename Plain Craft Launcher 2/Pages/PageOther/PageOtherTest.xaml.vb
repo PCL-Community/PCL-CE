@@ -620,4 +620,10 @@ Public Class PageOtherTest
         End If
         Return url
     End Function
+
+    Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)
+        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText := """sURe"".ToUpper()", IsWarn := True) = "SURE" Then
+            Throw New Exception("手动崩溃")
+        End If
+    End Sub
 End Class

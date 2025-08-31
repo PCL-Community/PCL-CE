@@ -150,7 +150,6 @@ WaitRetry:
             Setup.Load("SystemHttpProxyCustomUsername")
             Setup.Load("SystemHttpProxyType")
             Setup.Load("ToolDownloadThread")
-            Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
             If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
@@ -187,6 +186,8 @@ WaitRetry:
         FrmMain.EndProgram(False)
     End Sub
 
+#If False
+
     '异常
     Private Sub Application_DispatcherUnhandledException(sender As Object, e As DispatcherUnhandledExceptionEventArgs) Handles Me.DispatcherUnhandledException
         On Error Resume Next
@@ -204,6 +205,7 @@ WaitRetry:
 
     Private Declare Function SetDllDirectory Lib "kernel32" Alias "SetDllDirectoryA" (lpPathName As String) As Boolean
 
+#End If
 
     '切换窗口
 

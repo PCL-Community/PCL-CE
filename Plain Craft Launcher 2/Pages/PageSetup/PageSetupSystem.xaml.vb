@@ -61,8 +61,6 @@ Class PageSetupSystem
         CheckSystemTelemetry.Checked = Setup.Get("SystemTelemetry")
 
         '网络
-        CheckDownloadCert.Checked = Setup.Get("ToolDownloadCert")
-
         TextSystemHttpProxy.Text = Setup.Get("SystemHttpProxy")
         TextSystemHttpProxyCustomUsername.Text = Setup.Get("SystemHttpProxyCustomUsername")
         TextSystemHttpProxyCustomPassword.Text = Setup.Get("SystemHttpProxyCustomPassword")
@@ -105,7 +103,6 @@ Class PageSetupSystem
             Setup.Reset("SystemHttpProxyType")
             Setup.Reset("SystemHttpProxyCustomUsername")
             Setup.Reset("SystemHttpProxyCustomPassword")
-            Setup.Reset("ToolDownloadCert")
             Setup.Reset("SystemUseDefaultProxy")
             Setup.Reset("UiAniFPS")
 
@@ -119,7 +116,7 @@ Class PageSetupSystem
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadCert.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change, SliderMaxLog.Change
@@ -158,7 +155,7 @@ Class PageSetupSystem
                     Return "无限制"
             End Select
         End Function
-        SliderDebugAnim.GetHintText = Function(v) If(v > 29, "关闭", (v / 10 + 0.1) & "x")
+        SliderDebugAnim.GetHintText = Function(v) If(v > 29, "关闭", Math.Round((v / 10 + 0.1), 1) & "x")
         SliderAniFPS.GetHintText =
             Function(v)
                 Return $"{v + 1} FPS"
