@@ -692,7 +692,7 @@ Public Class FormMain
     End Sub
     Private Sub FileDrag(FilePathList As IEnumerable(Of String))
         RunInNewThread(
-        Async Sub()
+        Sub()
             Dim FilePath As String = FilePathList.First
             Log("[System] 接受文件拖拽：" & FilePath & If(FilePathList.Any, $" 等 {FilePathList.Count} 个文件", ""), LogLevel.Developer)
             '基础检查
@@ -811,7 +811,7 @@ Public Class FormMain
             If {"zip", "rar"}.Any(Function(t) t = Extension) Then
                 Log("[System] 文件为压缩包，尝试作为存档分析")
                 Try
-                    Await ReadWorld(FilePath)
+                    ReadWorld(FilePath)
                     Return
                 Catch ex As CancelledException
                     Return '是存档，但是损坏了
