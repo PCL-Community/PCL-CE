@@ -100,6 +100,35 @@ Public Module ModComp
         Modrinth = 2
         Any = CurseForge Or Modrinth
     End Enum
+    ''' <summary>
+    ''' 搜索结果排序方式
+    ''' </summary>
+    Public Enum CompSortType
+        ''' <summary>
+        ''' 默认
+        ''' </summary>
+        [Default] = 1
+        ''' <summary>
+        ''' 相关性 (CurseForge Name (4) / Modrinth relevance)
+        ''' </summary>
+        Relevance = 2
+        ''' <summary>
+        ''' 下载量 (CurseForge TotalDownloads (6) / Modrinth downloads)
+        ''' </summary>
+        Downloads = 3
+        ''' <summary>
+        ''' 关注量 (CurseForge Popularity (2) / Modrinth follows)
+        ''' </summary>
+        Follows = 4
+        ''' <summary>
+        ''' 最新发布 (CurseForge ReleasedDate (11) / Modrinth newest)
+        ''' </summary>
+        Newest = 5
+        ''' <summary>
+        ''' 最近更新 (CurseForge LastUpdated (3) / Modrinth updated)
+        ''' </summary>
+        Updated = 6
+    End Enum
 
 #Region "CompDatabase | Mod 数据库"
 
@@ -952,6 +981,10 @@ NoSubtitle:
         ''' </summary>
         Public Source As CompSourceType = CompSourceType.Any
         ''' <summary>
+        ''' 搜索结果排序方式。
+        ''' </summary>
+        Public Sort As CompSortType = CompSortType.Default
+        ''' <summary>
         ''' 构造函数。
         ''' </summary>
         Public Sub New(Type As CompType, Storage As CompProjectStorage, TargetResultCount As Integer)
@@ -990,6 +1023,18 @@ NoSubtitle:
             If Not String.IsNullOrEmpty(GameVersion) Then Address += "&gameVersion=" & GameVersion
             If Not String.IsNullOrEmpty(SearchText) Then Address += "&searchFilter=" & Net.WebUtility.UrlEncode(SearchText)
             If Storage.CurseForgeOffset > 0 Then Address += "&index=" & Storage.CurseForgeOffset
+            Select Case Sort
+                Case CompSortType.Relevance
+                    Address += "&sortField=4&sortOrder=desc"
+                Case CompSortType.Downloads
+                    Address += "&sortField=6&sortOrder=desc"
+                Case CompSortType.Follows
+                    Address += "&sortField=2&sortOrder=desc"
+                Case CompSortType.Newest
+                    Address += "&sortField=11&sortOrder=desc"
+                Case CompSortType.Updated
+                    Address += "&sortField=3&sortOrder=desc"
+            End Select
             Return Address
         End Function
         ''' <summary>
@@ -1000,7 +1045,21 @@ NoSubtitle:
             If Tag.EndsWithF("/") Then Storage.ModrinthTotal = 0
             If Storage.ModrinthTotal > -1 AndAlso Storage.ModrinthTotal <= Storage.ModrinthOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.modrinth.com/v2/search?limit={CompPageSize}&index=relevance"
+            Dim Address As String = $"https://api.modrinth.com/v2/search?limit={CompPageSize}"
+            Select Case Sort
+                Case CompSortType.Relevance
+                    Address += "&index=relevance"
+                Case CompSortType.Downloads
+                    Address += "&index=downloads"
+                Case CompSortType.Follows
+                    Address += "&index=follows"
+                Case CompSortType.Newest
+                    Address += "&index=newest"
+                Case CompSortType.Updated
+                    Address += "&index=updated"
+                Case Else
+                    Address += "&index=relevance"
+            End Select
             If Not String.IsNullOrEmpty(SearchText) Then Address += "&query=" & Net.WebUtility.UrlEncode(SearchText)
             If Storage.ModrinthOffset > 0 Then Address += "&offset=" & Storage.ModrinthOffset
             'facets=[["categories:'game-mechanics'"],["categories:'forge'"],["versions:1.19.3"],["project_type:mod"]]
@@ -1019,7 +1078,7 @@ NoSubtitle:
             Return request IsNot Nothing AndAlso
                 Type = request.Type AndAlso TargetResultCount = request.TargetResultCount AndAlso
                 Tag = request.Tag AndAlso ModLoader = request.ModLoader AndAlso Source = request.Source AndAlso
-                GameVersion = request.GameVersion AndAlso SearchText = request.SearchText
+                GameVersion = request.GameVersion AndAlso SearchText = request.SearchText AndAlso Sort = request.Sort
         End Function
         Public Shared Operator =(left As CompProjectRequest, right As CompProjectRequest) As Boolean
             Return EqualityComparer(Of CompProjectRequest).Default.Equals(left, right)
@@ -1180,7 +1239,7 @@ Retry:
 
         '在 1.14-，部分老 Mod 没有设置支持的加载器，因此添加 Forge 筛选就会出现遗漏
         '所以，在发起请求时不筛选加载器，然后在返回的结果中自行筛除不是 Forge 的 Mod
-        Dim IsOldForgeRequest = Request.ModLoader = CompLoaderType.Forge AndAlso Request.GameVersion?.Contains(".") AndAlso Val(Request.GameVersion.Split(".")(1)) < 14
+        Dim IsOldForgeRequest = Request.ModLoader = CompLoaderType.Forge AndAlso Request.GameVersion?.Contains(".") AndAlso Val(Request.GameVersion?.Split(".")(1)) < 14
         If IsOldForgeRequest Then Request.ModLoader = CompLoaderType.Any
         Dim CurseForgeUrl As String = Request.GetCurseForgeAddress()
         Dim ModrinthUrl As String = Request.GetModrinthAddress()
