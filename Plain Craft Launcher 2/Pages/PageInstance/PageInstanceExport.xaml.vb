@@ -1,4 +1,5 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.UI
 
 Public Class ExportOption
     Public Property Title As String
@@ -311,7 +312,7 @@ Public Class PageInstanceExport
     '保存配置文件
     Private Sub ExportConfig() Handles BtnAdvancedExport.Click
         Try
-            Dim ConfigPath As String = SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim ConfigLines As New List(Of String)
@@ -357,7 +358,7 @@ Public Class PageInstanceExport
     '读取配置文件
     Private Sub ImportConfig() Handles BtnAdvancedImport.Click
         Try
-            Dim ConfigPath As String = SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
+            Dim ConfigPath As String = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
             If String.IsNullOrEmpty(ConfigPath) Then Return
             Setup.Set("CacheExportConfig", ConfigPath)
             Dim Segments As String() = ReadFile(ConfigPath).Split(Sperator)
@@ -425,14 +426,14 @@ Public Class PageInstanceExport
                 Log($"[Export] 使用配置文件中指定的导出路径：{ConfigPackPath}")
             Catch ex As Exception
                 Log(ex, $"无法使用配置文件中指定的导出路径（{ConfigPackPath}）", LogLevel.Debug)
-                If MyMsgBox($"指定的路径：{ConfigPackPath}{vbCrLf}{vbCrLf}{GetExceptionDetail(ex)}", "无法使用配置文件中指定的导出路径", "确定", "取消") = 2 Then Return
+                If MyMsgBox($"指定的路径：{ConfigPackPath}{vbCrLf}{vbCrLf}{ex.ToString()}", "无法使用配置文件中指定的导出路径", "确定", "取消") = 2 Then Return
             End Try
         End If
         If PackPath Is Nothing Then
             Dim Extensions As New List(Of String)
             If Not CheckAdvancedModrinth.Checked Then Extensions.Add("压缩文件(*.zip)|*.zip")
             If Not CheckOptionsPcl.Checked Then Extensions.Add("Modrinth 整合包文件(*.mrpack)|*.mrpack")
-            PackPath = SelectSaveFile("选择导出位置",
+            PackPath = SystemDialogs.SelectSaveFile("选择导出位置",
                 PackName & If(String.IsNullOrEmpty(TextExportVersion.Text), "", " " & TextExportVersion.Text), Extensions.Join("|"))
             Log($"[Export] 手动指定的导出路径：{PackPath}")
         End If
@@ -539,17 +540,17 @@ Public Class PageInstanceExport
             CopyDirectory(McInstance.Path & "PCL\", OverridesFolder & "PCL\")
 #If RELEASE Then
             '复制 PCL 本体
-            If IncludePCL Then CopyFile(PathWithName, CacheFolder & "Plain Craft Launcher.exe")
+            If IncludePCL Then CopyFile(ExePathWithName, CacheFolder & "Plain Craft Launcher.exe")
 #End If
             '复制 PCL 个性化内容
             If IncludePCLCustom Then
-                If Directory.Exists(Path & "PCL\Pictures\") Then CopyDirectory(Path & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
-                If Directory.Exists(Path & "PCL\Musics\") Then CopyDirectory(Path & "PCL\Musics\", CacheFolder & "PCL\Musics\")
-                If Directory.Exists(Path & "PCL\Help\") Then CopyDirectory(Path & "PCL\Help\", CacheFolder & "PCL\Help\")
-                If File.Exists(Path & "PCL\Custom.xaml") Then CopyFile(Path & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
-                If File.Exists(Path & "PCL\Setup.ini") Then CopyFile(Path & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
-                If File.Exists(Path & "PCL\hints.txt") Then CopyFile(Path & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
-                If File.Exists(Path & "PCL\Logo.png") Then CopyFile(Path & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
+                If Directory.Exists(ExePath & "PCL\Pictures\") Then CopyDirectory(ExePath & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
+                If Directory.Exists(ExePath & "PCL\Musics\") Then CopyDirectory(ExePath & "PCL\Musics\", CacheFolder & "PCL\Musics\")
+                If Directory.Exists(ExePath & "PCL\Help\") Then CopyDirectory(ExePath & "PCL\Help\", CacheFolder & "PCL\Help\")
+                If File.Exists(ExePath & "PCL\Custom.xaml") Then CopyFile(ExePath & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
+                If File.Exists(ExePath & "PCL\Setup.ini") Then CopyFile(ExePath & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
+                If File.Exists(ExePath & "PCL\hints.txt") Then CopyFile(ExePath & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
+                If File.Exists(ExePath & "PCL\Logo.png") Then CopyFile(ExePath & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
             End If
         End Sub) With {.ProgressWeight = 5})
 

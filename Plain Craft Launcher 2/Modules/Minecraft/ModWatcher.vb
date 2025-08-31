@@ -40,6 +40,9 @@ Public Module ModWatcher
         ElseIf Setup.Get("UiMusicStart") Then
             RunInUi(Sub() If MusicPause() Then Log("[Music] 已根据设置，在结束后暂停音乐播放"))
         End If
+        '开始视频背景播放
+        ModVideoBack.IsGaming = False
+        VideoPlay()
         '启动器可见性
         Select Case Setup.Get("LaunchArgumentVisible")
             Case 2
@@ -479,7 +482,7 @@ Public Module ModWatcher
                     Analyzer.Prepare()
                     Analyzer.Analyze(Version)
                     Analyzer.Output(False, New List(Of String) From
-                        {Version.Path & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), Path & "PCL\LatestLaunch.bat"})
+                        {Version.Path & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), ExePath & "PCL\LatestLaunch.bat"})
                 Catch ex As Exception
                     Log(ex, "崩溃分析失败", LogLevel.Feedback)
                 End Try

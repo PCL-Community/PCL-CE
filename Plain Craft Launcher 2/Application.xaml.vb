@@ -1,6 +1,9 @@
 ﻿Imports System.Windows.Threading
+Imports System.IO
 Imports PCL.Core.App
+Imports PCL.Core.IO
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
@@ -73,16 +76,16 @@ Public Class Application
                 End If
             End If
             '初始化文件结构
-            Directory.CreateDirectory(Path & "PCL\Pictures")
-            Directory.CreateDirectory(Path & "PCL\Musics")
+            Directory.CreateDirectory(ExePath & "PCL\Pictures")
+            Directory.CreateDirectory(ExePath & "PCL\Musics")
             Try
                 Directory.CreateDirectory(PathTemp)
                 If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
             Catch ex As Exception
                 If PathTemp = IO.Path.GetTempPath() & "PCL\" Then
-                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & GetExceptionDetail(ex), "缓存文件夹不可用")
+                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
                 Else
-                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & GetExceptionDetail(ex), "缓存文件夹不可用")
+                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
                     Setup.Set("SystemSystemCache", "")
                     PathTemp = IO.Path.GetTempPath() & "PCL\"
                 End If
@@ -125,44 +128,20 @@ WaitRetry:
             '添加日志
             Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
             Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{PathWithName}")
+            Log($"[Start] 程序路径：{ExePathWithName}")
             Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
             Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
-            Log($"[Start] 管理员权限：{IsAdmin()}")
+            Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
             '检测异常环境
-            If Path.Contains(IO.Path.GetTempPath()) OrElse Path.Contains("AppData\Local\Temp\") Then
-                MyMsgBox("请将 PCL 从压缩包中解压之后再使用！" & vbCrLf & "在当前环境下运行可能会导致丢失游戏存档或设置，部分功能也可能无法使用！", "环境警告", "我知道了", IsWarn:=True)
-            End If
-            If Path.ContainsF("wechat_files", True) OrElse Path.ContainsF("WeChat Files", True) OrElse Path.ContainsF("Tencent Files", True) Then
-                MyMsgBox("请不要将 PCL 放置在 QQ、微信、TIM 等社交软件的下载目录！" & vbCrLf & "在这些地方运行可能会导致丢失游戏存档或设置，部分功能也可能无法使用！", "环境警告", "我知道了", IsWarn:=True)
-            End If
-            If Is32BitSystem Then
-                MyMsgBox("PCL 和新版 Minecraft 均不再支持 32 位系统，部分功能将无法使用。" & vbCrLf & "非常建议重装为 64 位系统后再进行游戏！", "环境警告", "我知道了", IsWarn:=True)
-            End If
-            Dim IS_WINDOWS_MEET_REQUIRE As Boolean = Environment.OSVersion.Version.Major >= 10
-            Dim IS_FRAMEWORK_MEET_REQUIRE As Boolean
-            Using key = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32)
-                Using ndpKey = key.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\")
-                    If ndpKey IsNot Nothing AndAlso ndpKey.GetValue("Release") IsNot Nothing Then
-                        Dim rt = ndpKey.GetValue("Release")
-                        IS_FRAMEWORK_MEET_REQUIRE = Val(rt) >= 528040
-                        Log($"[Runtime] 检测到运行时版本为 {Val(rt)}")
-                    Else
-                        Log("[Runtime] 检测不到运行时")
-                    End If
-                End Using
-            End Using
-            Dim ProblemList As New List(Of String)
-            If Not IS_WINDOWS_MEET_REQUIRE Then ProblemList.Add("Windows 版本不满足最低要求，最低需要 Windows 10 20H2")
-            If Not IS_FRAMEWORK_MEET_REQUIRE Then ProblemList.Add(".NET Framework 版本不满足要求，需要 .NET Framework 4.8.1")
-            If ProblemList.Count <> 0 Then
+            Dim problemList As New List(Of String)
+            If Not Environment.OSVersion.Version.Build >= 17763 Then problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统")
+            If Is32BitSystem then problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏")
+            If ExePath.Contains(IO.Path.GetTempPath()) OrElse ExePath.Contains("AppData\Local\Temp\") Then problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失")
+            If ExePath.ContainsF("wechat_files", True) OrElse ExePath.ContainsF("WeChat Files", True) OrElse ExePath.ContainsF("Tencent Files", True) Then problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失")
+            If problemList.Count <> 0 Then
                 MyMsgBox("PCL CE 在启动时检测到环境问题：" & vbCrLf & vbCrLf &
-                         ProblemList.Join(vbCrLf) & vbCrLf & vbCrLf &
-                         "需要解决这些问题才能正常使用启动器……",
-                        Button2:=If(IS_WINDOWS_MEET_REQUIRE, String.Empty, "升级系统"),
-                        Button2Action:=Sub() OpenWebsite("https://www.microsoft.com/zh-cn/software-download/windows10"),
-                        Button3:=If(IS_FRAMEWORK_MEET_REQUIRE, String.Empty, "安装框架"),
-                        Button3Action:=Sub() OpenWebsite("https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net481-offline-installer"))
+                         problemList.Join(vbCrLf) & vbCrLf & vbCrLf &
+                         "不解决这些问题可能会导致部分功能无法正常工作……", "环境警告", "我知道了", IsWarn:=True)
             End If
             '设置初始化
             Setup.Load("SystemDebugMode")
@@ -171,7 +150,6 @@ WaitRetry:
             Setup.Load("SystemHttpProxyCustomUsername")
             Setup.Load("SystemHttpProxyType")
             Setup.Load("ToolDownloadThread")
-            Setup.Load("ToolDownloadCert")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
             If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
@@ -179,14 +157,14 @@ WaitRetry:
             End If
             '删除旧日志
             For i = 1 To 5
-                Dim oldLogFile = $"{Path}PCL\Log-CE{i}.log"
+                Dim oldLogFile = $"{ExePath}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
             'Pipe RPC 初始化
             StartEchoPipe()
             '计时
-            Log("[Start] 第一阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
-            ApplicationStartTick = GetTimeTick()
+            Log("[Start] 第一阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
+            ApplicationStartTick = TimeUtils.GetTimeTick()
             '执行测试
 #If DEBUGRESERVED Then
             Test()
@@ -195,10 +173,10 @@ WaitRetry:
         Catch ex As Exception
             Dim FilePath As String = Nothing
             Try
-                FilePath = PathWithName
+                FilePath = ExePathWithName
             Catch
             End Try
-            MsgBox(GetExceptionDetail(ex, True) & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")
+            MsgBox(ex.ToString() & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")
             FormMain.EndProgramForce(ProcessReturnValues.Exception)
         End Try
     End Sub
@@ -208,17 +186,18 @@ WaitRetry:
         FrmMain.EndProgram(False)
     End Sub
 
+#If False
+
     '异常
     Private Sub Application_DispatcherUnhandledException(sender As Object, e As DispatcherUnhandledExceptionEventArgs) Handles Me.DispatcherUnhandledException
         On Error Resume Next
         e.Handled = True
         If IsProgramEnded Then Return
         FeedbackInfo()
-        Dim Detail As String = GetExceptionDetail(e.Exception, True)
-        If Detail.Contains("System.Windows.Threading.Dispatcher.Invoke") OrElse Detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") OrElse Detail.Contains("未能加载文件或程序集") OrElse
-           Detail.Contains(".NET Framework") Then ' “自动错误判断” 的结果分析
-            OpenWebsite("https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net481-offline-installer")
-            Log(e.Exception, "你的 .NET Framework 版本过低或损坏，请下载并重新安装 .NET Framework 4.8.1！" & vbCrLf & "若无法安装，可卸载高版本的 .NET Framework 后再试。", LogLevel.Critical, "运行环境错误")
+        Dim Detail As String = e.Exception.ToString()
+        If Detail.Contains("System.Windows.Threading.Dispatcher.Invoke") OrElse Detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") OrElse Detail.Contains("未能加载文件或程序集") Then ' “自动错误判断” 的结果分析
+            OpenWebsite("https://get.dot.net/8")
+            Log(e.Exception, "你的 .NET 桌面运行时版本过低或损坏，请下载并重新安装 .NET 8！", LogLevel.Critical, "运行环境错误")
         Else
             Log(e.Exception, "程序出现未知错误", LogLevel.Critical, "锟斤拷烫烫烫")
         End If
@@ -226,6 +205,7 @@ WaitRetry:
 
     Private Declare Function SetDllDirectory Lib "kernel32" Alias "SetDllDirectoryA" (lpPathName As String) As Boolean
 
+#End If
 
     '切换窗口
 

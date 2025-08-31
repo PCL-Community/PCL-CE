@@ -2,8 +2,10 @@ Imports System.ComponentModel
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
+Imports System
 Imports System.IO.Compression
 Imports PCL.Core.Net
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Hash
 
 Public Module ModNet
@@ -97,7 +99,7 @@ Public Module ModNet
                                              Optional IsJson As Boolean = False, Optional BackupUrl As String = Nothing, Optional UseBrowserUserAgent As Boolean = False)
         Dim RetryCount As Integer = 0
         Dim RetryException As Exception = Nothing
-        Dim StartTime As Long = GetTimeTick()
+        Dim StartTime As Long = TimeUtils.GetTimeTick()
         While RetryCount <= 3
             RetryCount += 1
             Try
@@ -108,7 +110,7 @@ Public Module ModNet
                         Thread.Sleep(500)
                         Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 30000, IsJson, Accept, UseBrowserUserAgent)
                     Case Else '快速重试
-                        If GetTimeTick() - StartTime > 5500 Then
+                        If TimeUtils.GetTimeTick() - StartTime > 5500 Then
                             '若前两次加载耗费 5 秒以上，才进行重试
                             Thread.Sleep(500)
                             Return NetGetCodeByRequestOnce(If(BackupUrl, Url), Encode, 4000, IsJson, Accept, UseBrowserUserAgent)
@@ -262,7 +264,7 @@ Public Module ModNet
     Public Function NetRequestRetry(Url As String, Method As String, Data As Object, ContentType As String, Optional DontRetryOnRefused As Boolean = True, Optional Headers As Dictionary(Of String, String) = Nothing) As String
         Dim RetryCount As Integer = 0
         Dim RetryException As Exception = Nothing
-        Dim StartTime As Long = GetTimeTick()
+        Dim StartTime As Long = TimeUtils.GetTimeTick()
         While RetryCount <= 3
             RetryCount += 1
             Try
@@ -273,7 +275,7 @@ Public Module ModNet
                         Thread.Sleep(500)
                         Return NetRequestOnce(Url, Method, Data, ContentType, 25000, Headers)
                     Case Else '快速重试
-                        If GetTimeTick() - StartTime > 5500 Then
+                        If TimeUtils.GetTimeTick() - StartTime > 5500 Then
                             '若前两次加载耗费 5 秒以上，才进行重试
                             Thread.Sleep(500)
                             Return NetRequestOnce(Url, Method, Data, ContentType, 4000, Headers)
@@ -570,7 +572,7 @@ Public Module ModNet
         ''' <summary>
         ''' 上次记速时的时间。
         ''' </summary>
-        Private SpeedLastTime As Long = GetTimeTick()
+        Private SpeedLastTime As Long = TimeUtils.GetTimeTick()
         ''' <summary>
         ''' 上次记速时的已下载大小。
         ''' </summary>
@@ -580,8 +582,8 @@ Public Module ModNet
         ''' </summary>
         Public ReadOnly Property Speed As Long
             Get
-                If GetTimeTick() - SpeedLastTime > 200 Then
-                    Dim DeltaTime As Long = GetTimeTick() - SpeedLastTime
+                If TimeUtils.GetTimeTick() - SpeedLastTime > 200 Then
+                    Dim DeltaTime As Long = TimeUtils.GetTimeTick() - SpeedLastTime
                     _Speed = (DownloadDone - SpeedLastDone) / (DeltaTime / 1000)
                     SpeedLastDone = DownloadDone
                     SpeedLastTime += DeltaTime
@@ -594,7 +596,7 @@ Public Module ModNet
         ''' <summary>
         ''' 线程初始化时的时间。
         ''' </summary>
-        Public InitTime As Long = GetTimeTick()
+        Public InitTime As Long = TimeUtils.GetTimeTick()
         ''' <summary>
         ''' 上次接受到有效数据的时间，-1 表示尚未有有效数据。
         ''' </summary>
@@ -752,7 +754,7 @@ Public Module ModNet
         ''' <summary>
         ''' 上次记速时的时间。
         ''' </summary>
-        Private SpeedLastTime As Long = GetTimeTick()
+        Private SpeedLastTime As Long = TimeUtils.GetTimeTick()
         ''' <summary>
         ''' 上次记速时的已下载大小。
         ''' </summary>
@@ -762,8 +764,8 @@ Public Module ModNet
         ''' </summary>
         Public ReadOnly Property Speed As Long
             Get
-                If GetTimeTick() - SpeedLastTime > 200 Then
-                    Dim DeltaTime As Long = GetTimeTick() - SpeedLastTime
+                If TimeUtils.GetTimeTick() - SpeedLastTime > 200 Then
+                    Dim DeltaTime As Long = TimeUtils.GetTimeTick() - SpeedLastTime
                     _Speed = (DownloadDone - SpeedLastDone) / (DeltaTime / 1000)
                     SpeedLastDone = DownloadDone
                     SpeedLastTime += DeltaTime
@@ -1065,12 +1067,12 @@ NotSupportRange:
                             Info.Temp = Nothing
                             SmailFileCache = New Queue(Of Byte)
                         Else
-                            Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomInteger(0, 999999)}.tmp"
+                            Info.Temp = $"{PathTemp}Download\{Uuid}_{Info.Uuid}_{RandomUtils.NextInt(0, 999999)}.tmp"
                             ResultStream = New FileStream(Info.Temp, FileMode.Create, FileAccess.Write, FileShare.Read)
                         End If
                         '开始下载
                         Using HttpStream = response.Content.ReadAsStreamAsync().Result
-                            If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomInteger(50, 3000))
+                            If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
                             Const bufferSize As Integer = 16384
                             Dim HttpData As Byte() = New Byte(bufferSize) {}
                             HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
@@ -1084,7 +1086,7 @@ NotSupportRange:
                                 SyncLock NetTaskSpeedLimitLeftLock
                                     If NetTaskSpeedLimitHigh > 0 Then NetTaskSpeedLimitLeft -= RealDataCount
                                 End SyncLock
-                                Dim DeltaTime = GetTimeTick() - Info.LastReceiveTime
+                                Dim DeltaTime = TimeUtils.GetTimeTick() - Info.LastReceiveTime
                                 If DeltaTime > 1000000 Then DeltaTime = 1 '时间刻反转导致出现极大值
                                 If RealDataCount > 0 Then
                                     '有数据
@@ -1096,7 +1098,7 @@ NotSupportRange:
                                         End SyncLock
                                         SyncLock LockCount
                                             ConnectCount += 1
-                                            ConnectTime += GetTimeTick() - Info.InitTime
+                                            ConnectTime += TimeUtils.GetTimeTick() - Info.InitTime
                                         End SyncLock
                                     End If
                                     SyncLock LockCount
@@ -1129,7 +1131,7 @@ NotSupportRange:
                                     If DeltaTime > 1500 AndAlso DeltaTime > RealDataCount Then '数据包间隔大于 1.5s，且速度小于 1.5K/s
                                         Throw New TimeoutException("由于速度过慢断开链接，下载 " & RealDataCount & " B，消耗 " & DeltaTime & " ms。")
                                     End If
-                                    Info.LastReceiveTime = GetTimeTick()
+                                    Info.LastReceiveTime = TimeUtils.GetTimeTick()
                                     '已完成
                                     If Info.DownloadUndone = 0 AndAlso Not IsUnknownSize Then Exit While
                                 ElseIf Info.LastReceiveTime > 0 AndAlso DeltaTime > Timeout Then
@@ -1162,11 +1164,11 @@ SourceBreak:
                         Task.FailCount += 1
                     Next
                 End SyncLock
-                Dim IsTimeoutString As String = GetExceptionSummary(ex).ToLower.Replace(" ", "")
+                Dim IsTimeoutString As String = Ex.ToString().ToLower.Replace(" ", "")
                 Dim IsTimeout As Boolean = IsTimeoutString.Contains("由于连接方在一段时间后没有正确答复或连接的主机没有反应") OrElse
                                            IsTimeoutString.Contains("超时") OrElse IsTimeoutString.Contains("timeout") OrElse IsTimeoutString.Contains("timedout") OrElse
                                            ex.GetType() = GetType(TimeoutException) OrElse ex.GetType() = GetType(TaskCanceledException) OrElse (ex.GetType() = GetType(AggregateException) AndAlso CType(ex, AggregateException).InnerExceptions.Any(Function(x) x.GetType() = GetType(TaskCanceledException) OrElse x.GetType() = GetType(TimeoutException)))
-                Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & GetExceptionDetail(ex)))
+                Log("[Download] " & LocalName & " " & Info.Uuid & If(IsTimeout, "#：超时（" & (Timeout * 0.001) & "s）", "#：出错，" & ex.ToString()))
                 Info.State = NetState.Error
                 ''使用该下载源的线程是否没有速度
                 ''下载超时也会导致没有速度，容易误判下载失败，所以已弃用此方法
@@ -1335,7 +1337,7 @@ Retry:
                 End If
                 '重试
                 If RetryCount <= 3 Then
-                    Threading.Thread.Sleep(RandomInteger(500, 1000))
+                    Threading.Thread.Sleep(RandomUtils.NextInt(500, 1000))
                     RetryCount += 1
                     GoTo Retry
                 End If
@@ -1675,7 +1677,7 @@ Retry:
             '在退出同步锁后再进行日志输出
             Dim ErrOutput As New List(Of String)
             For Each Ex As Exception In ExList
-                ErrOutput.Add(GetExceptionDetail(Ex))
+                ErrOutput.Add(Ex.Message)
             Next
             Log("[Download] " & Join(ErrOutput.Distinct.ToArray, vbCrLf))
         End Sub
@@ -1825,7 +1827,7 @@ Retry:
         ''' </summary>
         Private Sub RefreshStat()
             Try
-                Dim DeltaTime As Long = GetTimeTick() - RefreshStatLast
+                Dim DeltaTime As Long = TimeUtils.GetTimeTick() - RefreshStatLast
                 If DeltaTime = 0 Then Return
                 RefreshStatLast += DeltaTime
 #Region "刷新整体速度"
@@ -1925,9 +1927,9 @@ Retry:
             Sub()
                 Try
                     Dim LastLoopTime As Long
-                    NetTaskSpeedLimitLeftLast = GetTimeTick()
+                    NetTaskSpeedLimitLeftLast = TimeUtils.GetTimeTick()
                     While True
-                        Dim TimeNow = GetTimeTick()
+                        Dim TimeNow = TimeUtils.GetTimeTick()
                         LastLoopTime = TimeNow
                         '增加限速余量
                         If NetTaskSpeedLimitHigh > 0 Then NetTaskSpeedLimitLeft = NetTaskSpeedLimitHigh / 1000 * (TimeNow - NetTaskSpeedLimitLeftLast)
@@ -1935,7 +1937,7 @@ Retry:
                         '刷新公开属性
                         RefreshStat()
                         '等待直至 80 ms
-                        Do While GetTimeTick() - LastLoopTime < 80
+                        Do While TimeUtils.GetTimeTick() - LastLoopTime < 80
                             Thread.Sleep(10)
                         Loop
                     End While
@@ -2016,96 +2018,4 @@ Retry:
         Next
         Return False
     End Function
-
-#Region "DNS 解析"
-
-    Public Class nDnsQuery
-
-        Public Sub New()
-        End Sub
-
-        <DllImport("dnsapi", EntryPoint:="DnsQuery_W", CharSet:=CharSet.Unicode, SetLastError:=True, ExactSpelling:=True)>
-        Private Shared Function DnsQuery(ByVal pszName As String, wType As QueryTypes, options As QueryOptions, aipServers As Integer, ByRef ppQueryResults As IntPtr, pReserved As Integer) As Integer
-        End Function
-
-        <DllImport("dnsapi", CharSet:=CharSet.Auto, SetLastError:=True)>
-        Private Shared Sub DnsRecordListFree(pRecordList As IntPtr, FreeType As Integer)
-        End Sub
-
-        Public Shared Function GetSRVRecords(needle As String) As List(Of String)
-            Dim ptr1 As IntPtr = IntPtr.Zero
-            Dim ptr2 As IntPtr = IntPtr.Zero
-            Dim recSRV As SRVRecord
-            If Environment.OSVersion.Platform <> PlatformID.Win32NT Then
-                Throw New NotSupportedException()
-            End If
-            Dim res As New List(Of String)
-            Try
-                Dim num1 As Integer = DnsQuery(needle, QueryTypes.DNS_TYPE_SRV, QueryOptions.DNS_QUERY_STANDARD, 0, ptr1, 0)
-                If num1 <> 0 Then
-                    If num1 = 9003 Then
-                        Return New List(Of String)
-                    Else
-                        Throw New Win32Exception(num1)
-                    End If
-                End If
-                ptr2 = ptr1
-                While Not ptr2.Equals(IntPtr.Zero)
-                    recSRV = CType(Marshal.PtrToStructure(ptr2, GetType(SRVRecord)), SRVRecord)
-                    If recSRV.wType = CShort(QueryTypes.DNS_TYPE_SRV) Then
-                        Dim targetIp As String = Marshal.PtrToStringUni(recSRV.pNameTarget)
-                        Dim targetPort As String = recSRV.wPort.ToString()
-                        res.Add($"{targetIp}:{targetPort}")
-                    End If
-                    ptr2 = recSRV.pNext
-                End While
-            Finally
-                DnsRecordListFree(ptr1, 0)
-            End Try
-            Return res
-        End Function
-
-        Private Enum QueryOptions As Integer
-            DNS_QUERY_ACCEPT_TRUNCATED_RESPONSE = 1
-            DNS_QUERY_BYPASS_CACHE = 8
-            DNS_QUERY_DONT_RESET_TTL_VALUES = &H100000
-            DNS_QUERY_NO_HOSTS_FILE = &H40
-            DNS_QUERY_NO_LOCAL_NAME = &H20
-            DNS_QUERY_NO_NETBT = &H80
-            DNS_QUERY_NO_RECURSION = 4
-            DNS_QUERY_NO_WIRE_QUERY = &H10
-            DNS_QUERY_RESERVED = &HFF000000
-            DNS_QUERY_RETURN_MESSAGE = &H200
-            DNS_QUERY_STANDARD = 0
-            DNS_QUERY_TREAT_AS_FQDN = &H1000
-            DNS_QUERY_USE_TCP_ONLY = 2
-            DNS_QUERY_WIRE_ONLY = &H100
-        End Enum
-
-        Private Enum QueryTypes As Integer
-            DNS_TYPE_A = &H1
-            DNS_TYPE_MX = &HF
-            DNS_TYPE_SRV = &H21
-        End Enum
-
-        <StructLayout(LayoutKind.Sequential)>
-        Private Structure SRVRecord
-            Public pNext As IntPtr
-            Public pName As IntPtr
-            Public wType As UShort
-            Public wDataLength As UShort
-            Public flags As Integer
-            Public dwTtl As Integer
-            Public dwReserved As Integer
-            Public pNameTarget As IntPtr
-            Public wPriority As UShort
-            Public wWeight As UShort
-            Public wPort As UShort
-            Public Pad As UShort
-        End Structure
-
-    End Class
-
-#End Region
-
 End Module

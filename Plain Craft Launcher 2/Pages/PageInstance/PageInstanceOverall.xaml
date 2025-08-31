@@ -10,6 +10,11 @@
             <local:MyCard Margin="0,15" Title="">
                 <Grid Margin="10,7" Name="PanDisplayItem" />
             </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="实例信息">
+                <StackPanel x:Name="PanInfo"  Margin="15,40,25,5">
+                    <local:MyLoading Text="正在获取信息" Margin="0,0,0,10"/>
+                </StackPanel>
+            </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="个性化" x:Name="PanDisplay">
                 <StackPanel Margin="25,40,25,15">
                     <Grid x:Name="PanDisplayIcon" HorizontalAlignment="Stretch">
@@ -84,7 +89,6 @@
                         <local:MyButton x:Name="BtnManageTest" Text="测试游戏" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="1" Height="35"/>
                         <local:MyButton x:Name="BtnManageCheck" Text="补全文件" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="2" ToolTip="校验实例依赖文件是否完整，并重新下载 Assets 索引与缺失、校验失败的文件。&#xa;若游戏缺失音效，请尝试此项。" Height="35"/>
                         <local:MyButton x:Name="BtnManageRestore" Text="重置" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="3" ToolTip="重新从互联网获取此实例的安装信息，并执行自动安装。&#xa;你的存档、Mod、资源包等信息不会丢失。&#xa;若游戏因 Libraries 等资源缺失无法启动，请尝试此项。" Height="35"/>
-                        <local:MyButton x:Name="BtnManageLaunchCount" Text="查看启动次数" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Height="35"/>
                         <local:MyButton x:Name="BtnManageDelete" Text="删除实例" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="4" ColorType="Red" Height="35"/>
                         <local:MyButton x:Name="BtnManagePatch" Text="修补核心" MinWidth="140" Padding="13,0" Margin="0,7,20,0" Grid.Column="6" Height="35"/>
                     </WrapPanel>

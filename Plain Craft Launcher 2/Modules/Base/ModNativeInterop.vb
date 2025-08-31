@@ -1,6 +1,7 @@
 ﻿Imports Newtonsoft.Json
 Imports PCL.Core.App
 Imports PCL.Core.IO
+Imports PCL.Core.Utils
 
 Public Module ModNativeInterop
 
@@ -25,9 +26,9 @@ Public Module ModNativeInterop
 
     ' 用于序列化 JSON 并响应客户端 info 请求的类型
     Private Class RPCLauncherInfo
-        Public path As String = PathWithName
+        Public path As String = ExePathWithName
         Public config_path As String = PathAppdataConfig
-        Public window As Long = Handle.ToInt64()
+        Public window As Long = FrmHandle.ToInt64()
         Public version As New LauncherVersion()
         Class LauncherVersion
             Public name As String = VersionBaseName
@@ -123,7 +124,7 @@ Public Module ModNativeInterop
             Dim id = request.id
             If Not id = "launcher" AndAlso Not LastUpdatedWatchers.ContainsKey(id) Then Return RPCResponse.Err("日志 ID 不存在")
             If OpenLogPipes.Contains(id) Then Return RPCResponse.Err("日志 ID 正在使用")
-            Dim pipeName = LogPipePrefix & RandomInteger(10000, 99999)
+            Dim pipeName = LogPipePrefix & RandomUtils.NextInt(10000, 99999)
             OpenLogPipes.Add(id)
             PipeComm.StartPipeServer($"Log({id})", pipeName,
                 Function(r, w, c) LogPipeCallback(r, w, request),

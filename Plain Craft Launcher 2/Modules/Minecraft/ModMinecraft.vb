@@ -1,6 +1,10 @@
 ﻿Imports System.IO.Compression
 Imports PCL.Core.ProgramSetup
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
+Imports System.Text.Json.Nodes
+Imports PCL.Core.IO
+Imports PCL.Core.UI
+Imports PCL.Core.Utils
 
 Public Module ModMinecraft
 
@@ -58,7 +62,7 @@ Public Module ModMinecraft
                     CheckPermissionWithException(path)
                     cacheMcFolderList.Add(New McFolder With {.Name = name, .Path = path, .Type = McFolderType.Custom})
                 Catch ex As Exception
-                    MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & GetExceptionSummary(ex), "Minecraft 文件夹失效", IsWarn:=True)
+                    MyMsgBox("失效的 Minecraft 文件夹：" & vbCrLf & path & vbCrLf & vbCrLf & ex.Message, "Minecraft 文件夹失效", IsWarn:=True)
                     Log(ex, $"无法访问 Minecraft 文件夹 {path}")
                 End Try
             Next
@@ -71,8 +75,8 @@ Public Module ModMinecraft
             Dim originalMcFolderList = New List(Of McFolder)
             '扫描当前文件夹
             Try
-                If Directory.Exists(Path & "versions\") Then originalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path, .Type = McFolderType.Original})
-                For Each folder As DirectoryInfo In New DirectoryInfo(Path).GetDirectories
+                If Directory.Exists(ExePath & "versions\") Then originalMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = ExePath, .Type = McFolderType.Original})
+                For Each folder As DirectoryInfo In New DirectoryInfo(ExePath).GetDirectories
                     If Directory.Exists(folder.FullName & "versions\") OrElse folder.Name = ".minecraft" Then
                         Dim newCurrentFolder As New McFolder With {.Name = folder.Name, .Path = folder.FullName & "\", .Type = McFolderType.Original}
                         originalMcFolderList.Add(newCurrentFolder)
@@ -123,8 +127,8 @@ Public Module ModMinecraft
 
             '若没有可用文件夹，则创建 .minecraft
             If Not cacheMcFolderList.Any() Then
-                Directory.CreateDirectory(Path & ".minecraft\versions\")
-                cacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = Path & ".minecraft\", .Type = McFolderType.Original})
+                Directory.CreateDirectory(ExePath & ".minecraft\versions\")
+                cacheMcFolderList.Add(New McFolder With {.Name = "当前文件夹", .Path = ExePath & ".minecraft\", .Type = McFolderType.Original})
             End If
 
             For Each Folder As McFolder In cacheMcFolderList
@@ -132,7 +136,7 @@ Public Module ModMinecraft
                 McFolderLauncherProfilesJsonCreate(Folder.Path)
 #End Region
             Next
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(200, 2000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(200, 2000))
 
             '回设
             McFolderList = cacheMcFolderList
@@ -683,7 +687,7 @@ Recheck:
             Catch ex As Exception
                 Log(ex, "依赖实例检查出错（" & Name & "）")
                 State = McInstanceState.Error
-                Info = "未知错误：" & GetExceptionSummary(ex)
+                Info = "未知错误：" & ex.ToString()
                 Return False
             End Try
 
@@ -824,7 +828,7 @@ ExitDataLoad:
                     NEWSetup.Instance.VersionMinor(Path) = Version.McCodeSub
                 End If
             Catch ex As Exception
-                Info = "未知错误：" & GetExceptionSummary(ex)
+                Info = "未知错误：" & ex.ToString()
                 Logo = PathImage & "Blocks/RedstoneBlock.png"
                 State = McInstanceState.Error
                 Log(ex, "加载实例失败（" & Name & "）", LogLevel.Feedback)
@@ -1292,7 +1296,7 @@ OnLoaded:
                 Setup.Set("LaunchInstanceSelect", "")
                 Log("[Minecraft] 未找到可用 Minecraft 实例")
             End If
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(200, 3000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(200, 3000))
         Catch ex As ThreadInterruptedException
         Catch ex As Exception
             WriteIni(Path & "PCL.ini", "InstanceCache", "") '要求下次重新加载
@@ -1694,7 +1698,7 @@ OnLoaded:
     ''' 要求玩家选择一个皮肤文件，并进行相关校验。
     ''' </summary>
     Public Function McSkinSelect() As McSkinInfo
-        Dim FileName As String = SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件")
+        Dim FileName As String = SystemDialogs.SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件")
 
         '验证有效性
         If FileName = "" Then Return New McSkinInfo With {.IsVaild = False}
@@ -2378,26 +2382,26 @@ OnLoaded:
             '初始化
             If Not File.Exists($"{PathMcFolder}assets\indexes\{IndexName}.json") Then Throw New FileNotFoundException("未找到 Asset Index", PathMcFolder & "assets\indexes\" & IndexName & ".json")
             Dim Result As New List(Of McAssetsToken)
-            Dim Json As JObject = GetJson(ReadFile($"{PathMcFolder}assets\indexes\{IndexName}.json"))
+            Dim Json As JsonObject = JsonObject.Parse(ReadFile($"{PathMcFolder}assets\indexes\{IndexName}.json"))
 
             '读取列表
-            For Each File As JProperty In Json("objects").Children
+            For Each File As KeyValuePair(Of String,JsonNode) In Json("objects").AsObject()
                 Dim LocalPath As String
-                If Json("map_to_resources") IsNot Nothing AndAlso Json("map_to_resources").ToObject(Of Boolean) Then
+                If Json("map_to_resources") IsNot Nothing AndAlso Json("map_to_resources").GetValue(Of Boolean) Then
                     'Remap
-                    LocalPath = Instance.PathIndie & "resources\" & File.Name.Replace("/", "\")
-                ElseIf Json("virtual") IsNot Nothing AndAlso Json("virtual").ToObject(Of Boolean) Then
+                    LocalPath = Instance.PathIndie & "resources\" & File.Key.Replace("/", "\")
+                ElseIf Json("virtual") IsNot Nothing AndAlso Json("virtual").GetValue(Of Boolean) Then
                     'Virtual
-                    LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Name.Replace("/", "\")
+                    LocalPath = PathMcFolder & "assets\virtual\legacy\" & File.Key.Replace("/", "\")
                 Else
                     '正常
-                    LocalPath = PathMcFolder & "assets\objects\" & Left(File("hash").ToString, 2) & "\" & File("hash").ToString
+                    LocalPath = PathMcFolder & "assets\objects\" & Left(File.Value("hash").ToString, 2) & "\" & File.Value("hash").ToString
                 End If
                 Result.Add(New McAssetsToken With {
                     .LocalPath = LocalPath,
-                    .SourcePath = File.Name,
-                    .Hash = File("hash").ToString,
-                    .Size = File("size").ToString
+                    .SourcePath = File.Key,
+                    .Hash = File.Value("hash").ToString,
+                    .Size = File.Value("size").ToString
                 })
             Next
             Return Result
@@ -2459,7 +2463,7 @@ OnLoaded:
             If Version Is Nothing Then Return
             Dim Time As Date = Version("releaseTime")
             Dim MsgBoxText As String = $"新版本：{VersionName}{vbCrLf}" &
-                If((Date.Now - Time).TotalDays > 1, "更新时间：" & Time.ToString, "更新于：" & GetTimeSpanString(Time - Date.Now, False))
+                If((Date.Now - Time).TotalDays > 1, "更新时间：" & Time.ToString, "更新于：" & TimeUtils.GetTimeSpanString(Time - Date.Now, False))
             Dim MsgResult = MyMsgBox(MsgBoxText, "Minecraft 更新提示", "确定", "下载", If((Date.Now - Time).TotalHours > 3, "更新日志", ""),
                 Button3Action:=Sub() McUpdateLogShow(Version))
             '弹窗结果

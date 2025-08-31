@@ -136,10 +136,6 @@ Public Module ModProfile
                 ProfileList.Add(NewProfile)
             Next
             ProfileLog($"获取到 {ProfileList.Count} 个档案")
-            '确保根据 LastUsedProfile 设置当前选定的档案
-            If Not ProfileList.Count = 0 AndAlso LastUsedProfile >= 0 AndAlso LastUsedProfile < ProfileList.Count Then
-                SelectedProfile = ProfileList(LastUsedProfile)
-            End If
         Catch ex As Exception
             Log(ex, "读取档案列表失败", LogLevel.Feedback)
         End Try
@@ -286,7 +282,7 @@ Public Module ModProfile
                                    FrmLaunchLeft.RefreshPage(True)
                                    SaveProfile()
                                Catch ex As HttpRequestException
-                                   Dim ExSummary As String = GetExceptionSummary(ex)
+                                   Dim ExSummary As String = ex.ToString()
                                    If ExSummary.Contains("403") Then
                                        MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。", "ID 修改失败", "我知道了")
                                    Else

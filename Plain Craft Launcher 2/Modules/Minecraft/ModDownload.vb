@@ -1,5 +1,6 @@
-﻿Imports PCL.Core.Net
+Imports PCL.Core.Net
 Imports System.Net.Http
+Imports PCL.Core.Utils
 
 Public Module ModDownload
 
@@ -204,7 +205,7 @@ Public Module ModDownload
     Public DlClientListMojangLoader As New LoaderTask(Of String, DlClientListResult)("DlClientList Mojang", AddressOf DlClientListMojangMain)
     Private IsNewClientVersionHinted As Boolean = False
     Private Sub DlClientListMojangMain(Loader As LoaderTask(Of String, DlClientListResult))
-        Dim StartTime As Long = GetTimeTick()
+        Dim StartTime As Long = TimeUtils.GetTimeTick()
         Dim Json As JObject = NetGetCodeByRequestRetry("https://launchermeta.mojang.com/mc/game/version_manifest.json", IsJson:=True)
         Try
             Dim Versions As JArray = Json("versions")
@@ -227,7 +228,7 @@ Public Module ModDownload
             End Try
             '确定官方源是否可用
             If Not DlPreferMojang Then
-                Dim DeltaTime = GetTimeTick() - StartTime
+                Dim DeltaTime = TimeUtils.GetTimeTick() - StartTime
                 DlPreferMojang = DeltaTime < 4000
                 Log($"[Download] Mojang 官方源加载耗时：{DeltaTime}ms，{If(DlPreferMojang, "可优先使用官方源", "不优先使用官方源")}")
             End If
@@ -691,7 +692,7 @@ Public Module ModDownload
                                           Loader.Input.Replace("-", "_") & '兼容 Forge 1.7.10-pre4，#4057
                                           ".html", UseBrowserUserAgent:=True)
         Catch ex As Exception
-            If GetExceptionSummary(ex).Contains("(404)") Then
+            If ex.Message.Contains("(404)") Then
                 Throw New Exception("不可用")
             Else
                 Throw
@@ -1126,7 +1127,7 @@ Public Module ModDownload
                              .IsPreview = RealEntry("stream").ToString.ToLower = "snapshot",
                              .FileName = "liteloader-installer-" & Pair.Key & If(Pair.Key = "1.8" OrElse Pair.Key = "1.9", ".0", "") & "-00-SNAPSHOT.jar",
                              .MD5 = RealEntry("md5"),
-                             .ReleaseTime = GetLocalTime(GetDate(RealEntry("timestamp"))).ToString("yyyy'/'MM'/'dd HH':'mm"),
+                             .ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry("timestamp")),
                              .JsonToken = RealEntry
                          })
             Next
@@ -1154,7 +1155,7 @@ Public Module ModDownload
                              .IsPreview = RealEntry("stream").ToString.ToLower = "snapshot",
                              .FileName = "liteloader-installer-" & Pair.Key & If(Pair.Key = "1.8" OrElse Pair.Key = "1.9", ".0", "") & "-00-SNAPSHOT.jar",
                              .MD5 = RealEntry("md5"),
-                             .ReleaseTime = GetLocalTime(GetDate(RealEntry("timestamp"))).ToString("yyyy'/'MM'/'dd HH':'mm"),
+                             .ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry("timestamp")),
                              .JsonToken = RealEntry
                          })
             Next

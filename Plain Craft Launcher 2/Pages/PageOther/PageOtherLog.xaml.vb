@@ -3,6 +3,10 @@ Imports System.IO.Compression
 Imports System.Text.RegularExpressions
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Class PageOtherLog
     Private Sub PageOtherLog_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -68,7 +72,7 @@ Class PageOtherLog
         Dim baseName = "PCL_CE_Logs_" & DateTime.Now.ToString("yyyyMMddHHmmss")
         Dim tempDirName = baseName & ".tmp"
         Dim fileName = baseName & ".zip"
-        Dim selectedPath = SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
+        Dim selectedPath = SystemDialogs.SelectSaveFile("导出日志文件", fileName, filter, desktopPath)
         If String.IsNullOrEmpty(selectedPath) Then Exit Sub
         Try
             Directory.CreateDirectory(tempDirName)
@@ -108,12 +112,10 @@ Class PageOtherLog
     Private Sub ButtonExportAll_OnClick(sender As Object, e As MouseButtonEventArgs)
         ExportLog(Directory.GetFiles(LogDirectory))
     End Sub
-    
-    Private Shared ReadOnly PatternPendingLogPath As New Regex("LastPending[_]?[^\\]*\.log$")
 
     Private Sub ButtonExport_OnClick(sender As Object, e As MouseButtonEventArgs)
         Dim pendingLogs = Array.FindAll(
-            Directory.GetFiles(LogDirectory), Function(s) PatternPendingLogPath.IsMatch(s))
+            Directory.GetFiles(LogDirectory), Function(s) s.IsMatch(RegexPatterns.LastPendingLogPath))
         ExportLog(CurrentLogs.Concat(pendingLogs))
     End Sub
 End Class

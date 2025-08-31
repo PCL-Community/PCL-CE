@@ -1,6 +1,8 @@
 Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
+Imports PCL.Core.IO
+Imports PCL.Core.Utils
 
 Public Module ModMain
 
@@ -520,6 +522,7 @@ EndHint:
     Public FrmInstanceSetup As PageInstanceSetup
     Public FrmInstanceInstall As PageInstanceInstall
     Public FrmInstanceExport As PageInstanceExport
+    Public FrmInstanceServer As PageInstanceServer
     '实例存档页面
     Public FrmInstanceSavesLeft As PageInstanceSavesLeft
     Public FrmInstanceSavesInfo As PageInstanceSavesInfo
@@ -686,8 +689,8 @@ EndHint:
                 Try
                     Dim IgnoreList As New List(Of String)
                     '读取自定义文件
-                    If Directory.Exists(Path & "PCL\Help\") Then
-                        For Each File In EnumerateFiles(Path & "PCL\Help\")
+                    If Directory.Exists(ExePath & "PCL\Help\") Then
+                        For Each File In EnumerateFiles(ExePath & "PCL\Help\")
                             Select Case File.Extension.ToLower
                                 Case ".helpignore"
                                     '加载忽略列表
@@ -762,7 +765,7 @@ NextFile:
     ''' 对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
     ''' </summary>
     Public Function HelpArgumentReplace(Xaml As String) As String
-        Dim Result = Xaml.Replace("{path}", EscapeXML(Path))
+        Dim Result = Xaml.Replace("{path}", EscapeXML(ExePath))
         Result = Result.RegexReplaceEach("\{hint\}", Function() EscapeXML(PageOtherTest.GetRandomHint()))
         Result = Result.RegexReplaceEach("\{cave\}", Function() EscapeXML(PageOtherTest.GetRandomCave()))
         Return Result
@@ -861,7 +864,7 @@ NextFile:
             '放弃提示
             If AprilDistance > 4000 Then
                 AprilDistance = -4000
-                Select Case RandomInteger(0, 3)
+                Select Case RandomUtils.NextInt(0, 3)
                     Case 0
                         Hint("放弃吧！只需要点一下右下角的小白旗……")
                     Case 1
@@ -974,7 +977,7 @@ NextFile:
         TryClearTaskTemp()
         Dim ResultFolder As String
         Try
-            ResultFolder = $"{PathTemp}TaskTemp\{GetUuid()}-{RandomInteger(0, 1000000)}\"
+            ResultFolder = $"{PathTemp}TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
             If RequireNonSpace AndAlso ResultFolder.Contains(" ") Then Exit Try '带空格
             Directory.CreateDirectory(ResultFolder)
             CheckPermissionWithException(ResultFolder)
@@ -982,7 +985,7 @@ NextFile:
         Catch
         End Try
         '使用备用路径
-        ResultFolder = $"{OsDrive}ProgramData\PCL\TaskTemp\{GetUuid()}-{RandomInteger(0, 1000000)}\"
+        ResultFolder = $"{OsDrive}ProgramData\PCL\TaskTemp\{GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\"
         Directory.CreateDirectory(ResultFolder)
         CheckPermission(ResultFolder)
         Return ResultFolder

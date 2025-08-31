@@ -1,5 +1,7 @@
-﻿Imports System.Text.RegularExpressions
-Imports PCL.Core.Logging
+﻿Imports PCL.Core.Logging
+Imports PCL.Core.UI
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class CrashAnalyzer
 
@@ -51,7 +53,7 @@ Public Class CrashAnalyzer
             Log(ex, "收集 Minecraft 隔离文件夹下的日志失败")
         End Try
         PossibleLogs.Add(VersionPathIndie & "logs\latest.log") 'Minecraft 日志
-        Dim LaunchScript As String = ReadFile(Path & "PCL\LatestLaunch.bat")
+        Dim LaunchScript As String = ReadFile(ExePath & "PCL\LatestLaunch.bat")
         If LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false") Then
             PossibleLogs.Add(VersionPathIndie & "logs\debug.log") 'Minecraft Debug 日志
         End If
@@ -898,7 +900,7 @@ NextStack:
                 Dim FileAddress As String = Nothing
                 Try
                     '获取文件路径
-                    RunInUiWait(Sub() FileAddress = SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
+                    RunInUiWait(Sub() FileAddress = SystemDialogs.SelectSaveFile("选择保存位置", "错误报告-" & Date.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") & ".zip", "Minecraft 错误报告(*.zip)|*.zip"))
                     If String.IsNullOrEmpty(FileAddress) Then Return
                     Directory.CreateDirectory(GetPathFromFullPath(FileAddress))
                     If File.Exists(FileAddress) Then File.Delete(FileAddress)
@@ -921,7 +923,7 @@ NextStack:
                             FileEncoding = Encoding.UTF8
                         End If
                         If File.Exists(OutputFile) Then
-                            If FileEncoding Is Nothing Then FileEncoding = GetEncoding(ReadFileBytes(OutputFile))
+                            If FileEncoding Is Nothing Then FileEncoding = EncodingDetector.DetectEncoding(ReadFileBytes(OutputFile))
                             Dim FileContent As String = ReadFile(OutputFile, FileEncoding)
                             FileContent = FilterAccessToken(FileContent, If(FileName = "启动脚本.bat", "F", "*"))
                             FileContent = FilterUserName(FileContent, "*")
@@ -963,8 +965,6 @@ NextStack:
                 OpenExplorer(FileAddress)
         End Select
     End Sub
-    
-    Private Shared ReadOnly PatternIncompatibleModLoader As New Regex("(incompatible[\s\S]+'Fabric Loader' \(fabricloader\)|Mod ID: '(?:neo)?forge', Requested by '([^']+)')")
     
     ''' <summary>
     ''' 获取崩溃分析的结果描述。
@@ -1011,7 +1011,7 @@ NextStack:
                 Case CrashReason.Mod缺少前置或MC版本错误
                     If Additional.Any Then
                         Dim info = Additional.Join("\n - ")
-                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                        If info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint) Then
                             Results.Add(LoaderIncompatibleResultText & info)
                         Else
                             Results.Add("由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")
@@ -1118,7 +1118,7 @@ NextStack:
                 Case CrashReason.Mod互不兼容
                     If Additional.Count = 1 Then
                         Dim info = Additional.First
-                        If PatternIncompatibleModLoader.IsMatch(info) Then
+                        If info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint) Then
                             Results.Add(LoaderIncompatibleResultText & info)
                         Else
                             Results.Add("你所安装的 Mod 不兼容：\n" & info & "\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。")

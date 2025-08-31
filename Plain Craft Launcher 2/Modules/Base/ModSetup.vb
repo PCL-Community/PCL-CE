@@ -1,6 +1,8 @@
 Imports System.Reflection
+Imports System.Windows.Media.Effects
 Imports PCL.Core.Net
 Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
 #Region "基础"
@@ -111,8 +113,8 @@ Public Class ModSetup
         WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
     End Sub
     Public Sub LaunchFolderSelect(Value As String)
-        Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", Path))
-        PathMcFolder = Value.ToString.Replace("$", Path)
+        Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", ExePath))
+        PathMcFolder = Value.ToString.Replace("$", ExePath)
     End Sub
 
     '游戏内存
@@ -127,22 +129,6 @@ Public Class ModSetup
 
     Public Sub ToolDownloadThread(Value As Integer)
         NetTaskThreadLimit = Value + 1
-    End Sub
-    Public Sub ToolDownloadCert(Value As Boolean)
-        ServicePointManager.ServerCertificateValidationCallback =
-        Function(Sender, Certificate, Chain, Failure)
-            Dim Request As HttpWebRequest = TryCast(Sender, HttpWebRequest)
-            If Failure = Net.Security.SslPolicyErrors.None Then Return True '已通过验证
-            '基于 #3018 和 #5879，只在访问正版登录 API 时跳过证书验证
-            Log($"[System] 未通过 SSL 证书验证（{Failure}），提供的证书为 {Certificate?.Subject}，URL：{Request?.Address}", LogLevel.Debug)
-            If Request Is Nothing Then
-                Return Not Value
-            ElseIf Request.Address.Host.Contains("xboxlive") OrElse Request.Address.Host.Contains("minecraftservices") Then
-                Return Not Value '根据设置决定是否忽略错误
-            Else
-                Return False
-            End If
-        End Function
     End Sub
     Public Sub ToolDownloadSpeed(Value As Integer)
         If Value <= 14 Then
@@ -179,6 +165,16 @@ Public Class ModSetup
         End If
     End Sub
 
+    '视频背景
+    Public Sub UiAutoPauseVideo(Value As Boolean)
+        If Value = False Then
+            ModVideoBack.ForcePlay = True
+            VideoPlay()
+        Else
+            ModVideoBack.ForcePlay = False
+            If ModVideoBack.IsGaming = True Then VideoPause()
+        End If
+    End Sub
     '背景图片
     Public Sub UiBackgroundOpacity(Value As Integer)
         FrmMain.ImgBack.Opacity = Value / 1000
@@ -314,7 +310,7 @@ Public Class ModSetup
         ElseIf Value = 1 Then
             IsDarkMode = True
         Else
-            IsDarkMode = IsSystemInDarkMode()
+            IsDarkMode = SystemTheme.IsSystemInDarkMode()
         End If
         ThemeRefresh()
     End Sub
@@ -328,7 +324,13 @@ Public Class ModSetup
         End If
     End Sub
     Public Sub UiBlurValue(Value As Integer)
-        Application.Current.Resources("BlurValue") = CType(Value, Double)
+        Application.Current.Resources("BlurRadius") = Value * 1.0
+    End Sub
+    Public Sub UiBlurSamplingRate(Value As Integer)
+        Application.Current.Resources("BlurSamplingRate") = Value * 0.01
+    End Sub
+    Public Sub UiBlurType(Value As Integer)
+        Application.Current.Resources("BlurType") = CType(Value, KernelType)
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)
@@ -375,7 +377,7 @@ Public Class ModSetup
                     FrmSetupUI.PanLogoChange.Visibility = Visibility.Visible
                 End If
                 Try
-                    FrmMain.ImageTitleLogo.Source = Path & "PCL\Logo.png"
+                    FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
                 Catch ex As Exception
                     FrmMain.ImageTitleLogo.Source = Nothing
                     Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)

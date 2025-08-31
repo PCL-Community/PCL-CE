@@ -1,6 +1,7 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Net.Http
 Imports LiteDB
+Imports PCL.Core.Utils
 
 Public Module ModComp
 
@@ -737,7 +738,7 @@ Public Module ModComp
             End If
             NewItem.LabSource.Text = If(FromCurseForge, "CurseForge", "Modrinth")
             If LastUpdate IsNot Nothing Then
-                NewItem.LabTime.Text = GetTimeSpanString(LastUpdate - Date.Now, True)
+                NewItem.LabTime.Text = TimeUtils.GetTimeSpanString(LastUpdate - Date.Now, True)
             Else
                 NewItem.LabTime.Visibility = Visibility.Collapsed
                 NewItem.ColumnTime1.Width = New GridLength(0)
@@ -1395,6 +1396,10 @@ Retry:
         ''' 用于唯一性鉴别该文件的 ID。CurseForge 中为 123456 的大整数，Modrinth 中为英文乱码的 Version 字段。
         ''' </summary>
         Public ReadOnly Id As String
+        ''' <summary>
+        ''' 该文件所属项目的 ID。
+        ''' </summary>
+        Public ReadOnly ProjectId As String
 
         '描述性信息
 
@@ -1505,6 +1510,7 @@ Retry:
 #Region "CurseForge"
                     '简单信息
                     Id = Data("id")
+                    ProjectId = Data("modId")
                     DisplayName = Data("displayName").ToString.Replace("	", "").Trim(" ")
                     ReleaseDate = Data("fileDate")
                     Status = CType(Data("releaseType").ToObject(Of Integer), CompFileStatus)
@@ -1548,6 +1554,7 @@ Retry:
 #Region "Modrinth"
                     '简单信息
                     Id = Data("id")
+                    ProjectId = Data("project_id")
                     DisplayName = Data("name").ToString.Replace("	", "").Trim(" ")
                     ReleaseDate = Data("date_published")
                     Status = If(Data("version_type").ToString = "release", CompFileStatus.Release, If(Data("version_type").ToString = "beta", CompFileStatus.Beta, CompFileStatus.Alpha))
@@ -1649,7 +1656,7 @@ Retry:
             If DownloadCount > 0 Then 'CurseForge 的下载次数经常错误地返回 0
                 Info.Add("下载 " & If(DownloadCount > 100000, Math.Round(DownloadCount / 10000) & " 万次", DownloadCount & " 次"))
             End If
-            Info.Add("更新于 " & GetTimeSpanString(ReleaseDate - Date.Now, False))
+            Info.Add("更新于 " & TimeUtils.GetTimeSpanString(ReleaseDate - Date.Now, False))
             If Status <> CompFileStatus.Release Then Info.Add(StatusDescription)
 
             '建立控件

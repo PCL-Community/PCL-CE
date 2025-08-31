@@ -1,4 +1,4 @@
-name: release-stable_publish
+name: Publish (Release)
 
 on:
   release:
@@ -48,7 +48,7 @@ jobs:
 
   rename_and_release:
     needs: [build, changelog]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -76,9 +76,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger MirrorChyanUploading
-        shell: bash
         run: |
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading -f channel=stable -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=stable -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,6 +13,7 @@
                     <local:MyButton MinWidth="100" Text="内存优化" ToolTip="内存优化为 PCL CE 特供版，效果加强！&#xa;&#xa;将物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL 可以静默执行内存优化。" Margin="0,0,15,15" Click="BtnMemory_Click"/>
                     <local:MyButton x:Name="BtnClear" MinWidth="120" Text="清理游戏垃圾" ToolTip="清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件" Margin="0,0,15,15" Click="BtnClear_Click"/>
                     <local:MyButton MinWidth="100" Text="今日人品" Margin="0,0,15,15" Click="BtnLuck_Click"/>
+                    <local:MyButton MinWidth="100" Text="崩溃测试" ToolTip="点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭" ColorType="Red" Margin="0,0,15,15" Click="BtnCrash_Click"/>
                     <local:MyButton MinWidth="120" Text="创建快捷方式" ToolTip="创建一个指向 PCL 社区版可执行文件的快捷方式" Margin="0,0,15,15" Click="BtnCreateShortcut_Click"/>
                     <local:MyButton MinWidth="120" Text="查看启动计数" Margin="0,0,15,15" Click="BtnLaunchCount_Click"/>
                 </WrapPanel>

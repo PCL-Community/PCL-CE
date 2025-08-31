@@ -1,5 +1,6 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.Minecraft
+Imports PCL.Core.UI
 Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class PageInstanceOverall
@@ -28,20 +29,23 @@ Public Class PageInstanceOverall
     Private Sub Reload()
         AniControlEnabled += 1
 
+        Dim instance = PageInstanceLeft.Instance
         '刷新设置项目
-        ComboDisplayType.SelectedIndex = NEWSetup.Instance.DisplayType(PageInstanceLeft.Instance.Path)
-        BtnDisplayStar.Text = If(PageInstanceLeft.Instance.IsStar, "从收藏夹中移除", "加入收藏夹")
-        BtnFolderMods.Visibility = If(PageInstanceLeft.Instance.Modable, Visibility.Visible, Visibility.Collapsed)
+        ComboDisplayType.SelectedIndex = NEWSetup.Instance.DisplayType(instance.Path)
+        BtnDisplayStar.Text = If(instance.IsStar, "从收藏夹中移除", "加入收藏夹")
+        BtnFolderMods.Visibility = If(instance.Modable, Visibility.Visible, Visibility.Collapsed)
         '刷新实例显示
         PanDisplayItem.Children.Clear()
-        ItemVersion = PageSelectRight.McVersionListItem(PageInstanceLeft.Instance)
+        ItemVersion = PageSelectRight.McVersionListItem(instance)
         ItemVersion.IsHitTestVisible = False
         PanDisplayItem.Children.Add(ItemVersion)
         FrmMain.PageNameRefresh()
+        '刷新实例信息
+        GetInstanceInfo()
         '刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0
-        Dim Logo As String = NEWSetup.Instance.LogoPath(PageInstanceLeft.Instance.Path)
-        Dim LogoCustom As Boolean = NEWSetup.Instance.IsLogoCustom(PageInstanceLeft.Instance.Path)
+        Dim Logo As String = NEWSetup.Instance.LogoPath(instance.Path)
+        Dim LogoCustom As Boolean = NEWSetup.Instance.IsLogoCustom(instance.Path)
         If LogoCustom Then
             For Each Selection As MyComboBoxItem In ComboDisplayLogo.Items
                 If Selection.Tag = Logo OrElse (Selection.Tag = "PCL\Logo.png" AndAlso Logo.EndsWith("PCL\Logo.png")) Then
@@ -52,6 +56,64 @@ Public Class PageInstanceOverall
         End If
 
         AniControlEnabled -= 1
+    End Sub
+
+    Private InstanceInfoLoader As LoaderCombo(Of Integer)
+    Private ModpackCompItem As MyCompItem
+    Private Sub GetInstanceInfo()
+        ModpackCompItem = Nothing
+        RunInUi(Sub()
+                    PanInfo.Children.Clear()
+                    PanInfo.Children.Add(New MyLoading With {.Text = "正在获取信息", .Margin = New Thickness(0, 0, 0, 10)})
+                End Sub)
+        Dim loaders As New List(Of LoaderBase)
+        loaders.Add(New LoaderTask(Of Integer, Integer)("获取可能的整合包信息", Sub()
+                                                                          Dim modpackId = NEWSetup.Instance.ModpackId(PageInstanceLeft.Instance.Path)
+                                                                          If Not String.IsNullOrWhiteSpace(modpackId) Then
+                                                                              Dim compProjects = CompRequest.GetCompProjectsByIds(New List(Of String) From {NEWSetup.Instance.ModpackId(PageInstanceLeft.Instance.Path)})
+                                                                              If Not compProjects.Count = 0 Then RunInUi(Sub()
+                                                                                                                             ModpackCompItem = compProjects.First().ToCompItem(False, False)
+                                                                                                                             ModpackCompItem.Tag = compProjects.First()
+                                                                                                                         End Sub)
+                                                                          End If
+                                                                      End Sub) With {.Block = True})
+        loaders.Add(New LoaderTask(Of Integer, Integer)("获取实例信息", Sub()
+                                                                      RunInUi(Sub()
+                                                                                  Dim instance = PageInstanceLeft.Instance
+                                                                                  Dim instanceInfo = instance.Version
+                                                                                  Dim items As New List(Of MyListItem)
+                                                                                  Dim launchCount = NEWSetup.Instance.LaunchCount(instance.Path)
+                                                                                  If launchCount = 0 Then
+                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "从未启动", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOff.png"})
+                                                                                  Else
+                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "已启动 " & NEWSetup.Instance.LaunchCount(instance.Path).ToString() & " 次", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"})
+                                                                                  End If
+                                                                                  If Not String.IsNullOrWhiteSpace(NEWSetup.Instance.ModpackVersion(instance.Path)) Then items.Add(New MyListItem With {.Title = "整合包版本", .Info = NEWSetup.Instance.ModpackVersion(instance.Path), .Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"})
+                                                                                  items.Add(New MyListItem With {.Title = "Minecraft", .Info = instanceInfo.McName, .Logo = "pack://application:,,,/images/Blocks/Grass.png"})
+                                                                                  If instanceInfo.HasForge Then items.Add(New MyListItem With {.Title = "Forge", .Info = instanceInfo.ForgeVersion, .Logo = "pack://application:,,,/images/Blocks/Anvil.png"})
+                                                                                  If instanceInfo.HasNeoForge Then items.Add(New MyListItem With {.Title = "NeoForge", .Info = instanceInfo.NeoForgeVersion, .Logo = "pack://application:,,,/images/Blocks/NeoForge.png"})
+                                                                                  If instanceInfo.HasCleanroom Then items.Add(New MyListItem With {.Title = "Cleanroom", .Info = instanceInfo.CleanroomVersion, .Logo = "pack://application:,,,/images/Blocks/Cleanroom.png"})
+                                                                                  If instanceInfo.HasFabric Then items.Add(New MyListItem With {.Title = "Fabric", .Info = instanceInfo.FabricVersion, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
+                                                                                  If instanceInfo.HasQuilt Then items.Add(New MyListItem With {.Title = "Quilt", .Info = instanceInfo.QuiltVersion, .Logo = "pack://application:,,,/images/Blocks/Quilt.png"})
+                                                                                  If instanceInfo.HasOptiFine Then items.Add(New MyListItem With {.Title = "OptiFine", .Info = instanceInfo.OptiFineVersion, .Logo = "pack://application:,,,/images/Blocks/GrassPath.png"})
+                                                                                  If instanceInfo.HasLiteLoader Then items.Add(New MyListItem With {.Title = "LiteLoader", .Info = "已安装", .Logo = "pack://application:,,,/images/Blocks/Egg.png"})
+                                                                                  If instanceInfo.HasLegacyFabric Then items.Add(New MyListItem With {.Title = "Legacy Fabric", .Info = instanceInfo.LegacyFabricVersion, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
+                                                                                  If instanceInfo.HasLabyMod Then items.Add(New MyListItem With {.Title = "LabyMod", .Info = instanceInfo.LabyModVersion, .Logo = "pack://application:,,,/images/Blocks/LabyMod.png"})
+                                                                                  Dim wrapPanel As New WrapPanel With {.Margin = New Thickness(0, -5, -20, 7)}
+                                                                                  For Each item In items
+                                                                                      wrapPanel.Children.Add(item)
+                                                                                      wrapPanel.Children.Add(New TextBlock With{.Width = 2})
+                                                                                  Next
+                                                                                  PanInfo.Children.Clear()
+                                                                                  If ModpackCompItem IsNot Nothing Then
+                                                                                      PanInfo.Children.Add(ModpackCompItem)
+                                                                                      PanInfo.Children.Add(New TextBlock)
+                                                                                  End If
+                                                                                  PanInfo.Children.Add(wrapPanel)
+                                                                              End Sub)
+                                                                  End Sub))
+        InstanceInfoLoader = New LoaderCombo(Of Integer)("Instance Info Loader", loaders) With {.Show = False}
+        InstanceInfoLoader.Start()
     End Sub
 
 #Region "卡片：个性化"
@@ -185,7 +247,7 @@ Public Class PageInstanceOverall
         '选择 自定义 时修改图片
         Try
             If ComboDisplayLogo.SelectedItem Is ItemDisplayLogoCustom Then
-                Dim FileName As String = SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片")
+                Dim FileName As String = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片")
                 If FileName = "" Then
                     Reload() '还原选项
                     Return
@@ -259,7 +321,7 @@ Public Class PageInstanceOverall
     Private Sub BtnManageScript_Click() Handles BtnManageScript.Click
         Try
             '弹窗要求指定脚本的保存位置
-            Dim SavePath As String = SelectSaveFile("选择脚本保存位置", "启动 " & PageInstanceLeft.Instance.Name & ".bat", "批处理文件(*.bat)|*.bat")
+            Dim SavePath As String = SystemDialogs.SelectSaveFile("选择脚本保存位置", "启动 " & PageInstanceLeft.Instance.Name & ".bat", "批处理文件(*.bat)|*.bat")
             If SavePath = "" Then Return
             '检查中断（等玩家选完弹窗指不定任务就结束了呢……）
             If McLaunchLoader.State = LoadState.Loading Then
@@ -301,7 +363,7 @@ Public Class PageInstanceOverall
                     Case LoadState.Finished
                         Hint(Loader.Name & "成功！", HintType.Finish)
                     Case LoadState.Failed
-                        Hint(Loader.Name & "失败：" & GetExceptionSummary(Loader.Error), HintType.Critical)
+                        Hint(Loader.Name & "失败：" & Loader.Error.Message, HintType.Critical)
                     Case LoadState.Aborted
                         Hint(Loader.Name & "已取消！", HintType.Info)
                 End Select
@@ -352,12 +414,6 @@ Public Class PageInstanceOverall
         End Try
     End Sub
 
-    '查看启动次数
-    Private Sub BtnManageLaunchCount_Click(sender As Object, e As EventArgs) Handles BtnManageLaunchCount.Click
-        Dim launchCount As Integer = Setup.Get("VersionLaunchCount", PageInstanceLeft.Instance)
-        MyMsgBox($"实例 {PageInstanceLeft.Instance.Name} 已启动 {launchCount} 次。", "启动次数统计")
-    End Sub
-
     '测试游戏
     Private Sub BtnManageTest_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageTest.Click
         Try
@@ -369,7 +425,8 @@ Public Class PageInstanceOverall
         End Try
     End Sub
 
-    '修补游戏核心
+    '删除实例
+    '修改此代码时，同时修改 PageSelectRight 中的代码
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
             Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
@@ -398,12 +455,11 @@ Public Class PageInstanceOverall
         End Try
     End Sub
 
-    '删除实例
-    '修改此代码时，同时修改 PageSelectRight 中的代码
+    '修补核心
     Private Sub BtnManagePatch_Click(sender As Object, e As EventArgs) Handles BtnManagePatch.Click
-        Select Case MyMsgBox($"你确定要修补 {PageInstanceLeft.Instance.Name} 吗？ {vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修补核心后，文件校验会自动关闭。", Title:="修补提示", Button2:="取消")
+        Select Case MyMsgBox($"你确定要对 {PageInstanceLeft.Instance.Name} 的核心文件进行修补吗？ {vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{vbCrLf}在修补核心后，文件校验会自动关闭。", Title:="修补提示", Button2:="取消")
             Case 1
-                Dim UserInput As String = SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
+                Dim UserInput As String = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件")
                 If UserInput Is Nothing Or String.IsNullOrWhiteSpace(UserInput) Then Return
                 Hint("正在修补游戏核心，这可能需要一段时间")
                 RunInNewThread(

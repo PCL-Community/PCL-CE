@@ -40,7 +40,7 @@
             Case 1
                 '加载本地文件
                 Log("[Page] 主页自定义数据来源：本地文件")
-                Content = ReadFile(Path & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
+                Content = ReadFile(ExePath & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
             Case 2
                 Url = Setup.Get("UiCustomNet")
 Download:
@@ -83,11 +83,11 @@ Download:
                             </local:MyCard>"
                     Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
-                        Url = "http://pcl.mcnews.thestack.top"
+                        Url = "https://pcl.mcnews.thestack.top"
                         GoTo Download
                     Case 3
                         Log("[Page] 主页预设：简单主页")
-                        Url = "https://raw.gitcode.com/mfn233/PCL-Mainpage/raw/main/Custom.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
                         GoTo Download
                     Case 4
                         Log("[Page] 主页预设：每日整合包推荐")
@@ -123,7 +123,7 @@ Download:
                         GoTo Download
                     Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
-                        Url = "https://raw.gitcode.com/Deep-Dark-Forest/PCL2-GitHub-Dashboard-Homepage/raw/main/custom.xaml"
+                        Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
                 End Select
         End Select
@@ -234,7 +234,7 @@ Download:
             Catch ex As Exception
                 If ModeDebug Then
                     Log(ex, "加载失败的主页内容：" & vbCrLf & Content)
-                    If MyMsgBox(If(TypeOf ex Is UnauthorizedAccessException, ex.Message, $"主页内容编写有误，请根据下列错误信息进行检查：{vbCrLf}{GetExceptionSummary(ex)}"),
+                    If MyMsgBox(If(TypeOf ex Is UnauthorizedAccessException, ex.Message, $"主页内容编写有误，请根据下列错误信息进行检查：{vbCrLf}{ex.ToString()}"),
                                 "加载主页界面失败", "重试", "取消") = 1 Then
                         GoTo Refresh '防止 SyncLock 死锁
                     End If

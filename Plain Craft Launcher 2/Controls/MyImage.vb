@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Net
+Imports PCL.Core.Utils
 
 Public Class MyImage
     Inherits Image
@@ -129,7 +130,7 @@ Public Class MyImage
 RetryStart:
                 '下载
                 ActualSource = LoadingSource '显示加载中图片
-                TempDownloadingPath = TempPath & RandomInteger(0, 10000000)
+                TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
                 Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
                 Using request As New Net.Http.HttpRequestMessage(Http.HttpMethod.Get, Url)
                     Using fs As New FileStream(TempDownloadingPath, FileMode.Create)

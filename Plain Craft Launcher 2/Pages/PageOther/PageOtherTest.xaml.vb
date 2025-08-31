@@ -1,12 +1,12 @@
 Imports System.Net
 Imports System.Net.Http
-Imports System.Runtime.ConstrainedExecution
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
 
 Imports PCL.Core.IO
 Imports PCL.Core.Net
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 
 Public Class PageOtherTest
@@ -23,7 +23,7 @@ Public Class PageOtherTest
         TextDownloadFolder.Validate()
 
         If Not String.IsNullOrEmpty(TextDownloadFolder.ValidateResult) OrElse String.IsNullOrEmpty(TextDownloadFolder.Text) Then
-            TextDownloadFolder.Text = ModBase.Path + "PCL\MyDownload\"
+            TextDownloadFolder.Text = ExePath + "PCL\MyDownload\"
         End If
 
         TextDownloadFolder.Validate()
@@ -73,7 +73,7 @@ Public Class PageOtherTest
 
         Try
             If String.IsNullOrWhiteSpace(Folder) Then
-                Folder = SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
+                Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName, Nothing, Nothing)
                 If Not Folder.Contains("\") Then
                     Return
                 End If
@@ -108,6 +108,7 @@ Public Class PageOtherTest
             Log(ex, "开始自定义下载失败", LogLevel.Feedback, "出现错误")
         End Try
     End Sub
+
     Public Shared Sub Jrrp()
         Dim random As New Random(GenerateDailySeed())
         Dim luckValue = random.Next(0, 101)
@@ -198,7 +199,7 @@ Public Class PageOtherTest
 
                         MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
 
-                        Process.Start(New ProcessStartInfo(PathWithName))
+                        Process.Start(New ProcessStartInfo(ExePathWithName))
                         FormMain.EndProgramForce(ProcessReturnValues.Success)
                     End If
                     Hint("请先关闭所有运行中的游戏……")
@@ -258,7 +259,7 @@ Public Class PageOtherTest
         Else
             IsMemoryOptimizing = True
             Dim num As Long
-            If ModBase.IsAdmin() Then
+            If ProcessInterop.IsAdmin() Then
                 num = CLng(KernelInterop.GetAvailablePhysicalMemoryBytes())
                 Try
                     MemoryOptimizeInternal(ShowHint)
@@ -272,7 +273,7 @@ Public Class PageOtherTest
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
-                    num = CLng(RunAsAdmin("--memory")) * 1024L
+                    num = CLng(ProcessInterop.StartAsAdmin("--memory").ExitCode) * 1024L
                 Catch ex2 As Exception
                     Log(ex2, "命令行形式内存优化失败")
                     If ShowHint Then
@@ -299,7 +300,7 @@ Public Class PageOtherTest
         End If
     End Sub
     Public Shared Sub MemoryOptimizeInternal(ShowHint As Boolean)
-        If Not IsAdmin() Then
+        If Not ProcessInterop.IsAdmin() Then
             Throw New Exception("内存优化功能需要管理员权限！" & vbCrLf & "如果需要自动以管理员身份启动 PCL，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")
         End If
         Log("[Test] 获取内存优化权限")
@@ -400,7 +401,7 @@ Public Class PageOtherTest
     End Sub
 
     Private Sub MyTextButton_Click(sender As Object, e As EventArgs)
-        Dim text = SelectFolder("选择文件夹")
+        Dim text = SystemDialogs.SelectFolder("选择文件夹")
         If Not String.IsNullOrEmpty(text) Then
             TextDownloadFolder.Text = text
         End If
@@ -456,13 +457,13 @@ Public Class PageOtherTest
                                    Result = McSkinGetAddress(Result, "Mojang")
                                    Result = McSkinDownload(Result)
                                    RunInUi(Sub()
-                                               Dim Path As String = SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
+                                               Dim Path As String = SystemDialogs.SelectSaveFile("保存皮肤", ID & ".png", "皮肤图片文件(*.png)|*.png")
                                                CopyFile(Result, Path)
                                                Hint($"玩家 {ID} 的皮肤已保存！", HintType.Finish)
                                            End Sub)
                                End If
                            Catch ex As Exception
-                               If GetExceptionSummary(ex).Contains("429") Then
+                               If ex.ToString().Contains("429") Then
                                    Hint("获取皮肤太过频繁，请 5 分钟之后再试！", HintType.Critical)
                                    Log("获取正版皮肤失败（" & ID & "）：获取皮肤太过频繁，请 5 分钟后再试！")
                                Else
@@ -583,7 +584,7 @@ Public Class PageOtherTest
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
                 
-                Dim path As String = SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
+                Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
                 If(path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
@@ -619,4 +620,10 @@ Public Class PageOtherTest
         End If
         Return url
     End Function
+
+    Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)
+        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText := """sURe"".ToUpper()", IsWarn := True) = "SURE" Then
+            Throw New Exception("手动崩溃")
+        End If
+    End Sub
 End Class

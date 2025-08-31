@@ -1,4 +1,7 @@
-﻿Public Class PageLaunchLeft
+﻿Imports PCL.Core.Utils
+Imports System.Windows
+
+Public Class PageLaunchLeft
 
     '加载当前实例
     Private IsLoad As Boolean = False
@@ -18,26 +21,32 @@
         AddHandler McFolderListLoader.LoadingStateChanged, AddressOf RefreshButtonsUI
         RefreshButtonsUI()
 
+        '初始化档案
+        GetProfile()
+        If Not ProfileList.Count = 0 AndAlso LastUsedProfile >= 0 AndAlso LastUsedProfile < ProfileList.Count Then
+            SelectedProfile = ProfileList(LastUsedProfile)
+        End If
+
         '加载实例
         RunInNewThread(
         Sub()
             '自动整合包安装：准备
             Dim PackInstallPath As String = Nothing
-            If File.Exists(Path & "modpack.zip") Then PackInstallPath = Path & "modpack.zip"
-            If File.Exists(Path & "modpack.mrpack") Then PackInstallPath = Path & "modpack.mrpack"
+            If File.Exists(ExePath & "modpack.zip") Then PackInstallPath = ExePath & "modpack.zip"
+            If File.Exists(ExePath & "modpack.mrpack") Then PackInstallPath = ExePath & "modpack.mrpack"
             If PackInstallPath IsNot Nothing Then
                 Log("[Launch] 需自动安装整合包：" & PackInstallPath, LogLevel.Debug)
                 Setup.Set("LaunchFolderSelect", "$.minecraft\")
-                If Not Directory.Exists(Path & ".minecraft\") Then
-                    Directory.CreateDirectory(Path & ".minecraft\")
-                    Directory.CreateDirectory(Path & ".minecraft\versions\")
-                    McFolderLauncherProfilesJsonCreate(Path & ".minecraft\")
+                If Not Directory.Exists(ExePath & ".minecraft\") Then
+                    Directory.CreateDirectory(ExePath & ".minecraft\")
+                    Directory.CreateDirectory(ExePath & ".minecraft\versions\")
+                    McFolderLauncherProfilesJsonCreate(ExePath & ".minecraft\")
                 End If
-                PageSelectLeft.AddFolder(Path & ".minecraft\", GetFolderNameFromPath(Path), False)
+                PageSelectLeft.AddFolder(ExePath & ".minecraft\", GetFolderNameFromPath(ExePath), False)
                 McFolderListLoader.WaitForExit()
             End If
             '确认 Minecraft 文件夹存在
-            PathMcFolder = Setup.Get("LaunchFolderSelect").ToString.Replace("$", Path)
+            PathMcFolder = Setup.Get("LaunchFolderSelect").ToString.Replace("$", ExePath)
             If PathMcFolder = "" OrElse Not Directory.Exists(PathMcFolder) Then
                 '无效的文件夹
                 If PathMcFolder = "" Then
@@ -46,10 +55,10 @@
                     Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" & PathMcFolder, LogLevel.Debug)
                 End If
                 McFolderListLoader.WaitForExit(IsForceRestart:=True)
-                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(Path, "$"))
+                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(ExePath, "$"))
             End If
             Log("[Launch] Minecraft 文件夹：" & PathMcFolder)
-            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomInteger(500, 3000))
+            If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(500, 3000))
             '自动整合包安装
             If PackInstallPath IsNot Nothing Then
                 Try
@@ -314,10 +323,10 @@
                 Data.Output = ""
                 Log("[Minecraft] 已取消皮肤获取：" & UserName)
                 Return
-            ElseIf GetExceptionSummary(ex).Contains("429") Then
+            ElseIf ex.ToString().Contains("429") Then
                 Data.Output = PathImage & "Skins/" & McSkinSex(GetOfflineUuid(UserName)) & ".png"
                 Log("[Minecraft] 获取正版皮肤失败（" & UserName & "）：获取皮肤太过频繁，请 5 分钟后再试！", LogLevel.Hint)
-            ElseIf GetExceptionSummary(ex).Contains("未设置自定义皮肤") Then
+            ElseIf ex.ToString().Contains("未设置自定义皮肤") Then
                 Data.Output = PathImage & "Skins/" & McSkinSex(GetOfflineUuid(UserName)) & ".png"
                 Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载")
             Else
@@ -379,10 +388,10 @@ Finish:
             If ex.GetType.Name = "ThreadInterruptedException" Then
                 Data.Output = ""
                 Return
-            ElseIf GetExceptionSummary(ex).Contains("429") Then
+            ElseIf ex.ToString().Contains("429") Then
                 Data.Output = PathImage & "Skins/Steve.png"
                 Log("[Minecraft] 获取 Authlib-Injector 皮肤失败（" & UserName & "）：获取皮肤太过频繁，请 5 分钟后再试！", LogLevel.Hint)
-            ElseIf GetExceptionSummary(ex).Contains("未设置自定义皮肤") Then
+            ElseIf ex.ToString().Contains("未设置自定义皮肤") Then
                 Data.Output = PathImage & "Skins/Steve.png"
                 Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载")
             Else

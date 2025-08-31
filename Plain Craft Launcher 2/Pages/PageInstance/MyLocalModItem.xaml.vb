@@ -1,4 +1,6 @@
 Imports System.Windows.Forms
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class MyLocalCompItem
 
@@ -201,7 +203,7 @@ Public Class MyLocalCompItem
                     If CheckEventArgs.Handled Then Return
                 End If
                 '更改动画
-                If IsVisibleInForm() Then
+                If IsVisibleInWindow(FrmMain) Then
                     Dim Anim As New List(Of AniData)
                     If Checked Then
                         '由无变有
@@ -345,7 +347,7 @@ Public Class MyLocalCompItem
             NewestName = Join(NewestSegs, "-")
             Entry._Version = CurrentName '使用网络信息作为显示的版本号
         End If
-        Return $"当前版本：{CurrentName}（{GetTimeSpanString(Entry.CompFile.ReleaseDate - Date.Now, False)}）{vbCrLf}最新版本：{NewestName}（{GetTimeSpanString(Entry.UpdateFile.ReleaseDate - Date.Now, False)}）"
+        Return $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - Date.Now, False)}）{vbCrLf}最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - Date.Now, False)}）"
     End Function
     Public Sub Refresh() Handles Me.Loaded
         RunInUi(
@@ -552,13 +554,13 @@ Public Class MyLocalCompItem
             Case 1
                 If ColumnSubtitle.ActualWidth < 0.5 Then
                     NewCompressLevel = 2
-                ElseIf Not LabSubtitle.IsTextTrimmed Then
+                ElseIf Not LabSubtitle.IsTextTrimmed() Then
                     NewCompressLevel = 0
                 Else
                     Return
                 End If
             Case 2
-                If Not LabTitle.IsTextTrimmed Then
+                If Not LabTitle.IsTextTrimmed() Then
                     NewCompressLevel = If(LabSubtitle.Visibility = Visibility.Collapsed, 0, 1)
                 Else
                     Return

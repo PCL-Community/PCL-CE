@@ -1,5 +1,11 @@
+Imports System.Collections.ObjectModel
+Imports System.ComponentModel
 Imports System.Threading.Tasks
+Imports PCL.Core.ProgramSetup
+Imports PCL.Core.UI
+Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.OS
 
 Public Class PageSetupUI
 
@@ -39,7 +45,7 @@ Public Class PageSetupUI
                 End If
             Next
         End If
-        
+
 #If DEBUG Then
         If EnableCustomTheme Then
             LabLauncherDelta.Visibility = Visibility.Visible
@@ -70,9 +76,14 @@ Public Class PageSetupUI
         '极客蓝的处理在 ThemeCheck 中
 
     End Sub
+    Public Class CustomFontProperties
+        Public Property Name As String
+        Public Property Font As FontFamily
+        Public Property Tag As String
+    End Class
+    Public ReadOnly Property CustomFontCollection As New ObservableCollection(Of CustomFontProperties)
     Public Sub Reload()
         Try
-
             '启动器
             SliderLauncherOpacity.Value = Setup.Get("UiLauncherTransparent")
             SliderLauncherHue.Value = Setup.Get("UiLauncherHue")
@@ -84,66 +95,59 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            Dispatcher.BeginInvoke(
-                Async Sub()
+            Dispatcher.BeginInvoke(Async Function() As Task
+                If CustomFontCollection.Count = 0 Then
                     ComboUiFont.IsEnabled = False
-                    Dim uiFonts = ComboUiFont.Items
-                    If uiFonts.Count = 0 Then
-                        uiFonts.Add(New MyComboBoxItem With {.Content = New TextBlock With {.Text = "加载中..."}})
-                        ComboUiFont.SelectedIndex = 0
-                        Dim availableFonts As New List(Of FontFamily)
-                        Await Task.Run(Sub()
-                                           For Each Font In Fonts.SystemFontFamilies
-                                               Try
-                                                   '忽略 Global 系列字体
-                                                   If Font.Source.StartsWith("Global ") Then Continue For
-                                                   '尝试加载字体以检测是否可用
-                                                   For Each Typeface In Font.GetTypefaces()
-                                                       Dim glyph As GlyphTypeface = Nothing
-                                                       Typeface.TryGetGlyphTypeface(glyph)
-                                                       If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                                       'ReSharper disable once UnusedVariable
-                                                       Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                                   Next
-                                                   availableFonts.Add(Font)
-                                               Catch ex As Exception
-                                                   Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                                               End Try
-                                           Next
-                                       End Sub)
-                        uiFonts.Clear()
-                        uiFonts.Add(New MyComboBoxItem With {
-                        .Content = New TextBlock With {
-                                .Text = "默认",
-                                .FontFamily = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                .IsHitTestVisible = False,
-                                .TextAlignment = TextAlignment.Center
-                            },
-                            .Tag = ""
-                        })
-                        For Each Font In availableFonts
-                            uiFonts.Add(New MyComboBoxItem With {
-                                .Content = New TextBlock With {
-                                    .Text = Font.FamilyNames.GetForCurrentUiCulture(),
-                                    .FontFamily = Font,
-                                    .IsHitTestVisible = False,
-                                    .TextAlignment = TextAlignment.Center
-                                },
-                                .Tag = Font.Source
-                            })
+                    CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
+                    ComboUiFont.SelectedIndex = 0
+                    Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
+                    Await Task.Run(Sub()
+                        For Each Font In Fonts.SystemFontFamilies
+                            Try
+                                '忽略 Global 系列字体
+                                If Font.Source.StartsWith("Global ") Then Continue For
+                                '尝试加载字体以检测是否可用
+                                For Each Typeface In Font.GetTypefaces()
+                                    Dim glyph As GlyphTypeface = Nothing
+                                    Typeface.TryGetGlyphTypeface(glyph)
+                                    If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                                    'ReSharper disable once UnusedVariable
+                                    Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                                Next
+                                availableFonts.Add(New KeyValuePair(Of String,FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
+                            Catch ex As Exception
+                                Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                            End Try
                         Next
-                    End If
-                    Dim targetFont As String = Setup.Get("UiFont")
-                    Dim targetSelection = uiFonts.Cast(Of MyComboBoxItem).FirstOrDefault(Function(x) x.Tag = targetFont)
-                    If targetSelection Is Nothing Then
-                        ComboUiFont.SelectedIndex = 0
-                    Else
-                        ComboUiFont.SelectedItem = targetSelection
-                    End If
+                        availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
+                    End Sub)
+                    CustomFontCollection.Clear()
+                    CustomFontCollection.Add(New CustomFontProperties With {
+                        .Name = "默认",
+                        .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
+                        .Tag = ""
+                    })
+                    For Each font In availableFonts
+                        CustomFontCollection.Add(New CustomFontProperties With {
+                            .Name = font.Key,
+                            .Font = font.Value,
+                            .Tag = font.Value.Source
+                        })
+                    Next
                     ComboUiFont.IsEnabled = True
-                End Sub)
+                End If
+                Dim targetFont As String = Setup.Get("UiFont")
+                Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
+                If targetSelection Is Nothing Then
+                    ComboUiFont.SelectedIndex = 0
+                Else
+                    ComboUiFont.SelectedItem = targetSelection
+                End If
+            End Function)
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
+            SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
+            ComboBlurType.SelectedIndex = Setup.Get("UiBlurType")
             PanBlurValue.Visibility = If(CheckBlur.Checked, Visibility.Visible, Visibility.Collapsed)
             CheckLockWindowSize.Checked = Setup.Get("UiLockWindowSize")
 
@@ -152,6 +156,12 @@ Public Class PageSetupUI
             SliderBackgroundBlur.Value = Setup.Get("UiBackgroundBlur")
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
+            CheckAutoPauseVideo.Checked = SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo)
+            If ModVideoBack.IsGaming = True Then
+                If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = True Then
+                    BtnBackgroundRefresh.IsEnabled = False
+                End If
+            End If
             BackgroundRefresh(False, False)
 
             '标题栏
@@ -226,6 +236,8 @@ Public Class PageSetupUI
             Setup.Reset("UiLockWindowSize")
             Setup.Reset("UiBlur")
             Setup.Reset("UiBlurValue")
+            Setup.Reset("UiBlurSamplingRate")
+            Setup.Reset("UiBlurType")
             Setup.Reset("UiBackgroundColorful")
             Setup.Reset("UiBackgroundOpacity")
             Setup.Reset("UiBackgroundBlur")
@@ -267,6 +279,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
             Setup.Reset("UiHiddenVersionSchematic")
+            SetupService.DeleteBool(SetupEntries.Ui.AutoPauseVideo)
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -278,13 +291,13 @@ Public Class PageSetupUI
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
+    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBlurSamplingRate.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckAutoPauseVideo.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -303,7 +316,7 @@ Public Class PageSetupUI
 
     '背景图片
     Private Sub BtnUIBgOpen_Click(sender As Object, e As EventArgs) Handles BtnBackgroundOpen.Click
-        OpenExplorer(Path & "PCL\Pictures\")
+        OpenExplorer(ExePath & "PCL\Pictures\")
     End Sub
     Private Sub BtnBackgroundRefresh_Click(sender As Object, e As EventArgs) Handles BtnBackgroundRefresh.Click
         BackgroundRefresh(True, True)
@@ -315,19 +328,21 @@ Public Class PageSetupUI
             PanBackgroundBlur.Visibility = Visibility.Visible
             PanBackgroundSuit.Visibility = Visibility.Visible
             BtnBackgroundClear.Visibility = Visibility.Visible
+            CheckAutoPauseVideo.Visibility = Visibility.Visible
             CardBackground.Title = "背景图片/视频（" & Count & " 张）"
         Else
             PanBackgroundOpacity.Visibility = Visibility.Collapsed
             PanBackgroundBlur.Visibility = Visibility.Collapsed
             PanBackgroundSuit.Visibility = Visibility.Collapsed
             BtnBackgroundClear.Visibility = Visibility.Collapsed
+            CheckAutoPauseVideo.Visibility = Visibility.Collapsed
             CardBackground.Title = "背景图片/视频"
         End If
         CardBackground.TriggerForceResize()
     End Sub
     Private Sub BtnBackgroundClear_Click(sender As Object, e As EventArgs) Handles BtnBackgroundClear.Click
         If MyMsgBox("即将删除背景内容文件夹中的所有文件。" & vbCrLf & "此操作不可撤销，是否确定？", "警告",, "取消", IsWarn:=True) = 1 Then
-            DeleteDirectory(Path & "PCL\Pictures")
+            DeleteDirectory(ExePath & "PCL\Pictures")
             BackgroundRefresh(False, True)
             Hint("背景内容已清空！", HintType.Finish)
         End If
@@ -341,33 +356,38 @@ Public Class PageSetupUI
         Try
 
             '获取可用的图片文件
-            Directory.CreateDirectory(Path & "PCL\Pictures\")
-            Dim Pic As New List(Of String)
-            For Each File In EnumerateFiles(Path & "PCL\Pictures\")
-                If File.Extension.ToLower <> ".ini" AndAlso File.Extension.ToLower <> ".db" Then '文件夹可能会被加入 .ini 和 thumbs.db
-                    Pic.Add(File.FullName)
-                End If
-            Next
+            Directory.CreateDirectory(ExePath & "PCL\Pictures\")
+            Dim Pic As List(Of String) = EnumerateFiles(ExePath & "PCL\Pictures\").
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
+                    Select(Function(file) file.FullName).
+                    ToList() 
             '视频加载异常处理
-            Dim videoEx As Exception = Nothing
-            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = Sub(sender, e)
-                                                                                If FrmMain.VideoBack.Source IsNot Nothing Then
-                                                                                    Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
-                                                                                    FrmMain.VideoBack.Source = Nothing
-                                                                                    FrmMain.VideoBack.Stop()
-                                                                                    Log("[UI] 尝试将文件作为视频播放失败：" & videoAddress)
-                                                                                    If videoEx.Message.Contains("参数无效") Then
-                                                                                        Log("刷新背景图片失败，该图片文件可能并非标准格式。" & vbCrLf &
-                                                                                        "你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。" & vbCrLf &
-                                                                                        "文件：" & videoAddress, LogLevel.Msgbox)
-                                                                                    Else
-                                                                                        Log(videoEx, "刷新背景内容失败（" & videoAddress & "）", LogLevel.Msgbox)
-                                                                                    End If
-                                                                                End If
-                                                                            End Sub
+
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
+                    Sub(sender, e)
+                        Dim videoEx = e.ErrorException
+                        Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
+                        If FrmMain.VideoBack.Source IsNot Nothing Then
+                            VideoStop()
+                            
+                            If videoEx.Message.Contains("0xC00D109B") Then
+                                Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
+                                    "你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。" & vbCrLf &
+                                    "文件：" & videoAddress, LogLevel.Msgbox)
+                            Else
+                                Log(videoEx, "刷新背景内容失败（" & videoAddress & "）", LogLevel.Msgbox)
+                            End If
+                        End If
+                    End Sub
             RemoveHandler FrmMain.VideoBack.MediaFailed, videoHandler
+            RemoveHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            RemoveHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
+            AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
+            AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
+            If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = False Then ModVideoBack.ForcePlay = True
             '加载
-            If Not Pic.Any() Then
+            If Pic.Count = 0 Then
                 If Refresh Then
                     If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
                         If IsHint Then Hint("未检测到可用背景内容！", HintType.Critical)
@@ -379,28 +399,26 @@ Public Class PageSetupUI
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(False, 0)
             Else
                 If Refresh Then
-                    Dim Address As String = RandomOne(Pic)
+                    Dim Address As String = RandomUtils.PickRandom(Pic)
                     Try
                         FrmMain.ImgBack.Background = Nothing
-                        FrmMain.VideoBack.Source = Nothing
-                        FrmMain.VideoBack.Stop()
-                        FrmMain.VideoBack.Position = TimeSpan.Zero
-                        Log("[UI] 加载背景图片：" & Address)
+                        VideoStop()
+                        Log("[UI] 加载背景内容：" & Address)
                         FrmMain.ImgBack.Background = New MyBitmap(Address)
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                     Catch ex As Exception
-                        videoEx = ex
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
-                            Log("[UI] 图片加载失败，尝试将文件作为视频播放：" & Address)
+                            Log(ex,"[UI] 加载背景图片失败" & Address)
+                            Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
-                            FrmMain.VideoBack.Play()
+                            VideoPlay()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
-                            Log(playEx, "播放背景内容时出现未知错误：" & Address, LogLevel.Feedback)
+                            Log(playEx,"播放背景内容时出现未知错误：")
                         End Try
                     End Try
                 End If
@@ -414,15 +432,15 @@ Public Class PageSetupUI
 
     '顶部栏
     Private Sub BtnLogoChange_Click(sender As Object, e As EventArgs) Handles BtnLogoChange.Click
-        Dim FileName As String = SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片")
+        Dim FileName As String = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片")
         If FileName = "" Then Return
         Try
             '拷贝文件
-            File.Delete(Path & "PCL\Logo.png")
-            CopyFile(FileName, Path & "PCL\Logo.png")
+            File.Delete(ExePath & "PCL\Logo.png")
+            CopyFile(FileName, ExePath & "PCL\Logo.png")
             '设置当前显示
             FrmMain.ImageTitleLogo.Source = Nothing '防止因为 Source 属性前后的值相同而不更新 (#5628)
-            FrmMain.ImageTitleLogo.Source = Path & "PCL\Logo.png"
+            FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
         Catch ex As Exception
             If ex.Message.Contains("参数无效") Then
                 Log("改变标题栏图片失败，该图片文件可能并非标准格式。" & vbCrLf &
@@ -437,10 +455,10 @@ Public Class PageSetupUI
         If Not (AniControlEnabled = 0 AndAlso e.RaiseByMouse) Then Return
 Refresh:
         '已有图片则不再选择
-        If File.Exists(Path & "PCL\Logo.png") Then
+        If File.Exists(ExePath & "PCL\Logo.png") Then
             Try
                 FrmMain.ImageTitleLogo.Source = Nothing '防止因为 Source 属性前后的值相同而不更新 (#5628)
-                FrmMain.ImageTitleLogo.Source = Path & "PCL\Logo.png"
+                FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
             Catch ex As Exception
                 If ex.Message.Contains("参数无效") Then
                     Log("调整标题栏图片失败，该图片文件可能并非标准格式。" & vbCrLf &
@@ -451,7 +469,7 @@ Refresh:
                 FrmMain.ImageTitleLogo.Source = Nothing
                 e.Handled = True
                 Try
-                    File.Delete(Path & "PCL\Logo.png")
+                    File.Delete(ExePath & "PCL\Logo.png")
                 Catch exx As Exception
                     Log(exx, "清理错误的标题栏图片失败", LogLevel.Msgbox)
                 End Try
@@ -459,15 +477,15 @@ Refresh:
             Return
         End If
         '没有图片则要求选择
-        Dim FileName As String = SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片")
+        Dim FileName As String = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片")
         If FileName = "" Then
             FrmMain.ImageTitleLogo.Source = Nothing
             e.Handled = True
         Else
             Try
                 '拷贝文件
-                File.Delete(Path & "PCL\Logo.png")
-                CopyFile(FileName, Path & "PCL\Logo.png")
+                File.Delete(ExePath & "PCL\Logo.png")
+                CopyFile(FileName, ExePath & "PCL\Logo.png")
                 GoTo Refresh
             Catch ex As Exception
                 Log(ex, "复制标题栏图片失败", LogLevel.Msgbox)
@@ -476,7 +494,7 @@ Refresh:
     End Sub
     Private Sub BtnLogoDelete_Click(sender As Object, e As EventArgs) Handles BtnLogoDelete.Click
         Try
-            File.Delete(Path & "PCL\Logo.png")
+            File.Delete(ExePath & "PCL\Logo.png")
             RadioLogoType1.SetChecked(True, True)
             Hint("标题栏图片已清空！", HintType.Finish)
         Catch ex As Exception
@@ -486,7 +504,7 @@ Refresh:
 
     '背景音乐
     Private Sub BtnMusicOpen_Click(sender As Object, e As EventArgs) Handles BtnMusicOpen.Click
-        OpenExplorer(Path & "PCL\Musics\")
+        OpenExplorer(ExePath & "PCL\Musics\")
     End Sub
     Private Sub BtnMusicRefresh_Click(sender As Object, e As EventArgs) Handles BtnMusicRefresh.Click
         MusicRefreshPlay(True)
@@ -497,7 +515,7 @@ Refresh:
             PanMusicVolume.Visibility = Visibility.Visible
             PanMusicDetail.Visibility = Visibility.Visible
             BtnMusicClear.Visibility = Visibility.Visible
-            CardMusic.Title = "背景音乐（" & EnumerateFiles(Path & "PCL\Musics\").Count & " 首）"
+            CardMusic.Title = "背景音乐（" & EnumerateFiles(ExePath & "PCL\Musics\").Count & " 首）"
         Else
             PanMusicVolume.Visibility = Visibility.Collapsed
             PanMusicDetail.Visibility = Visibility.Collapsed
@@ -518,14 +536,14 @@ Refresh:
                 Thread.Sleep(200)
                 '删除文件
                 Try
-                    DeleteDirectory(Path & "PCL\Musics")
+                    DeleteDirectory(ExePath & "PCL\Musics")
                     'DisableSMTCSupport()
                     Hint("背景音乐已删除！", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "删除背景音乐失败", LogLevel.Msgbox)
                 End Try
                 Try
-                    Directory.CreateDirectory(Path & "PCL\Musics")
+                    Directory.CreateDirectory(ExePath & "PCL\Musics")
                     RunInUi(Sub() MusicRefreshPlay(False))
                 Catch ex As Exception
                     Log(ex, "重建背景音乐文件夹失败", LogLevel.Msgbox)
@@ -545,12 +563,12 @@ Refresh:
     '主页
     Private Sub BtnCustomFile_Click(sender As Object, e As EventArgs) Handles BtnCustomFile.Click
         Try
-            If File.Exists(Path & "PCL\Custom.xaml") Then
+            If File.Exists(ExePath & "PCL\Custom.xaml") Then
                 If MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn:=True) = 2 Then Return
             End If
-            WriteFile(Path & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
+            WriteFile(ExePath & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
             Hint("教学文件已生成！", HintType.Finish)
-            OpenExplorer(Path & "PCL\Custom.xaml")
+            OpenExplorer(ExePath & "PCL\Custom.xaml")
         Catch ex As Exception
             Log(ex, "生成教学文件失败", LogLevel.Feedback)
         End Try
@@ -847,6 +865,7 @@ Refresh:
         SliderBackgroundOpacity.GetHintText = Function(v) Math.Round(v * 0.1) & "%"
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
+        SliderBlurSamplingRate.GetHintText = Function(v) v & "%"
     End Sub
     Private Sub BtnHomepageMarket_Click(sender As Object, e As EventArgs) Handles BtnGotoHomepageMarket.Click
         FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.HomepageMarket})

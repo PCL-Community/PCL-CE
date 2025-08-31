@@ -202,10 +202,10 @@ Public Class PageInstanceScreenshot
     End Sub
 
     Private Sub btnDelete_Click(sender As MyIconTextButton, e As EventArgs)
-        Path = GetPathFromSender(sender)
-        RemoveItem(Path)
+        Dim path = GetPathFromSender(sender)
+        RemoveItem(path)
         Try
-            FileSystem.DeleteFile(Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
+            FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
             Hint("已将截图移至回收站！")
         Catch ex As Exception
             Log(ex, "删除截图失败！", LogLevel.Hint)

@@ -1,9 +1,13 @@
 Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
+Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
+Imports PCL.Core.ProgramSetup
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.OS
 
 Public Class FormMain
 
@@ -29,7 +33,7 @@ Public Class FormMain
     '窗口加载
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
-        ApplicationStartTick = GetTimeTick()
+        ApplicationStartTick = TimeUtils.GetTimeTick()
         '刷新主题
         ThemeCheckAll(False)
         Dim dark As Int32 = Setup.Get("UiDarkMode")
@@ -39,7 +43,7 @@ Public Class FormMain
             Case 1
                 IsDarkMode = True
             Case 2
-                IsDarkMode = IsSystemInDarkMode()
+                IsDarkMode = SystemTheme.IsSystemInDarkMode()
         End Select
         ThemeRefreshColor()
         '窗体参数初始化
@@ -75,6 +79,14 @@ Public Class FormMain
         '加载 UI
         InitializeComponent()
         Opacity = 0
+        Try
+            Height = Setup.Get("WindowHeight")
+            Width = Setup.Get("WindowWidth")
+        Catch ex As Exception '修复 #2019
+            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
+            Height = MinHeight + 100
+            Width = MinWidth + 100
+        End Try
         ''开启管理员权限下的文件拖拽，但下列代码也没用（#2531）
         'If IsAdmin() Then
         '    Log("[Start] PCL 正以管理员权限运行")
@@ -95,19 +107,20 @@ Public Class FormMain
         '尽早执行的加载池
         McFolderListLoader.Start(0) '为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
-        Log("[Start] 第二阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        Log("[Start] 第二阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
         '注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
 
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        ApplicationStartTick = GetTimeTick()
-        Handle = New WindowInteropHelper(Me).Handle
+        ApplicationStartTick = TimeUtils.GetTimeTick()
+        FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
         Setup.Load("UiBackgroundOpacity")
         Setup.Load("UiBackgroundBlur")
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
+        SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) '智能暂停视频背景
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
@@ -123,27 +136,21 @@ Public Class FormMain
             AddResizer()
         End If
         'PLC 彩蛋
-        If RandomInteger(1, 1000) = 233 Then
+        If RandomUtils.NextInt(1, 1000) = 233 Then
             ShapeTitleLogo.Data = New GeometryConverter().ConvertFromString("M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5")
         End If
         '加载窗口
 
         ThemeRefresh()
 
+        Application.Current.Resources("BlurSamplingRate") = Setup.Get("UiBlurSamplingRate") * 0.01
+        Application.Current.Resources("BlurType") = CType(Setup.Get("UiBlurType"), KernelType)
         If Setup.Get("UiBlur") Then
-            Application.Current.Resources("BlurValue") = CType(Setup.Get("UiBlurValue"), Double)
+            Application.Current.Resources("BlurRadius") = Setup.Get("UiBlurValue") * 1.0
         Else
-            Application.Current.Resources("BlurValue") = CType(0, Double)
+            Application.Current.Resources("BlurRadius") = 0.0
         End If
 
-        Try
-            Height = Setup.Get("WindowHeight")
-            Width = Setup.Get("WindowWidth")
-        Catch ex As Exception '修复 #2019
-            Log(ex, "读取窗口默认大小失败", LogLevel.Hint)
-            Height = MinHeight + 100
-            Width = MinWidth + 100
-        End Try
         '#If DEBUG Then
         '        MinHeight = 50
         '        MinWidth = 50
@@ -166,7 +173,7 @@ Public Class FormMain
             Sub()
                 PanBack.RenderTransform = Nothing
                 IsWindowLoadFinished = True
-                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{PathWithName}")
+                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
             End Sub, , True)
         }, "Form Show")
         'Timer 启动
@@ -226,7 +233,7 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
-                InitJava()
+'                InitJava() ignore as JavaSerivce will InitJava automatically
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
@@ -237,7 +244,7 @@ Public Class FormMain
             End Try
             '清理自动更新文件
             Try
-                If File.Exists(Path & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(Path & "PCL\Plain Craft Launcher Community Edition.exe")
+                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
@@ -245,7 +252,7 @@ Public Class FormMain
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
-        Log("[Start] 第三阶段加载用时：" & GetTimeTick() - ApplicationStartTick & " ms")
+        Log("[Start] 第三阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
     '根据打开次数触发的事件
     Private Sub RunCountSub()
@@ -302,8 +309,8 @@ Public Class FormMain
                      "多谢各位的理解啦！", "重新解锁提醒")
         End If
         '移动自定义皮肤
-        If LastVersionCode <= 161 AndAlso File.Exists(Path & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
-            CopyFile(Path & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
+        If LastVersionCode <= 161 AndAlso File.Exists(ExePath & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
+            CopyFile(ExePath & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")
             Log("[Start] 已移动离线自定义皮肤 (162)")
         End If
         If LastVersionCode <= 263 AndAlso File.Exists(PathTemp & "CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
@@ -383,6 +390,10 @@ Public Class FormMain
         '关闭
         RunInUiWait(
         Sub()
+            '清理视频背景
+            VideoBack.Stop()
+            VideoBack.Source = Nothing
+            VideoBack.Close()
             IsHitTestVisible = False
             If PanBack.RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)
@@ -697,7 +708,7 @@ Public Class FormMain
                 '检查是否为同类型文件
                 Dim FirstExtension = FilePathList.First.AfterLast(".").ToLower
                 Dim AllSameType = FilePathList.All(Function(f) f.AfterLast(".").ToLower = FirstExtension)
-                
+
                 If AllSameType AndAlso {"jar", "litemod", "disabled", "old", "litematic", "nbt", "schematic", "schem"}.Contains(FirstExtension) Then
                     '允许同类型的 Mod 文件或投影文件批量拖拽
                 Else
@@ -709,12 +720,12 @@ Public Class FormMain
             Dim Extension As String = FilePath.AfterLast(".").ToLower
             If Extension = "xaml" Then
                 Log("[System] 文件后缀为 XAML，作为主页加载")
-                If File.Exists(Path & "PCL\Custom.xaml") Then
+                If File.Exists(ExePath & "PCL\Custom.xaml") Then
                     If MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") = 2 Then
                         Return
                     End If
                 End If
-                CopyFile(FilePath, Path & "PCL\Custom.xaml")
+                CopyFile(FilePath, ExePath & "PCL\Custom.xaml")
                 RunInUi(
                 Sub()
                     Setup.Set("UiCustomType", 1)
@@ -852,9 +863,9 @@ Public Class FormMain
             handled = True
         ElseIf msg = 26 Then 'WM_SETTINGCHANGE
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
-                Log($"[System] 系统主题更改，深色模式：{IsSystemInDarkMode()}")
-                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> IsSystemInDarkMode() Then
-                    IsDarkMode = IsSystemInDarkMode()
+                Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
+                If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
+                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
                     ThemeRefresh()
                 End If
             End If
@@ -885,6 +896,11 @@ Public Class FormMain
             End If
         End Set
     End Property
+    '解决龙猫的非通用实现史山
+    Protected Overrides Sub OnActivated(e As EventArgs)
+        MyBase.OnActivated(e)
+        If Hidden Then Hidden = False
+    End Sub
     ''' <summary>
     ''' 把当前窗口拖到最前面。
     ''' </summary>
@@ -898,7 +914,7 @@ Public Class FormMain
             Hidden = False
             Topmost = True '偶尔 SetForegroundWindow 失效
             Topmost = False
-            SetForegroundWindow(Handle)
+            SetForegroundWindow(FrmHandle)
             Focus()
             Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}")
         End Sub)
@@ -907,6 +923,17 @@ Public Class FormMain
     Private Sub VideoEnded(sender As Object, e As RoutedEventArgs)
         VideoBack.Position = TimeSpan.Zero
         VideoBack.Play()
+    End Sub
+    '最小化时暂停背景视频
+    Private Sub WindowStateChanged(sender As Object, e As EventArgs) Handles Me.StateChanged
+        Select Case Me.WindowState
+            Case WindowState.Minimized
+                ModVideoBack.IsMinimized = True
+                VideoPause()
+            Case WindowState.Normal
+                ModVideoBack.IsMinimized = False
+                VideoPlay()
+        End Select
     End Sub
 
 #End Region
@@ -1024,6 +1051,7 @@ Public Class FormMain
         VersionShader = 8
         VersionSchematic = 9
         VersionInstall = 10
+        VersionServer = 11
         VersionSavesInfo = 0
         VersionSavesBackup = 1
     End Enum
