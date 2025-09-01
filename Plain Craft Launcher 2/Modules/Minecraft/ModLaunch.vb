@@ -1,7 +1,7 @@
 
 Imports System.IO.Compression
 Imports System.Text.Json.Nodes
-Imports System.Web
+Imports System.Net
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
