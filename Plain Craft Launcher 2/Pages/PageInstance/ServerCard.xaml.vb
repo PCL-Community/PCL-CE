@@ -167,7 +167,7 @@ Public Class ServerCard
             End If
 
             ' Read NBT file
-            Dim nbtData As NbtList = await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData As NbtList = await NbtFileHandler.ReadNbTFileAsync(Of NbtList)(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData Is Nothing Then
                 Hint("无法读取服务器数据文件", HintType.Critical)
                 Exit Sub
@@ -223,7 +223,7 @@ Public Class ServerCard
             End If
 
             ' Read NBT file
-            Dim nbtData As NbtList = Await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData As NbtList = Await NbtFileHandler.ReadNbTFileAsync(Of NbtList)(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData Is Nothing Then
                 Hint("无法读取服务器数据文件", HintType.Critical)
                 Exit Sub

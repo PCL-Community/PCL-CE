@@ -84,7 +84,7 @@ Public Class PageInstanceServer
             
             Await serverCard.RefreshServerStatus(False)
             
-            Dim nbtData = await NbtFileHandler.ReadNbTFileAsync(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+            Dim nbtData = await NbtFileHandler.ReadNbTFileAsync(Of NbtList)(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
             If nbtData IsNot Nothing Then
                 Dim server = new NbtCompound()
                 server("name") = New NbtString("name", result.Name)
@@ -123,7 +123,7 @@ Public Class PageInstanceServer
 
         Try
             ' 读取NBT格式的servers.dat文件
-            Dim nbtData = await NbtFileHandler.ReadNbtFileAsync(serversFile, "servers")
+            Dim nbtData = await NbtFileHandler.ReadNbtFileAsync(Of NbtList)(serversFile, "servers")
             ParseServersFromNBT(nbtData)
         Catch ex As Exception
             Log(ex, "读取servers.dat文件失败", LogLevel.Debug)

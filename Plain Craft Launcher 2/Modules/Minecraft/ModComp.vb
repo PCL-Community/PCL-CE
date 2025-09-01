@@ -1465,14 +1465,23 @@ Retry:
         ''' </summary>
         Public ReadOnly Hash As String = Nothing
         ''' <summary>
-        ''' 该文件的所有依赖工程的原始 ID。
+        ''' 该文件的所有必要依赖工程的原始 ID。
         ''' 这些 ID 可能没有加载，在加载后会添加到 Dependencies 中（主要是因为 Modrinth 返回的是字符串 ID 而非 Slug，导致 Project.Id 查询不到）。
         ''' </summary>
         Public ReadOnly RawDependencies As New List(Of String)
         ''' <summary>
-        ''' 该文件的所有依赖工程的 Project.Id。
+        ''' 该文件的所有可选依赖工程的原始 ID。
+        ''' 这些 ID 可能没有加载，在加载后会添加到 OptionalDependencies 中（主要是因为 Modrinth 返回的是字符串 ID 而非 Slug，导致 Project.Id 查询不到）。
+        ''' </summary>
+        Public ReadOnly RawOptionalDependencies As New List(Of String)
+        ''' <summary>
+        ''' 该文件的所有必要依赖工程的 Project.Id。
         ''' </summary>
         Public ReadOnly Dependencies As New List(Of String)
+        ''' <summary>
+        ''' 该文件的所有可选依赖工程的 Project.Id。
+        ''' </summary>
+        Public ReadOnly OptionalDependencies As New List(Of String)
         ''' <summary>
         ''' 获取下载信息。
         ''' </summary>
@@ -1503,6 +1512,8 @@ Retry:
                 If Data.ContainsKey("GameVersions") Then GameVersions = Data("GameVersions").ToObject(Of List(Of String))
                 If Data.ContainsKey("RawDependencies") Then RawDependencies = Data("RawDependencies").ToObject(Of List(Of String))
                 If Data.ContainsKey("Dependencies") Then Dependencies = Data("Dependencies").ToObject(Of List(Of String))
+                If Data.ContainsKey("RawOptionalDependencies") Then RawDependencies = Data("RawOptionalDependencies").ToObject(Of List(Of String))
+                If Data.ContainsKey("OptionalDependencies") Then Dependencies = Data("OptionalDependencies").ToObject(Of List(Of String))
 #End Region
             Else
                 FromCurseForge = Data.ContainsKey("gameId")
@@ -1528,7 +1539,11 @@ Retry:
                     'Dependencies
                     If Data.ContainsKey("dependencies") Then
                         RawDependencies = Data("dependencies").
-                            Where(Function(d) d("relationType").ToObject(Of Integer) = 3 AndAlso '种类为依赖
+                            Where(Function(d) d("relationType").ToObject(Of Integer) = 3 AndAlso '种类为必要依赖
+                                              d("modId").ToObject(Of Integer) <> 306612 AndAlso d("modId").ToObject(Of Integer) <> 634179). '排除 Fabric API 和 Quilt API
+                            Select(Function(d) d("modId").ToString).ToList
+                        RawOptionalDependencies = Data("dependencies").
+                            Where(Function(d) d("relationType").ToObject(Of Integer) = 2 AndAlso '种类为可选依赖
                                               d("modId").ToObject(Of Integer) <> 306612 AndAlso d("modId").ToObject(Of Integer) <> 634179). '排除 Fabric API 和 Quilt API
                             Select(Function(d) d("modId").ToString).ToList
                     End If
@@ -1587,7 +1602,12 @@ Retry:
                     'Dependencies
                     If Data.ContainsKey("dependencies") Then
                         RawDependencies = Data("dependencies").
-                            Where(Function(d) d("dependency_type") = "required" AndAlso '种类为依赖
+                            Where(Function(d) d("dependency_type") = "required" AndAlso '种类为必要依赖
+                                              d("project_id") <> "P7dR8mSH" AndAlso d("project_id") <> "qvIfYCYJ" AndAlso '排除 Fabric API 和 Quilt API
+                                              d("project_id").ToString.Length > 0). '有时候真的会空……
+                            Select(Function(d) d("project_id").ToString).ToList
+                        RawOptionalDependencies = Data("dependencies").
+                            Where(Function(d) d("dependency_type") = "optional" AndAlso '种类为可选依赖
                                               d("project_id") <> "P7dR8mSH" AndAlso d("project_id") <> "qvIfYCYJ" AndAlso '排除 Fabric API 和 Quilt API
                                               d("project_id").ToString.Length > 0). '有时候真的会空……
                             Select(Function(d) d("project_id").ToString).ToList
@@ -1638,7 +1658,9 @@ Retry:
             If DownloadUrls IsNot Nothing Then Json.Add("DownloadUrls", New JArray(DownloadUrls))
             If Hash IsNot Nothing Then Json.Add("Hash", Hash)
             Json.Add("RawDependencies", New JArray(RawDependencies))
+            Json.Add("RawOptionalDependencies", New JArray(RawOptionalDependencies))
             Json.Add("Dependencies", New JArray(Dependencies))
+            Json.Add("OptionalDependencies", New JArray(OptionalDependencies))
             Return Json
         End Function
         ''' <summary>
@@ -1742,15 +1764,30 @@ Retry:
         '获取前置列表
         Dim Deps As List(Of String) = CompFilesCache(ProjectId).SelectMany(Function(f) f.RawDependencies).Distinct().ToList
         Dim UndoneDeps = Deps.Where(Function(f) Not CompProjectCache.ContainsKey(f)).ToList
+        Dim OptionalDeps As List(Of String) = CompFilesCache(ProjectId).SelectMany(Function(f) f.RawOptionalDependencies).Distinct().ToList
+        Dim UndoneOptionalDeps = Deps.Where(Function(f) Not CompProjectCache.ContainsKey(f)).ToList
         '获取前置工程信息
         If UndoneDeps.Any Then
-            Log($"[Comp] {ProjectId} 文件列表中还需要获取信息的前置：{Join(UndoneDeps, "，")}")
+            Log($"[Comp] {ProjectId} 文件列表中还需要获取信息的必要前置：{Join(UndoneDeps, "，")}")
             Dim Projects As JArray
             If TargetProject.FromCurseForge Then
                 Projects = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
                     "POST", "{""modIds"": [" & Join(UndoneDeps, ",") & "]}", "application/json"))("data")
             Else
                 Projects = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Join(UndoneDeps, """,""")}""]", IsJson:=True)
+            End If
+            For Each Project In Projects
+                Dim Unused As New CompProject(Project) '在 New 的时候会添加缓存以便之后读取
+            Next
+        End If
+        If UndoneOptionalDeps.Any Then
+            Log($"[Comp] {ProjectId} 文件列表中还需要获取信息的可选前置：{Join(UndoneDeps, "，")}")
+            Dim Projects As JArray
+            If TargetProject.FromCurseForge Then
+                Projects = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
+                                                "POST", "{""modIds"": [" & Join(UndoneOptionalDeps, ",") & "]}", "application/json"))("data")
+            Else
+                Projects = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Join(UndoneOptionalDeps, """,""")}""]", IsJson:=True)
             End If
             For Each Project In Projects
                 Dim Unused As New CompProject(Project) '在 New 的时候会添加缓存以便之后读取
@@ -1766,6 +1803,15 @@ Retry:
                 Next
             Next
         End If
+        If OptionalDeps.Any Then
+            For Each DepProject In OptionalDeps.Where(Function(id) CompProjectCache.ContainsKey(id)).Select(Function(id) CompProjectCache(id))
+                For Each File In CompFilesCache(ProjectId)
+                    If File.RawOptionalDependencies.Contains(DepProject.Id) AndAlso DepProject.Id <> ProjectId Then
+                        If Not File.OptionalDependencies.Contains(DepProject.Id) Then File.OptionalDependencies.Add(DepProject.Id)
+                    End If
+                Next
+            Next
+        End If
         Return CompFilesCache(ProjectId)
     End Function
 
@@ -1776,20 +1822,40 @@ Retry:
         '获取卡片对应的前置 ID
         '如果为整合包就不会有 Dependencies 信息，所以不用管
         Dim Deps As List(Of String) = Files.SelectMany(Function(f) f.Dependencies).Distinct.ToList()
-        Deps.Sort()
-        If Not Deps.Any() Then Return
-        Deps = Deps.Where(
-        Function(dep)
-            If Not CompProjectCache.ContainsKey(dep) Then Log($"[Comp] 未找到 ID {dep} 的前置信息", LogLevel.Debug)
-            Return CompProjectCache.ContainsKey(dep)
-        End Function).ToList
-        '添加开头间隔
-        Stack.Children.Add(New TextBlock With {.Text = "前置资源", .FontSize = 14, .HorizontalAlignment = HorizontalAlignment.Left, .Margin = New Thickness(6, 2, 0, 5)})
-        '添加前置列表
-        For Each Dep In Deps
-            Dim Item = CompProjectCache(Dep).ToCompItem(False, False)
-            Stack.Children.Add(Item)
-        Next
+        Dim OptionalDeps As List(Of String) = Files.SelectMany(Function(f) f.OptionalDependencies).Distinct.ToList()
+        If (Not Deps.Any() AndAlso Not OptionalDeps.Any()) Then Return
+        '必要前置
+        If Deps.Any() Then
+            Deps.Sort()
+            Deps = Deps.Where(
+            Function(dep)
+                If Not CompProjectCache.ContainsKey(dep) Then Log($"[Comp] 未找到 ID {dep} 的前置信息", LogLevel.Debug)
+                Return CompProjectCache.ContainsKey(dep)
+            End Function).ToList
+            '添加开头间隔
+            Stack.Children.Add(New TextBlock With {.Text = "必要前置资源", .FontSize = 14, .HorizontalAlignment = HorizontalAlignment.Left, .Margin = New Thickness(6, 2, 0, 5)})
+            '添加前置列表
+            For Each Dep In Deps
+                Dim Item = CompProjectCache(Dep).ToCompItem(False, False)
+                Stack.Children.Add(Item)
+            Next
+        End If
+        '可选前置
+        If OptionalDeps.Any() Then
+            OptionalDeps.Sort()
+            OptionalDeps = OptionalDeps.Where(
+                Function(dep)
+                    If Not CompProjectCache.ContainsKey(dep) Then Log($"[Comp] 未找到 ID {dep} 的前置信息", LogLevel.Debug)
+                    Return CompProjectCache.ContainsKey(dep)
+                End Function).ToList
+            '添加开头间隔
+            Stack.Children.Add(New TextBlock With {.Text = "可选前置资源", .FontSize = 14, .HorizontalAlignment = HorizontalAlignment.Left, .Margin = New Thickness(6, 2, 0, 5)})
+            '添加前置列表
+            For Each Dep In OptionalDeps
+                Dim Item = CompProjectCache(Dep).ToCompItem(False, False)
+                Stack.Children.Add(Item)
+            Next
+        End If
         '添加结尾间隔
         Stack.Children.Add(New TextBlock With {.Text = "版本列表", .FontSize = 14, .HorizontalAlignment = HorizontalAlignment.Left, .Margin = New Thickness(6, 12, 0, 5)})
     End Sub

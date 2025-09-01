@@ -155,7 +155,7 @@ Class PageSetupSystem
                     Return "无限制"
             End Select
         End Function
-        SliderDebugAnim.GetHintText = Function(v) If(v > 29, "关闭", (v / 10 + 0.1) & "x")
+        SliderDebugAnim.GetHintText = Function(v) If(v > 29, "关闭", Math.Round((v / 10 + 0.1), 1) & "x")
         SliderAniFPS.GetHintText =
             Function(v)
                 Return $"{v + 1} FPS"
