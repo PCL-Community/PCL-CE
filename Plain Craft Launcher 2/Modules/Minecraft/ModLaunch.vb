@@ -1176,21 +1176,26 @@ LoginFinish:
         'MC 大版本检测
         If (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2024, 4, 2)) OrElse
            (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 20, 5)) Then
-            '1.20.5+（24w14a+）：至少 Java 21
+            '1.20.5+ (24w14a+)：至少 Java 21
+            If ModeDebug Then Log("[Launch] [Debug] MC 1.20.5+ (24w14a+) 要求至少 Java 21")
             MinVer = New Version(21, 0, 0, 0)
         ElseIf (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2021, 11, 16)) OrElse
             (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 18)) Then
             '1.18 pre2+：至少 Java 17
+            If ModeDebug Then Log("[Launch] [Debug] MC 1.18 pre2+ 要求至少 Java 17")
             MinVer = New Version(17, 0, 0, 0)
         ElseIf (Not McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.ReleaseTime >= New Date(2021, 5, 11)) OrElse
            (McInstanceCurrent.Version.IsStandardVersion AndAlso McInstanceCurrent.Version.McInstance >= New Version(1, 17)) Then
             '1.17+ (21w19a+)：至少 Java 16
+            If ModeDebug Then Log("[Launch] [Debug] MC 1.17+ (21w19a+) 要求至少 Java 16")
             MinVer = New Version(16, 0, 0, 0)
         ElseIf McInstanceCurrent.ReleaseTime.Year >= 2017 Then 'Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
             '1.12+：至少 Java 8
+            If ModeDebug Then Log("[Launch] [Debug] MC 1.12+ 要求至少 Java 8")
             MinVer = New Version(1, 8, 0, 0)
         ElseIf McInstanceCurrent.ReleaseTime <= New Date(2013, 5, 1) AndAlso McInstanceCurrent.ReleaseTime.Year >= 2001 Then '避免某些版本写个 1960 年
             '1.5.2-：最高 Java 12
+            If ModeDebug Then Log("[Launch] [Debug] MC 1.5.2- 要求最高 Java 12")
             MaxVer = New Version(12, 999, 999, 999)
         End If
         If McInstanceCurrent.JsonVersion?("java_version") IsNot Nothing Then
@@ -1201,20 +1206,20 @@ LoginFinish:
 
         'OptiFine 检测
         If McInstanceCurrent.Version.HasOptiFine AndAlso McInstanceCurrent.Version.IsStandardVersion Then '不管非标准版本
-            If McInstanceCurrent.Version.McInstance < New Version(1, 7) Then
-                '<1.7：至多 Java 8
+            If McInstanceCurrent.Version.McInstance < New Version(1, 7) OrElse McInstanceCurrent.Version.McCodeMain = 12 Then
+                '<1.7 / 1.12：最高 Java 8
+                If ModeDebug Then Log("[Launch] [Debug] OptiFine <1.7 / 1.12 要求最高 Java 8")
                 MaxVer = New Version(8, 999, 999, 999)
             ElseIf McInstanceCurrent.Version.McInstance >= New Version(1, 8) AndAlso McInstanceCurrent.Version.McInstance < New Version(1, 12) Then
                 '1.8 - 1.11：必须恰好 Java 8
+                If ModeDebug Then Log("[Launch] [Debug] OptiFine 1.8 - 1.11 要求恰好 Java 8")
                 MinVer = New Version(1, 8, 0, 0) : MaxVer = New Version(8, 999, 999, 999)
-            ElseIf McInstanceCurrent.Version.McCodeMain = 12 Then
-                '1.12：最高 Java 8
-                MaxVer = New Version(8, 999, 999, 999)
             End If
         End If
 
         If McInstanceCurrent.Version.HasLiteLoader AndAlso McInstanceCurrent.Version.IsStandardVersion Then
             '最高 Java 8
+            If ModeDebug Then Log("[Launch] [Debug] LiteLoader 要求最高 Java 8")
             MaxVer = If(New Version(8, 999, 999, 999) < MaxVer, New Version(8, 999, 999, 999), MaxVer)
         End If
 
@@ -1222,24 +1227,30 @@ LoginFinish:
         If McInstanceCurrent.Version.HasForge Then
             If McInstanceCurrent.Version.McInstance >= New Version(1, 6, 1) AndAlso McInstanceCurrent.Version.McInstance <= New Version(1, 7, 2) Then
                 '1.6.1 - 1.7.2：必须 Java 7
+                If ModeDebug Then Log("[Launch] [Debug] 1.6.1 - 1.7.2 Forge 要求必须 Java 7")
                 MinVer = If(New Version(1, 7, 0, 0) > MinVer, New Version(1, 7, 0, 0), MinVer)
                 MaxVer = If(New Version(1, 7, 999, 999) < MaxVer, New Version(1, 7, 999, 999), MaxVer)
             ElseIf McInstanceCurrent.Version.McCodeMain <= 12 OrElse Not McInstanceCurrent.Version.IsStandardVersion Then '非标准版本
                 '<=1.12：Java 8
+                If ModeDebug Then Log("[Launch] [Debug] <=1.12 Forge 要求 Java 8")
                 MaxVer = New Version(8, 999, 999, 999)
             ElseIf McInstanceCurrent.Version.McCodeMain <= 14 Then
                 '1.13 - 1.14：Java 8 - 10
+                If ModeDebug Then Log("[Launch] [Debug] 1.13 - 1.14 Forge 要求 Java 8 - 10")
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
                 MaxVer = If(New Version(10, 999, 999, 999) < MaxVer, New Version(10, 999, 999, 999), MaxVer)
             ElseIf McInstanceCurrent.Version.McCodeMain = 15 Then
                 '1.15：Java 8 - 15
+                If ModeDebug Then Log("[Launch] [Debug] 1.15 Forge 要求 Java 8 - 15")
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
                 MaxVer = If(New Version(15, 999, 999, 999) < MaxVer, New Version(15, 999, 999, 999), MaxVer)
             ElseIf VersionSortBoolean(McInstanceCurrent.Version.ForgeVersion, "34.0.0") AndAlso VersionSortBoolean("36.2.25", McInstanceCurrent.Version.ForgeVersion) Then
-                '1.16，Forge 34.X ~ 36.2.25：最高 Java 8u320
-                MaxVer = If(New Version(1, 8, 0, 320) < MaxVer, New Version(1, 8, 0, 320), MaxVer)
+                '1.16，Forge 34.X - 36.2.25：最高 Java 8u321
+                If ModeDebug Then Log("[Launch] [Debug] 1.16 Forge 34.X - 36.2.25 要求最高 Java 8u321")
+                MaxVer = If(New Version(1, 8, 0, 321) < MaxVer, New Version(1, 8, 0, 321), MaxVer)
             ElseIf McInstanceCurrent.Version.McCodeMain >= 18 AndAlso McInstanceCurrent.Version.McCodeMain < 19 AndAlso McInstanceCurrent.Version.HasOptiFine Then '#305
                 '1.18：若安装了 OptiFine，最高 Java 18
+                If ModeDebug Then Log("[Launch] [Debug] 1.18 Forge + OptiFine 要求最高 Java 18")
                 MaxVer = If(New Version(18, 999, 999, 999) < MaxVer, New Version(18, 999, 999, 999), MaxVer)
             End If
         End If
@@ -1247,6 +1258,7 @@ LoginFinish:
         'Cleanroom 检测
         If McInstanceCurrent.Version.HasCleanroom Then
             '需要至少 Java 21
+            If ModeDebug Then Log("[Launch] [Debug] Cleanroom 要求至少 Java 21")
             MinVer = If(New Version(21, 0, 0, 0) > MinVer, New Version(21, 0, 0, 0), MinVer)
         End If
 
@@ -1254,22 +1266,32 @@ LoginFinish:
         If McInstanceCurrent.Version.HasFabric AndAlso McInstanceCurrent.Version.IsStandardVersion Then '不管非标准版本
             If McInstanceCurrent.Version.McCodeMain >= 15 AndAlso McInstanceCurrent.Version.McCodeMain <= 16 Then
                 '1.15 - 1.16：Java 8+
+                If ModeDebug Then Log("[Launch] [Debug] 1.15 - 1.16 Fabric 要求至少 Java 8")
                 MinVer = If(New Version(1, 8, 0, 0) > MinVer, New Version(1, 8, 0, 0), MinVer)
             ElseIf McInstanceCurrent.Version.McCodeMain >= 18 Then
                 '1.18+：Java 17+
+                If ModeDebug Then Log("[Launch] [Debug] 1.18+ Fabric 要求至少 Java 17")
                 MinVer = If(New Version(17, 0, 0, 0) > MinVer, New Version(17, 0, 0, 0), MinVer)
             End If
         End If
 
         'LabyMod 检测
         If McInstanceCurrent.Version.HasLabyMod Then
+            If ModeDebug Then Log("[Launch] [Debug] LabyMod 要求至少 Java 21")
             MinVer = If(New Version(21, 0, 0, 0) > MinVer, New Version(21, 0, 0, 0), MinVer)
             MaxVer = New Version(999, 999, 999, 999)
         End If
 
         'JSON 中要求的版本
         If McInstanceCurrent.JsonObject("javaVersion") IsNot Nothing Then
-            MinVer = If(New Version(McInstanceCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0) > MinVer, New Version(McInstanceCurrent.JsonObject("javaVersion")("majorVersion"), 0, 0, 0), MinVer)
+            Dim majorVersion = Val(McInstanceCurrent.JsonObject("javaVersion")("majorVersion"))
+            If ModeDebug Then Log("[Launch] [Debug] JSON 中参数要求至少 Java " & majorVersion.ToString())
+            If majorVersion <= 8 Then
+                MinVer = If(New Version(1, majorVersion, 0, 0) > MinVer, New Version(1, majorVersion, 0, 0), MinVer)
+            Else
+                MinVer = If(New Version(majorVersion, 0, 0, 0) > MinVer, New Version(majorVersion, 0, 0, 0), MinVer)
+            End If
+            
             If MaxVer < MinVer Then MaxVer = New Version(999, 999, 999, 999)
         End If
 
