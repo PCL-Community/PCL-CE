@@ -444,7 +444,7 @@ PreFin:
             LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed
             ' 如果开头为 http:// 给予警告
-        ElseIf TextServerAuthServer.Text.StartsWithF("https://") AndAlso Setup.Get("ToolDownloadCert") = "False" Then
+        ElseIf TextServerAuthServer.Text.StartsWithF("https://") Then
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Visible
             LabServerAuthServerSecurityCL.Visibility = Visibility.Visible

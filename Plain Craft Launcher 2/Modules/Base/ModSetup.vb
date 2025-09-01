@@ -130,22 +130,6 @@ Public Class ModSetup
     Public Sub ToolDownloadThread(Value As Integer)
         NetTaskThreadLimit = Value + 1
     End Sub
-    Public Sub ToolDownloadCert(Value As Boolean)
-        ServicePointManager.ServerCertificateValidationCallback =
-        Function(Sender, Certificate, Chain, Failure)
-            Dim Request As HttpWebRequest = TryCast(Sender, HttpWebRequest)
-            If Failure = Net.Security.SslPolicyErrors.None Then Return True '已通过验证
-            '基于 #3018 和 #5879，只在访问正版登录 API 时跳过证书验证
-            Log($"[System] 未通过 SSL 证书验证（{Failure}），提供的证书为 {Certificate?.Subject}，URL：{Request?.Address}", LogLevel.Debug)
-            If Request Is Nothing Then
-                Return Not Value
-            ElseIf Request.Address.Host.Contains("xboxlive") OrElse Request.Address.Host.Contains("minecraftservices") Then
-                Return Not Value '根据设置决定是否忽略错误
-            Else
-                Return False
-            End If
-        End Function
-    End Sub
     Public Sub ToolDownloadSpeed(Value As Integer)
         If Value <= 14 Then
             NetTaskSpeedLimitHigh = (Value + 1) * 0.1 * 1024 * 1024L
