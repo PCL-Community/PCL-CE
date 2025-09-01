@@ -382,7 +382,7 @@ pause"
     ''' </summary>
     ''' <param name="VersionJson">在 version_manifest.json 中的对应项。</param>
     Public Sub McUpdateLogShow(VersionJson As JToken)
-        Dim wikiName = WikiMapper.GetWikiUrlSuffix(VersionJson("id").ToString())
+        Dim wikiName = McFormatter.GetWikiUrlSuffix(VersionJson("id").ToString())
         OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" & WikiName)
     End Sub
 
