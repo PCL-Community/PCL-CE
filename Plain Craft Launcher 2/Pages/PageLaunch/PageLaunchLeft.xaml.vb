@@ -496,7 +496,7 @@ Finish:
                 Log("[Minecraft] 启动按钮：Minecraft 实例：" & McInstanceCurrent.Path)
                 FrmLaunchLeft.BtnLaunch.Text = "启动游戏"
                 FrmLaunchLeft.BtnInstance.IsEnabled = True
-                FrmLaunchLeft.BtnLaunch.IsEnabled = True
+                'FrmLaunchLeft.BtnLaunch.IsEnabled = True '在 RefreshUI 里更改
                 FrmLaunchLeft.LabVersion.Text = McInstanceCurrent.Name
                 'FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
         End Select
