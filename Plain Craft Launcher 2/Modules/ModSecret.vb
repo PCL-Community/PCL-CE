@@ -9,6 +9,7 @@ Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
+Imports PCL.Core.Net
 
 Friend Module ModSecret
 
@@ -163,7 +164,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Client.Headers.Add("User-Agent", userAgent)
 
         Client.Headers.Add("Referer", "http://" & VersionCode & ".ce.open.pcl2.server/")
-        If Url.Contains("pcl2ce.pysio.online/post") AndAlso Not String.IsNullOrEmpty(TelemetryKey) Then Client.Headers.Add("Authorization", TelemetryKey)
     End Sub
 
 #End Region
@@ -936,42 +936,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End If
     End Sub
 
-#End Region
-
-#Region "遥测"
-    ''' <summary>
-    ''' 发送遥测数据，需要在非 UI 线程运行
-    ''' </summary>
-    Public Sub SendTelemetry()
-        If String.IsNullOrWhiteSpace(TelemetryKey) Then Exit Sub
-        Dim NetResult = ModLink.NetTest()
-        Dim Data = New JObject From {
-            {"Tag", "Telemetry"},
-            {"Id", UniqueAddress},
-            {"OS", Environment.OSVersion.Version.Build},
-            {"Is64Bit", Not Is32BitSystem},
-            {"IsARM64", IsArm64System},
-            {"Launcher", VersionCode},
-            {"LauncherBranch", If(IsUpdBetaChannel, "Fast Ring", "Slow Ring")},
-            {"UsedOfficialPCL", ReadReg("SystemEula", Nothing, "PCL") IsNot Nothing},
-            {"UsedHMCL", Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.hmcl")},
-            {"UsedBakaXL", Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\BakaXL")},
-            {"Memory", SystemMemorySize},
-            {"NatType", NetResult(0)},
-            {"IPv6Status", NetResult(1)}
-        }
-        Dim SendData = New JObject From {{"data", Data}}
-        Try
-            Dim Result As String = NetRequestRetry("https://pcl2ce.pysio.online/post", "POST", SendData.ToString(), "application/json")
-            If Result.Contains("数据已成功保存") Then
-                Log("[Telemetry] 软硬件调查数据已发送")
-            Else
-                Log("[Telemetry] 软硬件调查数据发送失败，原始返回内容: " + Result)
-            End If
-        Catch ex As Exception
-            Log(ex, "[Telemetry] 软硬件调查数据发送失败", LogLevel.Normal)
-        End Try
-    End Sub
 #End Region
 
 #Region "系统信息"
