@@ -37,9 +37,6 @@ Class PageInstanceSavesInfo
                 AddInfoTable("存档名称", gameLevel.Get(Of NbtString)("LevelName").Value)
                 Dim versionName As NbtString = Nothing
                 Dim versionId As NbtInt = Nothing
-                Dim gameVersion = gameLevel.Get(Of NbtCompound)("Version")
-                gameVersion.TryGet(Of NbtString)("Name", versionName)
-                gameVersion.TryGet(Of NbtInt)("Id", versionId)
                 Dim hasDifficulty = gameLevel.Contains("Difficulty")
                 Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 
@@ -60,10 +57,10 @@ Class PageInstanceSavesInfo
                     AddInfoTable("存档版本", $"{versionName.Value} ({versionId.Value})")
                 End If
 
-                Dim seedNbt As NbtString = Nothing
+                Dim seedNbt As NbtLong = Nothing
                 Dim seed As String
-                If gameLevel.TryGet(Of NbtString)("RandomSeed" , seedNbt) Then
-                    seed = seedNbt.Value
+                If gameLevel.TryGet(Of NbtLong)("RandomSeed" , seedNbt) Then
+                    seed = seedNbt.Value().ToString()
                 Else
                     seed = gameLevel.Get(of NbtCompound)("WorldGenSettings").Get(of NbtLong)("seed").Value.ToString()
                 End If
