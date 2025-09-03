@@ -5,6 +5,7 @@ Imports System.Linq
 Imports System.Text
 Imports PCL.Core.UI
 Imports PCL.Core.UI.SystemDialogs
+Imports System.Windows.Input
 
 Public Class PageInstanceSavesDatapacks
     Implements IRefreshable
@@ -50,6 +51,9 @@ Public Class PageInstanceSavesDatapacks
     End Sub
 
     Private Sub Page_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        ' 启用拖放
+        Me.AllowDrop = True
+
         PanLoad.Visibility = Visibility.Visible
         PanAllBack.Visibility = Visibility.Collapsed
 
@@ -160,6 +164,68 @@ Public Class PageInstanceSavesDatapacks
                         TransSelect.Y = _bottomBarBasePosition
                     End Sub)
         End Try
+    End Sub
+#End Region
+
+#Region "拖拽安装功能"
+    Private Sub Page_DragEnter(sender As Object, e As DragEventArgs) Handles Me.DragEnter
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            Dim files() As String = CType(e.Data.GetData(DataFormats.FileDrop), String())
+            If files.Any(Function(f) Path.GetExtension(f).ToLower() = ".zip") Then
+                e.Effects = DragDropEffects.Copy
+                Mouse.OverrideCursor = Cursors.Hand
+            Else
+                e.Effects = DragDropEffects.None
+                Mouse.OverrideCursor = Cursors.No
+            End If
+        Else
+            e.Effects = DragDropEffects.None
+            Mouse.OverrideCursor = Cursors.No
+        End If
+        e.Handled = True
+    End Sub
+
+    Private Sub Page_DragOver(sender As Object, e As DragEventArgs) Handles Me.DragOver
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            Dim files() As String = CType(e.Data.GetData(DataFormats.FileDrop), String())
+            If files.Any(Function(f) Path.GetExtension(f).ToLower() = ".zip") Then
+                e.Effects = DragDropEffects.Copy
+                Mouse.OverrideCursor = Cursors.Hand
+            Else
+                e.Effects = DragDropEffects.None
+                Mouse.OverrideCursor = Cursors.No
+            End If
+        Else
+            e.Effects = DragDropEffects.None
+            Mouse.OverrideCursor = Cursors.No
+        End If
+        e.Handled = True
+    End Sub
+
+    Private Sub Page_DragLeave(sender As Object, e As DragEventArgs) Handles Me.DragLeave
+        Mouse.OverrideCursor = Nothing
+        e.Handled = True
+    End Sub
+
+    Private Sub Page_Drop(sender As Object, e As DragEventArgs) Handles Me.Drop
+        Try
+            Mouse.OverrideCursor = Nothing
+
+            If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+                Dim files() As String = CType(e.Data.GetData(DataFormats.FileDrop), String())
+                Dim zipFiles = files.Where(Function(f) Path.GetExtension(f).ToLower() = ".zip").ToArray()
+
+                If zipFiles.Any() Then
+                    InstallDatapacks(zipFiles)
+                Else
+                    Hint("拖拽的文件不是有效的zip格式数据包", HintType.Critical)
+                End If
+            End If
+        Catch ex As Exception
+            Log(ex, "拖拽安装数据包失败", LogLevel.Msgbox)
+            Mouse.OverrideCursor = Nothing
+        End Try
+        e.Handled = True
     End Sub
 #End Region
 
@@ -715,7 +781,6 @@ Public Class PageInstanceSavesDatapacks
                 End If
             End Using
         Catch ex As Exception
-            ' 静默处理错误，不记录日志
             Return Nothing
         End Try
 
@@ -738,7 +803,6 @@ Public Class PageInstanceSavesDatapacks
                 End If
             End If
         Catch ex As Exception
-            ' 静默处理错误
         End Try
 
         Return Nothing
@@ -966,8 +1030,7 @@ Public Class PageInstanceSavesDatapacks
 
             Dim infoText As New List(Of String) From {
                 $"名称: {datapack.Name}",
-                $"文件: {datapack.FileName} ({fileSizeText})",
-                $"状态: {If(datapack.State = LocalCompFile.LocalFileStatus.Fine, "已启用", "已禁用")}"
+                $"文件: {datapack.FileName} ({fileSizeText})"
             }
 
             MyMsgBox(String.Join(vbCrLf, infoText), "数据包信息", "确定")
