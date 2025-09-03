@@ -135,7 +135,9 @@ Public Class MyLocalCompItem
             End Get
             Set(value As Boolean)
                 _Swiping = value
-                TargetFrm.CardSelect.IsHitTestVisible = Not value
+                If TargetFrm IsNot Nothing AndAlso TargetFrm.CardSelect IsNot Nothing Then
+                    TargetFrm.CardSelect.IsHitTestVisible = Not value
+                End If
             End Set
         End Property
         Public Property SwipeToState As Boolean

@@ -110,4 +110,9 @@
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\PageInstance\PageInstanceSaves\PageInstanceSavesDatapacks.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

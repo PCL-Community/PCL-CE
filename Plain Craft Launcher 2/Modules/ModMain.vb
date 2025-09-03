@@ -527,6 +527,7 @@ EndHint:
     Public FrmInstanceSavesLeft As PageInstanceSavesLeft
     Public FrmInstanceSavesInfo As PageInstanceSavesInfo
     Public FrmInstanceSavesBackup As PageInstanceSavesBackup
+    Public FrmInstanceSavesDatapacks As PageInstanceSavesDatapacks
 
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail
