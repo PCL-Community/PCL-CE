@@ -142,9 +142,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #End Region
 
 #Region "网络鉴权"
-
-
-
     Friend Function SecretCdnSign(UrlWithMark As String)
         If Not UrlWithMark.EndsWithF("{CDN}") Then Return UrlWithMark
         Return UrlWithMark.Replace("{CDN}", "").Replace(" ", "%20")

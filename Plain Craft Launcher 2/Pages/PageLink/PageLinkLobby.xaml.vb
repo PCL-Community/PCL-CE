@@ -304,7 +304,7 @@ Public Class PageLinkLobby
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount = 0
-                           While ETInfoProvider.CheckETStatus().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
+                           While ETInfoProvider.CheckETStatusAsync().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
                                retryCount += GetETInfo()
                                If RequiresLogin AndAlso String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
