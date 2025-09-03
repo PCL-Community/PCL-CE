@@ -17,7 +17,7 @@ namespace PCL.Test
         {
             // Java 搜索是否稳定
             var jas = new JavaManager();
-            await jas.ScanJava();
+            await jas.ScanJavaAsync();
             var firstScanedCount = jas.JavaList.Count;
             foreach (var ja in jas.JavaList)
             {
@@ -25,11 +25,11 @@ namespace PCL.Test
                 Assert.IsTrue(ja.Version.Major > 0, "Java version is not valid: " + ja.JavaFolder);
                 Assert.IsTrue(!string.IsNullOrWhiteSpace(ja.JavaFolder));
             }
-            await jas.ScanJava();
+            await jas.ScanJavaAsync();
             var secondScanedCount = jas.JavaList.Count;
             Assert.IsTrue(firstScanedCount == secondScanedCount);
             // Java 搜索是否能够正确选择
-            Assert.IsTrue(jas.JavaList.Count == 0 || (jas.JavaList.Count > 0 && (await jas.SelectSuitableJava(new Version(1, 8, 0), new Version(30, 0, 0))).Count > 0));
+            Assert.IsTrue(jas.JavaList.Count == 0 || (jas.JavaList.Count > 0 && (await jas.SelectSuitableJavaAsync(new Version(1, 8, 0), new Version(30, 0, 0))).Count > 0));
             // Java 是否有重复
             Assert.IsFalse(jas.JavaList.GroupBy(x => x.JavawExePath).Any(x => x.Count() > 1));
         }

@@ -50,4 +50,16 @@
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Net\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Net\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="Net\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Net\**" />
+  </ItemGroup>
 </Project>

@@ -26,19 +26,19 @@ public class WebServerTest
         
         server.Route("/test", (path, _) => RoutedResponse.Text(path));
         Console.WriteLine("Test(/test): 200 OK (path relative to /test)");
-        await server.StartResponseOnce();
+        await server.StartResponseOnceAsync();
         
         dynamic obj = new { a = 123, b = new { c = this, d = "text" } };
         server.Route("/json", () => RoutedResponse.Json(obj));
         Console.WriteLine("Test(/json): 200 OK (request JSON)");
-        await server.StartResponseOnce();
+        await server.StartResponseOnceAsync();
         
         Console.WriteLine("Test(/any/path): 404 Not Found");
-        await server.StartResponseOnce();
+        await server.StartResponseOnceAsync();
         
         server.Route("/", () => RoutedResponse.NoContent);
         Console.WriteLine("Test(/): 204 No Content");
-        await server.StartResponseOnce();
+        await server.StartResponseOnceAsync();
         
         server.Dispose();
         Console.WriteLine("Test complete.");
