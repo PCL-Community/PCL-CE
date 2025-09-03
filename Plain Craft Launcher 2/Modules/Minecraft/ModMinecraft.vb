@@ -647,7 +647,7 @@ Recheck:
         ''' 检查 Minecraft 版本，若检查通过 State 则为 Original 且返回 True。
         ''' </summary>
         Public Function Check() As Boolean
-
+            
             '检查文件夹
             If Not Directory.Exists(Path) Then
                 State = McInstanceState.Error
