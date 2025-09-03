@@ -102,6 +102,65 @@
     Private Sub Page_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         If IsLoad Then Return
         IsLoad = True
+
+        ' 检查实例版本，如果小于1.13或出错则隐藏数据包按钮
+        CheckDatapackButtonVisibility()
+    End Sub
+
+    ''' <summary>
+    ''' 检查实例版本并决定是否显示数据包按钮
+    ''' </summary>
+    Private Sub CheckDatapackButtonVisibility()
+        Try
+            ' 获取当前实例
+            Dim currentInstance As McInstance = PageInstanceLeft.Instance
+            If currentInstance Is Nothing OrElse currentInstance.Version Is Nothing Then
+                ' 如果无法获取实例信息，隐藏数据包按钮（出错就隐藏）
+                ItemDatapacks.Visibility = Visibility.Collapsed
+                Log("无法获取实例版本信息，隐藏数据包按钮", LogLevel.Debug)
+                Return
+            End If
+
+            ' 解析版本号
+            Dim versionParts() As String = currentInstance.Version.McName.Split("."c)
+            If versionParts.Length < 2 Then
+                ' 版本格式不正确，隐藏数据包按钮（出错就隐藏）
+                ItemDatapacks.Visibility = Visibility.Collapsed
+                Log($"版本格式不正确: {currentInstance.Version.McName}，隐藏数据包按钮", LogLevel.Debug)
+                Return
+            End If
+
+            Dim majorVersion As Integer
+            Dim minorVersion As Integer
+
+            If Integer.TryParse(versionParts(0), majorVersion) AndAlso Integer.TryParse(versionParts(1), minorVersion) Then
+                ' 检查是否小于1.13（1.12.2及以下版本）
+                If majorVersion < 1 OrElse (majorVersion = 1 AndAlso minorVersion < 13) Then
+                    ' 隐藏数据包按钮（版本太旧）
+                    ItemDatapacks.Visibility = Visibility.Collapsed
+                    Log($"实例版本 {currentInstance.Version.McName} 小于1.13，隐藏数据包按钮", LogLevel.Debug)
+
+                    ' 如果当前选中的是数据包页面，自动切换到信息页面
+                    If PageID = FormMain.PageSubType.VersionSavesDatapacks Then
+                        ItemInfo.Checked = True
+                        PageChange(FormMain.PageSubType.VersionSavesInfo)
+                    End If
+                Else
+                    ' 显示数据包按钮（版本支持）
+                    ItemDatapacks.Visibility = Visibility.Visible
+                    Log($"实例版本 {currentInstance.Version.McName} 支持数据包，显示数据包按钮", LogLevel.Debug)
+                End If
+            Else
+                ' 版本解析失败，隐藏数据包按钮（出错就隐藏）
+                ItemDatapacks.Visibility = Visibility.Collapsed
+                Log($"版本解析失败: {currentInstance.Version.McName}，隐藏数据包按钮", LogLevel.Debug)
+            End If
+
+        Catch ex As Exception
+            ' 任何异常都隐藏数据包按钮（出错就隐藏）
+            ItemDatapacks.Visibility = Visibility.Collapsed
+            Log(ex, "检查实例版本时发生错误，隐藏数据包按钮", LogLevel.Debug)
+        End Try
     End Sub
 
     Private Sub BtnOpenFolder_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnOpenFolder.Click

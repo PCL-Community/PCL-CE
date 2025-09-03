@@ -16,7 +16,6 @@ Public Class PageInstanceSavesDatapacks
     Private SelectedDatapacks As New HashSet(Of String)
     Private SearchResult As List(Of LocalCompFile)
     Private _Filter As FilterType = FilterType.All
-
     Private _isBottomBarVisible As Boolean = False
     Private _lastSelectedCount As Integer = 0
     Private _bottomBarBasePosition As Double = -10
@@ -427,21 +426,20 @@ Public Class PageInstanceSavesDatapacks
             Dim selectedCount As Integer = SelectedDatapacks.Count
             LabSelect.Text = $"已选择 {selectedCount} 个数据包"
 
+            ' 如果选择数量没有变化，不执行动画
+            If _lastSelectedCount = selectedCount Then Return
+
+            ' 停止之前的动画
             If _isBarAnimationRunning Then
                 AniStop("Mod Sidebar")
-                If _isBottomBarVisible Then
-                    TransSelect.Y = _bottomBarFinalY
-                Else
-                    TransSelect.Y = _bottomBarBasePosition
-                End If
                 _isBarAnimationRunning = False
             End If
 
             If selectedCount > 0 Then
                 Dim selectedItems = DatapackItems.Values _
-                .Where(Function(i) i IsNot Nothing AndAlso i.Entry IsNot Nothing AndAlso SelectedDatapacks.Contains(i.Entry.Path)) _
-                .Select(Function(i) i.Entry) _
-                .ToList()
+            .Where(Function(i) i IsNot Nothing AndAlso i.Entry IsNot Nothing AndAlso SelectedDatapacks.Contains(i.Entry.Path)) _
+            .Select(Function(i) i.Entry) _
+            .ToList()
 
                 Dim hasEnabled As Boolean = selectedItems.Any(Function(d) d.State = LocalCompFile.LocalFileStatus.Fine)
                 Dim hasDisabled As Boolean = selectedItems.Any(Function(d) d.State = LocalCompFile.LocalFileStatus.Disabled)
@@ -455,31 +453,35 @@ Public Class PageInstanceSavesDatapacks
                     _isBottomBarVisible = True
                     _isBarAnimationRunning = True
 
+                    Dim targetY As Double = _bottomBarFinalY
+                    Dim currentY As Double = TransSelect.Y
+
                     AniStart({
-                        AaOpacity(CardSelect, 1 - CardSelect.Opacity, 60),
-                        AaTranslateY(CardSelect, -27 - TransSelect.Y, 120, Ease:=New AniEaseOutFluent(AniEasePower.Weak)),
-                        AaTranslateY(CardSelect, 3, 150, 120, Ease:=New AniEaseInoutFluent(AniEasePower.Weak)),
-                        AaTranslateY(CardSelect, -1, 90, 270, Ease:=New AniEaseInoutFluent(AniEasePower.Weak)),
-                        AaCode(Sub()
-                                   TransSelect.Y = _bottomBarFinalY
-                                   _isBarAnimationRunning = False
-                               End Sub, After:=True)
-                    }, "Mod Sidebar")
+                    AaOpacity(CardSelect, 1 - CardSelect.Opacity, 60),
+                    AaTranslateY(CardSelect, targetY - currentY, 120, Ease:=New AniEaseOutFluent(AniEasePower.Weak)),
+                    AaCode(Sub()
+                               TransSelect.Y = targetY
+                               _isBarAnimationRunning = False
+                           End Sub, After:=True)
+                }, "Mod Sidebar")
                 End If
             Else
                 If _isBottomBarVisible Then
                     _isBarAnimationRunning = True
 
+                    Dim targetY As Double = _bottomBarBasePosition
+                    Dim currentY As Double = TransSelect.Y
+
                     AniStart({
-                        AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                        AaTranslateY(CardSelect, _bottomBarBasePosition - TransSelect.Y, 90, Ease:=New AniEaseInFluent(AniEasePower.Weak)),
-                        AaCode(Sub()
-                                   CardSelect.Visibility = Visibility.Collapsed
-                                   TransSelect.Y = _bottomBarBasePosition
-                                   _isBottomBarVisible = False
-                                   _isBarAnimationRunning = False
-                               End Sub, After:=True)
-                    }, "Mod Sidebar")
+                    AaOpacity(CardSelect, -CardSelect.Opacity, 90),
+                    AaTranslateY(CardSelect, targetY - currentY, 90, Ease:=New AniEaseInFluent(AniEasePower.Weak)),
+                    AaCode(Sub()
+                               CardSelect.Visibility = Visibility.Collapsed
+                               TransSelect.Y = targetY
+                               _isBottomBarVisible = False
+                               _isBarAnimationRunning = False
+                           End Sub, After:=True)
+                }, "Mod Sidebar")
                 End If
             End If
 
