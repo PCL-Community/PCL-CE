@@ -1031,11 +1031,19 @@ Public Class PageInstanceSavesDatapacks
             Dim fileSizeText = If(fileSize > 0, GetFileSizeString(fileSize), "0 B")
 
             Dim infoText As New List(Of String) From {
-                $"名称: {datapack.Name}",
-                $"文件: {datapack.FileName} ({fileSizeText})"
-            }
+            $"名称: {datapack.Name}",
+            $"文件: {datapack.FileName} ({fileSizeText})"
+        }
 
-            MyMsgBox(String.Join(vbCrLf, infoText), "数据包信息", "确定")
+            ' 获取用于搜索的数据包名称
+            Dim datapackSearchName As String = If(Not String.IsNullOrEmpty(datapack.Name), datapack.Name, datapack.FileName)
+            Dim searchQuery As String = datapackSearchName.Replace(" ", "+")
+
+            ' 显示详情对话框并提供百科搜索选项
+            If MyMsgBox(String.Join(vbCrLf, infoText), "数据包信息", "百科搜索", "确定") = 1 Then
+                OpenWebsite("https://www.mcmod.cn/s?key=" & searchQuery & "&site=all&filter=0")
+            End If
+
         Catch ex As Exception
             Log(ex, "显示数据包信息失败", LogLevel.Feedback)
         End Try
