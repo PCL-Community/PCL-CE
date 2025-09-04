@@ -1,6 +1,5 @@
 ﻿Imports System.Windows.Threading
-Imports PCL.Core.ProgramSetup
-Imports NEWSetup = PCL.Core.ProgramSetup.Setup
+Imports PCL.Core.App
 
 Public Class PageSelectRight
 
@@ -293,7 +292,7 @@ Public Class PageSelectRight
             BtnStar.Logo = Logo.IconButtonLikeLine
         End If
         AddHandler BtnStar.Click, Sub()
-                                      NEWSetup.Instance.Starred(Version.Path) = Not Version.IsStar
+                                      Config.Instance.Starred(Version.Path) = Not Version.IsStar
                                       McInstanceListForceRefresh = True
                                       LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
                                   End Sub
