@@ -1,11 +1,9 @@
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
 Imports System.Threading.Tasks
-Imports PCL.Core.ProgramSetup
+Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
-Imports PCL.Core.Utils.OS
 
 Public Class PageSetupUI
 
@@ -156,9 +154,10 @@ Public Class PageSetupUI
             SliderBackgroundBlur.Value = Setup.Get("UiBackgroundBlur")
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
-            CheckAutoPauseVideo.Checked = SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo)
+            Dim autoPauseVideo = Setup.Get("UiAutoPauseVideo")
+            CheckAutoPauseVideo.Checked = autoPauseVideo
             If ModVideoBack.IsGaming = True Then
-                If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = True Then
+                If autoPauseVideo = True Then
                     BtnBackgroundRefresh.IsEnabled = False
                 End If
             End If
@@ -279,7 +278,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
             Setup.Reset("UiHiddenVersionSchematic")
-            SetupService.DeleteBool(SetupEntries.Ui.AutoPauseVideo)
+            Setup.Reset("UiAutoPauseVideo")
 
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
@@ -385,7 +384,7 @@ Public Class PageSetupUI
             RemoveHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
             AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
             AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
-            If SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) = False Then ModVideoBack.ForcePlay = True
+            If Setup.Get("UiAutoPauseVideo") = False Then ModVideoBack.ForcePlay = True
             '加载
             If Pic.Count = 0 Then
                 If Refresh Then
