@@ -1,106 +1,87 @@
 Imports System.Reflection
 Imports System.Windows.Media.Effects
+Imports PCL.Core.App.Configuration
 Imports PCL.Core.Net
-Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
+    Implements IConfigScope
 #Region "基础"
+    Public Function CheckScope(keys As IReadOnlySet(Of String)) As IEnumerable(Of String) Implements IConfigScope.CheckScope
+        Dim methods = GetType(ModSetup).GetMethods()
+        Return methods.Where(Function(method) keys.Contains(method.Name)).Select(Function(method) method.Name)
+    End Function
 
-    Public Sub New()
-        AddHandler SetupService.SetupChanged, AddressOf OnSetupChanged
+    Public Function Reset(Optional argument As Object = Nothing) As Boolean Implements IConfigScope.Reset
+        Throw New NotSupportedException
+    End Function
+
+    Public Function IsDefault(Optional argument As Object = Nothing) As Boolean Implements IConfigScope.IsDefault
+        Throw New NotSupportedException
+    End Function
+
+    Public Sub New
+        ConfigService.RegisterObserver(Me, New ConfigObserver(
+            Event := ConfigEvent.Changed,
+            Handler := AddressOf OnConfigChanged
+        ))
     End Sub
 
-    Private Sub OnSetupChanged(entry As SetupEntry, oldValue As Object, newValue As Object, gamePath As String)
-        Dim method As MethodInfo = GetType(ModSetup).GetMethod(entry.KeyName)
-        If method IsNot Nothing Then method.Invoke(Me, {If(newValue, entry.DefaultValue)})
+    Public Sub OnConfigChanged(e As ConfigEventArgs)
+        Dim method As MethodInfo = GetType(ModSetup).GetMethod(e.Key)
+        If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(e.Key).DefaultValueNoType)})
     End Sub
+
+    Private Shared Function GetConfigItem(key As String) As ConfigItem
+        Dim item As ConfigItem = Nothing
+        Dim result = ConfigService.TryGetConfigItemNoType(key, item)
+        If result Then Return item
+        Throw New KeyNotFoundException($"配置项 '{key}' 不存在")
+    End Function
 
     ''' <summary>
     ''' 改变某个设置项的值。
     ''' </summary>
     Public Sub [Set](key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Dim type As Type = entry.DefaultValue.GetType()
-        If type = GetType(Boolean) Then
-            SetupService.SetBool(entry, value, instance?.Path)
-        ElseIf type = GetType(Integer) Then
-            SetupService.SetInt32(entry, value, instance?.Path)
-        ElseIf type = GetType(String) Then
-            SetupService.SetString(entry, value, instance?.Path)
-        Else
-            Throw New NotSupportedException("请让开发者完善配置系统迁移……")
-        End If
+        GetConfigItem(key).SetValueNoType(value, instance?.Path)
     End Sub
 
     ''' <summary>
     ''' 应用某个设置项的值。
     ''' </summary>
-    Public Function Load(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Dim type As Type = entry.DefaultValue.GetType()
-        Dim value
-        If type = GetType(Boolean) Then 
-            value = SetupService.GetBool(entry, instance?.Path)
-        ElseIf type = GetType(Integer) Then 
-            value = SetupService.GetInt32(entry, instance?.Path)
-        ElseIf type = GetType(String) Then
-            value = SetupService.GetString(entry, instance?.Path)
-        Else
-            Throw New NotSupportedException("请让开发者完善配置系统迁移……")
-        End If
-        SetupService.RaiseSetupChanged(SetupEntries.ForKeyName(key), value, value, instance?.Path)
+    Public Function Load(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing) As Object
+        Dim value = [Get](key, instance)
+        Dim method As MethodInfo = GetType(ModSetup).GetMethod(key)
+        If method IsNot Nothing Then method.Invoke(Me, {value})
         Return value
     End Function
 
     ''' <summary>
     ''' 获取某个设置项的值。
     ''' </summary>
-    Public Function [Get](key As String, Optional instance As McInstance = Nothing)
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Dim type As Type = entry.DefaultValue.GetType()
-        If type = GetType(Boolean) Then 
-            Return SetupService.GetBool(entry, instance?.Path)
-        ElseIf type = GetType(Integer) Then 
-            Return SetupService.GetInt32(entry, instance?.Path)
-        ElseIf type = GetType(String) Then
-            Return SetupService.GetString(entry, instance?.Path)
-        Else
-            Throw New NotSupportedException("请让开发者完善配置系统迁移……")
-        End If
+    Public Function [Get](key As String, Optional instance As McInstance = Nothing) As Object
+        Return GetConfigItem(key).GetValueNoType(instance?.Path)
     End Function
 
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
     Public Sub Reset(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Dim type As Type = entry.DefaultValue.GetType()
-        If type = GetType(Boolean) Then 
-            SetupService.DeleteBool(entry, instance?.Path)
-        ElseIf type = GetType(Integer) Then 
-            SetupService.DeleteInt32(entry, instance?.Path)
-        ElseIf type = GetType(String) Then
-            SetupService.DeleteString(entry, instance?.Path)
-        Else
-            Throw New NotSupportedException("请让开发者完善配置系统迁移……")
-        End If
+        GetConfigItem(key).Reset(instance?.Path)
     End Sub
 
     ''' <summary>
     ''' 获取某个设置项的默认值。
     ''' </summary>
     Public Function GetDefault(key As String)
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Return entry.DefaultValue
+        Return GetConfigItem(key).DefaultValueNoType
     End Function
 
     ''' <summary>
     ''' 某个设置项是否从未被设置过。
     ''' </summary>
     Public Function IsUnset(key As String, Optional instance As McInstance = Nothing) As Boolean
-        Dim entry As SetupEntry = SetupEntries.ForKeyName(key)
-        Return SetupService.IsUnset(entry, instance?.Path)
+        Return GetConfigItem(key).IsDefault(instance?.Path)
     End Function
 
 #End Region
@@ -527,5 +508,4 @@ Public Class ModSetup
     End Sub
 
 #End Region
-
 End Class

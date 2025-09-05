@@ -1,11 +1,7 @@
-﻿Imports System.Windows.Threading
-Imports System.IO
+﻿Imports System.IO
 Imports PCL.Core.App
-Imports PCL.Core.IO
-Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
-Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Class Application
 
@@ -152,8 +148,9 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
-            If SetupService.IsUnset(SetupEntries.System.UpdateBranch) Then
-                NEWSetup.System.UpdateBranch = SetupEntries.System.UpdateBranch.DefaultValue
+            Dim updateBranchCfg = Config.System.UpdateBranchConfig
+            If updateBranchCfg.IsDefault() Then
+                updateBranchCfg.SetValue(If(VersionBaseName.Contains("beta"), 1, 0))
             End If
             '删除旧日志
             For i = 1 To 5

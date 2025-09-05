@@ -1,6 +1,6 @@
 ﻿Imports System.IO.Compression
+Imports PCL.Core.App
 Imports PCL.Core.UI
-Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 
 Public Module ModModpack
 
@@ -346,8 +346,8 @@ Retry:
             Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
-                NEWSetup.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
-                NEWSetup.Instance.IsLogoCustom(VersionFolder) = True
+                Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                Config.Instance.IsLogoCustom(VersionFolder) = True
                 Log("[ModPack] 已设置整合包 Logo：" & Logo)
             End If
             '删除原始整合包文件
@@ -363,14 +363,14 @@ Retry:
             End If
             '整合包版本
             If Json("version") IsNot Nothing Then
-                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+                Config.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
             End If
-            NEWSetup.Instance.ModpackSource(VersionFolder) = "CurseForge"
-            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Config.Instance.ModpackSource(VersionFolder) = "CurseForge"
+            Config.Instance.ModpackId(VersionFolder) = resourceId
             Try
                 Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
                 If projects.Count = 0 Then Exit Try
-                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+                Config.Instance.CustomInfo(VersionFolder) = projects.First().Description
             Catch ex As Exception
                 Log(ex, "[ModPack] 获取整合包描述文本失败")
             End Try
@@ -505,8 +505,8 @@ Retry:
             Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
-                NEWSetup.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
-                NEWSetup.Instance.IsLogoCustom(VersionFolder) = True
+                Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                Config.Instance.IsLogoCustom(VersionFolder) = True
                 Log("[ModPack] 已设置整合包 Logo：" & Logo)
             End If
             '删除原始整合包文件
@@ -522,14 +522,14 @@ Retry:
             End If
             '整合包版本
             If Json("versionId") IsNot Nothing Then
-                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
+                Config.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
             End If
-            NEWSetup.Instance.ModpackSource(VersionFolder) = "Modrinth"
-            NEWSetup.Instance.ModpackId(VersionFolder) = resourceId
+            Config.Instance.ModpackSource(VersionFolder) = "Modrinth"
+            Config.Instance.ModpackId(VersionFolder) = resourceId
             Try
                 Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
                 If projects.Count = 0 Then Exit Try
-                NEWSetup.Instance.CustomInfo(VersionFolder) = projects.First().Description
+                Config.Instance.CustomInfo(VersionFolder) = projects.First().Description
             Catch ex As Exception
                 Log(ex, "[ModPack] 获取整合包描述文本失败")
             End Try
@@ -848,23 +848,23 @@ Retry:
                                 Replace("$INST_MC_DIR\", "{minecraft}").Replace("$INST_MC_DIR", "{minecraft}").
                                 Replace("$INST_DIR\", "{verpath}").Replace("$INST_DIR", "{verpath}").
                                 Replace("$INST_ID", "{name}").Replace("$INST_NAME", "{name}")
-                            NEWSetup.Instance.PreLaunchCommand(VersionFolder) = PreLaunchCommand
+                            Config.Instance.PreLaunchCommand(VersionFolder) = PreLaunchCommand
                             Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" & PreLaunchCommand)
                         End If
                     End If
                     If ReadIni(MMCSetupFile, "JoinServerOnLaunch", False) Then
                         Dim ServerAddress As String = ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress").Replace("\""", """")
-                        NEWSetup.Instance.ServerToEnter(VersionFolder) = ServerAddress
+                        Config.Instance.ServerToEnter(VersionFolder) = ServerAddress
                         Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" & ServerAddress)
                     End If
                     If ReadIni(MMCSetupFile, "IgnoreJavaCompatibility", False) Then
-                        NEWSetup.Instance.IgnoreJavaCompatibility(VersionFolder) = True
+                        Config.Instance.IgnoreJavaCompatibility(VersionFolder) = True
                         Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告")
                     End If
                     Dim Logo As String = ReadIni(MMCSetupFile, "iconKey", "")
                     If Logo <> "" AndAlso File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png") Then
-                        NEWSetup.Instance.IsLogoCustom(VersionFolder) = True
-                        NEWSetup.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                        Config.Instance.IsLogoCustom(VersionFolder) = True
+                        Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
                         CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png", $"{PathMcFolder}versions\{InstanceName}\PCL\Logo.png")
                         Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）")
                     End If
@@ -872,11 +872,11 @@ Retry:
                     Dim JvmArgs As String = ReadIni(MMCSetupFile, "JvmArgs", "")
                     If JvmArgs <> "" Then
                         If ReadIni(MMCSetupFile, "OverrideJavaArgs", False) Then
-                            NEWSetup.Instance.JvmArgs(VersionFolder) = JvmArgs
+                            Config.Instance.JvmArgs(VersionFolder) = JvmArgs
                             Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" & JvmArgs)
                         Else
                             JvmArgs += " " & Setup.Get("LaunchAdvanceJvm")
-                            NEWSetup.Instance.JvmArgs(VersionFolder) = JvmArgs
+                            Config.Instance.JvmArgs(VersionFolder) = JvmArgs
                             Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" & JvmArgs)
                         End If
                     End If
@@ -968,12 +968,12 @@ Retry:
             'JVM 参数
             If Json("launchInfo") IsNot Nothing Then
                 Dim LaunchInfo As JObject = Json("launchInfo")
-                NEWSetup.Instance.JvmArgs(VersionFolder) = String.Join(" ", LaunchInfo("javaArgument"))
-                NEWSetup.Instance.GameArgs(VersionFolder) = String.Join(" ", LaunchInfo("launchArgument"))
+                Config.Instance.JvmArgs(VersionFolder) = String.Join(" ", LaunchInfo("javaArgument"))
+                Config.Instance.GameArgs(VersionFolder) = String.Join(" ", LaunchInfo("launchArgument"))
             End If
             '整合包版本
             If Json("version") IsNot Nothing Then
-                NEWSetup.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+                Config.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
             End If
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造加载器
