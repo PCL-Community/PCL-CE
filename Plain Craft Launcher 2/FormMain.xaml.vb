@@ -5,7 +5,6 @@ Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Link.Lobby
-Imports PCL.Core.ProgramSetup
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -120,7 +119,7 @@ Public Class FormMain
         Setup.Load("UiBackgroundBlur")
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
-        SetupService.GetBool(SetupEntries.Ui.AutoPauseVideo) '智能暂停视频背景
+        Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮

@@ -1,8 +1,7 @@
 ﻿Imports System.IO.Compression
-Imports PCL.Core.ProgramSetup
-Imports NEWSetup = PCL.Core.ProgramSetup.Setup
 Imports System.Text.Json.Nodes
-Imports PCL.Core.IO
+Imports CacheCow.Common.Helpers
+Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 
@@ -116,12 +115,12 @@ Public Module ModMinecraft
 #Region "读取自定义文件夹情况并写入设置"
 
             '将自定义文件夹情况同步到设置
-            Dim NewSetup As New List(Of String)
+            Dim Config As New List(Of String)
             For Each Folder As McFolder In cacheMcFolderList
-                NewSetup.Add(Folder.Name & ">" & Folder.Path)
+                Config.Add(Folder.Name & ">" & Folder.Path)
             Next
-            If Not NewSetup.Any() Then NewSetup.Add("") '防止 0 元素 Join 返回 Nothing
-            Setup.Set("LaunchFolders", Join(NewSetup, "|"))
+            If Not Config.Any() Then Config.Add("") '防止 0 元素 Join 返回 Nothing
+            Setup.Set("LaunchFolders", Join(Config, "|"))
 
 #End Region
 
@@ -765,8 +764,8 @@ Recheck:
 #End Region
 ExitDataLoad:
                 '确定实例图标
-                Logo = NEWSetup.Instance.LogoPath(Path)
-                If Logo = "" OrElse Not NEWSetup.Instance.IsLogoCustom(Path) Then
+                Logo = Config.Instance.LogoPath(Path)
+                If Logo = "" OrElse Not Config.Instance.IsLogoCustom(Path) Then
                     Select Case State
                         Case McInstanceState.Original
                             Logo = PathImage & "Blocks/Grass.png"
@@ -799,33 +798,33 @@ ExitDataLoad:
                     End Select
                 End If
                 '确定实例描述
-                Dim CustomInfo As String = NEWSetup.Instance.CustomInfo(Path)
+                Dim CustomInfo As String = Config.Instance.CustomInfo(Path)
                 Info = If(CustomInfo <> "", CustomInfo, GetDefaultDescription())
                 '确定实例收藏状态
-                IsStar = NEWSetup.Instance.Starred(Path)
+                IsStar = Config.Instance.Starred(Path)
                 '确定实例显示种类
-                DisplayType = NEWSetup.Instance.DisplayType(Path)
+                DisplayType = Config.Instance.DisplayType(Path)
                 '写入缓存
                 If Directory.Exists(Path) Then
-                    NEWSetup.Instance.State(Path) = State
-                    NEWSetup.Instance.Info(Path) = Info
-                    NEWSetup.Instance.LogoPath(Path) = Logo
+                    Config.Instance.State(Path) = State
+                    Config.Instance.Info(Path) = Info
+                    Config.Instance.LogoPath(Path) = Logo
                 End If
                 If State <> McInstanceState.Error Then
-                    NEWSetup.Instance.ReleaseTime(Path) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
-                    NEWSetup.Instance.FabricVersion(Path) = Version.FabricVersion
-                    NEWSetup.Instance.LegacyFabricVersion(Path) = Version.LegacyFabricVersion
-                    NEWSetup.Instance.QuiltVersion(Path) = Version.QuiltVersion
-                    NEWSetup.Instance.LabyModVersion(Path) = Version.LabyModVersion
-                    NEWSetup.Instance.OptiFineVersion(Path) = Version.OptiFineVersion
-                    NEWSetup.Instance.HasLiteLoader(Path) = Version.HasLiteLoader
-                    NEWSetup.Instance.ForgeVersion(Path) = Version.ForgeVersion
-                    NEWSetup.Instance.NeoForgeVersion(Path) = Version.NeoForgeVersion
-                    NEWSetup.Instance.CleanroomVersion(Path) = Version.CleanroomVersion
-                    NEWSetup.Instance.SortCode(Path) = Version.SortCode
-                    NEWSetup.Instance.McVersion(Path) = Version.McName
-                    NEWSetup.Instance.VersionMajor(Path) = Version.McCodeMain
-                    NEWSetup.Instance.VersionMinor(Path) = Version.McCodeSub
+                    Config.Instance.ReleaseTime(Path) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
+                    Config.Instance.FabricVersion(Path) = Version.FabricVersion
+                    Config.Instance.LegacyFabricVersion(Path) = Version.LegacyFabricVersion
+                    Config.Instance.QuiltVersion(Path) = Version.QuiltVersion
+                    Config.Instance.LabyModVersion(Path) = Version.LabyModVersion
+                    Config.Instance.OptiFineVersion(Path) = Version.OptiFineVersion
+                    Config.Instance.HasLiteLoader(Path) = Version.HasLiteLoader
+                    Config.Instance.ForgeVersion(Path) = Version.ForgeVersion
+                    Config.Instance.NeoForgeVersion(Path) = Version.NeoForgeVersion
+                    Config.Instance.CleanroomVersion(Path) = Version.CleanroomVersion
+                    Config.Instance.SortCode(Path) = Version.SortCode
+                    Config.Instance.McVersion(Path) = Version.McName
+                    Config.Instance.VersionMajor(Path) = Version.McCodeMain
+                    Config.Instance.VersionMinor(Path) = Version.McCodeSub
                 End If
             Catch ex As Exception
                 Info = "未知错误：" & ex.ToString()
@@ -1332,33 +1331,34 @@ OnLoaded:
                         '读取单个实例
                         Dim Instance As New McInstance(VersionFolder)
                         InstanceList.Add(Instance)
-                        Instance.Info = NEWSetup.Instance.CustomInfo(Instance.Path)
+                        Instance.Info = Config.Instance.CustomInfo(Instance.Path)
 
-                        If Instance.Info = "" Then Instance.Info = NEWSetup.Instance.Info(Instance.Path)
-                        If Not SetupService.IsUnset(SetupEntries.Instance.LogoPath, Instance.Path) Then _
-                            Instance.Logo = NEWSetup.Instance.LogoPath(Instance.Path)
-                        If Not SetupService.IsUnset(SetupEntries.Instance.ReleaseTime, Instance.Path) Then _
-                            Instance.ReleaseTime = NEWSetup.Instance.ReleaseTime(Instance.Path)
-                        If Not SetupService.IsUnset(SetupEntries.Instance.State, Instance.Path) Then _
-                            Instance.State = NEWSetup.Instance.State(Instance.Path)
-                        Instance.IsStar = NEWSetup.Instance.Starred(Instance.Path)
-                        Instance.DisplayType = NEWSetup.Instance.DisplayType(Instance.Path)
+                        Dim InstanceCfg = Config.Instance
+                        If Instance.Info = "" Then Instance.Info = InstanceCfg.Info(Instance.Path)
+                        If Not InstanceCfg.LogoPathConfig.IsDefault(Instance.Path) Then _
+                            Instance.Logo = InstanceCfg.LogoPath(Instance.Path)
+                        If Not InstanceCfg.ReleaseTimeConfig.IsDefault(Instance.Path) Then _
+                            Instance.ReleaseTime = InstanceCfg.ReleaseTime(Instance.Path)
+                        If Not InstanceCfg.StateConfig.IsDefault(Instance.Path) Then _
+                            Instance.State = InstanceCfg.State(Instance.Path)
+                        Instance.IsStar = InstanceCfg.Starred(Instance.Path)
+                        Instance.DisplayType = InstanceCfg.DisplayType(Instance.Path)
                         If Instance.State <> McInstanceState.Error AndAlso
-                           Not SetupService.IsUnset(SetupEntries.Instance.McVersion, Instance.Path) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
+                           Not InstanceCfg.McVersionConfig.IsDefault(Instance.Path) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
                             Dim InstanceInfo As New McInstanceInfo With {
-                                .FabricVersion = NEWSetup.Instance.FabricVersion(Instance.Path),
-                                .LegacyFabricVersion = NEWSetup.Instance.LegacyFabricVersion(Instance.Path),
-                                .QuiltVersion = NEWSetup.Instance.QuiltVersion(Instance.Path),
-                                .ForgeVersion = NEWSetup.Instance.ForgeVersion(Instance.Path),
-                                .LabyModVersion = NEWSetup.Instance.LabyModVersion(Instance.Path),
-                                .NeoForgeVersion = NEWSetup.Instance.NeoForgeVersion(Instance.Path),
-                                .CleanroomVersion = NEWSetup.Instance.CleanroomVersion(Instance.Path),
-                                .OptiFineVersion = NEWSetup.Instance.OptiFineVersion(Instance.Path),
-                                .HasLiteLoader = NEWSetup.Instance.HasLiteLoader(Instance.Path),
-                                .SortCode = NEWSetup.Instance.SortCode(Instance.Path),
-                                .McName = NEWSetup.Instance.McVersion(Instance.Path),
-                                .McCodeMain = NEWSetup.Instance.VersionMajor(Instance.Path),
-                                .McCodeSub = NEWSetup.Instance.VersionMinor(Instance.Path),
+                                .FabricVersion = InstanceCfg.FabricVersion(Instance.Path),
+                                .LegacyFabricVersion = InstanceCfg.LegacyFabricVersion(Instance.Path),
+                                .QuiltVersion = InstanceCfg.QuiltVersion(Instance.Path),
+                                .ForgeVersion = InstanceCfg.ForgeVersion(Instance.Path),
+                                .LabyModVersion = InstanceCfg.LabyModVersion(Instance.Path),
+                                .NeoForgeVersion = InstanceCfg.NeoForgeVersion(Instance.Path),
+                                .CleanroomVersion = InstanceCfg.CleanroomVersion(Instance.Path),
+                                .OptiFineVersion = InstanceCfg.OptiFineVersion(Instance.Path),
+                                .HasLiteLoader = InstanceCfg.HasLiteLoader(Instance.Path),
+                                .SortCode = InstanceCfg.SortCode(Instance.Path),
+                                .McName = InstanceCfg.McVersion(Instance.Path),
+                                .McCodeMain = InstanceCfg.VersionMajor(Instance.Path),
+                                .McCodeSub = InstanceCfg.VersionMinor(Instance.Path),
                                 .IsApiLoaded = True
                             }
                             InstanceInfo.HasFabric = InstanceInfo.FabricVersion.Any()
@@ -1378,7 +1378,7 @@ OnLoaded:
                             Instance.State = McInstanceState.Original
                             Instance.Check()
                             '校验错误原因是否改变
-                            Dim CustomInfo As String = NEWSetup.Instance.CustomInfo(Instance.Path)
+                            Dim CustomInfo As String = Config.Instance.CustomInfo(Instance.Path)
                             If Instance.State = McInstanceState.Original OrElse (CustomInfo = "" AndAlso Not OldDesc = Instance.Info) Then
                                 Log("[Minecraft] 实例 " & Instance.Name & " 的错误状态已变更，新的状态为：" & Instance.Info)
                                 Return Nothing
