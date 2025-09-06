@@ -1,9 +1,12 @@
 
 Imports System.IO.Compression
+Imports System.Net.Http
+Imports System.Text.Json
 Imports System.Text.Json.Nodes
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Net
 
 Public Module ModLaunch
 
@@ -609,8 +612,13 @@ SkipLogin:
         '初始请求
 Retry:
         McLaunchLog("开始正版验证 Step 1/6（原始登录）")
-        Dim PrepareJson As JObject = GetJson(NetRequestRetry("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", "POST",
-            $"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded"))
+        Dim PrepareJson As JObject
+        Using response = HttpRequestBuilder.Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post).
+                WithContent(New Http.StringContent($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access"), "application/x-www-form-urlencoded").
+                SendAsync(True).Result
+            PrepareJson = GetJson(response.AsStringContent())
+        End Using
+
         McLaunchLog("网页登录地址：" & PrepareJson("verification_uri").ToString)
 
         '弹窗
@@ -634,18 +642,20 @@ Retry:
         End If
     End Function
     ''' <summary>
-    ''' 正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth AccessToken, OAuth RefreshToken}
+    ''' 正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth accessToken, OAuth RefreshToken}
     ''' </summary>
     ''' <param name="Code"></param>
     ''' <returns></returns>
     Private Function MsLoginStep1Refresh(Code As String) As String()
         McLaunchLog("开始正版验证 Step 1/6（刷新登录）")
         If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
-        Dim Result As String = Nothing
+        Dim Result As String
         Try
-            Result = NetRequestRetry("https://login.live.com/oauth20_token.srf", "POST",
-                $"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access",
-                "application/x-www-form-urlencoded", 2)
+            Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
+                WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
+                SendAsync(True).Result
+                Result = response.AsStringContent()
+            End Using
         Catch ex As ThreadInterruptedException
             Log(ex, "加载线程已终止")
         Catch ex As Exception
@@ -672,31 +682,43 @@ Retry:
         Return {AccessToken, RefreshToken}
     End Function
 
+
+    Private Class XBLTokenRequestData
+        Public Class PropertiesData
+            Public Property AuthMethod As String
+            Public Property SiteName As String
+            Public Property RpsTicket As String
+        End Class
+        Public Property Properties As PropertiesData
+        Public Property RelyingParty As String
+        Public Property TokenType As String
+    End Class
+
     ''' <summary>
-    ''' 正版验证步骤 2：从 OAuth AccessToken 获取 XBLToken
+    ''' 正版验证步骤 2：从 OAuth accessToken 获取 XBLToken
     ''' </summary>
-    ''' <param name="AccessToken">OAuth AccessToken</param>
+    ''' <param name="accessToken">OAuth accessToken</param>
     ''' <returns>XBLToken</returns>
-    Private Function MsLoginStep2(AccessToken As String) As String
+    Private Function MsLoginStep2(accessToken As String) As String
         ProfileLog("开始正版验证 Step 2/6: 获取 XBLToken")
-        If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
-        Dim Request As String = New JObject(
-                                        New JProperty("Properties", New JObject(
-                                            New JProperty("AuthMethod", "RPS"),
-                                            New JProperty("SiteName", "user.auth.xboxlive.com"),
-                                            New JProperty("RpsTicket", If(AccessToken.StartsWith("d="), AccessToken, $"d={AccessToken}"))
-                                        )),
-                                    New JProperty("RelyingParty", "http://auth.xboxlive.com"),
-                                    New JProperty("TokenType", "JWT")
-                                ).ToString(Newtonsoft.Json.Formatting.None)
-        Dim Result As String = Nothing
+        If String.IsNullOrEmpty(accessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(accessToken))
+        Dim requestData As New XBLTokenRequestData With {
+            .Properties = New XBLTokenRequestData.PropertiesData With {
+                .AuthMethod = "RPS",
+                .SiteName = "user.auth.xboxlive.com",
+                .RpsTicket = $"d={accessToken}"
+            },
+            .RelyingParty = "http://auth.xboxlive.com",
+            .TokenType = "JWT"
+        }
+        Dim Result As String
         Try
-            Result = NetRequestRetry(
-                "https://user.auth.xboxlive.com/user/authenticate",
-                "POST",
-                Request,
-                "application/json",
-                False)
+            Dim contentData = JsonSerializer.Serialize(requestData)
+            Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
+                WithContent(contentData, "application/json").
+                SendAsync(True).Result
+                Result = response.AsStringContent()
+            End Using
         Catch ex As Exception
             ProfileLog("正版验证 Step 2/6 获取 XBLToken 失败：" & ex.ToString())
             Dim IsIgnore As Boolean = False
@@ -706,7 +728,6 @@ Retry:
                         End Sub)
             If IsIgnore Then
                 Return "Ignore"
-                Exit Function
             End If
         End Try
 
@@ -714,6 +735,17 @@ Retry:
         Dim XBLToken As String = ResultJson("Token").ToString
         Return XBLToken
     End Function
+
+
+    Private Class XSTSTokenRequestData
+        Public Class PropertiesData
+            Public Property SandboxId As String
+            Public Property UserTokens As List(Of String)
+        End Class
+        Public Property Properties As PropertiesData
+        Public Property RelyingParty As String
+        Public Property TokenType As String
+    End Class
     ''' <summary>
     ''' 正版验证步骤 3：从 XBLToken 获取 {XSTSToken, UHS}
     ''' </summary>
@@ -721,23 +753,23 @@ Retry:
     Private Function MsLoginStep3(XBLToken As String) As String()
         ProfileLog("开始正版验证 Step 3/6: 获取 XSTSToken")
         If String.IsNullOrEmpty(XBLToken) Then Throw New ArgumentException("XBLToken 为空，无法获取数据", NameOf(XBLToken))
-        Dim Request As String = New JObject(
-                                    New JProperty("Properties", New JObject(
-                                        New JProperty("SandboxId", "RETAIL"),
-                                        New JProperty("UserTokens", New JArray(XBLToken))
-                                    )),
-                                New JProperty("RelyingParty", "rp://api.minecraftservices.com/"),
-                                New JProperty("TokenType", "JWT")
-                            ).ToString(Newtonsoft.Json.Formatting.None)
+        Dim requestData As New XSTSTokenRequestData With {
+            .Properties = New XSTSTokenRequestData.PropertiesData With {
+                .SandboxId = "RETAIL",
+                .UserTokens = {XBLToken}.ToList()
+            },
+            .RelyingParty = "rp://api.minecraftservices.com/",
+            .TokenType = "JWT"
+        }
         Dim Result As String
         Try
-            Result = NetRequestRetry(
-                "https://xsts.auth.xboxlive.com/xsts/authorize",
-                "POST",
-                Request,
-                "application/json",
-                False)
-        Catch ex As WebException
+            Dim contentData = JsonSerializer.Serialize(requestData)
+            Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
+                WithContent(contentData, "application/json").
+                SendAsync(True).Result
+                Result = response.AsStringContent()
+            End Using
+        Catch ex As HttpRequestException
             '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
             If ex.Message.Contains("2148916227") Then
                 MyMsgBox("该账号似乎已被微软封禁，无法登录。", "登录失败", "我知道了", IsWarn:=True)
@@ -783,28 +815,30 @@ Retry:
         Return {XSTSToken, UHS}
     End Function
     ''' <summary>
-    ''' 正版验证步骤 4：从 {XSTSToken, UHS} 获取 Minecraft AccessToken
+    ''' 正版验证步骤 4：从 {XSTSToken, UHS} 获取 Minecraft accessToken
     ''' </summary>
     ''' <param name="Tokens">包含 XSTSToken 与 UHS 的字符串组</param>
-    ''' <returns>Minecraft AccessToken</returns>
+    ''' <returns>Minecraft accessToken</returns>
     Private Function MsLoginStep4(Tokens As String()) As String
         ProfileLog("开始正版验证 Step 4/6: 获取 Minecraft AccessToken")
         If Tokens.Length < 2 OrElse String.IsNullOrEmpty(Tokens.ElementAt(0)) OrElse String.IsNullOrEmpty(Tokens.ElementAt(1)) Then Throw New ArgumentException("传入的 XSTSToken 或者 UHS 错误", NameOf(Tokens))
-        Dim Request As String = New JObject(New JProperty("identityToken", $"XBL3.0 x={Tokens(1)};{Tokens(0)}")).ToString(0)
+        Dim requestData As New Dictionary(Of String, String) From {
+            {"identityToken", $"XBL3.0 x={Tokens(1)};{Tokens(0)}"}
+        }
         Dim Result As String
         Try
-            Result = NetRequestRetry(
-                "https://api.minecraftservices.com/authentication/login_with_xbox",
-                "POST",
-                Request,
-                "application/json",
-                False)
-        Catch ex As PCL.ModNet.HttpWebException
+            Dim contentData = JsonSerializer.Serialize(requestData)
+            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post).
+                WithContent(contentData, "application/json").
+                SendAsync(True).Result
+                Result = response.AsStringContent()
+            End Using
+        Catch ex As HttpRequestException
             Dim Message As String = ex.Message
-            If CType(ex.StatusCode, Integer) = 429 Then
+            If ex.StatusCode.Equals(HttpStatusCode.TooManyRequests) Then
                 Log(ex, "正版验证 Step 4 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
-            ElseIf ex.StatusCode = HttpStatusCode.NotFound Then
+            ElseIf ex.StatusCode = HttpStatusCode.Forbidden Then
                 Log(ex, "正版验证 Step 4 汇报 403")
                 Throw New Exception("$当前 IP 的登录尝试异常。" & vbCrLf & "如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！")
             Else
@@ -830,51 +864,48 @@ Retry:
     ''' <summary>
     ''' 正版验证步骤 5：验证微软账号是否持有 MC，这也会刷新 XGP
     ''' </summary>
-    ''' <param name="AccessToken">Minecraft AccessToken</param>
-    Private Sub MsLoginStep5(AccessToken As String)
+    ''' <param name="accessToken">Minecraft accessToken</param>
+    Private Sub MsLoginStep5(accessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
-        If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
-        Dim Result As String = NetRequestRetry(
-            "https://api.minecraftservices.com/entitlements",
-            "GET",
-            Nothing,
-            "application/json",
-            False,
-            New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
+        If String.IsNullOrEmpty(accessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(accessToken))
+        Dim result As String
         Try
-            Dim ResultJson As JObject = GetJson(Result)
+            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements", HttpMethod.Get).
+                WithBearerToken(accessToken).
+                SendAsync(True).Result
+                result = response.AsStringContent()
+            End Using
+            Dim ResultJson As JObject = GetJson(result)
             If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any(Function(x) x("name")?.ToString() = "product_minecraft" OrElse x("name")?.ToString() = "game_minecraft")) Then
-                Select Case MyMsgBox($"暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期", "登录失败", "购买 Minecraft", "取消")
-                    Case 1
-                        OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
-                End Select
-                Throw New Exception("$$")
-            End If
+                    Select Case MyMsgBox($"暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期", "登录失败", "购买 Minecraft", "取消")
+                        Case 1
+                            OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
+                    End Select
+                    Throw New Exception("$$")
+                End If
         Catch ex As Exception
-            Log(ex, "正版验证 Step 5 异常：" & Result)
+            Log(ex, "正版验证 Step 5 异常：" & result)
             Throw
         End Try
     End Sub
     ''' <summary>
-    ''' 正版验证步骤 6：从 Minecraft AccessToken 获取 {UUID, UserName, ProfileJson}
+    ''' 正版验证步骤 6：从 Minecraft accessToken 获取 {UUID, UserName, ProfileJson}
     ''' </summary>
-    ''' <param name="AccessToken">Minecraft AccessToken</param>
+    ''' <param name="AccessToken">Minecraft accessToken</param>
     ''' <returns>包含 UUID, UserName 和 ProfileJson 的字符串组</returns>
     Private Function MsLoginStep6(AccessToken As String) As String()
         ProfileLog("开始正版验证 Step 6/6: 获取玩家 ID 与 UUID 等相关信息")
         If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
         Dim Result As String
         Try
-            Result = NetRequestRetry(
-                "https://api.minecraftservices.com/minecraft/profile",
-                "GET",
-                "",
-                "application/json",
-                False,
-                New Dictionary(Of String, String) From {{"Authorization", $"Bearer {AccessToken}"}})
-        Catch ex As PCL.ModNet.HttpWebException
+            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/minecraft/profile", HttpMethod.Get).
+                    WithBearerToken(AccessToken).
+                    SendAsync(True).Result
+                Result = response.AsStringContent()
+            End Using
+        Catch ex As HttpRequestException
             Dim Message As String = ex.Message
-            If CType(ex.StatusCode, Integer) = 429 Then '微软！我的 TooManyRequests 枚举呢？
+            If ex.StatusCode.Equals(HttpStatusCode.TooManyRequests) Then
                 Log(ex, "正版验证 Step 6 汇报 429")
                 Throw New Exception("$登录尝试太过频繁，请等待几分钟后再试！")
             ElseIf ex.StatusCode = HttpStatusCode.NotFound Then
