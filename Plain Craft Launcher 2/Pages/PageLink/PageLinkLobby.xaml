@@ -95,7 +95,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
-                        <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion" Text="当前联机双方所使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再次发起联机" Theme="Yellow" Visibility="Collapsed"/>
+                        <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion" Text="联机双方目前使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再继续联机" Theme="Yellow" Visibility="Collapsed"/>
                     </StackPanel>
                     <!--大厅信息栏-->
                     <local:MyCard x:Name="PanNetInfo" Title="大厅信息" Margin="10" Grid.Row="2">

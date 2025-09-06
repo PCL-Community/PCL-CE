@@ -637,7 +637,7 @@ Public Class PageLinkLobby
     '复制 IP
     Private Sub BtnFinishCopyIp_Click(sender As Object, e As EventArgs) Handles BtnFinishCopyIp.Click
         Dim ip As String = "127.0.0.1:" & McForward.LocalPort
-        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接。通过 IP 连接将可能要求使用正版档案。", "复制 IP",
+        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
                  Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(Ip))
     End Sub
 
