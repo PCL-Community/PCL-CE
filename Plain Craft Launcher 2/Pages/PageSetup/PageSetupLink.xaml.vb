@@ -1,6 +1,8 @@
 ﻿Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
+Imports PCL.Core.Link
+Imports PCL.Core.App
 
 Class PageSetupLink
 
@@ -26,6 +28,7 @@ Class PageSetupLink
         ComboRelayType.SelectedIndex = Setup.Get("LinkRelayType")
         ComboServerType.SelectedIndex = Setup.Get("LinkServerType")
         CheckLatencyFirstMode.Checked = Setup.Get("LinkLatencyFirstMode")
+        ComboPreferProtocol.SelectedIndex = CInt(Config.Link.ProtocolPreference)
         If String.IsNullOrWhiteSpace(Setup.Get("LinkNaidRefreshToken")) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -143,6 +146,7 @@ Class PageSetupLink
             Setup.Reset("LinkRelayType")
             Setup.Reset("LinkServerType")
             Setup.Reset("LinkLatencyFirstMode")
+            Config.Link.ProtocolPreferenceConfig.Reset()
 
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)
@@ -163,6 +167,16 @@ Class PageSetupLink
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
+    End Sub
+    Private Shared Sub LinkProtocolPerferenceChange(sender As MyComboBox, e As Object) Handles ComboPreferProtocol.SelectionChanged
+        If AniControlEnabled = 0 Then
+            Try
+                Dim selection = CType(sender.SelectedIndex, LinkProtocolPreference)
+                Config.Link.ProtocolPreference = selection
+            Catch ex As Exception
+                Log(ex, "改变配置项失败", LogLevel.Hint)
+            End Try
+        End If
     End Sub
 
 End Class

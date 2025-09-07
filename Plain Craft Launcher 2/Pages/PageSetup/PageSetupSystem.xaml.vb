@@ -129,7 +129,8 @@ Class PageSetupSystem
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioHttpProxyType0.Check, RadioHttpProxyType1.Check, RadioHttpProxyType2.Check
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)))
+        Dim gotCfg = sender.Tag.ToString.Split("/")
+        If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
 
     '网络

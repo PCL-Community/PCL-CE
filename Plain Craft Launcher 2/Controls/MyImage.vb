@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.Net
+﻿Imports System.Net.Http
+Imports PCL.Core.Net
 Imports PCL.Core.Utils
 
 Public Class MyImage

@@ -7,6 +7,7 @@ Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Net
+Imports PCL.Core.App
 
 Public Module ModLaunch
 
@@ -1713,10 +1714,14 @@ NextInstance:
         End If
 
         '设置代理
-        If Setup.Get("VersionAdvanceUseProxyV2", instance:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
-            Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
-            DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
-            DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
+        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.System.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress) Then
+            Try
+                Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
+                DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
+                DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
+            Catch ex As Exception
+                Log(ex, "添加代理信息到游戏失败，放弃加入", LogLevel.Hint)
+            End Try
         End If
         '添加 RetroWrapper 相关参数
         If McLaunchNeedsRetroWrapper(instance) Then
