@@ -293,43 +293,4 @@ Public Module ModLink
     End Function
 #End Region
 
-#Region "NAT 测试"
-    ''' <summary>
-    ''' 使用 EasyTier Cli 进行网络测试。
-    ''' </summary>
-    ''' <returns></returns>
-    Public Function NetTestET()
-        Dim ETCliProcess As New Process With {
-                                   .StartInfo = New ProcessStartInfo With {
-                                       .FileName = $"{ETInfoProvider.ETPath}\easytier-cli.exe",
-                                       .WorkingDirectory = ETInfoProvider.ETPath,
-                                       .Arguments = "stun",
-                                       .ErrorDialog = False,
-                                       .CreateNoWindow = True,
-                                       .WindowStyle = ProcessWindowStyle.Hidden,
-                                       .UseShellExecute = False,
-                                       .RedirectStandardOutput = True,
-                                       .RedirectStandardError = True,
-                                       .RedirectStandardInput = True,
-                                       .StandardOutputEncoding = Encoding.UTF8},
-                                   .EnableRaisingEvents = True
-                               }
-        If Not File.Exists(ETCliProcess.StartInfo.FileName) Then
-            Log("[Link] EasyTier 不存在，开始下载")
-            DownloadEasyTier()
-        End If
-        Log($"[Link] EasyTier 路径: {ETCliProcess.StartInfo.FileName}")
-        Dim Output As String = Nothing
-
-        ETCliProcess.Start()
-        Output = ETCliProcess.StandardOutput.ReadToEnd().Replace("stun info: StunInfo ", "")
-
-        Dim OutJObj As JObject = JObject.Parse(Output)
-        Dim NatType As String = OutJObj("udp_nat_type")
-        Dim Ips As Array = OutJObj("public_ip").ToArray()
-        Dim SupportIPv6 As Boolean = Ips.Cast(Of Object)().Any(Function(Ip) Ip.contains(":"))
-        Return {NatType, SupportIPv6}
-    End Function
-#End Region
-
 End Module

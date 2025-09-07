@@ -185,22 +185,23 @@ Public Class PageLinkLobby
                     End If
                     '公告
                     Dim notices As JArray = jObj("notices")
-                    Dim noticeLatest As JObject = notices(0)
-                    Dim announceContent = noticeLatest("content").ToString()
-                    If Not String.IsNullOrWhiteSpace(announceContent) Then
-                        Dim announceType As LinkAnnounceType
-                        If noticeLatest("type") = "important" OrElse noticeLatest("type") = "red" Then
-                            announceType = LinkAnnounceType.Important
-                        ElseIf noticeLatest("type") = "warning" OrElse noticeLatest("type") = "yellow" Then
-                            announceType = LinkAnnounceType.Warning
-                        Else
-                            announceType = LinkAnnounceType.Notice
+                    For Each noticeLatest As JObject In notices
+                        Dim announceContent = noticeLatest("content").ToString()
+                        If Not String.IsNullOrWhiteSpace(announceContent) Then
+                            Dim announceType As LinkAnnounceType
+                            If noticeLatest("type") = "important" OrElse noticeLatest("type") = "red" Then
+                                announceType = LinkAnnounceType.Important
+                            ElseIf noticeLatest("type") = "warning" OrElse noticeLatest("type") = "yellow" Then
+                                announceType = LinkAnnounceType.Warning
+                            Else
+                                announceType = LinkAnnounceType.Notice
+                            End If
+                            Dim announces As String() = announceContent.Split(vbLf)
+                            For Each announce As String In announces
+                                _linkAnnounces.Add(New LinkAnnounceInfo(announceType, announce))
+                            Next
                         End If
-                        Dim announces As String() = announceContent.Split(vbLf)
-                        For Each announce As String In announces
-                            _linkAnnounces.Add(New LinkAnnounceInfo(announceType, announce))
-                        Next
-                    End If
+                    Next
                     '中继服务器
                     Dim relays As JArray = jObj("relays")
                     ETRelay.RelayList = New List(Of ETRelay)
@@ -374,11 +375,11 @@ Public Class PageLinkLobby
             If hostInfo.Ping > 150 Then
                 quality -= 1
             End If
-            RunInUi(Sub() 
-                    Dim texts = LobbyTextHandler.GetQualityDesc(quality)
-                    LabFinishQuality.Text = texts.Keyword
-                    BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
-                End Sub)
+            RunInUi(Sub()
+                        Dim texts = LobbyTextHandler.GetQualityDesc(quality)
+                        LabFinishQuality.Text = texts.Keyword
+                        BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
+                    End Sub)
 
             If IsHost AndAlso Not LobbyController.IsHostInstanceAvailable(TargetLobby.Port) Then '确认创建者实例存活状态
                 RunInUi(Sub()
@@ -406,8 +407,8 @@ Public Class PageLinkLobby
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
                         For Each player In playerList
-                            If Not etStatus = ETState.Ready AndAlso player.Ping = 1000 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
-                            Dim newItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
+                            If Not etStatus = ETState.Ready AndAlso player.Ping = 1000 Then player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                            Dim newItem = PlayerInfoItem(player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(newItem)
                         Next
                         CardPlayerList.Title = $"大厅成员列表（共 {playerList.Count} 人）"
@@ -429,10 +430,10 @@ Public Class PageLinkLobby
             Log(ex, "从剪贴板识别大厅编号出错")
             Exit Sub
         End Try
-        If lobbyId IsNot Nothing Then 
+        If lobbyId IsNot Nothing Then
             TextJoinLobbyId.Text = lobbyId
         Else
-            hint("大厅编号不正确，请检查后重新输入")
+            Hint("大厅编号不正确，请检查后重新输入")
         End If
     End Sub
     Private Sub ClearLobbyId() Handles BtnClearLobbyId.Click
@@ -641,7 +642,7 @@ Public Class PageLinkLobby
     Private Sub BtnFinishCopyIp_Click(sender As Object, e As EventArgs) Handles BtnFinishCopyIp.Click
         Dim ip As String = "127.0.0.1:" & McForward.LocalPort
         MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-                 Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(Ip))
+                 Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(ip))
     End Sub
 
 #End Region

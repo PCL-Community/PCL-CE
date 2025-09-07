@@ -74,6 +74,10 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="8" />
                             <RowDefinition Height="28" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="用户名" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLinkUsername" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkUsername" Grid.Column="2" ToolTip="PCL CE 会尽可能使用此处的用户名用于大厅信息展示。&#xa;若留空，则使用 Natayark ID 的用户名。&#xa;&#xa;部分情况下可能始终展示 Natayark ID 用户名，而非此处设置的名称。"/>
@@ -103,6 +107,8 @@
                             <local:MyComboBoxItem Content="UDP" ToolTip="让 EasyTier 优先使用 UDP 进行通信，UDP 通常能带来更低的通信时延"/>
                         </local:MyComboBox>
                         <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="12" Grid.ColumnSpan="3" Text="选择最低延迟路径而不是最短路径" ToolTip="要求 EasyTier 在通信时选择最低延迟的路径，而不是路由跳数最少的路径。&#xa;启用此选项在部分情况下能降低联机时的延迟，但可能会提高丢包率。"/>
+                        <local:MyCheckBox x:Name="CheckTryPaunchSym" Tag="LinkTryPunchSym" Grid.Row="14" Grid.ColumnSpan="3" Text="尝试打通对称型 NAT" ToolTip="让 EasyTier 尝试打通对称型 NAT，此操作概率性成功"/>
+                        <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="16" Grid.ColumnSpan="3" Text="使用 IPv6" ToolTip="IPv6 相比于 IPv4 更加容易进行 P2P 通信，能极大改善联机体验，除有特殊原因外不建议关闭"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>

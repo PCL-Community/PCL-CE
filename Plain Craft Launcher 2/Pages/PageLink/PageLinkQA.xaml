@@ -6,14 +6,41 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
+            <local:MyCard Title="跨启动器联机行不行？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="简单来说：会，但是在使用大厅的过程中影响不大。如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
+                    <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="TCP 和 UDP 是什么？我该如何选择？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="TCP 是一种面向连接的协议，提供可靠的、有序的、具备错误检查机制的数据传输流，使用 TCP 作为 EasyTier 默认协议可以获得稳定的联机体验。&#xa;&#xa;UDP 是一种无连接的协议，数据传输前后无需建立或断开连接，它将数据打包后直接发送。在网络高峰期，由于缺乏可靠性保证，UDP 数据包可能会被路由器或运营商在网络拥塞时优先丢弃。&#xa;但通过 QUIC 与 KCP 等现代通信协议加持，使用 UDP 作为 EasyTier 默认协议在部分情况下能减低联机延迟，提高游戏体验。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="IPv6 是什么？为什么不建议关闭？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="IPv6 是互联网协议的最新版本，旨在解决 IPv4 地址枯竭问题，提供近乎无限的地址空间。&#xa;IPv6 能显著改善网络连接体验，尤其是在游戏联机场景中。&#xa;在 IPv4 网络下，用户通常位于多层 NAT 之后，这使得设备难以被外部直接访问，导致联机困难、延迟高，甚至无法建立点对点连接。&#xa;而 IPv6 为每个设备分配唯一的公网地址，天然穿透 NAT，让主机更容易被发现和直连，从而减少连接层级、降低延迟、提升联机成功率。"/>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Title="什么是最短路径和最低延迟路径？" Margin="0,0,0,15">
+                <StackPanel Margin="20,40,18,18">
+                    <TextBlock TextWrapping="Wrap" Text="最短路径是指在分布式系统或网络中，从源节点到目标节点所需转发跳数（hop）最少的路径。&#xa;&#xa;例如，有三个节点 A、B、C，其中 A 是源节点(你)，C 是目标节点(房主)，B 是中间节点(中继服务器)。&#xa;如果 A 与 C 之间存在直接的网络连接（即路由可达），那么最短路径就是 A -> C，跳数为 1。&#xa;否则，数据必须通过 B 中转，此时最短路径为 A -> B -> C，跳数为 2。&#xa;&#xa;最低延迟路径则是指数据从源节点到达目标节点所需总时间最短的路径。该路径不仅取决于跳数，还受每跳的处理延迟、链路带宽、网络拥塞程度、物理距离等多种因素影响。&#xa;&#xa;例如，在同样的拓扑中，即使 A -> C 是跳数最少的路径，但如果该链路存在严重干扰或拥塞，导致其传输延迟高于路径 A -> B -> C，那么从性能角度看，A -> B -> C 才是真正的最低延迟路径。"/>
+                </StackPanel>
+            </local:MyCard>
             <local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置。在节点设置中双方应当有至少一个相同的节点以确保能够被相互发现。"/>
+                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以让房主加入其他社区节点辅助连接。"/>
+                    <local:MyButton Text="社区公共节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截，网络是否可以正常连接到数据服务器。有问题可以加入用户群，或是前往 GitHub 反馈。"/>
+                    <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截。同时确保你没有使用精简版系统，精简版系统缺失部分组件，可能无法支撑 EasyTier 运行。有问题可以加入用户群，或是前往 GitHub 反馈。"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="联机可以用服务端么？" Margin="0,0,0,15">
@@ -24,17 +51,6 @@
             <local:MyCard Title="是否需要实名认证？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="目前无此要求，在联机设置中填入用户名或登录 Natayark 账号即可联机，如有变动，请以公告提示与实际情况为准。"/>
-                </StackPanel>
-            </local:MyCard>
-            <local:MyCard Title="跨启动器联机行不行？" Margin="0,0,0,15">
-                <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。"/>
-                </StackPanel>
-            </local:MyCard>
-            <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
-                <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="简单来说：会，但是在使用大厅的过程中影响不大。如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
-                    <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
                 </StackPanel>
             </local:MyCard>
         </StackPanel>
