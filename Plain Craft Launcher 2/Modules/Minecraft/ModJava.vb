@@ -118,11 +118,11 @@ Public Module ModJava
         Javas.CheckJavaAvailability()
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+        Dim ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).Result.FirstOrDefault()
         If ret Is Nothing Then
             Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
-            Javas.ScanJava().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+            Javas.ScanJavaAsync().GetAwaiter().GetResult()
+            ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).Result.FirstOrDefault()
         End If
         Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret
@@ -216,7 +216,7 @@ Public Module ModJava
                 Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", LogLevel.Debug)
                 DeleteDirectory(LastJavaBaseDir)
             ElseIf NewState = LoadState.Finished Then
-                Javas.ScanJava().GetAwaiter().GetResult()
+                Javas.ScanJavaAsync().GetAwaiter().GetResult()
                 LastJavaBaseDir = Nothing
             End If
         End Sub

@@ -227,122 +227,101 @@
                                     EventType="打开网页" EventData="https://iconmonstr.com/" />
                     <local:MyButton Grid.Row="9" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://iconmonstr.com/license/" />
-                    
-                    <TextBlock Grid.Row="10" Grid.Column="0" Text="SixLabors.ImageSharp" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="10" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Six Labors&#xa;Licensed under the Apache License 2.0." TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="11" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                                    EventType="打开网页" EventData="https://github.com/SixLabors/ImageSharp" />
-                    <local:MyButton Grid.Row="11" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                                    EventType="打开网页" EventData="https://github.com/SixLabors/ImageSharp/blob/main/LICENSE" />
 
-                    <TextBlock Grid.Row="12" Grid.Column="0" Text="Iconfont" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="12" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © ALIMAMA MUX, powered by alimama THX." TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="13" Grid.Column="2" MinWidth="140" Text="查看原网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="10" Grid.Column="0" Text="Iconfont" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="10" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © ALIMAMA MUX, powered by alimama THX." TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="11" Grid.Column="2" MinWidth="140" Text="查看原网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://www.iconfont.cn/" />
 
-                    <TextBlock Grid.Row="14" Grid.Column="0" Text="Fody" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="14" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Simon Cropp" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="15" Grid.Column="2" MinWidth="140" Text="查看原网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="12" Grid.Column="0" Text="Fody" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="12" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Simon Cropp" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="13" Grid.Column="2" MinWidth="140" Text="查看原网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/Fody/Fody" />
-                    <local:MyButton Grid.Row="15" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="13" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://github.com/Fody/Fody/blob/master/License.txt" />
 
-                    <TextBlock Grid.Row="16" Grid.Column="0" Text="Makaretu.Nat" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="16" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2018 Richard Schneider" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="17" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                                    EventType="打开网页" EventData="https://github.com/richardschneider/net-nat" />
-                    <local:MyButton Grid.Row="17" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                    EventType="打开网页" EventData="https://github.com/richardschneider/net-nat/blob/master/LICENSE" />
+                    <TextBlock Grid.Row="14" Grid.Column="0" Text="Stun.Net" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="14" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Bruce Wayne" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="15" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                                    EventType="打开网页" EventData="https://github.com/HMBSbige/NatTypeTester" />
+                    <local:MyButton Grid.Row="15" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    EventType="打开网页" EventData="https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE" />
 
-                    <TextBlock Grid.Row="18" Grid.Column="0" Text="IPNetwork" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="18" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2015, lduchosal" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="19" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="16" Grid.Column="0" Text="IPNetwork" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="16" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2015, lduchosal" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="17" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://github.com/lduchosal/ipnetwork" />
-                    <local:MyButton Grid.Row="19" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="17" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                     EventType="打开网页" EventData="https://github.com/lduchosal/ipnetwork/blob/master/LICENSE" />
 
-                    <TextBlock Grid.Row="20" Grid.Column="0" Text="STUN" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="20" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2019 Moien007" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="21" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                EventType="打开网页" EventData="https://github.com/moien007/stun" />
-                    <local:MyButton Grid.Row="21" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-EventType="打开网页" EventData="https://github.com/moien007/STUN/blob/master/LICENSE" />
-
-                    <TextBlock Grid.Row="22" Grid.Column="0" Text="Open.NAT" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="22" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2010-2011 Erik Davidson, 2012+ Matvei Stefarov&#xa;License under 3-Clause BSD" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="23" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-                EventType="打开网页" EventData="https://github.com/mstefarov/fNbt" />
-                    <local:MyButton Grid.Row="23" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
-EventType="打开网页" EventData="https://licenses.nuget.org/BSD-3-Clause" />
-
-                    <TextBlock Grid.Row="24" Grid.Column="0" Text="TagLibSharp" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="24" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2006-2007 Brian Nickel.&#xa;Copyright © 2009-2020 Other contributors" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="25" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="18" Grid.Column="0" Text="TagLibSharp" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="18" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2006-2007 Brian Nickel.&#xa;Copyright © 2009-2020 Other contributors" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="19" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/mono/taglib-sharp" />
-                    <local:MyButton Grid.Row="25" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="19" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/mono/taglib-sharp/blob/main/COPYING" />
 
-                    <TextBlock Grid.Row="26" Grid.Column="0" Text="Microsoft.Identity.Client" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="26" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="27" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="20" Grid.Column="0" Text="Microsoft.Identity.Client" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="20" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="21" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://go.microsoft.com/fwlink/?linkid=844761" />
-                    <local:MyButton Grid.Row="27" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="21" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://licenses.nuget.org/MIT" />
 
-                    <TextBlock Grid.Row="28" Grid.Column="0" Text="Microsoft.Identity.Client.Broker" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="28" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="29" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="22" Grid.Column="0" Text="Microsoft.Identity.Client.Broker" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="22" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="23" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://go.microsoft.com/fwlink/?linkid=844761" />
-                    <local:MyButton Grid.Row="29" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="23" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://licenses.nuget.org/MIT" />
 
-                    <TextBlock Grid.Row="30" Grid.Column="0" Text="EntityFramework" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="30" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="31" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="24" Grid.Column="0" Text="EntityFramework" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="24" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © Microsoft Corporation" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="25" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://github.com/dotnet/efcore" />
-                    <local:MyButton Grid.Row="31" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="25" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                     EventType="打开网页" EventData="https://licenses.nuget.org/Apache-2.0" />
 
-                    <TextBlock Grid.Row="32" Grid.Column="0" Text="PCL.Core" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="32" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © PCL Community" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="33" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="26" Grid.Column="0" Text="PCL.Core" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="26" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © PCL Community" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="27" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/PCL-Community/PCL.Core" />
-                    <local:MyButton Grid.Row="33" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="27" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/PCL-Community/PCL.Core/blob/main/LICENCE" />
 
-                    <TextBlock Grid.Row="34" Grid.Column="0" Text="EleCho.WpfSuite" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="34" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © EleCho" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="35" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="28" Grid.Column="0" Text="EleCho.WpfSuite" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="28" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © EleCho" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="29" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/OrgEleCho/EleCho.WpfSuite" />
-                    <local:MyButton Grid.Row="35" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="29" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/OrgEleCho/EleCho.WpfSuite/blob/master/LICENSE.txt" />
 
-                    <TextBlock Grid.Row="36" Grid.Column="0" Text="LiteDB" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="36" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2014-2022 Mauricio David" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="37" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="30" Grid.Column="0" Text="LiteDB" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="30" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2014-2022 Mauricio David" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="31" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/litedb-org/LiteDB" />
-                    <local:MyButton Grid.Row="37" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="31" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/litedb-org/LiteDB/blob/master/LICENSE" />
 
-                    <TextBlock Grid.Row="38" Grid.Column="0" Text="Markdig.Wpf" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="38" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2016-2021 Nicolas Musset" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="39" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="32" Grid.Column="0" Text="Markdig.Wpf" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="32" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2016-2021 Nicolas Musset" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="33" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/Kryptos-FR/markdig.wpf" />
-                    <local:MyButton Grid.Row="39" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="33" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md" />
 
-                    <TextBlock Grid.Row="40" Grid.Column="0" Text="CacheCow" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="40" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2013 Ali Kheyrollahi" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="41" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="34" Grid.Column="0" Text="CacheCow" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="34" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2013 Ali Kheyrollahi" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="35" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/aliostad/CacheCow" />
-                    <local:MyButton Grid.Row="41" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="35" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt" />
                     
-                    <TextBlock Grid.Row="42" Grid.Column="0" Text="Mesa Loader Windows" TextWrapping="Wrap" FontWeight="Bold" />
-                    <TextBlock Grid.Row="42" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2024 Glavo&#xa;Licensed under the Apache 2 License." TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="43" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <TextBlock Grid.Row="36" Grid.Column="0" Text="Mesa Loader Windows" TextWrapping="Wrap" FontWeight="Bold" />
+                    <TextBlock Grid.Row="36" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2024 Glavo&#xa;Licensed under the Apache 2 License." TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="37" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                 EventType="打开网页" EventData="https://github.com/HMCL-dev/mesa-loader-windows" />
-                    <local:MyButton Grid.Row="43" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                    <local:MyButton Grid.Row="37" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
 EventType="打开网页" EventData="https://github.com/HMCL-dev/mesa-loader-windows/blob/main/LICENSE" />
                 </Grid>
             </local:MyCard>

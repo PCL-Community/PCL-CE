@@ -1,4 +1,6 @@
-﻿Imports PCL.Core.Utils
+Imports PCL.Core.Net
+Imports System.Net.Http
+Imports PCL.Core.Utils
 
 Public Module ModDownload
 
@@ -414,7 +416,14 @@ Public Module ModDownload
     ''' </summary>
     Public DlOptiFineListOfficialLoader As New LoaderTask(Of Integer, DlOptiFineListResult)("DlOptiFineList Official", AddressOf DlOptiFineListOfficialMain)
     Private Sub DlOptiFineListOfficialMain(Loader As LoaderTask(Of Integer, DlOptiFineListResult))
-        Dim Result As String = NetGetCodeByClient("https://optifine.net/downloads", Encoding.Default)
+        Dim Result As String = HttpRequestBuilder.
+            Create("https://optifine.net/downloads", HttpMethod.Get).
+            WithHeader("Accept", "application/json, text/javascript, */*; q=0.01").
+            WithHeader("Accept-Language", "en-US,en;q=0.5").
+            WithHeader("X-Requested-With", "XMLHttpRequest").
+            SendAsync(True).
+            Result.
+            AsStringContent()
         If Result.Length < 200 Then Throw New Exception("获取到的版本列表长度不足（" & Result & "）")
         Try
             '获取所有版本信息

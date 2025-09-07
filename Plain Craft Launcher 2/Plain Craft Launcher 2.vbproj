@@ -66,10 +66,8 @@
     <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
     <PackageReference Include="IPNetwork2" Version="3.1.775" />
-    <PackageReference Include="Makaretu.Nat" Version="0.2.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="STUN" Version="0.5.0" />
     <PackageReference Include="System.Management" Version="9.0.8" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />

@@ -137,7 +137,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
         loaders.Add(New LoaderTask(Of String, Integer)("应用文件", Sub()
                                                                    If patchUpdate Then
                                                                        Dim diff As New BsDiff()
-                                                                       Dim newFile = diff.Apply(ReadFileBytes(ExePathWithName), ReadFileBytes(tempPath)).GetAwaiter().GetResult()
+                                                                       Dim newFile = diff.ApplyAsync(ReadFileBytes(ExePathWithName), ReadFileBytes(tempPath)).GetAwaiter().GetResult()
                                                                        WriteFile(output, newFile)
                                                                    Else
                                                                        Using fs As New FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read)

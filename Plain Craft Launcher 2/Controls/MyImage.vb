@@ -1,4 +1,6 @@
-﻿Imports PCL.Core.Utils
+﻿Imports System.Net.Http
+Imports PCL.Core.Net
+Imports PCL.Core.Utils
 
 Public Class MyImage
     Inherits Image
@@ -133,7 +135,7 @@ RetryStart:
                 Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
                 Using request As New Net.Http.HttpRequestMessage(Http.HttpMethod.Get, Url)
                     Using fs As New FileStream(TempDownloadingPath, FileMode.Create)
-                        Using response = MyHttpClient.SendAsync(request).Result
+                        Using response = NetworkService.GetClient().SendAsync(request).Result
                             response.EnsureSuccessStatusCode()
                             Dim res = response.Content.ReadAsByteArrayAsync().Result
                             fs.Write(res, 0, res.Length)

@@ -8,6 +8,7 @@ Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Utils
+Imports PCL.Core.App
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -149,20 +150,22 @@ Public Class PageLinkLobby
                     Dim cache As Integer
                     While serverNumber < LinkServers.Length
                         Try
-                            cache = Val(NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
-                            If cache = Setup.Get("LinkAnnounceCacheVer") Then
+                            cache = Integer.Parse(NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000).Trim())
+                            If cache = Config.Link.AnnounceCacheVer Then
                                 Log("[Link] 使用缓存的公告数据")
-                                jObj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                                jObj = GetJson(Config.Link.AnnounceCache)
                             Else
                                 Log("[Link] 尝试拉取公告数据")
                                 Dim received As String = NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
-                                jObj = JObject.Parse(received)
-                                Setup.Set("LinkAnnounceCache", received)
-                                Setup.Set("LinkAnnounceCacheVer", cache)
+                                jObj = GetJson(received)
+                                Config.Link.AnnounceCache = received
+                                Config.Link.AnnounceCacheVer = cache
                             End If
                             Exit While
                         Catch ex As Exception
                             Log(ex, $"[Link] 从服务器 {serverNumber} 获取公告缓存失败")
+                            Config.Link.AnnounceCacheConfig.Reset()
+                            Config.Link.AnnounceCacheVerConfig.Reset()
                             serverNumber += 1
                         End Try
                     End While
@@ -304,7 +307,7 @@ Public Class PageLinkLobby
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount = 0
-                           While ETInfoProvider.CheckETStatus().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
+                           While ETInfoProvider.CheckETStatusAsync().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
                                retryCount += GetETInfo()
                                If RequiresLogin AndAlso String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
@@ -637,7 +640,7 @@ Public Class PageLinkLobby
     '复制 IP
     Private Sub BtnFinishCopyIp_Click(sender As Object, e As EventArgs) Handles BtnFinishCopyIp.Click
         Dim ip As String = "127.0.0.1:" & McForward.LocalPort
-        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接。通过 IP 连接将可能要求使用正版档案。", "复制 IP",
+        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
                  Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(Ip))
     End Sub
 

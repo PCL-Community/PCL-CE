@@ -79,7 +79,7 @@ Public Class PageLoginAuth
             Dim serverUri As String = Nothing
             Dim serverName As String = Nothing
             Try
-                serverUri = Await ApiLocation.TryRequest(serverUriInput)
+                serverUri = Await ApiLocation.TryRequestAsync(serverUriInput)
                 Dim response = Await HttpRequestBuilder.Create(serverUri, HttpMethod.Get).SendAsync()
                 Dim responseText As String = Await response.AsStringAsync()
                 serverName = Await Task.Run(Function() JObject.Parse(responseText)("meta")("serverName").ToString())

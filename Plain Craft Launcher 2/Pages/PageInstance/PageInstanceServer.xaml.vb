@@ -58,12 +58,12 @@ Public Class PageInstanceServer
             RunInUi(Sub() Hint("刷新服务器列表失败：" & ex.Message, HintType.Critical))
         End Try
     End Sub
-    
+
     Private Sub BtnRefresh_Click(sender As Object, e As MouseButtonEventArgs)
         Hint("正在刷新服务器列表，请稍候...", HintType.Info)
         RefreshServers()
     End Sub
-    
+
     Private Async Sub BtnAddServer_Click(sender As Object, e As MouseButtonEventArgs)
         Dim result = GetServerInfo(New MinecraftServerInfo() With {.Name = "Minecraft服务器", .Address = ""})
         If result.Success Then
@@ -73,29 +73,29 @@ Public Class PageInstanceServer
                 .Status = ServerStatus.Unknown
             }
             ServerList.Add(newServer)
-            
+
             RefreshTip()
-            
+
             Dim serverCard = New ServerCard()
             AddHandler serverCard.ChildCountZero, AddressOf MyChild_ChildCountZero
             serverCard.UpdateServerInfo(newServer)
             ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
-            
+
             Await serverCard.RefreshServerStatus(False)
-            
-            Dim nbtData = await NbtFileHandler.ReadNbTFileAsync(Of NbtList)(PageInstanceLeft.Instance.PathIndie + "servers.dat", "servers")
+
+            Dim nbtData = Await NbtFileHandler.ReadNbtFileAsync(Of NbtList)(Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers")
             If nbtData IsNot Nothing Then
-                Dim server = new NbtCompound()
+                Dim server = New NbtCompound()
                 server("name") = New NbtString("name", result.Name)
                 server("ip") = New NbtString("ip", result.Address)
                 nbtData.Add(server)
                 Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
-                await NbtFileHandler.WriteNbtFileAsync(clonedNbtData, PageInstanceLeft.Instance.PathIndie + "servers.dat")
+                Await NbtFileHandler.WriteNbtFileAsync(clonedNbtData, Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"))
             End If
         End If
     End Sub
-    
+
     Public Shared Function GetServerInfo(server As MinecraftServerInfo) As (Name As String, Address As String, Success As Boolean)
         Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name)
         If String.IsNullOrEmpty(newName) Then 

@@ -15,7 +15,7 @@ Public Class PageSetupJava
         Return Javas.JavaList.Count
     End Function
     Private Sub Load_GetJavaList(loader As LoaderTask(Of Integer, List(Of Java)))
-        Javas.ScanJava().GetAwaiter().GetResult()
+        Javas.ScanJavaAsync().GetAwaiter().GetResult()
         loader.Output = Javas.JavaList
     End Sub
 

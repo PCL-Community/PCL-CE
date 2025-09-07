@@ -13,7 +13,7 @@ public class DiffTest
     public async Task TestBsDiff()
     {
         var diff = new BsDiff();
-        var res = await diff.Apply(
+        var res = await diff.ApplyAsync(
             [
                 73, 32, 97, 109, 32, 110, 111, 116, 32, 115, 117, 114, 101, 32, 104, 111, 119, 32, 99, 104, 111, 117,
                 108,
@@ -48,6 +48,6 @@ public class DiffTest
         if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(outFile) || string.IsNullOrEmpty(diffFile))
             return;
         var diff = new BsDiff();
-        File.WriteAllBytes(outFile, await diff.Apply(File.ReadAllBytes(from), File.ReadAllBytes(diffFile)));
+        File.WriteAllBytes(outFile, await diff.ApplyAsync(File.ReadAllBytes(from), File.ReadAllBytes(diffFile)));
     }
 }
