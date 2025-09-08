@@ -615,7 +615,7 @@ Retry:
         McLaunchLog("开始正版验证 Step 1/6（原始登录）")
         Dim PrepareJson As JObject
         Using response = HttpRequestBuilder.Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post).
-                WithContent(New Http.StringContent($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access"), "application/x-www-form-urlencoded").
+                WithContent(New ByteArrayContent(Encoding.UTF8.GetBytes($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access")), "application/x-www-form-urlencoded").
                 SendAsync(True).Result
             PrepareJson = GetJson(response.AsStringContent())
         End Using

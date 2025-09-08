@@ -47,20 +47,22 @@ jobs:
           cd "${{ github.workspace }}"
 
       - name: Build Project
-        env:
-          PCL_WRITE_SECRET: '1'
-          PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          PCL_TELEMETRY_KEY: ${{ secrets.TELEMETRY_KEY }}
-          PCL_NAID_CLIENT_ID: ${{ secrets.NAID_CLIENT_ID }}
-          PCL_NAID_CLIENT_SECRET: ${{ secrets.NAID_CLIENT_SECRET }}
-          PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}
-          PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
-          PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
-          -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-          -p:DeleteExistingFiles=true -o ./artifact --self-contained false
+            -p:Configuration=${{ inputs.configuration }} \
+            -p:Platform=${{ inputs.architecture }} \
+            -p:DeleteExistingFiles=true \
+            -p:PCL_WRITE_SECRET=1 \
+            -p:PCL_MS_CLIENT_ID="${{ secrets.CLIENT_ID }}" \
+            -p:PCL_CURSEFORGE_API_KEY="${{ secrets.CURSEFORGE_API_KEY }}" \
+            -p:PCL_TELEMETRY_KEY="${{ secrets.TELEMETRY_KEY }}" \
+            -p:PCL_NAID_CLIENT_ID="${{ secrets.NAID_CLIENT_ID }}" \
+            -p:PCL_NAID_CLIENT_SECRET="${{ secrets.NAID_CLIENT_SECRET }}" \
+            -p:PCL_LINK_SERVER_ROOT="${{ secrets.LINK_SERVER_ROOTS }}" \
+            -p:PCL_LOBBY_DEFAULT_SECRET="${{ secrets.LOBBY_DEFAULT_SECRET }}" \
+            -p:PCL_GITHUB_SHA="${{ github.sha }}" \
+            -o ./artifact \
+            --self-contained false
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4
