@@ -1368,8 +1368,18 @@ Public Module ModDownload
     ''' </summary>
     Public DlLabyModListOfficialLoader As New LoaderTask(Of Integer, DlLabyModListResult)("DlLabyModList Official", AddressOf DlLabyModListOfficialMain)
     Private Sub DlLabyModListOfficialMain(Loader As LoaderTask(Of Integer, DlLabyModListResult))
-        Dim ResultProduction As JObject = NetGetCodeByRequestRetry("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", IsJson:=True)
-        Dim ResultSnapshot As JObject = NetGetCodeByRequestRetry("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json", IsJson:=True)
+        Dim ResultProduction As JObject
+        Using productionResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", HttpMethod.Get).
+            WithHttpVersionOption(HttpVersion.Version20).
+            SendAsync(True).Result
+            ResultProduction = GetJson(productionResponse.AsStringContent())
+        End Using
+        Dim ResultSnapshot As JObject
+        Using snapshotResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json", HttpMethod.Get).
+            WithHttpVersionOption(HttpVersion.Version20).
+            SendAsync(True).Result
+            ResultSnapshot = GetJson(snapshotResponse.AsStringContent())
+        End Using
         Dim Result As New JObject
         Result.Add("production", ResultProduction)
         Result.Add("snapshot", ResultSnapshot)

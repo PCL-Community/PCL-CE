@@ -11,6 +11,7 @@
         '结果数据化
         Try
             Dim Versions As JObject = DlLabyModListLoader.Output.Value
+            If Versions Is Nothing Then Return
             Dim ProductionEntry As New JObject
             ProductionEntry.Add("channel", "production")
             ProductionEntry.Add("version", Versions("production")("labyModVersion").ToString)

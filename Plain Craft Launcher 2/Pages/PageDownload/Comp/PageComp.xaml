@@ -75,7 +75,7 @@
                         <local:MyComboBoxItem Content="Fabric" Tag="4" />
                         <local:MyComboBoxItem Content="Quilt" Tag="5" />
                     </local:MyComboBox>
-                    <local:MyComboBox x:Name="ComboSearchShaderLoader" Visibility="Collapsed" Grid.Row="2" Grid.Column="2" MaxDropDownHeight="320">
+                    <local:MyComboBox x:Name="ComboSearchShaderLoader" Visibility="Collapsed" Grid.Row="2" Grid.Column="3" MaxDropDownHeight="320">
                         <local:MyComboBoxItem Content="任意加载器" Tag="" IsSelected="True" />
                         <local:MyComboBoxItem Content="原版可用" Tag="/vanilla" ToolTip="作为资源包加载，可以直接在原版游戏里使用。" />
                         <local:MyComboBoxItem Content="Iris" Tag="/iris" />

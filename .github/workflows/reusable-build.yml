@@ -53,14 +53,14 @@ jobs:
             -p:Platform=${{ inputs.architecture }} \
             -p:DeleteExistingFiles=true \
             -p:PCL_WRITE_SECRET=1 \
-            -p:PCL_MS_CLIENT_ID="${{ secrets.CLIENT_ID }}" \
-            -p:PCL_CURSEFORGE_API_KEY="${{ secrets.CURSEFORGE_API_KEY }}" \
-            -p:PCL_TELEMETRY_KEY="${{ secrets.TELEMETRY_KEY }}" \
-            -p:PCL_NAID_CLIENT_ID="${{ secrets.NAID_CLIENT_ID }}" \
-            -p:PCL_NAID_CLIENT_SECRET="${{ secrets.NAID_CLIENT_SECRET }}" \
-            -p:PCL_LINK_SERVER_ROOT="${{ secrets.LINK_SERVER_ROOTS }}" \
-            -p:PCL_LOBBY_DEFAULT_SECRET="${{ secrets.LOBBY_DEFAULT_SECRET }}" \
-            -p:PCL_GITHUB_SHA="${{ github.sha }}" \
+            -p:PCL_MS_CLIENT_ID='${{ secrets.CLIENT_ID }}' \
+            -p:PCL_CURSEFORGE_API_KEY='${{ secrets.CURSEFORGE_API_KEY }}' \
+            -p:PCL_TELEMETRY_KEY='${{ secrets.TELEMETRY_KEY }}' \
+            -p:PCL_NAID_CLIENT_ID='${{ secrets.NAID_CLIENT_ID }}' \
+            -p:PCL_NAID_CLIENT_SECRET='${{ secrets.NAID_CLIENT_SECRET }}' \
+            -p:PCL_LINK_SERVER_ROOT='${{ secrets.LINK_SERVER_ROOTS }}' \
+            -p:PCL_LOBBY_DEFAULT_SECRET='${{ secrets.LOBBY_DEFAULT_SECRET }}' \
+            -p:PCL_GITHUB_SHA='${{ github.sha }}' \
             -o ./artifact \
             --self-contained false
 

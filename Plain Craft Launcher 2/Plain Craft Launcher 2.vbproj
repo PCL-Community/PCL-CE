@@ -68,7 +68,7 @@
     <PackageReference Include="IPNetwork2" Version="3.1.775" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Management" Version="9.0.8" />
+    <PackageReference Include="System.Management" Version="9.0.9" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
