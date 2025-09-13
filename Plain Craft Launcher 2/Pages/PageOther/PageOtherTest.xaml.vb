@@ -8,6 +8,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Utils.Secret
 
 Public Class PageOtherTest
     Public Sub New()
@@ -480,9 +481,8 @@ Public Class PageOtherTest
 
     Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
-        Dim secretCode As String = SecretGetRawCode()
 
-        Return (datePart & secretCode).GetHashCode()
+        Return (datePart & Identify.LauncherId.Value).GetHashCode()
     End Function
 
     Public Shared Function GetRating(luckValue As Integer) As String
