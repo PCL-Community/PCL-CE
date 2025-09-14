@@ -478,7 +478,7 @@ Public Class PageLinkLobby
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
 
-                           Dim result = LobbyController.Launch(True, TargetLobby, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                           Dim result = LobbyController.Launch(True, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                            If result = 1 Then
                                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Hint("创建大厅失败，请向开发者反馈", HintType.Critical)
@@ -531,7 +531,7 @@ Public Class PageLinkLobby
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
 
-                           Dim result = LobbyController.Launch(False, TargetLobby, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                           Dim result = LobbyController.Launch(False, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                            If result = 1 Then
                                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Hint("加入大厅失败，请向开发者反馈", HintType.Critical)
