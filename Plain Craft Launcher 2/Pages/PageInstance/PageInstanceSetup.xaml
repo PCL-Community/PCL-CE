@@ -209,8 +209,9 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="渲染器" Margin="0,0,25,0" />
-                    <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Tag="VersionAdvanceRenderer" ToolTip="修改此项可能会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！">
-                        <local:MyComboBoxItem Content="游戏默认" IsSelected="True" />
+                    <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Tag="VersionAdvanceRenderer">
+                        <local:MyComboBoxItem Content="跟随全局设置" IsSelected="True" />
+                        <local:MyComboBoxItem Content="游戏默认" />
                         <local:MyComboBoxItem Content="软渲染（llvmpipe）" />
                         <local:MyComboBoxItem Content="DirectX12（d3d12）" />
                         <local:MyComboBoxItem Content="Vulkan（zink）" />

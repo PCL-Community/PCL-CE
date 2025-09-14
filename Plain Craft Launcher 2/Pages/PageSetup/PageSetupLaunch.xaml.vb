@@ -50,6 +50,7 @@ Public Class PageSetupLaunch
             SliderRamCustom.Value = Setup.Get("LaunchRamCustom")
 
             '高级设置
+            ComboAdvanceRenderer.SelectedIndex = Setup.Get("LaunchAdvanceRenderer")
             TextAdvanceJvm.Text = Setup.Get("LaunchAdvanceJvm")
             TextAdvanceGame.Text = Setup.Get("LaunchAdvanceGame")
             TextAdvanceRun.Text = Setup.Get("LaunchAdvanceRun")
@@ -98,6 +99,7 @@ Public Class PageSetupLaunch
             Setup.Reset("LoginMsAuthType")
             Setup.Reset("LaunchArgumentJavaUser")
             Setup.Reset("LaunchArgumentJavaSelect")
+            Setup.Reset("LaunchAdvanceRenderer")
 
             Log("[Setup] 已初始化启动设置")
             Hint("已初始化启动设置！", HintType.Finish, False)
@@ -413,6 +415,16 @@ PreFin:
     Private Sub BtnAdvanceJvmReset_Click(sender As Object, e As EventArgs) Handles BtnAdvanceJvmReset.Click
         Setup.Reset("LaunchAdvanceJvm")
         Reload()
+    End Sub
+    Private Sub ComboAdvanceRenderer_SelectionChanged(sender As MyComboBox, e As Object) Handles ComboAdvanceRenderer.SelectionChanged
+        If AniControlEnabled <> 0 Then Return
+        If Not Setup.Get("HintRenderer") Then
+            If MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" & vbCrLf & "你确定要继续修改吗？", "警告", "我知道我在做什么", "取消", IsWarn:=True) <> 1 Then
+                Return
+            End If
+        End If
+        Setup.Set(sender.Tag, sender.SelectedIndex)
+        Setup.Set("HintRenderer", True)
     End Sub
 
 #End Region

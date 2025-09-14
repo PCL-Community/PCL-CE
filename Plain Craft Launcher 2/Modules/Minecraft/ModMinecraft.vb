@@ -2143,7 +2143,14 @@ OnLoaded:
         '修改渲染器
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
-        If Setup.Get("VersionAdvanceRenderer", Instance) <> 0 AndAlso Not File.Exists(MesaLoaderWindowsTargetFile) Then
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
+
+        If Renderer <> 0 AndAlso Not File.Exists(MesaLoaderWindowsTargetFile) Then
             Dim DownloadAddress As String = "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" & MesaLoaderWindowsVersion & "/mesa-loader-windows-" & MesaLoaderWindowsVersion & "-" & If(ModBase.Is32BitSystem, "x86", If(ModBase.IsArm64System, "arm64", "x64")) & ".jar"
             Result.Add(New NetFile({DownloadAddress}, MesaLoaderWindowsTargetFile))
         End If
