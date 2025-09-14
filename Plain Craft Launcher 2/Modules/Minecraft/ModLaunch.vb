@@ -610,7 +610,7 @@ SkipLogin:
         '初始请求
         McLaunchLog("开始正版验证 Step 1/6（原始登录）")
         Dim Random As New Random
-        Dim RedirectUri As String = $"http://localhost:{Random.Next(1024, 65535)}/"
+        Dim RedirectUri As String = $"http://localhost:{Core.Net.NetworkHelper.NewTcpPort}/"
         Dim State As String = Random.Next(10000, 99999)
         Dim HttpListener As New HttpListener
         HttpListener.Prefixes.Add(RedirectUri)
