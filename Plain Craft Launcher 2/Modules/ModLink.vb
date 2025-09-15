@@ -171,7 +171,7 @@ Public Module ModLink
 
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional lobbyInfo As LobbyInfoProvider.LobbyInfo = Nothing, Optional boardcastDesc As String = Nothing)
+    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional boardcastDesc As String = Nothing)
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Sub()
             Try
@@ -190,7 +190,7 @@ Public Module ModLink
                 End Sub))
                 If LaunchAfterDownload Then
                     Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Sub()
-                        LobbyController.Launch(isHost, lobbyInfo, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                        LobbyController.Launch(isHost, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                     End Sub))
                 End If
                 Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()

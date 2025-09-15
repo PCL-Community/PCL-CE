@@ -150,7 +150,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' 设置 Headers 的 UA、Referer。
     ''' </summary>
     Friend Sub SecretHeadersSign(Url As String, ByRef Client As HttpRequestMessage, Optional UseBrowserUserAgent As Boolean = False, Optional CustomUserAgent As String = "")
-        Client.Version = HttpVersion.Version30
+        Client.Version = HttpVersion.Version20
+        Client.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
         If Url.Contains("api.curseforge.com") Then Client.Headers.Add("x-api-key", CurseForgeAPIKey)
         Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomUserAgent),
                                      CustomUserAgent,

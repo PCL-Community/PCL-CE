@@ -460,7 +460,7 @@ Public Class FormMain
     ''' 是否可以向注册表储存尺寸改变信息。以此避免初始化时误储存。
     ''' </summary>
     Public IsSizeSaveable As Boolean = False
-    Private Sub FormMain_SizeChanged() Handles Me.SizeChanged, Me.Loaded
+    Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
             Setup.Set("WindowHeight", Height)
             Setup.Set("WindowWidth", Width)
