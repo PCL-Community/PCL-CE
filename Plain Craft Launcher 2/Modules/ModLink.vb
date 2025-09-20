@@ -193,11 +193,7 @@ Public Module ModLink
                         LobbyController.Launch(isHost, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                     End Sub))
                 End If
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
-                    FrmLinkLobby.BtnCreate.IsEnabled = True
-                    FrmLinkLobby.BtnSelectJoin.IsEnabled = True
-                    Hint("联机组件下载完成！", HintType.Finish)
-                End Sub)) With {.Show = False})
+                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() Hint("联机组件下载完成！", HintType.Finish)) With {.Show = False})
                 '启动
                 DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
                 DlEasyTierLoader.Start()
