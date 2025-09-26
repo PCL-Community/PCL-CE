@@ -183,6 +183,8 @@
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
@@ -192,22 +194,29 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,25,0">
-                        <TextBlock Text="JVM 参数头部" VerticalAlignment="Center" />
-                        <local:MyIconButton Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset" VerticalAlignment="Center" 
+                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="渲染器" Margin="0,0,25,0" />
+                    <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Tag="LaunchAdvanceRenderer">
+                        <local:MyComboBoxItem Content="游戏默认" IsSelected="True" />
+                        <local:MyComboBoxItem Content="软渲染（llvmpipe）" />
+                        <local:MyComboBoxItem Content="DirectX12（d3d12）" />
+                        <local:MyComboBoxItem Content="Vulkan（zink）" />
+                    </local:MyComboBox>
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,25,0">
+                        <TextBlock Grid.Row="2" Text="JVM 参数头部" VerticalAlignment="Center" />
+                        <local:MyIconButton Grid.Row="2" Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset" VerticalAlignment="Center" 
                                         ToolTip="还原" ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                         Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z" LogoScale="0.9" />
                     </StackPanel>
-                    <local:MyTextBox x:Name="TextAdvanceJvm" Grid.ColumnSpan="2" Tag="LaunchAdvanceJvm" Grid.Column="1" ToolTip="启动 Minecraft 时使用的额外 JVM 参数，除非有确定把握，否则请不要修改。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。" MaxLength="4000"
+                    <local:MyTextBox Grid.Row="2" x:Name="TextAdvanceJvm" Grid.ColumnSpan="2" Tag="LaunchAdvanceJvm" Grid.Column="1" ToolTip="启动 Minecraft 时使用的额外 JVM 参数，除非有确定把握，否则请不要修改。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。" MaxLength="4000"
                                  Height="100" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto" />
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏参数尾部" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="2" Grid.ColumnSpan="2" Tag="LaunchAdvanceGame" Grid.Column="1" ToolTip="文本框中的内容将会被直接拼合在启动参数的末尾。&#xa;例如，输入 --demo 则会以试玩模式启动游戏。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。" />
-                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动前执行命令" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="4" Grid.ColumnSpan="2" Tag="LaunchAdvanceRun" Grid.Column="1" HintText=""
+                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏参数尾部" Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="LaunchAdvanceGame" Grid.Column="1" ToolTip="文本框中的内容将会被直接拼合在启动参数的末尾。&#xa;例如，输入 --demo 则会以试玩模式启动游戏。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。" />
+                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动前执行命令" Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="6" Grid.ColumnSpan="2" Tag="LaunchAdvanceRun" Grid.Column="1" HintText=""
                                  ToolTip="在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#xa;&#xa;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#xa; · {path}：PCL 的 exe 文件所在的文件夹&#xa; · {minecraft}：.minecraft 文件夹&#xa; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#xa; · {verindie}：开启版本隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#xa; · {java}：游戏运行时的 Java 文件夹&#xa;&#xa;除此之外，也支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {uuid}：玩家的 UUID&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号&#xa;&#xa;例如：&#xa; · &quot;{verpath}test.exe&quot; ：运行实例文件夹下的 test.exe 程序&#xa; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; ：用 Java 运行实例文件夹下的 test.jar&#xa; · notepad &quot;{verindie}options.txt&quot; ：使用记事本打开该实例的设置文件&#xa;&#xa;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#xa;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。" />
-                    <local:MyCheckBox Grid.Row="5" Grid.Column="1" x:Name="CheckAdvanceRunWait" Tag="LaunchAdvanceRunWait" Visibility="Collapsed"
+                    <local:MyCheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckAdvanceRunWait" Tag="LaunchAdvanceRunWait" Visibility="Collapsed"
                                   Text="等待命令执行完成后再继续启动" Margin="0,8,0,7" />
-                    <StackPanel Margin="0,12,0,4" Grid.Row="6" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+                    <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" Text="禁用 Java Launch Wrapper" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"
                             ToolTipService.Placement="Right" ToolTip="PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#xa;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。" />
                         <local:MyCheckBox Height="28" Text="禁用 RetroWrapper" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"
@@ -217,7 +226,7 @@
                         <local:MyCheckBox Height="28" Text="使用 java.exe 而不是 javaw.exe" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"
                             ToolTipService.Placement="Right" ToolTip="如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#xa;&#xa;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。" />
                     </StackPanel>
-                    <local:MyHint Text="你还可以在实例独立设置中找到更多高级启动选项。" Margin="0,5,0,10" Theme="Blue" Grid.Row="7" Grid.ColumnSpan="2"
+                    <local:MyHint Text="你还可以在实例独立设置中找到更多高级启动选项。" Margin="0,5,0,10" Theme="Blue" Grid.Row="9" Grid.ColumnSpan="2"
                                   CanClose="True" RelativeSetup="HintMoreAdvancedSetup" />
                 </Grid>
             </local:MyCard>

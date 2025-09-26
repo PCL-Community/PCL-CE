@@ -12,7 +12,7 @@ Public Module ModJava
     ''' </summary>
     Public ReadOnly Property Javas As JavaManager
         Get
-            _javas = JavaSerivce.JavaManager
+            _javas = JavaService.JavaManager
             Return _javas
 
             'InitJava().GetAwaiter().GetResult()

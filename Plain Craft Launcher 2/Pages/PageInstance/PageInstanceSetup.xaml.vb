@@ -135,7 +135,7 @@ Public Class PageInstanceSetup
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value, instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged, ComboAdvanceRenderer.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboRamOptimize.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex, instance:=PageInstanceLeft.Instance)
     End Sub
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged
@@ -597,6 +597,17 @@ PreFin:
 
     Private Sub TextAdvanceRun_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextAdvanceRun.TextChanged
         CheckAdvanceRunWait.Visibility = If(TextAdvanceRun.Text = "", Visibility.Collapsed, Visibility.Visible)
+    End Sub
+
+    Private Sub ComboAdvanceRenderer_SelectionChanged(sender As MyComboBox, e As Object) Handles ComboAdvanceRenderer.SelectionChanged
+        If AniControlEnabled <> 0 Then Return
+        If Not Setup.Get("HintRenderer") Then
+            If MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" & vbCrLf & "你确定要继续修改吗？", "警告", "我知道我在做什么", "取消", IsWarn:=True) <> 1 Then
+                Return
+            End If
+        End If
+        Setup.Set(sender.Tag, sender.SelectedIndex, instance:=PageInstanceLeft.Instance)
+        Setup.Set("HintRenderer", True)
     End Sub
 
 #End Region

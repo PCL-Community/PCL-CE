@@ -264,7 +264,7 @@ Class PageSetupSystem
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
         Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
-        If savePath = "" Then Exit Sub
+        If String.IsNullOrEmpty(savePath) Then Exit Sub
         File.Copy(ConfigService.SharedConfigPath, savePath, True)
         Hint("配置导出成功！", HintType.Finish)
         OpenExplorer(savePath)

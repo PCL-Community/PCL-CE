@@ -487,7 +487,7 @@ Public Class PageOtherTest
 
     Public Shared Function GetRating(luckValue As Integer) As String
         If luckValue = 100 Then
-            Return "100！100！\n隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
+            Return "100！100！" & vbCrLf & "隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
         Else
             Return If(luckValue >= 95, "差一点就到100了呢...",
            If(luckValue >= 90, "好评如潮！",
