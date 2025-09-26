@@ -558,7 +558,7 @@ PreFin:
             Log("[Java] 修改实例 Java 选择设置：自动选择")
         Else
             '选择指定项
-            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, Java).JavaExePath, instance:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, JavaInfo).JavaExePath, instance:=PageInstanceLeft.Instance)
             Log("[Java] 修改实例 Java 选择设置：" & SelectedJava.ToString)
         End If
         RefreshRam(True)

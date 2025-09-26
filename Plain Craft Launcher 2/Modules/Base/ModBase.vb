@@ -11,6 +11,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
 Public Module ModBase

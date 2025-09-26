@@ -1,6 +1,5 @@
 ﻿Imports System.IO.Compression
 Imports System.Text.Json.Nodes
-Imports CacheCow.Common.Helpers
 Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -803,7 +802,7 @@ ExitDataLoad:
                 '确定实例收藏状态
                 IsStar = Config.Instance.Starred(Path)
                 '确定实例显示种类
-                DisplayType = Config.Instance.DisplayType(Path)
+                DisplayType = Config.Instance.CardType(Path)
                 '写入缓存
                 If Directory.Exists(Path) Then
                     Config.Instance.State(Path) = State
@@ -1342,7 +1341,7 @@ OnLoaded:
                         If Not InstanceCfg.StateConfig.IsDefault(Instance.Path) Then _
                             Instance.State = InstanceCfg.State(Instance.Path)
                         Instance.IsStar = InstanceCfg.Starred(Instance.Path)
-                        Instance.DisplayType = InstanceCfg.DisplayType(Instance.Path)
+                        Instance.DisplayType = InstanceCfg.CardType(Instance.Path)
                         If Instance.State <> McInstanceState.Error AndAlso
                            Not InstanceCfg.McVersionConfig.IsDefault(Instance.Path) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
                             Dim InstanceInfo As New McInstanceInfo With {

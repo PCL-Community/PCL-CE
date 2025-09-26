@@ -1201,7 +1201,7 @@ LoginFinish:
 
 #Region "Java 处理"
 
-    Public McLaunchJavaSelected As Java = Nothing
+    Public McLaunchJavaSelected As JavaInfo = Nothing
     Private Sub McLaunchJava(Task As LoaderTask(Of Integer, Integer))
         Dim MinVer As New Version(0, 0, 0, 0), MaxVer As New Version(999, 999, 999, 999)
 

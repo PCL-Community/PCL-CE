@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
 
 namespace PCL.Test;
 [TestClass]
