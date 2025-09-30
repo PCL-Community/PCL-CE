@@ -2171,7 +2171,7 @@ NextInstance:
             
             '获取Minecraft版本信息
             Dim mcReleaseTime As Date? = McInstanceCurrent.ReleaseTime
-            Dim isUnder11 As Boolean = mcReleaseTime > New DateTime(2000, 0, 0) AndAlso mcReleaseTime <= New Date(2011, 11, 18) '1.11 发布日期
+            Dim isUnder11 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
             
             '对于1.0及以下版本，没有语言选项，返回"none"
             If isUnder11 Then
@@ -2182,7 +2182,7 @@ NextInstance:
                 RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
                 
                 '应用版本特定的语言格式规则
-                If RequiredLang.StartsWith("zh_") AndAlso mcReleaseTime >= New Date(2012, 1, 12) AndAlso mcReleaseTime <= New Date(2016, 6, 8) Then
+                If RequiredLang.StartsWith("zh_") AndAlso mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
                     '1.1~1.10：最后两位字母必须大写（zh_CN）
                     RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
                 End If
