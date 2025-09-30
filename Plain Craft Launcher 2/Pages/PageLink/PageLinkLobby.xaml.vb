@@ -274,32 +274,56 @@ Public Class PageLinkLobby
         If IsDetectingMc Then Return
         IsDetectingMc = True
         ComboWorldList.Items.Clear()
-        ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
         ComboWorldList.SelectedIndex = 0
+        BtnRefresh.Text = "寻找中"
         BtnRefresh.IsEnabled = False
         BtnCreate.IsEnabled = False
         ComboWorldList.IsEnabled = False
         RunInNewThread(
             Sub()
+                recordedSourcePort.Clear()
+                Using ls As New BroadcastListener()
+                    AddHandler ls.OnReceive, AddressOf _onReceiveNewServer
+                    ls.Start()
+                    Thread.Sleep(3000)
+                    RemoveHandler ls.OnReceive, AddressOf _onReceiveNewServer
+                End Using
                 Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
+                IsDetectingMc = False
                 RunInUi(
                     Sub()
-                        ComboWorldList.Items.Clear()
-                        If Worlds.Count = 0 Then
-                            ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "无可用实例"})
-                        Else
-                            For Each World In Worlds
-                                Dim content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1}{If(Not String.IsNullOrWhiteSpace(World.Item3), $" / 由 {World.Item3} 启动", Nothing)})"
-                                ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = World, .Content = content})
-                            Next
-                            ComboWorldList.IsEnabled = True
-                            BtnCreate.IsEnabled = True
-                        End If
-                        IsDetectingMc = False
-                        ComboWorldList.SelectedIndex = 0
+                        ComboWorldList.IsEnabled = True
+                        BtnRefresh.Text = "刷新"
                         BtnRefresh.IsEnabled = True
                     End Sub)
             End Sub, "Minecraft Port Detect")
+    End Sub
+
+    Private ReadOnly Property recordedSourcePort As New ConcurrentSet(Of Integer)
+    Private Sub _onReceiveNewServer(info As BroadcastRecord, sender As IPEndPoint)
+        If recordedSourcePort.TryAdd(info.Address.Port) Then
+            RunInNewThread(Sub()
+                               Using ping As New McPing(New IPEndPoint(IPAddress.Loopback, info.Address.Port))
+                                   Using cts As New CancellationTokenSource()
+                                       cts.CancelAfter(5000)
+                                       Dim pingRes = ping.PingAsync(cts.Token).GetAwaiter().GetResult()
+                                       RunInUi(Sub()
+                                                   ComboWorldList.Items.Add(New MyComboBoxItem() With {
+                                                        .Tag = info.Address.Port,
+                                                        .Content = $"{pingRes.Description} / {pingRes.Version.Name} ({info.Address.Port})"
+                                                   })
+                                                   If ComboWorldList.Items.Count = 0 Then
+                                                       BtnCreate.IsEnabled = False
+                                                       ComboWorldList.IsEnabled = False
+                                                   Else
+                                                       BtnCreate.IsEnabled = True
+                                                       ComboWorldList.IsEnabled = True
+                                                   End If
+                                               End Sub)
+                                   End Using
+                               End Using
+                           End Sub)
+        End If
     End Sub
     'EasyTier Cli 轮询
     Private Sub StartETWatcher()
@@ -450,7 +474,7 @@ Public Class PageLinkLobby
             BtnCreate.IsEnabled = True
             Exit Sub
         End If
-        Dim port = CType(ComboWorldList.SelectedItem.Tag, Tuple(Of Integer, McPingResult, String)).Item1.ToString()
+        Dim port = CType(ComboWorldList.SelectedItem.Tag, Integer)
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()

@@ -1201,7 +1201,7 @@ LoginFinish:
 
 #Region "Java 处理"
 
-    Public McLaunchJavaSelected As Java = Nothing
+    Public McLaunchJavaSelected As JavaInfo = Nothing
     Private Sub McLaunchJava(Task As LoaderTask(Of Integer, Integer))
         Dim MinVer As New Version(0, 0, 0, 0), MaxVer As New Version(999, 999, 999, 999)
 
@@ -1626,7 +1626,12 @@ LoginFinish:
         End If
 
         '渲染器
-        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
@@ -1635,11 +1640,16 @@ LoginFinish:
         End If
 
         '设置代理
-        If Setup.Get("VersionAdvanceUseProxyV2", instance:=McInstanceCurrent) IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("SystemHttpProxy")) Then
-            Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
-            DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
-            DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
+        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.System.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress) Then
+            Try
+                Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
+                DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
+                DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyPort={ProxyAddress.Port}")
+            Catch ex As Exception
+                Log(ex, "添加代理信息到游戏失败，放弃加入", LogLevel.Hint)
+            End Try
         End If
+        
         '添加 Java Wrapper 作为主 Jar
         If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceCurrent) Then
             If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
@@ -1705,7 +1715,12 @@ NextInstance:
         End If
 
         '渲染器
-        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 

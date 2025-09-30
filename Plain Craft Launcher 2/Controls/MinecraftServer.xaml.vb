@@ -31,6 +31,7 @@ Class MinecraftServer
 
     Public Async Function UpdateServerInfoAsync(address As String) As Task
         If address Is Nothing Then Return
+        address = address.Replace("：", ":")
         ' 预先重置UI状态
         LabServerDesc.Foreground = Brushes.White
         LabServerDesc.Text = "查询中..."

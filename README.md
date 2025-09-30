@@ -1,8 +1,6 @@
 <div align="center">
 
-<a href="https://github.com/PCL-Community/PCL2-CE">
-    <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
-</a>
+<img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
 
 # PCL Community Edition
 
@@ -12,10 +10,8 @@
 [![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL2-CE?style=flat&label=Pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/pulls)
 [![哔哩哔哩](https://img.shields.io/badge/动态-BiliBili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE&web=true)
-
 [社区版下载](https://github.com/PCL-Community/PCL2-CE/releases) |
-[官方存储库](https://github.com/Meloong-Git/PCL) |
+[上游存储库](https://github.com/Meloong-Git/PCL) |
 [帮助文档库](https://github.com/PCL-Community/PCL2CEHelp)
 
 [提交问题](https://github.com/PCL-Community/PCL2-CE/issues/new/choose) |
@@ -23,18 +19,21 @@
 
 </div>
 
-基于 PCL 开源代码二次开发的社区版本，包括了主线暂未制作的功能和改进！<br />
-代码会在主线发布更新时与主线同步一次，但来自社区的功能会保持自己的更新节奏。<br />
-同时需注意，社区版的版本号与主线并非严格对应关系。<br />
+PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线暂未制作的功能和改进！
+
+代码会在主线发布更新时与主线同步一次，但来自社区的功能会保持自己的更新节奏。
+
+同时需注意，社区版的版本号与主线并非严格对应关系。
+
 欢迎大家来用用看！
 
-开发群：599620549
+**开发群：** [599620549](https://qm.qq.com/q/PNQA4Md8wc)
 
-用户群 1 群：1028074835
+**用户 1 群：** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ)
 
 ### ✨ 隐藏提示
 
-在全局配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False` (文本型)
+在全局配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False`。
 
 ## 💻 支持平台
 
@@ -65,8 +64,11 @@ PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。
 - `Plain Craft Launcher 2/` 使用 [自定义许可证](./LICENCE)
 
 ## 🌟 统计数据
+![Alt](https://repobeats.axiom.co/api/embed/7780da7a2612e74751bdf872f507efe2ea132b3a.svg "Repobeats analytics image")
+
 [![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL2-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL2-CE&Date)
 
+**此页浏览量**（总计 / 今日）：[![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE&web=true)
 ## ❤️ 贡献者
 
 [![](https://contrib.rocks/image?repo=PCL-Community/PCL2-CE)](https://github.com/PCL-Community/PCL2-CE/graphs/contributors)
