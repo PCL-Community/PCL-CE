@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.App.Configuration
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 
 Class PageSetupSystem
 
@@ -263,15 +264,15 @@ Class PageSetupSystem
 #Region "导出 / 导入设置"
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
-        Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
-        If String.IsNullOrEmpty(savePath) Then Exit Sub
+        Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath)
+        If savePath.IsNullOrWhiteSpace() Then Exit Sub
         File.Copy(ConfigService.SharedConfigPath, savePath, True)
         Hint("配置导出成功！", HintType.Finish)
         OpenExplorer(savePath)
     End Sub
     Private Sub BtnSystemSettingImp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingImp.Click
         Dim sourcePath As String = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件")
-        If sourcePath = "" Then Exit Sub
+        If sourcePath.IsNullOrWhiteSpace() Then Exit Sub
         File.Copy(sourcePath, ConfigService.SharedConfigPath, True)
         MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1:="重启", ForceWait:=True)
         Process.Start(New ProcessStartInfo(ExePathWithName))

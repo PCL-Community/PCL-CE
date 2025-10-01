@@ -1,11 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft;
-using PCL.Core.Utils;
 
 namespace PCL.Test
 {
@@ -29,7 +26,7 @@ namespace PCL.Test
             var secondScanedCount = jas.JavaList.Count;
             Assert.IsTrue(firstScanedCount == secondScanedCount);
             // Java 搜索是否能够正确选择
-            Assert.IsTrue(jas.JavaList.Count == 0 || (jas.JavaList.Count > 0 && (await jas.SelectSuitableJavaAsync(new Version(1, 8, 0), new Version(30, 0, 0))).Count > 0));
+            Assert.IsTrue(jas.JavaList.Count == 0 || (jas.JavaList.Count > 0 && (await jas.SelectSuitableJava(new Version(1, 8, 0), new Version(30, 0, 0))).Count > 0));
             // Java 是否有重复
             Assert.IsFalse(jas.JavaList.GroupBy(x => x.JavawExePath).Any(x => x.Count() > 1));
         }

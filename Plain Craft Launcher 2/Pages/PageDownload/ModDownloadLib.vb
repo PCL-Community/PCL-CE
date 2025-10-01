@@ -384,7 +384,7 @@ pause"
     ''' </summary>
     ''' <param name="VersionJson">在 version_manifest.json 中的对应项。</param>
     Public Sub McUpdateLogShow(VersionJson As JToken)
-        Dim wikiName = WikiMapper.GetWikiUrlSuffix(VersionJson("id").ToString())
+        Dim wikiName = McFormatter.GetWikiUrlSuffix(VersionJson("id").ToString())
         OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" & WikiName)
     End Sub
 
@@ -455,7 +455,7 @@ pause"
     End Sub
     Private Sub McDownloadOptiFineInstall(BaseMcFolderHome As String, Target As String, Task As LoaderTask(Of List(Of NetFile), Boolean), UseJavaWrapper As Boolean)
         '选择 Java
-        Dim Java As Java
+        Dim Java As JavaInfo
         SyncLock JavaLock
             Java = JavaSelect("已取消安装。", New Version(1, 8, 0, 0))
             If Java Is Nothing Then
@@ -1138,7 +1138,7 @@ Retry:
 
     Private Sub ForgelikeInjector(Target As String, Task As LoaderTask(Of Boolean, Boolean), McFolder As String, UseJavaWrapper As Boolean, ForgeType As String)
         '选择 Java
-        Dim Java As Java
+        Dim Java As JavaInfo
         SyncLock JavaLock
             Java = JavaSelect("已取消安装。", New Version(1, 8, 0, 60))
             If Java Is Nothing Then

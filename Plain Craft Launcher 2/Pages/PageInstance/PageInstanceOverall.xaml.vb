@@ -31,7 +31,7 @@ Public Class PageInstanceOverall
 
         Dim instance = PageInstanceLeft.Instance
         '刷新设置项目
-        ComboDisplayType.SelectedIndex = Config.Instance.DisplayType(instance.Path)
+        ComboDisplayType.SelectedIndex = Config.Instance.CardType(instance.Path)
         BtnDisplayStar.Text = If(instance.IsStar, "从收藏夹中移除", "加入收藏夹")
         BtnFolderMods.Visibility = If(instance.Modable, Visibility.Visible, Visibility.Collapsed)
         '刷新实例显示
@@ -125,8 +125,8 @@ Public Class PageInstanceOverall
             '改为不隐藏
             Try
                 '若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                Config.Instance.DisplayType(PageInstanceLeft.Instance.Path) = ComboDisplayType.SelectedIndex
-                PageInstanceLeft.Instance.DisplayType = Config.Instance.DisplayType(PageInstanceLeft.Instance.Path)
+                Config.Instance.CardType(PageInstanceLeft.Instance.Path) = ComboDisplayType.SelectedIndex
+                PageInstanceLeft.Instance.DisplayType = Config.Instance.CardType(PageInstanceLeft.Instance.Path)
                 FrmInstanceLeft.RefreshModDisabled()
 
                 WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
@@ -145,7 +145,7 @@ Public Class PageInstanceOverall
                     End If
                     Setup.Set("HintHide", True)
                 End If
-                Config.Instance.DisplayType(PageInstanceLeft.Instance.Path) = CInt(McInstanceCardType.Hidden)
+                Config.Instance.CardType(PageInstanceLeft.Instance.Path) = CInt(McInstanceCardType.Hidden)
                 WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
                 LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception

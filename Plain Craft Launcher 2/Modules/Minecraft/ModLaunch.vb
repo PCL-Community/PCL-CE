@@ -1201,7 +1201,7 @@ LoginFinish:
 
 #Region "Java 处理"
 
-    Public McLaunchJavaSelected As Java = Nothing
+    Public McLaunchJavaSelected As JavaInfo = Nothing
     Private Sub McLaunchJava(Task As LoaderTask(Of Integer, Integer))
         Dim MinVer As New Version(0, 0, 0, 0), MaxVer As New Version(999, 999, 999, 999)
 
@@ -1626,7 +1626,12 @@ LoginFinish:
         End If
 
         '渲染器
-        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
@@ -1710,7 +1715,12 @@ NextInstance:
         End If
 
         '渲染器
-        Dim Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent)
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 

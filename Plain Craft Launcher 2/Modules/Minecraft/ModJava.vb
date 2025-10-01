@@ -1,7 +1,4 @@
-﻿
-Imports System.Threading.Tasks
-Imports PCL.Core.App
-Imports PCL.Core.Minecraft
+﻿Imports PCL.Core.Minecraft
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
@@ -92,7 +89,7 @@ Public Module ModJava
     Public Function JavaSelect(CancelException As String,
                                Optional MinVersion As Version = Nothing,
                                Optional MaxVersion As Version = Nothing,
-                               Optional RelatedVersion As McInstance = Nothing) As Java
+                               Optional RelatedVersion As McInstance = Nothing) As JavaInfo
         Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedVersion IsNot Nothing, RelatedVersion.Name, "未指定")}")
         Dim IsVersionSuit = Function(ver As Version)
                                 Return ver >= MinVersion AndAlso ver <= MaxVersion
@@ -109,7 +106,7 @@ Public Module ModJava
         End If
         '考虑用户全局指定的 Java
         Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
-        Dim userGlobalJavaSet = Java.Parse(userGlobalJava)
+        Dim userGlobalJavaSet = JavaInfo.Parse(userGlobalJava)
         If userGlobalJavaSet IsNot Nothing Then
             Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet}")
             Return userGlobalJavaSet
@@ -118,11 +115,11 @@ Public Module ModJava
         Javas.CheckJavaAvailability()
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).Result.FirstOrDefault()
+        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
         If ret Is Nothing Then
             Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
             Javas.ScanJavaAsync().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).Result.FirstOrDefault()
+            ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
         End If
         Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret
@@ -133,13 +130,13 @@ Public Module ModJava
     ''' </summary>
     ''' <param name="Mc">实例</param>
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
-    Public Function GetVersionUserSetJava(Mc As McInstance) As Java
+    Public Function GetVersionUserSetJava(Mc As McInstance) As JavaInfo
         If Mc Is Nothing Then Return Nothing
         Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=Mc)
         If UserSetupVersion = "使用全局设置" Then
             Return Nothing
         Else
-            Return Java.Parse(UserSetupVersion)
+            Return JavaInfo.Parse(UserSetupVersion)
         End If
     End Function
 
@@ -159,7 +156,7 @@ Public Module ModJava
                 Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
-                        Dim k = Java.Parse(UserSetupVersion)
+                        Dim k = JavaInfo.Parse(UserSetupVersion)
                         Return k IsNot Nothing AndAlso k.Is64Bit
                     Else
                         Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
@@ -173,7 +170,7 @@ Public Module ModJava
             If String.IsNullOrEmpty(UserSetup) Then
                 Return Javas.JavaList.Any(Function(x) x.Is64Bit)
             End If
-            Dim j = Java.Parse(UserSetup)
+            Dim j = JavaInfo.Parse(UserSetup)
             Return j IsNot Nothing AndAlso j.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)

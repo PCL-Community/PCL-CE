@@ -6,7 +6,7 @@ Public Class PageSetupJava
 
     Private IsLoad As Boolean = False
 
-    Private JavaPageLoader As New LoaderTask(Of Integer, List(Of Java))("JavaPageLoader", AddressOf Load_GetJavaList)
+    Private JavaPageLoader As New LoaderTask(Of Integer, List(Of JavaInfo))("JavaPageLoader", AddressOf Load_GetJavaList)
     Private Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, JavaPageLoader, AddressOf OnLoadFinished, AddressOf Load_Input)
     End Sub
@@ -14,13 +14,13 @@ Public Class PageSetupJava
     Private Function Load_Input()
         Return Javas.JavaList.Count
     End Function
-    Private Sub Load_GetJavaList(loader As LoaderTask(Of Integer, List(Of Java)))
+    Private Sub Load_GetJavaList(loader As LoaderTask(Of Integer, List(Of JavaInfo)))
         Javas.ScanJavaAsync().GetAwaiter().GetResult()
         loader.Output = Javas.JavaList
     End Sub
 
     Private Sub OnLoadFinished()
-        Dim ItemBuilder = Function(J As Java) As MyListItem
+        Dim ItemBuilder = Function(J As JavaInfo) As MyListItem
                               Dim Item As New MyListItem
                               Dim VersionTypeDesc = If(J.IsJre, "JRE", "JDK")
                               Dim VersionNameDesc = J.JavaMajorVersion.ToString()

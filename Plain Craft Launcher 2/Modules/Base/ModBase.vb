@@ -2,7 +2,6 @@ Imports System.Globalization
 Imports System.IO.Compression
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Xaml
 Imports System.Threading.Tasks
@@ -12,6 +11,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
 Public Module ModBase
