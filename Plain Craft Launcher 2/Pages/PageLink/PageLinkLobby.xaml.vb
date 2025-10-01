@@ -188,7 +188,7 @@ Public Class PageLinkLobby
                     For Each notice As JObject In notices
                         Dim announceContent = notice("content").ToString()
                         If Not String.IsNullOrWhiteSpace(announceContent) Then
-                            If VersionCode < notice("minVer") OrElse VersionCode > notice("maxVer") Then Continue For
+                            If VersionCode < Val(notice("minVer")) OrElse VersionCode > Val(notice("maxVer")) Then Continue For
                             Dim type As LinkAnnounceType
                             If notice("type") = "important" OrElse notice("type") = "red" Then
                                 type = LinkAnnounceType.Important
