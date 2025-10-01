@@ -326,6 +326,7 @@
                             <local:MyComboBoxItem Content="OpenMCIM 仪表盘（作者：SALTWOOD）" Visibility="Collapsed" />
                             <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
                             <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
+                            <local:MyComboBoxItem Content="PCL CE 公告栏" />
                         </local:MyComboBox>
                     </Grid>
                     <Grid Grid.Row="14">

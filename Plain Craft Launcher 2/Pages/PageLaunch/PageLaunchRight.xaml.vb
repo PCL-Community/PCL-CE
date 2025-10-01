@@ -1,4 +1,6 @@
-﻿Public Class PageLaunchRight
+﻿Imports System.Security.Cryptography
+
+Public Class PageLaunchRight
     Implements IRefreshable
 
     Private Sub Init() Handles Me.Loaded
@@ -124,6 +126,10 @@ Download:
                     Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
                         Url = "https://ddf.pcl-community.org/Custom.xaml"
+                        GoTo Download
+                    Case 13
+                        Log("[Page] 主页预设：PCL CE 公告栏")
+                        Url = "https://s3.pysio.online/pcl2-ce/apiv2/Custom.xaml"
                         GoTo Download
                 End Select
         End Select
