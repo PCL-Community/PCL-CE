@@ -1935,7 +1935,7 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Instance.Name)
-        Dim result = McLibListGetWithJson(Instance.JsonObject)
+        Dim result = McLibListGetWithJson(Instance.JsonObject, TargetInstance:=Instance)
 
         '需要添加原版 Jar
         If IncludeInstanceJar Then
