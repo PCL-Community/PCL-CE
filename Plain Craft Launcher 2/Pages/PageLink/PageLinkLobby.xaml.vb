@@ -86,7 +86,7 @@ Public Class PageLinkLobby
     })
     Private Shared Sub InitFileCheck(Task As LoaderTask(Of Integer, Integer))
         If Not File.Exists(ETInfoProvider.ETPath & "\easytier-core.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\Packet.dll") OrElse
-            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\wintun.dll") Then
+            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") Then
             Log("[Link] EasyTier 不存在，开始下载")
             DownloadEasyTier()
         Else
