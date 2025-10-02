@@ -213,7 +213,7 @@ Public Module ModDownloadLib
                 NewItem.Info = Entry("lore").ToString
             End If
         End If
-        If Entry("url").ToString.Contains("unlisted-versions-of-minecraft") Then NewItem.Info = "[UVMC 特供下载] " & NewItem.Info
+        If Entry("url").ToString.Contains("unlisted-versions-of-minecraft") Then NewItem.Tags = "UVMC特供下载"
         AddHandler NewItem.Click, OnClick
         '建立菜单
         If IsSaveOnly Then
