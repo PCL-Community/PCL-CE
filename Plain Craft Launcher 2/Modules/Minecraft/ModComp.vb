@@ -154,19 +154,14 @@ Public Module ModComp
         End Get
     End Property
 
-    Private Class CompWikiStruct
-
-    End Class
-
     Private Function GetCompWikiEntryBySlug(slug As String) As CompDatabaseEntry
-        Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
+        Dim dataCollection = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
         Dim paSlug = New BsonValue(slug)
         Dim queryCmd = Query.Or(
                 Query.EQ("CurseForgeSlug", paSlug),
                 Query.EQ("ModrinthSlug", paSlug)
                 )
-        Dim ret = datas.Find(queryCmd)
-        Return If(ret.Any(), ret.First(), Nothing)
+        Return dataCollection.Find(queryCmd).FirstOrDefault()
     End Function
 
     Private Class CompDatabaseEntry

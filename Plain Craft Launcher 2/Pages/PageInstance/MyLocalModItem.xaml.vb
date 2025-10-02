@@ -350,8 +350,7 @@ Public Class MyLocalCompItem
         Return $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - Date.Now, False)}）{vbCrLf}最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - Date.Now, False)}）"
     End Function
     Public Sub Refresh() Handles Me.Loaded
-        RunInUi(
-        Sub()
+        Dispatcher.BeginInvoke(Async Function() As Task
             '更新
             If Entry.CanUpdate Then
                 BtnUpdate.Visibility = Visibility.Visible
@@ -375,6 +374,7 @@ Public Class MyLocalCompItem
                 End Select
             End If
             Dim NewDescription As String
+            Dim compTemp = Entry.Comp
             If Entry.IsFolder Then
                 '文件夹项的特殊显示
                 Title = Entry.Name
@@ -388,7 +388,7 @@ Public Class MyLocalCompItem
                 If Entry.Comp Is Nothing Then
                     NewDescription = Entry.Name
                 Else
-                    Dim Titles = Entry.Comp.GetControlTitle(False)
+                    Dim Titles = Await Task.Run(Function() compTemp.GetControlTitle(False))
                     NewDescription = Titles.Key & Titles.Value
                 End If
                 NewDescription = NewDescription.Replace("  |  ", " / ")
@@ -400,7 +400,7 @@ Public Class MyLocalCompItem
                     Title = Entry.Name
                     SubTitle = If(Entry.Version Is Nothing, "", "  |  " & Entry.Version)
                 Else
-                    Dim Titles = Entry.Comp.GetControlTitle(False)
+                    Dim Titles = Await Task.Run(Function() compTemp.GetControlTitle(False))
                     Title = Titles.Key
                     SubTitle = Titles.Value & If(Entry.Version Is Nothing, "", "  |  " & Entry.Version)
                 End If
@@ -452,7 +452,7 @@ Public Class MyLocalCompItem
             ElseIf Entry.Comp IsNot Nothing Then
                 Tags = Entry.Comp.Tags
             End If
-        End Sub)
+        End Function)
     End Sub
 
     Public Sub RefreshColor(sender As Object, e As EventArgs) Handles Me.MouseEnter, Me.MouseLeave, Me.MouseLeftButtonDown, Me.MouseLeftButtonUp, Me.Changed
