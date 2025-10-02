@@ -4,7 +4,7 @@ Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link
 Imports PCL.Core.App
 
-Class PageSetupLink
+Class PageLinkSetup
 
     Private Shadows IsLoaded As Boolean = False
     Private IsFirstLoad As Boolean = True

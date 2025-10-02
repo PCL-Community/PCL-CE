@@ -36,7 +36,7 @@
                 If FrmLinkLobby Is Nothing Then FrmLinkLobby = New PageLinkLobby
                 Return FrmLinkLobby
             Case FormMain.PageSubType.LinkSetup
-                If FrmSetupLink Is Nothing Then FrmSetupLink = New PageSetupLink
+                If FrmSetupLink Is Nothing Then FrmSetupLink = New PageLinkSetup
                 Return FrmSetupLink
             Case FormMain.PageSubType.LinkHelp
                 If FrmLinkHelp Is Nothing Then FrmLinkHelp = New PageLinkQA
@@ -94,7 +94,7 @@
 
     Public Sub Reset(sender As Object, e As EventArgs)
         If MyMsgBox("是否要初始化联机页的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
-            If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageSetupLink
+            If IsNothing(FrmSetupLink) Then FrmSetupLink = New PageLinkSetup
             FrmSetupLink.Reset()
             ItemSetup.Checked = True
         End If

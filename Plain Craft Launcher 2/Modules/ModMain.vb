@@ -460,6 +460,7 @@ EndHint:
     '联机页面声明
     Public FrmLinkLeft As PageLinkLeft
     Public FrmLinkLobby As PageLinkLobby
+    Public FrmSetupLink As PageLinkSetup
     Public FrmLinkHelp As PageLinkQA
     Public FrmLinkFeedback As PageLinkFeedback
 
@@ -489,7 +490,6 @@ EndHint:
     Public FrmSetupLaunch As PageSetupLaunch
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
-    Public FrmSetupLink As PageSetupLink
     Public FrmSetupJava As PageSetupJava
     Public FrmHomePageMarket As PageHomePageMarket
 
