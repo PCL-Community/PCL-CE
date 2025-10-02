@@ -202,13 +202,13 @@ Public Module ModDownloadLib
         Dim NewItem As New MyListItem With {.Logo = Logo, .SnapsToDevicePixels = True, .Title = FormattedVersion, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry}
         If Entry("lore") Is Nothing Then
             If FormattedVersion <> Entry("id") Then
-                NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm") + "   |   " + Entry("id").ToString()
+                NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm") + " | " + Entry("id").ToString()
             Else
                 NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm")
             End If
         Else
             If FormattedVersion <> Entry("id") Then
-                NewItem.Info = Entry("lore").ToString + "   |   " + Entry("id").ToString()
+                NewItem.Info = Entry("lore").ToString + " | " + Entry("id").ToString()
             Else
                 NewItem.Info = Entry("lore").ToString
             End If
