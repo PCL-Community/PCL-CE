@@ -2100,9 +2100,21 @@ Retry:
             .Logo = PathImage & "Blocks/Fabric.png"
         }
         AddHandler NewItem.Click, OnClick
+        NewItem.ContentHandler = AddressOf FabricContMenuBuild
         '结束
         Return NewItem
     End Function
+    Private Sub FabricContMenuBuild(sender As Object, e As EventArgs)
+        Dim btnInfo As New MyIconButton With {.LogoScale = 1.05, .Logo = Logo.IconButtonInfo, .ToolTip = "更新日志"}
+        ToolTipService.SetPlacement(btnInfo, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnInfo, 30)
+        ToolTipService.SetHorizontalOffset(btnInfo, 2)
+        AddHandler btnInfo.Click, AddressOf FabricLog_Click
+        sender.Buttons = {btnInfo}
+    End Sub
+    Private Sub FabricLog_Click(sender As Object, e As RoutedEventArgs)
+        OpenWebsite("https://fabricmc.net/blog")
+    End Sub
     Public Function FabricApiDownloadListItem(Entry As CompFile, OnClick As MyListItem.ClickEventHandler) As MyListItem
         '建立控件
         Dim NewItem As New MyListItem With {
@@ -2243,9 +2255,21 @@ Retry:
             .Logo = PathImage & "Blocks/Quilt.png"
         }
         AddHandler NewItem.Click, OnClick
+        NewItem.ContentHandler = AddressOf QuiltContMenuBuild
         '结束
         Return NewItem
     End Function
+    Private Sub QuiltContMenuBuild(sender As Object, e As EventArgs)
+        Dim btnInfo As New MyIconButton With {.LogoScale = 1.05, .Logo = Logo.IconButtonInfo, .ToolTip = "更新日志"}
+        ToolTipService.SetPlacement(btnInfo, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnInfo, 30)
+        ToolTipService.SetHorizontalOffset(btnInfo, 2)
+        AddHandler btnInfo.Click, AddressOf QuiltLog_Click
+        sender.Buttons = {btnInfo}
+    End Sub
+    Private Sub QuiltLog_Click(sender As Object, e As RoutedEventArgs)
+        OpenWebsite("https://quiltmc.org/en/blog/1/")
+    End Sub
     Public Function QSLDownloadListItem(Entry As CompFile, OnClick As MyListItem.ClickEventHandler) As MyListItem
         '建立控件
         Dim NewItem As New MyListItem With {
@@ -2424,9 +2448,41 @@ Retry:
             .Logo = PathImage & "Blocks/LabyMod.png"
         }
         AddHandler NewItem.Click, OnClick
+        NewItem.ContentHandler = AddressOf LabyModContMenuBuild
         '结束
         Return NewItem
     End Function
+    Private Sub LabyModContMenuBuild(sender As Object, e As EventArgs)
+        Dim btnSave As New MyIconButton With {.Logo = Logo.IconButtonSave, .ToolTip = "另存为"}
+        ToolTipService.SetPlacement(btnSave, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnSave, 30)
+        ToolTipService.SetHorizontalOffset(btnSave, 2)
+        AddHandler btnSave.Click, AddressOf LabyModSave_Click
+        Dim btnInfo As New MyIconButton With {.LogoScale = 1.05, .Logo = Logo.IconButtonInfo, .ToolTip = "更新日志"}
+        ToolTipService.SetPlacement(btnInfo, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnInfo, 30)
+        ToolTipService.SetHorizontalOffset(btnInfo, 2)
+        AddHandler btnInfo.Click, AddressOf LabyModLog_Click
+        sender.Buttons = {btnSave, btnInfo}
+    End Sub
+    Private Sub LabyModLog_Click(sender As Object, e As RoutedEventArgs)
+        OpenWebsite("https://www.labymod.net/zh_Hans/download")
+    End Sub
+    Private Sub LabyModSave_Click(sender As Object, e As RoutedEventArgs)
+        Dim version As JObject
+        If sender.Tag IsNot Nothing Then
+            version = sender.Tag
+        ElseIf sender.Parent.Tag IsNot Nothing Then
+            version = sender.Parent.Tag
+        Else
+            version = sender.Parent.Parent.Tag
+        End If
+        If version("channel") = "snapshot" Then
+            McDownloadLabyModSnapshotLoaderSave()
+        Else
+            McDownloadLabyModProductionLoaderSave()
+        End If
+    End Sub
 #End Region
 
 #Region "合并安装"
