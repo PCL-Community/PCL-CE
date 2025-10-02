@@ -2165,11 +2165,27 @@ NextInstance:
             '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
             '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
             Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
-            Dim RequiredLang As String = If(CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves"), '#3844，整合包可能已经自带了 options.txt
-                If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us"), CurrentLang.ToLower)
-            If McInstanceCurrent.Version.McCodeMain < 12 Then '注意老版本（包含 MC 1.1）的 McCodeMain 可能为 -1
-                '将最后两位改为大写，前面的部分保留
-                RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
+            Dim RequiredLang As String '需要的语言
+            Dim hasExistingSaves As Boolean = Directory.Exists(McInstanceCurrent.PathIndie & "saves")
+            Dim shouldUseDefault As Boolean = CurrentLang = "none" OrElse Not hasExistingSaves
+            
+            '获取Minecraft版本信息
+            Dim mcReleaseTime As Date? = McInstanceCurrent.ReleaseTime
+            Dim isUnder11 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
+            
+            '对于1.0及以下版本，没有语言选项，返回"none"
+            If isUnder11 Then
+                RequiredLang = "none"
+            Else
+                '根据配置确定默认语言
+                Dim defaultLang As String = If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us")
+                RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
+                
+                '应用版本特定的语言格式规则
+                If RequiredLang.StartsWith("zh_") AndAlso mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
+                    '1.1~1.10：最后两位字母必须大写（zh_CN）
+                    RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
+                End If
             End If
             If CurrentLang = RequiredLang Then
                 McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
@@ -2178,11 +2194,11 @@ NextInstance:
                 WriteIni(SetupFileAddress, "lang", RequiredLang)
                 McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
             End If
-            ''如果是初次设置，一并修改 forceUnicodeFont
-            'If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves")) Then
-            '    WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
-            '    McLaunchLog("已开启 forceUnicodeFont")
-            'End If
+            '如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
+            If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceCurrent.PathIndie & "saves")) Then
+                WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
+                McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示")
+            End If
             '窗口
             Select Case Setup.Get("LaunchArgumentWindowType")
                 Case 0 '全屏

@@ -72,12 +72,13 @@ Class MinecraftServer
         ' 更新描述
         MinecraftFormatter.SetColorfulTextLab(
             $"Minecraft 服务器{vbCrLf}{ret.Description}",
-            LabServerDesc
+            LabServerDesc,
+            ThemeHelper.IsDarkMode()
         )
 
         ' 更新玩家信息
         Dim playerText = $"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms"
-        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer)
+        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, ThemeHelper.IsDarkMode())
 
         ' 玩家列表提示
         If ret.Players.Samples?.Any() Then

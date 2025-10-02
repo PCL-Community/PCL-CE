@@ -198,13 +198,22 @@ Public Module ModDownloadLib
                 Logo = PathImage & "Blocks/CobbleStone.png"
         End Select
         '建立控件
-        Dim NewItem As New MyListItem With {.Logo = Logo, .SnapsToDevicePixels = True, .Title = Entry("id").ToString, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry}
+        Dim FormattedVersion As String = McFormatter.FormatVersion(Entry("id").ToString()).Replace("_", " ")
+        Dim NewItem As New MyListItem With {.Logo = Logo, .SnapsToDevicePixels = True, .Title = FormattedVersion, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry}
         If Entry("lore") Is Nothing Then
-            NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm")
+            If FormattedVersion <> Entry("id") Then
+                NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm") + " | " + Entry("id").ToString()
+            Else
+                NewItem.Info = Entry("releaseTime").Value(Of Date).ToString("yyyy'/'MM'/'dd HH':'mm")
+            End If
         Else
-            NewItem.Info = Entry("lore").ToString
+            If FormattedVersion <> Entry("id") Then
+                NewItem.Info = Entry("lore").ToString + " | " + Entry("id").ToString()
+            Else
+                NewItem.Info = Entry("lore").ToString
+            End If
         End If
-        If Entry("url").ToString.Contains("unlisted-versions-of-minecraft") Then NewItem.Info = "[UVMC 特供下载] " & NewItem.Info
+        If Entry("url").ToString.Contains("unlisted-versions-of-minecraft") Then NewItem.Tags = "UVMC特供下载"
         AddHandler NewItem.Click, OnClick
         '建立菜单
         If IsSaveOnly Then

@@ -8,7 +8,7 @@
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
             <local:MyCard Title="跨启动器联机行不行？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。"/>
+                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。&#xa;&#xa;由于 PCL CE 暂未完整实现 Scaffolding 协议，可能无法加入较新版本陶瓦创建的大厅，但陶瓦可以反向连接 PCL CE 大厅。&#xa;该问题将在晚些时候解决。"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
@@ -24,7 +24,7 @@
             </local:MyCard>
             <local:MyCard Title="IPv6 是什么？为什么不建议关闭？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="IPv6 是互联网协议的最新版本，旨在解决 IPv4 地址枯竭问题，提供近乎无限的地址空间。&#xa;IPv6 能显著改善网络连接体验，尤其是在游戏联机场景中。&#xa;在 IPv4 网络下，用户通常位于多层 NAT 之后，这使得设备难以被外部直接访问，导致联机困难、延迟高，甚至无法建立点对点连接。&#xa;而 IPv6 为每个设备分配唯一的公网地址，天然穿透 NAT，让主机更容易被发现和直连，从而减少连接层级、降低延迟、提升联机成功率。"/>
+                    <TextBlock TextWrapping="Wrap" Text="IPv6 是互联网协议的最新版本，旨在解决 IPv4 地址枯竭问题，提供近乎无限的地址空间。&#xa;IPv6 能显著改善网络连接体验，尤其是在游戏联机场景中。&#xa;在 IPv4 网络下，用户通常位于多层 NAT 之后，这使得设备难以被外部直接访问，导致联机困难、延迟高，甚至无法建立点对点连接。&#xa;而大多数 IPv6 网络会为每个设备分配唯一的公网地址，一般不存在 NAT，让主机更容易被发现和直连，从而减少连接层级、降低延迟、提升联机成功率。"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="什么是最短路径和最低延迟路径？" Margin="0,0,0,15">
@@ -34,8 +34,8 @@
             </local:MyCard>
             <local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以让房主加入其他社区节点辅助连接。"/>
-                    <local:MyButton Text="社区公共节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
+                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以在设置中加入其他社区节点辅助连接。"/>
+                    <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">
