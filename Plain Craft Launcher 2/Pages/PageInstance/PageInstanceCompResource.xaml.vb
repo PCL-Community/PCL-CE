@@ -1494,7 +1494,7 @@ Install:
                         If IsShiftPressed Then
                             File.Delete(ModEntity.Path)
                         Else
-                            FileSystem.DeleteFile(ModEntity.Path, UIOption.AllDialogs, RecycleOption.SendToRecycleBin)
+                            FileSystem.DeleteFile(ModEntity.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
                         End If
                     End If
                 Catch ex As OperationCanceledException
