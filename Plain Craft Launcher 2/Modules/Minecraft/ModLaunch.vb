@@ -254,7 +254,7 @@ NextInner:
         If McInstanceCurrent.State = McInstanceState.Error Then Throw New Exception("Minecraft 存在问题：" & McInstanceCurrent.Info)
         '检查输入信息
         Dim CheckResult As String = ""
-        RunInUiWait(Sub() CheckResult = IsProfileVaild())
+        RunInUiWait(Sub() CheckResult = IsProfileValid())
         If SelectedProfile Is Nothing Then '没选档案
             CheckResult = "请先选择一个档案再启动游戏！"
         ElseIf McInstanceCurrent.Version.HasLabyMod OrElse Setup.Get("VersionServerLoginRequire", McInstanceCurrent) = 1 Then '要求正版验证
@@ -462,7 +462,7 @@ NextInner:
     Private Sub McLoginStart(Data As LoaderTask(Of McLoginData, McLoginResult))
         Log("[Profile] 开始加载选定档案")
         '校验登录信息
-        Dim CheckResult As String = IsProfileVaild()
+        Dim CheckResult As String = IsProfileValid()
         If Not CheckResult = "" Then Throw New ArgumentException(CheckResult)
         '获取对应加载器
         Dim Loader As LoaderBase = Nothing

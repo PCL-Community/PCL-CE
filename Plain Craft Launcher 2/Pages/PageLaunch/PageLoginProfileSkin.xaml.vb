@@ -60,7 +60,7 @@
     End Sub
     '修改 ID
     Private Sub BtnEditName_Click(sender As Object, e As RoutedEventArgs)
-        EditProfileID()
+        EditProfileId()
     End Sub
     '选择档案
     Private Sub ChangeProfile(sender As Object, e As EventArgs) Handles BtnSelect.Click
