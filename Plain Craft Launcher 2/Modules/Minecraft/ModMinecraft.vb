@@ -801,6 +801,7 @@ ExitDataLoad:
                     Info = Me.Info
                 Else
                     Info = Config.Instance.CustomInfo(Path)
+                    If Info = GetDefaultDescription() Then Info = ""
                 End If
                 '确定实例收藏状态
                 IsStar = Config.Instance.Starred(Path)
