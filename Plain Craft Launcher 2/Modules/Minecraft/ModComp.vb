@@ -1020,15 +1020,15 @@ NoSubtitle:
             If Storage.CurseForgeOffset > 0 Then Address += "&index=" & Storage.CurseForgeOffset
             Select Case Sort
                 Case CompSortType.Relevance
-                    Address += "&sortField=4&sortOrder=desc"
+                    Address += "&sortField=4"
                 Case CompSortType.Downloads
-                    Address += "&sortField=6&sortOrder=desc"
+                    Address += "&sortField=6"
                 Case CompSortType.Follows
-                    Address += "&sortField=2&sortOrder=desc"
+                    Address += "&sortField=2"
                 Case CompSortType.Newest
-                    Address += "&sortField=11&sortOrder=desc"
+                    Address += "&sortField=11"
                 Case CompSortType.Updated
-                    Address += "&sortField=3&sortOrder=desc"
+                    Address += "&sortField=3"
             End Select
             Return Address
         End Function
@@ -1148,7 +1148,7 @@ NoSubtitle:
         Log("[Comp] 工程列表搜索原始文本：" & RawFilter)
 
         '中文请求关键字处理
-        Dim IsChineseSearch As Boolean = RegexCheck(RawFilter, "[\u4e00-\u9fbb]") AndAlso Not String.IsNullOrEmpty(RawFilter)
+        Dim IsChineseSearch As Boolean = RegexPatterns.HasChineseChar.IsMatch(RawFilter) AndAlso Not String.IsNullOrEmpty(RawFilter)
         If IsChineseSearch AndAlso (Request.Type = CompType.Mod OrElse Request.Type = CompType.DataPack) Then
             '构造搜索请求
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
@@ -1192,7 +1192,8 @@ NoSubtitle:
         End If
 
         '驼峰英文请求关键字处理
-        Dim SpacedKeywords = Request.SearchText.RegexReplace("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)", "$& ")
+        Dim SpacedKeywords = RegexPatterns.EnglishSpacedKeywords.Replace(Request.SearchText, "$& ")
+        'Request.SearchText.RegexReplace("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)", "$& ")
         Dim ConnectedKeywords = Request.SearchText.Replace(" ", "")
         Dim AllPossibleKeywords = (SpacedKeywords & " " & If(IsChineseSearch, Request.SearchText, ConnectedKeywords & " " & RawFilter)).ToLower
 
