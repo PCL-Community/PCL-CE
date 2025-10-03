@@ -87,11 +87,11 @@ Public Module ModProfile
         ProfileList.Clear()
         Try
             If Not Directory.Exists(PathAppdataConfig) Then Directory.CreateDirectory(PathAppdataConfig)
-            If Not File.Exists(PathAppdataConfig & "Profiles.json") Then
-                File.Create(PathAppdataConfig & "Profiles.json").Close()
-                WriteFile(PathAppdataConfig & "Profiles.json", "{""lastUsed"":0,""profiles"":[]}", False) '创建档案列表文件
+            If Not File.Exists(PathAppdataConfig & "profiles.json") Then
+                File.Create(PathAppdataConfig & "profiles.json").Close()
+                WriteFile(PathAppdataConfig & "profiles.json", "{""lastUsed"":0,""profiles"":[]}", False) '创建档案列表文件
             End If
-            Dim ProfileJobj As JObject = JObject.Parse(ReadFile(PathAppdataConfig & "Profiles.json"))
+            Dim ProfileJobj As JObject = JObject.Parse(ReadFile(PathAppdataConfig & "profiles.json"))
             LastUsedProfile = ProfileJobj("lastUsed")
             Dim ProfileListJobj As JArray = ProfileJobj("profiles")
             For Each Profile In ProfileListJobj
@@ -201,7 +201,7 @@ Public Module ModProfile
                 {"profiles", List}
             }
             End If
-            WriteFile(PathAppdataConfig & "Profiles.json", Json.ToString, False)
+            WriteFile(PathAppdataConfig & "profiles.json", Json.ToString, False)
             ProfileLog($"档案已保存")
         Catch ex As Exception
             Log(ex, "写入档案列表失败", LogLevel.Feedback)

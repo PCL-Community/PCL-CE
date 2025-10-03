@@ -10,7 +10,7 @@
         If IsLoaded Then Return
         IsLoaded = True
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", VersionBaseName).Replace("%VERSIONCODE%", VersionCode).Replace("%BRANCH%", VersionBranchName).Replace("%COMMIT_HASH%", CommitHashShort).Replace("%UPSTREAM_VERSION%", UpstreamVersion)
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", VersionBaseName).Replace("%VERSIONCODE%", VersionCode).Replace("%BRANCH%", VersionBranchName).Replace("%COMMIT_HASH%", CommitHashShort)
 
     End Sub
 
