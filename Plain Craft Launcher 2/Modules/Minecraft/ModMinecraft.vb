@@ -797,8 +797,11 @@ ExitDataLoad:
                     End Select
                 End If
                 '确定实例描述
-                Dim CustomInfo As String = Config.Instance.CustomInfo(Path)
-                Info = If(CustomInfo <> "", CustomInfo, GetDefaultDescription())
+                If State = McInstanceState.Error Then
+                    Info = Me.Info
+                Else
+                    Info = Config.Instance.CustomInfo(Path)
+                End If
                 '确定实例收藏状态
                 IsStar = Config.Instance.Starred(Path)
                 '确定实例显示种类
@@ -1935,7 +1938,7 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Instance.Name)
-        Dim result = McLibListGetWithJson(Instance.JsonObject)
+        Dim result = McLibListGetWithJson(Instance.JsonObject, TargetInstance:=Instance)
 
         '需要添加原版 Jar
         If IncludeInstanceJar Then

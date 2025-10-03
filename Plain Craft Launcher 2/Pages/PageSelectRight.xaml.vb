@@ -255,13 +255,32 @@ Public Class PageSelectRight
             Log(ex, "将实例列表转换显示时失败", LogLevel.Feedback)
         End Try
     End Sub
-    Public Shared Function McVersionListItem(Version As McInstance) As MyListItem
-        Dim NewItem As New MyListItem With {.Title = Version.Name, .Info = Version.Info, .Height = 42, .Tag = Version, .SnapsToDevicePixels = True, .Type = MyListItem.CheckType.Clickable}
+    Public Shared Function McVersionListItem(instance As McInstance) As MyListItem
+        Dim NewItem As New MyListItem With {.Title = instance.Name, .Info = instance.Info, .Height = 42, .Tag = instance, .SnapsToDevicePixels = True, .Type = MyListItem.CheckType.Clickable}
+        Dim instanceInfo = instance.Version
+        Dim tags As New List(Of String)
+        tags.Add(instanceInfo.McName)
+        If instanceInfo.HasForge Then
+            tags.Add("Forge " & instanceInfo.ForgeVersion)
+        ElseIf instanceInfo.HasNeoForge Then
+            tags.Add("NeoForge " & instanceInfo.NeoForgeVersion)
+        ElseIf instanceInfo.HasCleanroom Then
+            tags.Add("Cleanroom " & instanceInfo.CleanroomVersion)
+        ElseIf instanceInfo.HasLabyMod Then
+            tags.Add("LabyMod " & instanceInfo.LabyModVersion)
+        ElseIf instanceInfo.HasQuilt Then
+            tags.Add("Quilt " & instanceInfo.QuiltVersion)
+        ElseIf instanceInfo.HasFabric Then
+            tags.Add("Fabric " & instanceInfo.FabricVersion)
+        End If
+        If instanceInfo.HasLiteLoader Then tags.Add("LiteLoader")
+        If instanceInfo.HasOptiFine Then tags.Add("OptiFine " & instanceInfo.OptiFineVersion)
+        NewItem.Tags = tags
         Try
-            If Version.Logo.EndsWith("PCL\Logo.png") Then
-                NewItem.Logo = Version.Path & "PCL\Logo.png" '修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
+            If instance.Logo.EndsWith("PCL\Logo.png") Then
+                NewItem.Logo = instance.Path & "PCL\Logo.png" '修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
             Else
-                NewItem.Logo = Version.Logo
+                NewItem.Logo = instance.Logo
             End If
         Catch ex As Exception
             Log(ex, "加载实例图标失败", LogLevel.Hint)

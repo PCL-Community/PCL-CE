@@ -86,7 +86,7 @@ Public Class PageLinkLobby
     })
     Private Shared Sub InitFileCheck(Task As LoaderTask(Of Integer, Integer))
         If Not File.Exists(ETInfoProvider.ETPath & "\easytier-core.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\Packet.dll") OrElse
-            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\wintun.dll") Then
+            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") Then
             Log("[Link] EasyTier 不存在，开始下载")
             DownloadEasyTier()
         Else
@@ -185,20 +185,21 @@ Public Class PageLinkLobby
                     End If
                     '公告
                     Dim notices As JArray = jObj("notices")
-                    For Each noticeLatest As JObject In notices
-                        Dim announceContent = noticeLatest("content").ToString()
+                    For Each notice As JObject In notices
+                        Dim announceContent = notice("content").ToString()
                         If Not String.IsNullOrWhiteSpace(announceContent) Then
-                            Dim announceType As LinkAnnounceType
-                            If noticeLatest("type") = "important" OrElse noticeLatest("type") = "red" Then
-                                announceType = LinkAnnounceType.Important
-                            ElseIf noticeLatest("type") = "warning" OrElse noticeLatest("type") = "yellow" Then
-                                announceType = LinkAnnounceType.Warning
+                            If VersionCode < Val(notice("minVer")) OrElse VersionCode > Val(notice("maxVer")) Then Continue For
+                            Dim type As LinkAnnounceType
+                            If notice("type") = "important" OrElse notice("type") = "red" Then
+                                type = LinkAnnounceType.Important
+                            ElseIf notice("type") = "warning" OrElse notice("type") = "yellow" Then
+                                type = LinkAnnounceType.Warning
                             Else
-                                announceType = LinkAnnounceType.Notice
+                                type = LinkAnnounceType.Notice
                             End If
                             Dim announces As String() = announceContent.Split(vbLf)
                             For Each announce As String In announces
-                                _linkAnnounces.Add(New LinkAnnounceInfo(announceType, announce))
+                                _linkAnnounces.Add(New LinkAnnounceInfo(type, announce))
                             Next
                         End If
                     Next

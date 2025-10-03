@@ -59,7 +59,7 @@ Public Class ServerCard
             End If
             
             ServerMotD.Visibility = Visibility.Collapsed
-            MotdRenderer.RenderMotd(Server.Description)
+            MotdRenderer.RenderMotd(Server.Description, ThemeHelper.IsDarkMode())
             MotdRenderer.RenderCanvas()
         Else If Server.Status = ServerStatus.Pinging
             _manager.SetSelectedIconByName("loading")
