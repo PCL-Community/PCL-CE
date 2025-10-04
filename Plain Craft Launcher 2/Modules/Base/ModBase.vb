@@ -2744,7 +2744,7 @@ NextElement:
     ''' </summary>
     ''' <param name="Title">如果要求弹窗，指定弹窗的标题。</param>
     Public Sub Log(Text As String, Optional Level As LogLevel = LogLevel.Normal, Optional Title As String = "出现错误")
-        On Error Resume Next
+        'On Error Resume Next
         '放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
         '处理错误会导致再次调用 Log() 导致无限循环
 
@@ -2809,7 +2809,7 @@ NextElement:
     ''' </summary>
     ''' <param name="Desc">错误描述。会在处理时在末尾加入冒号。</param>
     Public Sub Log(Ex As Exception, Desc As String, Optional Level As LogLevel = LogLevel.Debug, Optional Title As String = "出现错误")
-        On Error Resume Next
+        'On Error Resume Next
         If TypeOf Ex Is ThreadInterruptedException Then Return
 
         '获取错误信息
@@ -2889,7 +2889,7 @@ NextElement:
     End Function
     '反馈
     Public Sub Feedback(Optional ShowMsgbox As Boolean = True, Optional ForceOpenLog As Boolean = False)
-        On Error Resume Next
+        'On Error Resume Next
         FeedbackInfo()
         Dim currentDate As String
         currentDate = Format(Now, "yyyy-M-dd")
@@ -2915,7 +2915,7 @@ NextElement:
     ''' 在日志中输出系统诊断信息。
     ''' </summary>
     Public Sub FeedbackInfo()
-        On Error Resume Next
+        'On Error Resume Next
         Dim phyRam = KernelInterop.GetPhysicalMemoryBytes()
         Log("[System] 诊断信息：" & vbCrLf &
             "操作系统：" & RuntimeInformation.OSDescription & "（32 位：" & Is32BitSystem & "）" & vbCrLf &
