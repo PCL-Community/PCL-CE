@@ -61,7 +61,7 @@ Public Class MyListItem
             .IsHitTestVisible = False,
             .Orientation = Orientation.Horizontal,
             .VerticalAlignment = VerticalAlignment.Bottom,
-            .Margin = New Thickness(0, 0, -3, 0)
+            .Margin = New Thickness(3.5, 0, -3, 0)
             }
             SetColumn(NewStack, 3)
             SetRow(NewStack, 2)

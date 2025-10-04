@@ -1374,7 +1374,7 @@ Retry:
             InterruptAndDelete()
         End Sub
         Private Sub InterruptAndDelete()
-            On Error Resume Next
+            'On Error Resume Next
             If File.Exists(LocalPath) Then File.Delete(LocalPath)
             SyncLock NetManager.LockRemain
                 NetManager.FileRemain -= 1
@@ -1445,7 +1445,7 @@ Retry:
                 _FailCount = value
                 If State = LoadState.Loading AndAlso value >= Math.Min(10000, Math.Max(FileRemain * 5.5, NetTaskThreadLimit * 5.5 + 3)) Then
                     Log("[Download] 由于同加载器中失败次数过多引发强制失败：连续失败了 " & value & " 次", LogLevel.Debug)
-                    On Error Resume Next
+                    'On Error Resume Next
                     Dim ExList As New List(Of Exception)
                     For Each File In Files
                         For Each Source In File.Sources

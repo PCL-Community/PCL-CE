@@ -415,17 +415,17 @@ Public Class FormMain
                         Top = -10000
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(AddressOf EndProgramForce, 230)
+                    AaCode(Sub() EndProgramForce(force := False), 230)
                 }, "Form Close")
             Else
-                EndProgramForce()
+                EndProgramForce(force := False)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
-        On Error Resume Next
+    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+        'On Error Resume Next
         '关闭联机大厅
         LobbyController.Close()
         IsProgramEnded = True
@@ -443,7 +443,7 @@ Public Class FormMain
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
         'If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         'Process.GetCurrentProcess.Kill()
-        Lifecycle.ForceShutdown(ReturnCode)
+        Lifecycle.Shutdown(ReturnCode, force)
     End Sub
     Private Sub BtnTitleClose_Click(sender As Object, e As RoutedEventArgs) Handles BtnTitleClose.Click
         EndProgram(True)
@@ -451,7 +451,7 @@ Public Class FormMain
 
     '移动
     Private Sub FormDragMove(sender As Object, e As MouseButtonEventArgs) Handles PanTitle.MouseLeftButtonDown, PanMsg.MouseLeftButtonDown
-        On Error Resume Next
+        'On Error Resume Next
         If sender.IsMouseDirectlyOver Then DragMove()
     End Sub
 
