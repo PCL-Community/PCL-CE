@@ -83,7 +83,6 @@ Class PageInstanceSavesInfo
                 
                 Dim spawnX As NbtInt = Nothing
                 If gameLevel.TryGet(Of NbtInt)("SpawnX", spawnX) Then
-                    ' Dim spawnX = gameLevel.Get(Of NbtInt)("SpawnX")
                     Dim spawnY = gameLevel.Get(Of NbtInt)("SpawnY")
                     Dim spawnZ = gameLevel.Get(Of NbtInt)("SpawnZ")
                     AddInfoTable("出生点 (X/Y/Z)", $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}")
