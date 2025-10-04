@@ -33,8 +33,8 @@ Class MinecraftServer
         If address Is Nothing Then Return
         address = address.Replace("：", ":")
         ' 预先重置UI状态
-        LabServerDesc.Foreground = Brushes.White
-        LabServerDesc.Text = "查询中..."
+        MotdRenderer.RenderMotd("查询中...", false)
+        MotdRenderer.RenderCanvas()
         LabServerPlayer.Text = "-/-"
         LabServerPlayer.ToolTip = Nothing
         ImageLoaderHelper.SetFallbackImage(imgServerLogo, FallbackImageUri)
@@ -59,8 +59,8 @@ Class MinecraftServer
             End Using
         Catch ex As Exception
             Log(ex, "[MinecraftServer] 信息查询失败")
-            LabServerDesc.Text = $"无法连接: {ex.Message}"
-            LabServerDesc.Foreground = Brushes.Red
+            MotdRenderer.RenderMotd($"§c无法连接: {ex.Message}", false)
+            MotdRenderer.RenderCanvas()
             ImageLoaderHelper.SetFallbackImage(ImgServerLogo, FallbackImageUri)
         End Try
     End Function
@@ -70,15 +70,12 @@ Class MinecraftServer
         Dim latencyColor = If(ret.Latency < 150, "a", If(ret.Latency < 400, "6", "c"))
 
         ' 更新描述
-        MinecraftFormatter.SetColorfulTextLab(
-            $"Minecraft 服务器{vbCrLf}{ret.Description}",
-            LabServerDesc,
-            ThemeHelper.IsDarkMode()
-        )
+        MotdRenderer.RenderMotd($"Minecraft 服务器{vbCrLf}{ret.Description}", false)
+        MotdRenderer.RenderCanvas()
 
         ' 更新玩家信息
         Dim playerText = $"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms"
-        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, ThemeHelper.IsDarkMode())
+        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false)
 
         ' 玩家列表提示
         If ret.Players.Samples?.Any() Then
