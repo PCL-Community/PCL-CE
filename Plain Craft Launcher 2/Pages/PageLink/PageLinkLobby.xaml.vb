@@ -289,7 +289,7 @@ Public Class PageLinkLobby
                     Thread.Sleep(3000)
                     RemoveHandler ls.OnReceive, AddressOf _onReceiveNewServer
                 End Using
-                Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
+                'Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
                 IsDetectingMc = False
                 RunInUi(
                     Sub()

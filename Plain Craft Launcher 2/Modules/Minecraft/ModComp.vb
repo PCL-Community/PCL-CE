@@ -998,7 +998,7 @@ NoSubtitle:
             If Tag.StartsWithF("/") Then Storage.CurseForgeTotal = 0
             If Storage.CurseForgeTotal > -1 AndAlso Storage.CurseForgeTotal <= Storage.CurseForgeOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortField=2&sortOrder=desc&pageSize={CompPageSize}"
+            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}"
             Select Case Type
                 Case CompType.Mod
                     Address += "&classId=6"
@@ -1029,6 +1029,8 @@ NoSubtitle:
                     Address += "&sortField=11"
                 Case CompSortType.Updated
                     Address += "&sortField=3"
+                Case Else
+                    Address += "&sortField=2"
             End Select
             Return Address
         End Function
