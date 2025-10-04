@@ -7,8 +7,8 @@
         Background="{StaticResource ColorBrushSemiWhite}" 
         CornerRadius="6" SnapsToDevicePixels="True" UseLayoutRounding="True">
     <Grid 
-          x:Name="PanBack" Height="44"
-          RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}" SnapsToDevicePixels="True">
+        x:Name="PanBack" Height="44"
+        RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}" SnapsToDevicePixels="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="6" /> 
             <ColumnDefinition Width="34" />

@@ -33,8 +33,8 @@ Class MinecraftServer
         If address Is Nothing Then Return
         address = address.Replace("：", ":")
         ' 预先重置UI状态
-        MotdRenderer.RenderMotd("查询中...", false)
-        MotdRenderer.RenderCanvas()
+        LabServerDesc.Foreground = Brushes.White
+        LabServerDesc.Text = "查询中..."
         LabServerPlayer.Text = "-/-"
         LabServerPlayer.ToolTip = Nothing
         ImageLoaderHelper.SetFallbackImage(imgServerLogo, FallbackImageUri)
@@ -59,8 +59,8 @@ Class MinecraftServer
             End Using
         Catch ex As Exception
             Log(ex, "[MinecraftServer] 信息查询失败")
-            MotdRenderer.RenderMotd($"§c无法连接: {ex.Message}", false)
-            MotdRenderer.RenderCanvas()
+            LabServerDesc.Text = $"无法连接: {ex.Message}"
+            LabServerDesc.Foreground = Brushes.Red
             ImageLoaderHelper.SetFallbackImage(ImgServerLogo, FallbackImageUri)
         End Try
     End Function
@@ -70,7 +70,8 @@ Class MinecraftServer
         Dim latencyColor = If(ret.Latency < 150, "a", If(ret.Latency < 400, "6", "c"))
 
         ' 更新描述
-        MotdRenderer.RenderMotd($"Minecraft 服务器{vbCrLf}{ret.Description}", false)
+        LabServerDesc.Text = "Minecraft 服务器"
+        MotdRenderer.RenderMotd(ret.Description, false)
         MotdRenderer.RenderCanvas()
 
         ' 更新玩家信息
