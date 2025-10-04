@@ -1971,6 +1971,10 @@ NextInstance:
                 CpStrings.Add(Library.LocalPath)
             End If
         Next
+        For Each library As String In Config.Instance.ClasspathHead(instance.Path).Split(";") '自定义 Classpath 头部
+            If String.IsNullOrWhiteSpace(library) Then Continue For
+            CpStrings.Insert(0, library)
+        Next
         If OptiFineCp IsNot Nothing Then CpStrings.Insert(CpStrings.Count - 2, OptiFineCp) 'OptiFine 的总是需要放到倒数第二位
         GameArguments.Add("${classpath}", Join(CpStrings.Select(Function(c) ShortenPath(c)), ";"))
 
