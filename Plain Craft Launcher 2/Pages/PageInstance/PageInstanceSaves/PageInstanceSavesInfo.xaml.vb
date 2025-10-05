@@ -80,12 +80,19 @@ Class PageInstanceSavesInfo
                 End If
 
                 AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(gameLevel.Get(Of NbtLong)("LastPlayed").Value)).ToLocalTime().ToString())
-
-                Dim spawnX = gameLevel.Get(Of NbtInt)("SpawnX")
-                Dim spawnY = gameLevel.Get(Of NbtInt)("SpawnY")
-                Dim spawnZ = gameLevel.Get(Of NbtInt)("SpawnZ")
-                AddInfoTable("出生点 (X/Y/Z)", $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}")
-
+                
+                Dim spawnX As NbtInt = Nothing
+                If gameLevel.TryGet(Of NbtInt)("SpawnX", spawnX) Then
+                    Dim spawnY = gameLevel.Get(Of NbtInt)("SpawnY")
+                    Dim spawnZ = gameLevel.Get(Of NbtInt)("SpawnZ")
+                    AddInfoTable("出生点 (X/Y/Z)", $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}")
+                Else 
+                    Dim spawnPos = gameLevel.Get(Of NbtCompound)("spawn").Get(Of NbtIntArray)("pos")
+                    Dim spawnXPos = spawnPos.Item(0)
+                    Dim spawnYPos = spawnPos.Item(1)
+                    Dim spawnZPos = spawnPos.Item(2)
+                    AddInfoTable("出生点 (X/Y/Z)", $"{spawnXPos} / {spawnYPos} / {spawnZPos}")
+                End If
                 Dim gameTypeName As String = "获取失败"
                 
                 Dim isHardcore = gameLevel.Get(Of NbtByte)("hardcore")

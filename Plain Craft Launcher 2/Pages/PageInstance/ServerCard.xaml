@@ -1,14 +1,12 @@
-﻿<Border x:Class="ServerCard"
+﻿<local:MyCard x:Class="ServerCard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PCL;assembly="
         xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
-        Margin="0,8"
-        Background="{StaticResource ColorBrushSemiWhite}" 
-        CornerRadius="6" SnapsToDevicePixels="True" UseLayoutRounding="True">
+        Margin="0,8">
     <Grid 
-          x:Name="PanBack" Height="44"
-          RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}" SnapsToDevicePixels="True">
+        x:Name="PanBack" Height="44"
+        RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}" SnapsToDevicePixels="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="6" /> 
             <ColumnDefinition Width="34" />
@@ -76,4 +74,4 @@
             </local:MyIconButton>
         </StackPanel>
     </Grid>
-</Border>
+</local:MyCard>

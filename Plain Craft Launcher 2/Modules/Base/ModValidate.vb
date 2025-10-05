@@ -255,7 +255,7 @@ Public Class ValidateFolderName
         Me.Path = Path
         Me.IgnoreCase = IgnoreCase
         Me.UseMinecraftCharCheck = UseMinecraftCharCheck
-        On Error Resume Next
+        'On Error Resume Next
         PathIgnore = New DirectoryInfo(Path).EnumerateDirectories
         IsIgnoreSameName = IgnoreSameName
     End Sub

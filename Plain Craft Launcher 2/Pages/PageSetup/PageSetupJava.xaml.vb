@@ -1,21 +1,22 @@
 ﻿Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.OS
 
 Public Class PageSetupJava
 
     Private IsLoad As Boolean = False
 
-    Private JavaPageLoader As New LoaderTask(Of Integer, List(Of JavaInfo))("JavaPageLoader", AddressOf Load_GetJavaList)
+    Private JavaPageLoader As New LoaderTask(Of Boolean, List(Of JavaInfo))("JavaPageLoader", AddressOf Load_GetJavaList)
     Private Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, JavaPageLoader, AddressOf OnLoadFinished, AddressOf Load_Input)
     End Sub
 
     Private Function Load_Input()
-        Return Javas.JavaList.Count
+        Return False
     End Function
-    Private Sub Load_GetJavaList(loader As LoaderTask(Of Integer, List(Of JavaInfo)))
-        Javas.ScanJavaAsync().GetAwaiter().GetResult()
+    Private Sub Load_GetJavaList(loader As LoaderTask(Of Boolean, List(Of JavaInfo)))
+        If loader.Input Then
+            JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult()
+        End If
         loader.Output = Javas.JavaList
     End Sub
 
@@ -115,18 +116,25 @@ Public Class PageSetupJava
     End Sub
 
     Private Sub BtnRefresh_Click(sender As Object, e As RouteEventArgs) Handles BtnRefresh.Click
-        JavaPageLoader.Start(IsForceRestart:=True)
+        JavaPageLoader.Start(True, True)
     End Sub
 
-    Private Sub BtnAdd_Click(sender As Object, e As RouteEventArgs) Handles BtnAdd.Click
+    Private Async Function BtnAdd_Click(sender As Object, e As RouteEventArgs) As Task Handles BtnAdd.Click
         Dim ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
         If String.IsNullOrEmpty(ret) OrElse Not File.Exists(ret) Then Return
-        If JavaAddNew(ret) Then
-            Hint("已添加 Java！", HintType.Finish)
+        If JavaService.JavaManager.HasJava(ret) Then
+            Hint("Java 已经存在，不用再次添加……")
         Else
-            Hint("Java 可能已经存在，无法添加……")
+            Await Task.Run(Sub()
+                               JavaService.JavaManager.Add(ret)
+                           End Sub)
+            If JavaService.JavaManager.HasJava(ret) Then
+                Hint("已添加 Java！", HintType.Finish)
+                JavaPageLoader.Start(True, True)
+            Else
+                Hint("未能成功将 Java 加入列表中", HintType.Critical)
+            End If
         End If
-        JavaPageLoader.Start()
-    End Sub
+    End Function
 
 End Class

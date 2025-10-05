@@ -133,7 +133,8 @@ Public Class PageOtherTest
         RunInNewThread(
             Sub()
                 Try
-                    If Not HasRunningMinecraft Or ModLaunch.McLaunchLoader.State = LoadState.Loading Then
+                    ' 只有当没有运行中的Minecraft游戏且启动器不在加载状态时才能清理
+                    If Not HasRunningMinecraft AndAlso McLaunchLoader.State <> LoadState.Loading Then
                         If HasDownloadingTask() Then
                             Hint("请在所有下载任务完成后再来清理吧……")
                             Return
@@ -141,8 +142,8 @@ Public Class PageOtherTest
                         If Not McFolderList.Any() Then
                             McFolderListLoader.Start()
                         End If
-                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, System.IO.Path.GetTempPath() + "PCL\"))
-                        If String.Compare(PathTemp, System.IO.Path.GetTempPath() + "PCL\") = 0 Then
+                        Log(String.Format("[Test] 当前缓存文件夹：{0}，默认缓存文件夹：{1}", PathTemp, IO.Path.Combine(IO.Path.GetTempPath(), "PCL")))
+                        If String.Compare(PathTemp, IO.Path.Combine(IO.Path.GetTempPath(), "PCL")) = 0 Then
                             If Setup.Get("HintClearRubbish") <= 2 Then
                                 If MyMsgBox("即将清理游戏日志、错误报告、缓存等文件。" & vbCrLf & "虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？" & vbCrLf & vbCrLf & "在完成清理后，PCL 将自动重启。", "清理确认", "确定", "取消") = 2 Then
                                     Return
@@ -154,9 +155,9 @@ Public Class PageOtherTest
                         End If
 
                         '清理的文件数量
-                        Dim num As Integer = 0
+                        Dim num = 0
                         '所有 Minecraft 文件夹
-                        Dim cleanMcFolderList As List(Of DirectoryInfo) = New List(Of DirectoryInfo)()
+                        Dim cleanMcFolderList = New List(Of DirectoryInfo)()
 
                         If Not McFolderList.Any() Then
                             McFolderListLoader.WaitForExit()
@@ -197,12 +198,16 @@ Public Class PageOtherTest
                         num += DeleteDirectory(PathTemp, True)
                         num += DeleteDirectory(OsDrive + "ProgramData\PCL\", True)
 
-                        MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
-
-                        Process.Start(New ProcessStartInfo(ExePathWithName))
-                        FormMain.EndProgramForce(ProcessReturnValues.Success)
+                        If num <> 0 Then
+                            MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
+                            Process.Start(New ProcessStartInfo(ExePathWithName))
+                            FormMain.EndProgramForce(ProcessReturnValues.Success)
+                        Else 
+                            Hint("没有找到任何可以清理的文件！", HintType.Info, True)
+                        End If
+                    Else
+                        Hint("请先关闭所有运行中的游戏……")
                     End If
-                    Hint("请先关闭所有运行中的游戏……")
                 Catch ex As Exception
                     Log(ex, "清理垃圾失败", LogLevel.Hint, "出现错误")
                 Finally

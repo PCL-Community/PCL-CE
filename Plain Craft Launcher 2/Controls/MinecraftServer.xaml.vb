@@ -70,15 +70,13 @@ Class MinecraftServer
         Dim latencyColor = If(ret.Latency < 150, "a", If(ret.Latency < 400, "6", "c"))
 
         ' 更新描述
-        MinecraftFormatter.SetColorfulTextLab(
-            $"Minecraft 服务器{vbCrLf}{ret.Description}",
-            LabServerDesc,
-            ThemeHelper.IsDarkMode()
-        )
+        LabServerDesc.Text = "Minecraft 服务器"
+        MotdRenderer.RenderMotd(ret.Description, false)
+        MotdRenderer.RenderCanvas()
 
         ' 更新玩家信息
         Dim playerText = $"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms"
-        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, ThemeHelper.IsDarkMode())
+        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false)
 
         ' 玩家列表提示
         If ret.Players.Samples?.Any() Then

@@ -92,7 +92,7 @@ Public Class MyMsgInput
     End Sub
 
     Private Sub Drag(sender As Object, e As MouseButtonEventArgs) Handles PanBorder.MouseLeftButtonDown, LabTitle.MouseLeftButtonDown
-        On Error Resume Next
+        'On Error Resume Next
         If e.GetPosition(ShapeLine).Y <= 2 Then FrmMain.DragMove()
     End Sub
 
