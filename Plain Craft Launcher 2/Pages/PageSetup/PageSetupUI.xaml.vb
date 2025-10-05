@@ -96,8 +96,10 @@ Public Class PageSetupUI
             Dispatcher.BeginInvoke(Async Function() As Task
                 If CustomFontCollection.Count = 0 Then
                     ComboUiFont.IsEnabled = False
+                    ComboUiMotdFont.IsEnabled = False
                     CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
                     ComboUiFont.SelectedIndex = 0
+                    ComboUiMotdFont.SelectedIndex = 0
                     Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
                     Await Task.Run(Sub()
                         For Each Font In Fonts.SystemFontFamilies
@@ -133,6 +135,7 @@ Public Class PageSetupUI
                         })
                     Next
                     ComboUiFont.IsEnabled = True
+                    ComboUiMotdFont.IsEnabled = True
                 End If
                 Dim targetFont As String = Setup.Get("UiFont")
                 Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
@@ -140,6 +143,14 @@ Public Class PageSetupUI
                     ComboUiFont.SelectedIndex = 0
                 Else
                     ComboUiFont.SelectedItem = targetSelection
+                End If
+                
+                Dim targetMotdFont As String = Setup.Get("UiMotdFont")
+                Dim targetMotdSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetMotdFont)
+                If targetSelection Is Nothing Then
+                    ComboUiMotdFont.SelectedIndex = 0
+                Else
+                    ComboUiMotdFont.SelectedItem = targetMotdSelection
                 End If
             End Function)
             CheckBlur.Checked = Setup.Get("UiBlur")
@@ -313,6 +324,13 @@ Public Class PageSetupUI
         If AniControlEnabled = 0 Then
             If Not sender.IsEnabled OrElse sender.SelectedItem.Tag Is Nothing Then Return
             Setup.Set("UiFont", sender.SelectedItem.Tag)
+        End If
+    End Sub
+    
+    Private Sub ComboMotdFontChange(sender As MyComboBox, e As Object) Handles ComboUiMotdFont.SelectionChanged
+        If AniControlEnabled = 0 Then
+            If Not sender.IsEnabled OrElse sender.SelectedItem.Tag Is Nothing Then Return
+            Setup.Set("UiMotdFont", sender.SelectedItem.Tag)
         End If
     End Sub
 
