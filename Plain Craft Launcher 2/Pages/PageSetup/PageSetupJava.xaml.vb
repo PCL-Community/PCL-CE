@@ -127,6 +127,7 @@ Public Class PageSetupJava
         Else
             Await Task.Run(Sub()
                                JavaService.JavaManager.Add(ret)
+                               JavaService.SaveToConfig()
                            End Sub)
             If JavaService.JavaManager.HasJava(ret) Then
                 Hint("已添加 Java！", HintType.Finish)
