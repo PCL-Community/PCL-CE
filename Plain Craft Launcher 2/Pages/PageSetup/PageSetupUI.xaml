@@ -109,14 +109,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboUiFont" Grid.Column="1" ItemsSource="{Binding CustomFontCollection}">
-                                <local:MyComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" TextAlignment="Center"
-                                                FontFamily="{Binding Font}" Tag="{Binding Tag}"/>
-                                    </DataTemplate>
-                                </local:MyComboBox.ItemTemplate>
-                            </local:MyComboBox>
+                            <local:FontSelector x:Name="ComboUiFont" Grid.Column="1" />
                         </Grid>
                         <Grid Height="28" Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
@@ -125,14 +118,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="格式化代码文本 (MotD) 字体" Margin="0,0,25,0" />
-                            <local:MyComboBox x:Name="ComboUiMotdFont" Grid.Column="1" ItemsSource="{Binding CustomFontCollection}">
-                                <local:MyComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" TextAlignment="Center"
-                                                   FontFamily="{Binding Font}" Tag="{Binding Tag}"/>
-                                    </DataTemplate>
-                                </local:MyComboBox.ItemTemplate>
-                            </local:MyComboBox>
+                            <local:FontSelector x:Name="ComboUiMotdFont" Grid.Column="1" />
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
