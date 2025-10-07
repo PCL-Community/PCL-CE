@@ -304,9 +304,26 @@ Public Class PageSetupUI
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
-    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLogoType3.Check, RadioLauncherTheme0.Check, RadioLauncherTheme1.Check, RadioLauncherTheme2.Check, RadioLauncherTheme3.Check, RadioLauncherTheme4.Check, RadioLauncherTheme5.Check, RadioLauncherTheme6.Check, RadioLauncherTheme7.Check, RadioLauncherTheme8.Check, RadioLauncherTheme9.Check, RadioLauncherTheme10.Check, RadioLauncherTheme11.Check, RadioLauncherTheme12.Check, RadioLauncherTheme13.Check, RadioLauncherTheme14.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
+    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLauncherTheme0.Check, RadioLauncherTheme1.Check, RadioLauncherTheme2.Check, RadioLauncherTheme3.Check, RadioLauncherTheme4.Check, RadioLauncherTheme5.Check, RadioLauncherTheme6.Check, RadioLauncherTheme7.Check, RadioLauncherTheme8.Check, RadioLauncherTheme9.Check, RadioLauncherTheme10.Check, RadioLauncherTheme11.Check, RadioLauncherTheme12.Check, RadioLauncherTheme13.Check, RadioLauncherTheme14.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
+        
+        ' 当标题栏类型变更时，强制刷新标题栏UI以确保图标正确显示和标题栏位置正确
+        If gotCfg(0) = "UiLogoType" Then
+            Dim logoType As Integer = Integer.Parse(gotCfg(1))
+            
+            ' 根据标题栏类型设置对应UI元素可见性
+            FrmMain.ShapeTitleLogo.Visibility = If(logoType = 1, Visibility.Visible, Visibility.Collapsed)
+            FrmMain.LabTitleLogo.Visibility = If(logoType = 2, Visibility.Visible, Visibility.Collapsed)
+            FrmMain.ImageTitleLogo.Visibility = If(logoType = 3, Visibility.Visible, Visibility.Collapsed)
+            
+            ' 确保标题栏居左设置正确应用
+            If Not IsNothing(FrmMain) Then
+                Dim isLogoLeftEnabled = Setup.Get("UiLogoLeft")
+                ' 根据标题栏类型和居左设置重新计算标题栏位置
+                FrmMain.PanTitleMain.ColumnDefinitions(0).Width = New GridLength(If(isLogoLeftEnabled AndAlso (logoType = 0), 0, 1), GridUnitType.Star)
+            End If
+        End If
     End Sub
 
     Private Sub ComboFontChange(sender As MyComboBox, e As Object) Handles ComboUiFont.SelectionChanged
