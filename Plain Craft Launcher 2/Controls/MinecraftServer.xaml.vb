@@ -71,7 +71,7 @@ Class MinecraftServer
 
         ' 更新描述
         LabServerDesc.Text = "Minecraft 服务器"
-        MotdRenderer.RenderMotd(ret.Description, false)
+        MotdRenderer.RenderMotd(ret.Description, false, 2, 14)
         MotdRenderer.RenderCanvas()
 
         ' 更新玩家信息
