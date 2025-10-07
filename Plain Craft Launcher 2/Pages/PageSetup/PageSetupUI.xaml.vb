@@ -941,55 +941,39 @@ Refresh:
         _isHiddenSyncing = False
     End Sub
 
-    ' ===== 重构后的：UI 协同改变（设置主页面/子页面） =====
-    Private Sub HiddenSetupMain() Handles CheckHiddenPageSetup.Change
-        If AniControlEnabled <> 0 Then Return
-        SuspendHiddenEvents()
-        Try
-            If CheckHiddenPageSetup.Checked Then
-                ' 开启：把三个子项都设为 True
-                CheckHiddenSetupLaunch.Checked = True
-                CheckHiddenSetupSystem.Checked = True
-                CheckHiddenSetupUI.Checked = True
-            Else
-                ' 关闭：只有在当前三个子项都为 True 时才统一取消（避免意外覆盖用户单独的选择）
-                If CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupUi.Checked AndAlso CheckHiddenSetupSystem.Checked Then
-                    CheckHiddenSetupLaunch.Checked = False
-                    CheckHiddenSetupSystem.Checked = False
-                    CheckHiddenSetupUI.Checked = False
-                End If
-            End If
+    Private isSyncing As Boolean = False
 
-            ' 批量结束后一次性保存配置（减少 I/O）
-            If AniControlEnabled = 0 Then
-                Setup.Set("UiHiddenSetupLaunch", CheckHiddenSetupLaunch.Checked)
-                Setup.Set("UiHiddenSetupUi", CheckHiddenSetupUI.Checked)
-                Setup.Set("UiHiddenSetupSystem", CheckHiddenSetupSystem.Checked)
-                Setup.Set("UiHiddenPageSetup", CheckHiddenPageSetup.Checked)
+    Private Sub HiddenSetupMain() Handles CheckHiddenPageSetup.Change
+        If isSyncing Then Exit Sub
+        isSyncing = True
+
+        If CheckHiddenPageSetup.Checked Then
+            CheckHiddenSetupLaunch.Checked = True
+            CheckHiddenSetupSystem.Checked = True
+            CheckHiddenSetupUI.Checked = True
+        Else
+            ' 如果三个都已经被隐藏，则允许全关
+            If CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupSystem.Checked AndAlso CheckHiddenSetupUI.Checked Then
+                CheckHiddenSetupLaunch.Checked = False
+                CheckHiddenSetupSystem.Checked = False
+                CheckHiddenSetupUI.Checked = False
             End If
-        Finally
-            ResumeHiddenEvents()
-        End Try
+        End If
+
+        isSyncing = False
     End Sub
 
     Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
-        If AniControlEnabled <> 0 Then Return
-        SuspendHiddenEvents()
-        Try
-            ' 根据当前控件状态判断父控件
-            Dim allHidden As Boolean = CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupSystem.Checked AndAlso CheckHiddenSetupUI.Checked
-            CheckHiddenPageSetup.Checked = allHidden
+        If isSyncing Then Exit Sub
+        isSyncing = True
 
-            ' 保存：一次性写入
-            If AniControlEnabled = 0 Then
-                Setup.Set("UiHiddenSetupLaunch", CheckHiddenSetupLaunch.Checked)
-                Setup.Set("UiHiddenSetupUi", CheckHiddenSetupUI.Checked)
-                Setup.Set("UiHiddenSetupSystem", CheckHiddenSetupSystem.Checked)
-                Setup.Set("UiHiddenPageSetup", CheckHiddenPageSetup.Checked)
-            End If
-        Finally
-            ResumeHiddenEvents()
-        End Try
+        ' 根据当前控件状态判断
+        CheckHiddenPageSetup.Checked =
+            CheckHiddenSetupLaunch.Checked AndAlso
+            CheckHiddenSetupSystem.Checked AndAlso
+            CheckHiddenSetupUI.Checked
+
+        isSyncing = False
     End Sub
 
     ' ===== 重构后的：更多主页面与子页面逻辑 =====
