@@ -1,9 +1,8 @@
-Imports System.Net
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
+Imports System.Security.Cryptography
 Imports PCL.Core.App
-
+Imports PCL.Core.Utils.Secret
 Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.UI
@@ -110,8 +109,7 @@ Public Class PageOtherTest
     End Sub
 
     Public Shared Sub Jrrp()
-        Dim random As New Random(GenerateDailySeed())
-        Dim luckValue = random.Next(0, 101)
+        Dim luckValue = GenerateDailySeed()
         Dim rating = GetRating(luckValue)
         Dim currentDate = DateTime.Now.ToString("yyyy/MM/dd")
         Dim title = $"今日人品 - {currentDate}"
@@ -485,9 +483,15 @@ Public Class PageOtherTest
 
     Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
-        Dim secretCode As String = SecretGetRawCode()
+        Dim secretCode As String = Identify.LaunchId
 
-        Return (datePart & secretCode).GetHashCode()
+        Dim value = 0
+        Dim hash = MD5.HashData(Encoding.UTF8.GetBytes(datePart & secretCode))
+        For Each i In hash
+            value += i
+        Next
+
+        Return value Mod 100
     End Function
 
     Public Shared Function GetRating(luckValue As Integer) As String
