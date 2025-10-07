@@ -11,6 +11,9 @@ Public Class PageSetupUI
 
     Public ReadOnly ThemeColors As String() = {"天空蓝", "龙猫蓝", "死机蓝"}
 
+    ' ===== 新增：隐藏设置同步锁（Shared，供 Shared 事件访问） =====
+    Private Shared _isHiddenSyncing As Boolean = False
+
     Public Sub New()
         InitializeComponent()
         '还是石山控件，不支持 ItemsSource Binding，虽然龙猫确实就没考虑 MVVM
@@ -189,7 +192,7 @@ Public Class PageSetupUI
             CType(FindName("RadioCustomType" & Setup.Load("UiCustomType", ForceReload:=True)), MyRadioBox).Checked = True
             TextCustomNet.Text = Setup.Get("UiCustomNet")
 
-            '功能隐藏
+            '功能隐藏 —— 这里保留把配置值载入到控件的逻辑（Reload 时，AniControlEnabled 已被设置以避免触发写入）
             CheckHiddenPageDownload.Checked = Setup.Get("UiHiddenPageDownload")
             CheckHiddenPageLink.Checked = Setup.Get("UiHiddenPageLink")
             CheckHiddenPageSetup.Checked = Setup.Get("UiHiddenPageSetup")
@@ -298,9 +301,13 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
+
+    ' ===== 修改：CheckBoxChange 增加隐藏同步屏蔽检查，避免批量程序改动时频繁写入 Setup =====
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckAutoPauseVideo.Change
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
+        ' 当处于隐藏设置批量同步时，跳过自动写入（我们在批量结束后手动写入一次）
+        If AniControlEnabled = 0 AndAlso (Not _isHiddenSyncing) Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
+
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
@@ -581,10 +588,9 @@ Refresh:
     End Sub
     Private Sub BtnCustomTutorial_Click(sender As Object, e As EventArgs) Handles BtnCustomTutorial.Click
         MyMsgBox("1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。" & vbCrLf &
-                 "2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。" & vbCrLf &
-                 "3. 点击 刷新主页 按钮，查看主页现在长啥样了。" & vbCrLf &
-                 vbCrLf &
-                 "你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。" & vbCrLf &
+                 "2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。" & vbCrLf & vbCrLf & 
+                 "3. 点击 刷新主页 按钮，查看主页现在长啥样了。" & vbCrLf & vbCrLf & 
+                 "你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。" & vbCrLf & 
                  "直接将主页文件拖进 PCL 窗口也可以快捷加载。", "主页自定义教程")
     End Sub
 
@@ -609,12 +615,12 @@ Refresh:
     Private Sub LabLauncherTheme11Click_MouseLeftButtonUp() Handles LabLauncherTheme11Click.MouseLeftButtonUp, RadioLauncherTheme11.MouseRightButtonUp
         If LabLauncherTheme11Click.Visibility = Visibility.Collapsed OrElse If(LabLauncherTheme11Click.ToolTip, "").ToString.Contains("点击") Then
             If MyMsgBox(
-                "1. 不爬取或攻击相关服务或网站，不盗取相关账号，没有谜题可以或需要以此来解决。" & vbCrLf &
-                "2. 不得篡改或损毁相关公开信息，请尽量让它们保持原状。" & vbCrLf &
-                "3. 在你感到迷茫的时候，看看回声洞可能会给你带来惊喜。" & vbCrLf & vbCrLf &
+                "1. 不爬取或攻击相关服务或网站，不盗取相关账号，没有谜题可以或需要以此来解决。" & vbCrLf & 
+                "2. 不得篡改或损毁相关公开信息，请尽量让它们保持原状。" & vbCrLf & 
+                "3. 在你感到迷茫的时候，看看回声洞可能会给你带来惊喜。" & vbCrLf & vbCrLf & 
                 "若违规，可能会被从任意相关群中踢出！",
                 "解密游戏的基本规则", "我知道了", "恕我拒绝") = 1 Then
-                MyMsgBox("你需要用自己的智慧来找到下一步的线索……" & vbCrLf &
+                MyMsgBox("你需要用自己的智慧来找到下一步的线索……" & vbCrLf & 
                          "初始线索：gnp.dorC61\60\20\0202\moc.x1xa.2s\\:sp" & "T".ToLower & "th", "解密游戏") '防止触发病毒检测规则
             End If
         End If
@@ -628,17 +634,6 @@ Refresh:
 
     '主题自定义
     Private Sub RadioLauncherTheme14_Change(sender As Object, e As RouteEventArgs) Handles RadioLauncherTheme14.Changed
-        'If RadioLauncherTheme14.Checked Then
-        '    If LabLauncherHue.Visibility = Visibility.Visible Then Exit Sub
-        '    LabLauncherHue.Visibility = Visibility.Visible
-        '    SliderLauncherHue.Visibility = Visibility.Visible
-        '    LabLauncherSat.Visibility = Visibility.Visible
-        '    SliderLauncherSat.Visibility = Visibility.Visible
-        '    LabLauncherDelta.Visibility = Visibility.Visible
-        '    SliderLauncherDelta.Visibility = Visibility.Visible
-        '    LabLauncherLight.Visibility = Visibility.Visible
-        '    SliderLauncherLight.Visibility = Visibility.Visible
-        'Else
         If LabLauncherHue.Visibility = Visibility.Collapsed Then Return
         LabLauncherHue.Visibility = Visibility.Collapsed
         SliderLauncherHue.Visibility = Visibility.Collapsed
@@ -648,7 +643,6 @@ Refresh:
         SliderLauncherDelta.Visibility = Visibility.Collapsed
         LabLauncherLight.Visibility = Visibility.Collapsed
         SliderLauncherLight.Visibility = Visibility.Collapsed
-        'End If
         CardLauncher.TriggerForceResize()
     End Sub
     Private Sub HSL_Change() Handles SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
@@ -751,92 +745,345 @@ Refresh:
         End Try
     End Sub
 
-    'UI 协同改变
-    Private isSyncing As Boolean = False
+    ' ===== 新增：挂起/恢复隐藏相关事件（用在批量改动时） =====
+    Private Sub SuspendHiddenEvents()
+        _isHiddenSyncing = True
+        Try
+            RemoveHandler CheckHiddenSetupLaunch.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenSetupSystem.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenSetupUI.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenPageSetup.Change, AddressOf HiddenSetupMain
+        Catch ex As Exception
+        End Try
+        ' 也临时移除 CheckBoxChange，以避免程序改动时触发 Setup.Set
+        Try
+            RemoveHandler CheckHiddenSetupLaunch.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenSetupSystem.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenSetupUI.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
 
+        ' 更多组（“更多”页）：
+        Try
+            RemoveHandler CheckHiddenOtherHelp.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherAbout.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherTest.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherFeedback.Change, AddressOf HiddenOtherNet
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherVote.Change, AddressOf HiddenOtherNet
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenPageOther.Change, AddressOf HiddenOtherMain
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherHelp.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherAbout.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherTest.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherFeedback.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenOtherVote.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenPageOther.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+
+        ' 隐藏提示也暂时屏蔽（避免程序改动时弹提示）
+        Try
+            RemoveHandler CheckHiddenFunctionHidden.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenPageSetup.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+        Try
+            RemoveHandler CheckHiddenSetupUI.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Private Sub ResumeHiddenEvents()
+        Try
+            AddHandler CheckHiddenSetupLaunch.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenSetupSystem.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenSetupUI.Change, AddressOf HiddenSetupSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenPageSetup.Change, AddressOf HiddenSetupMain
+        Catch ex As Exception
+        End Try
+        ' 恢复 CheckBoxChange
+        Try
+            AddHandler CheckHiddenSetupLaunch.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenSetupSystem.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenSetupUI.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+
+        ' 更多组恢复
+        Try
+            AddHandler CheckHiddenOtherHelp.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherAbout.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherTest.Change, AddressOf HiddenOtherSub
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherFeedback.Change, AddressOf HiddenOtherNet
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherVote.Change, AddressOf HiddenOtherNet
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenPageOther.Change, AddressOf HiddenOtherMain
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherHelp.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherAbout.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherTest.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherFeedback.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenOtherVote.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenPageOther.Change, AddressOf CheckBoxChange
+        Catch ex As Exception
+        End Try
+
+        ' 恢复 HiddenHint
+        Try
+            AddHandler CheckHiddenFunctionHidden.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenPageSetup.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+        Try
+            AddHandler CheckHiddenSetupUI.Change, AddressOf HiddenHint
+        Catch ex As Exception
+        End Try
+
+        _isHiddenSyncing = False
+    End Sub
+
+    ' ===== 重构后的：UI 协同改变（设置主页面/子页面） =====
     Private Sub HiddenSetupMain() Handles CheckHiddenPageSetup.Change
-        If isSyncing Then Exit Sub
-        isSyncing = True
-
-        If CheckHiddenPageSetup.Checked Then
-            CheckHiddenSetupLaunch.Checked = True
-            CheckHiddenSetupSystem.Checked = True
-            CheckHiddenSetupUI.Checked = True
-        Else
-            ' 如果三个都已经被隐藏，则允许全关
-            If CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupSystem.Checked AndAlso CheckHiddenSetupUI.Checked Then
-                CheckHiddenSetupLaunch.Checked = False
-                CheckHiddenSetupSystem.Checked = False
-                CheckHiddenSetupUI.Checked = False
+        If AniControlEnabled <> 0 Then Return
+        SuspendHiddenEvents()
+        Try
+            If CheckHiddenPageSetup.Checked Then
+                ' 开启：把三个子项都设为 True
+                CheckHiddenSetupLaunch.Checked = True
+                CheckHiddenSetupSystem.Checked = True
+                CheckHiddenSetupUI.Checked = True
+            Else
+                ' 关闭：只有在当前三个子项都为 True 时才统一取消（避免意外覆盖用户单独的选择）
+                If CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupUi.Checked AndAlso CheckHiddenSetupSystem.Checked Then
+                    CheckHiddenSetupLaunch.Checked = False
+                    CheckHiddenSetupSystem.Checked = False
+                    CheckHiddenSetupUI.Checked = False
+                End If
             End If
-        End If
 
-        isSyncing = False
+            ' 批量结束后一次性保存配置（减少 I/O）
+            If AniControlEnabled = 0 Then
+                Setup.Set("UiHiddenSetupLaunch", CheckHiddenSetupLaunch.Checked)
+                Setup.Set("UiHiddenSetupUi", CheckHiddenSetupUI.Checked)
+                Setup.Set("UiHiddenSetupSystem", CheckHiddenSetupSystem.Checked)
+                Setup.Set("UiHiddenPageSetup", CheckHiddenPageSetup.Checked)
+            End If
+        Finally
+            ResumeHiddenEvents()
+        End Try
     End Sub
 
     Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
-        If isSyncing Then Exit Sub
-        isSyncing = True
+        If AniControlEnabled <> 0 Then Return
+        SuspendHiddenEvents()
+        Try
+            ' 根据当前控件状态判断父控件
+            Dim allHidden As Boolean = CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupSystem.Checked AndAlso CheckHiddenSetupUI.Checked
+            CheckHiddenPageSetup.Checked = allHidden
 
-        ' 根据当前控件状态判断
-        CheckHiddenPageSetup.Checked =
-            CheckHiddenSetupLaunch.Checked AndAlso
-            CheckHiddenSetupSystem.Checked AndAlso
-            CheckHiddenSetupUI.Checked
-
-        isSyncing = False
+            ' 保存：一次性写入
+            If AniControlEnabled = 0 Then
+                Setup.Set("UiHiddenSetupLaunch", CheckHiddenSetupLaunch.Checked)
+                Setup.Set("UiHiddenSetupUi", CheckHiddenSetupUI.Checked)
+                Setup.Set("UiHiddenSetupSystem", CheckHiddenSetupSystem.Checked)
+                Setup.Set("UiHiddenPageSetup", CheckHiddenPageSetup.Checked)
+            End If
+        Finally
+            ResumeHiddenEvents()
+        End Try
     End Sub
+
+    ' ===== 重构后的：更多主页面与子页面逻辑 =====
     Private Sub HiddenOtherMain() Handles CheckHiddenPageOther.Change
-        '更多主页面
-        If CheckHiddenPageOther.Checked Then
-            '开启
-            CheckHiddenOtherAbout.Checked = True
-            CheckHiddenOtherTest.Checked = True
-            CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherVote.Checked = True
-            CheckHiddenOtherHelp.Checked = True
-        Else
-            '关闭
-            If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso
-                Setup.Get("UiHiddenOtherVote") AndAlso Setup.Get("UiHiddenOtherFeedback") Then
+        If AniControlEnabled <> 0 Then Return
+        SuspendHiddenEvents()
+        Try
+            If CheckHiddenPageOther.Checked Then
+                CheckHiddenOtherAbout.Checked = True
+                CheckHiddenOtherTest.Checked = True
+                CheckHiddenOtherFeedback.Checked = True
+                CheckHiddenOtherVote.Checked = True
+                CheckHiddenOtherHelp.Checked = True
+            Else
+                If CheckHiddenOtherHelp.Checked AndAlso CheckHiddenOtherAbout.Checked AndAlso CheckHiddenOtherTest.Checked AndAlso
+                    CheckHiddenOtherVote.Checked AndAlso CheckHiddenOtherFeedback.Checked Then
+                    CheckHiddenOtherAbout.Checked = False
+                    CheckHiddenOtherTest.Checked = False
+                    CheckHiddenOtherFeedback.Checked = False
+                    CheckHiddenOtherVote.Checked = False
+                    CheckHiddenOtherHelp.Checked = False
+                End If
+            End If
+
+            If AniControlEnabled = 0 Then
+                Setup.Set("UiHiddenOtherAbout", CheckHiddenOtherAbout.Checked)
+                Setup.Set("UiHiddenOtherTest", CheckHiddenOtherTest.Checked)
+                Setup.Set("UiHiddenOtherFeedback", CheckHiddenOtherFeedback.Checked)
+                Setup.Set("UiHiddenOtherVote", CheckHiddenOtherVote.Checked)
+                Setup.Set("UiHiddenOtherHelp", CheckHiddenOtherHelp.Checked)
+                Setup.Set("UiHiddenPageOther", CheckHiddenPageOther.Checked)
+            End If
+        Finally
+            ResumeHiddenEvents()
+        End Try
+    End Sub
+
+    Private Sub HiddenOtherSub(sender As Object, user As Boolean) Handles CheckHiddenOtherHelp.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherTest.Change
+        If AniControlEnabled <> 0 Then Return
+        SuspendHiddenEvents()
+        Try
+            Dim allSubHidden As Boolean = CheckHiddenOtherHelp.Checked AndAlso CheckHiddenOtherAbout.Checked AndAlso CheckHiddenOtherTest.Checked
+            CheckHiddenPageOther.Checked = allSubHidden
+
+            If user Then
+                If allSubHidden Then
+                    CheckHiddenOtherFeedback.Checked = True
+                    CheckHiddenOtherVote.Checked = True
+                End If
+            End If
+
+            If AniControlEnabled = 0 Then
+                Setup.Set("UiHiddenOtherHelp", CheckHiddenOtherHelp.Checked)
+                Setup.Set("UiHiddenOtherAbout", CheckHiddenOtherAbout.Checked)
+                Setup.Set("UiHiddenOtherTest", CheckHiddenOtherTest.Checked)
+                Setup.Set("UiHiddenOtherFeedback", CheckHiddenOtherFeedback.Checked)
+                Setup.Set("UiHiddenOtherVote", CheckHiddenOtherVote.Checked)
+                Setup.Set("UiHiddenPageOther", CheckHiddenPageOther.Checked)
+            End If
+        Finally
+            ResumeHiddenEvents()
+        End Try
+    End Sub
+
+    Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change
+        If AniControlEnabled <> 0 Then Return
+        If Not user Then Return
+        SuspendHiddenEvents()
+        Try
+            If CheckHiddenOtherHelp.Checked AndAlso CheckHiddenOtherAbout.Checked AndAlso CheckHiddenOtherTest.Checked AndAlso
+                (Not CheckHiddenOtherFeedback.Checked OrElse Not CheckHiddenOtherVote.Checked) Then
                 CheckHiddenOtherAbout.Checked = False
                 CheckHiddenOtherTest.Checked = False
-                CheckHiddenOtherFeedback.Checked = False
-                CheckHiddenOtherVote.Checked = False
                 CheckHiddenOtherHelp.Checked = False
             End If
-        End If
-    End Sub
-    Private Sub HiddenOtherSub(sender As Object, user As Boolean) Handles CheckHiddenOtherHelp.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherTest.Change
-        '更多子页面（有具体内容的）
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") Then
-            '已被全部隐藏
-            CheckHiddenPageOther.Checked = True
-        Else
-            '未被全部隐藏
-            CheckHiddenPageOther.Checked = False
-        End If
-        '修改无具体内容的项
-        If Not user Then Return
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") Then
-            CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherVote.Checked = True
-        End If
-    End Sub
-    Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change
-        '更多子页面（无具体内容的）
-        If Not user Then Return
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso
-            (Not Setup.Get("UiHiddenOtherFeedback") OrElse Not Setup.Get("UiHiddenOtherVote")) Then
-            CheckHiddenOtherAbout.Checked = False
-            CheckHiddenOtherTest.Checked = False
-            CheckHiddenOtherHelp.Checked = False
-        End If
+
+            If AniControlEnabled = 0 Then
+                Setup.Set("UiHiddenOtherHelp", CheckHiddenOtherHelp.Checked)
+                Setup.Set("UiHiddenOtherAbout", CheckHiddenOtherAbout.Checked)
+                Setup.Set("UiHiddenOtherTest", CheckHiddenOtherTest.Checked)
+                Setup.Set("UiHiddenOtherFeedback", CheckHiddenOtherFeedback.Checked)
+                Setup.Set("UiHiddenOtherVote", CheckHiddenOtherVote.Checked)
+                Setup.Set("UiHiddenPageOther", CheckHiddenPageOther.Checked)
+            End If
+        Finally
+            ResumeHiddenEvents()
+        End Try
     End Sub
 
-    '警告提示
+    ' ===== 修改：提示函数在批量修改时不弹提示 =====
     Private Sub HiddenHint(sender As Object, user As Boolean) Handles CheckHiddenFunctionHidden.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupUI.Change
-        If AniControlEnabled = 0 AndAlso sender.Checked Then Hint("按 F12 即可暂时关闭功能隐藏设置。千万别忘了，要不然设置就改不回来了……")
+        If AniControlEnabled = 0 AndAlso (Not _isHiddenSyncing) AndAlso CType(sender, MyCheckBox).Checked Then
+            Hint("按 F12 即可暂时关闭功能隐藏设置。千万别忘了，要不然设置就改不回来了……")
+        End If
     End Sub
 
 #End Region
