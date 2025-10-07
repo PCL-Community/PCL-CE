@@ -486,10 +486,17 @@ Public Class PageOtherTest
     Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
         Dim secretCode As String = SecretGetRawCode()
-
-        Return (datePart & secretCode).GetHashCode()
+        Return DJB2Hash(datePart & secretCode)
     End Function
-
+    Private Shared Function DJB2Hash(str As String) As Integer
+        Dim hash As Long = 5381
+        Dim prime As Long = 33
+        For Each c As Char In str
+            Dim charValue As Long = AscW(c)
+            hash = ((hash * prime) + charValue) Mod &H100000000L
+        Next
+        Return CInt(hash And &H7FFFFFFF)
+    End Function
     Public Shared Function GetRating(luckValue As Integer) As String
         If luckValue = 100 Then
             Return "100！100！" & vbCrLf & "隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
