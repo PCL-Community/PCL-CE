@@ -3,6 +3,10 @@ Imports PCL.Core.UI
 
 Public Class PageInstanceCompResource
     Implements IRefreshable
+
+    ' 搜索延时定时器
+    Private WithEvents searchDelayTimer As New System.Timers.Timer
+    Private lastSearchText As String = ""
     
 #Region "模组信息缓存"
     ' 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
@@ -1997,35 +2001,98 @@ Install:
         End Get
     End Property
     Private SearchResult As List(Of LocalCompFile)
+    Private searchDelayTimerInterval As Integer
+    
+    ' 初始化时设置定时器
+    Private Sub InitializeSearchDelayTimer()
+        searchDelayTimer.AutoReset = False ' 确保每次只触发一次
+        searchDelayTimer.Enabled = False
+    End Sub
+    
+    ' 处理输入文本变化，设置延时搜索
     Public Sub SearchRun() Handles SearchBox.TextChanged
         Try
-            If IsSearching Then
-                '构造请求
-                Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
-                For Each Entry As LocalCompFile In CompResourceListLoader.Output
-                    Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
-                    If Entry.Version IsNot Nothing Then
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
-                    End If
-                    If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
-                    End If
-                    If Entry.Comp IsNot Nothing Then
-                        If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
-                        If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
-                        If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
-                    End If
-                    QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
-                Next
-                '进行搜索
-                SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+            If searchDelayTimer Is Nothing Then
+                searchDelayTimer = New System.Timers.Timer
+                InitializeSearchDelayTimer()
             End If
-            RefreshUI()
+            
+            ' 停止当前定时器
+            searchDelayTimer.Enabled = False
+            
+            ' 保存当前搜索文本
+            lastSearchText = SearchBox.Text
+            
+            If IsSearching Then
+                ' 判断资源数量，如果少于100个则直接搜索不使用延时
+                If CompResourceListLoader IsNot Nothing AndAlso CompResourceListLoader.Output.Count < 100 Then
+                    ' 资源数量较少，直接执行搜索
+                    searchDelayTimer_Elapsed(Nothing, Nothing)
+                Else
+                    Dim textLength As Integer = SearchBox.Text.Trim().Length
+                    If textLength = 1 Then
+                        searchDelayTimerInterval = 1000
+                    ElseIf textLength <= 3 Then
+                        searchDelayTimerInterval = 600
+                    ElseIf textLength <= 5 Then
+                        searchDelayTimerInterval = 400
+                    Else
+                        searchDelayTimerInterval = 200
+                    End If
+                    
+                    ' 设置定时器间隔并启动
+                    searchDelayTimer.Interval = searchDelayTimerInterval
+                    searchDelayTimer.Enabled = True
+                End If
+            Else
+                ' 没有搜索文本时，直接清空搜索结果并刷新UI
+                SearchResult = Nothing
+                RefreshUI()
+            End If
         Catch ex As Exception
             Log(ex, "搜索过程中发生异常", LogLevel.Debug)
+        End Try
+    End Sub
+    
+    ' 定时器触发时执行实际搜索
+    Private Sub searchDelayTimer_Elapsed(sender As Object, e As EventArgs) Handles searchDelayTimer.Elapsed
+        Try
+            Dispatcher.Invoke(Sub()
+                  ' 检查文本是否匹配（防止在延时期间文本发生变化）
+                  If lastSearchText = SearchBox.Text Then
+                      If IsSearching Then
+                          ' 构造请求
+                          Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
+                          For Each Entry As LocalCompFile In CompResourceListLoader.Output
+                              Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
+                              SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
+                              SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
+                              If Entry.Version IsNot Nothing Then
+                                  SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
+                              End If
+                              If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
+                                  SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
+                              End If
+                              If Entry.Comp IsNot Nothing Then
+                                  If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
+                                  If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
+                                  If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                                  SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
+                              End If
+                              QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+                          Next
+                          ' 进行搜索
+                          SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+                      Else
+                          ' 清空搜索结果
+                          SearchResult = Nothing
+                      End If
+                      ' 刷新UI
+                      RefreshUI()
+                  End If
+              End Sub)
+        Catch ex As Exception
+            Log(ex, "延时搜索过程中发生异常", LogLevel.Debug)
         End Try
     End Sub
 
