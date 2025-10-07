@@ -752,31 +752,39 @@ Refresh:
     End Sub
 
     'UI 协同改变
+    Private isSyncing As Boolean = False
+
     Private Sub HiddenSetupMain() Handles CheckHiddenPageSetup.Change
-        '设置主页面
+        If isSyncing Then Exit Sub
+        isSyncing = True
+
         If CheckHiddenPageSetup.Checked Then
-            '开启
             CheckHiddenSetupLaunch.Checked = True
             CheckHiddenSetupSystem.Checked = True
             CheckHiddenSetupUI.Checked = True
         Else
-            '关闭
-            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
+            ' 如果三个都已经被隐藏，则允许全关
+            If CheckHiddenSetupLaunch.Checked AndAlso CheckHiddenSetupSystem.Checked AndAlso CheckHiddenSetupUI.Checked Then
                 CheckHiddenSetupLaunch.Checked = False
                 CheckHiddenSetupSystem.Checked = False
                 CheckHiddenSetupUI.Checked = False
             End If
         End If
+
+        isSyncing = False
     End Sub
+
     Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
-        '设置子页面
-        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
-            '已被全部隐藏
-            CheckHiddenPageSetup.Checked = True
-        Else
-            '未被全部隐藏
-            CheckHiddenPageSetup.Checked = False
-        End If
+        If isSyncing Then Exit Sub
+        isSyncing = True
+
+        ' 根据当前控件状态判断
+        CheckHiddenPageSetup.Checked =
+            CheckHiddenSetupLaunch.Checked AndAlso
+            CheckHiddenSetupSystem.Checked AndAlso
+            CheckHiddenSetupUI.Checked
+
+        isSyncing = False
     End Sub
     Private Sub HiddenOtherMain() Handles CheckHiddenPageOther.Change
         '更多主页面
