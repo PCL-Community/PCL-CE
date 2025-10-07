@@ -179,6 +179,15 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="不透明度" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderBackgroundOpacity" Tag="UiBackgroundOpacity" MaxValue="1000" ValueByKey="10" Grid.Column="1" />
                     </Grid>
+                    <Grid x:Name="PanBackgroundCarousel" Height="22" Margin="0,0,0,7" Visibility="Visible">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="轮播时间 t/s" Margin="0,0,25,0" />
+                        <local:MySlider x:Name="SliderBackgroundCarousel" Tag="UiBackgroundCarousel" MaxValue="1000" ValueByKey="10" Grid.Column="1" 
+                                        ToolTip="控制启动器背景的轮播时间，0s 为不轮播。"/>
+                    </Grid>
                     <Grid x:Name="PanBackgroundBlur" Height="22" Margin="0,0,0,10" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />

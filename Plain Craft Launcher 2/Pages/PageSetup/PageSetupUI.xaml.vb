@@ -1,5 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
+Imports System.Windows.Threading
 Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -151,6 +152,7 @@ Public Class PageSetupUI
 
             '背景图片
             SliderBackgroundOpacity.Value = Setup.Get("UiBackgroundOpacity")
+            SliderBackgroundCarousel.Value = Setup.Get("UiBackgroundCarousel")
             SliderBackgroundBlur.Value = Setup.Get("UiBackgroundBlur")
             ComboBackgroundSuit.SelectedIndex = Setup.Get("UiBackgroundSuit")
             CheckBackgroundColorful.Checked = Setup.Get("UiBackgroundColorful")
@@ -240,6 +242,7 @@ Public Class PageSetupUI
             Setup.Reset("UiBlurType")
             Setup.Reset("UiBackgroundColorful")
             Setup.Reset("UiBackgroundOpacity")
+            Setup.Reset("UiBackgroundCarousel")
             Setup.Reset("UiBackgroundBlur")
             Setup.Reset("UiBackgroundSuit")
             Setup.Reset("UiDarkMode")
@@ -292,7 +295,7 @@ Public Class PageSetupUI
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBlurValue.Change, SliderBlurSamplingRate.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
+    Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderBackgroundOpacity.Change, SliderBackgroundCarousel.Change, SliderBlurValue.Change, SliderBlurSamplingRate.Change, SliderBackgroundBlur.Change, SliderLauncherOpacity.Change, SliderMusicVolume.Change ', SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
@@ -354,9 +357,14 @@ Public Class PageSetupUI
     ''' </summary>
     ''' <param name="IsHint">是否显示刷新提示。</param>
     ''' <param name="Refresh">是否刷新图片显示。</param>
+    '在类级别声明轮播相关变量（放在BackgroundRefresh方法外部）
+    Private Shared SlideShowTimer As DispatcherTimer = Nothing
+    Private Shared SlideShowInterval As Integer = 0 '轮播间隔时间（秒），0表示不轮播
+    Private Shared CurrentSlideIndex As Integer = -1
+    Private Shared AvailablePictures As List(Of String) = New List(Of String)()
+    
     Public Shared Sub BackgroundRefresh(IsHint As Boolean, Refresh As Boolean)
         Try
-
             '获取可用的图片文件
             Directory.CreateDirectory(ExePath & "PCL\Pictures\")
             Dim Pic As List(Of String) = EnumerateFiles(ExePath & "PCL\Pictures\").
@@ -364,8 +372,11 @@ Public Class PageSetupUI
                                        file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
                     Select(Function(file) file.FullName).
                     ToList() 
+            
+            '更新可用图片列表
+            AvailablePictures = Pic
+            
             '视频加载异常处理
-
             Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
                     Sub(sender, e)
                         Dim videoEx = e.ErrorException
@@ -388,8 +399,12 @@ Public Class PageSetupUI
             AddHandler ModVideoBack.GamingStateChanged, AddressOf OnGamingStateChanged
             AddHandler ModVideoBack.ForcePlayChanged, AddressOf OnForcePlayChanged
             If Setup.Get("UiAutoPauseVideo") = False Then ModVideoBack.ForcePlay = True
+            
             '加载
             If Pic.Count = 0 Then
+                '停止轮播
+                StopSlideShow()
+                
                 If Refresh Then
                     If FrmMain.ImgBack.Visibility = Visibility.Collapsed Then
                         If IsHint Then Hint("未检测到可用背景内容！", HintType.Critical)
@@ -401,6 +416,9 @@ Public Class PageSetupUI
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(False, 0)
             Else
                 If Refresh Then
+                    '停止轮播
+                    StopSlideShow()
+                    
                     Dim Address As String = RandomUtils.PickRandom(Pic)
                     Try
                         FrmMain.ImgBack.Background = Nothing
@@ -410,6 +428,10 @@ Public Class PageSetupUI
                         Setup.Load("UiBackgroundSuit", True)
                         FrmMain.ImgBack.Visibility = Visibility.Visible
                         If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
+                        
+                        '启动轮播（如果时间不为0）
+                        StartSlideShow()
+                        
                     Catch ex As Exception
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
@@ -426,9 +448,101 @@ Public Class PageSetupUI
                 End If
                 If Not IsNothing(FrmSetupUI) Then FrmSetupUI.BackgroundRefreshUI(True, Pic.Count)
             End If
-
+    
         Catch ex As Exception
             Log(ex, "刷新背景内容时出现未知错误", LogLevel.Feedback)
+        End Try
+    End Sub
+    
+    '获取当前轮播间隔时间
+    Public Shared Function GetSlideShowInterval() As Integer
+        Return Setup.Get("UiBackgroundCarousel")
+    End Function
+    
+    '启动轮播
+    Private Shared Sub StartSlideShow()
+        SlideShowInterval = GetSlideShowInterval
+        '如果时间为0或不满足轮播条件，则不启动
+        If SlideShowInterval <= 0 OrElse AvailablePictures.Count <= 1 Then
+            StopSlideShow()
+            Return
+        End If
+        
+        '如果定时器已存在，先停止
+        If SlideShowTimer IsNot Nothing Then
+            SlideShowTimer.Stop()
+        Else
+            '创建新的定时器
+            SlideShowTimer = New DispatcherTimer()
+            AddHandler SlideShowTimer.Tick, AddressOf OnSlideShowTick
+        End If
+        
+        '设置定时器间隔并启动
+        SlideShowTimer.Interval = TimeSpan.FromSeconds(SlideShowInterval)
+        SlideShowTimer.Start()
+        
+        Log($"[UI] 启动图片轮播，间隔：{SlideShowInterval}秒")
+    End Sub
+    
+    '停止轮播
+    Private Shared Sub StopSlideShow()
+        If SlideShowTimer IsNot Nothing Then
+            SlideShowTimer.Stop()
+            SlideShowTimer = Nothing
+            Log("[UI] 停止图片轮播")
+        End If
+        CurrentSlideIndex = -1
+    End Sub
+    
+    '轮播定时器触发事件
+    Private Shared Sub OnSlideShowTick(sender As Object, e As EventArgs)
+        If AvailablePictures.Count = 0 Then
+            StopSlideShow()
+            Return
+        End If
+        
+        SlideShowInterval = GetSlideShowInterval
+        
+        SlideShowTimer.Stop()
+        SlideShowTimer.Interval = TimeSpan.FromSeconds(SlideShowInterval)
+        SlideShowTimer.Start()
+        
+        '计算下一张图片的索引
+        CurrentSlideIndex = (CurrentSlideIndex + 1) Mod AvailablePictures.Count
+        Dim nextImagePath As String = AvailablePictures(CurrentSlideIndex)
+        
+        Try
+            '加载下一张图片
+            FrmMain.ImgBack.Background = Nothing
+            VideoStop()
+            Log($"[UI] 轮播切换背景图片 ({CurrentSlideIndex + 1}/{AvailablePictures.Count}): {nextImagePath}")
+            FrmMain.ImgBack.Background = New MyBitmap(nextImagePath)
+            FrmMain.ImgBack.Visibility = Visibility.Visible
+        Catch ex As Exception
+            Log(ex, $"[UI] 轮播切换图片失败: {nextImagePath}")
+            '如果当前图片加载失败，尝试下一张
+            OnSlideShowTick(sender, e)
+        End Try
+    End Sub
+    
+    '更新可用图片列表（在图片文件变化时调用）
+    Public Shared Sub UpdateAvailablePictures()
+        Try
+            Dim Pic As List(Of String) = EnumerateFiles(ExePath & "PCL\Pictures\").
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
+                    Select(Function(file) file.FullName).
+                    ToList()
+            
+            AvailablePictures = Pic
+            CurrentSlideIndex = -1 '重置索引
+            
+            '如果轮播正在进行中，重新启动以确保使用最新的图片列表
+            If SlideShowTimer IsNot Nothing AndAlso SlideShowTimer.IsEnabled Then
+                StartSlideShow()
+            End If
+        Catch ex As Exception
+            Log(ex, "更新可用图片列表时出现错误")
         End Try
     End Sub
 
@@ -864,6 +978,17 @@ Refresh:
                 Return Value - 20
             End If
         End Function
+        
+        
+        SliderBackgroundCarousel.GetHintText = 
+            Function(Value As Integer) As String
+                If Value = 0 Then
+                    Return "不轮播"
+                Else 
+                    Return Value & "s"
+                End If
+            End Function
+        
         SliderBackgroundOpacity.GetHintText = Function(v) Math.Round(v * 0.1) & "%"
         SliderBackgroundBlur.GetHintText = Function(v) v & " 像素"
         SliderBlurValue.GetHintText = Function(v) v & " 像素"
