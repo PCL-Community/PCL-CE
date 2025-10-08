@@ -27,25 +27,25 @@ Public Class FontSelector
             ComboFont.SelectedIndex = 0
             Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
             Await Task.Run(Sub()
-                               For Each Font In Fonts.SystemFontFamilies
-                                   Try
-                                       '忽略 Global 系列字体
-                                       If Font.Source.StartsWith("Global ") Then Continue For
-                                       '尝试加载字体以检测是否可用
-                                       For Each Typeface In Font.GetTypefaces()
-                                           Dim glyph As GlyphTypeface = Nothing
-                                           Typeface.TryGetGlyphTypeface(glyph)
-                                           If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                           'ReSharper disable once UnusedVariable
-                                           Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                       Next
-                                       availableFonts.Add(New KeyValuePair(Of String, FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
-                                   Catch ex As Exception
-                                       Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                                   End Try
-                               Next
-                               availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
-                           End Sub)
+                For Each Font In Fonts.SystemFontFamilies
+                    Try
+                        '忽略 Global 系列字体
+                        If Font.Source.StartsWith("Global ") Then Continue For
+                        '尝试加载字体以检测是否可用
+                        For Each Typeface In Font.GetTypefaces()
+                            Dim glyph As GlyphTypeface = Nothing
+                            Typeface.TryGetGlyphTypeface(glyph)
+                            If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                            'ReSharper disable once UnusedVariable
+                            Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                        Next
+                        availableFonts.Add(New KeyValuePair(Of String, FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
+                    Catch ex As Exception
+                        Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                    End Try
+                Next
+                availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
+            End Sub)
             CustomFontCollection.Clear()
             CustomFontCollection.Add(New CustomFontProperties With {
                 .Name = "默认",
