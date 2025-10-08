@@ -3,6 +3,25 @@ Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 
 Public Class FontSelector
+    Public Shared ReadOnly TooltipProperty As DependencyProperty = 
+        DependencyProperty.Register("Tooltip", GetType(String), GetType(FontSelector), 
+                                   New PropertyMetadata(Nothing, AddressOf OnTooltipChanged))
+
+    Public Property Tooltip As String
+        Get
+            Return CStr(GetValue(TooltipProperty))
+        End Get
+        Set(value As String)
+            SetValue(TooltipProperty, value)
+        End Set
+    End Property
+
+    Private Shared Sub OnTooltipChanged(d As DependencyObject, e As DependencyPropertyChangedEventArgs)
+        Dim control = TryCast(d, FontSelector)
+        If control IsNot Nothing Then
+            control.ComboFont.ToolTip = e.NewValue
+        End If
+    End Sub
 
     Public Class CustomFontProperties
         Public Property Name As String

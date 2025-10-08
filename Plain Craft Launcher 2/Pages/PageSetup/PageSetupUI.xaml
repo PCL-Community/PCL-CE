@@ -102,24 +102,6 @@
                             <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor"/>
 
                         </Grid>
-                        <Grid Height="28" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="字体" Margin="0,0,25,0" />
-                            <local:FontSelector x:Name="ComboUiFont" Grid.Column="1" />
-                        </Grid>
-                        <Grid Height="28" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name2" />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="格式化代码文本 (MotD) 字体" Margin="0,0,25,0" />
-                            <local:FontSelector x:Name="ComboUiMotdFont" Grid.Column="1" />
-                        </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
                         <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize" Tag="UiLockWindowSize" />
                         <StackPanel x:Name="PanelBlur" Margin="0,0,0,10">
@@ -152,6 +134,28 @@
                         </StackPanel>
                     </StackPanel>
                 </Grid>
+            </local:MyCard>
+            <local:MyCard x:Name="CardFont" Margin="0,0,0,15" Title="字体">
+                <StackPanel Margin="25,40,25,10">
+                    <Grid Height="28" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="全局" Margin="0,0,25,0" />
+                        <local:FontSelector x:Name="ComboUiFont" Grid.Column="1" />
+                    </Grid>
+                    <Grid Height="28" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="MOTD" Margin="0,0,25,0" />
+                        <local:FontSelector x:Name="ComboUiMotdFont" Grid.Column="1" Tooltip="格式化代码文本"/>
+                    </Grid>
+                </StackPanel>
             </local:MyCard>
             <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景图片/视频">
                 <StackPanel Margin="25,40,25,20">
