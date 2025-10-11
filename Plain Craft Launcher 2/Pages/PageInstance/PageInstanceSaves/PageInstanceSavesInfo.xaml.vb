@@ -37,6 +37,11 @@ Class PageInstanceSavesInfo
                 AddInfoTable("存档名称", gameLevel.Get(Of NbtString)("LevelName").Value)
                 Dim versionName As NbtString = Nothing
                 Dim versionId As NbtInt = Nothing
+                Dim gameVersion = gameLevel.Get(Of NbtCompound)("Version")
+                If gameVersion IsNot Nothing Then
+                    gameVersion.TryGet(Of NbtString)("Name", versionName)
+                    gameVersion.TryGet(Of NbtInt)("Id", versionId)
+                End If
                 Dim hasDifficulty = gameLevel.Contains("Difficulty")
                 Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 
@@ -187,7 +192,7 @@ Class PageInstanceSavesInfo
 
             AddHandler BtnChunkbase.Click, Sub()
                                                Try
-                                                   If versionName = "获取失败" Then
+                                                   If versionName Is Nothing Then
                                                        Log($"当前存档版本无法确定，因此无法跳转到 Chunkbase", LogLevel.Hint)
                                                        Return
                                                    End If
