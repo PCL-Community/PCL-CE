@@ -415,10 +415,10 @@ Public Class FormMain
                         Top = -10000
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(Sub() EndProgramForce(force := False), 230)
+                    AaCode(Sub() EndProgramForce(force:=False), 230)
                 }, "Form Close")
             Else
-                EndProgramForce(force := False)
+                EndProgramForce(force:=False)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
@@ -462,16 +462,28 @@ Public Class FormMain
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
-            Setup.Set("WindowHeight", Height)
-            Setup.Set("WindowWidth", Width)
+            Config.UI.WindowHeight = Height
+            Config.UI.WindowWidth = Width
         End If
-        RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
-        PanForm.Width = BorderForm.ActualWidth + 0.001
-        PanForm.Height = BorderForm.ActualHeight + 0.001
-        PanMain.Width = PanForm.Width
-        PanMain.Height = Math.Max(0, PanForm.Height - PanTitle.ActualHeight)
-        VideoBack.Width = PanForm.Width
-        VideoBack.Height = PanForm.Height
+        If BorderForm IsNot Nothing Then
+            RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
+
+            Dim formWidth As Double = BorderForm.ActualWidth + 0.001
+            Dim formHeight As Double = BorderForm.ActualHeight + 0.001
+
+            PanForm.Width = formWidth
+            PanForm.Height = formHeight
+            PanMain.Width = formWidth
+
+            If PanTitle IsNot Nothing Then
+                PanMain.Height = Math.Max(0, formHeight - PanTitle.ActualHeight)
+            Else
+                PanMain.Height = formHeight
+            End If
+
+            VideoBack.Width = formWidth
+            VideoBack.Height = formHeight
+        End If
         If WindowState = WindowState.Maximized Then WindowState = WindowState.Normal '修复 #1938
     End Sub
 
