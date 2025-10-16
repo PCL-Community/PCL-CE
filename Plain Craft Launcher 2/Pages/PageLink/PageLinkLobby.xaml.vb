@@ -2,7 +2,7 @@
 Imports System.Threading.Tasks
 Imports PCL.Core.Link
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Link.Lobby.LobbyInfoGenerator
 Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
@@ -450,7 +450,7 @@ Public Class PageLinkLobby
         Dim lobbyId As String
         Try
             Dim clipText = Clipboard.GetText(TextDataFormat.Text)
-            lobbyId = ParseCode(clipText).OriginalCode
+            lobbyId = Parse(clipText).OriginalCode
         Catch ex As Exception
             Log(ex, "从剪贴板识别大厅编号出错")
             Exit Sub
@@ -479,15 +479,7 @@ Public Class PageLinkLobby
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
-                           Dim id As String = RandomUtils.NextInt(10000000, 99999999).ToString()
-                           Dim secret As String = RandomUtils.NextInt(10, 99).ToString()
-                           TargetLobby = New LobbyInfo With {
-                               .NetworkName = id,
-                               .NetworkSecret = secret,
-                               .OriginalCode = $"{id}{secret}{port}".FromB10ToB32,
-                               .Type = LobbyType.PCLCE,
-                               .Port = port
-                           }
+                           TargetLobby = Generate(port)
 
                            RunInUi(Sub()
                                        BtnFinishPing.Visibility = Visibility.Collapsed
@@ -535,7 +527,7 @@ Public Class PageLinkLobby
         Dim id = TextJoinLobbyId.Text
         IsHost = False
         RunInNewThread(Sub()
-                           TargetLobby = ParseCode(id)
+                           TargetLobby = Parse(id)
 
                            If TargetLobby Is Nothing Then
                                Hint("大厅编号不正确，请检查后重新输入", HintType.Critical)
