@@ -2055,13 +2055,13 @@ Install:
     End Sub
     
     ' 定时器触发时执行实际搜索
-    Private Sub searchDelayTimer_Elapsed(sender As Object, e As EventArgs) Handles searchDelayTimer.Elapsed
+    Private Async Sub searchDelayTimer_Elapsed(sender As Object, e As EventArgs) Handles searchDelayTimer.Elapsed
         Try
             Dim currentSearchText As String = Nothing
             Dim currentIsSearching As Boolean = False
             Dim currentQueryList As List(Of SearchEntry(Of LocalCompFile)) = Nothing
             
-            Dispatcher.Invoke(Sub()
+            Dispatcher.BeginInvoke(Sub()
                 currentSearchText = SearchBox.Text
                 currentIsSearching = IsSearching
                 
@@ -2086,34 +2086,34 @@ Install:
                         currentQueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
                     Next
                 End If
-            End Sub)
+            End Sub).Wait()
             
             If lastSearchText <> currentSearchText Then
                 Return
             End If
             
-            Task.Run(Sub()
-                Dim searchResults As List(Of LocalCompFile) = Nothing
+            Dim searchResults = Await Task.Run(Function() As List(Of LocalCompFile)
+                Dim results As List(Of LocalCompFile) = Nothing
                 
                 Try
                     If currentIsSearching AndAlso currentQueryList IsNot Nothing Then
-                        ' 执行实际搜索
-                        searchResults = Search(currentQueryList, currentSearchText, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+                        results = Search(currentQueryList, currentSearchText, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
                     Else
-                        ' 清空搜索结果
-                        searchResults = Nothing
+                        results = Nothing
                     End If
                 Catch ex As Exception
                     Log(ex, "后台搜索过程中发生异常", LogLevel.Debug)
                 End Try
                 
-                Dispatcher.Invoke(Sub()
-                    If lastSearchText = SearchBox.Text Then
-                        SearchResult = searchResults
-                        ' 刷新UI
-                        RefreshUI()
-                    End If
-                End Sub)
+                Return results
+            End Function)
+            
+            Dispatcher.BeginInvoke(Sub()
+                If lastSearchText = SearchBox.Text Then
+                    SearchResult = searchResults
+                    ' 刷新UI
+                    RefreshUI()
+                End If
             End Sub)
         Catch ex As Exception
             Log(ex, "延时搜索过程中发生异常", LogLevel.Debug)
