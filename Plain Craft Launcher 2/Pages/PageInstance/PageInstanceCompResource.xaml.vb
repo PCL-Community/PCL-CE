@@ -2055,13 +2055,16 @@ Install:
     End Sub
     
     ' 定时器触发时执行实际搜索
-    Private Sub searchDelayTimer_Elapsed(sender As Object, e As EventArgs) Handles searchDelayTimer.Elapsed
+    Private Async Sub searchDelayTimer_Elapsed(sender As Object, e As EventArgs) Handles searchDelayTimer.Elapsed
         Try
+            ' 停止定时器避免重复触发
+            searchDelayTimer.Stop()
+            
             Dim currentSearchText As String = Nothing
             Dim currentIsSearching As Boolean = False
             Dim currentQueryList As List(Of SearchEntry(Of LocalCompFile)) = Nothing
             
-            Dispatcher.Invoke(Sub()
+            Await Dispatcher.InvokeAsync(Sub()
                 currentSearchText = SearchBox.Text
                 currentIsSearching = IsSearching
                 
@@ -2071,50 +2074,63 @@ Install:
                         Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
                         SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
                         SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
+                        
                         If Entry.Version IsNot Nothing Then
                             SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
                         End If
+                        
                         If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
                             SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
                         End If
+                        
                         If Entry.Comp IsNot Nothing Then
-                            If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
-                            If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
-                            If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                            If Entry.Comp.RawName <> Entry.Name Then 
+                                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
+                            End If
+                            If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then 
+                                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
+                            End If
+                            If Entry.Comp.Description <> Entry.Description Then 
+                                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                            End If
                             SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
                         End If
-                        currentQueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+                        
+                        currentQueryList.Add(New SearchEntry(Of LocalCompFile) With {
+                            .Item = Entry, 
+                            .SearchSource = SearchSource
+                        })
                     Next
                 End If
             End Sub)
             
+            ' 检查搜索文本是否已改变
             If lastSearchText <> currentSearchText Then
                 Return
             End If
             
-            Task.Run(Sub()
-                Dim searchResults As List(Of LocalCompFile) = Nothing
-                
-                Try
-                    If currentIsSearching AndAlso currentQueryList IsNot Nothing Then
-                        ' 执行实际搜索
-                        searchResults = Search(currentQueryList, currentSearchText, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
-                    Else
-                        ' 清空搜索结果
-                        searchResults = Nothing
-                    End If
-                Catch ex As Exception
-                    Log(ex, "后台搜索过程中发生异常", LogLevel.Debug)
-                End Try
-                
-                Dispatcher.Invoke(Sub()
-                    If lastSearchText = SearchBox.Text Then
-                        SearchResult = searchResults
-                        ' 刷新UI
-                        RefreshUI()
-                    End If
-                End Sub)
+            Dim searchResults As List(Of LocalCompFile) = Nothing
+            Try
+                If currentIsSearching AndAlso currentQueryList IsNot Nothing Then
+                    searchResults = Await Task.Run(Function()
+                        Return Search(currentQueryList, currentSearchText, 
+                                    MaxBlurCount:=6, MinBlurSimilarity:=0.35) _
+                                    .Select(Function(r) r.Item).ToList()
+                    End Function)
+                Else
+                    searchResults = Nothing
+                End If
+            Catch ex As Exception
+                Log(ex, "后台搜索过程中发生异常", LogLevel.Debug)
+            End Try
+            
+            Dispatcher.BeginInvoke(Sub()
+                If lastSearchText = SearchBox.Text Then
+                    SearchResult = searchResults
+                    RefreshUI()
+                End If
             End Sub)
+            
         Catch ex As Exception
             Log(ex, "延时搜索过程中发生异常", LogLevel.Debug)
         End Try
