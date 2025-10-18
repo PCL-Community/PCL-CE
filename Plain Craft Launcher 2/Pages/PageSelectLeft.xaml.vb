@@ -36,8 +36,6 @@ Public Class PageSelectLeft
             FrmSelectLeft.PanList.Children.Add(New TextBlock With {.Text = "文件夹列表", .Margin = New Thickness(13, 18, 5, 4), .Opacity = 0.6, .FontSize = 12})
             For i = 0 To McFolderList.Count - 1
                 Dim Folder As McFolder = McFolderList(i)
-                Log(Folder.Name)
-                Log(Folder.Type)
                 '添加控件
                 Dim ContMenu As ContextMenu = Nothing
                 Select Case Folder.Type
