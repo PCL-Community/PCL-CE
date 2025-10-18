@@ -14,7 +14,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnWeb" Grid.Column="0" MinWidth="140" Text="打开官网" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" ColorType="Highlight"
-                                        EventType="打开网页" EventData="https://neoforged.net/" />
+                                        local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://neoforged.net/" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

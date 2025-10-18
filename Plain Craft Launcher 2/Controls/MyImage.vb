@@ -50,7 +50,7 @@ Public Class MyImage
     Sub(sender, e) If sender IsNot Nothing Then CType(sender, MyImage).Source = e.NewValue.ToString())))
 
     ''' <summary>
-    ''' 当 Source 首次下载失败时，会从该备用地址加载图片。
+    ''' 若 Source 是一个网络图片，该地址将作为第二图片源。
     ''' </summary>
     Public Property FallbackSource As String
         Get
@@ -128,6 +128,7 @@ Public Class MyImage
         End If
         RunInNewThread(
         Sub()
+            Dim IsLocalFallback As Boolean = FallbackSource IsNot Nothing AndAlso Not FallbackSource.StartsWithF("http")
             Dim TempDownloadingPath As String = Nothing
             Try
 RetryStart:

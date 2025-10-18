@@ -45,6 +45,15 @@ Public Class ModSetup
     Public Sub [Set](key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
         GetConfigItem(key).SetValueNoType(value, instance?.Path)
     End Sub
+    
+    ''' <summary>
+    ''' 写入某个未经加密的设置项。
+    ''' 若该设置项经过了加密，则会抛出异常。
+    ''' </summary>
+    Public Sub SetSafe(key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
+        ' If GetConfigItem(key). Then Throw New InvalidOperationException("禁止写入加密设置项：" & Key)
+        [Set](key, value, forceReload, instance)
+    End Sub
 
     ''' <summary>
     ''' 应用某个设置项的值。
@@ -264,8 +273,7 @@ Public Class ModSetup
                 FrmSetupUI.HintCustom.Visibility = Visibility.Visible
                 FrmSetupUI.HintCustomWarn.Visibility = If(Setup.Get("HintCustomWarn"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupUI.HintCustom.Text = $"从 PCL 文件夹下的 Custom.xaml 读取主页内容。{vbCrLf}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。"
-                FrmSetupUI.HintCustom.EventType = ""
-                FrmSetupUI.HintCustom.EventData = ""
+                CustomEventService.SetEventType(FrmSetupUI.HintCustom, CustomEvent.EventType.None)
             Case 2 '联网
                 FrmSetupUI.PanCustomPreset.Visibility = Visibility.Collapsed
                 FrmSetupUI.PanCustomLocal.Visibility = Visibility.Collapsed
@@ -273,8 +281,8 @@ Public Class ModSetup
                 FrmSetupUI.HintCustom.Visibility = Visibility.Visible
                 FrmSetupUI.HintCustomWarn.Visibility = If(Setup.Get("HintCustomWarn"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupUI.HintCustom.Text = $"从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。{vbCrLf}如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！"
-                FrmSetupUI.HintCustom.EventType = "打开网页"
-                FrmSetupUI.HintCustom.EventData = "https://github.com/Meloong-Git/PCL/discussions/2528"
+                CustomEventService.SetEventType(FrmSetupUI.HintCustom, CustomEvent.EventType.打开网页)
+                CustomEventService.SetEventData(FrmSetupUI.HintCustom, "https://github.com/Meloong-Git/PCL/discussions/2528")
             Case 3 '预设
                 FrmSetupUI.PanCustomPreset.Visibility = Visibility.Visible
                 FrmSetupUI.PanCustomLocal.Visibility = Visibility.Collapsed

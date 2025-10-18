@@ -14,7 +14,7 @@
             <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="简单来说：会，但是在使用大厅的过程中影响不大。如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
-                    <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
+                    <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="TCP 和 UDP 是什么？我该如何选择？" Margin="0,0,0,15">
@@ -35,7 +35,7 @@
             <local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以在设置中加入其他社区节点辅助连接。"/>
-                    <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
+                    <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://uptime.easytier.cn/"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">

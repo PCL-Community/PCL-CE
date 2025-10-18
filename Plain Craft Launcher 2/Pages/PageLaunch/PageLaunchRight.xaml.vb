@@ -228,7 +228,7 @@ Download:
             Dim LoadStartTime As Date = Date.Now
             Try
                 '修改时应同时修改 PageOtherHelpDetail.Init
-                Content = HelpArgumentReplace(Content)
+                Content = ArgumentReplace(Content)
                 Do While Content.Contains("xmlns")
                     Content = Content.RegexReplace("xmlns[^""']*(""|')[^""']*(""|')", "").Replace("xmlns", "")
                 Loop

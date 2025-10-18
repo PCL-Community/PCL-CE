@@ -2668,6 +2668,11 @@ NextElement:
     ''' 将 XML 转换为对应 UI 对象。
     ''' </summary>
     Public Function GetObjectFromXML(Str As String) As Object
+        Str = Str. '兼容旧版自定义事件写法
+            Replace("EventType=""", "local:CustomEventService.EventType=""").
+            Replace("EventData=""", "local:CustomEventService.EventData=""").
+            Replace("Property=""EventType""", "Property=""local:CustomEventService.EventType""").
+            Replace("Property=""EventData""", "Property=""local:CustomEventService.EventData""")
         Using Stream As New MemoryStream(Encoding.UTF8.GetBytes(Str))
             '类型检查
             Using Reader As New XamlXmlReader(Stream)

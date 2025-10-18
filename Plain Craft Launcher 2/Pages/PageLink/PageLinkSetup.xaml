@@ -23,7 +23,7 @@
                         <local:MyButton x:Name="BtnLogout" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                                         Width="100" ColorType="Highlight" Text="退出登录"/>
                         <local:MyButton x:Name="BtnManage" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                            Width="100" ColorType="Normal" Text="账号管理" EventType="打开网页" EventData="https://account.naids.com/dashboard"/>
+                            Width="100" ColorType="Normal" Text="账号管理" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://account.naids.com/dashboard"/>
                         <TextBlock x:Name="TextStatus" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" 
                             Text="账号状态：正常 / 已完成实名验证" />
                     </Grid>
@@ -46,7 +46,7 @@
                         <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
                             Width="100" ColorType="Highlight" Text="登录"/>
                         <local:MyButton x:Name="BtnRegister" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                            Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
+                            Width="100" ColorType="Normal" Text="注册" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://account.naids.com/register"/>
                         <local:MyButton x:Name="BtnCancel" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="100" ColorType="Normal" Text="取消登录" Visibility="Collapsed"/>
                     </Grid>
                 </StackPanel>
