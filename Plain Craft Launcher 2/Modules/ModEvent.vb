@@ -267,6 +267,7 @@ Public Class CustomEvent
                     If args.Length = 2 Then Hint($"已写入设置：{args(0)} → {args(1)}", HintType.Finish)
 
                 Case EventType.修改变量, EventType.写入变量
+                    Throw New Exception("PCL CE 暂不支持变量设置...")
                     If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 VariableName|SomeValue")
                     'WriteReg("CustomEvent" & args(0), args(1))
                     If args.Length = 2 Then Hint($"已写入变量：{args(0)} → {args(1)}", HintType.Finish)
