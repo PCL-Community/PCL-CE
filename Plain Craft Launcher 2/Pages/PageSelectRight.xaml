@@ -10,7 +10,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <local:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" HintText="搜索游戏实例" VerticalAlignment="Top" Grid.Row="0" ToolTip="输入实例名称或 [游戏版本号]-[模组加载器] 进行搜索"/>
+            <local:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" HintText="搜索游戏实例" VerticalAlignment="Top" Grid.Row="0" ToolTip="输入实例名称或 [游戏版本号] [Mod 加载器] 进行搜索"/>
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack" Grid.Row="1">
                 <StackPanel Name="PanMain" Margin="25,2,25,10" Grid.IsSharedSizeScope="True" />
             </local:MyScrollViewer>

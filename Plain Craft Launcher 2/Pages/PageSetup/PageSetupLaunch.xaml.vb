@@ -50,6 +50,7 @@ Public Class PageSetupLaunch
             SliderRamCustom.Value = Setup.Get("LaunchRamCustom")
 
             '高级设置
+            ComboAdvanceRenderer.SelectedIndex = Setup.Get("LaunchAdvanceRenderer")
             TextAdvanceJvm.Text = Setup.Get("LaunchAdvanceJvm")
             TextAdvanceGame.Text = Setup.Get("LaunchAdvanceGame")
             TextAdvanceRun.Text = Setup.Get("LaunchAdvanceRun")
@@ -98,6 +99,7 @@ Public Class PageSetupLaunch
             Setup.Reset("LoginMsAuthType")
             Setup.Reset("LaunchArgumentJavaUser")
             Setup.Reset("LaunchArgumentJavaSelect")
+            Setup.Reset("LaunchAdvanceRenderer")
 
             Log("[Setup] 已初始化启动设置")
             Hint("已初始化启动设置！", HintType.Finish, False)
@@ -110,7 +112,8 @@ Public Class PageSetupLaunch
 
     '将控件改变路由到设置改变
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioRamType0.Check, RadioRamType1.Check
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)))
+        Dim gotCfg = sender.Tag.ToString.Split("/")
+        If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextArgumentWindowHeight.ValidatedTextChanged, TextArgumentWindowWidth.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextArgumentTitle.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
@@ -412,6 +415,19 @@ PreFin:
     Private Sub BtnAdvanceJvmReset_Click(sender As Object, e As EventArgs) Handles BtnAdvanceJvmReset.Click
         Setup.Reset("LaunchAdvanceJvm")
         Reload()
+    End Sub
+    Private Sub ComboAdvanceRenderer_SelectionChanged(sender As MyComboBox, e As Object) Handles ComboAdvanceRenderer.SelectionChanged
+        If AniControlEnabled <> 0 Then Return
+        If Not Setup.Get("HintRenderer") AndAlso ComboAdvanceRenderer.SelectedIndex <> 0 Then
+            If MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" & vbCrLf & "你确定要继续修改吗？", "警告", "我知道我在做什么", "取消", IsWarn:=True) = 2 Then
+                ComboAdvanceRenderer.SelectedItem = e.RemovedItems(0)
+            Else
+                Setup.Set(sender.Tag, sender.SelectedIndex)
+                Setup.Set("HintRenderer", True)
+            End If
+        Else
+            Setup.Set(sender.Tag, sender.SelectedIndex)
+        End If
     End Sub
 
 #End Region

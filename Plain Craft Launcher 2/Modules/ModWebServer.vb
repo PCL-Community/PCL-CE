@@ -23,7 +23,7 @@ Public Module ModWebServer
             Async Function() As Task
                 Log($"[WebServer] 服务端 '{name}' 已启动")
                 Try
-                    Await server.StartResponse()
+                    Await server.StartResponseAsync()
                 Catch ex As Exception
                     Log(ex, $"[WebServer] 服务端 '{name}' 运行出错")
                 End Try
@@ -207,7 +207,7 @@ Public Module ModWebServer
                 Dim code = parameters("code")
                 Dim resultEx As Exception = Nothing
                 Try
-                    NatayarkProfileManager.GetNaidDataSync(code).Wait()
+                    NatayarkProfileManager.GetNaidDataAsync(code).Wait()
                 Catch ex As AggregateException
                     resultEx = ex.InnerExceptions(0)
                 End Try

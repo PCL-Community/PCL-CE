@@ -255,8 +255,11 @@ Public Class ValidateFolderName
         Me.Path = Path
         Me.IgnoreCase = IgnoreCase
         Me.UseMinecraftCharCheck = UseMinecraftCharCheck
-        On Error Resume Next
-        PathIgnore = New DirectoryInfo(Path).EnumerateDirectories
+        'On Error Resume Next
+        Try
+            PathIgnore = New DirectoryInfo(Path).EnumerateDirectories
+        Catch ex As DirectoryNotFoundException 'ignored
+        End Try
         IsIgnoreSameName = IgnoreSameName
     End Sub
     Public Overrides Function Validate(Str As String) As String

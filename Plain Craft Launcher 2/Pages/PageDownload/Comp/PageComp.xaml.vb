@@ -114,6 +114,8 @@ Public Class PageComp
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Fabric")
             ElseIf TargetVersion.Version.HasNeoForge Then
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("NeoForge")
+            ElseIf TargetVersion.Version.HasQuilt Then
+                ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt")
             End If
             TargetVersion = Nothing
             '如果已经完成请求，则重新开始
@@ -127,7 +129,19 @@ Public Class PageComp
         If McVersionHighest = -1 Then McVersionHighest = Math.Max(McVersionHighest, Integer.Parse(CType(TextSearchVersion.Items(1), MyComboBoxItem).Content.ToString.Split(".")(1)))
 
         '根据页面类型控制加载器选择的显示
-        UpdateShaderLoaderVisibility()
+        If PageType = CompType.Shader Then
+            LabLoader.Visibility = Visibility.Visible
+            ComboSearchLoader.Visibility = Visibility.Collapsed
+            ComboSearchShaderLoader.Visibility = Visibility.Visible
+        ElseIf PageType = CompType.Mod OrElse PageType = CompType.ModPack Then
+            LabLoader.Visibility = Visibility.Visible
+            ComboSearchLoader.Visibility = Visibility.Visible
+            ComboSearchShaderLoader.Visibility = Visibility.Collapsed
+        Else
+            LabLoader.Visibility = Visibility.Collapsed
+            ComboSearchLoader.Visibility = Visibility.Collapsed
+            ComboSearchShaderLoader.Visibility = Visibility.Collapsed
+        End If
     End Sub
     
     Private Sub PageComp_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs) Handles Me.IsVisibleChanged
@@ -142,7 +156,7 @@ Public Class PageComp
         Dim GameVersion As String = If(TextSearchVersion.Text = "全部 (也可自行输入)", Nothing,
                 If(TextSearchVersion.Text.Contains(".") OrElse TextSearchVersion.Text.Contains("w"), TextSearchVersion.Text, Nothing))
         Dim ModLoader As CompLoaderType = CompLoaderType.Any
-        If PageType = CompType.Mod Then '只有 Mod 考虑加载器
+        If PageType = CompType.Mod OrElse PageType = CompType.ModPack Then '只有 Mod 考虑加载器
             ModLoader = Val(ComboSearchLoader.SelectedItem.Tag)
             If GameVersion IsNot Nothing AndAlso GameVersion.Contains(".") AndAlso Val(GameVersion.Split(".")(1)) < 14 AndAlso '1.14-
                 ModLoader = CompLoaderType.Forge Then '选择了 Forge
@@ -157,8 +171,9 @@ Public Class PageComp
                         ComboSearchTag.SelectedItem?.Tag?.ToString(),
                         ComboSearchTag.SelectedItem?.Tag?.ToString() & ComboSearchShaderLoader.SelectedItem?.Tag?.ToString()),
                      ComboSearchTag.SelectedItem?.Tag?.ToString())
-            .ModLoader = If(PageType = CompType.Mod, Val(ComboSearchLoader.SelectedItem.Tag), CompLoaderType.Any)
+            .ModLoader = If(PageType = CompType.Mod OrElse PageType = CompType.ModPack, Val(ComboSearchLoader.SelectedItem.Tag), CompLoaderType.Any)
             .Source = CType(Val(ComboSearchSource.SelectedItem.Tag), CompSourceType)
+            .Sort = CType(Val(ComboSearchSort.SelectedItem.Tag), CompSortType)
         End With
         Return Request
     End Function
@@ -259,9 +274,6 @@ Public Class PageComp
         If e.Key = Key.Enter Then StartNewSearch()
     End Sub
 
-    Private Sub ComboSearchShaderLoader_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSearchShaderLoader.SelectionChanged
-    End Sub
-
     '重置按钮
     Private Sub ResetFilter() Handles BtnSearchReset.Click
         PanSearchBox.Text = ""
@@ -271,55 +283,8 @@ Public Class PageComp
         ComboSearchTag.SelectedIndex = 0
         ComboSearchLoader.SelectedIndex = 0
         ComboSearchShaderLoader.SelectedIndex = 0
+        ComboSearchSort.SelectedIndex = 0
         Loader.LastFinishedTime = 0 '要求强制重新开始
-    End Sub
-
-    '版本选择
-    '#3067：当下拉菜单展开时，程序会被 WPF 挂起，因而无法更新 Grid 布局，所以必须延迟到下拉菜单收起后才能更新
-    Private Sub TextSearchVersion_TextChanged() Handles TextSearchVersion.TextChanged
-        If Not TextSearchVersion.IsDropDownOpen Then UpdateSearchLoaderVisibility()
-    End Sub
-    Private Sub UpdateSearchLoaderVisibility() Handles TextSearchVersion.DropDownClosed
-        If PageType = CompType.Mod AndAlso (TextSearchVersion.Text.Contains(".") OrElse TextSearchVersion.Text.Contains("w")) Then
-            ComboSearchLoader.Visibility = Visibility.Visible
-            Grid.SetColumnSpan(TextSearchVersion, 1)
-        Else
-            ComboSearchLoader.Visibility = Visibility.Collapsed
-            Grid.SetColumnSpan(TextSearchVersion, 2)
-            ComboSearchLoader.SelectedIndex = 0
-        End If
-    End Sub
-
-    ''' <summary>
-    ''' 根据页面类型控制光影加载器选择的显示
-    ''' </summary>
-    Private Sub UpdateShaderLoaderVisibility()
-        Dim MainGrid As Grid = LabShaderLoader.Parent
-        If PageType = CompType.Shader Then
-            LabShaderLoader.Visibility = Visibility.Visible
-            ComboSearchShaderLoader.Visibility = Visibility.Visible
-            '显示光影加载器时，恢复列宽和控件位置
-            MainGrid.ColumnDefinitions(2).Width = New GridLength(1, GridUnitType.Auto)
-            MainGrid.ColumnDefinitions(3).Width = New GridLength(1.2, GridUnitType.Star)
-            Grid.SetColumn(LabShaderLoader, 2)
-            Grid.SetColumn(ComboSearchShaderLoader, 3)
-            Grid.SetColumn(LabTag, 4)
-            Grid.SetColumn(ComboSearchTag, 5)
-            Grid.SetColumn(LabSource, 6)
-            Grid.SetColumn(ComboSearchSource, 7)
-        Else
-            LabShaderLoader.Visibility = Visibility.Collapsed
-            ComboSearchShaderLoader.Visibility = Visibility.Collapsed
-            ComboSearchShaderLoader.SelectedIndex = 0
-            '隐藏光影加载器时，将加载器列宽设为0，并移动其他控件到原始列位置
-            MainGrid.ColumnDefinitions(2).Width = New GridLength(0)
-            MainGrid.ColumnDefinitions(3).Width = New GridLength(0)
-            '保持类型和来源控件在原始列位置，确保它们有正确的宽度
-            Grid.SetColumn(LabTag, 4)
-            Grid.SetColumn(ComboSearchTag, 5)
-            Grid.SetColumn(LabSource, 6)
-            Grid.SetColumn(ComboSearchSource, 7)
-        End If
     End Sub
 
 #End Region

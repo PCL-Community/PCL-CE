@@ -1,3 +1,5 @@
+Imports PCL.Core.App
+
 Public Class PageInstanceLeft
     Implements IRefreshable
 
@@ -23,6 +25,7 @@ Public Class PageInstanceLeft
             If Setup.Get("UiHiddenVersionResourcePack") Then DisableCount += 1
             If Setup.Get("UiHiddenVersionShader") Then DisableCount += 1
             If Setup.Get("UiHiddenVersionSchematic") Then DisableCount += 1
+            If Config.UI.Hide.InstanceServer Then DisableCount += 1
             If DisableCount = 6 Then
                 TextResource.Visibility = Visibility.Collapsed
             Else
@@ -38,6 +41,7 @@ Public Class PageInstanceLeft
         ItemResourcePack.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionResourcePack"), Visibility.Collapsed, Visibility.Visible)
         ItemShader.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionShader"), Visibility.Collapsed, Visibility.Visible)
         ItemSchematic.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionSchematic"), Visibility.Collapsed, Visibility.Visible)
+        ItemServer.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Config.UI.Hide.InstanceServer, Visibility.Collapsed, Visibility.Visible)
     End Sub
 
 #Region "页面切换"

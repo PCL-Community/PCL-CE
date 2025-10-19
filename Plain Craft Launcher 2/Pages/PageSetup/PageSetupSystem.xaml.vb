@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.App.Configuration
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Exts
 
 Class PageSetupSystem
 
@@ -129,7 +130,8 @@ Class PageSetupSystem
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioHttpProxyType0.Check, RadioHttpProxyType1.Check, RadioHttpProxyType2.Check
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag.ToString.Split("/")(0), Val(sender.Tag.ToString.Split("/")(1)))
+        Dim gotCfg = sender.Tag.ToString.Split("/")
+        If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
 
     '网络
@@ -262,15 +264,15 @@ Class PageSetupSystem
 #Region "导出 / 导入设置"
 
     Private Sub BtnSystemSettingExp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingExp.Click
-        Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath).Replace("/", "\")
-        If savePath = "" Then Exit Sub
+        Dim savePath As String = SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ExePath)
+        If savePath.IsNullOrWhiteSpace() Then Exit Sub
         File.Copy(ConfigService.SharedConfigPath, savePath, True)
         Hint("配置导出成功！", HintType.Finish)
         OpenExplorer(savePath)
     End Sub
     Private Sub BtnSystemSettingImp_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSystemSettingImp.Click
         Dim sourcePath As String = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件")
-        If sourcePath = "" Then Exit Sub
+        If sourcePath.IsNullOrWhiteSpace() Then Exit Sub
         File.Copy(sourcePath, ConfigService.SharedConfigPath, True)
         MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1:="重启", ForceWait:=True)
         Process.Start(New ProcessStartInfo(ExePathWithName))

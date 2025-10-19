@@ -1,6 +1,5 @@
 ﻿Imports System.IO.Compression
 Imports System.Text.Json.Nodes
-Imports CacheCow.Common.Helpers
 Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -646,7 +645,7 @@ Recheck:
         ''' 检查 Minecraft 版本，若检查通过 State 则为 Original 且返回 True。
         ''' </summary>
         Public Function Check() As Boolean
-
+            
             '检查文件夹
             If Not Directory.Exists(Path) Then
                 State = McInstanceState.Error
@@ -798,12 +797,16 @@ ExitDataLoad:
                     End Select
                 End If
                 '确定实例描述
-                Dim CustomInfo As String = Config.Instance.CustomInfo(Path)
-                Info = If(CustomInfo <> "", CustomInfo, GetDefaultDescription())
+                If State = McInstanceState.Error Then
+                    Info = Me.Info
+                Else
+                    Info = Config.Instance.CustomInfo(Path)
+                    If Info = GetDefaultDescription() Then Info = ""
+                End If
                 '确定实例收藏状态
                 IsStar = Config.Instance.Starred(Path)
                 '确定实例显示种类
-                DisplayType = Config.Instance.DisplayType(Path)
+                DisplayType = Config.Instance.CardType(Path)
                 '写入缓存
                 If Directory.Exists(Path) Then
                     Config.Instance.State(Path) = State
@@ -1342,7 +1345,7 @@ OnLoaded:
                         If Not InstanceCfg.StateConfig.IsDefault(Instance.Path) Then _
                             Instance.State = InstanceCfg.State(Instance.Path)
                         Instance.IsStar = InstanceCfg.Starred(Instance.Path)
-                        Instance.DisplayType = InstanceCfg.DisplayType(Instance.Path)
+                        Instance.DisplayType = InstanceCfg.CardType(Instance.Path)
                         If Instance.State <> McInstanceState.Error AndAlso
                            Not InstanceCfg.McVersionConfig.IsDefault(Instance.Path) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
                             Dim InstanceInfo As New McInstanceInfo With {
@@ -1936,7 +1939,7 @@ OnLoaded:
 
         '获取当前支持库列表
         Log("[Minecraft] 获取支持库列表：" & Instance.Name)
-        Dim result = McLibListGetWithJson(Instance.JsonObject)
+        Dim result = McLibListGetWithJson(Instance.JsonObject, TargetInstance:=Instance)
 
         '需要添加原版 Jar
         If IncludeInstanceJar Then
@@ -2143,7 +2146,14 @@ OnLoaded:
         '修改渲染器
         Dim MesaLoaderWindowsVersion = "25.1.7"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
-        If Setup.Get("VersionAdvanceRenderer", Instance) <> 0 AndAlso Not File.Exists(MesaLoaderWindowsTargetFile) Then
+        Dim Renderer = 0
+        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) <> 0 Then
+            Renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceCurrent) - 1
+        Else
+            Renderer = Setup.Get("LaunchAdvanceRenderer")
+        End If
+
+        If Renderer <> 0 AndAlso Not File.Exists(MesaLoaderWindowsTargetFile) Then
             Dim DownloadAddress As String = "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" & MesaLoaderWindowsVersion & "/mesa-loader-windows-" & MesaLoaderWindowsVersion & "-" & If(ModBase.Is32BitSystem, "x86", If(ModBase.IsArm64System, "arm64", "x64")) & ".jar"
             Result.Add(New NetFile({DownloadAddress}, MesaLoaderWindowsTargetFile))
         End If

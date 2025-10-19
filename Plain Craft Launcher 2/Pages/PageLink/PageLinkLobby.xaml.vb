@@ -8,6 +8,7 @@ Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Utils
+Imports PCL.Core.App
 
 Public Class PageLinkLobby
     '记录的启动情况
@@ -85,7 +86,7 @@ Public Class PageLinkLobby
     })
     Private Shared Sub InitFileCheck(Task As LoaderTask(Of Integer, Integer))
         If Not File.Exists(ETInfoProvider.ETPath & "\easytier-core.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\Packet.dll") OrElse
-            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") OrElse Not File.Exists(ETInfoProvider.ETPath & "\wintun.dll") Then
+            Not File.Exists(ETInfoProvider.ETPath & "\easytier-cli.exe") Then
             Log("[Link] EasyTier 不存在，开始下载")
             DownloadEasyTier()
         Else
@@ -149,20 +150,22 @@ Public Class PageLinkLobby
                     Dim cache As Integer
                     While serverNumber < LinkServers.Length
                         Try
-                            cache = Val(NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000))
-                            If cache = Setup.Get("LinkAnnounceCacheVer") Then
+                            cache = Integer.Parse(NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000).Trim())
+                            If cache = Config.Link.AnnounceCacheVer Then
                                 Log("[Link] 使用缓存的公告数据")
-                                jObj = JObject.Parse(Setup.Get("LinkAnnounceCache"))
+                                jObj = GetJson(Config.Link.AnnounceCache)
                             Else
                                 Log("[Link] 尝试拉取公告数据")
                                 Dim received As String = NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
-                                jObj = JObject.Parse(received)
-                                Setup.Set("LinkAnnounceCache", received)
-                                Setup.Set("LinkAnnounceCacheVer", cache)
+                                jObj = GetJson(received)
+                                Config.Link.AnnounceCache = received
+                                Config.Link.AnnounceCacheVer = cache
                             End If
                             Exit While
                         Catch ex As Exception
                             Log(ex, $"[Link] 从服务器 {serverNumber} 获取公告缓存失败")
+                            Config.Link.AnnounceCacheConfig.Reset()
+                            Config.Link.AnnounceCacheVerConfig.Reset()
                             serverNumber += 1
                         End Try
                     End While
@@ -182,22 +185,24 @@ Public Class PageLinkLobby
                     End If
                     '公告
                     Dim notices As JArray = jObj("notices")
-                    Dim noticeLatest As JObject = notices(0)
-                    Dim announceContent = noticeLatest("content").ToString()
-                    If Not String.IsNullOrWhiteSpace(announceContent) Then
-                        Dim announceType As LinkAnnounceType
-                        If noticeLatest("type") = "important" OrElse noticeLatest("type") = "red" Then
-                            announceType = LinkAnnounceType.Important
-                        ElseIf noticeLatest("type") = "warning" OrElse noticeLatest("type") = "yellow" Then
-                            announceType = LinkAnnounceType.Warning
-                        Else
-                            announceType = LinkAnnounceType.Notice
+                    For Each notice As JObject In notices
+                        Dim announceContent = notice("content").ToString()
+                        If Not String.IsNullOrWhiteSpace(announceContent) Then
+                            If VersionCode < Val(notice("minVer")) OrElse VersionCode > Val(notice("maxVer")) Then Continue For
+                            Dim type As LinkAnnounceType
+                            If notice("type") = "important" OrElse notice("type") = "red" Then
+                                type = LinkAnnounceType.Important
+                            ElseIf notice("type") = "warning" OrElse notice("type") = "yellow" Then
+                                type = LinkAnnounceType.Warning
+                            Else
+                                type = LinkAnnounceType.Notice
+                            End If
+                            Dim announces As String() = announceContent.Split(vbLf)
+                            For Each announce As String In announces
+                                _linkAnnounces.Add(New LinkAnnounceInfo(type, announce))
+                            Next
                         End If
-                        Dim announces As String() = announceContent.Split(vbLf)
-                        For Each announce As String In announces
-                            _linkAnnounces.Add(New LinkAnnounceInfo(announceType, announce))
-                        Next
-                    End If
+                    Next
                     '中继服务器
                     Dim relays As JArray = jObj("relays")
                     ETRelay.RelayList = New List(Of ETRelay)
@@ -270,32 +275,56 @@ Public Class PageLinkLobby
         If IsDetectingMc Then Return
         IsDetectingMc = True
         ComboWorldList.Items.Clear()
-        ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "正在检测本地游戏...", .Height = 18, .Margin = New Thickness(8, 4, 0, 0)})
         ComboWorldList.SelectedIndex = 0
+        BtnRefresh.Text = "寻找中"
         BtnRefresh.IsEnabled = False
         BtnCreate.IsEnabled = False
         ComboWorldList.IsEnabled = False
         RunInNewThread(
             Sub()
-                Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
+                recordedSourcePort.Clear()
+                Using ls As New BroadcastListener()
+                    AddHandler ls.OnReceive, AddressOf _onReceiveNewServer
+                    ls.Start()
+                    Thread.Sleep(3000)
+                    RemoveHandler ls.OnReceive, AddressOf _onReceiveNewServer
+                End Using
+                'Dim Worlds As List(Of Tuple(Of Integer, McPingResult, String)) = MCInstanceFinding.GetAwaiter().GetResult()
+                IsDetectingMc = False
                 RunInUi(
                     Sub()
-                        ComboWorldList.Items.Clear()
-                        If Worlds.Count = 0 Then
-                            ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = Nothing, .Content = "无可用实例"})
-                        Else
-                            For Each World In Worlds
-                                Dim content = $"{World.Item2.Description} ({World.Item2.Version.Name} / 端口 {World.Item1}{If(Not String.IsNullOrWhiteSpace(World.Item3), $" / 由 {World.Item3} 启动", Nothing)})"
-                                ComboWorldList.Items.Add(New MyComboBoxItem With {.Tag = World, .Content = content})
-                            Next
-                            ComboWorldList.IsEnabled = True
-                            BtnCreate.IsEnabled = True
-                        End If
-                        IsDetectingMc = False
-                        ComboWorldList.SelectedIndex = 0
+                        ComboWorldList.IsEnabled = True
+                        BtnRefresh.Text = "刷新"
                         BtnRefresh.IsEnabled = True
                     End Sub)
             End Sub, "Minecraft Port Detect")
+    End Sub
+
+    Private ReadOnly Property recordedSourcePort As New ConcurrentSet(Of Integer)
+    Private Sub _onReceiveNewServer(info As BroadcastRecord, sender As IPEndPoint)
+        If recordedSourcePort.TryAdd(info.Address.Port) Then
+            RunInNewThread(Sub()
+                               Using ping As New McPing(New IPEndPoint(IPAddress.Loopback, info.Address.Port))
+                                   Using cts As New CancellationTokenSource()
+                                       cts.CancelAfter(5000)
+                                       Dim pingRes = ping.PingAsync(cts.Token).GetAwaiter().GetResult()
+                                       RunInUi(Sub()
+                                                   ComboWorldList.Items.Add(New MyComboBoxItem() With {
+                                                        .Tag = info.Address.Port,
+                                                        .Content = $"{pingRes.Description} / {pingRes.Version.Name} ({info.Address.Port})"
+                                                   })
+                                                   If ComboWorldList.Items.Count = 0 Then
+                                                       BtnCreate.IsEnabled = False
+                                                       ComboWorldList.IsEnabled = False
+                                                   Else
+                                                       BtnCreate.IsEnabled = True
+                                                       ComboWorldList.IsEnabled = True
+                                                   End If
+                                               End Sub)
+                                   End Using
+                               End Using
+                           End Sub)
+        End If
     End Sub
     'EasyTier Cli 轮询
     Private Sub StartETWatcher()
@@ -304,7 +333,7 @@ Public Class PageLinkLobby
                            Log("[Link] 启动 EasyTier 轮询")
                            IsWatcherStarted = True
                            Dim retryCount = 0
-                           While ETInfoProvider.CheckETStatus().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
+                           While ETInfoProvider.CheckETStatusAsync().GetAwaiter().GetResult() = 0 AndAlso retryCount <= 15
                                retryCount += GetETInfo()
                                If RequiresLogin AndAlso String.IsNullOrWhiteSpace(NaidProfile.AccessToken) Then
                                    Hint("请先登录 Natayark ID 再使用大厅！", HintType.Critical)
@@ -371,11 +400,11 @@ Public Class PageLinkLobby
             If hostInfo.Ping > 150 Then
                 quality -= 1
             End If
-            RunInUi(Sub() 
-                    Dim texts = LobbyTextHandler.GetQualityDesc(quality)
-                    LabFinishQuality.Text = texts.Keyword
-                    BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
-                End Sub)
+            RunInUi(Sub()
+                        Dim texts = LobbyTextHandler.GetQualityDesc(quality)
+                        LabFinishQuality.Text = texts.Keyword
+                        BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
+                    End Sub)
 
             If IsHost AndAlso Not LobbyController.IsHostInstanceAvailable(TargetLobby.Port) Then '确认创建者实例存活状态
                 RunInUi(Sub()
@@ -403,8 +432,8 @@ Public Class PageLinkLobby
             RunInUi(Sub()
                         StackPlayerList.Children.Clear()
                         For Each player In playerList
-                            If Not etStatus = ETState.Ready AndAlso player.Ping = 1000 Then Player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
-                            Dim newItem = PlayerInfoItem(Player, AddressOf PlayerInfoClick)
+                            If Not etStatus = ETState.Ready AndAlso player.Ping = 1000 Then player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
+                            Dim newItem = PlayerInfoItem(player, AddressOf PlayerInfoClick)
                             StackPlayerList.Children.Add(newItem)
                         Next
                         CardPlayerList.Title = $"大厅成员列表（共 {playerList.Count} 人）"
@@ -426,10 +455,10 @@ Public Class PageLinkLobby
             Log(ex, "从剪贴板识别大厅编号出错")
             Exit Sub
         End Try
-        If lobbyId IsNot Nothing Then 
+        If lobbyId IsNot Nothing Then
             TextJoinLobbyId.Text = lobbyId
         Else
-            hint("大厅编号不正确，请检查后重新输入")
+            Hint("大厅编号不正确，请检查后重新输入")
         End If
     End Sub
     Private Sub ClearLobbyId() Handles BtnClearLobbyId.Click
@@ -446,7 +475,7 @@ Public Class PageLinkLobby
             BtnCreate.IsEnabled = True
             Exit Sub
         End If
-        Dim port = CType(ComboWorldList.SelectedItem.Tag, Tuple(Of Integer, McPingResult, String)).Item1.ToString()
+        Dim port = CType(ComboWorldList.SelectedItem.Tag, Integer)
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
@@ -474,7 +503,7 @@ Public Class PageLinkLobby
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
 
-                           Dim result = LobbyController.Launch(True, TargetLobby, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                           Dim result = LobbyController.Launch(True, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                            If result = 1 Then
                                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Hint("创建大厅失败，请向开发者反馈", HintType.Critical)
@@ -527,7 +556,7 @@ Public Class PageLinkLobby
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
 
-                           Dim result = LobbyController.Launch(False, TargetLobby, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                           Dim result = LobbyController.Launch(False, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                            If result = 1 Then
                                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Hint("加入大厅失败，请向开发者反馈", HintType.Critical)
@@ -637,8 +666,8 @@ Public Class PageLinkLobby
     '复制 IP
     Private Sub BtnFinishCopyIp_Click(sender As Object, e As EventArgs) Handles BtnFinishCopyIp.Click
         Dim ip As String = "127.0.0.1:" & McForward.LocalPort
-        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接。通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-                 Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(Ip))
+        MyMsgBox("大厅创建者的游戏地址：" & ip & vbCrLf & "注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
+                 Button1:="复制", Button2:="返回", Button1Action:=Sub() ClipboardSet(ip))
     End Sub
 
 #End Region

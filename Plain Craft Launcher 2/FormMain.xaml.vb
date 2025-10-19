@@ -217,8 +217,12 @@ Public Class FormMain
             '遥测提示
             If Setup.IsUnset("SystemTelemetry") Then
                 Select Case MyMsgBox("这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" & vbCrLf &
-                                     "如果选择参与调查，我们将会收集以下信息：" & vbCrLf &
-                                     "启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
+                                     "如果选择参与调查，我们将会收集以下信息：" & vbCrLf & vbCrLf &
+                                     "- 启动器版本信息与识别码" & vbCrLf &
+                                     "- Windows 系统版本与架构" & vbCrLf &
+                                     "- 已安装的物理内存大小" & vbCrLf &
+                                     "- NAT 与 IPv6 支持情况" & vbCrLf &
+                                     "- 是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
                                      "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
                                      "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" & vbCrLf &
                                      "你可以随时在启动器设置中调整这项设置。", "参与 PCL CE 软硬件调查", "同意", "拒绝")
@@ -227,12 +231,9 @@ Public Class FormMain
                     Case 2
                         Setup.Set("SystemTelemetry", False)
                 End Select
-            ElseIf Setup.Get("SystemTelemetry") Then
-                RunInNewThread(Sub() SendTelemetry())
             End If
             '启动加载器池
             Try
-'                InitJava() ignore as JavaSerivce will InitJava automatically
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
@@ -414,17 +415,17 @@ Public Class FormMain
                         Top = -10000
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(AddressOf EndProgramForce, 230)
+                    AaCode(Sub() EndProgramForce(force:=False), 230)
                 }, "Form Close")
             Else
-                EndProgramForce()
+                EndProgramForce(force:=False)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
-        On Error Resume Next
+    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+        'On Error Resume Next
         '关闭联机大厅
         LobbyController.Close()
         IsProgramEnded = True
@@ -442,7 +443,7 @@ Public Class FormMain
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
         'If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         'Process.GetCurrentProcess.Kill()
-        Lifecycle.ForceShutdown(ReturnCode)
+        Lifecycle.Shutdown(ReturnCode, force)
     End Sub
     Private Sub BtnTitleClose_Click(sender As Object, e As RoutedEventArgs) Handles BtnTitleClose.Click
         EndProgram(True)
@@ -450,7 +451,7 @@ Public Class FormMain
 
     '移动
     Private Sub FormDragMove(sender As Object, e As MouseButtonEventArgs) Handles PanTitle.MouseLeftButtonDown, PanMsg.MouseLeftButtonDown
-        On Error Resume Next
+        'On Error Resume Next
         If sender.IsMouseDirectlyOver Then DragMove()
     End Sub
 
@@ -459,18 +460,30 @@ Public Class FormMain
     ''' 是否可以向注册表储存尺寸改变信息。以此避免初始化时误储存。
     ''' </summary>
     Public IsSizeSaveable As Boolean = False
-    Private Sub FormMain_SizeChanged() Handles Me.SizeChanged, Me.Loaded
+    Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
-            Setup.Set("WindowHeight", Height)
-            Setup.Set("WindowWidth", Width)
+            Config.UI.WindowHeight = Height
+            Config.UI.WindowWidth = Width
         End If
-        RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
-        PanForm.Width = BorderForm.ActualWidth + 0.001
-        PanForm.Height = BorderForm.ActualHeight + 0.001
-        PanMain.Width = PanForm.Width
-        PanMain.Height = Math.Max(0, PanForm.Height - PanTitle.ActualHeight)
-        VideoBack.Width = PanForm.Width
-        VideoBack.Height = PanForm.Height
+        If BorderForm IsNot Nothing Then
+            RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
+
+            Dim formWidth As Double = BorderForm.ActualWidth + 0.001
+            Dim formHeight As Double = BorderForm.ActualHeight + 0.001
+
+            PanForm.Width = formWidth
+            PanForm.Height = formHeight
+            PanMain.Width = formWidth
+
+            If PanTitle IsNot Nothing Then
+                PanMain.Height = Math.Max(0, formHeight - PanTitle.ActualHeight)
+            Else
+                PanMain.Height = formHeight
+            End If
+
+            VideoBack.Width = formWidth
+            VideoBack.Height = formHeight
+        End If
         If WindowState = WindowState.Maximized Then WindowState = WindowState.Normal '修复 #1938
     End Sub
 
@@ -1003,23 +1016,13 @@ Public Class FormMain
     Public Enum PageSubType
         [Default] = 0
         DownloadInstall = 1
-        DownloadClient = 4
-        DownloadOptiFine = 5
-        DownloadForge = 6
-        DownloadNeoForge = 7
-        DownloadCleanroom = 16
-        DownloadFabric = 8
-        DownloadQuilt = 10
-        DownloadLiteLoader = 9
-        DownloadLabyMod = 20
-        DownloadLegacyFabric = 21
-        DownloadMod = 11
-        DownloadPack = 12
-        DownloadDataPack = 13
-        DownloadResourcePack = 14
-        DownloadShader = 15
-        DownloadCompFavorites = 17
-        DownloadWorld = 18
+        DownloadMod = 2
+        DownloadPack = 3
+        DownloadDataPack = 4
+        DownloadResourcePack = 5
+        DownloadShader = 6
+        DownloadWorld = 7
+        DownloadCompFavorites = 8
         SetupLaunch = 0
         SetupUI = 1
         SetupSystem = 2

@@ -1,14 +1,10 @@
 ﻿Imports System.Runtime.InteropServices
-Imports System.Net.Sockets
-Imports Makaretu.Nat
-Imports STUN
 Imports System.Threading.Tasks
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
-Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
 Public Module ModLink
@@ -171,7 +167,7 @@ Public Module ModLink
 
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional lobbyInfo As LobbyInfoProvider.LobbyInfo = Nothing, Optional boardcastDesc As String = Nothing)
+    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional boardcastDesc As String = Nothing)
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Sub()
             Try
@@ -190,14 +186,10 @@ Public Module ModLink
                 End Sub))
                 If LaunchAfterDownload Then
                     Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Sub()
-                        LobbyController.Launch(isHost, lobbyInfo, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+                        LobbyController.Launch(isHost, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
                     End Sub))
                 End If
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() RunInUi(Sub()
-                    FrmLinkLobby.BtnCreate.IsEnabled = True
-                    FrmLinkLobby.BtnSelectJoin.IsEnabled = True
-                    Hint("联机组件下载完成！", HintType.Finish)
-                End Sub)) With {.Show = False})
+                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() Hint("联机组件下载完成！", HintType.Finish)) With {.Show = False})
                 '启动
                 DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
                 DlEasyTierLoader.Start()
@@ -290,111 +282,6 @@ Public Module ModLink
             End If
         End If
         Return True
-    End Function
-#End Region
-
-#Region "NAT 测试"
-    ''' <summary>
-    ''' 使用 EasyTier Cli 进行网络测试。
-    ''' </summary>
-    ''' <returns></returns>
-    Public Function NetTestET()
-        Dim ETCliProcess As New Process With {
-                                   .StartInfo = New ProcessStartInfo With {
-                                       .FileName = $"{ETInfoProvider.ETPath}\easytier-cli.exe",
-                                       .WorkingDirectory = ETInfoProvider.ETPath,
-                                       .Arguments = "stun",
-                                       .ErrorDialog = False,
-                                       .CreateNoWindow = True,
-                                       .WindowStyle = ProcessWindowStyle.Hidden,
-                                       .UseShellExecute = False,
-                                       .RedirectStandardOutput = True,
-                                       .RedirectStandardError = True,
-                                       .RedirectStandardInput = True,
-                                       .StandardOutputEncoding = Encoding.UTF8},
-                                   .EnableRaisingEvents = True
-                               }
-        If Not File.Exists(ETCliProcess.StartInfo.FileName) Then
-            Log("[Link] EasyTier 不存在，开始下载")
-            DownloadEasyTier()
-        End If
-        Log($"[Link] EasyTier 路径: {ETCliProcess.StartInfo.FileName}")
-        Dim Output As String = Nothing
-
-        ETCliProcess.Start()
-        Output = ETCliProcess.StandardOutput.ReadToEnd().Replace("stun info: StunInfo ", "")
-
-        Dim OutJObj As JObject = JObject.Parse(Output)
-        Dim NatType As String = OutJObj("udp_nat_type")
-        Dim Ips As Array = OutJObj("public_ip").ToArray()
-        Dim SupportIPv6 As Boolean = Ips.Cast(Of Object)().Any(Function(Ip) Ip.contains(":"))
-        Return {NatType, SupportIPv6}
-    End Function
-    ''' <summary>
-    ''' 进行网络测试，包括 IPv4 NAT 类型测试和 IPv6 支持情况测试
-    ''' </summary>
-    ''' <returns>NAT 类型 + IPv6 支持与否</returns>
-    Public Function NetTest() As String()
-        '申请通过防火墙以准确测试 NAT 类型
-        Dim RetryTime As Integer = 0
-        Try
-PortRetry:
-            Dim TestTcpListener = TcpListener.Create(RandomUtils.NextInt(20000, 65000))
-            TestTcpListener.Start()
-            Thread.Sleep(200)
-            TestTcpListener.Stop()
-        Catch ex As Exception
-            Log(ex, "[Link] 请求防火墙通过失败")
-            If RetryTime >= 3 Then
-                Log("[Link] 请求防火墙通过失败次数已达 3 次，不再重试")
-                Exit Try
-            End If
-            GoTo PortRetry
-        End Try
-        'IPv4 NAT 测试
-        Dim NATType As String
-        Dim STUNServerDomain As String = "stun.miwifi.com" '指定 STUN 服务器
-        Log("[STUN] 指定的 STUN 服务器: " + STUNServerDomain)
-        Try
-            Dim STUNServerIP As String = Dns.GetHostAddresses(STUNServerDomain)(0).ToString() '解析 STUN 服务器 IP
-            Log("[STUN] 解析目标 STUN 服务器 IP: " + STUNServerIP)
-            Dim STUNServerEndPoint As IPEndPoint = New IPEndPoint(IPAddress.Parse(STUNServerIP), 3478) '设置 IPEndPoint
-
-            STUNClient.ReceiveTimeout = 500 '设置超时
-            Log("[STUN] 开始进行 NAT 测试")
-            Dim STUNTestResult = STUNClient.Query(STUNServerEndPoint, STUNQueryType.ExactNAT, True) '进行 STUN 测试
-
-            NATType = STUNTestResult.NATType.ToString()
-            Log("[STUN] 本地 NAT 类型: " + NATType)
-        Catch ex As Exception
-            Log(ex, "[STUN] 进行 NAT 测试失败", LogLevel.Normal)
-            NATType = "TestFailed"
-        End Try
-
-        'IPv6
-        Dim IPv6Status As String = "Unsupported"
-        Try
-            For Each ip In NatDiscovery.GetIPAddresses()
-                If ip.AddressFamily() = AddressFamily.InterNetworkV6 Then 'IPv6
-                    If ip.IsIPv6LinkLocal() OrElse ip.IsIPv6SiteLocal() OrElse ip.IsIPv6Teredo() OrElse ip.IsIPv4MappedToIPv6() Then
-                        Continue For
-                    ElseIf ip.IsPublic() Then
-                        Log("[IP] 检测到 IPv6 公网地址")
-                        IPv6Status = "Public"
-                        Exit For
-                    ElseIf ip.IsPrivate() AndAlso Not IPv6Status = "Supported" Then
-                        Log("[IP] 检测到 IPv6 支持")
-                        IPv6Status = "Supported"
-                        Continue For
-                    End If
-                End If
-            Next
-        Catch ex As Exception
-            Log(ex, "[IP] 进行 IPv6 测试失败", LogLevel.Normal)
-            IPv6Status = "Unknown"
-        End Try
-
-        Return {NATType, IPv6Status}
     End Function
 #End Region
 
