@@ -51,7 +51,9 @@ Public Class ModSetup
     ''' 若该设置项经过了加密，则会抛出异常。
     ''' </summary>
     Public Sub SetSafe(key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        ' If GetConfigItem(key). Then Throw New InvalidOperationException("禁止写入加密设置项：" & Key)
+        Dim item As ConfigItem(Of Object) = Nothing
+        If Not ConfigService.TryGetConfigItem(key, item) Then Return
+        If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止写入加密设置项：" & Key)
         [Set](key, value, forceReload, instance)
     End Sub
 
@@ -72,6 +74,17 @@ Public Class ModSetup
         Return GetConfigItem(key).GetValueNoType(instance?.Path)
     End Function
 
+    ''' <summary>
+    ''' 获取某个未经加密的设置项的值。
+    ''' 若该设置项经过了加密，则会抛出异常。
+    ''' </summary>
+    Public Function GetSafe(key As String, Optional instance As McInstance = Nothing)
+        Dim item As ConfigItem(Of Object) = Nothing
+        If Not ConfigService.TryGetConfigItem(key, item) Then Return
+        If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止读取加密设置项：" & key)
+        Return [Get](key, instance)
+    End Function
+    
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
