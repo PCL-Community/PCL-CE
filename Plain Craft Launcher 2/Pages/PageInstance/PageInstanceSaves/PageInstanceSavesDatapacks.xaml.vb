@@ -1077,10 +1077,37 @@ Public Class PageInstanceSavesDatapacks
             Log(ex, "删除数据包失败", LogLevel.Msgbox)
         End Try
     End Sub
+#End Region
+
+#Region "底部栏操作"
+    Private Sub BtnSelectEnable_Click(sender As Object, e As EventArgs) Handles BtnSelectEnable.Click
+    End Sub
+
+    Private Sub BtnSelectDisable_Click(sender As Object, e As EventArgs) Handles BtnSelectDisable.Click
+    End Sub
+
+    Private Sub BtnSelectDelete_Click(sender As Object, e As EventArgs) Handles BtnSelectDelete.Click
+        Dim selectedPaths As List(Of String) = DatapackItems.Values _
+            .Where(Function(i) i IsNot Nothing AndAlso i.Entry IsNot Nothing AndAlso SelectedDatapacks.Contains(i.Entry.Path)) _
+            .Select(Function(i) i.Entry.Path) _
+            .ToList()
+        Try
+            For Each path In selectedPaths
+                If File.Exists(path) Then
+                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
+                        Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                        Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin)
+                End If
+            Next
+            ReloadDatapackList(True)
+            ChangeAllSelected(False)
+        Catch ex As Exception
+            Hint("删除数据包失败", HintType.Critical)
+        End Try
+    End Sub
 
     Private Sub BtnSelectCancel_Click(sender As Object, e As EventArgs) Handles BtnSelectCancel.Click
         ChangeAllSelected(False)
     End Sub
 #End Region
-
 End Class
