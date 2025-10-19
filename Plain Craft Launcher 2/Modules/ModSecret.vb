@@ -130,8 +130,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Select Case Setup.Get("LaunchPreferredIpStack")
             Case 0
                 DataList.Add("-Djava.net.preferIPv4Stack=true")
+                DataList.Add("-Djava.net.preferIPv4Addresses=true")
             Case 2
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
+                DataList.Add("-Djava.net.preferIPv6Addresses=true")
         End Select
         McLaunchLog("当前剩余内存：" & Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
