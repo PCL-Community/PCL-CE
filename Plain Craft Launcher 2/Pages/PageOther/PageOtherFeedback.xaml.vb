@@ -119,7 +119,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CommandBlock.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -147,7 +147,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneBlock.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -175,7 +175,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/Anvil.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -203,7 +203,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneLampOff.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -231,7 +231,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneLampOn.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -259,7 +259,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/Grass.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -287,7 +287,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CobbleStone.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -315,7 +315,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CobbleStone.png"
-                    .Tags = (item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
