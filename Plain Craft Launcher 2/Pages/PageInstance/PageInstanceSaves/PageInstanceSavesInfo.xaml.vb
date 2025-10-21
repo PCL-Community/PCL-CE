@@ -74,14 +74,38 @@ Class PageInstanceSavesInfo
 
                 If hasAllowCommands Then
                     Dim allowCommandValue As Integer = Integer.Parse(gameLevel.Get(Of NbtByte)("allowCommands").Value)
-                    Dim allowCommandName As String = "获取失败"
-                    Select Case allowCommandValue
-                        Case 0
-                            allowCommandName = "不允许"
-                        Case 1
-                            allowCommandName = "允许"
-                    End Select
-                    AddInfoTable("是否允许作弊", allowCommandName)
+                    Dim combo As New MyComboBox() With {.Width = 100, .HorizontalAlignment = HorizontalAlignment.Left, .ToolTip = "修改此设置前请确保该存档未在游戏中打开，否则会导致设置无效"}
+                    combo.Items.Add(New With {.Value = 0, .Display = "不允许"})
+                    combo.Items.Add(New With {.Value = 1, .Display = "允许"})
+                    combo.SelectedValuePath = "Value"
+                    combo.DisplayMemberPath = "Display"
+                    combo.SelectedValue = allowCommandValue
+
+                    AddHandler combo.SelectionChanged, Sub(s, e)
+                                                           Try
+                                                               Dim newVal As Integer = CInt(combo.SelectedValue)
+                                                               gameLevel.Get(Of NbtByte)("allowCommands").Value = newVal.ToString()
+                                                               Using fileStream As New FileStream(saveDatPath, FileMode.Open, FileAccess.Write, FileShare.None)
+                                                                   saveInfo.SaveToStream(fileStream, NbtCompression.GZip)
+                                                               End Using
+                                                               Hint("作弊状态修改成功", HintType.Finish)
+                                                           Catch ex As Exception
+                                                               Log(ex, "作弊状态修改失败", LogLevel.Hint)
+                                                           End Try
+                                                       End Sub
+
+                    Dim rowIndex = PanList.RowDefinitions.Count
+                    PanList.RowDefinitions.Add(New RowDefinition())
+
+                    Dim headTextBlock As New TextBlock With {.Text = "是否允许作弊", .Margin = New Thickness(0, 3, 0, 3)}
+                    Grid.SetRow(headTextBlock, rowIndex)
+                    Grid.SetColumn(headTextBlock, 0)
+
+                    Grid.SetRow(combo, rowIndex)
+                    Grid.SetColumn(combo, 2)
+
+                    PanList.Children.Add(headTextBlock)
+                    PanList.Children.Add(combo)
                 End If
 
                 AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(gameLevel.Get(Of NbtLong)("LastPlayed").Value)).ToLocalTime().ToString())
