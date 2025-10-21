@@ -88,9 +88,9 @@ Class PageInstanceSavesInfo
                                                                Using fileStream As New FileStream(saveDatPath, FileMode.Open, FileAccess.Write, FileShare.None)
                                                                    saveInfo.SaveToStream(fileStream, NbtCompression.GZip)
                                                                End Using
-                                                               Hint("作弊状态修改成功", HintType.Finish)
+                                                               Hint("作弊设置修改成功", HintType.Finish)
                                                            Catch ex As Exception
-                                                               Log(ex, "作弊状态修改失败", LogLevel.Hint)
+                                                               Log(ex, "作弊设置修改失败", LogLevel.Hint)
                                                            End Try
                                                        End Sub
 
