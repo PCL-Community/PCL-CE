@@ -15,12 +15,12 @@ Public Class PageOtherFeedback
     End Class
 
     Enum TagID As Int64
-        Processing = 6820804544 '处理中
-        WaitingProcess = 6820804546 '等待处理
-        Completed = 6820804547 '完成
-        Decline = 6820804539 '拒绝
-        Ignored = 8064650117 '忽略
-        Duplicate = 6820804541 '重复
+        Processing = 6820804544
+        WaitingProcess = 6820804546
+        Completed = 6820804547
+        Decline = 6820804539
+        Ignored = 8064650117
+        Duplicate = 6820804541
         Wait = 8743070786
         Pause = 8558220235
         Upnext = 8550609020
@@ -95,7 +95,6 @@ Public Class PageOtherFeedback
         PanListDecline.Children.Clear()
         PanListIgnored.Children.Clear()
         For Each item In Loader.Output
-            Dim ele As New MyListItem With {.Title = item.Title, .Type = MyListItem.CheckType.Clickable}
             Dim StatusDesc As String = "???"
             Dim commonInfo = $"{item.User} | {item.Time} | 类型: {item.Type}"
 
@@ -120,7 +119,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CommandBlock.png"
-                    .Tags = AppendTypeToStatus("处理中", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -148,7 +147,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneBlock.png"
-                    .Tags = AppendTypeToStatus("等待处理", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -176,7 +175,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/Anvil.png"
-                    .Tags = AppendTypeToStatus("已确认，等待社区开发者接管该内容的处理", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -204,7 +203,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneLampOff.png"
-                    .Tags = AppendTypeToStatus("近期不计划制作此功能", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -232,7 +231,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/RedstoneLampOn.png"
-                    .Tags = AppendTypeToStatus("即将开工的内容", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -260,7 +259,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/Grass.png"
-                    .Tags = AppendTypeToStatus("已完成", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -288,7 +287,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CobbleStone.png"
-                    .Tags = AppendTypeToStatus("已拒绝", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -316,7 +315,7 @@ Public Class PageOtherFeedback
                     .Type = MyListItem.CheckType.Clickable
                     .Info = commonInfo
                     .Logo = PathImage & "Blocks/CobbleStone.png"
-                    .Tags = AppendTypeToStatus("已忽略", item.Type)
+                    .Tags = item.Type
                 End With
 
                 AddHandler li.Click,
@@ -333,33 +332,6 @@ Public Class PageOtherFeedback
             End Sub
 
                 PanListIgnored.Children.Add(li)
-            End If
-            ele.Info = item.User & " | " & item.Time
-            ele.Tags = StatusDesc
-            AddHandler ele.Click, Sub()
-                                      Select Case MyMsgBoxMarkdown($"提交者：{item.User}（{TimeUtils.GetTimeSpanString(item.Time - DateTime.Now, False)}）{vbCrLf}状态：{StatusDesc}{vbCrLf}{vbCrLf}{item.Content}",
-                                               "#" & item.ID & " " & item.Title,
-                                               Button2:="查看详情")
-                                          Case 2
-                                              OpenWebsite(item.Url)
-                                      End Select
-                                  End Sub
-            If StatusDesc.StartsWithF("处理中") Then
-                PanListProcessing.Children.Add(ele)
-            ElseIf StatusDesc.Equals("等待处理") Then
-                PanListWaitingProcess.Children.Add(ele)
-            ElseIf StatusDesc.Equals("已完成") Then
-                PanListCompleted.Children.Add(ele)
-            ElseIf StatusDesc.Equals("已拒绝") Then
-                PanListDecline.Children.Add(ele)
-            ElseIf StatusDesc.Equals("已忽略") Then
-                PanListIgnored.Children.Add(ele)
-            ElseIf StatusDesc.Equals("已确认，等待社区开发者接管该内容的处理") Then
-                PanListWait.Children.Add(ele)
-            ElseIf StatusDesc.Equals("近期不计划制作此功能") Then
-                PanListPause.Children.Add(ele)
-            ElseIf StatusDesc.Equals("即将开工的内容") Then
-                PanListUpnext.Children.Add(ele)
             End If
             PanContentDecline.Visibility = If(PanListDecline.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
             PanContentCompleted.Visibility = If(PanListCompleted.Children.Count.Equals(0), Visibility.Collapsed, Visibility.Visible)
