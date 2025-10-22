@@ -148,7 +148,7 @@ Public Class PageInstanceSaves
                                                                        Try
                                                                            FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
                                                                            Hint("已将存档移至回收站！")
-                                                                           RunInUiWait(Sub() Reload())
+                                                                           RunInUiWait(Sub() RemoveItem(worldItem))
                                                                        Catch ex As Exception
                                                                            Log(ex, "删除存档失败！", LogLevel.Hint)
                                                                            RunInUiWait(Sub() Reload())
