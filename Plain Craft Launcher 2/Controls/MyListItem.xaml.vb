@@ -509,7 +509,7 @@ Public Class MyListItem
                 If Checked Then
                     '由无变有
                     If Not IsNothing(RectCheck) Then
-                        Dim Delta = ActualHeight - RectCheck.ActualHeight - 12
+                        Dim Delta = 20
                         Anim.Add(AaHeight(RectCheck, Delta * 0.4, 200,, New AniEaseOutFluent(AniEasePower.Weak)))
                         Anim.Add(AaHeight(RectCheck, Delta * 0.6, 300,, New AniEaseOutBack(AniEasePower.Weak)))
                         Anim.Add(AaOpacity(RectCheck, 1 - RectCheck.Opacity, 30))
