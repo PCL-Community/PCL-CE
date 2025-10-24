@@ -186,12 +186,6 @@
                         <RowDefinition Height="60" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="60" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="60" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="60" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="60" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Java Launch Wrapper" TextWrapping="Wrap" FontWeight="Bold" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Copyright © 2022 00ll00&#xa;Licensed under the MIT License." TextWrapping="Wrap" />
