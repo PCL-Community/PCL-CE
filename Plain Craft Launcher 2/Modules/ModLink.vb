@@ -167,7 +167,7 @@ Public Module ModLink
 
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False, Optional boardcastDesc As String = Nothing)
+    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False)
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Sub()
             Try

@@ -9,11 +9,14 @@ Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Utils
 Imports PCL.Core.App
+Imports PCL.Core.Link.Scaffolding
 
 Public Class PageLinkLobby
     '记录的启动情况
     Private IsHost As Boolean = False
     Private HostInfo As ETPlayerInfo = Nothing
+    Private _scfServerEntity As ScaffoldingServerEntity
+    Private _scfClientEntity As ScaffoldingClientEntity
 
 #Region "初始化"
 
@@ -479,16 +482,11 @@ Public Class PageLinkLobby
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
-                           Dim id As String = RandomUtils.NextInt(10000000, 99999999).ToString()
-                           Dim secret As String = RandomUtils.NextInt(10, 99).ToString()
-                           TargetLobby = New LobbyInfo With {
-                               .NetworkName = id,
-                               .NetworkSecret = secret,
-                               .OriginalCode = $"{id}{secret}{port}".FromB10ToB32,
-                               .Type = LobbyType.PCLCE,
-                               .Port = port
-                           }
-
+            Dim username = GetAvailableUsername()
+            If username = Nothing Then
+                Hint("请先设置一个用户名或登录账户再试！", HintType.Critical)
+            End If
+            _scfServerEntity = LobbyController.LaunchServer(GetAvailableUsername)
                            RunInUi(Sub()
                                        BtnFinishPing.Visibility = Visibility.Collapsed
                                        BtnConnectType.Visibility = Visibility.Collapsed
@@ -502,8 +500,7 @@ Public Class PageLinkLobby
                                        BtnFinishExit.Text = "关闭大厅"
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
-
-                           Dim result = LobbyController.Launch(True, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
+            
                            If result = 1 Then
                                RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Hint("创建大厅失败，请向开发者反馈", HintType.Critical)
@@ -588,6 +585,16 @@ Public Class PageLinkLobby
     Private Sub TextJoinLobbyId_KeyDown(sender As Object, e As KeyEventArgs) Handles TextJoinLobbyId.KeyDown
         If e.Key = Key.Enter Then BtnJoin_Click(sender, e)
     End Sub
+    
+    Private Function GetAvailableUsername() As String
+        If AllowCustomName AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("LinkUsername")) Then
+            Return Setup.Get("LinkUsername")
+        ElseIf Not String.IsNullOrWhiteSpace(NaidProfile.Username) Then
+            Return NaidProfile.Username
+        Else
+            Return Nothing    
+        End If
+    End Function
 
 #End Region
 
