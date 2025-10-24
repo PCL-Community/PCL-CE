@@ -397,10 +397,10 @@ Public Class PageSelectLeft
         For i = Folders.Count - 1 To 0 Step -1
             If Folders(i) <> "" AndAlso Folders(i).ToString.EndsWith(Folder.Path) Then
                 Folders.RemoveAt(i)
-                Setup.Set("LaunchFolders", If(Not Folders.Any(), "", Join(Folders.ToArray, "|")))
                 Exit For
             End If
         Next
+        Setup.Set("LaunchFolders", If(Not Folders.Any(), "", Join(Folders.ToArray, "|")))
         RunInNewThread(
         Sub()
             '删除文件夹
