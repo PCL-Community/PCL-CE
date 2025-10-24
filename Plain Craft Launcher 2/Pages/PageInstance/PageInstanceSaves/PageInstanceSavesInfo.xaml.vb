@@ -84,8 +84,8 @@ Class PageInstanceSavesInfo
                     AddHandler combo.SelectionChanged, Sub(s, e)
                                                            Try
                                                                Dim newVal As Integer = CInt(combo.SelectedValue)
-                                                               gameLevel.Get(Of NbtByte)("allowCommands").Value = newVal.ToString()
-                                                               Using fileStream As New FileStream(saveDatPath, FileMode.Open, FileAccess.Write, FileShare.None)
+                                                               gameLevel.Get(Of NbtByte)("allowCommands").Value = CByte(newVal)
+                                                               Using fileStream As New FileStream(saveDatPath, FileMode.Create, FileAccess.Write, FileShare.None)
                                                                    saveInfo.SaveToStream(fileStream, NbtCompression.GZip)
                                                                End Using
                                                                Hint("作弊设置修改成功", HintType.Finish)
