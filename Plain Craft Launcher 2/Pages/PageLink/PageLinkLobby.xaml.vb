@@ -1,5 +1,4 @@
 ﻿Imports System.Collections.ObjectModel
-Imports System.Threading.Tasks
 Imports PCL.Core.Link
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
@@ -15,8 +14,6 @@ Public Class PageLinkLobby
     '记录的启动情况
     Private IsHost As Boolean = False
     Private HostInfo As ETPlayerInfo = Nothing
-    Private _scfServerEntity As ScaffoldingServerEntity
-    Private _scfClientEntity As ScaffoldingClientEntity
 
 #Region "初始化"
 
@@ -482,46 +479,34 @@ Public Class PageLinkLobby
         Log("[Link] 创建大厅，端口：" & port)
         IsHost = True
         RunInNewThread(Sub()
-            Dim username = GetAvailableUsername()
-            If username = Nothing Then
-                Hint("请先设置一个用户名或登录账户再试！", HintType.Critical)
-            End If
-            _scfServerEntity = LobbyController.LaunchServer(GetAvailableUsername)
+            Dim username = GetUsername()
+                           LobbyController.ScfServerEntity = LobbyController.LaunchServer(username, port)
                            RunInUi(Sub()
                                        BtnFinishPing.Visibility = Visibility.Collapsed
                                        BtnConnectType.Visibility = Visibility.Collapsed
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabConnectUserName.Text = GetUsername()
+                                       LabConnectUserName.Text = username
                                        LabConnectUserType.Text = "创建者"
-                                       LabFinishId.Text = TargetLobby.OriginalCode
+                                       LabFinishId.Text = LobbyController.ScfServerEntity.EasyTier.Lobby.FullCode
                                        BtnFinishCopyIp.Visibility = Visibility.Collapsed
                                        BtnCreate.IsEnabled = True
                                        BtnFinishExit.Text = "关闭大厅"
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
-            
-                           If result = 1 Then
-                               RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
-                               Hint("创建大厅失败，请向开发者反馈", HintType.Critical)
-                               Return
-                           End If
 
-                           Dim retryCount As Integer = 0
-                           While ETController.Status = ETState.Stopped
-                               Thread.Sleep(300)
-                               If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
-                               If retryCount > 10 Then
-                                   Hint("EasyTier 启动失败", HintType.Critical)
-                                   RunInUi(Sub() BtnCreate.IsEnabled = True)
-                                   LobbyController.Close()
-                                   BtnCreate.IsEnabled = True
-                                   RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
-                                   Exit Sub
+                           For Each profile In LobbyController.ScfServerEntity.Server.CurrentPlayers
+                               If profile.Value.Kind = Client.Models.PlayerKind.HOST Then
+
                                End If
-                               retryCount += 1
-                           End While
-                           Thread.Sleep(1000)
+                           Next
+
+                           'If result = 1 Then
+                           'RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
+                           'Hint("创建大厅失败，请向开发者反馈", HintType.Critical)
+                           'Return
+                           'End If
+
                            StartETWatcher()
                        End Sub, "Link Create Lobby")
     End Sub
@@ -532,9 +517,10 @@ Public Class PageLinkLobby
         Dim id = TextJoinLobbyId.Text
         IsHost = False
         RunInNewThread(Sub()
-                           TargetLobby = ParseCode(id)
+            Dim username = GetUsername()
+                           LobbyController.ScfClientEntity = LobbyController.LaunchClient(username, id)
 
-                           If TargetLobby Is Nothing Then
+                           If LobbyController.ScfClientEntity Is Nothing Then
                                Hint("大厅编号不正确，请检查后重新输入", HintType.Critical)
                                Return
                            End If
@@ -546,55 +532,17 @@ Public Class PageLinkLobby
                                        LabConnectType.Text = "连接中"
                                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                                        StackPlayerList.Children.Clear()
-                                       LabConnectUserName.Text = GetUsername()
+                                       LabConnectUserName.Text = username
                                        LabConnectUserType.Text = "加入者"
-                                       LabFinishId.Text = TargetLobby.OriginalCode
+                                       LabFinishId.Text = LobbyController.ScfClientEntity.EasyTier.Lobby.FullCode
                                        BtnFinishCopyIp.Visibility = Visibility.Visible
                                        CurrentSubpage = Subpages.PanFinish
                                    End Sub)
-
-                           Dim result = LobbyController.Launch(False, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
-                           If result = 1 Then
-                               RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
-                               Hint("加入大厅失败，请向开发者反馈", HintType.Critical)
-                               Return
-                           End If
-
-                           Dim retryCount As Integer = 0
-                           While ETController.Status = ETState.Stopped
-                               Thread.Sleep(300)
-                               If DlEasyTierLoader IsNot Nothing AndAlso DlEasyTierLoader.State = LoadState.Loading Then Continue While
-                               If retryCount > 10 Then
-                                   Hint("EasyTier 启动失败", HintType.Critical)
-                                   RunInUi(Sub() BtnCreate.IsEnabled = True)
-                                   LobbyController.Close()
-                                   Exit Sub
-                               End If
-                               retryCount += 1
-                           End While
-                           Thread.Sleep(1000)
-                           StartETWatcher()
-                           Thread.Sleep(500)
-                           While Not IsWatcherStarted OrElse McForward Is Nothing OrElse HostInfo Is Nothing
-                               Thread.Sleep(500)
-                           End While
-                           Dim hostname As String = If(String.IsNullOrWhiteSpace(HostInfo.Username), HostInfo.Hostname, HostInfo.Username)
-                           RunInUi(Sub() PanNetInfo.Title = $"{hostname} 的大厅")
                        End Sub, "Link Join Lobby")
     End Sub
     Private Sub TextJoinLobbyId_KeyDown(sender As Object, e As KeyEventArgs) Handles TextJoinLobbyId.KeyDown
         If e.Key = Key.Enter Then BtnJoin_Click(sender, e)
     End Sub
-    
-    Private Function GetAvailableUsername() As String
-        If AllowCustomName AndAlso Not String.IsNullOrWhiteSpace(Setup.Get("LinkUsername")) Then
-            Return Setup.Get("LinkUsername")
-        ElseIf Not String.IsNullOrWhiteSpace(NaidProfile.Username) Then
-            Return NaidProfile.Username
-        Else
-            Return Nothing    
-        End If
-    End Function
 
 #End Region
 

@@ -167,7 +167,7 @@ Public Module ModLink
 
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
-    Public Function DownloadEasyTier(Optional LaunchAfterDownload As Boolean = False, Optional isHost As Boolean = False)
+    Public Function DownloadEasyTier()
         Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Sub()
             Try
@@ -184,11 +184,6 @@ Public Module ModLink
                     File.Delete(DlTargetPath)
                     CleanupEasyTierCache()
                 End Sub))
-                If LaunchAfterDownload Then
-                    Loaders.Add(New LoaderTask(Of Integer, Integer)("启动大厅", Sub()
-                        LobbyController.Launch(isHost, If(SelectedProfile IsNot Nothing, SelectedProfile.Username, ""))
-                    End Sub))
-                End If
                 Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() Hint("联机组件下载完成！", HintType.Finish)) With {.Show = False})
                 '启动
                 DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
