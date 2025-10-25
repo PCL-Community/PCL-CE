@@ -31,6 +31,7 @@ Class PageLinkSetup
         ComboPreferProtocol.SelectedIndex = CInt(Config.Link.ProtocolPreference)
         CheckTryPaunchSym.Checked = Config.Link.TryPunchSym
         CheckEnableIPv6.Checked = Config.Link.EnableIPv6
+        CheckRelayForOthers.Checked = Config.Link.RelayForOthers
         If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
