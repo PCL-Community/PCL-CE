@@ -393,18 +393,14 @@ Public Class PageSelectLeft
         If MyMsgBox("你确定要" & DeleteText & "这个文件夹吗？" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！", "删除警告", "取消", "确认", "取消") <> 2 Then Return
         If MyMsgBox("如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！" & vbCrLf & "继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这是最后一次警告！", "删除警告", "确认" & DeleteText, "取消", IsWarn:=True) <> 1 Then Return
         '移出列表
-        If Folder.Type = McFolderType.Custom Then
-            Dim Folders As New List(Of String)(Setup.Get("LaunchFolders").ToString.Split("|"))
-            For i = 0 To Folders.Count - 1
-                If Folders(i) = "" Then Exit For
-                If Folders(i).ToString.EndsWith(Folder.Path) Then
-                    'Name = Folders(i).ToString.Before(">")
-                    Folders.RemoveAt(i)
-                    Exit For
-                End If
-            Next
-            Setup.Set("LaunchFolders", If(Not Folders.Any(), "", Join(Folders.ToArray, "|")))
-        End If
+        Dim Folders As New List(Of String)(Setup.Get("LaunchFolders").ToString.Split("|"))
+        For i = Folders.Count - 1 To 0 Step -1
+            If Folders(i) <> "" AndAlso Folders(i).ToString.EndsWith(Folder.Path) Then
+                Folders.RemoveAt(i)
+                Exit For
+            End If
+        Next
+        Setup.Set("LaunchFolders", If(Not Folders.Any(), "", Join(Folders.ToArray, "|")))
         RunInNewThread(
         Sub()
             '删除文件夹
