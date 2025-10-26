@@ -330,6 +330,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly Memory As Color
         Public ReadOnly Tooltip As Color
         Public ReadOnly BackgroundTransparentSidebar As Color
+        Public ReadOnly RedBack As Color
 
         Public ReadOnly Gray1Brush As SolidColorBrush
         Public ReadOnly Gray2Brush As SolidColorBrush
@@ -346,6 +347,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly MemoryBrush As SolidColorBrush
         Public ReadOnly TooltipBrush As SolidColorBrush
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
+        Public ReadOnly RedBackBrush As SolidColorBrush
 
         Public Sub New(style As GrayProfile)
             Gray1 = NewColor.FromHSL2(0, 0, style.L1)
@@ -363,6 +365,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Memory = NewColor.FromHSL2(0, 0, style.G3)
             Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Atb)
             BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(style.Asb)
+            RedBack = NewColor.FromHSL(0, 1, style.L7)
 
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
@@ -379,6 +382,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             MemoryBrush = New SolidColorBrush(Memory)
             TooltipBrush = New SolidColorBrush(Tooltip)
             BackgroundTransparentSidebarBrush = New SolidColorBrush(BackgroundTransparentSidebar)
+            RedBackBrush = New SolidColorBrush(RedBack)
         End Sub
     End Class
 
@@ -594,6 +598,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushToolTip") = StaticColors.TooltipBrush
         res("ColorBrushMemory") = StaticColors.MemoryBrush
         res("ColorBrushMsgBox") = StaticColors.WhiteBrush
+        res("ColorBrushRedBack") = StaticColors.RedBackBrush
         res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
 
