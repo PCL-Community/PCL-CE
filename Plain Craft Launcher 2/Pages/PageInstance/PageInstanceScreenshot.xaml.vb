@@ -108,28 +108,28 @@ Public Class PageInstanceScreenshot
                 '图片
                 Dim image As New Image
                 image.Source = Await Task.Run(Function()
-                                                  Dim bitmapImage As New BitmapImage()
-                                                  Dim loadSource As String = i
-                                                  Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
-                                                      bitmapImage.BeginInit()
-                                                      bitmapImage.DecodePixelHeight = 200
-                                                      bitmapImage.DecodePixelWidth = 400
-                                                      bitmapImage.CacheOption = BitmapCacheOption.OnLoad
-                                                      bitmapImage.StreamSource = fs
-                                                      bitmapImage.EndInit()
-                                                      bitmapImage.Freeze()
-                                                  End Using
-                                                  Return bitmapImage
-                                              End Function)
+                    Dim bitmapImage As New BitmapImage()
+                    Dim loadSource As String = i
+                    Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
+                        bitmapImage.BeginInit()
+                        bitmapImage.DecodePixelHeight = 200
+                        bitmapImage.DecodePixelWidth = 400
+                        bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+                        bitmapImage.StreamSource = fs
+                        bitmapImage.EndInit()
+                        bitmapImage.Freeze()
+                    End Using
+                    Return bitmapImage
+                End Function)
                 image.Stretch = Stretch.Uniform ' 使图片自适应控件大小
                 image.Cursor = Cursors.Hand
                 AddHandler image.MouseLeftButtonDown, Sub(sender, e)
-                                                          Try
-                                                              Basics.OpenPath(i) ' 使用系统默认程序打开
-                                                          Catch ex As Exception
-                                                              Log(ex, "打开截图失败！", LogLevel.Hint)
-                                                          End Try
-                                                      End Sub
+                    Try
+                        Basics.OpenPath(i) ' 使用系统默认程序打开
+                    Catch ex As Exception
+                        Log(ex, "打开截图失败！", LogLevel.Hint)
+                    End Try
+                End Sub
                 Grid.SetRow(image, 1)
                 grid.Children.Add(image)
 
