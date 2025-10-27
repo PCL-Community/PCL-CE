@@ -540,12 +540,9 @@ Public Class PageLinkLobby
                            LobbyController.ScfClientEntity = LobbyController.LaunchClient(username, id)
 
                            If LobbyController.ScfClientEntity Is Nothing Then
+                               Thread.Sleep(1000)
                                Hint("大厅编号不正确，请检查后重新输入", HintType.Critical)
-                               RunInUi(Sub()
-                                   LabConnectType.Text = "连接中"
-                                   CardPlayerList.Title = "大厅成员列表（正在获取信息）"
-                                   CurrentSubpage = Subpages.PanFinish
-                                   End Sub)
+                               RunInUi(Sub() CurrentSubpage = Subpages.PanSelect)
                                Return
                            End If
 
