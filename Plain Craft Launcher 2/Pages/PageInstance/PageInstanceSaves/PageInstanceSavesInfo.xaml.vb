@@ -79,7 +79,7 @@ Class PageInstanceSavesInfo
                 If hasAllowCommands Then
                     PanSettings.Visibility = Visibility.Visible
                     Dim allowCommandValue As Integer = Integer.Parse(gameLevel.Get(Of NbtByte)("allowCommands").Value)
-                    Dim combo As New MyComboBox() With {.Width = 100, .HorizontalAlignment = HorizontalAlignment.Left, .ToolTip = "修改此设置前请确保该存档未在游戏中打开，否则会导致设置无效"}
+                    Dim combo As New MyComboBox() With {.Width = 100, .HorizontalAlignment = HorizontalAlignment.Left, .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"}
                     combo.Items.Add(New With {.Value = 0, .Display = "不允许"})
                     combo.Items.Add(New With {.Value = 1, .Display = "允许"})
                     combo.SelectedValuePath = "Value"
@@ -99,7 +99,7 @@ Class PageInstanceSavesInfo
                                                            End Try
                                                        End Sub
                     Dim rowIndex = PanSettingsList.RowDefinitions.Count
-                    PanSettingsList.RowDefinitions.Add(New RowDefinition())
+                    PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = New GridLength(1, GridUnitType.Auto)})
 
                     Dim headTextBlock As New TextBlock With {.Text = "是否允许作弊", .Margin = New Thickness(0, 3, 0, 3)}
                     Grid.SetRow(headTextBlock, rowIndex)
@@ -110,6 +110,108 @@ Class PageInstanceSavesInfo
 
                     PanSettingsList.Children.Add(headTextBlock)
                     PanSettingsList.Children.Add(combo)
+                    PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = New GridLength(8, GridUnitType.Pixel)})
+                End If
+
+                If hasDifficulty Then
+                    PanSettings.Visibility = Visibility.Visible
+                    Dim difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
+                    Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
+
+                    Dim difficultyCombo As New MyComboBox() With {.Width = 100, .HorizontalAlignment = HorizontalAlignment.Left, .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"}
+                    difficultyCombo.Items.Add(New With {.Value = 0, .Display = "和平"})
+                    difficultyCombo.Items.Add(New With {.Value = 1, .Display = "简单"})
+                    difficultyCombo.Items.Add(New With {.Value = 2, .Display = "普通"})
+                    difficultyCombo.Items.Add(New With {.Value = 3, .Display = "困难"})
+                    difficultyCombo.SelectedValuePath = "Value"
+                    difficultyCombo.DisplayMemberPath = "Display"
+                    difficultyCombo.SelectedValue = difficultyValue
+
+                    Dim isHardcoreCheck = gameLevel.Get(Of NbtByte)("hardcore")
+                    Dim isHardcoreMode As Boolean = (isHardcoreCheck.Value = "1")
+
+                    Dim lockCheckBox As New MyCheckBox() With {.Text = "锁定难度", .ToolTip = "锁定当前难度设置，锁定后无法在游戏中更改游戏难度", .VerticalAlignment = VerticalAlignment.Center, .Margin = New Thickness(10, 0, 0, 0)
+                    }
+
+                    If isHardcoreMode Then
+                        lockCheckBox.Visibility = Visibility.Collapsed
+                    Else
+                        Dim lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                        Dim isLocked As Boolean = (lockedElement IsNot Nothing AndAlso lockedElement.Value = "1")
+                        lockCheckBox.Checked = isLocked
+                    End If
+
+                    Dim difficultyPanel As New StackPanel() With {
+                        .Orientation = Orientation.Horizontal,
+                        .HorizontalAlignment = HorizontalAlignment.Left
+                    }
+                    difficultyPanel.Children.Add(difficultyCombo)
+                    difficultyPanel.Children.Add(lockCheckBox)
+
+                    AddHandler difficultyCombo.SelectionChanged, Sub(s, e)
+                                                                     Try
+                                                                         If difficultyCombo.SelectedValue Is Nothing Then Return
+
+                                                                         Dim newDifficulty As Integer = CInt(difficultyCombo.SelectedValue)
+
+                                                                         gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+
+                                                                         If Not isHardcoreMode Then
+                                                                             Dim newLocked As Integer = If(lockCheckBox.Checked, 1, 0)
+                                                                             If gameLevel.Contains("DifficultyLocked") Then
+                                                                                 gameLevel.Get(Of NbtByte)("DifficultyLocked").Value = CByte(newLocked)
+                                                                             ElseIf newLocked = 1 Then
+                                                                                 gameLevel.Add(New NbtByte("DifficultyLocked", CByte(newLocked)))
+                                                                             End If
+                                                                         End If
+
+                                                                         Using fileStream As New FileStream(saveDatPath, FileMode.Create, FileAccess.Write, FileShare.None)
+                                                                             saveInfo.SaveToStream(fileStream, NbtCompression.GZip)
+                                                                         End Using
+                                                                         Hint("难度设置修改成功", HintType.Finish)
+                                                                     Catch ex As Exception
+                                                                         Log(ex, "难度设置修改失败", LogLevel.Hint)
+                                                                     End Try
+                                                                 End Sub
+
+                    AddHandler lockCheckBox.Change, Sub(sender, user)
+                                                        Try
+                                                            If difficultyCombo.SelectedValue Is Nothing Then Return
+
+                                                            Dim newDifficulty As Integer = CInt(difficultyCombo.SelectedValue)
+
+                                                            gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+
+                                                            If Not isHardcoreMode Then
+                                                                Dim newLocked As Integer = If(lockCheckBox.Checked, 1, 0)
+                                                                If gameLevel.Contains("DifficultyLocked") Then
+                                                                    gameLevel.Get(Of NbtByte)("DifficultyLocked").Value = CByte(newLocked)
+                                                                ElseIf newLocked = 1 Then
+                                                                    gameLevel.Add(New NbtByte("DifficultyLocked", CByte(newLocked)))
+                                                                End If
+                                                            End If
+
+                                                            Using fileStream As New FileStream(saveDatPath, FileMode.Create, FileAccess.Write, FileShare.None)
+                                                                saveInfo.SaveToStream(fileStream, NbtCompression.GZip)
+                                                            End Using
+                                                            Hint("难度设置修改成功", HintType.Finish)
+                                                        Catch ex As Exception
+                                                            Log(ex, "难度设置修改失败", LogLevel.Hint)
+                                                        End Try
+                                                    End Sub
+
+                    Dim rowIndex = PanSettingsList.RowDefinitions.Count
+                    PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = New GridLength(1, GridUnitType.Auto)})
+
+                    Dim headTextBlock As New TextBlock With {.Text = "游戏难度", .Margin = New Thickness(0, 3, 0, 3)}
+                    Grid.SetRow(headTextBlock, rowIndex)
+                    Grid.SetColumn(headTextBlock, 0)
+
+                    Grid.SetRow(difficultyPanel, rowIndex)
+                    Grid.SetColumn(difficultyPanel, 2)
+
+                    PanSettingsList.Children.Add(headTextBlock)
+                    PanSettingsList.Children.Add(difficultyPanel)
                 End If
 
                 AddInfoTable("最后一次游玩", New DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(Long.Parse(gameLevel.Get(Of NbtLong)("LastPlayed").Value)).ToLocalTime().ToString())

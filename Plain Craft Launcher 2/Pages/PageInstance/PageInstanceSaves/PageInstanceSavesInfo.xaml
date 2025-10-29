@@ -20,7 +20,7 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </local:MyCard>
-            <local:MyCard Margin="0,15,0,0" Title="游戏设置" x:Name="PanSettings" Visibility="Collapsed">
+            <local:MyCard Margin="0,15,0,0" Title="存档设置" x:Name="PanSettings" Visibility="Collapsed">
                 <Grid Margin="15,35,15,15" x:Name="PanSettingsList">
                     <Grid.RowDefinitions>
                     </Grid.RowDefinitions>
