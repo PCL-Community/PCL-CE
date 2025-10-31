@@ -237,11 +237,11 @@ Public Module ModLink
                 Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)
                 Return False
             End Try
-            Dim WaitCount As Integer = 0
+            Dim waitCount As Integer = 0
             While String.IsNullOrWhiteSpace(NaidProfile.Username)
-                If WaitCount > 30 Then Exit While
+                If waitCount > 30 Then Exit While
                 Thread.Sleep(500)
-                WaitCount += 1
+                waitCount += 1
             End While
             If String.IsNullOrWhiteSpace(NaidProfile.Username) Then
                 Hint("尝试获取 Natayark ID 信息失败", HintType.Critical)

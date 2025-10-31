@@ -23,6 +23,7 @@ Public Class PageLinkLobby
         AddHandler LobbyService.Players.CollectionChanged, AddressOf OnPlayersChanged
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
         AddHandler LobbyService.OnClientPing, AddressOf OnClientPlingHandler
+        AddHandler LobbyService.OnServerShuttedDown, AddressOf OnServerShuttedDownHandler
 
         If LobbyAnnouncementLoader Is Nothing Then
             Dim loaders As New List(Of LoaderBase)
@@ -34,6 +35,16 @@ Public Class PageLinkLobby
             loaders.Add(New LoaderTask(Of Integer, Integer)("大厅公告获取", AddressOf GetAnnouncement) With {.ProgressWeight = 0.5})
             LobbyAnnouncementLoader = New LoaderCombo(Of Integer)("Lobby Announcement", loaders) With {.Show = False}
         End If
+    End Sub
+
+    Private Sub OnServerShuttedDownHandler()
+        LobbyService.LeaveLobbyAsync()
+
+        RunInUi(Sub()
+                    CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                    StackPlayerList.Children.Clear()
+                    CurrentSubpage = Subpages.PanSelect
+                End Sub)
     End Sub
 
     Public Async Sub Reload() Handles Me.Loaded
@@ -83,7 +94,7 @@ Public Class PageLinkLobby
     Private Sub OnClientPlingHandler(letacy As Long)
         RunInUi(Sub()
                     LabFinishQuality.Text = "良好"
-                    LabFinishPing.Text = letacy + "ms"
+                    LabFinishPing.Text = letacy.ToString() + "ms"
                     LabConnectType.Text = "暂不可用"
                 End Sub)
     End Sub
@@ -343,86 +354,11 @@ Public Class PageLinkLobby
         MyMsgBox(msg, $"玩家 {info.Name} 的详细信息")
     End Sub
 #End Region
-
-    'EasyTier Cli 信息获取
-    'Private Async Function GetEtInfoAsync(Optional remainRetry As Integer = 8) As Task(Of Integer)
-    '    Try
-    '        Dim playerList As New List(Of PlayerProfile)
-    '        If LobbyController.ScfServerEntity IsNot Nothing Then
-    '            playerList.AddRange(From profile In LobbyController.ScfServerEntity.Server.CurrentPlayers Select profile.Value)
-    '        Else
-    '            playerList = LobbyController.ScfClientEntity.Client.PlayerList.ToList()
-    '        End If
-    '        playerList = PlayerListHandler.Sort(playerList)
-
-    '        '本地网络质量评估
-    '        Dim quality
-    '        'NAT 评估
-    '        'If localInfo.NatType.ContainsF("OpenInternet", True) OrElse localInfo.NatType.ContainsF("NoPAT", True) OrElse localInfo.NatType.ContainsF("FullCone", True) Then
-    '        '    quality = 3
-    '        'ElseIf localInfo.NatType.ContainsF("Restricted", True) OrElse localInfo.NatType.ContainsF("PortRestricted", True) Then
-    '        '    quality = 2
-    '        'Else
-    '        '    quality = 1
-    '        'End If
-    '        '到主机延迟评估
-    '        '            If hostInfo.Ping > 150 Then
-    '        '                quality -= 1
-    '        '            End If
-    '        '            RunInUi(Sub()
-    '        '                        Dim texts = LobbyTextHandler.GetQualityDesc(quality)
-    '        '                        LabFinishQuality.Text = texts.Keyword
-    '        '                        BtnFinishQuality.ToolTip = "连接状况" & vbCrLf & texts.Desc
-    '        '                    End Sub)
-
-    '        If LobbyController.ScfServerEntity IsNot Nothing AndAlso
-    '            Not Await LobbyController.IsHostInstanceAvailableAsync(LobbyController.ScfServerEntity.EasyTier.MinecraftPort).ConfigureAwait(False) Then '确认创建者实例存活状态
-    '            RunInUi(Sub()
-    '                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
-    '                        StackPlayerList.Children.Clear()
-    '                        CurrentSubpage = Subpages.PanSelect
-    '                    End Sub)
-    '            Await LobbyController.CloseAsync().ConfigureAwait(False)
-    '            MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
-    '        End If
-
-    '        '加入方刷新连接信息
-    '        '            Dim etStatus = ETController.Status
-    '        '            RunInUi(Sub()
-    '        '                        If Not etStatus = ETState.Ready AndAlso Not hostInfo.Ping = 1000 Then
-    '        '                            etStatus = ETState.Ready
-    '        '                        ElseIf Not etStatus = ETState.Ready AndAlso hostInfo.Ping = 1000 Then '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
-    '        '                            hostInfo.Ping = 0
-    '        '                        End If
-    '        '                        LabFinishPing.Text = hostInfo.Ping.ToString() & "ms"
-    '        '                        LabConnectType.Text = LobbyTextHandler.GetConnectTypeChinese(hostInfo.Cost)
-    '        '                    End Sub)
-
-    '        '刷新大厅成员列表 UI
-    '        RunInUi(Sub()
-    '                    LabFinishQuality.Text = "良好"
-    '                    LabFinishPing.Text = "暂不可用"
-    '                    LabConnectType.Text = "暂不可用"
-    '                    StackPlayerList.Children.Clear()
-    '                    For Each player In playerList
-    '                        'If Not etStatus = ETState.Ready AndAlso player.Ping = 1000 Then player.Ping = 0 '如果 ET 还未就绪，则显示延迟为 0，防止用户找茬
-    '                        Dim newItem = PlayerInfoItem(player, AddressOf PlayerInfoClick)
-    '                        StackPlayerList.Children.Add(newItem)
-    '                    Next
-    '                    CardPlayerList.Title = $"大厅成员列表（共 {playerList.Count} 人）"
-    '                End Sub)
-    '        Return 0
-    '    Catch ex As Exception
-    '        Log(ex, "[Link] EasyTier Cli 线程异常")
-    '        If ETController.Status = ETState.Stopped Then Dim dis = LobbyController.CloseAsync().ConfigureAwait(False)
-    '        Return 1
-    '    End Try
-    'End Function
     Private Sub PasteLobbyId() Handles BtnPaste.Click
         Dim lobbyId As String
         Try
             Dim clipText = Clipboard.GetText(TextDataFormat.Text)
-            lobbyId = ParseCode(clipText).OriginalCode
+            lobbyId = clipText
         Catch ex As Exception
             Log(ex, "从剪贴板识别大厅编号出错")
             Exit Sub
@@ -459,21 +395,28 @@ Public Class PageLinkLobby
 
 
         Dim username = GetUsername()
+
+        RunInUi(Sub()
+                    BtnFinishPing.Visibility = Visibility.Collapsed
+                    BtnConnectType.Visibility = Visibility.Collapsed
+                    CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                    StackPlayerList.Children.Clear()
+                    LabConnectUserName.Text = username
+                    LabConnectUserType.Text = "创建者"
+                    LabFinishId.Text = LobbyService.CurrentLobbyCode
+                    BtnFinishCopyIp.Visibility = Visibility.Collapsed
+                    BtnCreate.IsEnabled = True
+                    BtnFinishExit.Text = "关闭大厅"
+                    CurrentSubpage = Subpages.PanFinish
+                End Sub)
+
         Dim res = Await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(False)
 
-        If res = True Then
+        If res = False Then
             RunInUi(Sub()
-                        BtnFinishPing.Visibility = Visibility.Collapsed
-                        BtnConnectType.Visibility = Visibility.Collapsed
                         CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                         StackPlayerList.Children.Clear()
-                        LabConnectUserName.Text = username
-                        LabConnectUserType.Text = "创建者"
-                        LabFinishId.Text = LobbyService.CurrentLobbyCode
-                        BtnFinishCopyIp.Visibility = Visibility.Collapsed
-                        BtnCreate.IsEnabled = True
-                        BtnFinishExit.Text = "关闭大厅"
-                        CurrentSubpage = Subpages.PanFinish
+                        CurrentSubpage = Subpages.PanSelect
                     End Sub)
         End If
     End Sub
@@ -487,21 +430,27 @@ Public Class PageLinkLobby
         Dim id = TextJoinLobbyId.Text
         Dim username = GetUsername()
 
-        Dim res = Await LobbyService.JoinLobbyAsync(id, username).ConfigureAwait(False)
+        RunInUi(Sub()
+                    BtnFinishPing.Visibility = Visibility.Visible
+                    LabFinishPing.Text = "-ms"
+                    BtnConnectType.Visibility = Visibility.Visible
+                    LabConnectType.Text = "连接中"
+                    CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                    StackPlayerList.Children.Clear()
+                    LabConnectUserName.Text = username
+                    LabConnectUserType.Text = "加入者"
+                    LabFinishId.Text = id
+                    BtnFinishCopyIp.Visibility = Visibility.Visible
+                    CurrentSubpage = Subpages.PanFinish
+                End Sub)
 
-        If res = True Then
+        Dim res = Await LobbyService.JoinLobbyAsync(id, username)
+
+        If res = False Then
             RunInUi(Sub()
-                        BtnFinishPing.Visibility = Visibility.Visible
-                        LabFinishPing.Text = "-ms"
-                        BtnConnectType.Visibility = Visibility.Visible
-                        LabConnectType.Text = "连接中"
                         CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                         StackPlayerList.Children.Clear()
-                        LabConnectUserName.Text = username
-                        LabConnectUserType.Text = "加入者"
-                        LabFinishId.Text = id
-                        BtnFinishCopyIp.Visibility = Visibility.Visible
-                        CurrentSubpage = Subpages.PanFinish
+                        CurrentSubpage = Subpages.PanSelect
                     End Sub)
         End If
     End Sub
