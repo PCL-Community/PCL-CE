@@ -616,7 +616,7 @@ Retry:
         Dim PrepareJson As JObject
         Using response = HttpRequestBuilder.Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post).
                 WithContent(New ByteArrayContent(Encoding.UTF8.GetBytes($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access")), "application/x-www-form-urlencoded").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
             PrepareJson = GetJson(response.AsStringContent())
         End Using
 
@@ -654,7 +654,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
                 WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As ThreadInterruptedException
@@ -717,7 +717,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As Exception
@@ -767,7 +767,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException
@@ -831,7 +831,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException
@@ -873,7 +873,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements", HttpMethod.Get).
                 WithBearerToken(accessToken).
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 result = response.AsStringContent()
             End Using
             Dim ResultJson As JObject = GetJson(result)
@@ -901,7 +901,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/minecraft/profile", HttpMethod.Get).
                     WithBearerToken(AccessToken).
-                    SendAsync(True).Result
+                    SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException

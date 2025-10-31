@@ -50,11 +50,11 @@ Public Module ModJava
         Javas.CheckJavaAvailability()
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         If ret Is Nothing Then
             Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
             Javas.ScanJavaAsync().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+            ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         End If
         Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret
