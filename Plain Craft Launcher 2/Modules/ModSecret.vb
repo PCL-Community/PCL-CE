@@ -1,15 +1,14 @@
 Imports System.ComponentModel
-Imports System.Net.Http
-Imports System.Security.Cryptography
 Imports System.Management
+Imports System.Net.Http
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
-Imports PCL.Core.Net
 
 Friend Module ModSecret
 
@@ -21,17 +20,17 @@ Friend Module ModSecret
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
 #End If
     '用于微软登录的 ClientId
-    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'CurseForge API Key
-    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     '遥测鉴权密钥
-    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'Natayark ID Client Id
-    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
-    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     '联机服务根地址
-    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).ReplaceNullOrEmpty().Split("|")
+    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly:=True).ReplaceNullOrEmpty().Split("|")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -1019,7 +1018,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Try
             ' 注册全局的ContextMenu主题刷新事件处理器
             EventManager.RegisterClassHandler(GetType(ContextMenu), ContextMenu.OpenedEvent, New RoutedEventHandler(AddressOf OnContextMenuOpened))
-            
+
             ' 刷新当前打开的ContextMenu
             RunInUi(Sub()
                         ' 获取当前应用程序中所有的窗口
@@ -1053,7 +1052,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Private Sub RefreshContextMenusInElement(element As DependencyObject)
         If element Is Nothing Then Return
-        
+
         Try
             ' 检查当前元素是否有ContextMenu
             If TypeOf element Is FrameworkElement Then
@@ -1064,7 +1063,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     fe.ContextMenu.UpdateDefaultStyle()
                 End If
             End If
-            
+
             ' 递归处理子元素
             Dim childrenCount As Integer = VisualTreeHelper.GetChildrenCount(element)
             For i As Integer = 0 To childrenCount - 1

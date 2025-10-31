@@ -1,5 +1,4 @@
-﻿Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
+Imports System.Runtime.InteropServices
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
@@ -168,34 +167,34 @@ Public Module ModLink
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Function DownloadEasyTier()
-        Dim DlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
+        Dim dlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
         RunInNewThread(Sub()
-            Try
-                '构造步骤加载器
-                Dim Loaders As New List(Of LoaderBase)
-                '下载
-                Dim Address As New List(Of String)
-                Address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
-                Address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
+                           Try
+                               '构造步骤加载器
+                               Dim loaders As New List(Of LoaderBase)
+                               '下载
+                               Dim address As New List(Of String)
+                               address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
+                               address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
 
-                Loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(Address.ToArray, DlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(DlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
-                    File.Delete(DlTargetPath)
-                    CleanupEasyTierCache()
-                End Sub))
-                Loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() Hint("联机组件下载完成！", HintType.Finish)) With {.Show = False})
-                '启动
-                DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", Loaders)
-                DlEasyTierLoader.Start()
-                LoaderTaskbarAdd(DlEasyTierLoader)
-                FrmMain.BtnExtraDownload.ShowRefresh()
-                FrmMain.BtnExtraDownload.Ribble()
-            Catch ex As Exception
-                Log(ex, "[Link] 下载 EasyTier 依赖文件失败", LogLevel.Hint)
-                Hint("下载 EasyTier 依赖文件失败，请检查网络连接", HintType.Critical)
-            End Try
-        End Sub)
+                               loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(address.ToArray, dlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(dlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
+                                                                                                File.Delete(dlTargetPath)
+                                                                                                CleanupEasyTierCache()
+                                                                                            End Sub))
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("刷新界面", Sub() Hint("联机组件下载完成！", HintType.Finish)) With {.Show = False})
+                               '启动
+                               DlEasyTierLoader = New LoaderCombo(Of JObject)("大厅初始化", loaders)
+                               DlEasyTierLoader.Start()
+                               LoaderTaskbarAdd(DlEasyTierLoader)
+                               FrmMain.BtnExtraDownload.ShowRefresh()
+                               FrmMain.BtnExtraDownload.Ribble()
+                           Catch ex As Exception
+                               Log(ex, "[Link] 下载 EasyTier 依赖文件失败", LogLevel.Hint)
+                               Hint("下载 EasyTier 依赖文件失败，请检查网络连接", HintType.Critical)
+                           End Try
+                       End Sub)
         Return 0
     End Function
     Private Sub CleanupEasyTierCache()
