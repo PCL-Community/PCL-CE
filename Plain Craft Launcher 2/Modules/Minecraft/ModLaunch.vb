@@ -2068,7 +2068,7 @@ NextInstance:
         Try
             SetGPUPreference(McLaunchJavaSelected.JavawExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
-            If ProcessInterop.IsAdmin() OrElse Config.Launch.SetGpuPreference Then
+            If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
