@@ -1009,6 +1009,10 @@ Public Class FormMain
         ''' 主页市场，这是一个副页面。
         ''' </summary>
         HomePageMarket = 13
+        ''' <summary>
+        ''' 主页管理，这是一个副页面。
+        ''' </summary>
+        SetupCustom = 14
     End Enum
     ''' <summary>
     ''' 次要页面种类。其数值必须与 StackPanel 中的下标一致。
@@ -1027,6 +1031,7 @@ Public Class FormMain
         SetupUI = 1
         SetupSystem = 2
         SetupLink = 3
+        SetupCustom = 4
         LinkLobby = 1
         LinkSetup = 4
         LinkHelp = 5
@@ -1075,6 +1080,8 @@ Public Class FormMain
                 Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case PageType.HomePageMarket
                 Return "主页市场"
+            Case PageType.SetupCustom
+                Return "主页管理"
             Case Else
                 Return ""
         End Select
@@ -1333,7 +1340,10 @@ Public Class FormMain
                     PageChangeAnim(FrmInstanceSavesLeft, FrmInstanceSavesLeft.PageGet(SubType))
                 Case PageType.HomePageMarket '主页市场
                     FrmHomepageMarket = If(FrmHomepageMarket, New PageHomePageMarket)
-                    PageChangeAnim(New MyPageLeft, FrmHomepageMarket)
+                    PageChangeAnim(New MyPageLeft, FrmHomePageMarket)
+                Case PageType.SetupCustom '主页管理
+                    FrmSetupCustom = If(FrmSetupCustom, New PageSetupCustom)
+                    PageChangeAnim(New MyPageLeft, FrmSetupCustom)
             End Select
 #End Region
 
