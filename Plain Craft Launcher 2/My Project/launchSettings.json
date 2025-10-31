@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Plain Craft Launcher 2": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "PCL_LINK_SERVER_ROOT": "https://s3.pysio.online/pcl2-ce",
+        "PCL_NAID_CLIENT_ID": "pclce2025",
+        "PCL_NAID_CLIENT_SECRET": "$2y$10$bOfGWPKw2zwB.EYvHxmiN.F1AN3fvUbruNrhL0QMyCYcTsOiMO2Ta",
+        "PCL_DISABLE_DEBUG_HINT": "1"
+      },
+      "nativeDebugging": false
+    }
+  }
+}
