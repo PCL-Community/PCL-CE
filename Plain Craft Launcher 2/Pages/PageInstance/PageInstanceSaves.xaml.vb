@@ -79,6 +79,9 @@ Public Class PageInstanceSaves
 
     Private Sub Page_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
         If fileSystemWatcher IsNot Nothing Then
+            RemoveHandler fileSystemWatcher.Created, AddressOf OnFileSystemChanged
+            RemoveHandler fileSystemWatcher.Deleted, AddressOf OnFileSystemChanged
+            RemoveHandler fileSystemWatcher.Renamed, AddressOf OnFileSystemChanged
             fileSystemWatcher.Dispose()
             fileSystemWatcher = Nothing
         End If
@@ -145,7 +148,7 @@ Public Class PageInstanceSaves
                     Dim worldItem As New MyListItem With {
                         .Logo = saveLogo,
                         .Title = GetFolderNameFromPath(curFolder),
-                        .Info = $"创建时间：{ Directory.GetCreationTime(curFolder).ToString("yyyy'/'MM'/'dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy'/'MM'/'dd")}",
+                        .Info = $"创建时间：{ Directory.GetCreationTime(curFolder).ToString("yyyy""/""MM""/""dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy""/""MM""/""dd")}",
                         .Type = MyListItem.CheckType.Clickable
                     }
                     AddHandler worldItem.Click, Sub()
