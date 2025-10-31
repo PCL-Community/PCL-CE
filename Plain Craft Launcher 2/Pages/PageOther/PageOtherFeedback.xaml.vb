@@ -76,7 +76,7 @@ Public Class PageOtherFeedback
         Dim lowerType = typeName.ToLower()
 
         ' 允许追加的类型列表
-        Dim allowedTypes As New List(Of String) From {"bug", "崩溃", "新功能", "优化", "未分类", "网络"}
+        Dim allowedTypes As New List(Of String) From {"bug", "崩溃", "新功能", "优化", "未分类", "任务"}
 
         ' 如果类型在允许列表中，则追加
         If allowedTypes.Contains(lowerType) Then
