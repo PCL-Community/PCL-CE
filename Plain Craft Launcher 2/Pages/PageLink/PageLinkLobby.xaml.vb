@@ -24,6 +24,8 @@ Public Class PageLinkLobby
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
         AddHandler LobbyService.OnClientPing, AddressOf OnClientPlingHandler
         AddHandler LobbyService.OnServerShuttedDown, AddressOf OnServerShuttedDownHandler
+        AddHandler LobbyService.OnServerStarted, AddressOf OnServerStartedHandler
+        AddHandler LobbyService.OnServerException, AddressOf OnServerExceptionHandler
 
         If LobbyAnnouncementLoader Is Nothing Then
             Dim loaders As New List(Of LoaderBase)
@@ -37,15 +39,23 @@ Public Class PageLinkLobby
         End If
     End Sub
 
-    Private Sub OnServerShuttedDownHandler()
-        LobbyService.LeaveLobbyAsync()
+    Private Async Sub OnServerExceptionHandler(ex As Exception)
+        RunInUi(Sub() Hint(ex.Message, HintType.Critical))
 
-        RunInUi(Sub()
-                    CardPlayerList.Title = "大厅成员列表（正在获取信息）"
-                    StackPlayerList.Children.Clear()
-                    CurrentSubpage = Subpages.PanSelect
-                End Sub)
+        Try
+            Await LobbyService.LeaveLobbyAsync()
+
+            RunInUi(Sub()
+                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                        StackPlayerList.Children.Clear()
+                        CurrentSubpage = Subpages.PanSelect
+                    End Sub)
+        Catch secEx As Exception
+            Log(secEx, "Occured an exception when exit server.")
+            Hint("在服务器退出时发生了错误！", HintType.Critical)
+        End Try
     End Sub
+
 
     Public Async Sub Reload() Handles Me.Loaded
         HintAnnounce.Visibility = Visibility.Visible
@@ -91,6 +101,27 @@ Public Class PageLinkLobby
     End Sub
 
 #Region "Subscribser"
+    Private Sub OnServerStartedHandler()
+        Log("Recived server started evnet.")
+        RunInUi(Sub()
+                    LabFinishId.Text = LobbyService.CurrentLobbyCode
+                End Sub)
+    End Sub
+
+    Private Async Sub OnServerShuttedDownHandler()
+        Try
+            Await LobbyService.LeaveLobbyAsync()
+
+            RunInUi(Sub()
+                        CardPlayerList.Title = "大厅成员列表（正在获取信息）"
+                        StackPlayerList.Children.Clear()
+                        CurrentSubpage = Subpages.PanSelect
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "Occured an exception when exit server.")
+            Hint("在服务器退出时发生了错误！", HintType.Critical)
+        End Try
+    End Sub
     Private Sub OnClientPlingHandler(letacy As Long)
         RunInUi(Sub()
                     LabFinishQuality.Text = "良好"
@@ -119,6 +150,8 @@ Public Class PageLinkLobby
     End Sub
 
     Private Sub OnDiscoveredWorldsChanged(sender As Object, e As NotifyCollectionChangedEventArgs)
+        Log("Found new world.")
+
         RunInUi(Sub()
                     If e.Action = NotifyCollectionChangedAction.Reset Then
                         ComboWorldList.Items.Clear()
@@ -160,14 +193,16 @@ Public Class PageLinkLobby
     End Sub
 
     Private Shared Sub ShowHintFromService(msg As String, type As CoreHintType)
-        Select Case type
-            Case CoreHintType.Info
-                Hint(msg, HintType.Info)
-            Case CoreHintType.Finish
-                Hint(msg, HintType.Finish)
-            Case CoreHintType.Critical
-                Hint(msg, HintType.Critical)
-        End Select
+        RunInUi(Sub()
+                    Select Case type
+                        Case CoreHintType.Info
+                            Hint(msg, HintType.Info)
+                        Case CoreHintType.Finish
+                            Hint(msg, HintType.Finish)
+                        Case CoreHintType.Critical
+                            Hint(msg, HintType.Critical)
+                    End Select
+                End Sub)
     End Sub
 #End Region
 
@@ -183,7 +218,6 @@ Public Class PageLinkLobby
         Dim currentIndex = 0
         Dim globalCancelToken As CancellationToken = _linkAnnounceUpdateCancelSource.Token
         Dim waiterCts As CancellationTokenSource = Nothing
-        Dim contentChanged As Boolean = False
 
         AddHandler _linkAnnounces.CollectionChanged,
             Sub(sender, e)
@@ -398,7 +432,9 @@ Public Class PageLinkLobby
 
         RunInUi(Sub()
                     BtnFinishPing.Visibility = Visibility.Collapsed
+                    LabFinishPing.Text = "-ms"
                     BtnConnectType.Visibility = Visibility.Collapsed
+                    LabConnectType.Text = "连接中"
                     CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                     StackPlayerList.Children.Clear()
                     LabConnectUserName.Text = username
@@ -410,7 +446,7 @@ Public Class PageLinkLobby
                     CurrentSubpage = Subpages.PanFinish
                 End Sub)
 
-        Dim res = Await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(False)
+        Dim res = Await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(True)
 
         If res = False Then
             RunInUi(Sub()
@@ -418,6 +454,8 @@ Public Class PageLinkLobby
                         StackPlayerList.Children.Clear()
                         CurrentSubpage = Subpages.PanSelect
                     End Sub)
+        Else
+
         End If
     End Sub
 
@@ -444,7 +482,7 @@ Public Class PageLinkLobby
                     CurrentSubpage = Subpages.PanFinish
                 End Sub)
 
-        Dim res = Await LobbyService.JoinLobbyAsync(id, username)
+        Dim res = Await LobbyService.JoinLobbyAsync(id, username).ConfigureAwait(True)
 
         If res = False Then
             RunInUi(Sub()
@@ -522,7 +560,7 @@ Public Class PageLinkLobby
         If MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn:=True) = 1 Then
             CurrentSubpage = Subpages.PanSelect
             BtnFinishExit.Text = "退出大厅"
-            Await LobbyService.LeaveLobbyAsync().ConfigureAwait(False)
+            Await LobbyService.LeaveLobbyAsync().ConfigureAwait(True)
         End If
     End Sub
 
