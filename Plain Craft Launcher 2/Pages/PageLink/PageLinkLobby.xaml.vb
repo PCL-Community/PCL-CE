@@ -413,6 +413,7 @@ Public Class PageLinkLobby
         Dim res = Await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(False)
 
         If res = False Then
+            Hint("创建大厅失败，请检查您的网络连接或稍后再试！", HintType.Critical)
             RunInUi(Sub()
                         CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                         StackPlayerList.Children.Clear()
@@ -447,6 +448,7 @@ Public Class PageLinkLobby
         Dim res = Await LobbyService.JoinLobbyAsync(id, username)
 
         If res = False Then
+            Hint("加入失败，请检查输入的大厅编号是否正确！")
             RunInUi(Sub()
                         CardPlayerList.Title = "大厅成员列表（正在获取信息）"
                         StackPlayerList.Children.Clear()

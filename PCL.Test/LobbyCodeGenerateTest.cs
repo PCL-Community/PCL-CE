@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Link.Scaffolding;
 using System;
+using PCL.Core.Link.Lobby;
 
 namespace PCL.Test;
 
@@ -8,18 +8,12 @@ namespace PCL.Test;
 public class LobbyCodeGenerateTest
 {
     [TestMethod]
-    public void GenerateTest()
+    public void GenerateAndParseTest()
     {
-        var code = LobbyCodeGenerator.Generate();
-    }
+        var code = LobbyInfoGenerator.Generate();
+        Console.WriteLine($"Try to parse: {code}");
 
-    [TestMethod]
-    public void ParseTest()
-    {
-        var code = LobbyCodeGenerator.Generate();
-        Console.WriteLine($"Try to parse: {code.FullCode}");
-
-        var success = LobbyCodeGenerator.TryParse(code.FullCode, out _);
+        var success = LobbyInfoGenerator.TryParse(code.FullCode, out _);
 
         Assert.IsTrue(success);
     }
