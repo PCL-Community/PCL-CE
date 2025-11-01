@@ -2066,10 +2066,9 @@ NextInstance:
 
         '要求 Java 使用高性能显卡
         Try
-            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Setup.Get("LaunchAdvanceGraphicCard"))
-            SetGPUPreference(ExePathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
+            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
-            If ProcessInterop.IsAdmin() Then
+            If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
