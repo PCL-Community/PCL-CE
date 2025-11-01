@@ -359,8 +359,8 @@ Public Class PageDownloadCompDetail
                         Return False
                     End Function
             '获取常规资源默认下载位置
-            If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, ExePath))
+            If CachedFolder.ContainsKey(File.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(File.Type)) Then
+                DefaultFolder = CachedFolder.GetOrDefault(File.Type, If(McInstanceCurrent?.PathIndie, ExePath))
                 Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
             ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
                 DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"
@@ -435,7 +435,7 @@ Public Class PageDownloadCompDetail
                 Dim DefaultFolder As String = Nothing
                 If File.Type <> CompType.ModPack Then
                     Dim SubFolder As String = Nothing
-                    Select Case Project.Type
+                    Select Case File.Type
                         Case CompType.Mod : SubFolder = "mods\"
                         Case CompType.ResourcePack : SubFolder = "resourcepacks\"
                         Case CompType.Shader : SubFolder = "shaderpacks\"
@@ -457,7 +457,7 @@ Public Class PageDownloadCompDetail
                         If Version Is Nothing Then Return False
                         If Not Version.IsLoaded Then Version.Load()
                         '只对 Mod 和数据包进行版本检测
-                        If Project.Type = CompType.Mod OrElse Project.Type = CompType.DataPack Then
+                        If File.Type = CompType.Mod OrElse File.Type = CompType.DataPack Then
                             If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
                                Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.McName) Then Return False
                         End If
@@ -470,8 +470,8 @@ Public Class PageDownloadCompDetail
                         Return False
                     End Function
                     '获取常规资源默认下载位置
-                    If CachedFolder.ContainsKey(Project.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(Project.Type)) Then
-                        DefaultFolder = CachedFolder.GetOrDefault(Project.Type, If(McInstanceCurrent?.PathIndie, ExePath))
+                    If CachedFolder.ContainsKey(File.Type) AndAlso Not String.IsNullOrEmpty(CachedFolder(File.Type)) Then
+                        DefaultFolder = CachedFolder.GetOrDefault(File.Type, If(McInstanceCurrent?.PathIndie, ExePath))
                         Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}")
                     ElseIf McInstanceCurrent IsNot Nothing AndAlso IsVersionSuitable(McInstanceCurrent) Then
                         DefaultFolder = $"{McInstanceCurrent.PathIndie}{SubFolder}"
@@ -537,10 +537,10 @@ Public Class PageDownloadCompDetail
                     '构造步骤加载器
                     Dim LoaderName As String = Desc & "下载：" & GetFileNameWithoutExtentionFromPath(Target) & " "
                     If Target <> DefaultFolder Then
-                        If CachedFolder.ContainsKey(Project.Type) Then
-                            CachedFolder(Project.Type) = GetPathFromFullPath(Target)
+                        If CachedFolder.ContainsKey(File.Type) Then
+                            CachedFolder(File.Type) = GetPathFromFullPath(Target)
                         Else
-                            CachedFolder.Add(Project.Type, GetPathFromFullPath(Target))
+                            CachedFolder.Add(File.Type, GetPathFromFullPath(Target))
                         End If
                     End If
                     Dim Loaders As New List(Of LoaderBase)

@@ -97,8 +97,15 @@ Public Class MyMsgSelect
         SelectedIndex = PanSelection.Children.IndexOf(sender)
     End Sub
     Private Sub Drag(sender As Object, e As MouseButtonEventArgs) Handles PanBorder.MouseLeftButtonDown, LabTitle.MouseLeftButtonDown
-        'On Error Resume Next
-        If e.GetPosition(ShapeLine).Y <= 2 Then FrmMain.DragMove()
+        Try
+            If e.LeftButton = MouseButtonState.Pressed Then
+                If e.GetPosition(ShapeLine).Y <= 2 Then
+                    FrmMain.DragMove()
+                End If
+            End If
+        Catch ex As Exception
+            Log(ex, "拖拽移动失败", LogLevel.Hint)
+        End Try
     End Sub
 
 End Class

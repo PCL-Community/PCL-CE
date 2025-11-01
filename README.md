@@ -8,6 +8,8 @@
 ![GitHub Release](https://img.shields.io/github/v/release/PCL-Community/PCL2-CE?label=Release&logo=github)
 [![Issues](https://img.shields.io/github/issues/PCL-Community/PCL2-CE?style=flat&label=Issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/issues)
 [![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL2-CE?style=flat&label=Pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/pulls)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL2-CE/build-test.yml)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
 [![哔哩哔哩](https://img.shields.io/badge/动态-BiliBili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
 [社区版下载](https://github.com/PCL-Community/PCL2-CE/releases) |
