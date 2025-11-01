@@ -23,7 +23,7 @@ Public Class PageLinkLobby
         AddHandler LobbyService.Players.CollectionChanged, AddressOf OnPlayersChanged
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
         AddHandler LobbyService.OnClientPing, AddressOf OnClientPlingHandler
-        AddHandler LobbyService.OnServerShuttedDown, AddressOf OnServerShuttedDownHandler
+        AddHandler LobbyService.OnServerShutDown, AddressOf OnServerShuttedDownHandler
         AddHandler LobbyService.OnServerStarted, AddressOf OnServerStartedHandler
         AddHandler LobbyService.OnServerException, AddressOf OnServerExceptionHandler
 
@@ -410,6 +410,11 @@ Public Class PageLinkLobby
 
 #Region "PanSelect | 种类选择页面"
 
+    '刷新按钮
+    Private Sub BtnRefresh_Click(sender As Object, e As EventArgs) Handles BtnRefresh.Click
+        Dim lobby = LobbyService.DiscoverWorldAsync()
+    End Sub
+    
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then

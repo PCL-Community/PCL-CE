@@ -108,7 +108,7 @@
                         <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="12" Grid.ColumnSpan="3" Text="选择最低延迟路径而不是最短路径" ToolTip="启用后，EasyTier 将在通信时选择延迟最低的路径，而不是路由跳数最少的路径。&#xa;启用此选项在部分情况下能降低联机时的延迟，但可能会提高丢包率。"/>
                         <local:MyCheckBox x:Name="CheckTryPaunchSym" Tag="LinkTryPunchSym" Grid.Row="13" Grid.ColumnSpan="3" Text="对对称型 NAT 进行端口猜测" ToolTip="让 EasyTier 尝试对对称型 NAT 进行端口猜测（生日悖论）。&#xa;这也许可以改善联机体验，但在部分情况下也可能导致一些问题。&#xa;一般保持开启即可。"/>
                         <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="14" Grid.ColumnSpan="3" Text="允许使用 IPv6 通信" ToolTip="IPv6 相比于 IPv4 更加容易进行 P2P 通信，能极大改善联机体验，除有特殊原因外不建议关闭。"/>
-                        <local:MyCheckBox x:Name="CheckRelayForOthers" Tag="LinkRelayForOthers" Grid.Row="15" Grid.ColumnSpan="3" Text="辅助互联网上的其他用户通信" ToolTip="启动联机后，你的电脑将可以辅助其他用户建立连接，降低延迟。&#xa;即使不开启此选项，其他可用用户也仍然会辅助你的连接。&#xa;不过人人为我，我为人人嘛..."/>
+                        <local:MyCheckBox x:Name="CheckEnableCliOutput" Tag="LinkEnableCliOutput" Grid.Row="15" Grid.ColumnSpan="3" Text="在日志中输出 Cli 信息以用于调试" ToolTip="在启动器日志中每 30s 输出一次 EasyTier Cli 信息以便于开发者和社区支持调查。&#xa;该选项仅用于调试目的，不推荐一直开启。"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
