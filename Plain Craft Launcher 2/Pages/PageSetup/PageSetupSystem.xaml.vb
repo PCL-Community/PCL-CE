@@ -148,9 +148,9 @@ Class PageSetupSystem
         Function(v)
             Select Case v
                 Case Is <= 14
-                    Return (v + 1) * 0.1 & " M/s"
+                    Return $"{(v + 1) * 0.1:F1} M/s"
                 Case Is <= 31
-                    Return (v - 11) * 0.5 & " M/s"
+                    Return $"{(v - 11) * 0.5:F1} M/s"
                 Case Is <= 41
                     Return (v - 21) & " M/s"
                 Case Else
