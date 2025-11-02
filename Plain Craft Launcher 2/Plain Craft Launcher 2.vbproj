@@ -111,7 +111,4 @@
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="My Project\Application.myapp" />
-  </ItemGroup>
 </Project>
