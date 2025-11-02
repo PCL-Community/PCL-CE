@@ -106,7 +106,7 @@
             <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
                 <local:MinecraftServerQuery Margin="15,40,15,15"/>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器" CanSwap="True" IsSwapped="True">
+            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器 (仅支持英文)" CanSwap="True" IsSwapped="True">
                 <StackPanel Margin="25,30,25,15">
                     <Grid Margin="0,4,0,2">
                         <Grid.ColumnDefinitions>

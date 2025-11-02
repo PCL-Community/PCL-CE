@@ -21,8 +21,7 @@ Public Class PageInstanceServer
 
         Await LoadServersFromFile()
         RefreshTip()
-
-        PanServers.BeginInit() ' 暂停布局
+        
         For Each server In ServerList
             Dim serverCard = New ServerCard()
             AddHandler serverCard.RemoveServer, AddressOf RemoveServerEvent
@@ -31,8 +30,6 @@ Public Class PageInstanceServer
             ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
         Next
-        
-        PanServers.EndInit() ' 恢复布局
         
         PingAllServers()
     End Sub

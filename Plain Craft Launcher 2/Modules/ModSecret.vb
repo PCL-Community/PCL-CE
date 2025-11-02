@@ -1,15 +1,14 @@
 Imports System.ComponentModel
-Imports System.Net.Http
-Imports System.Security.Cryptography
 Imports System.Management
+Imports System.Net.Http
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
-Imports PCL.Core.Net
 
 Friend Module ModSecret
 
@@ -21,17 +20,17 @@ Friend Module ModSecret
     Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
 #End If
     '用于微软登录的 ClientId
-    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'CurseForge API Key
-    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly CurseForgeAPIKey As String = EnvironmentInterop.GetSecret("CURSEFORGE_API_KEY", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     '遥测鉴权密钥
-    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly TelemetryKey As String = EnvironmentInterop.GetSecret("TELEMETRY_KEY", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'Natayark ID Client Id
-    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly NatayarkClientId As String = EnvironmentInterop.GetSecret("NAID_CLIENT_ID", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     'Natayark ID Client Secret，需要经过 PASSWORD HASH 处理（https://uutool.cn/php-password/）
-    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly := True).ReplaceNullOrEmpty()
+    Public ReadOnly NatayarkClientSecret As String = EnvironmentInterop.GetSecret("NAID_CLIENT_SECRET", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
     '联机服务根地址
-    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly := True).ReplaceNullOrEmpty().Split("|")
+    Public ReadOnly LinkServers As String() = EnvironmentInterop.GetSecret("LINK_SERVER_ROOT", readEnvDebugOnly:=True).ReplaceNullOrEmpty().Split("|")
 
     Friend Sub SecretOnApplicationStart()
         '提升 UI 线程优先级
@@ -102,8 +101,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Select Case Setup.Get("LaunchPreferredIpStack")
             Case 0
                 DataList.Add("-Djava.net.preferIPv4Stack=true")
+                DataList.Add("-Djava.net.preferIPv4Addresses=true")
             Case 2
                 DataList.Add("-Djava.net.preferIPv6Stack=true")
+                DataList.Add("-Djava.net.preferIPv6Addresses=true")
         End Select
         McLaunchLog("当前剩余内存：" & Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10 & "G")
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceCurrent) * 1024 * 0.15) & "m")
@@ -201,6 +202,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly Memory As Color
         Public ReadOnly Tooltip As Color
         Public ReadOnly BackgroundTransparentSidebar As Color
+        Public ReadOnly RedBack As Color
 
         Public ReadOnly Gray1Brush As SolidColorBrush
         Public ReadOnly Gray2Brush As SolidColorBrush
@@ -217,6 +219,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Public ReadOnly MemoryBrush As SolidColorBrush
         Public ReadOnly TooltipBrush As SolidColorBrush
         Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
+        Public ReadOnly RedBackBrush As SolidColorBrush
 
         Public Sub New(style As GrayProfile)
             Gray1 = NewColor.FromHSL2(0, 0, style.L1)
@@ -234,6 +237,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Memory = NewColor.FromHSL2(0, 0, style.G3)
             Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Atb)
             BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(style.Asb)
+            RedBack = NewColor.FromHSL(0, 1, style.L7)
 
             Gray1Brush = New SolidColorBrush(Gray1)
             Gray2Brush = New SolidColorBrush(Gray2)
@@ -250,6 +254,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             MemoryBrush = New SolidColorBrush(Memory)
             TooltipBrush = New SolidColorBrush(Tooltip)
             BackgroundTransparentSidebarBrush = New SolidColorBrush(BackgroundTransparentSidebar)
+            RedBackBrush = New SolidColorBrush(RedBack)
         End Sub
     End Class
 
@@ -465,6 +470,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         res("ColorBrushToolTip") = StaticColors.TooltipBrush
         res("ColorBrushMemory") = StaticColors.MemoryBrush
         res("ColorBrushMsgBox") = StaticColors.WhiteBrush
+        res("ColorBrushRedBack") = StaticColors.RedBackBrush
         res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
 
@@ -885,7 +891,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Try
             ' 注册全局的ContextMenu主题刷新事件处理器
             EventManager.RegisterClassHandler(GetType(ContextMenu), ContextMenu.OpenedEvent, New RoutedEventHandler(AddressOf OnContextMenuOpened))
-            
+
             ' 刷新当前打开的ContextMenu
             RunInUi(Sub()
                         ' 获取当前应用程序中所有的窗口
@@ -919,7 +925,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Private Sub RefreshContextMenusInElement(element As DependencyObject)
         If element Is Nothing Then Return
-        
+
         Try
             ' 检查当前元素是否有ContextMenu
             If TypeOf element Is FrameworkElement Then
@@ -930,7 +936,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     fe.ContextMenu.UpdateDefaultStyle()
                 End If
             End If
-            
+
             ' 递归处理子元素
             Dim childrenCount As Integer = VisualTreeHelper.GetChildrenCount(element)
             For i As Integer = 0 To childrenCount - 1

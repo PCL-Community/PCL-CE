@@ -3,39 +3,14 @@
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
 
-    Private _javas As JavaManager = Nothing
     ''' <summary>
     ''' 目前所有可用的 Java。
     ''' </summary>
     Public ReadOnly Property Javas As JavaManager
         Get
-            _javas = JavaService.JavaManager
-            Return _javas
-
-            'InitJava().GetAwaiter().GetResult()
-            'Return _javas
+            Return JavaService.JavaManager
         End Get
     End Property
-
-    ''' <summary>
-    ''' 添加一个用户导入的 Java
-    ''' </summary>
-    ''' <param name="jPath">java.exe 文件位置</param>
-    ''' <returns>如果添加成功则返回 true，已经存在或者添加失败返回 false</returns>
-    Public Function JavaAddNew(jPath As String) As Boolean
-        Try
-            If Javas.HasJava(jPath) Then
-                Return False
-            Else
-                Javas.Add(jPath)
-                JavaService.SaveToConfig()
-                Return True
-            End If
-        Catch ex As Exception
-            Log(ex, "[Java] 添加新 Java 失败", LogLevel.Hint)
-        End Try
-        Return False
-    End Function
 
     ''' <summary>
     ''' 防止多个需要 Java 的部分同时要求下载 Java（#3797）。
@@ -75,11 +50,11 @@ Public Module ModJava
         Javas.CheckJavaAvailability()
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         If ret Is Nothing Then
             Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
             Javas.ScanJavaAsync().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJava(reqMin, reqMax).Result.FirstOrDefault()
+            ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         End If
         Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret

@@ -74,12 +74,6 @@ Public Class PageSetupUI
         '极客蓝的处理在 ThemeCheck 中
 
     End Sub
-    Public Class CustomFontProperties
-        Public Property Name As String
-        Public Property Font As FontFamily
-        Public Property Tag As String
-    End Class
-    Public ReadOnly Property CustomFontCollection As New ObservableCollection(Of CustomFontProperties)
     Public Sub Reload()
         Try
             '启动器
@@ -93,55 +87,11 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            Dispatcher.BeginInvoke(Async Function() As Task
-                If CustomFontCollection.Count = 0 Then
-                    ComboUiFont.IsEnabled = False
-                    CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
-                    ComboUiFont.SelectedIndex = 0
-                    Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
-                    Await Task.Run(Sub()
-                        For Each Font In Fonts.SystemFontFamilies
-                            Try
-                                '忽略 Global 系列字体
-                                If Font.Source.StartsWith("Global ") Then Continue For
-                                '尝试加载字体以检测是否可用
-                                For Each Typeface In Font.GetTypefaces()
-                                    Dim glyph As GlyphTypeface = Nothing
-                                    Typeface.TryGetGlyphTypeface(glyph)
-                                    If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                    'ReSharper disable once UnusedVariable
-                                    Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                Next
-                                availableFonts.Add(New KeyValuePair(Of String,FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
-                            Catch ex As Exception
-                                Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                            End Try
-                        Next
-                        availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
-                    End Sub)
-                    CustomFontCollection.Clear()
-                    CustomFontCollection.Add(New CustomFontProperties With {
-                        .Name = "默认",
-                        .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                        .Tag = ""
-                    })
-                    For Each font In availableFonts
-                        CustomFontCollection.Add(New CustomFontProperties With {
-                            .Name = font.Key,
-                            .Font = font.Value,
-                            .Tag = font.Value.Source
-                        })
-                    Next
-                    ComboUiFont.IsEnabled = True
-                End If
-                Dim targetFont As String = Setup.Get("UiFont")
-                Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
-                If targetSelection Is Nothing Then
-                    ComboUiFont.SelectedIndex = 0
-                Else
-                    ComboUiFont.SelectedItem = targetSelection
-                End If
-            End Function)
+            
+            '字体设置
+            ComboUiFont.SelectedFontTag = Setup.Get("UiFont")
+            ComboUiMotdFont.SelectedFontTag = Setup.Get("UiMotdFont")
+            
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
@@ -213,6 +163,7 @@ Public Class PageSetupUI
             CheckHiddenVersionResourcePack.Checked = Setup.Get("UiHiddenVersionResourcePack")
             CheckHiddenVersionShader.Checked = Setup.Get("UiHiddenVersionShader")
             CheckHiddenVersionSchematic.Checked = Setup.Get("UiHiddenVersionSchematic")
+            CheckHiddenVersionServer.Checked = Setup.Get("UiHiddenVersionServer")
 
         Catch ex As NullReferenceException
             Log(ex, "个性化设置项存在异常，已被自动重置", LogLevel.Msgbox)
@@ -278,6 +229,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenVersionResourcePack")
             Setup.Reset("UiHiddenVersionShader")
             Setup.Reset("UiHiddenVersionSchematic")
+            Setup.Reset("UiHiddenVersionServer")
             Setup.Reset("UiAutoPauseVideo")
 
             Log("[Setup] 已初始化个性化设置！")
@@ -296,7 +248,7 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckAutoPauseVideo.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckAutoPauseVideo.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -307,10 +259,15 @@ Public Class PageSetupUI
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
 
-    Private Sub ComboFontChange(sender As MyComboBox, e As Object) Handles ComboUiFont.SelectionChanged
+    Private Sub ComboFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiFont.SelectionChanged
         If AniControlEnabled = 0 Then
-            If Not sender.IsEnabled OrElse sender.SelectedItem.Tag Is Nothing Then Return
-            Setup.Set("UiFont", sender.SelectedItem.Tag)
+            Setup.Set("UiFont", ComboUiFont.SelectedFontTag)
+        End If
+    End Sub
+    
+    Private Sub ComboMotdFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiMotdFont.SelectionChanged
+        If AniControlEnabled = 0 Then
+            Setup.Set("UiMotdFont", ComboUiMotdFont.SelectedFontTag)
         End If
     End Sub
 

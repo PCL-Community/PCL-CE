@@ -107,7 +107,8 @@ Public Class PageSelectRight
                 Dim filteredInstances = Card.Value.Where(Function(v)
                                                              If String.IsNullOrEmpty(searchText) Then Return True
                                                              Return v.Name.ToLower().Contains(searchText) OrElse
-                           (v.Info IsNot Nothing AndAlso v.Info.ToLower().Contains(searchText))
+                                                                    (v.Info IsNot Nothing AndAlso v.Info.ToLower().Contains(searchText)) OrElse
+                                                                    v.GetDefaultDescription().Replace(",", "").ToLower().Trim().Contains(searchText)
                                                          End Function).ToList()
                 If filteredInstances.Count = 0 Then Continue For
 

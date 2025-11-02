@@ -1561,7 +1561,7 @@ Install:
 
     '分享
     Private Sub BtnSelectShare_Click() Handles BtnSelectShare.Click
-        Dim ShareList As List(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToList()
+        Dim ShareList As HashSet(Of String) = CompResourceListLoader.Output.Where(Function(m) SelectedMods.Contains(m.RawPath) AndAlso m.Comp IsNot Nothing).Select(Function(i) i.Comp.Id).ToHashSet()
         ClipboardSet(CompFavorites.GetShareCode(ShareList))
         ChangeAllSelected(False)
     End Sub

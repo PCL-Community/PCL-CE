@@ -1,5 +1,6 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Net.Http
+Imports System.Collections.Concurrent
 Imports LiteDB
 Imports PCL.Core.Utils
 
@@ -998,7 +999,7 @@ NoSubtitle:
             If Tag.StartsWithF("/") Then Storage.CurseForgeTotal = 0
             If Storage.CurseForgeTotal > -1 AndAlso Storage.CurseForgeTotal <= Storage.CurseForgeOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortField=2&sortOrder=desc&pageSize={CompPageSize}"
+            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}"
             Select Case Type
                 Case CompType.Mod
                     Address += "&classId=6"
@@ -1020,15 +1021,17 @@ NoSubtitle:
             If Storage.CurseForgeOffset > 0 Then Address += "&index=" & Storage.CurseForgeOffset
             Select Case Sort
                 Case CompSortType.Relevance
-                    Address += "&sortField=4&sortOrder=desc"
+                    Address += "&sortField=4"
                 Case CompSortType.Downloads
-                    Address += "&sortField=6&sortOrder=desc"
+                    Address += "&sortField=6"
                 Case CompSortType.Follows
-                    Address += "&sortField=2&sortOrder=desc"
+                    Address += "&sortField=2"
                 Case CompSortType.Newest
-                    Address += "&sortField=11&sortOrder=desc"
+                    Address += "&sortField=11"
                 Case CompSortType.Updated
-                    Address += "&sortField=3&sortOrder=desc"
+                    Address += "&sortField=3"
+                Case Else
+                    Address += "&sortField=2"
             End Select
             Return Address
         End Function
@@ -1112,7 +1115,7 @@ NoSubtitle:
     ''' <summary>
     ''' 已知工程信息的缓存。
     ''' </summary>
-    Public CompProjectCache As New Dictionary(Of String, CompProject)
+    Public CompProjectCache As New ConcurrentDictionary(Of String, CompProject)
     ''' <summary>
     ''' 根据搜索请求获取一系列的工程列表。需要基于加载器运行。
     ''' </summary>
@@ -1148,7 +1151,7 @@ NoSubtitle:
         Log("[Comp] 工程列表搜索原始文本：" & RawFilter)
 
         '中文请求关键字处理
-        Dim IsChineseSearch As Boolean = RegexCheck(RawFilter, "[\u4e00-\u9fbb]") AndAlso Not String.IsNullOrEmpty(RawFilter)
+        Dim IsChineseSearch As Boolean = RegexPatterns.HasChineseChar.IsMatch(RawFilter) AndAlso Not String.IsNullOrEmpty(RawFilter)
         If IsChineseSearch AndAlso (Request.Type = CompType.Mod OrElse Request.Type = CompType.DataPack) Then
             '构造搜索请求
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
@@ -1192,7 +1195,8 @@ NoSubtitle:
         End If
 
         '驼峰英文请求关键字处理
-        Dim SpacedKeywords = Request.SearchText.RegexReplace("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)", "$& ")
+        Dim SpacedKeywords = RegexPatterns.EnglishSpacedKeywords.Replace(Request.SearchText, "$& ")
+        'Request.SearchText.RegexReplace("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)", "$& ")
         Dim ConnectedKeywords = Request.SearchText.Replace(" ", "")
         Dim AllPossibleKeywords = (SpacedKeywords & " " & If(IsChineseSearch, Request.SearchText, ConnectedKeywords & " " & RawFilter)).ToLower
 
@@ -1919,7 +1923,7 @@ Retry:
 #Region "CompFavorites | 收藏"
     Class CompFavorites
 
-        Public Shared Function GetShareCode(Data As List(Of String)) As String
+        Public Shared Function GetShareCode(Data As HashSet(Of String)) As String
             Try
                 Return New JArray(Data).ToString(Newtonsoft.Json.Formatting.None)
             Catch ex As Exception
@@ -1928,13 +1932,13 @@ Retry:
             Return ""
         End Function
 
-        Public Shared Function GetIdsByShareCode(Code As String) As List(Of String)
+        Public Shared Function GetIdsByShareCode(Code As String) As HashSet(Of String)
             Try
-                Return JArray.Parse(Code).ToObject(Of List(Of String))()
+                Return JArray.Parse(Code).ToObject(Of HashSet(Of String))()
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 通过分享获取 ID 出错")
             End Try
-            Return New List(Of String)
+            Return New HashSet(Of String)
         End Function
 
         ''' <summary>
@@ -1962,7 +1966,6 @@ Retry:
                                                    Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", HintType.Finish)
                                                Else
                                                    i.Favs.Add(Project.Id)
-                                                   i.Favs = i.Favs.Distinct().ToList()
                                                    Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", HintType.Finish)
                                                End If
                                                Save()
@@ -1992,8 +1995,7 @@ Retry:
                 AddHandler Item.Click, Sub()
                                            Try
                                                Dim Count As Integer = i.Favs.Count
-                                               i.Favs.AddRange(Project.Select(Function(p) p.Id).AsEnumerable)
-                                               i.Favs = i.Favs.Distinct.ToList()
+                                               Project.Select(Function(p) p.Id).ToList().ForEach(Function(x) i.Favs.Add(x))
                                                Save()
                                                Dim SuccessCount As Integer = i.Favs.Count - Count
                                                Dim FailedCount As Integer = Project.Count - SuccessCount
@@ -2027,7 +2029,7 @@ Retry:
             ''' 收藏的工程 ID 列表
             ''' </summary>
             ''' <returns></returns>
-            Property Favs As New List(Of String)
+            Property Favs As New HashSet(Of String)
             ''' <summary>
             ''' 备注
             ''' </summary>
@@ -2044,9 +2046,9 @@ Retry:
                 If _FavoritesList Is Nothing Then
                     Dim RawData As String = Setup.Get("CompFavorites")
                     Dim RawList As List(Of FavData) = Nothing
-                    Dim Migrate As List(Of String) = Nothing
+                    Dim Migrate As HashSet(Of String) = Nothing
                     Try
-                        Migrate = JArray.Parse(RawData).ToObject(Of List(Of String)) ' 从旧版本迁移
+                        Migrate = JArray.Parse(RawData).ToObject(Of HashSet(Of String)) ' 从旧版本迁移
                     Catch ex As Exception
                     End Try
                     If Migrate IsNot Nothing Then
@@ -2086,16 +2088,16 @@ Retry:
         ''' <param name="Name"></param>
         ''' <param name="FavList">没有传 Nothing</param>
         ''' <returns></returns>
-        Public Shared Function GetNewFav(Name As String, FavList As List(Of String)) As FavData
+        Public Shared Function GetNewFav(Name As String, FavList As HashSet(Of String)) As FavData
             Dim res As New FavData With {.Name = Name, .Id = Guid.NewGuid.ToString()}
             If FavList Is Nothing Then
-                res.Favs = New List(Of String)
+                res.Favs = New HashSet(Of String)
             Else
                 res.Favs = FavList
             End If
             Return res
         End Function
-        
+
         Public Shared Function IsFavourite(Id As String) As Boolean
             If FavoritesList Is Nothing Then Return False
             For Each i In FavoritesList

@@ -4,7 +4,6 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
-Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -367,7 +366,7 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Sub EndProgram(SendWarning As Boolean)
+    Public Async Sub EndProgram(SendWarning As Boolean)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -384,7 +383,7 @@ Public Class FormMain
             End If
         End If
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -415,19 +414,19 @@ Public Class FormMain
                         Top = -10000
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(AddressOf EndProgramForce, 230)
+                    AaCode(Sub() EndProgramForce(force:=False), 230)
                 }, "Form Close")
             Else
-                EndProgramForce()
+                EndProgramForce(force:=False)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success)
-        On Error Resume Next
+    Public Shared Async Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+        'On Error Resume Next
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
@@ -443,7 +442,7 @@ Public Class FormMain
         Log("[System] 程序已退出，返回值：" & GetStringFromEnum(ReturnCode))
         'If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         'Process.GetCurrentProcess.Kill()
-        Lifecycle.ForceShutdown(ReturnCode)
+        Lifecycle.Shutdown(ReturnCode, force)
     End Sub
     Private Sub BtnTitleClose_Click(sender As Object, e As RoutedEventArgs) Handles BtnTitleClose.Click
         EndProgram(True)
@@ -451,7 +450,7 @@ Public Class FormMain
 
     '移动
     Private Sub FormDragMove(sender As Object, e As MouseButtonEventArgs) Handles PanTitle.MouseLeftButtonDown, PanMsg.MouseLeftButtonDown
-        On Error Resume Next
+        'On Error Resume Next
         If sender.IsMouseDirectlyOver Then DragMove()
     End Sub
 
@@ -462,16 +461,28 @@ Public Class FormMain
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
-            Setup.Set("WindowHeight", Height)
-            Setup.Set("WindowWidth", Width)
+            Config.UI.WindowHeight = Height
+            Config.UI.WindowWidth = Width
         End If
-        RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
-        PanForm.Width = BorderForm.ActualWidth + 0.001
-        PanForm.Height = BorderForm.ActualHeight + 0.001
-        PanMain.Width = PanForm.Width
-        PanMain.Height = Math.Max(0, PanForm.Height - PanTitle.ActualHeight)
-        VideoBack.Width = PanForm.Width
-        VideoBack.Height = PanForm.Height
+        If BorderForm IsNot Nothing Then
+            RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
+
+            Dim formWidth As Double = BorderForm.ActualWidth + 0.001
+            Dim formHeight As Double = BorderForm.ActualHeight + 0.001
+
+            PanForm.Width = formWidth
+            PanForm.Height = formHeight
+            PanMain.Width = formWidth
+
+            If PanTitle IsNot Nothing Then
+                PanMain.Height = Math.Max(0, formHeight - PanTitle.ActualHeight)
+            Else
+                PanMain.Height = formHeight
+            End If
+
+            VideoBack.Width = formWidth
+            VideoBack.Height = formHeight
+        End If
         If WindowState = WindowState.Maximized Then WindowState = WindowState.Normal '修复 #1938
     End Sub
 

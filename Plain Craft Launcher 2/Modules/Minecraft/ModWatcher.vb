@@ -359,7 +359,7 @@ Public Module ModWatcher
         Private LogProgress As Integer = 0
         Private Sub ProgressUpdate()
             Dim CurrentProgress As Double
-            If IsWindowAppeared OrElse LogProgress = 5 Then
+            If IsWindowAppeared OrElse LogProgress >= 4 Then
                 CurrentProgress = 0.95
                 WatcherLog("Minecraft 加载已完成")
                 State = MinecraftState.Running

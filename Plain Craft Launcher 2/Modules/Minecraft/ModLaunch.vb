@@ -254,7 +254,7 @@ NextInner:
         If McInstanceCurrent.State = McInstanceState.Error Then Throw New Exception("Minecraft 存在问题：" & McInstanceCurrent.Info)
         '检查输入信息
         Dim CheckResult As String = ""
-        RunInUiWait(Sub() CheckResult = IsProfileVaild())
+        RunInUiWait(Sub() CheckResult = IsProfileValid())
         If SelectedProfile Is Nothing Then '没选档案
             CheckResult = "请先选择一个档案再启动游戏！"
         ElseIf McInstanceCurrent.Version.HasLabyMod OrElse Setup.Get("VersionServerLoginRequire", McInstanceCurrent) = 1 Then '要求正版验证
@@ -462,7 +462,7 @@ NextInner:
     Private Sub McLoginStart(Data As LoaderTask(Of McLoginData, McLoginResult))
         Log("[Profile] 开始加载选定档案")
         '校验登录信息
-        Dim CheckResult As String = IsProfileVaild()
+        Dim CheckResult As String = IsProfileValid()
         If Not CheckResult = "" Then Throw New ArgumentException(CheckResult)
         '获取对应加载器
         Dim Loader As LoaderBase = Nothing
@@ -616,7 +616,7 @@ Retry:
         Dim PrepareJson As JObject
         Using response = HttpRequestBuilder.Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post).
                 WithContent(New ByteArrayContent(Encoding.UTF8.GetBytes($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access")), "application/x-www-form-urlencoded").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
             PrepareJson = GetJson(response.AsStringContent())
         End Using
 
@@ -654,7 +654,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
                 WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As ThreadInterruptedException
@@ -717,7 +717,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As Exception
@@ -767,7 +767,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException
@@ -831,7 +831,7 @@ Retry:
             Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException
@@ -873,7 +873,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements", HttpMethod.Get).
                 WithBearerToken(accessToken).
-                SendAsync(True).Result
+                SendAsync(True).GetAwaiter().GetResult()
                 result = response.AsStringContent()
             End Using
             Dim ResultJson As JObject = GetJson(result)
@@ -901,7 +901,7 @@ Retry:
         Try
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/minecraft/profile", HttpMethod.Get).
                     WithBearerToken(AccessToken).
-                    SendAsync(True).Result
+                    SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
         Catch ex As HttpRequestException
@@ -1971,6 +1971,10 @@ NextInstance:
                 CpStrings.Add(Library.LocalPath)
             End If
         Next
+        For Each library As String In Config.Instance.ClasspathHead(instance.Path).Split(";") '自定义 Classpath 头部
+            If String.IsNullOrWhiteSpace(library) Then Continue For
+            CpStrings.Insert(0, library)
+        Next
         If OptiFineCp IsNot Nothing Then CpStrings.Insert(CpStrings.Count - 2, OptiFineCp) 'OptiFine 的总是需要放到倒数第二位
         GameArguments.Add("${classpath}", Join(CpStrings.Select(Function(c) ShortenPath(c)), ";"))
 
@@ -2062,10 +2066,9 @@ NextInstance:
 
         '要求 Java 使用高性能显卡
         Try
-            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Setup.Get("LaunchAdvanceGraphicCard"))
-            SetGPUPreference(ExePathWithName, Setup.Get("LaunchAdvanceGraphicCard"))
+            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
-            If ProcessInterop.IsAdmin() Then
+            If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
