@@ -126,6 +126,10 @@ Download:
                         Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
                     Case 13
+                        Log("[Page] 主页预设：Minecraft 更新摘要")
+                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
+                        GoTo Download
+                    Case 14
                         Log("[Page] 主页预设：PCL CE 公告栏")
                         Url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"
                         GoTo Download
