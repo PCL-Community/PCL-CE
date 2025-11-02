@@ -683,6 +683,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public IsCheckingUpdates As Boolean = False
     Public IsUpdateWaitingRestart As Boolean = False
     Public RemoteServer As New UpdatesWrapperModel({
+        New UpdatesGitHubModel() With {.SourceName = "GitHub Nightly"},
         New UpdatesMirrorChyanModel(),
         New UpdatesRandomModel({
                 New UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
@@ -690,13 +691,20 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             }),
         New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
     })
-    Public ReadOnly Property IsUpdBetaChannel
-        Get
-            If VersionBaseName.Contains("beta") Then Return True
-            Return Setup.Get("SystemSystemUpdateBranch") = 1
-        End Get
-    End Property
 
+    Public Function GetCurrentUpdateChannel() As UpdateChannel
+        If VersionBaseName.Contains("nightly") Then Return UpdateChannel.nightly
+        If VersionBaseName.Contains("beta") Then Return UpdateChannel.beta
+        Select Case CType(Setup.Get("SystemSystemUpdateBranch"), Integer)
+            Case 1
+                Return UpdateChannel.beta
+            Case 2
+                Return UpdateChannel.nightly
+            Case Else
+                Return UpdateChannel.stable
+        End Select
+    End Function
+    
     Public Sub UpdateCheckByButton()
         If IsCheckingUpdates Then
             Hint("正在检查更新中，请稍后再试……")
@@ -715,7 +723,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public Function IsVerisonLatest() As Boolean
         Try
             Return RemoteServer.IsLatest(
-            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+            GetCurrentUpdateChannel(),
             If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
             SemVer.Parse(VersionBaseName),
             VersionCode)
@@ -725,15 +733,26 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End Try
     End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
+        Dim channel = GetCurrentUpdateChannel()
+        If channel = UpdateChannel.nightly Then
+            If Not IsVerisonLatest() Then
+                Dim latest = RemoteServer.GetLatestVersion(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                If MyMsgBoxMarkdown($"启动器有新版本可用（{VersionBaseName} -> {latest.VersionName}）。由于你选择了 Nightly 更新通道，需要立即更新才能继续使用。{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "或者更新", ForceWait:=True) = 1 Or 2 Then
+                    UpdateStart(False)
+                End If
+            Else
+                If Not Silent Then Hint("启动器已是最新版 " + VersionBaseName + "，无须更新啦！", HintType.Finish)
+            End If
+            Return
+        End If
+
         If Not IsVerisonLatest() Then
             Dim latest As VersionDataModel = Nothing
             Dim checkUpdateEx As Exception = Nothing
             RunInNewThread(
                 Sub()
                     Try
-                        latest = RemoteServer.GetLatestVersion(
-                            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-                            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                        latest = RemoteServer.GetLatestVersion(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                     Catch ex As Exception
                         checkUpdateEx = ex
                     End Try
@@ -759,41 +778,37 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public Sub UpdateStart(Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
         Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
         RunInNewThread(Sub()
-                           Try
-                               Dim version = RemoteServer.GetLatestVersion(
-                               If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-                               If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                               WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
-                               '构造步骤加载器
-                               Dim Loaders As New List(Of LoaderBase)
-                               '下载
-                               Loaders.AddRange(RemoteServer.GetDownloadLoader(
-                                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
-                                                                                           Dim curHash = GetFileSHA256(DlTargetPath)
-                                                                                           If curHash <> version.SHA256 Then
-                                                                                               Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
-                                                                                           End If
-                                                                                       End Sub))
-                               If Not Slient Then
-                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
-                               End If
-                               '启动
-                               Dim Loader As New LoaderCombo(Of JObject)("启动器更新", Loaders)
-                               Loader.Start()
-                               If Slient Then
-                                   IsUpdateWaitingRestart = True
-                               Else
-                                   LoaderTaskbarAdd(Loader)
-                                   FrmMain.BtnExtraDownload.ShowRefresh()
-                                   FrmMain.BtnExtraDownload.Ribble()
-                               End If
-                           Catch ex As Exception
-                               Log(ex, "[Update] 下载启动器更新文件失败", LogLevel.Hint)
-                               Hint("下载启动器更新文件失败，请检查网络连接", HintType.Critical)
-                           End Try
-                       End Sub)
+            Try
+                Dim channel = GetCurrentUpdateChannel()
+                Dim version = RemoteServer.GetLatestVersion(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
+                '构造步骤加载器
+                Dim Loaders As New List(Of LoaderBase)
+                Loaders.AddRange(RemoteServer.GetDownloadLoader(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
+                Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
+                    Dim curHash = GetFileSHA256(DlTargetPath)
+                    If curHash <> version.SHA256 Then
+                        Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
+                    End If
+                End Sub))
+                If Not Slient Then
+                    Loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
+                End If
+                '启动
+                Dim Loader As New LoaderCombo(Of JObject)("启动器更新", Loaders)
+                Loader.Start()
+                If Slient Then
+                    IsUpdateWaitingRestart = True
+                Else
+                    LoaderTaskbarAdd(Loader)
+                    FrmMain.BtnExtraDownload.ShowRefresh()
+                    FrmMain.BtnExtraDownload.Ribble()
+                End If
+            Catch ex As Exception
+                Log(ex, "[Update] 下载启动器更新文件失败", LogLevel.Hint)
+                Hint("下载启动器更新文件失败，请检查网络连接", HintType.Critical)
+            End Try
+        End Sub)
     End Sub
     Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
         Try
@@ -906,12 +921,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim UpdateDesire = Setup.Get("SystemSystemUpdate")
         Dim AnnouncementDesire = Setup.Get("SystemSystemActivity")
         Select Case UpdateDesire
-            Case 0
-                If Not IsVerisonLatest() Then
+            Case 0, 1
+                If GetCurrentUpdateChannel() = UpdateChannel.nightly Then
+                    NoticeUserUpdate(True) ' Nightly 通道强制检查更新
+                ElseIf UpdateDesire = 0 AndAlso Not IsVerisonLatest() Then
                     UpdateStart(True) '静默更新
+                ElseIf UpdateDesire = 1 Then
+                    NoticeUserUpdate(True)
                 End If
-            Case 1
-                NoticeUserUpdate(True)
             Case 2, 3
                 Exit Sub
         End Select
