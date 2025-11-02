@@ -49,7 +49,7 @@ Class PageSetupSystem
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
         Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
         ComboSystemUpdateBranch.SelectedIndex = branch
-        If branch = 1 Then
+        If branch = 1 OrElse branch = 2 OrElse VersionBaseName.Contains("nightly") Then
             ComboSystemUpdateBranch.IsEnabled = False
         Else
             ComboSystemUpdateBranch.IsEnabled = True
@@ -221,15 +221,40 @@ Class PageSetupSystem
     End Sub
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateBranch.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
-        If ComboSystemUpdateBranch.SelectedIndex <> 1 Then Exit Sub
-        If MyMsgBox("你正在切换启动器更新通道到 Fast Ring。" & vbCrLf &
-                    "Fast Ring 可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
-                    "在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
-                    "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
-            ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
-        Else
-            UpdateCheckByButton()
-        End If
+        Select Case ComboSystemUpdateBranch.SelectedIndex
+            Case 1
+                If MyMsgBox("你正在切换启动器更新通道到 Fast Ring。" & vbCrLf &
+                            "Fast Ring 可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
+                            "在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
+                            "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
+                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
+                Else
+                    UpdateCheckByButton()
+                End If
+            Case 2
+                If MyMsgBox("你正在切换启动器更新通道到 Nightly。" & vbCrLf &
+                            "该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。" & vbCrLf & vbCrLf &
+                            "在升级到 Nightly 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
+                            "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
+                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
+                    Return
+                End If
+                Dim ret = MyMsgBoxInput("最终确认", "你确定要切换到 Nightly 通道吗？" & vbCrLf &
+                                        "Nightly 版本可能存在严重问题，甚至无法启动！" & vbCrLf &
+                                        "在升级到 Nightly 版本后，将无法切换回其他任何更新通道，只能手动重新下载启动器来切换回 Slow Ring 或 Fast Ring。" & vbCrLf & vbCrLf &
+                                        "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用 Slow Ring！" & vbCrLf &
+                                        "请输入 '我确认切换到此分支并已知晓风险' 以确认切换到 Nightly 通道。", Button1 := "提交", Button2 := "取消", IsWarn:=True)
+                If ret Is Nothing Then 
+                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
+                    Return
+                End If
+                If ret = "我确认切换到此分支并已知晓风险" Then
+                    UpdateCheckByButton()
+                Else
+                    Hint("你输入了错误的内容...")
+                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
+                End If
+        End Select
     End Sub
     Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
         UpdateCheckByButton()

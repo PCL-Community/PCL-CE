@@ -1,0 +1,123 @@
+name: Publish (Nightly)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # 每天午夜 UTC 时间运行
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - configuration: Beta # Nightly 构建使用 Beta 配置
+            architecture: x64
+          - configuration: Beta
+            architecture: ARM64
+      fail-fast: false
+
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      configuration: ${{ matrix.configuration }}
+      architecture: ${{ matrix.architecture }}
+    secrets: inherit
+
+  create_json_and_release:
+    name: Create nightly.json and Publish
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # 需要写权限来创建/更新 Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录以供 git-cliff 使用
+
+      - name: Download x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: PCL2_CE_Beta_x64
+          path: ./artifact/x64
+
+      - name: Download ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: PCL2_CE_Beta_ARM64
+          path: ./artifact/arm64
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate changelog for unreleased changes
+        run: |
+          # 为自上次标记以来的所有提交生成更新日志
+          git-cliff --unreleased --strip all > nightly_changelog.md
+
+      - name: Prepare release assets and nightly.json
+        id: prepare_assets
+        run: |
+          # 准备可执行文件
+          EXE_X64="./artifact/x64/Plain Craft Launcher 2.exe"
+          EXE_ARM64="./artifact/arm64/Plain Craft Launcher 2.exe"
+
+          # 计算 .exe 文件的 SHA256 哈希值
+          SHA256_X64=$(sha256sum "$EXE_X64" | awk '{print $1}')
+          SHA256_ARM64=$(sha256sum "$EXE_ARM64" | awk '{print $1}')
+          echo "SHA256 for x64 exe: $SHA256_X64"
+          echo "SHA256 for ARM64 exe: $SHA256_ARM64"
+
+          # 将 .exe 文件打包成 .zip 压缩包
+          ZIP_X64="PCL2_CE_Nightly_x64.zip"
+          ZIP_ARM64="PCL2_CE_Nightly_ARM64.zip"
+          zip -j "$ZIP_X64" "$EXE_X64"
+          zip -j "$ZIP_ARM64" "$EXE_ARM64"
+          echo "Created $ZIP_X64 and $ZIP_ARM64"
+
+          # 获取版本信息
+          VERSION_NAME=$(git describe --tags --always)
+          VERSION_CODE=$(date +'%Y%m%d')
+
+          # 读取更新日志并为 JSON 转义
+          CHANGELOG=$(cat nightly_changelog.md | awk '{printf "%s\\n", $0}' | sed 's/"/\\"/g')
+
+          # 构建 nightly.json 文件
+          cat <<EOF > nightly.json
+          {
+            "version": "${VERSION_NAME}",
+            "version_code": ${VERSION_CODE},
+            "changelog": "${CHANGELOG}",
+            "assets": [
+              {
+                "arch": "x64",
+                "download_url": "https://github.com/${{ github.repository }}/releases/download/nightly/${ZIP_X64}",
+                "sha256": "${SHA256_X64}"
+              },
+              {
+                "arch": "arm64",
+                "download_url": "https://github.com/${{ github.repository }}/releases/download/nightly/${ZIP_ARM64}",
+                "sha256": "${SHA256_ARM64}"
+              }
+            ]
+          }
+          EOF
+
+          echo "Generated nightly.json:"
+          cat nightly.json
+
+      - name: Publish to Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: "Nightly Build"
+          body_path: nightly_changelog.md
+          prerelease: true
+          # 这将覆盖 'nightly' release 中的现有文件
+          files: |
+            ./PCL2_CE_Nightly_x64.zip
+            ./PCL2_CE_Nightly_ARM64.zip
+            ./nightly.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
