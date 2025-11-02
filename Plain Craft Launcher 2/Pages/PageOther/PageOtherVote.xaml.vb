@@ -30,7 +30,7 @@ Public Class PageOtherVote
     Public Sub VoteListGet(Task As LoaderTask(Of Integer, List(Of Vote)))
         Dim content As String
         Using response = HttpRequestBuilder.Create("https://github.com/Meloong-Git/PCL/discussions/categories/%E5%8A%9F%E8%83%BD%E6%8A%95%E7%A5%A8?discussions_q=is%3Aopen+category%3A%E5%8A%9F%E8%83%BD%E6%8A%95%E7%A5%A8+sort%3Atop", Http.HttpMethod.Get).
-            SendAsync(True).Result
+            SendAsync(True).GetAwaiter().GetResult()
             content = response.AsStringContent()
         End Using
         If content Is Nothing Then Throw New Exception("空内容")

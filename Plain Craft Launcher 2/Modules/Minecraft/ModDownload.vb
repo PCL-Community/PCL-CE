@@ -422,7 +422,8 @@ Public Module ModDownload
             WithHeader("Accept-Language", "en-US,en;q=0.5").
             WithHeader("X-Requested-With", "XMLHttpRequest").
             SendAsync(True).
-            Result.
+            GetAwaiter().
+            GetResult().
             AsStringContent()
         If Result.Length < 200 Then Throw New Exception("获取到的版本列表长度不足（" & Result & "）")
         Try
@@ -1371,13 +1372,13 @@ Public Module ModDownload
         Dim ResultProduction As JObject
         Using productionResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", HttpMethod.Get).
             WithHttpVersionOption(HttpVersion.Version20).
-            SendAsync(True).Result
+            SendAsync(True).GetAwaiter().GetResult()
             ResultProduction = GetJson(productionResponse.AsStringContent())
         End Using
         Dim ResultSnapshot As JObject
         Using snapshotResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json", HttpMethod.Get).
             WithHttpVersionOption(HttpVersion.Version20).
-            SendAsync(True).Result
+            SendAsync(True).GetAwaiter().GetResult()
             ResultSnapshot = GetJson(snapshotResponse.AsStringContent())
         End Using
         Dim Result As New JObject
