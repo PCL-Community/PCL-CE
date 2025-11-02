@@ -1,6 +1,7 @@
-﻿Imports System.Net.Http
+Imports System.Net.Http
 Imports PCL.Core.Net
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Class MyImage
     Inherits Image
@@ -104,8 +105,7 @@ Public Class MyImage
     End Property
     Private _ActualSource As String = Nothing
 
-    Private Sub Load() _
-        Handles Me.Initialized '属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
+    Private Async Sub Load() Handles Me.Initialized '属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
         '空
         If Source Is Nothing Then
             ActualSource = Nothing
@@ -126,73 +126,63 @@ Public Class MyImage
             ActualSource = TempPath
             If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
         End If
-        RunInNewThread(
-        Sub()
-            Dim TempDownloadingPath As String = Nothing
-            Try
-RetryStart:
-                '下载
-                ActualSource = LoadingSource '显示加载中图片
-                TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
-                Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
-                Using request As New Net.Http.HttpRequestMessage(Http.HttpMethod.Get, Url)
-                    Using fs As New FileStream(TempDownloadingPath, FileMode.Create)
-                        Using response = NetworkService.GetClient().SendAsync(request).Result
-                            response.EnsureSuccessStatusCode()
-                            Dim res = response.Content.ReadAsByteArrayAsync().Result
-                            fs.Write(res, 0, res.Length)
+
+        Dim TempDownloadingPath As String
+        Try
+            '下载
+            ActualSource = LoadingSource '显示加载中图片
+            TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
+            Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
+            Using fs As New FileStream(TempDownloadingPath, FileMode.Create)
+                Using response = Await HttpRequestBuilder.Create(Url, HttpMethod.Get).
+                        WithHttpVersionOption(HttpVersion.Version30).
+                        SendAsync()
+                    If response.IsSuccess Then
+                        Using nfs = Await response.AsStreamAsync()
+                            Await nfs.CopyToAsync(fs)
                         End Using
-                    End Using
+                    ElseIf Not FallbackSource.IsNullOrWhiteSpace() Then
+                        Using fallbackResponse = Await HttpRequestBuilder.
+                            Create(FallbackSource, HttpMethod.Get).
+                            WithHttpVersionOption(HttpVersion.Version30).
+                            SendAsync(True)
+                            fs.SetLength(0)
+                            Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
+                                Await fallbackNfs.CopyToAsync(fs)
+                            End Using
+                        End Using
+                    End If
                 End Using
-                If Url <> Source AndAlso Url <> FallbackSource Then
-                    '已经更换了地址
-                    File.Delete(TempDownloadingPath)
-                ElseIf EnableCache Then
-                    '保存缓存并显示
-                    If File.Exists(TempPath) Then File.Delete(TempPath)
-                    FileSystem.Rename(TempDownloadingPath, TempPath)
-                    RunInUi(Sub() ActualSource = TempPath)
-                Else
-                    '直接显示
-                    RunInUiWait(Sub() ActualSource = TempDownloadingPath)
-                    File.Delete(TempDownloadingPath)
-                End If
-            Catch ex As Exception
-                Try
-                    If TempPath IsNot Nothing Then File.Delete(TempPath)
-                    If TempDownloadingPath IsNot Nothing Then File.Delete(TempDownloadingPath)
-                Catch
-                End Try
-                If Not Retried Then
-                    '更换备用地址
-                    Log(ex, $"下载图片可重试地失败（{Url}）", LogLevel.Developer)
-                    Retried = True
-                    Url = If(FallbackSource, Source)
-                    '空
-                    If Url Is Nothing Then
-                        ActualSource = Nothing
-                        Return
-                    End If
-                    '本地图片
-                    If Not Url.StartsWithF("http") Then
-                        ActualSource = Url
-                        Return
-                    End If
-                    '从缓存加载网络图片
-                    TempPath = GetTempPath(Url)
-                    TempFile = New FileInfo(TempPath)
-                    If EnableCache AndAlso TempFile.Exists() Then
-                        ActualSource = TempPath
-                        If (Date.Now - TempFile.CreationTime) < FileCacheExpiredTime Then Return '无需刷新缓存
-                    End If
-                    '下载
-                    If Source = Url Then Thread.Sleep(1000) '延迟 1s 重试
-                    GoTo RetryStart
-                Else
-                    Log(ex, $"下载图片失败（{Url}）", LogLevel.Hint)
-                End If
+            End Using
+            If Url <> Source AndAlso Url <> FallbackSource Then
+                '已经更换了地址
+                File.Delete(TempDownloadingPath)
+            ElseIf EnableCache Then
+                '保存缓存并显示
+                If File.Exists(TempPath) Then File.Delete(TempPath)
+                FileSystem.Rename(TempDownloadingPath, TempPath)
+                ActualSource = TempPath
+            Else
+                '直接显示
+                ActualSource = TempDownloadingPath
+                File.Delete(TempDownloadingPath)
+            End If
+        Catch ex As Exception
+            Try
+                If TempPath IsNot Nothing AndAlso File.Exists(TempPath) Then File.Delete(TempPath)
+                If TempDownloadingPath IsNot Nothing AndAlso File.Exists(TempDownloadingPath) Then File.Delete(TempDownloadingPath)
+            Catch
             End Try
-        End Sub, "MyImage PicLoader " & GetUuid() & "#", ThreadPriority.BelowNormal)
+            '更换备用地址
+            Log(ex, $"下载图片失败（Base = {Url}, Fallback = {FallbackSource}）", LogLevel.Developer)
+            '从缓存加载网络图片
+            TempPath = GetTempPath(Url)
+            TempFile = New FileInfo(TempPath)
+            If EnableCache AndAlso TempFile.Exists() Then
+                ActualSource = TempPath
+                If (Date.Now - TempFile.CreationTime) < FileCacheExpiredTime Then Return '无需刷新缓存
+            End If
+        End Try
     End Sub
     Public Shared Function GetTempPath(Url As String) As String
         Return $"{PathTemp}MyImage\{GetHash(Url)}.png"

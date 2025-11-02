@@ -362,7 +362,7 @@ Public Class PageDownloadCompFavorites
 
     Private Sub Btn_FavoritesShare_Clicked(sender As Object, e As RouteEventArgs) Handles Btn_FavoritesShare.Click
         Try
-            ClipboardSet(CompFavorites.GetShareCode(SelectedItemList.Select(Function(i) CType(i.Tag, CompProject).Id).ToList()))
+            ClipboardSet(CompFavorites.GetShareCode(SelectedItemList.Select(Function(i) CType(i.Tag, CompProject).Id).ToHashSet()))
             Items_SetSelectAll(False)
         Catch ex As Exception
             Log(ex, "[CompFavourites] 分享收藏时发生错误", LogLevel.Hint)
@@ -576,8 +576,7 @@ Public Class PageDownloadCompFavorites
                                                   RefreshFavTargets()
                                                   ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1
                                               Case 2
-                                                  CurrentFavTarget.Favs.AddRange(NewFavs)
-                                                  CurrentFavTarget.Favs.Distinct()
+                                                  NewFavs.ToList().ForEach(Function(x) CurrentFavTarget.Favs.Add(x))
                                                   CompFavorites.Save()
                                                   Loader.Start(IsForceRestart:=True)
                                           End Select
