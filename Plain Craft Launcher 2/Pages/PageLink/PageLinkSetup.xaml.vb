@@ -29,7 +29,7 @@ Class PageLinkSetup
         ComboServerType.SelectedIndex = Config.Link.ServerType
         CheckLatencyFirstMode.Checked = Config.Link.LatencyFirstMode
         ComboPreferProtocol.SelectedIndex = CInt(Config.Link.ProtocolPreference)
-        CheckTryPaunchSym.Checked = Config.Link.TryPunchSym
+        CheckTryPunchSym.Checked = Config.Link.TryPunchSym
         CheckEnableIPv6.Checked = Config.Link.EnableIPv6
         CheckEnableCliOutput.Checked = Config.Link.EnableCliOutput
         If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
@@ -178,7 +178,7 @@ Class PageLinkSetup
     Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change, CheckEnableIPv6.Change, CheckTryPaunchSym.Change, CheckEnableCliOutput.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change, CheckEnableIPv6.Change, CheckTryPunchSym.Change, CheckEnableCliOutput.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub LinkProtocolPerferenceChange(sender As MyComboBox, e As Object) Handles ComboPreferProtocol.SelectionChanged

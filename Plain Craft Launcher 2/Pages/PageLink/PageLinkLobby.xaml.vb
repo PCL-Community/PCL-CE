@@ -22,7 +22,7 @@ Public Class PageLinkLobby
         AddHandler LobbyService.DiscoveredWorlds.CollectionChanged, AddressOf OnDiscoveredWorldsChanged
         AddHandler LobbyService.Players.CollectionChanged, AddressOf OnPlayersChanged
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
-        AddHandler LobbyService.OnClientPing, AddressOf OnClientPlingHandler
+        AddHandler LobbyService.OnClientPing, AddressOf OnClientPingHandler
         AddHandler LobbyService.OnServerShutDown, AddressOf OnServerShuttedDownHandler
         AddHandler LobbyService.OnServerStarted, AddressOf OnServerStartedHandler
         AddHandler LobbyService.OnServerException, AddressOf OnServerExceptionHandler
@@ -102,10 +102,14 @@ Public Class PageLinkLobby
 
 #Region "Subscribser"
     Private Sub OnServerStartedHandler()
-        Log("Recived server started evnet.")
+        Log("Received server started event.")
         RunInUi(Sub()
-                    LabFinishId.Text = LobbyService.CurrentLobbyCode
-                End Sub)
+            LabFinishId.Text = LobbyService.CurrentLobbyCode
+            StackPlayerList.Children.Clear()
+            For Each player As PlayerProfile In LobbyService.Players
+                StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
+            Next
+        End Sub)
     End Sub
 
     Private Async Sub OnServerShuttedDownHandler()
@@ -122,10 +126,10 @@ Public Class PageLinkLobby
             Hint("在服务器退出时发生了错误！", HintType.Critical)
         End Try
     End Sub
-    Private Sub OnClientPlingHandler(letacy As Long)
+    Private Sub OnClientPingHandler(latency As Long)
         RunInUi(Sub()
-                    LabFinishQuality.Text = "良好"
-                    LabFinishPing.Text = letacy.ToString() + "ms"
+                    LabFinishQuality.Text = "已连接"
+                    LabFinishPing.Text = latency.ToString() + "ms"
                     LabConnectType.Text = "暂不可用"
                 End Sub)
     End Sub
@@ -139,14 +143,35 @@ Public Class PageLinkLobby
         MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
     End Sub
 
+    
     Private Sub OnPlayersChanged(sender As Object, e As NotifyCollectionChangedEventArgs)
+        Log("接收到玩家列表改变事件")
         RunInUi(Sub()
-                    StackPlayerList.Children.Clear()
-                    For Each player In LobbyService.Players
+            Select Case e.Action
+                Case NotifyCollectionChangedAction.Add
+                    For Each player As PlayerProfile In e.NewItems
                         StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
                     Next
-                    CardPlayerList.Title = $"大厅成员列表（共 {LobbyService.Players.Count} 人）"
-                End Sub)
+
+                Case NotifyCollectionChangedAction.Remove
+                    For Each player As PlayerProfile In e.OldItems
+                        Dim itemToRemove = StackPlayerList.Children.OfType(Of MyListItem)().
+                                FirstOrDefault(Function(item) item.Tag.MachineId = player.MachineId)
+                        If itemToRemove IsNot Nothing Then
+                            StackPlayerList.Children.Remove(itemToRemove)
+                        End If
+                    Next
+
+                Case Else
+                    StackPlayerList.Children.Clear()
+                    For Each player As PlayerProfile In LobbyService.Players
+                        StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
+                    Next
+            End Select
+
+            LabFinishQuality.Text = "已连接"
+            CardPlayerList.Title = $"大厅成员列表（共 {LobbyService.Players.Count} 人）"
+        End Sub)
     End Sub
 
     Private Sub OnDiscoveredWorldsChanged(sender As Object, e As NotifyCollectionChangedEventArgs)
