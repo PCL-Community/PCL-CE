@@ -49,7 +49,7 @@ Class PageSetupSystem
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
         Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
         ComboSystemUpdateBranch.SelectedIndex = branch
-        If branch = 1 OrElse branch = 2 OrElse VersionBaseName.Contains("nightly") Then
+        If branch = 1 OrElse branch = 2 Then
             ComboSystemUpdateBranch.IsEnabled = False
         Else
             ComboSystemUpdateBranch.IsEnabled = True

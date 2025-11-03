@@ -2,6 +2,7 @@ Imports System.ComponentModel
 Imports System.Management
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
+Imports System.Security
 Imports System.Security.Cryptography
 Imports PCL.Core.IO
 Imports PCL.Core.UI
@@ -692,8 +693,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     })
 
     Public Function GetCurrentUpdateChannel() As UpdateChannel
-        If VersionBaseName.Contains("nightly") Then Return UpdateChannel.nightly
-        If VersionBaseName.Contains("beta") Then Return UpdateChannel.beta
         Select Case CType(Setup.Get("SystemSystemUpdateBranch"), Integer)
             Case 1
                 Return UpdateChannel.beta
@@ -733,17 +732,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
         Dim channel = GetCurrentUpdateChannel()
-        If channel = UpdateChannel.nightly Then
-            If Not IsVerisonLatest() Then
-                Dim latest = RemoteServer.GetLatestVersion(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                If MyMsgBoxMarkdown($"启动器有新版本可用（{VersionBaseName} -> {latest.VersionName}）。由于你选择了 Nightly 更新通道，需要立即更新才能继续使用。{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "或者更新", ForceWait:=True) = 1 Or 2 Then
-                    UpdateStart(False)
-                End If
-            Else
-                If Not Silent Then Hint("启动器已是最新版 " + VersionBaseName + "，无须更新啦！", HintType.Finish)
-            End If
-            Return
-        End If
 
         If Not IsVerisonLatest() Then
             Dim latest As VersionDataModel = Nothing
@@ -787,7 +775,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
                     Dim curHash = GetFileSHA256(DlTargetPath)
                     If curHash <> version.SHA256 Then
-                        Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
+                        Throw New SecurityException($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
                     End If
                 End Sub))
                 If Not Slient Then

@@ -28,7 +28,7 @@ Public Class UpdatesGitHubModel
 
     Public Function GetLatestVersion(channel As UpdateChannel, arch As UpdateArch) As VersionDataModel Implements IUpdateSource.GetLatestVersion
         If channel <> UpdateChannel.nightly Then Throw New NotSupportedException("UpdatesGitHubModel only supports the Nightly channel.")
-        If _nightlyInfo Is Nothing AndAlso Not RefreshCache() Then Throw New Exception("Failed to get nightly update info.")
+        If _nightlyInfo Is Nothing AndAlso Not RefreshCache() Then Throw New InvalidOperationException("Failed to get nightly update info.")
 
         Dim asset = GetAssetForArch(arch)
 
@@ -54,7 +54,7 @@ Public Class UpdatesGitHubModel
 
     Public Function GetDownloadLoader(channel As UpdateChannel, arch As UpdateArch, output As String) As List(Of LoaderBase) Implements IUpdateSource.GetDownloadLoader
         If channel <> UpdateChannel.nightly Then Throw New NotSupportedException("UpdatesGitHubModel only supports the Nightly channel.")
-        If _nightlyInfo Is Nothing AndAlso Not RefreshCache() Then Throw New Exception("Failed to get nightly update info for download.")
+        If _nightlyInfo Is Nothing AndAlso Not RefreshCache() Then Throw New InvalidOperationException("Failed to get nightly update info for download.")
 
         Dim asset = GetAssetForArch(arch)
         Dim downloadUrl = asset.download_url
@@ -69,7 +69,7 @@ Public Class UpdatesGitHubModel
             Using fs As New IO.FileStream(tempPath, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.Read)
                 Using zip As New ZipArchive(fs)
                     Dim entry = zip.Entries.FirstOrDefault(Function(x) x.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-                    If entry Is Nothing Then Throw New Exception("在下载的更新包中找不到可执行文件。")
+                    If entry Is Nothing Then Throw New InvalidOperationException("在下载的更新包中找不到可执行文件。")
                     entry.ExtractToFile(output, True)
                 End Using
             End Using
@@ -80,7 +80,7 @@ Public Class UpdatesGitHubModel
     Private Function GetAssetForArch(arch As UpdateArch) As NightlyAsset
         Dim archName = If(arch = UpdateArch.arm64, "arm64", "x64")
         Dim asset = _nightlyInfo.assets.FirstOrDefault(Function(a) a.arch.Equals(archName, StringComparison.OrdinalIgnoreCase))
-        If asset Is Nothing Then Throw New Exception($"Nightly build for architecture {archName} not found.")
+        If asset Is Nothing Then Throw New InvalidOperationException($"Nightly build for architecture {archName} not found.")
         Return asset
     End Function
 
