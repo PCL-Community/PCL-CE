@@ -49,7 +49,7 @@ Public Class UpdatesGitHubModel
     End Function
 
     Public Function GetAnnouncementList() As VersionAnnouncementDataModel Implements IUpdateSource.GetAnnouncementList
-        Throw New Exception("GitHub Nightly 无公告系统")
+        Throw New InvalidOperationException("GitHub Nightly 无公告系统")
     End Function
 
     Public Function GetDownloadLoader(channel As UpdateChannel, arch As UpdateArch, output As String) As List(Of LoaderBase) Implements IUpdateSource.GetDownloadLoader
