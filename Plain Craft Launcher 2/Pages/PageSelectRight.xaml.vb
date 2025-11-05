@@ -335,15 +335,15 @@ Public Class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnCont, 30)
             ToolTipService.SetHorizontalOffset(BtnCont, 2)
             AddHandler BtnCont.Click,
-        Sub()
-            PageInstanceLeft.Instance = Version
-            FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
-        End Sub
+            Sub()
+                PageInstanceLeft.Instance = Version
+                FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
+            End Sub
             AddHandler sender.MouseRightButtonUp,
-        Sub()
-            PageInstanceLeft.Instance = Version
-            FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
-        End Sub
+            Sub()
+                PageInstanceLeft.Instance = Version
+                FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
+            End Sub
             sender.Buttons = {BtnStar, BtnOpenFolder, BtnDel, BtnCont}
         Else
             Dim BtnCont As New MyIconButton With {.LogoScale = 1.15, .Logo = Logo.IconButtonOpen}
