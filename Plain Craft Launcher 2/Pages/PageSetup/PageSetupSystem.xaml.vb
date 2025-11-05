@@ -49,11 +49,7 @@ Class PageSetupSystem
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
         Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
         ComboSystemUpdateBranch.SelectedIndex = branch
-        If branch = 1 OrElse branch = 2 Then
-            ComboSystemUpdateBranch.IsEnabled = False
-        Else
-            ComboSystemUpdateBranch.IsEnabled = True
-        End If
+        ComboSystemUpdateBranch.IsEnabled = (branch = 0)
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
         TextSystemCache.Text = Setup.Get("SystemSystemCache")
         CheckSystemDisableHardwareAcceleration.Checked = Setup.Get("SystemDisableHardwareAcceleration")
