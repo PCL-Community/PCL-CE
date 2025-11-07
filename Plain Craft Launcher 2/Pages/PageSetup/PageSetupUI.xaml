@@ -153,19 +153,19 @@
                     <local:FontSelector Grid.Row="2" Grid.Column="2" x:Name="ComboUiMotdFont" Tooltip="格式化代码文本字体，用于服务器状态信息等内容"/>
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景图片/视频">
+            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景内容">
                 <StackPanel Margin="25,40,25,20">
                     <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="图片自适应方式" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="内容自适应方式" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1">
-                            <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当图片较小时选择平铺，较大时选择适应" />
+                            <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当内容较小时选择平铺，较大时选择适应" />
                             <local:MyComboBoxItem Content="居中" />
-                            <local:MyComboBoxItem Content="适应" ToolTip="拉伸图片并保持长宽比不变，直至填满整个窗口" />
-                            <local:MyComboBoxItem Content="拉伸" ToolTip="拉伸图片使其恰好填满整个窗口，很可能会导致长宽比的改变" />
+                            <local:MyComboBoxItem Content="适应" ToolTip="拉伸内容并保持长宽比不变，直至填满整个窗口" />
+                            <local:MyComboBoxItem Content="拉伸" ToolTip="拉伸内容使其恰好填满整个窗口，很可能会导致长宽比的改变" />
                             <local:MyComboBoxItem Content="平铺" />
                             <local:MyComboBoxItem Content="居于左上" />
                             <local:MyComboBoxItem Content="居于右上" />
