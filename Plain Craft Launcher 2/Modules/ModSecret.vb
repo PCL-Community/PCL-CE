@@ -735,9 +735,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         If channel = UpdateChannel.nightly Then
             If Not IsVerisonLatest() Then
                 Dim latest = RemoteServer.GetLatestVersion(channel, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                If MyMsgBoxMarkdown($"启动器有新版本可用（{VersionBaseName} -> {latest.VersionName}）。由于你选择了 Nightly 更新通道，需要立即更新才能继续使用。{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "或者更新", ForceWait:=True)
-                    UpdateStart(False)
-                End If
+                MyMsgBoxMarkdown($"启动器有新版本可用（{VersionBaseName} -> {latest.VersionName}）。由于你选择了 Nightly 更新通道，需要立即更新才能继续使用。{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "或者更新", ForceWait:=True)
+                UpdateStart(False)
             Else
                 If Not Silent Then Hint("启动器已是最新版 " + VersionBaseName + "，无须更新啦！", HintType.Finish)
             End If
