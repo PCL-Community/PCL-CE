@@ -1034,7 +1034,6 @@ Public Class FormMain
         OtherAbout = 1
         OtherTest = 2
         OtherFeedback = 3
-        OtherVote = 4
         OtherLog = 5
         VersionOverall = 0
         VersionSetup = 1
