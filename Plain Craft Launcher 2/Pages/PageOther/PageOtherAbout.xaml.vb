@@ -23,7 +23,9 @@
     Private Sub BtnAboutPysio_Click(sender As Object, e As EventArgs) Handles BtnAboutPysio.Click
         OpenWebsite("https://www.pysio.online")
     End Sub
-
+    Private Sub BtnAboutEasyTier_Click(sender As Object, e As EventArgs) Handles BtnAboutEasyTier.Click
+        OpenWebsite("https://easytier.cn/")
+    End Sub
     Private Sub ImgPCLCommunity_Click(sender As Object, e As MouseButtonEventArgs) Handles ImgPCLCommunity.MouseLeftButtonDown
         AniStart({
                  AaRotateTransform(sender, 360)})
