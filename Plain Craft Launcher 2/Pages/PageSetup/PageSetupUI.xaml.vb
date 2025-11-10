@@ -367,7 +367,7 @@ Public Class PageSetupUI
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
                             Log(ex,"[UI] 加载背景图片失败" & Address)
-                            Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
+                            If ModeDebug Then Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
                             VideoPlay()
