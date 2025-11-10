@@ -762,55 +762,55 @@ Retry:
             .RelyingParty = "rp://api.minecraftservices.com/",
             .TokenType = "JWT"
         }
-        Dim Result As String
-        Try
-            Dim contentData = JsonSerializer.Serialize(requestData)
-            Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
+        Dim result As String
+        Dim contentData = JsonSerializer.Serialize(requestData)
+        Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
                 WithContent(contentData, "application/json").
-                SendAsync(True).GetAwaiter().GetResult()
-                Result = response.AsStringContent()
-            End Using
-        Catch ex As HttpRequestException
-            '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
-            If ex.Message.Contains("2148916227") Then
-                MyMsgBox("该账号似乎已被微软封禁，无法登录。", "登录失败", "我知道了", IsWarn:=True)
-                Throw New Exception("$$")
-            ElseIf ex.Message.Contains("2148916233") Then
-                If MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", "取消") = 1 Then
-                    OpenWebsite("https://signup.live.com/signup")
-                End If
-                Throw New Exception("$$")
-            ElseIf ex.Message.Contains("2148916235") Then
-                MyMsgBox($"你的网络所在的国家或地区无法登录微软账号。{vbCrLf}请使用加速器或 VPN。", "登录失败", "我知道了")
-                Throw New Exception("$$")
-            ElseIf ex.Message.Contains("2148916238") Then
-                If MyMsgBox("该账号年龄不足，你需要先修改出生日期，然后才能登录。" & vbCrLf &
-                            "该账号目前填写的年龄是否在 13 岁以上？", "登录提示", "13 岁以上", "12 岁以下", "我不知道") = 1 Then
-                    OpenWebsite("https://account.live.com/editprof.aspx")
-                    MyMsgBox("请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。" & vbCrLf &
-                             "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！", "登录提示")
-                Else
-                    OpenWebsite("https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a")
-                    MyMsgBox("请根据打开的网页的说明，修改账号的出生日期（至少改为 18 岁以上）。" & vbCrLf &
-                             "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！", "登录提示")
-                End If
-                Throw New Exception("$$")
-            Else
-                ProfileLog("正版验证 Step 3/6 获取 XSTSToken 失败：" & ex.ToString())
-                Dim IsIgnore As Boolean = False
-                RunInUiWait(Sub()
-                                If Not IsLaunching Then Exit Sub
-                                If MyMsgBox($"启动器在尝试刷新账号信息时(Step 3)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
-                            End Sub)
-                If IsIgnore Then
-                    Return {SelectedProfile.AccessToken, "Ignore"}
-                    Exit Function
-                End If
-                Throw
-            End If
-        End Try
+                SendAsync().GetAwaiter().GetResult()
+            result = response.AsStringContent()
 
-        Dim ResultJson As JObject = GetJson(Result)
+            If Not response.IsSuccess Then
+                '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
+                If result.Contains("2148916227") Then
+                    MyMsgBox("该账号似乎已被微软封禁，无法登录。", "登录失败", "我知道了", IsWarn:=True)
+                    Throw New Exception("$$")
+                ElseIf result.Contains("2148916233") Then
+                    If MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", "取消") = 1 Then
+                        OpenWebsite("https://signup.live.com/signup")
+                    End If
+                    Throw New Exception("$$")
+                ElseIf result.Contains("2148916235") Then
+                    MyMsgBox($"你的网络所在的国家或地区无法登录微软账号。{vbCrLf}请使用加速器或 VPN。", "登录失败", "我知道了")
+                    Throw New Exception("$$")
+                ElseIf result.Contains("2148916238") Then
+                    If MyMsgBox("该账号年龄不足，你需要先修改出生日期，然后才能登录。" & vbCrLf &
+                                "该账号目前填写的年龄是否在 13 岁以上？", "登录提示", "13 岁以上", "12 岁以下", "我不知道") = 1 Then
+                        OpenWebsite("https://account.live.com/editprof.aspx")
+                        MyMsgBox("请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。" & vbCrLf &
+                                 "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！", "登录提示")
+                    Else
+                        OpenWebsite("https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a")
+                        MyMsgBox("请根据打开的网页的说明，修改账号的出生日期（至少改为 18 岁以上）。" & vbCrLf &
+                                 "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！", "登录提示")
+                    End If
+                    Throw New Exception("$$")
+                Else
+                    ProfileLog("正版验证 Step 3/6 获取 XSTSToken 失败：" & response.StatusCode)
+                    Dim IsIgnore As Boolean = False
+                    RunInUiWait(Sub()
+                                    If Not IsLaunching Then Exit Sub
+                                    If MyMsgBox($"启动器在尝试刷新账号信息时(Step 3)遇到了网络错误。{vbCrLf}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。", "账号信息获取失败", "继续", "取消") = 1 Then IsIgnore = True
+                                End Sub)
+                    If IsIgnore Then
+                        Return {SelectedProfile.AccessToken, "Ignore"}
+                        Exit Function
+                    End If
+                    response.EnsureSuccessStatusCode()
+                End If
+            End If
+        End Using
+
+        Dim ResultJson As JObject = GetJson(result)
         Dim XSTSToken As String = ResultJson("Token").ToString
         Dim UHS As String = ResultJson("DisplayClaims")("xui")(0)("uhs").ToString
         Return {XSTSToken, UHS}
@@ -869,21 +869,25 @@ Retry:
     Private Sub MsLoginStep5(accessToken As String)
         ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC")
         If String.IsNullOrEmpty(accessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(accessToken))
-        Dim result As String
+        Dim result As String = ""
         Try
-            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements", HttpMethod.Get).
+            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements/mcstore", HttpMethod.Get).
                 WithBearerToken(accessToken).
                 SendAsync(True).GetAwaiter().GetResult()
                 result = response.AsStringContent()
             End Using
             Dim ResultJson As JObject = GetJson(result)
-            If Not (ResultJson.ContainsKey("items") AndAlso ResultJson("items").Any(Function(x) x("name")?.ToString() = "product_minecraft" OrElse x("name")?.ToString() = "game_minecraft")) Then
-                    Select Case MyMsgBox($"暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期", "登录失败", "购买 Minecraft", "取消")
-                        Case 1
-                            OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
-                    End Select
-                    Throw New Exception("$$")
-                End If
+            If Not (ResultJson.ContainsKey("items") AndAlso
+                ResultJson("items").Any(Function(x)
+                                            Return x("name")?.ToString() = "product_minecraft" OrElse
+                                            x("name")?.ToString() = "game_minecraft"
+                                        End Function)) Then
+                Select Case MyMsgBox($"暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期", "登录失败", "购买 Minecraft", "取消")
+                    Case 1
+                        OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
+                End Select
+                Throw New Exception("$$")
+            End If
         Catch ex As Exception
             Log(ex, "正版验证 Step 5 异常：" & result)
             Throw
