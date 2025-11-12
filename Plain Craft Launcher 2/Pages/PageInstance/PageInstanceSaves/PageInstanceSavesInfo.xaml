@@ -11,8 +11,6 @@
             <local:MyHint x:Name="Hintversion1_3" Theme="Yellow" Grid.Row="0" Visibility="Collapsed" Margin="0,5,0,0"/>
             <local:MyCard Margin="0,15,0,0" Title="存档详细信息" x:Name="PanContent">
                 <Grid Margin="15,35,15,15" x:Name="PanList">
-                    <Grid.RowDefinitions>
-                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto"/>
                         <ColumnDefinition Width="24"/>
@@ -22,8 +20,6 @@
             </local:MyCard>
             <local:MyCard Margin="0,15,0,0" Title="存档设置" x:Name="PanSettings" Visibility="Collapsed">
                 <Grid Margin="15,35,15,15" x:Name="PanSettingsList">
-                    <Grid.RowDefinitions>
-                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto"/>
                         <ColumnDefinition Width="24"/>
