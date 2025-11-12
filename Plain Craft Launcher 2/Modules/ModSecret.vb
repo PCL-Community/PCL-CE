@@ -742,9 +742,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
                 Exit Sub
             End If
-            If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
-                MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
-                         "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
+            If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 10.0.", True) Then
+                MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 10 才可以运行。{vbCrLf}你需要先安装 .NET 10 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
+                         "下载 .NET 10 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/10"), ForceWait:=True)
                 Return
             End If
             If MyMsgBoxMarkdown($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "取消") = 1 Then
