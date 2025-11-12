@@ -195,9 +195,9 @@ WaitRetry:
         If IsProgramEnded Then Return
         FeedbackInfo()
         Dim Detail As String = e.Exception.ToString()
-        If Detail.Contains("System.Windows.Threading.Dispatcher.Invoke") OrElse Detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") OrElse Detail.Contains("未能加载文件或程序集") Then ' “自动错误判断” 的结果分析
-            OpenWebsite("https://get.dot.net/8")
-            Log(e.Exception, "你的 .NET 桌面运行时版本过低或损坏，请下载并重新安装 .NET 8！", LogLevel.Critical, "运行环境错误")
+        If Detail.Contains("System.Windows.Threading.Dispatcher.Invoke") OrElse Detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") Then ' “自动错误判断” 的结果分析
+            OpenWebsite("https://get.dot.net/10")
+            Log(e.Exception, "你的 .NET 桌面运行时版本过低或损坏，请下载并重新安装 .NET 10！", LogLevel.Critical, "运行环境错误")
         Else
             Log(e.Exception, "程序出现未知错误", LogLevel.Critical, "锟斤拷烫烫烫")
         End If
