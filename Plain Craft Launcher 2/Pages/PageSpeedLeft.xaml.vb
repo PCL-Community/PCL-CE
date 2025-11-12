@@ -76,6 +76,18 @@ Public Class PageSpeedLeft
             If RightCards.ContainsKey(Loader.Name) Then
                 '已有此卡片
                 Dim Card As Grid = RightCards(Loader.Name)
+                '尝试更新卡片进度条（如果存在）
+                Try
+                    Dim mc As MyCard = RightCards(Loader.Name)
+                    For Each ch In mc.Children
+                        If TypeOf ch Is ProgressBar Then
+                            CType(ch, ProgressBar).Value = MathClamp(Loader.Progress * 100, 0, 100)
+                            Exit For
+                        End If
+                    Next
+                Catch ex As Exception
+                    '忽略进度条更新错误，继续刷新其它内容
+                End Try
                 Dim NewValue As Double = Loader.Progress + Loader.State
                 If Val(Card.Tag) = NewValue Then Return
                 Card.Tag = NewValue
@@ -148,7 +160,7 @@ Public Class PageSpeedLeft
                     Dim CardXAML As String = "
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
                             Tag=""" & (Loader.Progress + Loader.State) & """ Title=""" & EscapeXML(Loader.Name) & """ Margin=""0,0,0,15"">
-                            <Grid Margin=""14,40,15,10"">
+                            <Grid Margin=""14,40,15,20"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
                                     <ColumnDefinition/>
@@ -173,7 +185,10 @@ Public Class PageSpeedLeft
                         CardXAML += "<TextBlock Text=""" & EscapeXML(SubTask.Name) & """ HorizontalAlignment=""Left"" Grid.Column=""1"" Grid.Row=""" & Row & """/>"
                         Row += 1
                     Next
-                    CardXAML += "</Grid></local:MyCard>"
+                    CardXAML += "</Grid>"
+                    CardXAML += "<ProgressBar xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" Minimum=""0"" Maximum=""100"" Value=""" & Math.Floor(Loader.Progress * 100) & """ Foreground=""{DynamicResource ColorBrush3}"" Background=""{DynamicResource ColorBrush4}"" Height=""6"" VerticalAlignment=""Bottom"" Margin=""10"" HorizontalAlignment=""Stretch""/>"
+                    CardXAML += "</local:MyCard>"
+
                     '实例化控件
                     Dim Card As MyCard
                     Try
@@ -183,6 +198,7 @@ Public Class PageSpeedLeft
                         Log("出错的卡片内容：" & vbCrLf & CardXAML)
                         Throw
                     End Try
+
                     FrmSpeedRight.PanMain.Children.Insert(0, Card)
                     RightCards.Add(Loader.Name, Card)
                     Log($"[Watcher] 新建任务管理卡片：{Loader.Name}")
