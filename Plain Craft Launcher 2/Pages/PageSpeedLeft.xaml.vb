@@ -160,7 +160,7 @@ Public Class PageSpeedLeft
                     Dim CardXAML As String = "
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
                             Tag=""" & (Loader.Progress + Loader.State) & """ Title=""" & EscapeXML(Loader.Name) & """ Margin=""0,0,0,15"">
-                            <Grid Margin=""14,40,15,20"">
+                            <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
                                     <ColumnDefinition/>
@@ -186,7 +186,8 @@ Public Class PageSpeedLeft
                         Row += 1
                     Next
                     CardXAML += "</Grid>"
-                    CardXAML += "<ProgressBar xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" Minimum=""0"" Maximum=""100"" Value=""" & Math.Floor(Loader.Progress * 100) & """ Foreground=""{DynamicResource ColorBrush3}"" Background=""{DynamicResource ColorBrush4}"" Height=""6"" VerticalAlignment=""Bottom"" Margin=""10"" HorizontalAlignment=""Stretch""/>"
+                    ' 任务进度条
+                    CardXAML += "<ProgressBar xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" Minimum=""0"" Maximum=""100"" Value=""" & Math.Floor(Loader.Progress * 100) & """ Foreground=""{DynamicResource ColorBrush3}"" Background=""{DynamicResource ColorBrush4}"" Height=""2"" VerticalAlignment=""Bottom"" Margin=""2,10,2,0"" HorizontalAlignment=""Stretch""/>"
                     CardXAML += "</local:MyCard>"
 
                     '实例化控件
