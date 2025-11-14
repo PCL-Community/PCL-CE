@@ -187,7 +187,7 @@ Public Class PageSpeedLeft
                     Next
                     CardXAML += "</Grid>"
                     ' 任务进度条
-                    CardXAML += "<ProgressBar xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" Minimum=""0"" Maximum=""100"" Value=""" & Math.Floor(Loader.Progress * 100) & """ Foreground=""{DynamicResource ColorBrush3}"" Background=""{DynamicResource ColorBrush4}"" Height=""2"" VerticalAlignment=""Bottom"" Margin=""2,10,2,0"" HorizontalAlignment=""Stretch""/>"
+                    CardXAML += "<ProgressBar xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" Minimum=""0"" Maximum=""100"" Value=""" & Math.Floor(Loader.Progress * 100) & """ Foreground=""{DynamicResource ColorBrush3}"" Background=""{DynamicResource ColorBrush4}"" Height=""3"" VerticalAlignment=""Bottom"" Margin=""1,0,1,0"" HorizontalAlignment=""Stretch""/>"
                     CardXAML += "</local:MyCard>"
 
                     '实例化控件
