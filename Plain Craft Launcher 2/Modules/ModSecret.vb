@@ -4,6 +4,7 @@ Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports PCL.Core.App
+Imports PCL.Core.App.Updates
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -651,7 +652,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                                                                            End If
                                                                                        End Sub))
                                If type = UpdateType.UpdateNow Then
-                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True, True)))
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateHelper.Restart(True)))
                                ElseIf type = UpdateType.Silent Then
                                    loaders.Add(New LoaderTask(Of Integer, Integer)("准备更新", Sub() IsUpdateWaitingRestart = True))
                                ElseIf type = UpdateType.DownloadAndPrompt Then
@@ -686,29 +687,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                            End Try
                        End Sub)
     End Sub
-    Public Sub UpdateRestart(triggerRestartAndByEnd As Boolean, Optional triggerRestart As Boolean = True)
-        Try
-            Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
-            If Not File.Exists(fileName) Then
-                Log("[System] 更新失败：未找到更新文件")
-                Exit Sub
-            End If
-            ' id old new restart
-            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{ExePathWithName}"" ""{fileName}"" {If(triggerRestart, "true", "false")}"
-            Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
-            Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
-            If triggerRestartAndByEnd Then
-                FrmMain.EndProgram(False)
-                Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
-            End If
-        Catch ex As Win32Exception
-            Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", LogLevel.Debug, "出现错误")
-            If MyMsgBox(String.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！", vbCrLf, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", True, True, False, Nothing, Nothing, Nothing) = 1 Then
-                TryStartEvent("打开帮助", "启动器/Microsoft Defender 添加排除项.json")
-            End If
-        End Try
-    End Sub
-    Public Sub UpdateReplace(processId As Integer, oldFileName As String, newFileName As String, triggerRestart As Boolean)
+
+    Public Sub UpdateReplace(ProcessId As Integer, OldFileName As String, NewFileName As String, TriggerRestart As Boolean)
         Try
             Dim ps = Process.GetProcessById(processId)
             If Not ps.HasExited Then

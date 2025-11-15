@@ -3,6 +3,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
+Imports PCL.Core.App.Updates
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -434,7 +435,7 @@ Public Class FormMain
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
+        If IsUpdateWaitingRestart Then UpdateHelper.Restart(False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -1482,7 +1483,7 @@ Public Class FormMain
 
     '更新重启
     Private Sub BtnExtraUpdateRestart_Click() Handles BtnExtraUpdateRestart.Click
-        UpdateRestart(True, True)
+        UpdateHelper.Restart(True)
     End Sub
     Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
         Return IsUpdateWaitingRestart
