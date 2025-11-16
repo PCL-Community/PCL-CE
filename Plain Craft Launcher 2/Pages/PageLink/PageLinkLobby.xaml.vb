@@ -26,7 +26,8 @@ Public Class PageLinkLobby
         AddHandler LobbyService.OnServerShutDown, AddressOf OnServerShuttedDownHandler
         AddHandler LobbyService.OnServerStarted, AddressOf OnServerStartedHandler
         AddHandler LobbyService.OnServerException, AddressOf OnServerExceptionHandler
-
+        ValidateLobbyId()
+        AddHandler TextJoinLobbyId.TextChanged, AddressOf TextJoinLobbyId_TextChanged
         If LobbyAnnouncementLoader Is Nothing Then
             Dim loaders As New List(Of LoaderBase)
             loaders.Add(New LoaderTask(Of Integer, Integer)("大厅界面初始化", Sub() RunInUi(Sub()
@@ -38,7 +39,14 @@ Public Class PageLinkLobby
             LobbyAnnouncementLoader = New LoaderCombo(Of Integer)("Lobby Announcement", loaders) With {.Show = False}
         End If
     End Sub
-
+    Private Sub TextJoinLobbyId_TextChanged(sender As Object, e As TextChangedEventArgs)
+        ValidateLobbyId()
+    End Sub
+    Private Sub ValidateLobbyId()
+        Dim lobbyId = TextJoinLobbyId.Text.Trim()
+        Dim isValid = System.Text.RegularExpressions.Regex.IsMatch(lobbyId, "^U\/[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$")
+        BtnJoin.IsEnabled = isValid
+    End Sub
     Private Async Sub OnServerExceptionHandler(ex As Exception)
         RunInUi(Sub() Hint(ex.Message, HintType.Critical))
 

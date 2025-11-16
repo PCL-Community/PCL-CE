@@ -61,7 +61,7 @@
                             <TextBlock LineHeight="23" FontSize="14" TextWrapping="Wrap" Margin="10,10,10,-2"
                                 Text="1、在下方输入朋友发送给你的大厅编号，单击【加入】&#xa;2、启动游戏，选择【多人游戏】，在局域网游戏中加入大厅" />
                             <DockPanel Margin="10" Height="28">
-                                <local:MyButton x:Name="BtnJoin" DockPanel.Dock="Right" Text="加入" ColorType="Highlight" Width="50" Margin="10,0,0,0"/>
+                                <local:MyButton x:Name="BtnJoin" DockPanel.Dock="Right" Text="加入" ColorType="Highlight" Width="50" Margin="10,0,0,0" IsEnabled="False"/>
                                 <local:MyButton x:Name="BtnPaste" DockPanel.Dock="Right" Text="粘贴" ColorType="Normal" Width="50" Margin="10,0,0,0"/>
                                 <local:MyButton x:Name="BtnClearLobbyId" DockPanel.Dock="Right" Text="清除" ColorType="Normal" Width="50" Margin="10,0,0,0"/>
                                 <local:MyTextBox x:Name="TextJoinLobbyId" HintText="编号应该长得像这样：U/NNNN-AAAA-SSSS-EEEE" MaxLines="1" AcceptsReturn="False"/>
