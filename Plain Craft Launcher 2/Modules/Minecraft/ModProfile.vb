@@ -165,40 +165,40 @@ Public Module ModProfile
                     Dim profileJobj As JObject = Nothing
                     If Profile.Type = McLoginType.Ms Then
                         profileJobj = New JObject From {
-                            {"type", "microsoft"},
-                            {"uuid", Profile.Uuid},
-                            {"username", Profile.Username},
-                            {"accessToken", SecretEncrypt(Profile.AccessToken)},
-                            {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
-                            {"expires", Profile.Expires},
-                            {"desc", Profile.Desc},
-                            {"rawJson", SecretEncrypt(Profile.RawJson)},
-                            {"skinHeadId", Profile.SkinHeadId}
-                        }
+                        {"type", "microsoft"},
+                        {"uuid", Profile.Uuid},
+                        {"username", Profile.Username},
+                        {"accessToken", SecretEncrypt(Profile.AccessToken)},
+                        {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
+                        {"expires", Profile.Expires},
+                        {"desc", Profile.Desc},
+                        {"rawJson", SecretEncrypt(Profile.RawJson)},
+                        {"skinHeadId", Profile.SkinHeadId}
+                    }
                     ElseIf Profile.Type = McLoginType.Auth Then
                         profileJobj = New JObject From {
-                            {"type", "authlib"},
-                            {"uuid", Profile.Uuid},
-                            {"username", Profile.Username},
-                            {"accessToken", SecretEncrypt(Profile.AccessToken)},
-                            {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
-                            {"expires", Profile.Expires},
-                            {"server", Profile.Server},
-                            {"serverName", Profile.ServerName},
-                            {"name", SecretEncrypt(Profile.Name)},
-                            {"password", SecretEncrypt(Profile.Password)},
-                            {"clientToken", SecretEncrypt(Profile.ClientToken)},
-                            {"desc", Profile.Desc},
-                            {"skinHeadId", Profile.SkinHeadId}
-                        }
+                        {"type", "authlib"},
+                        {"uuid", Profile.Uuid},
+                        {"username", Profile.Username},
+                        {"accessToken", SecretEncrypt(Profile.AccessToken)},
+                        {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
+                        {"expires", Profile.Expires},
+                        {"server", Profile.Server},
+                        {"serverName", Profile.ServerName},
+                        {"name", SecretEncrypt(Profile.Name)},
+                        {"password", SecretEncrypt(Profile.Password)},
+                        {"clientToken", SecretEncrypt(Profile.ClientToken)},
+                        {"desc", Profile.Desc},
+                        {"skinHeadId", Profile.SkinHeadId}
+                    }
                     Else
                         profileJobj = New JObject From {
-                            {"type", "offline"},
-                            {"uuid", Profile.Uuid},
-                            {"username", Profile.Username},
-                            {"desc", Profile.Desc},
-                            {"skinHeadId", Profile.SkinHeadId}
-                        }
+                        {"type", "offline"},
+                        {"uuid", Profile.Uuid},
+                        {"username", Profile.Username},
+                        {"desc", Profile.Desc},
+                        {"skinHeadId", Profile.SkinHeadId}
+                    }
                     End If
                     list.Add(profileJobj)
                 Next
@@ -208,9 +208,9 @@ Public Module ModProfile
                 {"profiles", list}
             }
             End If
-            Dim tempFile = Path.Combine(PathAppdata, "profiles.json.tmp")
-            Dim actualFile = Path.Combine(PathAppdata, "profiles.json")
-            Dim bakFile = Path.Combine(PathAppdata, "profiles.json.bak")
+            Dim actualFile = Path.Combine(PathAppdataConfig, "profiles.json")
+            Dim tempFile = actualFile & ".tmp"
+            Dim bakFile = actualFile & ".bak"
             File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Newtonsoft.Json.Formatting.None)))
             If File.Exists(actualFile) Then
                 File.Replace(tempFile, actualFile, bakFile)
@@ -347,7 +347,7 @@ Public Module ModProfile
         If uuidType = 0 Then
             newUuid = GetOfflineUuid(profile.Username, False)
         ElseIf uuidType = 1 Then
-            newUuid = GetOfflineUuid(profile.Username, IsLegacy:=True)
+            newUuid = GetOfflineUuid(profile.Username, isLegacy:=True)
         Else
             newUuid = MyMsgBoxInput($"更改档案 {profile.Username} 的 UUID", DefaultInput:=profile.Uuid, HintText:="32 位，不含连字符", ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(32, 32), New ValidateRegex("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！")}, Button1:="继续", Button2:="取消")
         End If
@@ -754,7 +754,7 @@ Retry:
             Dim oldOfflineInfo As String() = Setup.Get("LoginLegacyName").Split("¨")
             ProfileLog($"找到 {oldOfflineInfo.Count} 个旧版离线档案信息")
             For Each OfflineId In oldOfflineInfo
-                Dim newProfile As New McProfile With {.Username = OfflineId, .Uuid = GetOfflineUuid(OfflineId, IsLegacy:=True), .Type = McLoginType.Legacy} '迁移的档案默认使用旧版 UUID 生成方式以避免存档丢失
+                Dim newProfile As New McProfile With {.Username = OfflineId, .Uuid = GetOfflineUuid(OfflineId, isLegacy:=True), .Type = McLoginType.Legacy} '迁移的档案默认使用旧版 UUID 生成方式以避免存档丢失
                 ProfileList.Add(newProfile)
                 profileCount += 1
             Next
@@ -816,7 +816,7 @@ Retry:
         Catch ex As Exception
             Log(ex, "从官网获取正版 UUID 失败（" & name & "）")
             If Not throwOnNotFound AndAlso ex.GetType.Name = "FileNotFoundException" Then
-                uuid = GetOfflineUuid(name, IsLegacy:=True) '玩家档案不存在
+                uuid = GetOfflineUuid(name, isLegacy:=True) '玩家档案不存在
             Else
                 Throw New Exception("从官网获取正版 UUID 失败", ex)
             End If
