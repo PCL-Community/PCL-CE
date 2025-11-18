@@ -208,9 +208,9 @@ Public Module ModProfile
                 {"profiles", list}
             }
             End If
-            Dim tempFile = Path.Combine(PathAppdata, "profiles.json.tmp")
-            Dim actualFile = Path.Combine(PathAppdata, "profiles.json")
-            Dim bakFile = Path.Combine(PathAppdata, "profiles.json.bak")
+            Dim actualFile = Path.Combine(PathAppdataConfig, "profiles.json")
+            Dim tempFile = actualFile & ".tmp"
+            Dim bakFile = actualFile & ".bak"
             File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Newtonsoft.Json.Formatting.None)))
             If File.Exists(actualFile) Then
                 File.Replace(tempFile, actualFile, bakFile)
