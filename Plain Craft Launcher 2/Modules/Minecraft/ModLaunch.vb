@@ -293,31 +293,15 @@ NextInner:
         End If
 #End If
         '正版购买提示
-        If CurrentLaunchOptions?.SaveBatch Is Nothing AndAlso '保存脚本时不提示
-           Not Setup.Get("HintBuy") AndAlso SelectedProfile.Type <> McLoginType.Ms Then
-            If IsRestrictedFeatAllowed Then
-                RunInNewThread(
-                Sub()
-                    Select Case Setup.Get("SystemLaunchCount")
-                        Case 3, 8, 15, 30, 50, 70, 90, 110, 130, 180, 220, 280, 330, 380, 450, 550, 660, 750, 880, 950, 1100, 1300, 1500, 1700, 1900
-                            If MyMsgBox("你已经启动了 " & Setup.Get("SystemLaunchCount") & " 次 Minecraft 啦！" & vbCrLf &
-                                "如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易……不要一直白嫖啦。" & vbCrLf & vbCrLf &
-                                "在登录一次正版账号后，就不会再出现这个提示了！",
-                                "考虑一下正版？", "支持正版游戏！", "下次一定") = 1 Then
-                                OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
-                            End If
-                    End Select
-                End Sub, "Buy Minecraft")
-            Else
-                Select Case MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
+        If Not ProfileList.Any(Function(x) x.Type = McLoginType.Ms) Then
+            Select Case MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
                     Button1Action:=Sub() OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"))
-                    Case 2
-                        Hint("游戏将以试玩模式启动！", HintType.Critical)
-                        CurrentLaunchOptions.ExtraArgs.Add("--demo")
-                    Case 3
-                        Throw New Exception("$$")
-                End Select
-            End If
+                Case 2
+                    Hint("游戏将以试玩模式启动！", HintType.Critical)
+                    CurrentLaunchOptions.ExtraArgs.Add("--demo")
+                Case 3
+                    Throw New Exception("$$")
+            End Select
         End If
     End Sub
 
@@ -594,7 +578,6 @@ SkipLogin:
         '结束
         McLoginMsRefreshTime = TimeUtils.GetTimeTick()
         ProfileLog("正版验证完成")
-        Setup.Set("HintBuy", True) '关闭正版购买提示
         If IsSkipAuth Then
             Data.Progress = 0.99
             Data.Output = New McLoginResult With {.AccessToken = SelectedProfile.AccessToken,
