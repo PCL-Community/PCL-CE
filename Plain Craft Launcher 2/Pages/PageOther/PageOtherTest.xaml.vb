@@ -646,8 +646,8 @@ Public Class PageOtherTest
 
     Private Sub BtnSelectSkin_Click(sender As Object, e As RoutedEventArgs)
         Dim openFileDialog As New OpenFileDialog() With {
-        .Filter = "皮肤图片文件 (*.png)|*.png"
-    }
+    .Filter = "皮肤图片文件 (*.png)|*.png"
+}
         If openFileDialog.ShowDialog() = True Then
             LoadAndGenerateHead(openFileDialog.FileName)
         End If
@@ -660,10 +660,6 @@ Public Class PageOtherTest
             End Using
 
             Me.skinPath = skinPath
-
-            Using stream As New FileStream(skinPath, FileMode.Open, FileAccess.Read)
-                CurrentSkinBitmap = New Bitmap(stream)
-            End Using
 
             If CurrentSkinBitmap.Width <> CurrentSkinBitmap.Height Then
                 Hint($"图片的大小不正确！请确认你选择了正确的文件！", HintType.Critical)
@@ -688,7 +684,7 @@ Public Class PageOtherTest
 
     Private Function GenerateHeadFromSkin(skinBitmap As Bitmap) As Bitmap
         Dim scale As Integer = skinBitmap.Width \ 64
-        Dim headBitmap As New Bitmap(56, 56)
+        Dim headBitmap As New Bitmap(64, 64)
 
         Using g As Graphics = Graphics.FromImage(headBitmap)
             g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
@@ -705,28 +701,28 @@ Public Class PageOtherTest
 
     Private Sub DrawFaceLayer(g As Graphics, skinBitmap As Bitmap, scale As Integer)
         Dim faceRect As New Rectangle(8 * scale, 8 * scale, 8 * scale, 8 * scale)
-        Dim faceScaled As New Bitmap(48, 48)
+        Dim faceScaled As New Bitmap(56, 56)
 
         Using gFace As Graphics = Graphics.FromImage(faceScaled)
             gFace.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             gFace.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
-            gFace.DrawImage(skinBitmap, New Rectangle(0, 0, 48, 48), faceRect, GraphicsUnit.Pixel)
+            gFace.DrawImage(skinBitmap, New Rectangle(0, 0, 56, 56), faceRect, GraphicsUnit.Pixel)
         End Using
 
-        g.DrawImage(faceScaled, 4, 4, 48, 48)
+        g.DrawImage(faceScaled, 4, 4, 56, 56)
     End Sub
 
     Private Sub DrawHairLayer(headBitmap As Bitmap, skinBitmap As Bitmap, scale As Integer)
         Dim hairRect As New Rectangle(40 * scale, 8 * scale, 8 * scale, 8 * scale)
-        Dim hairScaled As New Bitmap(56, 56)
+        Dim hairScaled As New Bitmap(64, 64)
 
         Using gHair As Graphics = Graphics.FromImage(hairScaled)
             gHair.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             gHair.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
-            gHair.DrawImage(skinBitmap, New Rectangle(0, 0, 56, 56), hairRect, GraphicsUnit.Pixel)
+            gHair.DrawImage(skinBitmap, New Rectangle(0, 0, 64, 64), hairRect, GraphicsUnit.Pixel)
         End Using
-        For x As Integer = 0 To 55
-            For y As Integer = 0 To 55
+        For x As Integer = 0 To 63
+            For y As Integer = 0 To 63
                 Dim pixel = hairScaled.GetPixel(x, y)
                 If pixel.A > 0 Then
                     headBitmap.SetPixel(x, y, pixel)
