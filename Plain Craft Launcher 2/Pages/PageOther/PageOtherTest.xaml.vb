@@ -14,6 +14,7 @@ Public Class PageOtherTest
     Public Sub New()
         InitializeComponent()
         AddHandler BtnSelectSkin.Click, AddressOf BtnSelectSkin_Click
+        AddHandler CmbHeadSize.SelectionChanged, AddressOf CmbHeadSize_SelectionChanged
         AddHandler Loaded, Sub(sender As Object, e As RoutedEventArgs)
                                MeLoaded()
                            End Sub
@@ -56,7 +57,7 @@ Public Class PageOtherTest
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
         Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text)
-        
+
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
         Try
@@ -103,7 +104,7 @@ Public Class PageOtherTest
             Else 'UNC 路径
                 loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))
             End If
-            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
+            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderdownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)
             FrmMain.BtnExtraDownload.ShowRefresh()
@@ -207,7 +208,7 @@ Public Class PageOtherTest
                             MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
                             Process.Start(New ProcessStartInfo(ExePathWithName))
                             FormMain.EndProgramForce(ProcessReturnValues.Success)
-                        Else 
+                        Else
                             Hint("没有找到任何可以清理的文件！", HintType.Info, True)
                         End If
                     Else
@@ -532,7 +533,7 @@ Public Class PageOtherTest
         Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
-    
+
     ' 启动计数显示
     Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
@@ -544,9 +545,9 @@ Public Class PageOtherTest
         Log("[Net] 获取网络结果" & url)
         Await LoadImageAsync(url)
     End Sub
-    
+
     Private Async Function LoadImageAsync(imageUrl As String) As Task
-        Dim client = NetworkService.GetClient() 
+        Dim client = NetworkService.GetClient()
         Try
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
             If response.IsSuccessStatusCode Then
@@ -559,50 +560,50 @@ Public Class PageOtherTest
                     bitmapImage.Freeze()
 
                     Dispatcher.Invoke(Sub()
-                        AchievementImage.Source = bitmapImage
-                        AchievementImage.Visibility = Visibility.Visible
-                    End Sub)
+                                          AchievementImage.Source = bitmapImage
+                                          AchievementImage.Visibility = Visibility.Visible
+                                      End Sub)
                 End Using
             ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（404）")
-                    Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
-                End Sub)
+                                      Log("获取成就图片失败（404）")
+                                      Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+                                  End Sub)
             Else
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（" & response.StatusCode & "）")
-                End Sub)
+                                      Log("获取成就图片失败（" & response.StatusCode & "）")
+                                  End Sub)
             End If
 
         Catch ex As Exception
             Dispatcher.Invoke(Sub()
-                Log(ex, "获取成就图片失败")
-            End Sub)
+                                  Log(ex, "获取成就图片失败")
+                              End Sub)
         End Try
     End Function
 
     Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
         Dim url = GetAchievementUrl()
-        await DownloadImageToLocalAsync(url)
+        Await DownloadImageToLocalAsync(url)
     End Sub
-    
+
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
         Dim client = NetworkService.GetClient()
         Try
             ' 异步发送 GET 请求
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
-            
+
             ' 如果响应状态码是成功的，则继续
             If response.IsSuccessStatusCode Then
                 ' 异步读取响应内容为字节流
                 Dim imageBytes As Byte() = Await response.Content.ReadAsByteArrayAsync()
-                
+
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
-                
+
                 Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
-                If(path = "") Then
+                If (path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
                     Return
@@ -619,13 +620,13 @@ Public Class PageOtherTest
                 ' 处理其他非成功状态码
                 Log("获取成就图片失败（" & response.StatusCode & "）")
             End If
-            
+
         Catch ex As Exception
             ' 捕获所有其他异常（如网络连接问题）
             Log(ex, "获取成就图片失败")
         End Try
     End Function
-    
+
     Private Function GetAchievementUrl() As String
         Dim block = AchievementBlockTextBox.Text.Trim()
         Dim title = AchievementTitleTextBox.Text.Replace(" ", "..")
@@ -643,6 +644,21 @@ Public Class PageOtherTest
             Throw New Exception("手动崩溃")
         End If
     End Sub
+
+    Private HeadSize As Integer = 64
+
+    Private Function GetHeadSize() As Integer
+        Select Case CmbHeadSize.SelectedIndex
+            Case 0
+                Return 64
+            Case 1
+                Return 96
+            Case 2
+                Return 128
+            Case Else
+                Return 64
+        End Select
+    End Function
 
     Private Sub BtnSelectSkin_Click(sender As Object, e As RoutedEventArgs)
         Dim openFileDialog As New OpenFileDialog() With {
@@ -684,7 +700,8 @@ Public Class PageOtherTest
 
     Private Function GenerateHeadFromSkin(skinBitmap As Bitmap) As Bitmap
         Dim scale As Integer = skinBitmap.Width \ 64
-        Dim headBitmap As New Bitmap(64, 64)
+        HeadSize = GetHeadSize()
+        Dim headBitmap As New Bitmap(HeadSize, HeadSize)
 
         Using g As Graphics = Graphics.FromImage(headBitmap)
             g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
@@ -701,28 +718,30 @@ Public Class PageOtherTest
 
     Private Sub DrawFaceLayer(g As Graphics, skinBitmap As Bitmap, scale As Integer)
         Dim faceRect As New Rectangle(8 * scale, 8 * scale, 8 * scale, 8 * scale)
-        Dim faceScaled As New Bitmap(56, 56)
+        Dim faceSize As Integer = HeadSize - HeadSize \ 8
+        Dim faceScaled As New Bitmap(faceSize, faceSize)
 
         Using gFace As Graphics = Graphics.FromImage(faceScaled)
             gFace.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             gFace.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
-            gFace.DrawImage(skinBitmap, New Rectangle(0, 0, 56, 56), faceRect, GraphicsUnit.Pixel)
+            gFace.DrawImage(skinBitmap, New Rectangle(0, 0, faceSize, faceSize), faceRect, GraphicsUnit.Pixel)
         End Using
 
-        g.DrawImage(faceScaled, 4, 4, 56, 56)
+        Dim offset As Integer = HeadSize \ 16
+        g.DrawImage(faceScaled, offset, offset, faceSize, faceSize)
     End Sub
 
     Private Sub DrawHairLayer(headBitmap As Bitmap, skinBitmap As Bitmap, scale As Integer)
         Dim hairRect As New Rectangle(40 * scale, 8 * scale, 8 * scale, 8 * scale)
-        Dim hairScaled As New Bitmap(64, 64)
+        Dim hairScaled As New Bitmap(HeadSize, HeadSize)
 
         Using gHair As Graphics = Graphics.FromImage(hairScaled)
             gHair.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             gHair.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
-            gHair.DrawImage(skinBitmap, New Rectangle(0, 0, 64, 64), hairRect, GraphicsUnit.Pixel)
+            gHair.DrawImage(skinBitmap, New Rectangle(0, 0, HeadSize, HeadSize), hairRect, GraphicsUnit.Pixel)
         End Using
-        For x As Integer = 0 To 63
-            For y As Integer = 0 To 63
+        For x As Integer = 0 To HeadSize - 1
+            For y As Integer = 0 To HeadSize - 1
                 Dim pixel = hairScaled.GetPixel(x, y)
                 If pixel.A > 0 Then
                     headBitmap.SetPixel(x, y, pixel)
@@ -751,7 +770,11 @@ Public Class PageOtherTest
             Hint("保存头像失败：" & ex.Message, HintType.Critical)
         End Try
     End Sub
-
+    Private Sub CmbHeadSize_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
+        If CurrentSkinBitmap IsNot Nothing AndAlso skinPath IsNot Nothing Then
+            LoadAndGenerateHead(skinPath)
+        End If
+    End Sub
     Private Function BitmapToBitmapImage(bitmap As Bitmap) As BitmapImage
         Using memoryStream As New MemoryStream()
             bitmap.Save(memoryStream, Imaging.ImageFormat.Png)
