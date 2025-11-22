@@ -64,72 +64,54 @@ Download:
             Case 3
                 Select Case Setup.Get("UiCustomPreset")
                     Case 0
-                        Log("[Page] 主页预设：你知道吗")
-                        Content = "
-                            <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hint}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
-                            </local:MyCard>"
-                    Case 1
-                        Log("[Page] 主页预设：回声洞")
-                        Content = "
-                            <local:MyCard Title=""回声洞"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{cave}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
-                            </local:MyCard>"
-                    Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
                         Url = "https://pcl.mcnews.thestack.top"
                         GoTo Download
-                    Case 3
+                    Case 1
                         Log("[Page] 主页预设：简单主页")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
                         GoTo Download
-                    Case 4
+                    Case 2
                         Log("[Page] 主页预设：每日整合包推荐")
                         Url = "https://pclsub.sodamc.com/"
                         GoTo Download
-                    Case 5
+                    Case 3
                         Log("[Page] 主页预设：Minecraft 皮肤推荐")
                         Url = "https://forgepixel.com/pcl_sub_file"
                         GoTo Download
-                    Case 6
+                    Case 4
                         Log("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite")
                         Url = "https://pcl-bmcl.milu.ink/"
                         GoTo Download
-                    Case 7
+                    Case 5
                         Log("[Page] 主页预设：主页市场")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
                         GoTo Download
-                    Case 8
+                    Case 6
                         Log("[Page] 主页预设：更新日志")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml"
                         GoTo Download
-                    Case 9
+                    Case 7
                         Log("[Page] 主页预设：PCL 新功能说明书")
                         Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"
                         GoTo Download
-                    Case 10
+                    Case 8
                         Log("[Page] 主页预设：OpenMCIM Dashboard")
                         Url = "https://files.mcimirror.top/PCL"
                         GoTo Download
-                    Case 11
+                    Case 9
                         Log("[Page] 主页预设：杂志主页")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"
                         GoTo Download
-                    Case 12
+                    Case 10
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
                         Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
-                    Case 13
+                    Case 11
                         Log("[Page] 主页预设：Minecraft 更新摘要")
                         Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
                         GoTo Download
-                    Case 14
+                    Case 12
                         Log("[Page] 主页预设：PCL CE 公告栏")
                         Url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"
                         GoTo Download
