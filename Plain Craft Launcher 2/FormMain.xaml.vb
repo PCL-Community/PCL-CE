@@ -122,6 +122,7 @@ Public Class FormMain
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
+        BtnExtraUpdateRestart.ShowCheck = AddressOf BtnExtraUpdateRestart_ShowCheck
         BtnExtraDownload.ShowCheck = AddressOf BtnExtraDownload_ShowCheck
         BtnExtraBack.ShowCheck = AddressOf BtnExtraBack_ShowCheck
         BtnExtraApril.ShowCheck = AddressOf BtnExtraApril_ShowCheck
@@ -1024,7 +1025,7 @@ Public Class FormMain
         SetupLaunch = 0
         SetupUI = 1
         SetupSystem = 2
-        SetupLink = 3
+        SetupUpdate = 3
         LinkLobby = 1
         LinkSetup = 4
         LinkHelp = 5
@@ -1485,6 +1486,11 @@ Public Class FormMain
 
 #Region "附加按钮"
 
+    '更新重启
+    Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
+        Return True
+    End Function
+    
     '音乐
     Private Sub BtnExtraMusic_Click(sender As Object, e As EventArgs) Handles BtnExtraMusic.Click
         MusicControlPause()
