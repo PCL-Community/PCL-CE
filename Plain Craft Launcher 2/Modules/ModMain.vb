@@ -518,6 +518,7 @@ EndHint:
     Public FrmSetupLaunch As PageSetupLaunch
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
+    Public FrmSetupUpdate As PageSetupUpdate
     Public FrmSetupJava As PageSetupJava
     Public FrmHomePageMarket As PageHomePageMarket
 
