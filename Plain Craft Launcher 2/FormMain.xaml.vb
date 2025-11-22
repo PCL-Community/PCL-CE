@@ -32,8 +32,6 @@ Public Class FormMain
     Private IsWindowLoadFinished As Boolean = False
     Public Sub New()
         ApplicationStartTick = TimeUtils.GetTimeTick()
-        '刷新主题
-        ThemeCheckAll(False)
         Dim dark As Int32 = Setup.Get("UiDarkMode")
         Select Case dark
             Case 0
@@ -255,12 +253,6 @@ Public Class FormMain
     '根据打开次数触发的事件
     Private Sub RunCountSub()
         Setup.Set("SystemCount", Setup.Get("SystemCount") + 1)
-        If Setup.Get("SystemCount") >= 99 Then
-            If ThemeUnlock(6, False) Then
-                MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" & vbCrLf &
-                         "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！", "提示")
-            End If
-        End If
     End Sub
     '升级与降级事件
     Private Sub UpgradeSub(LastVersionCode As Integer)
@@ -269,11 +261,11 @@ Public Class FormMain
         '检查有记录的最高版本号
         Dim LowerVersionCode As Integer
 #If BETA Then
-        LowerVersionCode = Setup.Get("SystemHighestBetaVersionReg")
-        If LowerVersionCode < VersionCode Then
-            Setup.Set("SystemHighestBetaVersionReg", VersionCode)
-            Log("[Start] 最高版本号从 " & LowerVersionCode & " 升高到 " & VersionCode)
-        End If
+    LowerVersionCode = Setup.Get("SystemHighestBetaVersionReg")
+    If LowerVersionCode < VersionCode Then
+        Setup.Set("SystemHighestBetaVersionReg", VersionCode)
+        Log("[Start] 最高版本号从 " & LowerVersionCode & " 升高到 " & VersionCode)
+    End If
 #Else
         LowerVersionCode = Setup.Get("SystemHighestAlphaVersionReg")
         If LowerVersionCode < VersionCode Then
@@ -283,29 +275,6 @@ Public Class FormMain
 #End If
         '被移除的窗口设置选项
         If Setup.Get("LaunchArgumentWindowType") = 5 Then Setup.Set("LaunchArgumentWindowType", 1)
-        '修改主题设置项名称
-        If LowerVersionCode <= 207 Then
-            Dim UnlockedTheme As New List(Of String) From {"2"}
-            UnlockedTheme.AddRange(New List(Of String)(Setup.Get("UiLauncherThemeHide").ToString.Split("|")))
-            UnlockedTheme.AddRange(New List(Of String)(Setup.Get("UiLauncherThemeHide2").ToString.Split("|")))
-            Setup.Set("UiLauncherThemeHide2", Join(UnlockedTheme.Distinct.ToList, "|"))
-        End If
-        '重置欧皇彩
-        If LastVersionCode <= 115 AndAlso Setup.Get("UiLauncherThemeHide2").ToString.Split("|").Contains("13") Then
-            Dim UnlockedTheme As New List(Of String)(Setup.Get("UiLauncherThemeHide2").ToString.Split("|"))
-            UnlockedTheme.Remove("13")
-            Setup.Set("UiLauncherThemeHide2", Join(UnlockedTheme, "|"))
-            MyMsgBox("由于新版 PCL 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" & vbCrLf &
-                     "多谢各位的理解啦！", "重新解锁提醒")
-        End If
-        '重置滑稽彩
-        If LastVersionCode <= 152 AndAlso Setup.Get("UiLauncherThemeHide2").ToString.Split("|").Contains("12") Then
-            Dim UnlockedTheme As New List(Of String)(Setup.Get("UiLauncherThemeHide2").ToString.Split("|"))
-            UnlockedTheme.Remove("12")
-            Setup.Set("UiLauncherThemeHide2", Join(UnlockedTheme, "|"))
-            MyMsgBox("由于新版 PCL 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" & vbCrLf &
-                     "多谢各位的理解啦！", "重新解锁提醒")
-        End If
         '移动自定义皮肤
         If LastVersionCode <= 161 AndAlso File.Exists(ExePath & "PCL\CustomSkin.png") AndAlso Not File.Exists(PathAppdata & "CustomSkin.png") Then
             CopyFile(ExePath & "PCL\CustomSkin.png", PathAppdata & "CustomSkin.png")

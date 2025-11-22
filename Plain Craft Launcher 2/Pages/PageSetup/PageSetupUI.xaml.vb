@@ -25,33 +25,6 @@ Public Class PageSetupUI
 
         '重复加载部分
         PanBack.ScrollToHome()
-        ThemeCheckAll(True)
-
-        If ThemeDontClick <> 0 Then
-            Dim NewText As String
-            Select Case ThemeDontClick
-                Case 1
-                    NewText = "眼瞎白"
-                Case 2
-                    NewText = "真·滑稽彩"
-                Case Else
-                    NewText = "？？？"
-            End Select
-            For Each Control In PanLauncherTheme.Children
-                If (TypeOf Control Is MyRadioBox) AndAlso CType(Control, MyRadioBox).IsEnabled Then
-                    CType(Control, MyRadioBox).Text = NewText
-                End If
-            Next
-        End If
-
-#If DEBUG Then
-        If EnableCustomTheme Then
-            LabLauncherDelta.Visibility = Visibility.Visible
-            SliderLauncherDelta.Visibility = Visibility.Visible
-            LabLauncherLight.Visibility = Visibility.Visible
-            SliderLauncherLight.Visibility = Visibility.Visible
-        End If
-#End If
 
         AniControlEnabled += 1
         Reload() '#4826，在每次进入页面时都刷新一下
@@ -65,33 +38,20 @@ Public Class PageSetupUI
 
         PanLauncherHide.Visibility = Visibility.Visible
 
-        '设置解锁
-
-        If Not RadioLauncherTheme8.IsEnabled Then LabLauncherTheme8Copy.ToolTip = "社区版不包含主题功能，请使用官方快照版"
-        RadioLauncherTheme8.ToolTip = "社区版不包含主题功能，请使用官方快照版"
-        If Not RadioLauncherTheme9.IsEnabled Then LabLauncherTheme9Copy.ToolTip = "社区版不包含主题功能，请使用官方快照版"
-        RadioLauncherTheme9.ToolTip = "社区版不包含主题功能，请使用官方快照版"
-        '极客蓝的处理在 ThemeCheck 中
-
     End Sub
     Public Sub Reload()
         Try
             '启动器
             SliderLauncherOpacity.Value = Setup.Get("UiLauncherTransparent")
-            SliderLauncherHue.Value = Setup.Get("UiLauncherHue")
-            SliderLauncherSat.Value = Setup.Get("UiLauncherSat")
-            SliderLauncherDelta.Value = Setup.Get("UiLauncherDelta")
-            SliderLauncherLight.Value = Setup.Get("UiLauncherLight")
-            'If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            
+
             '字体设置
             ComboUiFont.SelectedFontTag = Setup.Get("UiFont")
             ComboUiMotdFont.SelectedFontTag = Setup.Get("UiMotdFont")
-            
+
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
@@ -136,7 +96,7 @@ Public Class PageSetupUI
             Catch
                 Setup.Reset("UiCustomPreset")
             End Try
-            CType(FindName("RadioCustomType" & Setup.Load("UiCustomType", ForceReload:=True)), MyRadioBox).Checked = True
+            CType(FindName("RadioCustomType" & Setup.Load("UiCustomType", forceReload:=True)), MyRadioBox).Checked = True
             TextCustomNet.Text = Setup.Get("UiCustomNet")
 
             '功能隐藏
@@ -176,12 +136,6 @@ Public Class PageSetupUI
     Public Sub Reset()
         Try
             Setup.Reset("UiLauncherTransparent")
-            Setup.Reset("UiLauncherTheme")
-            Setup.Reset("UiLauncherLogo")
-            Setup.Reset("UiLauncherHue")
-            Setup.Reset("UiLauncherSat")
-            Setup.Reset("UiLauncherDelta")
-            Setup.Reset("UiLauncherLight")
             Setup.Reset("UiLockWindowSize")
             Setup.Reset("UiBlur")
             Setup.Reset("UiBlurValue")
@@ -252,7 +206,7 @@ Public Class PageSetupUI
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
-    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLogoType3.Check, RadioLauncherTheme0.Check, RadioLauncherTheme1.Check, RadioLauncherTheme2.Check, RadioLauncherTheme3.Check, RadioLauncherTheme4.Check, RadioLauncherTheme5.Check, RadioLauncherTheme6.Check, RadioLauncherTheme7.Check, RadioLauncherTheme8.Check, RadioLauncherTheme9.Check, RadioLauncherTheme10.Check, RadioLauncherTheme11.Check, RadioLauncherTheme12.Check, RadioLauncherTheme13.Check, RadioLauncherTheme14.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
+    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLogoType3.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
@@ -262,7 +216,7 @@ Public Class PageSetupUI
             Setup.Set("UiFont", ComboUiFont.SelectedFontTag)
         End If
     End Sub
-    
+
     Private Sub ComboMotdFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiMotdFont.SelectionChanged
         If AniControlEnabled = 0 Then
             Setup.Set("UiMotdFont", ComboUiMotdFont.SelectedFontTag)
@@ -313,19 +267,19 @@ Public Class PageSetupUI
             '获取可用的图片文件
             Directory.CreateDirectory(ExePath & "PCL\Pictures\")
             Dim Pic As List(Of String) = EnumerateFiles(ExePath & "PCL\Pictures\").
-                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse
                                        file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
                     Select(Function(file) file.FullName).
-                    ToList() 
+                    ToList()
             '视频加载异常处理
 
-            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) =
                     Sub(sender, e)
                         Dim videoEx = e.ErrorException
                         Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
                         If FrmMain.VideoBack.Source IsNot Nothing Then
                             VideoStop()
-                            
+
                             If videoEx.Message.Contains("0xC00D109B") Then
                                 Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
                                     "你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。" & vbCrLf &
@@ -366,14 +320,14 @@ Public Class PageSetupUI
                     Catch ex As Exception
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
-                            Log(ex,"[UI] 加载背景图片失败" & Address)
+                            Log(ex, "[UI] 加载背景图片失败" & Address)
                             If ModeDebug Then Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
                             VideoPlay()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
-                            Log(playEx,"播放背景内容时出现未知错误：")
+                            Log(playEx, "播放背景内容时出现未知错误：")
                         End Try
                     End Try
                 End If
@@ -544,74 +498,6 @@ Refresh:
     '主题
     Private Sub ThemeColor_Change(sender As MyComboBox, e As EventArgs) Handles ComboDarkColor.SelectionChanged, ComboLightColor.SelectionChanged
         Setup.Set(sender.Tag, sender.SelectedIndex)
-        ThemeRefresh()
-    End Sub
-    Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles LabLauncherTheme5Unlock.MouseLeftButtonUp
-        RadioLauncherTheme5Gray.Opacity -= 0.23
-        RadioLauncherTheme5.Opacity += 0.23
-        AniStart({
-            AaOpacity(RadioLauncherTheme5Gray, 1, 1000 * AniSpeed),
-            AaOpacity(RadioLauncherTheme5, -1, 1000 * AniSpeed)
-        }, "ThemeUnlock")
-        If RadioLauncherTheme5Gray.Opacity < 0.08 Then
-            ThemeUnlock(5, UnlockHint:="隐藏主题 玄素黑 已解锁！")
-            AniStop("ThemeUnlock")
-            RadioLauncherTheme5.Checked = True
-        End If
-    End Sub
-    Private Sub LabLauncherTheme11Click_MouseLeftButtonUp() Handles LabLauncherTheme11Click.MouseLeftButtonUp, RadioLauncherTheme11.MouseRightButtonUp
-        If LabLauncherTheme11Click.Visibility = Visibility.Collapsed OrElse If(LabLauncherTheme11Click.ToolTip, "").ToString.Contains("点击") Then
-            If MyMsgBox(
-                "1. 不爬取或攻击相关服务或网站，不盗取相关账号，没有谜题可以或需要以此来解决。" & vbCrLf &
-                "2. 不得篡改或损毁相关公开信息，请尽量让它们保持原状。" & vbCrLf &
-                "3. 在你感到迷茫的时候，看看回声洞可能会给你带来惊喜。" & vbCrLf & vbCrLf &
-                "若违规，可能会被从任意相关群中踢出！",
-                "解密游戏的基本规则", "我知道了", "恕我拒绝") = 1 Then
-                MyMsgBox("你需要用自己的智慧来找到下一步的线索……" & vbCrLf &
-                         "初始线索：gnp.dorC61\60\20\0202\moc.x1xa.2s\\:sp" & "T".ToLower & "th", "解密游戏") '防止触发病毒检测规则
-            End If
-        End If
-    End Sub
-    Private Sub LabLauncherTheme8Copy_MouseRightButtonUp() Handles LabLauncherTheme8Copy.MouseRightButtonUp, RadioLauncherTheme8.MouseRightButtonUp
-        OpenWebsite("https://afdian.com/a/LTCat")
-    End Sub
-    Private Sub LabLauncherTheme9Copy_MouseRightButtonUp() Handles LabLauncherTheme9Copy.MouseRightButtonUp, RadioLauncherTheme9.MouseRightButtonUp
-        PageOtherLeft.TryFeedback()
-    End Sub
-
-    '主题自定义
-    Private Sub RadioLauncherTheme14_Change(sender As Object, e As RouteEventArgs) Handles RadioLauncherTheme14.Changed
-        'If RadioLauncherTheme14.Checked Then
-        '    If LabLauncherHue.Visibility = Visibility.Visible Then Exit Sub
-        '    LabLauncherHue.Visibility = Visibility.Visible
-        '    SliderLauncherHue.Visibility = Visibility.Visible
-        '    LabLauncherSat.Visibility = Visibility.Visible
-        '    SliderLauncherSat.Visibility = Visibility.Visible
-        '    LabLauncherDelta.Visibility = Visibility.Visible
-        '    SliderLauncherDelta.Visibility = Visibility.Visible
-        '    LabLauncherLight.Visibility = Visibility.Visible
-        '    SliderLauncherLight.Visibility = Visibility.Visible
-        'Else
-        If LabLauncherHue.Visibility = Visibility.Collapsed Then Return
-        LabLauncherHue.Visibility = Visibility.Collapsed
-        SliderLauncherHue.Visibility = Visibility.Collapsed
-        LabLauncherSat.Visibility = Visibility.Collapsed
-        SliderLauncherSat.Visibility = Visibility.Collapsed
-        LabLauncherDelta.Visibility = Visibility.Collapsed
-        SliderLauncherDelta.Visibility = Visibility.Collapsed
-        LabLauncherLight.Visibility = Visibility.Collapsed
-        SliderLauncherLight.Visibility = Visibility.Collapsed
-        'End If
-        CardLauncher.TriggerForceResize()
-    End Sub
-    Private Sub HSL_Change() Handles SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
-        If AniControlEnabled <> 0 OrElse SliderLauncherSat Is Nothing OrElse Not SliderLauncherSat.IsLoaded Then Return
-#If DEBUG Then
-        If EnableCustomTheme Then
-            ColorHueTopbarDelta = SliderLauncherDelta.Value - 90
-            ColorLightAdjust = SliderLauncherLight.Value - 20
-        End If
-#End If
         ThemeRefresh()
     End Sub
 

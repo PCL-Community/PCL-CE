@@ -427,7 +427,6 @@ Finish:
              FrmMain.PageRight.PageState <> MyPageRight.PageStates.ContentEnter) Then Return
         '愚人节处理
         If IsAprilEnabled AndAlso Not IsAprilGiveup Then
-            ThemeUnlock(12, False, "隐藏主题 滑稽彩 已解锁！")
             IsAprilGiveup = True
             FrmLaunchLeft.AprilScaleTrans.ScaleX = 1
             FrmLaunchLeft.AprilScaleTrans.ScaleY = 1

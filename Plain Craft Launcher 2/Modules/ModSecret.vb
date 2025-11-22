@@ -269,18 +269,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
 #Region "主题"
 
-#If DEBUG Then
-    Public ReadOnly EnableCustomTheme As Boolean = Environment.GetEnvironmentVariable("PCL_CUSTOM_THEME") IsNot Nothing
-    Private ReadOnly EnvThemeHue = Environment.GetEnvironmentVariable("PCL_THEME_HUE") '0 ~ 359
-    Private ReadOnly EnvThemeSat = Environment.GetEnvironmentVariable("PCL_THEME_SAT") '0 ~ 100
-    Private ReadOnly EnvThemeLight = Environment.GetEnvironmentVariable("PCL_THEME_LIGHT") '-20 ~ 20
-    Private ReadOnly EnvThemeHueDelta = Environment.GetEnvironmentVariable("PCL_THEME_HUE_DELTA") '-90 ~ 90
-    Private ReadOnly CustomThemeHue = If(EnvThemeHue Is Nothing, Nothing, CType(Integer.Parse(EnvThemeHue), Integer?))
-    Private ReadOnly CustomThemeSat = If(EnvThemeSat Is Nothing, Nothing, CType(Integer.Parse(EnvThemeSat), Integer?))
-    Private ReadOnly CustomThemeLight = If(EnvThemeLight Is Nothing, Nothing, CType(Integer.Parse(EnvThemeLight), Integer?))
-    Private ReadOnly CustomThemeHueDelta = If(EnvThemeHueDelta Is Nothing, Nothing, CType(Integer.Parse(EnvThemeHueDelta), Integer?))
-#End If
-
     Public IsDarkMode As Boolean = False
 
     Public ReadOnly Property ColorGray1 As MyColor
@@ -385,13 +373,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End Sub
     End Class
 
-    '基于对数分布的亮度调整（看起来很高级，实际上对比线性分布性能稀烂）
+    '基于对数分布的亮度调整
     Private Const HighestLight = 95
     Private Const LowestLight = 10
     Private Const LogLightBase = 1 - LowestLight
     Private ReadOnly LogLightBaseRate = Math.Log(HighestLight + 1)
     Public Function AdjustLight(origin As Integer, adjust As Integer, Optional style As GrayProfile = Nothing) As Integer
-        If origin < 0 Then Return 0 '保证不炸定义域（虽然不会有人传个负的亮度过来吧，应该...不会吧）
+        If origin < 0 Then Return 0 '保证不炸定义域
         If adjust = 0 Then Return origin '节省性能
         If origin > HighestLight Or origin < LowestLight Then Return origin '亮度阈值
         If style Is Nothing Then style = CurrentProfile()
@@ -474,14 +462,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     Public Property DynamicColors As ThemeStyleDynamicColors = Nothing
 
-    Public ThemeNow As Integer = -1
-    'Public ColorHue As Integer = If(IsDarkMode, 200, 210), ColorSat As Integer = If(IsDarkMode, 100, 85), ColorLightAdjust As Integer = If(IsDarkMode, 15, 0), ColorHueTopbarDelta As Object = 0
-    Public ColorHue As Integer = 210, ColorSat As Integer = 85, ColorLightAdjust As Integer = 0, ColorHueTopbarDelta As Object = 0
-    Public ThemeDontClick As Integer = 0
+    '新主题颜色配置
+    Private ReadOnly HueList As Integer() = {200, 210, 225}
+    Private ReadOnly SatList As Integer() = {100, 85, 70}
+    Private ReadOnly LightList As Integer() = {7, 0, -2}
 
-    '深色模式事件
-
-    ' 定义自定义事件
+    ' 深色模式事件
     Public Event ThemeChanged As EventHandler(Of Boolean)
 
     ' 触发事件的函数
@@ -503,27 +489,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         End If
     End Function
 
-    Private ReadOnly HueList As Integer() = {200, 210, 225}
-    Private ReadOnly SatList As Integer() = {100, 85, 70}
-    Private ReadOnly LightList As Integer() = {7, 0, -2}
-
     Public Sub ThemeRefreshColor()
-#If DEBUG Then
-        If EnableCustomTheme Then
-            If CustomThemeHue IsNot Nothing Then ColorHue = CustomThemeHue
-            If CustomThemeSat IsNot Nothing Then ColorSat = CustomThemeSat
-            If CustomThemeLight IsNot Nothing Then ColorLightAdjust = CustomThemeLight
-            If CustomThemeHueDelta IsNot Nothing Then ColorHueTopbarDelta = CustomThemeHueDelta
-        Else
-#End If
-            Dim colorIndex As Integer = If(IsDarkMode, Setup.Get("UiDarkColor"), Setup.Get("UiLightColor"))
-            ColorHue = HueList(colorIndex)
-            ColorSat = SatList(colorIndex)
-            ColorLightAdjust = LightList(colorIndex)
-            ColorHueTopbarDelta = 0
-#If DEBUG Then
-        End If
-#End If
+        ' 新主题颜色配置
+        Dim colorIndex As Integer = If(IsDarkMode, Setup.Get("UiDarkColor"), Setup.Get("UiLightColor"))
+        Dim ColorHue As Integer = HueList(colorIndex)
+        Dim ColorSat As Integer = SatList(colorIndex)
+        Dim ColorLightAdjust As Integer = LightList(colorIndex)
 
         If GrayProfile Is Nothing Then
             Dim result As AnyType = FileService.WaitForResult(PredefinedFileItems.GrayProfile)
@@ -602,51 +573,30 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
 
     Public Sub ThemeRefreshMain()
-#If DEBUG Then
-        If EnableCustomTheme Then ThemeNow = 14
-#End If
         RunInUi(
         Sub()
             If Not FrmMain.IsLoaded Then Return
-            '顶部条背景
+
+            ' 新主题顶部条背景
             Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(1, 0), .StartPoint = New Point(0, 0)}
+            Dim colorIndex As Integer = If(IsDarkMode, Setup.Get("UiDarkColor"), Setup.Get("UiLightColor"))
+            Dim ColorHue As Integer = HueList(colorIndex)
+            Dim ColorSat As Integer = SatList(colorIndex)
+            Dim ColorLightAdjust As Integer = LightList(colorIndex)
             Dim lightAdjust = ColorLightAdjust * 1.2
-            If ThemeNow = 5 Then
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 25)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 15)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, 25)})
-                FrmMain.PanTitle.Background = Brush
-                FrmMain.PanTitle.Background.Freeze()
-            ElseIf Not (ThemeNow = 12 OrElse ThemeDontClick = 2) Then
-                If TypeOf ColorHueTopbarDelta Is Integer Then
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue - ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, AdjustLight(54, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta, ColorSat, AdjustLight(48, lightAdjust))})
-                Else
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(0), ColorSat, AdjustLight(48, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(1), ColorSat, AdjustLight(54, lightAdjust))})
-                    Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + ColorHueTopbarDelta(2), ColorSat, AdjustLight(48, lightAdjust))})
-                End If
-                FrmMain.PanTitle.Background = Brush
-                FrmMain.PanTitle.Background.Freeze()
-            Else
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue - 21, ColorSat, AdjustLight(53, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.33, .Color = New MyColor().FromHSL2(ColorHue - 7, ColorSat, AdjustLight(47, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.67, .Color = New MyColor().FromHSL2(ColorHue + 7, ColorSat, AdjustLight(47, lightAdjust))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + 21, ColorSat, AdjustLight(53, lightAdjust))})
-                FrmMain.PanTitle.Background = Brush
-            End If
-            '主页面背景
+
+            ' 标准顶部条渐变
+            Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, AdjustLight(48, lightAdjust))})
+            Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, AdjustLight(54, lightAdjust))})
+            Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue, ColorSat, AdjustLight(48, lightAdjust))})
+            FrmMain.PanTitle.Background = Brush
+            FrmMain.PanTitle.Background.Freeze()
+
+            ' 主页面背景
             If Setup.Get("UiBackgroundColorful") Then
                 Brush = New LinearGradientBrush With {.EndPoint = New Point(0.1, 1), .StartPoint = New Point(0.9, 0)}
-                Dim hue1, hue2 As Integer
-                If ThemeNow = 14 AndAlso TypeOf ColorHueTopbarDelta Is Integer Then
-                    hue1 = ColorHue + ColorHueTopbarDelta
-                    hue2 = ColorHue - ColorHueTopbarDelta
-                Else
-                    hue1 = ColorHue - 15
-                    hue2 = ColorHue + 15
-                End If
+                Dim hue1 = ColorHue - 15
+                Dim hue2 = ColorHue + 15
                 Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = New MyColor().FromHSL2(hue1, ColorSat * 0.8, GetDarkThemeLight(80))})
                 Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = New MyColor().FromHSL2(ColorHue, ColorSat * 0.8, GetDarkThemeLight(90))})
                 Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = New MyColor().FromHSL2(hue2, ColorSat * 0.8, GetDarkThemeLight(80))})
@@ -660,20 +610,70 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             RefreshAllContextMenuThemes()
         End Sub)
     End Sub
-    Friend Sub ThemeCheckAll(EffectSetup As Boolean)
+
+    ''' <summary>
+    ''' 通用的ContextMenu主题刷新方法
+    ''' </summary>
+    Private Sub RefreshAllContextMenuThemes()
+        Try
+            ' 注册全局的ContextMenu主题刷新事件处理器
+            EventManager.RegisterClassHandler(GetType(ContextMenu), ContextMenu.OpenedEvent, New RoutedEventHandler(AddressOf OnContextMenuOpened))
+
+            ' 刷新当前打开的ContextMenu
+            RunInUi(Sub()
+                        ' 获取当前应用程序中所有的窗口
+                        For Each window As Window In Application.Current.Windows
+                            RefreshContextMenusInElement(window)
+                        Next
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "刷新ContextMenu主题时出错", LogLevel.Debug)
+        End Try
     End Sub
-    Friend Function ThemeCheckOne(Id As Integer) As Boolean
-        Return True
-    End Function
-    Friend Function ThemeUnlock(Id As Integer, Optional ShowDoubleHint As Boolean = True, Optional UnlockHint As String = Nothing) As Boolean
-        Return False
-    End Function
-    Friend Function ThemeCheckGold(Optional Code As String = Nothing) As Boolean
-        Return False
-    End Function
-    Friend Function DonateCodeInput() As Boolean?
-        Return Nothing
-    End Function
+
+    ''' <summary>
+    ''' ContextMenu打开事件处理器，确保在显示时应用正确主题
+    ''' </summary>
+    Private Sub OnContextMenuOpened(sender As Object, e As RoutedEventArgs)
+        Try
+            If TypeOf sender Is ContextMenu Then
+                Dim contextMenu As ContextMenu = CType(sender, ContextMenu)
+                ' 强制重新应用样式
+                contextMenu.ClearValue(FrameworkElement.StyleProperty)
+                contextMenu.UpdateDefaultStyle()
+            End If
+        Catch ex As Exception
+            ' 忽略个别错误
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 递归刷新元素及其子元素中的ContextMenu
+    ''' </summary>
+    Private Sub RefreshContextMenusInElement(element As DependencyObject)
+        If element Is Nothing Then Return
+
+        Try
+            ' 检查当前元素是否有ContextMenu
+            If TypeOf element Is FrameworkElement Then
+                Dim fe As FrameworkElement = CType(element, FrameworkElement)
+                If fe.ContextMenu IsNot Nothing Then
+                    ' 强制重新应用样式
+                    fe.ContextMenu.ClearValue(FrameworkElement.StyleProperty)
+                    fe.ContextMenu.UpdateDefaultStyle()
+                End If
+            End If
+
+            ' 递归处理子元素
+            Dim childrenCount As Integer = VisualTreeHelper.GetChildrenCount(element)
+            For i As Integer = 0 To childrenCount - 1
+                Dim child As DependencyObject = VisualTreeHelper.GetChild(element, i)
+                RefreshContextMenusInElement(child)
+            Next
+        Catch ex As Exception
+            ' 忽略个别元素的错误，继续处理其他元素
+        End Try
+    End Sub
 
 #End Region
 
@@ -1007,74 +1007,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log(ex, "获取 GPU 信息时出错", LogLevel.Normal)
         End Try
     End Sub
-#End Region
-
-#Region "主题"
-
-    ''' <summary>
-    ''' 通用的ContextMenu主题刷新方法
-    ''' </summary>
-    Private Sub RefreshAllContextMenuThemes()
-        Try
-            ' 注册全局的ContextMenu主题刷新事件处理器
-            EventManager.RegisterClassHandler(GetType(ContextMenu), ContextMenu.OpenedEvent, New RoutedEventHandler(AddressOf OnContextMenuOpened))
-
-            ' 刷新当前打开的ContextMenu
-            RunInUi(Sub()
-                        ' 获取当前应用程序中所有的窗口
-                        For Each window As Window In Application.Current.Windows
-                            RefreshContextMenusInElement(window)
-                        Next
-                    End Sub)
-        Catch ex As Exception
-            Log(ex, "刷新ContextMenu主题时出错", LogLevel.Debug)
-        End Try
-    End Sub
-
-    ''' <summary>
-    ''' ContextMenu打开事件处理器，确保在显示时应用正确主题
-    ''' </summary>
-    Private Sub OnContextMenuOpened(sender As Object, e As RoutedEventArgs)
-        Try
-            If TypeOf sender Is ContextMenu Then
-                Dim contextMenu As ContextMenu = CType(sender, ContextMenu)
-                ' 强制重新应用样式
-                contextMenu.ClearValue(FrameworkElement.StyleProperty)
-                contextMenu.UpdateDefaultStyle()
-            End If
-        Catch ex As Exception
-            ' 忽略个别错误
-        End Try
-    End Sub
-
-    ''' <summary>
-    ''' 递归刷新元素及其子元素中的ContextMenu
-    ''' </summary>
-    Private Sub RefreshContextMenusInElement(element As DependencyObject)
-        If element Is Nothing Then Return
-
-        Try
-            ' 检查当前元素是否有ContextMenu
-            If TypeOf element Is FrameworkElement Then
-                Dim fe As FrameworkElement = CType(element, FrameworkElement)
-                If fe.ContextMenu IsNot Nothing Then
-                    ' 强制重新应用样式
-                    fe.ContextMenu.ClearValue(FrameworkElement.StyleProperty)
-                    fe.ContextMenu.UpdateDefaultStyle()
-                End If
-            End If
-
-            ' 递归处理子元素
-            Dim childrenCount As Integer = VisualTreeHelper.GetChildrenCount(element)
-            For i As Integer = 0 To childrenCount - 1
-                Dim child As DependencyObject = VisualTreeHelper.GetChild(element, i)
-                RefreshContextMenusInElement(child)
-            Next
-        Catch ex As Exception
-            ' 忽略个别元素的错误，继续处理其他元素
-        End Try
-    End Sub
-
 #End Region
 
 End Module
