@@ -36,7 +36,7 @@
                 </StackPanel>
             </local:MyCard>
             <local:MyCard x:Name="CardUpdate" Title="可用的软件更新" Margin="0,15" >
-                <StackPanel Margin="25,37,25,15">
+                <StackPanel Margin="25,40,25,15">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="50" />
@@ -53,9 +53,10 @@
                             <RowDefinition Height="10" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TextUpdateName" Text="PCL CE 2.14.0" Margin="0,0" FontWeight="Bold" Grid.Row="0" Grid.Column="2" FontSize="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-                        <TextBlock x:Name="TextUpdateDesc" Text="10.0 MB" FontWeight="Normal" Grid.Row="2" Grid.Column="2" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <Image Source="/Images/icon.ico" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        <!--<local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/>-->
+                        <TextBlock x:Name="TextUpdateName" Text="PCL CE 2.14.0" FontSize="20" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                        <TextBlock x:Name="TextUpdateDesc" Text="10.0 MB" FontSize="14" Grid.Row="2" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         <local:MyButton x:Name="BtnUpdate" Text="下载并安装" ColorType="Highlight" Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                         <TextBlock x:Name="TextChangelog" Text="PCL CE 2.14.0 带来了让人眼前一亮的新设计和 Pigeon 智能的多项功能，同时还带来了令人愉快的跨实例工作方式，助你提高工作效率。" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap" />
                         <local:MyTextButton x:Name="BtnChangelogDetail" Text="有关此更新的更多信息..." FontWeight="Thin" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left" VerticalAlignment="Center" />
