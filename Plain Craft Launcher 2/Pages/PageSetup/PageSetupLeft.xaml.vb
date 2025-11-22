@@ -45,6 +45,8 @@ Public Class PageSetupLeft
             PageID = FormMain.PageSubType.SetupUI
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             PageID = FormMain.PageSubType.SetupSystem
+        ElseIf Not Setup.Get("UiHiddenSetupUpdate") Then
+            PageID = FormMain.PageSubType.SetupUpdate
         Else
             PageID = FormMain.PageSubType.SetupLaunch
         End If
@@ -53,7 +55,7 @@ Public Class PageSetupLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check
+    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check, ItemUpdate.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -74,6 +76,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupSystem
                 If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
                 Return FrmSetupSystem
+            Case FormMain.PageSubType.SetupUpdate
+                If FrmSetupUpdate Is Nothing Then FrmSetupUpdate = New PageSetupUpdate
+                Return FrmSetupUpdate
             Case Else
                 Throw New Exception("未知的设置子页面种类：" & ID)
         End Select
@@ -98,6 +103,9 @@ Public Class PageSetupLeft
                 Case FormMain.PageSubType.SetupSystem
                     If IsNothing(FrmSetupSystem) Then FrmSetupSystem = New PageSetupSystem
                     PageChangeRun(FrmSetupSystem)
+                Case FormMain.PageSubType.SetupUpdate
+                    If IsNothing(FrmSetupUpdate) Then FrmSetupUpdate = New PageSetupUpdate
+                    PageChangeRun(FrmSetupUpdate)
                 Case Else
                     Throw New Exception("未知的设置子页面种类：" & ID)
             End Select
