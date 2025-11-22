@@ -660,7 +660,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             RefreshAllContextMenuThemes()
         End Sub)
     End Sub
-
+    Friend Function ThemeUnlock(Id As Integer, Optional ShowDoubleHint As Boolean = True, Optional UnlockHint As String = Nothing) As Boolean
+        Return False
+    End Function
 #End Region
 
 #Region "更新"
