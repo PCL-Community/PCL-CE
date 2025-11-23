@@ -63,55 +63,61 @@ Download:
                 End If
             Case 3
                 Select Case Setup.Get("UiCustomPreset")
-                    Case 0
+                    Case 0, 1
+                        Log("[Page] 主页预设：预设 " & Setup.Get("UiCustomPreset") & " 已被移除")
+                        Setup.Set("UiCustomPreset", 14)
+                        Setup.Set("UiCustomType", 0)
+                        MyMsgBox("你知道吗 和 回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示")
+                        Return
+                    Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
                         Url = "https://pcl.mcnews.thestack.top"
                         GoTo Download
-                    Case 1
+                    Case 3
                         Log("[Page] 主页预设：简单主页")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
                         GoTo Download
-                    Case 2
+                    Case 4
                         Log("[Page] 主页预设：每日整合包推荐")
                         Url = "https://pclsub.sodamc.com/"
                         GoTo Download
-                    Case 3
+                    Case 5
                         Log("[Page] 主页预设：Minecraft 皮肤推荐")
                         Url = "https://forgepixel.com/pcl_sub_file"
                         GoTo Download
-                    Case 4
+                    Case 6
                         Log("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite")
                         Url = "https://pcl-bmcl.milu.ink/"
                         GoTo Download
-                    Case 5
+                    Case 7
                         Log("[Page] 主页预设：主页市场")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
                         GoTo Download
-                    Case 6
+                    Case 8
                         Log("[Page] 主页预设：更新日志")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml"
                         GoTo Download
-                    Case 7
+                    Case 9
                         Log("[Page] 主页预设：PCL 新功能说明书")
                         Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"
                         GoTo Download
-                    Case 8
+                    Case 10
                         Log("[Page] 主页预设：OpenMCIM Dashboard")
                         Url = "https://files.mcimirror.top/PCL"
                         GoTo Download
-                    Case 9
+                    Case 11
                         Log("[Page] 主页预设：杂志主页")
                         Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"
                         GoTo Download
-                    Case 10
+                    Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
                         Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
-                    Case 11
+                    Case 13
                         Log("[Page] 主页预设：Minecraft 更新摘要")
                         Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
                         GoTo Download
-                    Case 12
+                    Case 14
                         Log("[Page] 主页预设：PCL CE 公告栏")
                         Url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"
                         GoTo Download
