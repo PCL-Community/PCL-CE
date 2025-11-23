@@ -140,12 +140,8 @@ Download:
         Dim externalPath As String = ExePath & "PCL\hints.txt"
         If File.Exists(externalPath) Then
             Try
-                Dim lines = File.ReadAllLines(externalPath).
-                Where(Function(line) Not String.IsNullOrWhiteSpace(line)).
-                Select(Function(line) line.Trim()).ToArray()
-                If lines.Length > 0 Then
-                    Return lines(New Random().Next(lines.Length))
-                End If
+                Dim lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
+                If lines.Length > 0 Then Return lines(New Random().Next(lines.Length))
                 Hint("外部 hints.txt 文件为空")
                 Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
             Catch ex As Exception
@@ -154,11 +150,8 @@ Download:
         End If
         '回退到嵌入式资源
         Try
-            Dim info = Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute))
-            Using reader As New System.IO.StreamReader(info.Stream)
-                Dim lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).
-                Where(Function(line) Not String.IsNullOrWhiteSpace(line)).
-                Select(Function(line) line.Trim()).ToArray()
+            Using reader As New System.IO.StreamReader(Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream)
+                Dim lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
                 Return lines(New Random().Next(lines.Length))
             End Using
         Catch ex As Exception
