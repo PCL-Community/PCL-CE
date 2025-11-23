@@ -111,6 +111,13 @@ Public Class PageLaunchLeft
 #Region "切换大页面"
 
     ''' <summary>
+    ''' 获取随机提示文本。
+    ''' </summary>
+    Private Function GetRandomHint() As String
+        Dim pageLaunchRight As New PageLaunchRight()
+        Return pageLaunchRight.GetRandomHint()
+    End Function
+    ''' <summary>
     ''' 切换至启动中页面。
     ''' </summary>
     Public Sub PageChangeToLaunching()
@@ -139,22 +146,25 @@ Public Class PageLaunchLeft
         LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed
         ProgressLaunchingFinished.Width = New GridLength(0, GridUnitType.Star)
         ProgressLaunchingUnfinished.Width = New GridLength(1, GridUnitType.Star)
+        PanLaunchingHint.Opacity = 0
+        PanLaunchingHint.Visibility = Visibility.Collapsed
         PanLaunchingInfo.Width = Double.NaN '重置宽度改变动画
         McLaunchProcess = Nothing
         McLaunchWatcher = Nothing
+        LabLaunchingHint.Text = GetRandomHint()
         '初始化其他页面
         PanInput.IsHitTestVisible = False
         PanLaunching.IsHitTestVisible = False
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Run
         PanLaunching.Visibility = Visibility.Visible
         AniStart({
-                AaOpacity(PanInput, 0, 50), '略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
-                AaOpacity(PanInput, -PanInput.Opacity, 110, , New AniEaseInFluent, True),
-                AaScaleTransform(PanInput, 1.2 - CType(PanInput.RenderTransform, ScaleTransform).ScaleX, 160),
-                AaOpacity(PanLaunching, 1 - PanLaunching.Opacity, 150, 100),
-                AaScaleTransform(PanLaunching, 1 - CType(PanLaunching.RenderTransform, ScaleTransform).ScaleX, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
-                AaCode(Sub() PanLaunching.IsHitTestVisible = True, 150)
-            }, "Launch State Page")
+            AaOpacity(PanInput, 0, 50), '略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
+            AaOpacity(PanInput, -PanInput.Opacity, 110, , New AniEaseInFluent, True),
+            AaScaleTransform(PanInput, 1.2 - CType(PanInput.RenderTransform, ScaleTransform).ScaleX, 160),
+            AaOpacity(PanLaunching, 1 - PanLaunching.Opacity, 150, 100),
+            AaScaleTransform(PanLaunching, 1 - CType(PanLaunching.RenderTransform, ScaleTransform).ScaleX, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
+            AaCode(Sub() PanLaunching.IsHitTestVisible = True, 150)
+        }, "Launch State Page")
     End Sub
     ''' <summary>
     ''' 切换至登录页面。
@@ -598,10 +608,14 @@ ExitRefresh:
             If IsProgressStateChanged Then
                 LabLaunchingProgress.Visibility = Visibility.Visible
                 LabLaunchingProgressLeft.Visibility = Visibility.Visible
+                If IsLaunched Then
+                    PanLaunchingHint.Visibility = Visibility.Visible
+                End If
                 AnimList.AddRange({
-                 AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
-                 AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100)
-            })
+     AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
+     AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
+     AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 100)
+})
             End If
             AniStart(AnimList, "Launching Progress")
         Catch ex As Exception

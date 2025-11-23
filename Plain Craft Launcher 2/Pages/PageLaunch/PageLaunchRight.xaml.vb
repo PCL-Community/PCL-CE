@@ -135,7 +135,7 @@ Download:
     End Sub
     Private RefreshLock As New Object
 
-    Private Function GetRandomHint() As String
+    Public Function GetRandomHint() As String
         '优先尝试外部文件
         Dim externalPath As String = ExePath & "PCL\hints.txt"
         If File.Exists(externalPath) Then
