@@ -2214,7 +2214,7 @@ NextElement:
         If RunInUi() Then
             Action()
         Else
-            Application.Current.Dispatcher.Invoke(Action)
+            Application.Current?.Dispatcher.Invoke(Action)
         End If
     End Sub
     ''' <summary>
@@ -2223,11 +2223,11 @@ NextElement:
     ''' </summary>
     Public Sub RunInUi(Action As Action, Optional ForceWaitUntilLoaded As Boolean = False)
         If ForceWaitUntilLoaded Then
-            Application.Current.Dispatcher.InvokeAsync(Action, Threading.DispatcherPriority.Loaded)
+            Application.Current?.Dispatcher.InvokeAsync(Action, Threading.DispatcherPriority.Loaded)
         ElseIf RunInUi() Then
             Action()
         Else
-            Application.Current.Dispatcher.InvokeAsync(Action)
+            Application.Current?.Dispatcher.InvokeAsync(Action)
         End If
     End Sub
     ''' <summary>

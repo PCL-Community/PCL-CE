@@ -76,7 +76,6 @@ Public Class FormMain
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         '加载 UI
         InitializeComponent()
-        Opacity = 0
         Try
             Height = Setup.Get("WindowHeight")
             Width = Setup.Get("WindowWidth")
@@ -111,6 +110,7 @@ Public Class FormMain
     End Sub
 
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        FormMain_SizeChanged()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -163,12 +163,9 @@ Public Class FormMain
         HwndSource.AddHook(New Interop.HwndSourceHook(AddressOf WndProc))
         AniStart({
             AaCode(Sub() AniControlEnabled -= 1, 50),
-            AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
-            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
-            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
             AaCode(
             Sub()
-                PanBack.RenderTransform = Nothing
+                RenderTransform = Nothing
                 IsWindowLoadFinished = True
                 Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
             End Sub, , True)
@@ -392,11 +389,11 @@ Public Class FormMain
             VideoBack.Source = Nothing
             VideoBack.Close()
             IsHitTestVisible = False
-            If PanBack.RenderTransform Is Nothing Then
+            If Me.RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
-                PanBack.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
+                Me.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
                 AniStart({
                     AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
                     AaDouble(
@@ -462,11 +459,11 @@ Public Class FormMain
             Config.UI.WindowHeight = Height
             Config.UI.WindowWidth = Width
         End If
-        If BorderForm IsNot Nothing Then
-            RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
+        If PanBack IsNot Nothing Then
+            RectForm.Rect = New Rect(0, 0, PanBack.ActualWidth, PanBack.ActualHeight)
 
-            Dim formWidth As Double = BorderForm.ActualWidth + 0.001
-            Dim formHeight As Double = BorderForm.ActualHeight + 0.001
+            Dim formWidth As Double = PanBack.ActualWidth + 0.001
+            Dim formHeight As Double = PanBack.ActualHeight + 0.001
 
             PanForm.Width = formWidth
             PanForm.Height = formHeight
