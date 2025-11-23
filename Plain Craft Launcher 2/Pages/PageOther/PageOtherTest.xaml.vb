@@ -4,7 +4,6 @@ Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
-Imports Microsoft.Win32
 Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.UI
@@ -661,14 +660,11 @@ Public Class PageOtherTest
     End Function
 
     Private Sub BtnSelectSkin_Click(sender As Object, e As RoutedEventArgs)
-        Dim openFileDialog As New OpenFileDialog() With {
-    .Filter = "皮肤图片文件 (*.png)|*.png"
-}
-        If openFileDialog.ShowDialog() = True Then
-            LoadAndGenerateHead(openFileDialog.FileName)
+        Dim filePath = SystemDialogs.SelectFile("图像文件(*.png)|*.png", "选择皮肤文件")
+        If Not String.IsNullOrEmpty(filePath) Then
+            LoadAndGenerateHead(filePath)
         End If
     End Sub
-
     Private Sub LoadAndGenerateHead(skinPath As String)
         Try
             Using stream As New FileStream(skinPath, FileMode.Open, FileAccess.Read)
@@ -756,19 +752,11 @@ Public Class PageOtherTest
             Return
         End If
 
-        Try
-            Dim originalFileName As String = System.IO.Path.GetFileNameWithoutExtension(skinPath)
-            Dim defaultFileName As String = originalFileName & "_head.png"
-            Dim savePath = SystemDialogs.SelectSaveFile("保存头像", defaultFileName, "PNG图片文件(*.png)|*.png")
-            If String.IsNullOrEmpty(savePath) Then Return
+        Dim savePath = SystemDialogs.SelectSaveFile("保存头像", "Head.png")
+        If String.IsNullOrEmpty(savePath) Then Return
 
-            GeneratedHeadBitmap.Save(savePath, Imaging.ImageFormat.Png)
-            Hint("头像保存成功！", HintType.Finish)
-
-        Catch ex As Exception
-            Log(ex, "保存头像失败")
-            Hint("保存头像失败：" & ex.Message, HintType.Critical)
-        End Try
+        GeneratedHeadBitmap.Save(savePath, Imaging.ImageFormat.Png)
+        Hint("头像保存成功！", HintType.Finish)
     End Sub
     Private Sub CmbHeadSize_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
         If CurrentSkinBitmap IsNot Nothing AndAlso skinPath IsNot Nothing Then
