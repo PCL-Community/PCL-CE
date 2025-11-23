@@ -65,8 +65,6 @@ Download:
                 Select Case Setup.Get("UiCustomPreset")
                     Case 0, 1
                         Log("[Page] 主页预设：预设 " & Setup.Get("UiCustomPreset") & " 是已被移除的主页预设")
-                        Setup.Set("UiCustomPreset", 14)
-                        Setup.Set("UiCustomType", 0)
                         MyMsgBox("你知道吗 和 回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示")
                         Return
                     Case 2
