@@ -111,7 +111,7 @@ Public Class PageLaunchLeft
 #Region "切换大页面"
 
     ''' <summary>
-    ''' 获取随机提示文本。
+    ''' 获取你知道吗。
     ''' </summary>
     Private Function GetRandomHint() As String
         Dim pageLaunchRight As New PageLaunchRight()
