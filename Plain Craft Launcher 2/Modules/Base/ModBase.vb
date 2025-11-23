@@ -2211,7 +2211,9 @@ NextElement:
     ''' 为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
     ''' </summary>
     Public Sub RunInUiWait(Action As Action)
-        If RunInUi() Then
+        If Application.Current?.Dispatcher Is Nothing Then
+            Action()
+        ElseIf RunInUi() Then
             Action()
         Else
             Application.Current.Dispatcher.Invoke(Action)
@@ -2222,10 +2224,12 @@ NextElement:
     ''' 如果当前并非 UI 线程，也不阻断当前线程的执行。
     ''' </summary>
     Public Sub RunInUi(Action As Action, Optional ForceWaitUntilLoaded As Boolean = False)
-        If ForceWaitUntilLoaded Then
-            Application.Current.Dispatcher.InvokeAsync(Action, Threading.DispatcherPriority.Loaded)
+        If Application.Current?.Dispatcher Is Nothing Then
+            Action()
         ElseIf RunInUi() Then
             Action()
+        ElseIf ForceWaitUntilLoaded Then
+            Application.Current.Dispatcher.InvokeAsync(Action, Threading.DispatcherPriority.Loaded)
         Else
             Application.Current.Dispatcher.InvokeAsync(Action)
         End If
