@@ -129,7 +129,6 @@ Public Class FormMain
         BtnExtraLog.ShowCheck = AddressOf BtnExtraLog_ShowCheck
         BtnExtraApril.ShowRefresh()
         '初始化尺寸改变
-        Resizer = New MyResizer(Me)
         If Not Setup.Get("UiLockWindowSize") Then
             AddResizer()
         End If
@@ -501,21 +500,11 @@ Public Class FormMain
 #End Region
 
 #Region "窗体事件"
-    Private Resizer
     Public Sub AddResizer()
         Me.ResizeMode = ResizeMode.CanResize
-        Resizer.addResizerDown(ResizerB)
-        Resizer.addResizerLeft(ResizerL)
-        Resizer.addResizerLeftDown(ResizerLB)
-        Resizer.addResizerLeftUp(ResizerLT)
-        Resizer.addResizerRight(ResizerR)
-        Resizer.addResizerRightDown(ResizerRB)
-        Resizer.addResizerRightUp(ResizerRT)
-        Resizer.addResizerUp(ResizerT)
     End Sub
     Public Sub RemoveResizer()
         Me.ResizeMode = ResizeMode.NoResize
-        Resizer.removeAllResizers()
     End Sub
 
     '按键事件
