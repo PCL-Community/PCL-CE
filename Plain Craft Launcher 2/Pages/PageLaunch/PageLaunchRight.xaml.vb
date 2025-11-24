@@ -1,4 +1,6 @@
-﻿Public Class PageLaunchRight
+﻿Imports System.Security
+
+Public Class PageLaunchRight
     Implements IRefreshable
 
     Private Sub Init() Handles Me.Loaded
@@ -141,7 +143,11 @@ Download:
         If File.Exists(externalPath) Then
             Try
                 Dim lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
-                If lines.Length > 0 Then Return lines(New Random().Next(lines.Length))
+                If lines.Length > 0 Then
+                    Dim hint = lines(New Random().Next(lines.Length))
+                    hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
+                    Return hint
+                End If
                 Log("[Page] 外部 hints.txt 文件为空", LogLevel.Debug)
                 Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
             Catch ex As Exception
@@ -152,7 +158,9 @@ Download:
         Try
             Using reader As New System.IO.StreamReader(Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream)
                 Dim lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
-                Return lines(New Random().Next(lines.Length))
+                Dim hint = lines(New Random().Next(lines.Length))
+                hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
+                Return hint
             End Using
         Catch ex As Exception
             Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
