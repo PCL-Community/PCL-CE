@@ -142,10 +142,10 @@ Download:
             Try
                 Dim lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
                 If lines.Length > 0 Then Return lines(New Random().Next(lines.Length))
-                Hint("外部 hints.txt 文件为空")
+                Log("[Page] 外部 hints.txt 文件为空", LogLevel.Debug)
                 Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
             Catch ex As Exception
-                Log(ex, "读取外部 hints.txt 失败", LogLevel.Hint)
+                Log(ex, "[Page] 读取外部 hints.txt 失败", LogLevel.Hint)
             End Try
         End If
         '回退到嵌入式资源
@@ -155,7 +155,7 @@ Download:
                 Return lines(New Random().Next(lines.Length))
             End Using
         Catch ex As Exception
-            Log(ex, "嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
+            Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
             Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
         End Try
     End Function
