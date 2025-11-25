@@ -119,7 +119,7 @@
                         </Border.Clip>
                     </Border>
                     <TextBlock FontSize="12.5" Text="你知道吗" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="{StaticResource ColorBrushGray1}" Opacity="0.5" />
-                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="这是一段测试用的小提示文本，它应该足够长以让它有两行。" Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="这是一段测试用的小提示文本，它应该足够长以让它有两行。" Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" MaxHeight="54" TextTrimming="CharacterEllipsis" />
                 </Grid>
             </Grid>
         </StackPanel>
