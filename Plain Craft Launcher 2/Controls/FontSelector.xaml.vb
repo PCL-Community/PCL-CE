@@ -3,8 +3,8 @@ Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 
 Public Class FontSelector
-    Public Shared ReadOnly TooltipProperty As DependencyProperty =
-        DependencyProperty.Register("Tooltip", GetType(String), GetType(FontSelector),
+    Public Shared ReadOnly TooltipProperty As DependencyProperty = 
+        DependencyProperty.Register("Tooltip", GetType(String), GetType(FontSelector), 
                                    New PropertyMetadata(Nothing, AddressOf OnTooltipChanged))
 
     Public Property Tooltip As String
@@ -41,55 +41,54 @@ Public Class FontSelector
 
     Private Sub LoadFonts()
         Dispatcher.BeginInvoke(Async Function() As Task
-                                   ComboFont.IsEnabled = False
-                                   _isInitializing = True
-
-                                   CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
-                                   ComboFont.SelectedIndex = 0
-                                   Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
-                                   Await Task.Run(Sub()
-                                                      For Each Font In Fonts.SystemFontFamilies
-                                                          Try
-                                                              '忽略 Global 系列字体
-                                                              If Font.Source.StartsWith("Global ") Then Continue For
-                                                              '尝试加载字体以检测是否可用
-                                                              For Each Typeface In Font.GetTypefaces()
-                                                                  Dim glyph As GlyphTypeface = Nothing
-                                                                  Typeface.TryGetGlyphTypeface(glyph)
-                                                                  If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                                                  'ReSharper disable once UnusedVariable
-                                                                  Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                                              Next
-                                                              availableFonts.Add(New KeyValuePair(Of String, FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
-                                                          Catch ex As Exception
-                                                              Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                                                          End Try
-                                                      Next
-                                                      availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
-                                                  End Sub)
-                                   CustomFontCollection.Clear()
-                                   CustomFontCollection.Add(New CustomFontProperties With {
-                                       .Name = "默认",
-                                       .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                                       .Tag = ""
-                                   })
-                                   For Each font In availableFonts
-                                       CustomFontCollection.Add(New CustomFontProperties With {
-                                           .Name = font.Key,
-                                           .Font = font.Value,
-                                           .Tag = font.Value.Source
-                                       })
-                                   Next
-                                   ComboFont.IsEnabled = True
-
-                                   ' 应用之前待设置的字体
-                                   If _pendingFontTag IsNot Nothing Then
-                                       Dim pendingTag = _pendingFontTag
-                                       _pendingFontTag = Nothing
-                                       SelectedFontTag = pendingTag
-                                   End If
-                                   _isInitializing = False
-                               End Function)
+            ComboFont.IsEnabled = False
+            _isInitializing = True
+            CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
+            ComboFont.SelectedIndex = 0
+            Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
+            Await Task.Run(Sub()
+                For Each Font In Fonts.SystemFontFamilies
+                    Try
+                        '忽略 Global 系列字体
+                        If Font.Source.StartsWith("Global ") Then Continue For
+                        '尝试加载字体以检测是否可用
+                        For Each Typeface In Font.GetTypefaces()
+                            Dim glyph As GlyphTypeface = Nothing
+                            Typeface.TryGetGlyphTypeface(glyph)
+                            If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
+                            'ReSharper disable once UnusedVariable
+                            Dim vbSucks = New GlyphTypeface(glyph.FontUri)
+                        Next
+                        availableFonts.Add(New KeyValuePair(Of String, FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
+                    Catch ex As Exception
+                        Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
+                    End Try
+                Next
+                availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
+            End Sub)
+            CustomFontCollection.Clear()
+            CustomFontCollection.Add(New CustomFontProperties With {
+                .Name = "默认",
+                .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
+                .Tag = ""
+            })
+            For Each font In availableFonts
+                CustomFontCollection.Add(New CustomFontProperties With {
+                    .Name = font.Key,
+                    .Font = font.Value,
+                    .Tag = font.Value.Source
+                })
+            Next
+            ComboFont.IsEnabled = True
+            
+            ' 应用之前待设置的字体
+            If _pendingFontTag IsNot Nothing Then
+                Dim pendingTag = _pendingFontTag
+                _pendingFontTag = Nothing
+                SelectedFontTag = pendingTag
+            End If
+            _isInitializing = False
+        End Function)
     End Sub
 
     Private _isInitializing As Boolean = False
