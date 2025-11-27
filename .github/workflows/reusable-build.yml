@@ -33,6 +33,10 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Check dotnet version
+        run: |
+          dotnet --version
+
       - name: Update Help
         continue-on-error: true
         run: |
