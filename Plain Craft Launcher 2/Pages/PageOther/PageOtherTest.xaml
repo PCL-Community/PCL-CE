@@ -159,6 +159,38 @@
                     <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed"/>
                 </StackPanel>
             </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="皮肤头像生成器" CanSwap="True" IsSwapped="True">
+                <StackPanel Orientation="Vertical" Margin="25,40,25,20">
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="头像大小：" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <local:MyComboBox x:Name="CmbHeadSize" Grid.Column="1" Height="26" SelectedIndex="0">
+                            <sys:String>64x64</sys:String>
+                            <sys:String>96x96</sys:String>
+                            <sys:String>128x128</sys:String>
+                        </local:MyComboBox>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <local:MyButton x:Name="BtnSelectSkin" Grid.Column="1" Text="选择皮肤" Width="140" Height="35" Margin="0,0,10,0"/>
+                        <local:MyButton Grid.Column="2" Text="保存头像" Width="140" Height="35" Click="BtnSaveHead_Click"/>
+                    </Grid>
+                    <Border x:Name="SkinPreviewBorder" Margin="0,15,0,0" HorizontalAlignment="Center" Padding="10" Visibility="Collapsed">
+                        <Grid x:Name="SkinPreviewContainer" Width="80" Height="80">
+                            <Image x:Name="ImgFace" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <Image x:Name="ImgHair" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>
