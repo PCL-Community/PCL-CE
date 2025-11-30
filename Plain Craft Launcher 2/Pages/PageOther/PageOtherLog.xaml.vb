@@ -40,7 +40,7 @@ Class PageOtherLog
                 title = title.Substring(7, title.Length - 11)
                 Dim dt As DateTime
                 Dim r = DateTime.TryParseExact(title, "yyyy-M-d-HHmmssfff",
-                CultureInfo.InvariantCulture, DateTimeStyles.None, dt)
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, dt)
                 If r Then title = dt.ToString("yyyy 年 M 月 d 日 HH:mm:ss.fff")
                 If current.Any(Function(log) log.Equals(fullPath)) Then title = title & " (当前)"
             ElseIf title.StartsWith("LastPending") Then
@@ -52,15 +52,15 @@ Class PageOtherLog
                 End If
             End If
             Dim ele As New MyListItem With {
-                .Type = MyListItem.CheckType.Clickable,
-                .Title = title,
-                .Info = fullPath, .Tag = fullPath}
+                    .Type = MyListItem.CheckType.Clickable,
+                    .Title = title,
+                    .Info = fullPath, .Tag = fullPath}
             AddHandler ele.Click,
-            Sub(sender, e)
-                Dim s = CType(sender, MyListItem)
-                Dim file = CType(s.Tag, String)
-                Basics.OpenPath(file)
-            End Sub
+                Sub(sender, e)
+                    Dim s = CType(sender, MyListItem)
+                    Dim file = CType(s.Tag, String)
+                    Basics.OpenPath(file)
+                End Sub
             PanList.Children.Add(ele)
         Next
     End Sub
