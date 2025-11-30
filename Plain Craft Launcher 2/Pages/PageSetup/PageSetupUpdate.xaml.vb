@@ -53,7 +53,7 @@ Public Class PageSetupUpdate
             Case UpdateStatus.Error
                 CardUpdate.Visibility = Visibility.Collapsed
                 CardCheck.Visibility = Visibility.Visible
-                TextCurrentDesc = "检查更新时出错"
+                TextCurrentDesc.Text = "检查更新时出错"
         End Select
     End Sub
     
