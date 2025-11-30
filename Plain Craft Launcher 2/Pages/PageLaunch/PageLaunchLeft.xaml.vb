@@ -114,8 +114,7 @@ Public Class PageLaunchLeft
     ''' 获取你知道吗。
     ''' </summary>
     Private Function GetRandomHint() As String
-        Dim pageLaunchRight As New PageLaunchRight()
-        Return pageLaunchRight.GetRandomHint()
+        Return PageLaunchRight.GetRandomHint(True)
     End Function
     ''' <summary>
     ''' 切换至启动中页面。
