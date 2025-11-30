@@ -42,6 +42,7 @@ Public Class FontSelector
     Private Sub LoadFonts()
         Dispatcher.BeginInvoke(Async Function() As Task
             ComboFont.IsEnabled = False
+            _isInitializing = True
             CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
             ComboFont.SelectedIndex = 0
             Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
@@ -86,9 +87,11 @@ Public Class FontSelector
                 _pendingFontTag = Nothing
                 SelectedFontTag = pendingTag
             End If
+            _isInitializing = False
         End Function)
     End Sub
 
+    Private _isInitializing As Boolean = False
     Private _pendingFontTag As String = Nothing
 
     Public Property SelectedFontTag As String
@@ -104,13 +107,17 @@ Public Class FontSelector
                 _pendingFontTag = value
                 Return
             End If
-            
+
+            _isInitializing = True
+
             Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = value)
             If targetSelection Is Nothing Then
                 ComboFont.SelectedIndex = 0
             Else
                 ComboFont.SelectedItem = targetSelection
             End If
+
+            _isInitializing = False
         End Set
     End Property
 
@@ -133,7 +140,9 @@ Public Class FontSelector
     End Property
 
     Private Sub ComboFont_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboFont.SelectionChanged
-        RaiseEvent SelectionChanged(sender, e)
+        If Not _isInitializing Then
+            RaiseEvent SelectionChanged(sender, e)
+        End If
     End Sub
 
 End Class
