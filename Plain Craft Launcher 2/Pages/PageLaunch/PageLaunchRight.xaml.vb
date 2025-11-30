@@ -63,24 +63,10 @@ Download:
                 End If
             Case 3
                 Select Case Setup.Get("UiCustomPreset")
-                    Case 0
-                        Log("[Page] 主页预设：你知道吗")
-                        Content = "
-                            <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hint}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
-                            </local:MyCard>"
-                    Case 1
-                        Log("[Page] 主页预设：回声洞")
-                        Content = "
-                            <local:MyCard Title=""回声洞"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{cave}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
-                            </local:MyCard>"
+                    Case 0, 1
+                        Log("[Page] 主页预设：预设 " & Setup.Get("UiCustomPreset") & " 是已被移除的主页预设")
+                        MyMsgBox("你知道吗 和 回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示")
+                        Return
                     Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
                         Url = "https://pcl.mcnews.thestack.top"

@@ -118,7 +118,6 @@ Public Class MyImage
         End If
         '从缓存加载网络图片
         Dim Url As String = Source
-        Dim Retried As Boolean = False
         Dim TempPath As String = GetTempPath(Url)
         Dim TempFile As New FileInfo(TempPath)
         Dim EnableCache As Boolean = Me.EnableCache
@@ -133,9 +132,10 @@ Public Class MyImage
             ActualSource = LoadingSource '显示加载中图片
             TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
             Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
-            Using fs As New FileStream(TempDownloadingPath, FileMode.Create)
+            Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
                 Using response = Await HttpRequestBuilder.Create(Url, HttpMethod.Get).
                         WithHttpVersionOption(HttpVersion.Version30).
+                        WithDefaultHeaderOption(False).
                         SendAsync()
                     If response.IsSuccess Then
                         Using nfs = Await response.AsStreamAsync()
@@ -145,11 +145,14 @@ Public Class MyImage
                         Using fallbackResponse = Await HttpRequestBuilder.
                             Create(FallbackSource, HttpMethod.Get).
                             WithHttpVersionOption(HttpVersion.Version30).
+                            WithDefaultHeaderOption(False).
                             SendAsync(True)
-                            fs.SetLength(0)
-                            Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
-                                Await fallbackNfs.CopyToAsync(fs)
-                            End Using
+                            If fallbackResponse.IsSuccess Then
+                                fs.SetLength(0)
+                                Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
+                                    Await fallbackNfs.CopyToAsync(fs)
+                                End Using
+                            End If
                         End Using
                     End If
                 End Using
