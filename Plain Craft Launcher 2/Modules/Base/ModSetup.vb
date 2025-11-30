@@ -411,6 +411,9 @@ Public Class ModSetup
     Public Sub UiHiddenOtherFeedback(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
+    Public Sub UiHiddenOtherLog(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
     Public Sub UiHiddenOtherAbout(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
