@@ -58,8 +58,11 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub PageSetupUpdate_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        AniControlEnabled += 1
+        '初始化更新设置选项
         ComboSystemUpdateChannel.SelectedIndex = Config.System.UpdateBranch
         ComboSystemUpdateMode.SelectedIndex = Config.System.UpdateSolution
+        AniControlEnabled -= 1
     End Sub
     
     Private Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
