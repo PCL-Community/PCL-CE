@@ -81,6 +81,10 @@ Public Class PageSetupUpdate
         MyMsgBoxMarkdown("", "关于此更新")
     End Sub
     
+    Private Sub ComboChange(sender As MyComboBox, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged, ComboSystemUpdateMode.SelectionChanged
+        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
+    End Sub
+    
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
         Select Case ComboSystemUpdateChannel.SelectedIndex
