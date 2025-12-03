@@ -82,8 +82,8 @@ Public Class PageSetupUpdate
         MyMsgBoxMarkdown("", "关于此更新")
     End Sub
     
-    Private Sub ComboChange(sender As MyComboBox, e As SelectionChangedEventArgs) Handles  ComboSystemUpdateChannel.SelectionChanged, ComboSystemUpdateMode.SelectionChanged
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
+    Private Sub ComboSystemUpdateMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateMode.SelectionChanged
+        If AniControlEnabled = 0 Then Config.System.UpdateSolution = ComboSystemUpdateMode.SelectedIndex
     End Sub
     
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
@@ -97,6 +97,7 @@ Public Class PageSetupUpdate
                             "在升级到测试版后，你需要等待下一个正式版发布，或是手动重新下载启动器来切换到正式版。" & vbCrLf &
                             "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
                     ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
+                    Return
                 Else
                     UpdateCheckByButton()
                 End If
@@ -122,8 +123,10 @@ Public Class PageSetupUpdate
                 Else
                     Hint("你输入了错误的内容...")
                     ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
+                    Return
                 End If
         End Select
+        Config.System.UpdateBranch = ComboSystemUpdateChannel.SelectedIndex
     End Sub
     
     Private Sub TextMirrorCDK_PasswordChanged(sender As Object, e As EventArgs) Handles TextMirrorCDK.PasswordChanged
