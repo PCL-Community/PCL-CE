@@ -77,6 +77,7 @@ Public Class FormMain
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         ‘注册 Hint 事件
         AddHandler HintWrapper.OnShow, AddressOf Hint
+        AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
         '加载 UI
         InitializeComponent()
         Opacity = 0
