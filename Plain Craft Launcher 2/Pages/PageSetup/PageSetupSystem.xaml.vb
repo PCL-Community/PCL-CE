@@ -257,7 +257,7 @@ Class PageSetupSystem
     ''' </summary>
     Public Shared Function IsLauncherNewest() As Boolean?
         Try
-            Return IsVerisonLatest()
+            Return GetVersionStatus() = VersionStatus.Latest
         Catch ex As Exception
             Log(ex, "确认启动器更新失败", LogLevel.Feedback)
             Return Nothing
