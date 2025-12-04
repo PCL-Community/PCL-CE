@@ -4,6 +4,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -74,6 +75,8 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
+        ‘注册 Hint 事件
+        AddHandler HintWrapper.OnShow, AddressOf Hint
         '加载 UI
         InitializeComponent()
         Opacity = 0
