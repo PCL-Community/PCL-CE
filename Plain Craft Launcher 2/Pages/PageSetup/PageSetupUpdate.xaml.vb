@@ -92,7 +92,6 @@ Public Class PageSetupUpdate
         Dim IsCancelled As Boolean = False
         Select Case ComboSystemUpdateChannel.SelectedIndex
             Case 0
-                Return
             Case 1
                 If MyMsgBox("你正在切换启动器更新通道到测试版。" & vbCrLf &
                             "测试版可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
