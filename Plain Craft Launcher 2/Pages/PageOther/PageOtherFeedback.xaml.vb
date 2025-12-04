@@ -42,7 +42,7 @@ Public Class PageOtherFeedback
 
     Public Sub FeedbackListGet(Task As LoaderTask(Of Integer, List(Of Feedback)))
         Dim list As JArray
-        list = NetGetCodeByRequestRetry("https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True)
+        list = NetGetCodeByRequestRetry("https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True) '获取近期 200 条数据就够了
         If list Is Nothing Then Throw New Exception("无法获取到内容")
         Dim res As List(Of Feedback) = New List(Of Feedback)
         For Each i As JObject In list
@@ -81,8 +81,8 @@ Public Class PageOtherFeedback
         Task.Output = res
     End Sub
 
-    Private Function CreateFeedbackItem(item As Feedback, logo As String, status As String) As MyListItem
-        Dim commonInfo = $"{item.User} | {item.Time:yyyy-MM-dd}"
+    Private Function CreateFeedbackItem(item As Feedback, logo As String) As MyListItem
+        Dim commonInfo = $"{item.User} | {item.Time:yyyy-MM-dd HH:mm:ss}"
 
         Dim li As New MyListItem()
         With li
@@ -102,8 +102,6 @@ Public Class PageOtherFeedback
 
     Private Sub ShowFeedbackDetail(item As Feedback)
         Dim timeSpanText = TimeUtils.GetTimeSpanString(item.Time - DateTime.Now, False)
-        Dim tagsText = If(item.Tags.Count > 0, String.Join(", ", GetTagNames(item.Tags)), "无标签")
-
         Select Case MyMsgBoxMarkdown(
             $"提交者：{item.User}（{timeSpanText}）" & vbCrLf &
             $"类型：{item.Type}" & vbCrLf & vbCrLf &
@@ -114,11 +112,6 @@ Public Class PageOtherFeedback
                 OpenWebsite(item.Url)
         End Select
     End Sub
-
-    Private Function GetTagNames(tagIds As List(Of String)) As List(Of String)
-        Dim tagNames As New List(Of String)
-        Return tagNames
-    End Function
 
     Private Sub SetPanelVisibility(panel As StackPanel, card As MyCard)
         card.Visibility = If(panel.Children.Count = 0, Visibility.Collapsed, Visibility.Visible)
@@ -133,38 +126,43 @@ Public Class PageOtherFeedback
         PanListCompleted.Children.Clear()
         PanListDecline.Children.Clear()
         PanListIgnored.Children.Clear()
+        PanListDuplicate.Children.Clear()
 
         For Each item In Loader.Output
             If item.Tags.Contains(TagID.Processing) Then
-                PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png", "正在处理"))
+                PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"))
             End If
 
             If item.Tags.Contains(TagID.WaitingProcess) Then
-                PanListWaitingProcess.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneBlock.png", "等待处理"))
+                PanListWaitingProcess.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneBlock.png"))
             End If
 
             If item.Tags.Contains(TagID.Wait) Then
-                PanListWait.Children.Add(CreateFeedbackItem(item, "Blocks/Anvil.png", "等待"))
+                PanListWait.Children.Add(CreateFeedbackItem(item, "Blocks/Anvil.png"))
             End If
 
             If item.Tags.Contains(TagID.Pause) Then
-                PanListPause.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOff.png", "暂停"))
+                PanListPause.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOff.png"))
             End If
 
             If item.Tags.Contains(TagID.Upnext) Then
-                PanListUpnext.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOn.png", "在即"))
+                PanListUpnext.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOn.png"))
             End If
 
             If item.Tags.Contains(TagID.Completed) Then
-                PanListCompleted.Children.Add(CreateFeedbackItem(item, "Blocks/Grass.png", "已完成"))
+                PanListCompleted.Children.Add(CreateFeedbackItem(item, "Blocks/Grass.png"))
             End If
 
             If item.Tags.Contains(TagID.Decline) Then
-                PanListDecline.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png", "已拒绝"))
+                PanListDecline.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"))
             End If
 
             If item.Tags.Contains(TagID.Ignored) Then
-                PanListIgnored.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png", "已忽略"))
+                PanListIgnored.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"))
+            End If
+
+            If item.Tags.Contains(TagID.Duplicate) Then
+                PanListDuplicate.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"))
             End If
         Next
 
@@ -176,6 +174,7 @@ Public Class PageOtherFeedback
         SetPanelVisibility(PanListCompleted, PanContentCompleted)
         SetPanelVisibility(PanListDecline, PanContentDecline)
         SetPanelVisibility(PanListIgnored, PanContentIgnored)
+        SetPanelVisibility(PanListDuplicate, PanContentDuplicate)
     End Sub
 
     Private Sub Feedback_Click(sender As Object, e As MouseButtonEventArgs)
