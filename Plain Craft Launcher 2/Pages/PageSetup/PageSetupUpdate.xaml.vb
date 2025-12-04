@@ -107,6 +107,7 @@ Public Class PageSetupUpdate
                             "在升级到开发版后，只能手动重新下载启动器来切换回正式版或测试版。" & vbCrLf &
                             "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
                     IsCancelled = True
+                    Exit Select
                 End If
                 Dim ret = MyMsgBoxInput("最终确认", "你确定要切换到开发版通道吗？" & vbCrLf &
                                                 "开发版可能存在严重问题，甚至无法启动！" & vbCrLf &
@@ -115,6 +116,7 @@ Public Class PageSetupUpdate
                                                 "请输入 '我确认切换到此分支并已知晓风险' 以确认。", Button1 := "提交", Button2 := "取消", IsWarn:=True)
                 If ret Is Nothing Then 
                     IsCancelled = True
+                    Exit Select
                 End If
                 If ret = "我确认切换到此分支并已知晓风险" Then
                     UpdateCheckByButton()
