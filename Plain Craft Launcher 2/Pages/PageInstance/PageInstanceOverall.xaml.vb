@@ -1,5 +1,8 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
+Imports PCL.Core.App.Configuration.Impl
+Imports PCL.Core.App.Configuration.NTraffic
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
@@ -102,7 +105,7 @@ Public Class PageInstanceOverall
                                                                                   Dim wrapPanel As New WrapPanel With {.Margin = New Thickness(0, -5, -20, 7)}
                                                                                   For Each item In items
                                                                                       wrapPanel.Children.Add(item)
-                                                                                      wrapPanel.Children.Add(New TextBlock With{.Width = 2})
+                                                                                      wrapPanel.Children.Add(New TextBlock With {.Width = 2})
                                                                                   Next
                                                                                   PanInfo.Children.Clear()
                                                                                   If ModpackCompItem IsNot Nothing Then
@@ -436,6 +439,22 @@ Public Class PageInstanceOverall
                         "实例删除确认", , "取消",, IsHintIndie OrElse IsShiftPressed)
                 Case 1
                     IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
+                    Try
+                        Dim provider = ConfigService.GetProvider(ConfigSource.GameInstance)
+                        If TypeOf provider Is DynamicCacheTrafficCenter Then
+                            Dim cacheField = GetType(DynamicCacheTrafficCenter).GetField("_cache",
+                            System.Reflection.BindingFlags.NonPublic Or System.Reflection.BindingFlags.Instance)
+                            If cacheField IsNot Nothing Then
+                                Dim cache = TryCast(cacheField.GetValue(provider), Dictionary(Of Object, TrafficCenter))
+                                If cache IsNot Nothing AndAlso cache.ContainsKey(PageInstanceLeft.Instance.PathIndie) Then
+                                    cache(PageInstanceLeft.Instance.PathIndie).Stop()
+                                    cache.Remove(PageInstanceLeft.Instance.PathIndie)
+                                End If
+                            End If
+                        End If
+                    Catch ex As Exception
+                        Log(ex, "清理实例配置缓存失败", LogLevel.Hint)
+                    End Try
                     If IsShiftPressed Then
                         DeleteDirectory(PageInstanceLeft.Instance.Path)
                         Hint("实例 " & PageInstanceLeft.Instance.Name & " 已永久删除！", HintType.Finish)

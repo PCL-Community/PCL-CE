@@ -1,5 +1,8 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
+Imports PCL.Core.App.Configuration.Impl
+Imports PCL.Core.App.Configuration.NTraffic
 
 Public Class PageSelectRight
 
@@ -389,6 +392,21 @@ Public Class PageSelectRight
                         "实例删除确认", , "取消",, True)
                 Case 1
                     IniClearCache(Version.PathIndie & "options.txt")
+                    Try
+                        Dim provider = ConfigService.GetProvider(ConfigSource.GameInstance)
+                        If TypeOf provider Is DynamicCacheTrafficCenter Then
+                            Dim cacheField = GetType(DynamicCacheTrafficCenter).GetField("_cache", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance)
+                            If cacheField IsNot Nothing Then
+                                Dim cache = TryCast(cacheField.GetValue(provider), Dictionary(Of Object, TrafficCenter))
+                                If cache IsNot Nothing AndAlso cache.ContainsKey(Version.PathIndie) Then
+                                    cache(Version.PathIndie).Stop()
+                                    cache.Remove(Version.PathIndie)
+                                End If
+                            End If
+                        End If
+                    Catch ex As Exception
+                        Log(ex, "清理实例配置缓存失败", LogLevel.Hint)
+                    End Try
                     If IsShiftPressed Then
                         DeleteDirectory(Version.Path)
                         Hint("实例 " & Version.Name & " 已永久删除！", HintType.Finish)
