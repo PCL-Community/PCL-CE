@@ -127,7 +127,7 @@ Public Class PageSetupUpdate
         End Select
         If IsCancelled Then
             AniControlEnabled += 1
-            ComboSystemUpdateChannel.SelectedIndex = Config.System.UpdateBranch
+            ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
             AniControlEnabled -= 1
         Else
             Config.System.UpdateBranch = ComboSystemUpdateChannel.SelectedIndex
