@@ -294,14 +294,21 @@ NextInner:
 #End If
         '正版购买提示
         If Not ProfileList.Any(Function(x) x.Type = McLoginType.Ms) Then
-            Select Case MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
-                    Button1Action:=Sub() OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"))
-                Case 2
-                    Hint("游戏将以试玩模式启动！", HintType.Critical)
-                    CurrentLaunchOptions.ExtraArgs.Add("--demo")
-                Case 3
-                    Throw New Exception("$$")
-            End Select
+            If RegionUtils.IsRestrictedFeatAllowed Then
+                If MyMsgBox($"看起来你似乎没买正版...{vbCrLf}如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。{vbCrLf}{vbCrLf}在验证一个正版账号之后，就不会出现这个提示了！", 
+                            "考虑一下正版？", "支持正版游戏！", "下次一定") = 1 Then
+                    OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")
+                End If
+            Else
+                Select Case MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
+                                     Button1Action:=Sub() OpenWebsite("https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"))
+                    Case 2
+                        Hint("游戏将以试玩模式启动！", HintType.Critical)
+                        CurrentLaunchOptions.ExtraArgs.Add("--demo")
+                    Case 3
+                        Throw New Exception("$$")
+                End Select
+            End If
         End If
     End Sub
 

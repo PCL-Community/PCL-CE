@@ -233,7 +233,9 @@ Public Module ModProfile
         Dim selectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
                         Dim authTypeList As List(Of IMyRadio)
-                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) Then
+                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) OrElse 
+                           (Core.Utils.RegionUtils.IsRestrictedFeatAllowed AndAlso 
+                            (ProfileList.Any() OrElse Not Core.Net.NetworkHelper.TestHttpConnectionAsync().GetAwaiter().GetResult())) Then
                             authTypeList = New List(Of IMyRadio) From
                             {
                                 New MyListItem With {
