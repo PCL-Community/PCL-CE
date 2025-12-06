@@ -478,7 +478,6 @@ Write:
                                SaveProfile()
                                ' 添加：如果导入0个档案
                                If importNum = 0 Then
-                                   ProfileLog("导入HMCL档案时，未找到任何可导入的档案importNum=" + importNum.ToString())
                                    Hint("未找到任何可导入的档案！", HintType.Info)
                                End If
                                Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
