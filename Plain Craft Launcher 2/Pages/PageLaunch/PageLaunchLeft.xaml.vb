@@ -611,10 +611,10 @@ ExitRefresh:
                     PanLaunchingHint.Visibility = Visibility.Visible
                 End If
                 AnimList.AddRange({
-     AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
-     AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
-     AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 100)
-})
+                 AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
+                 AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
+                 AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 100)
+            })
             End If
             AniStart(AnimList, "Launching Progress")
         Catch ex As Exception
