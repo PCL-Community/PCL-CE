@@ -163,7 +163,7 @@ Public Class PageLaunchLeft
                 AaOpacity(PanLaunching, 1 - PanLaunching.Opacity, 150, 100),
                 AaScaleTransform(PanLaunching, 1 - CType(PanLaunching.RenderTransform, ScaleTransform).ScaleX, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
                 AaCode(Sub() PanLaunching.IsHitTestVisible = True, 150)
-	        }, "Launch State Page")
+            }, "Launch State Page")
     End Sub
     ''' <summary>
     ''' 切换至登录页面。
