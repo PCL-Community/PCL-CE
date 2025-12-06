@@ -153,19 +153,19 @@
                     <local:FontSelector Grid.Row="2" Grid.Column="2" x:Name="ComboUiMotdFont" Tooltip="格式化代码文本字体，用于服务器状态信息等内容"/>
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景图片/视频">
+            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景内容">
                 <StackPanel Margin="25,40,25,20">
                     <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="图片自适应方式" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="内容自适应方式" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1">
-                            <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当图片较小时选择平铺，较大时选择适应" />
+                            <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当内容较小时选择平铺，较大时选择适应" />
                             <local:MyComboBoxItem Content="居中" />
-                            <local:MyComboBoxItem Content="适应" ToolTip="拉伸图片并保持长宽比不变，直至填满整个窗口" />
-                            <local:MyComboBoxItem Content="拉伸" ToolTip="拉伸图片使其恰好填满整个窗口，很可能会导致长宽比的改变" />
+                            <local:MyComboBoxItem Content="适应" ToolTip="拉伸内容并保持长宽比不变，直至填满整个窗口" />
+                            <local:MyComboBoxItem Content="拉伸" ToolTip="拉伸内容使其恰好填满整个窗口，很可能会导致长宽比的改变" />
                             <local:MyComboBoxItem Content="平铺" />
                             <local:MyComboBoxItem Content="居于左上" />
                             <local:MyComboBoxItem Content="居于右上" />
@@ -315,8 +315,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页预设" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset" Grid.Column="1">
-                            <local:MyComboBoxItem Content="你知道吗？" IsSelected="True" />
-                            <local:MyComboBoxItem Content="回声洞" />
+                            <local:MyComboBoxItem Content="你知道吗？(已移除)" Visibility="Collapsed"/>
+                            <local:MyComboBoxItem Content="回声洞 (已移除)" Visibility="Collapsed"/>
                             <local:MyComboBoxItem Content="Minecraft 新闻（作者：最亮的信标）" />
                             <local:MyComboBoxItem Content="简单主页（作者：MFn233）" />
                             <local:MyComboBoxItem Content="每日整合包推荐（作者：wkea）" />
@@ -328,7 +328,8 @@
                             <local:MyComboBoxItem Content="OpenMCIM 仪表盘（作者：SALTWOOD）" Visibility="Collapsed" />
                             <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
                             <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
-                            <local:MyComboBoxItem Content="PCL CE 公告栏" />
+                            <local:MyComboBoxItem Content="Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）" />
+                            <local:MyComboBoxItem Content="PCL CE 公告栏" IsSelected="True"/>
                         </local:MyComboBox>
                     </Grid>
                     <Grid Grid.Row="14">
@@ -378,7 +379,7 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="关于与鸣谢" x:Name="CheckHiddenOtherAbout" Tag="UiHiddenOtherAbout" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4" Text="百宝箱" x:Name="CheckHiddenOtherTest" Tag="UiHiddenOtherTest" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="反馈" x:Name="CheckHiddenOtherFeedback" Tag="UiHiddenOtherFeedback" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="新功能投票" x:Name="CheckHiddenOtherVote" Tag="UiHiddenOtherVote" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="日志浏览" x:Name="CheckHiddenOtherLog" Tag="UiHiddenOtherLog" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="特定功能" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="实例管理" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect" ToolTip="隐藏启动按钮下方的实例选择与实例设置入口。" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="Mod 更新" x:Name="CheckHiddenFunctionModUpdate" Tag="UiHiddenFunctionModUpdate" ToolTip="禁止在 Mod 管理页面更新 Mod。" />

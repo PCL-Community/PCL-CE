@@ -622,8 +622,7 @@ pause"
                     WithHeader("Accept", "text/html").
                     WithHeader("Accept-Language", "en-US,en;q=0.5").
                     WithHeader("X-Requested-With", "XMLHttpRequest").
-                    SendAsync(True).
-                    Result.
+                    SendAsync(True).GetAwaiter().GetResult().
                     AsStringContent()
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))
@@ -792,8 +791,7 @@ Retry:
                     WithHeader("Accept", "text/html").
                     WithHeader("Accept-Language", "en-US,en;q=0.5").
                     WithHeader("X-Requested-With", "XMLHttpRequest").
-                    SendAsync(True).
-                    Result.
+                    SendAsync(True).GetAwaiter().GetResult().
                     AsStringContent()
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))

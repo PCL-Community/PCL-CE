@@ -53,7 +53,6 @@
         ItemHelp.Check,
         ItemTest.Check,
         ItemFeedback.Check,
-        ItemVote.Check,
         ItemLog.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
@@ -75,9 +74,6 @@
             Case FormMain.PageSubType.OtherFeedback
                 If FrmOtherFeedback Is Nothing Then FrmOtherFeedback = New PageOtherFeedback
                 Return FrmOtherFeedback
-            Case FormMain.PageSubType.OtherVote
-                If FrmOtherVote Is Nothing Then FrmOtherVote = New PageOtherVote
-                Return FrmOtherVote
             Case FormMain.PageSubType.OtherLog
                 If FrmOtherLog Is Nothing Then FrmOtherLog = New PageOtherLog
                 Return FrmOtherLog
@@ -134,11 +130,6 @@
                     FrmOtherFeedback.Loader.Start(IsForceRestart:=True)
                 End If
                 ItemFeedback.Checked = True
-            Case FormMain.PageSubType.OtherVote
-                If FrmOtherVote IsNot Nothing Then
-                    FrmOtherVote.Loader.Start(IsForceRestart:=True)
-                End If
-                ItemVote.Checked = True
             Case FormMain.PageSubType.OtherLog
                 If FrmOtherLog IsNot Nothing Then
                     FrmOtherLog.LoadList()

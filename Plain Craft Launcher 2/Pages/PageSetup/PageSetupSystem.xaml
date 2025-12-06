@@ -217,10 +217,13 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28" />
                         <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="HTTP 代理" Margin="0,0,25,0" />
-                    <Grid Grid.Row="0" Grid.Column="1">
+                    <local:MyCheckBox x:Name="CheckNetDohEnable" Tag="SystemNetEnableDoH" Grid.Row="0" Grid.ColumnSpan="2" Text="使用 DoH 解析地址" ToolTip="使用 DoH 解析地址可以获取更加优质的 IP 结果，提高启动器的网络访问水平。如果您已部署 DoH 解析服务，可以关闭此功能。"/>
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="HTTP 代理" Margin="0,0,25,0" />
+                    <Grid Grid.Row="2" Grid.Column="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
@@ -231,7 +234,7 @@
                         <local:MyRadioBox Text="使用系统代理" x:Name="RadioHttpProxyType1" Height="22" Tag="SystemHttpProxyType/1" Grid.Column="1" />
                         <local:MyRadioBox Text="自定义代理" x:Name="RadioHttpProxyType2" Height="22" Tag="SystemHttpProxyType/2" Grid.Column="2" />
                     </Grid>
-                    <Grid Grid.Row="2" Grid.Column="1" x:Name="HttpProxyCustom" Visibility="{Binding ElementName=RadioHttpProxyType2,Path=Checked,Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid Grid.Row="4" Grid.Column="1" x:Name="HttpProxyCustom" Visibility="{Binding ElementName=RadioHttpProxyType2,Path=Checked,Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="28"/>
                             <RowDefinition Height="9"/>
