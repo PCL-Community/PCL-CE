@@ -29,8 +29,9 @@ Class PageLinkSetup
         ComboServerType.SelectedIndex = Config.Link.ServerType
         CheckLatencyFirstMode.Checked = Config.Link.LatencyFirstMode
         ComboPreferProtocol.SelectedIndex = CInt(Config.Link.ProtocolPreference)
-        CheckTryPaunchSym.Checked = Config.Link.TryPunchSym
+        CheckTryPunchSym.Checked = Config.Link.TryPunchSym
         CheckEnableIPv6.Checked = Config.Link.EnableIPv6
+        CheckEnableCliOutput.Checked = Config.Link.EnableCliOutput
         If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
             CardLogged.Visibility = Visibility.Collapsed
             CardNotLogged.Visibility = Visibility.Visible
@@ -54,7 +55,15 @@ Class PageLinkSetup
         If ETRelay.RelayList.Count > 0 Then
             TextRelays.Text = ""
             For Each Relay In ETRelay.RelayList
-                TextRelays.Text += If(Relay.Type = ETRelayType.Community, "[社区] ", "[自有] ") & Relay.Name & "，"
+                Select Case Relay.Type
+                    Case ETRelayType.Community
+                        TextRelays.Text += "[社区] "
+                    Case ETRelayType.Selfhosted
+                        TextRelays.Text += "[自有] "
+                    Case Else 'ETRelayType.Custom
+                        TextRelays.Text += "[自定义] "
+                End Select
+                TextRelays.Text += Relay.Name & "，"
             Next
             TextRelays.Text = TextRelays.Text.BeforeLast("，")
         Else
@@ -169,7 +178,7 @@ Class PageLinkSetup
     Private Shared Sub ComboBoxChange(sender As MyComboBox, e As Object) Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change, CheckEnableIPv6.Change, CheckTryPaunchSym.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLatencyFirstMode.Change, CheckEnableIPv6.Change, CheckTryPunchSym.Change, CheckEnableCliOutput.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub LinkProtocolPerferenceChange(sender As MyComboBox, e As Object) Handles ComboPreferProtocol.SelectionChanged

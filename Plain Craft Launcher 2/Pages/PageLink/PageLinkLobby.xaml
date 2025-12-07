@@ -64,7 +64,7 @@
                                 <local:MyButton x:Name="BtnJoin" DockPanel.Dock="Right" Text="加入" ColorType="Highlight" Width="50" Margin="10,0,0,0"/>
                                 <local:MyButton x:Name="BtnPaste" DockPanel.Dock="Right" Text="粘贴" ColorType="Normal" Width="50" Margin="10,0,0,0"/>
                                 <local:MyButton x:Name="BtnClearLobbyId" DockPanel.Dock="Right" Text="清除" ColorType="Normal" Width="50" Margin="10,0,0,0"/>
-                                <local:MyTextBox x:Name="TextJoinLobbyId" HintText="编号应该长得像这样：P9LC5L6B3Y" MaxLines="1" AcceptsReturn="False"/>
+                                <local:MyTextBox x:Name="TextJoinLobbyId" HintText="编号应该长得像这样：U/NNNN-AAAA-SSSS-EEEE" MaxLines="1" AcceptsReturn="False"/>
                             </DockPanel>
                         </StackPanel>
                     </local:MyCard>

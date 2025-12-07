@@ -47,6 +47,9 @@
                 <local:MyCard Title="已忽略" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwapped="True">
                     <StackPanel x:Name="PanListIgnored" Orientation="Vertical" Margin="20,36,18,18"/>
                 </local:MyCard>
+                <local:MyCard Title="重复" Margin="0,0,0,15" x:Name="PanContentDuplicate" CanSwap="True" IsSwapped="True">
+                    <StackPanel x:Name="PanListDuplicate" Orientation="Vertical" Margin="20,36,18,18"/>
+                </local:MyCard>
             </StackPanel>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="40,50">
             <local:MyLoading Text="正在获取反馈列表" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center" VerticalAlignment="Center" />

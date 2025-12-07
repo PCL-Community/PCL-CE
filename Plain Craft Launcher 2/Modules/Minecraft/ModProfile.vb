@@ -1,5 +1,7 @@
 ﻿Imports System.Net.Http
 Imports System.Security.Cryptography
+Imports System.IO
+Imports PCL.Core.App
 
 Public Module ModProfile
 
@@ -85,9 +87,9 @@ Public Module ModProfile
     Public Sub GetProfile()
         ProfileLog("开始获取本地档案")
         ProfileList.Clear()
+        Dim profilePath = Path.Combine(PathAppdataConfig, "profiles.json")
         Try
             If Not Directory.Exists(PathAppdataConfig) Then Directory.CreateDirectory(PathAppdataConfig)
-            Dim profilePath = IO.Path.Combine(PathAppdataConfig, "profiles.json")
             If Not File.Exists(profilePath) Then
                 File.Create(profilePath).Close()
                 WriteFile(profilePath, "{""lastUsed"":0,""profiles"":[]}", False) '创建档案列表文件
@@ -138,7 +140,12 @@ Public Module ModProfile
             Next
             ProfileLog($"获取到 {ProfileList.Count} 个档案")
         Catch ex As Exception
-            Log(ex, "读取档案列表失败", LogLevel.Feedback)
+            Try
+                Dim profilePathBak = Path.Combine(PathAppdataConfig, $"profiles.json.bak{DateTime.Now.ToBinary()}")
+                File.Move(profilePath, profilePathBak)
+            Catch ex1 As Exception
+            End Try
+            Log(ex, "档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。", LogLevel.Msgbox)
         End Try
     End Sub
 
@@ -202,7 +209,15 @@ Public Module ModProfile
                 {"profiles", list}
             }
             End If
-            WriteFile(PathAppdataConfig & "profiles.json", json.ToString, False)
+            Dim actualFile = Path.Combine(PathAppdataConfig, "profiles.json")
+            Dim tempFile = actualFile & ".tmp"
+            Dim bakFile = actualFile & ".bak"
+            File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Newtonsoft.Json.Formatting.None)))
+            If File.Exists(actualFile) Then
+                File.Replace(tempFile, actualFile, bakFile)
+            Else
+                File.Move(tempFile, actualFile)
+            End If
             ProfileLog($"档案已保存")
         Catch ex As Exception
             Log(ex, "写入档案列表失败", LogLevel.Feedback)
@@ -217,23 +232,35 @@ Public Module ModProfile
     Public Sub CreateProfile()
         Dim selectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
-                        Dim authTypeList As New List(Of IMyRadio) From {
+                        Dim authTypeList As List(Of IMyRadio)
+                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) Then
+                            authTypeList = New List(Of IMyRadio) From
+                            {
                                 New MyListItem With {
-                                .Title = "正版验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonAuth
-                            },
+                                    .Title = "正版验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonAuth
+                                }, New MyListItem With {
+                                    .Title = "第三方验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonThirdparty
+                                },
                                 New MyListItem With {
-                                .Title = "第三方验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonThirdparty
-                            },
-                            New MyListItem With {
-                                .Title = "离线验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonOffline
+                                    .Title = "离线验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonOffline
+                                }
                             }
-                        }
+                        Else
+                            authTypeList = New List(Of IMyRadio) From
+                            {
+                                New MyListItem With {
+                                    .Title = "正版验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonAuth
+                                }
+                            }
+                        End If
                         selectedAuthTypeNum = MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消")
                     End Sub)
         If selectedAuthTypeNum Is Nothing Then Exit Sub
@@ -701,7 +728,7 @@ Retry:
                 Next
                 Throw New Exception("未知错误（" & res & "）")
             Catch ex As Exception
-                If ex.GetType.Equals(GetType(Tasks.TaskCanceledException)) Then
+                If ex.GetType.Equals(GetType(TaskCanceledException)) Then
                     Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Critical)
                 Else
                     Log(ex, "更改皮肤失败", LogLevel.Hint)

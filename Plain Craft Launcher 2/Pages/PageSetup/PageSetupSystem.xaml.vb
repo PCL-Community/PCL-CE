@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.App.Configuration
+﻿Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
 
@@ -66,6 +67,7 @@ Class PageSetupSystem
         TextSystemHttpProxyCustomUsername.Text = Setup.Get("SystemHttpProxyCustomUsername")
         TextSystemHttpProxyCustomPassword.Text = Setup.Get("SystemHttpProxyCustomPassword")
         CType(FindName($"RadioHttpProxyType{Setup.Get("SystemHttpProxyType")}"), MyRadioBox).SetChecked(True, False)
+        CheckNetDohEnable.Checked = Config.System.NetworkConfig.EnableDoH
 
         '调试选项
         CheckDebugMode.Checked = Setup.Get("SystemDebugMode")
@@ -105,6 +107,7 @@ Class PageSetupSystem
             Setup.Reset("SystemHttpProxyCustomUsername")
             Setup.Reset("SystemHttpProxyCustomPassword")
             Setup.Reset("SystemUseDefaultProxy")
+            Config.System.NetworkConfig.Reset()
             Setup.Reset("UiAniFPS")
 
             Log("[Setup] 已初始化启动器页设置")
@@ -117,7 +120,7 @@ Class PageSetupSystem
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change, CheckNetDohEnable.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change, SliderMaxLog.Change
@@ -148,9 +151,9 @@ Class PageSetupSystem
         Function(v)
             Select Case v
                 Case Is <= 14
-                    Return (v + 1) * 0.1 & " M/s"
+                    Return $"{(v + 1) * 0.1:F1} M/s"
                 Case Is <= 31
-                    Return (v - 11) * 0.5 & " M/s"
+                    Return $"{(v - 11) * 0.5:F1} M/s"
                 Case Is <= 41
                     Return (v - 21) & " M/s"
                 Case Else

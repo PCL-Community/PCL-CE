@@ -1,9 +1,9 @@
+Imports System.Drawing
 Imports System.Net
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
-
 Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.UI
@@ -11,10 +11,12 @@ Imports PCL.Core.Utils.OS
 
 Public Class PageOtherTest
     Public Sub New()
+        InitializeComponent()
+        AddHandler BtnSelectSkin.Click, AddressOf BtnSelectSkin_Click
+        AddHandler CmbHeadSize.SelectionChanged, AddressOf CmbHeadSize_SelectionChanged
         AddHandler Loaded, Sub(sender As Object, e As RoutedEventArgs)
                                MeLoaded()
                            End Sub
-        InitializeComponent()
     End Sub
     Private Sub MeLoaded()
         BtnDownloadStart.IsEnabled = False
@@ -36,22 +38,25 @@ Public Class PageOtherTest
                                      String.IsNullOrEmpty(TextDownloadName.ValidateResult)
 
         BtnDownloadOpen.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult)
-        
+
         BtnAchievementPreview.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
                                      String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                      String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
-        
+
         BtnAchievementSave.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
                                           String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                           String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
     End Sub
+    Private CurrentSkinBitmap As Bitmap = Nothing
+    Private GeneratedHeadBitmap As Bitmap = Nothing
+    Private skinPath As String = ""
     Private Sub SaveCacheDownloadFolder() Handles TextDownloadFolder.ValidatedTextChanged
         Setup.Set("CacheDownloadFolder", TextDownloadFolder.Text)
         TextDownloadName.Validate()
     End Sub
     Private Sub SaveCustomUserAgent() Handles TextUserAgent.ValidatedTextChanged
         Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text)
-        
+
     End Sub
     Private Shared Sub DownloadState(Loader As ModLoader.LoaderCombo(Of Integer))
         Try
@@ -638,4 +643,139 @@ Public Class PageOtherTest
             Throw New Exception("手动崩溃")
         End If
     End Sub
+
+    Private HeadSize As Integer = 64
+
+    Private Function GetHeadSize() As Integer
+        Select Case CmbHeadSize.SelectedIndex
+            Case 0
+                Return 64
+            Case 1
+                Return 96
+            Case 2
+                Return 128
+            Case Else
+                Return 64
+        End Select
+    End Function
+
+    Private Sub BtnSelectSkin_Click(sender As Object, e As RoutedEventArgs)
+        Dim filePath = SystemDialogs.SelectFile("图像文件(*.png)|*.png", "选择皮肤文件")
+        If Not String.IsNullOrEmpty(filePath) Then
+            LoadAndGenerateHead(filePath)
+        End If
+    End Sub
+    Private Sub LoadAndGenerateHead(skinPath As String)
+        Try
+            Using stream As New FileStream(skinPath, FileMode.Open, FileAccess.Read)
+                CurrentSkinBitmap = New Bitmap(stream)
+            End Using
+
+            Me.skinPath = skinPath
+
+            If CurrentSkinBitmap.Width <> CurrentSkinBitmap.Height Then
+                Hint($"图片的大小不正确！请确认你选择了正确的文件！", HintType.Critical)
+                SkinPreviewBorder.Visibility = Visibility.Collapsed
+                Return
+            End If
+
+            GeneratedHeadBitmap = GenerateHeadFromSkin(CurrentSkinBitmap)
+
+            ImgFace.Source = BitmapToBitmapImage(GeneratedHeadBitmap)
+            ImgHair.Source = Nothing
+
+            SkinPreviewBorder.Visibility = Visibility.Visible
+            Hint("头像生成成功！", HintType.Finish)
+
+        Catch ex As Exception
+            Log(ex, "生成头像失败")
+            Hint("生成头像失败：" & ex.Message, HintType.Critical)
+            SkinPreviewBorder.Visibility = Visibility.Collapsed
+        End Try
+    End Sub
+
+    Private Function GenerateHeadFromSkin(skinBitmap As Bitmap) As Bitmap
+        Dim scale As Integer = skinBitmap.Width \ 64
+        HeadSize = GetHeadSize()
+        Dim headBitmap As New Bitmap(HeadSize, HeadSize)
+
+        Using g As Graphics = Graphics.FromImage(headBitmap)
+            g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
+
+            DrawFaceLayer(g, skinBitmap, scale)
+            If skinBitmap.Width >= 64 Then
+                DrawHairLayer(headBitmap, skinBitmap, scale)
+            End If
+        End Using
+
+        Return headBitmap
+    End Function
+
+    Private Sub DrawFaceLayer(g As Graphics, skinBitmap As Bitmap, scale As Integer)
+        Dim faceRect As New Rectangle(8 * scale, 8 * scale, 8 * scale, 8 * scale)
+        Dim faceSize As Integer = HeadSize - HeadSize \ 8
+        Dim faceScaled As New Bitmap(faceSize, faceSize)
+
+        Using gFace As Graphics = Graphics.FromImage(faceScaled)
+            gFace.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+            gFace.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
+            gFace.DrawImage(skinBitmap, New Rectangle(0, 0, faceSize, faceSize), faceRect, GraphicsUnit.Pixel)
+        End Using
+
+        Dim offset As Integer = HeadSize \ 16
+        g.DrawImage(faceScaled, offset, offset, faceSize, faceSize)
+    End Sub
+
+    Private Sub DrawHairLayer(headBitmap As Bitmap, skinBitmap As Bitmap, scale As Integer)
+        Dim hairRect As New Rectangle(40 * scale, 8 * scale, 8 * scale, 8 * scale)
+        Dim hairScaled As New Bitmap(HeadSize, HeadSize)
+
+        Using gHair As Graphics = Graphics.FromImage(hairScaled)
+            gHair.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+            gHair.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
+            gHair.DrawImage(skinBitmap, New Rectangle(0, 0, HeadSize, HeadSize), hairRect, GraphicsUnit.Pixel)
+        End Using
+        For x As Integer = 0 To HeadSize - 1
+            For y As Integer = 0 To HeadSize - 1
+                Dim pixel = hairScaled.GetPixel(x, y)
+                If pixel.A > 0 Then
+                    headBitmap.SetPixel(x, y, pixel)
+                End If
+            Next
+        Next
+    End Sub
+
+    Private Sub BtnSaveHead_Click(sender As Object, e As MouseButtonEventArgs)
+        If GeneratedHeadBitmap Is Nothing Then
+            Hint("请先选择皮肤！", HintType.Critical)
+            Return
+        End If
+
+        Dim savePath = SystemDialogs.SelectSaveFile("保存头像", "Head.png")
+        If String.IsNullOrEmpty(savePath) Then Return
+
+        GeneratedHeadBitmap.Save(savePath, Imaging.ImageFormat.Png)
+        Hint("头像保存成功！", HintType.Finish)
+    End Sub
+    Private Sub CmbHeadSize_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
+        If CurrentSkinBitmap IsNot Nothing AndAlso skinPath IsNot Nothing Then
+            LoadAndGenerateHead(skinPath)
+        End If
+    End Sub
+    Private Function BitmapToBitmapImage(bitmap As Bitmap) As BitmapImage
+        Using memoryStream As New MemoryStream()
+            bitmap.Save(memoryStream, Imaging.ImageFormat.Png)
+            memoryStream.Position = 0
+
+            Dim bitmapImage = New BitmapImage()
+            bitmapImage.BeginInit()
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+            bitmapImage.StreamSource = memoryStream
+            bitmapImage.EndInit()
+            bitmapImage.Freeze()
+
+            Return bitmapImage
+        End Using
+    End Function
 End Class

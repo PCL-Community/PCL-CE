@@ -1,5 +1,6 @@
 ﻿Imports System.Threading.Tasks
 Imports System.Net.Http
+Imports System.Collections.Concurrent
 Imports LiteDB
 Imports PCL.Core.Utils
 
@@ -1114,7 +1115,7 @@ NoSubtitle:
     ''' <summary>
     ''' 已知工程信息的缓存。
     ''' </summary>
-    Public CompProjectCache As New Dictionary(Of String, CompProject)
+    Public CompProjectCache As New ConcurrentDictionary(Of String, CompProject)
     ''' <summary>
     ''' 根据搜索请求获取一系列的工程列表。需要基于加载器运行。
     ''' </summary>
@@ -1922,7 +1923,7 @@ Retry:
 #Region "CompFavorites | 收藏"
     Class CompFavorites
 
-        Public Shared Function GetShareCode(Data As List(Of String)) As String
+        Public Shared Function GetShareCode(Data As HashSet(Of String)) As String
             Try
                 Return New JArray(Data).ToString(Newtonsoft.Json.Formatting.None)
             Catch ex As Exception
@@ -1931,13 +1932,13 @@ Retry:
             Return ""
         End Function
 
-        Public Shared Function GetIdsByShareCode(Code As String) As List(Of String)
+        Public Shared Function GetIdsByShareCode(Code As String) As HashSet(Of String)
             Try
-                Return JArray.Parse(Code).ToObject(Of List(Of String))()
+                Return JArray.Parse(Code).ToObject(Of HashSet(Of String))()
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 通过分享获取 ID 出错")
             End Try
-            Return New List(Of String)
+            Return New HashSet(Of String)
         End Function
 
         ''' <summary>
@@ -1965,7 +1966,6 @@ Retry:
                                                    Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", HintType.Finish)
                                                Else
                                                    i.Favs.Add(Project.Id)
-                                                   i.Favs = i.Favs.Distinct().ToList()
                                                    Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", HintType.Finish)
                                                End If
                                                Save()
@@ -1995,8 +1995,7 @@ Retry:
                 AddHandler Item.Click, Sub()
                                            Try
                                                Dim Count As Integer = i.Favs.Count
-                                               i.Favs.AddRange(Project.Select(Function(p) p.Id).AsEnumerable)
-                                               i.Favs = i.Favs.Distinct.ToList()
+                                               Project.Select(Function(p) p.Id).ToList().ForEach(Function(x) i.Favs.Add(x))
                                                Save()
                                                Dim SuccessCount As Integer = i.Favs.Count - Count
                                                Dim FailedCount As Integer = Project.Count - SuccessCount
@@ -2030,7 +2029,7 @@ Retry:
             ''' 收藏的工程 ID 列表
             ''' </summary>
             ''' <returns></returns>
-            Property Favs As New List(Of String)
+            Property Favs As New HashSet(Of String)
             ''' <summary>
             ''' 备注
             ''' </summary>
@@ -2047,9 +2046,9 @@ Retry:
                 If _FavoritesList Is Nothing Then
                     Dim RawData As String = Setup.Get("CompFavorites")
                     Dim RawList As List(Of FavData) = Nothing
-                    Dim Migrate As List(Of String) = Nothing
+                    Dim Migrate As HashSet(Of String) = Nothing
                     Try
-                        Migrate = JArray.Parse(RawData).ToObject(Of List(Of String)) ' 从旧版本迁移
+                        Migrate = JArray.Parse(RawData).ToObject(Of HashSet(Of String)) ' 从旧版本迁移
                     Catch ex As Exception
                     End Try
                     If Migrate IsNot Nothing Then
@@ -2089,16 +2088,16 @@ Retry:
         ''' <param name="Name"></param>
         ''' <param name="FavList">没有传 Nothing</param>
         ''' <returns></returns>
-        Public Shared Function GetNewFav(Name As String, FavList As List(Of String)) As FavData
+        Public Shared Function GetNewFav(Name As String, FavList As HashSet(Of String)) As FavData
             Dim res As New FavData With {.Name = Name, .Id = Guid.NewGuid.ToString()}
             If FavList Is Nothing Then
-                res.Favs = New List(Of String)
+                res.Favs = New HashSet(Of String)
             Else
                 res.Favs = FavList
             End If
             Return res
         End Function
-        
+
         Public Shared Function IsFavourite(Id As String) As Boolean
             If FavoritesList Is Nothing Then Return False
             For Each i In FavoritesList

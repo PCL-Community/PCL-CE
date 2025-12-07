@@ -188,6 +188,7 @@ Public Class PageInstanceScreenshot
                     Exit For
                 End If
             Next
+            FileList.Remove(Path)
         Catch ex As Exception
             Log(ex, "未能找到对应 UI")
         End Try
@@ -203,14 +204,16 @@ Public Class PageInstanceScreenshot
 
     Private Sub btnDelete_Click(sender As MyIconTextButton, e As EventArgs)
         Dim path = GetPathFromSender(sender)
-        RemoveItem(path)
         Try
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
+            RemoveItem(path)
+            RefreshTip()
             Hint("已将截图移至回收站！")
         Catch ex As Exception
             Log(ex, "删除截图失败！", LogLevel.Hint)
         End Try
     End Sub
+
     Private Sub btnCopy_Click(sender As MyIconTextButton, e As EventArgs)
         Dim imagePath As String = GetPathFromSender(sender)
         If File.Exists(imagePath) Then

@@ -136,10 +136,10 @@ Public Module ModNet
                 Using request As New HttpRequestMessage(HttpMethod.Get, Url)
                     request.Headers.Accept.ParseAdd(Accept)
                     SecretHeadersSign(Url, request, UseBrowserUserAgent)
-                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).GetAwaiter().GetResult()
                         EnsureSuccessStatusCode(response)
                         If Encode Is Nothing Then Encode = Encoding.UTF8
-                        Using responseStream As Stream = response.Content.ReadAsStreamAsync().Result
+                        Using responseStream As Stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
                             '读取流并转换为字符串
                             Using reader As New StreamReader(responseStream, Encode)
                                 Dim content As String = reader.ReadToEnd()
@@ -353,9 +353,9 @@ Public Module ModNet
                             request.Headers.Add(Pair.Key, Pair.Value)
                         Next
                     End If
-                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).GetAwaiter().GetResult()
                         EnsureSuccessStatusCode(response)
-                        Using responseStream = response.Content.ReadAsStreamAsync().Result
+                        Using responseStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
                             Using reader As New StreamReader(responseStream, Encoding.UTF8)
                                 Return reader.ReadToEnd()
                             End Using
@@ -986,7 +986,7 @@ StartThread:
                 If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
-                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).Result
+                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).GetAwaiter().GetResult()
                         EnsureSuccessStatusCode(response)
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString
@@ -1071,7 +1071,7 @@ NotSupportRange:
                             ResultStream = New FileStream(Info.Temp, FileMode.Create, FileAccess.Write, FileShare.Read)
                         End If
                         '开始下载
-                        Using HttpStream = response.Content.ReadAsStreamAsync().Result
+                        Using HttpStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
                             If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
                             Const bufferSize As Integer = 16384
                             Dim HttpData As Byte() = New Byte(bufferSize) {}

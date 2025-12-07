@@ -316,6 +316,12 @@ Public Class PageSelectRight
                                       McInstanceListForceRefresh = True
                                       LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
                                   End Sub
+        Dim BtnOpenFolder As New MyIconButton With {.LogoScale = 1.1, .Logo = Logo.IconButtonOpen}
+        BtnOpenFolder.ToolTip = "打开实例目录"
+        ToolTipService.SetPlacement(BtnOpenFolder, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(BtnOpenFolder, 30)
+        ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2)
+        AddHandler BtnOpenFolder.Click, Sub() PageInstanceOverall.OpenVersionFolder(Version)
         Dim BtnDel As New MyIconButton With {.LogoScale = 1.1, .Logo = Logo.IconButtonDelete}
         BtnDel.ToolTip = "删除"
         ToolTipService.SetPlacement(BtnDel, Primitives.PlacementMode.Center)
@@ -338,7 +344,7 @@ Public Class PageSelectRight
                 PageInstanceLeft.Instance = Version
                 FrmMain.PageChange(FormMain.PageType.InstanceSetup, 0)
             End Sub
-            sender.Buttons = {BtnStar, BtnDel, BtnCont}
+            sender.Buttons = {BtnStar, BtnOpenFolder, BtnDel, BtnCont}
         Else
             Dim BtnCont As New MyIconButton With {.LogoScale = 1.15, .Logo = Logo.IconButtonOpen}
             BtnCont.ToolTip = "打开文件夹"
@@ -347,7 +353,7 @@ Public Class PageSelectRight
             ToolTipService.SetHorizontalOffset(BtnCont, 2)
             AddHandler BtnCont.Click, Sub() PageInstanceOverall.OpenVersionFolder(Version)
             AddHandler sender.MouseRightButtonUp, Sub() PageInstanceOverall.OpenVersionFolder(Version)
-            sender.Buttons = {BtnStar, BtnDel, BtnCont}
+            sender.Buttons = {BtnStar, BtnOpenFolder, BtnDel, BtnCont}
         End If
     End Sub
 

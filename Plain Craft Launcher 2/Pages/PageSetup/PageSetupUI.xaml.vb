@@ -74,12 +74,6 @@ Public Class PageSetupUI
         '极客蓝的处理在 ThemeCheck 中
 
     End Sub
-    Public Class CustomFontProperties
-        Public Property Name As String
-        Public Property Font As FontFamily
-        Public Property Tag As String
-    End Class
-    Public ReadOnly Property CustomFontCollection As New ObservableCollection(Of CustomFontProperties)
     Public Sub Reload()
         Try
             '启动器
@@ -93,55 +87,11 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            Dispatcher.BeginInvoke(Async Function() As Task
-                If CustomFontCollection.Count = 0 Then
-                    ComboUiFont.IsEnabled = False
-                    CustomFontCollection.Add(New CustomFontProperties() With {.Name = "加载中..."})
-                    ComboUiFont.SelectedIndex = 0
-                    Dim availableFonts As New List(Of KeyValuePair(Of String, FontFamily))
-                    Await Task.Run(Sub()
-                        For Each Font In Fonts.SystemFontFamilies
-                            Try
-                                '忽略 Global 系列字体
-                                If Font.Source.StartsWith("Global ") Then Continue For
-                                '尝试加载字体以检测是否可用
-                                For Each Typeface In Font.GetTypefaces()
-                                    Dim glyph As GlyphTypeface = Nothing
-                                    Typeface.TryGetGlyphTypeface(glyph)
-                                    If glyph Is Nothing Then Throw New NullReferenceException($"字形 {Typeface.FaceNames.GetForCurrentUiCulture("(unknown)")} 无法加载")
-                                    'ReSharper disable once UnusedVariable
-                                    Dim vbSucks = New GlyphTypeface(glyph.FontUri)
-                                Next
-                                availableFonts.Add(New KeyValuePair(Of String,FontFamily)(Font.FamilyNames.GetForCurrentUiCulture(), Font))
-                            Catch ex As Exception
-                                Log(ex, "发现了一个无法加载的异常的字体：" & Font.Source, LogLevel.Debug)
-                            End Try
-                        Next
-                        availableFonts.Sort(Function(l, r) String.Compare(l.Key, r.Key))
-                    End Sub)
-                    CustomFontCollection.Clear()
-                    CustomFontCollection.Add(New CustomFontProperties With {
-                        .Name = "默认",
-                        .Font = New FontFamily(New Uri("pack://application:,,,/"), "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
-                        .Tag = ""
-                    })
-                    For Each font In availableFonts
-                        CustomFontCollection.Add(New CustomFontProperties With {
-                            .Name = font.Key,
-                            .Font = font.Value,
-                            .Tag = font.Value.Source
-                        })
-                    Next
-                    ComboUiFont.IsEnabled = True
-                End If
-                Dim targetFont As String = Setup.Get("UiFont")
-                Dim targetSelection = CustomFontCollection.FirstOrDefault(Function(i) i.Tag = targetFont)
-                If targetSelection Is Nothing Then
-                    ComboUiFont.SelectedIndex = 0
-                Else
-                    ComboUiFont.SelectedItem = targetSelection
-                End If
-            End Function)
+            
+            '字体设置
+            ComboUiFont.SelectedFontTag = Setup.Get("UiFont")
+            ComboUiMotdFont.SelectedFontTag = Setup.Get("UiMotdFont")
+            
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
@@ -202,7 +152,7 @@ Public Class PageSetupUI
             CheckHiddenSetupSystem.Checked = Setup.Get("UiHiddenSetupSystem")
             CheckHiddenOtherAbout.Checked = Setup.Get("UiHiddenOtherAbout")
             CheckHiddenOtherFeedback.Checked = Setup.Get("UiHiddenOtherFeedback")
-            CheckHiddenOtherVote.Checked = Setup.Get("UiHiddenOtherVote")
+            CheckHiddenOtherLog.Checked = Setup.Get("UiHiddenOtherLog")
             CheckHiddenOtherHelp.Checked = Setup.Get("UiHiddenOtherHelp")
             CheckHiddenOtherTest.Checked = Setup.Get("UiHiddenOtherTest")
             CheckHiddenVersionEdit.Checked = Setup.Get("UiHiddenVersionEdit")
@@ -268,9 +218,9 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenSetupSystem")
             Setup.Reset("UiHiddenOtherAbout")
             Setup.Reset("UiHiddenOtherFeedback")
-            Setup.Reset("UiHiddenOtherVote")
             Setup.Reset("UiHiddenOtherHelp")
             Setup.Reset("UiHiddenOtherTest")
+            Setup.Reset("UiHiddenOtherLog")
             Setup.Reset("UiHiddenVersionEdit")
             Setup.Reset("UiHiddenVersionExport")
             Setup.Reset("UiHiddenVersionSave")
@@ -298,7 +248,7 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckAutoPauseVideo.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckHiddenOtherLog.Change, CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckAutoPauseVideo.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
@@ -309,10 +259,15 @@ Public Class PageSetupUI
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
 
-    Private Sub ComboFontChange(sender As MyComboBox, e As Object) Handles ComboUiFont.SelectionChanged
+    Private Sub ComboFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiFont.SelectionChanged
         If AniControlEnabled = 0 Then
-            If Not sender.IsEnabled OrElse sender.SelectedItem.Tag Is Nothing Then Return
-            Setup.Set("UiFont", sender.SelectedItem.Tag)
+            Setup.Set("UiFont", ComboUiFont.SelectedFontTag)
+        End If
+    End Sub
+    
+    Private Sub ComboMotdFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiMotdFont.SelectionChanged
+        If AniControlEnabled = 0 Then
+            Setup.Set("UiMotdFont", ComboUiMotdFont.SelectedFontTag)
         End If
     End Sub
 
@@ -414,7 +369,7 @@ Public Class PageSetupUI
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
                             Log(ex,"[UI] 加载背景图片失败" & Address)
-                            Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
+                            If ModeDebug Then Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
                             VideoPlay()
@@ -719,13 +674,13 @@ Refresh:
             If Not Setup.Get("UiHiddenOtherAbout") Then OtherAvaliableCount += 1
             If Not Setup.Get("UiHiddenOtherTest") Then OtherAvaliableCount += 1
             If Not Setup.Get("UiHiddenOtherFeedback") Then OtherAvaliableCount += 1
-            If Not Setup.Get("UiHiddenOtherVote") Then OtherAvaliableCount += 1
+            If Not Setup.Get("UiHiddenOtherLog") Then OtherAvaliableCount += 1
             If FrmOtherLeft IsNot Nothing Then
                 FrmOtherLeft.ItemHelp.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherHelp"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherFeedback"), Visibility.Collapsed, Visibility.Visible)
-                FrmOtherLeft.ItemVote.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherVote"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherTest"), Visibility.Collapsed, Visibility.Visible)
+                FrmOtherLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherLog"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡
                 FrmOtherLeft.PanItem.Visibility = If(OtherAvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
@@ -785,16 +740,15 @@ Refresh:
             CheckHiddenOtherAbout.Checked = True
             CheckHiddenOtherTest.Checked = True
             CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherVote.Checked = True
+            CheckHiddenOtherLog.Checked = True
             CheckHiddenOtherHelp.Checked = True
         Else
             '关闭
-            If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso
-                Setup.Get("UiHiddenOtherVote") AndAlso Setup.Get("UiHiddenOtherFeedback") Then
+            If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso Setup.Get("UiHiddenOtherFeedback") AndAlso Setup.Get("UiHiddenOtherLog") Then
                 CheckHiddenOtherAbout.Checked = False
                 CheckHiddenOtherTest.Checked = False
                 CheckHiddenOtherFeedback.Checked = False
-                CheckHiddenOtherVote.Checked = False
+                CheckHiddenOtherLog.Checked = False
                 CheckHiddenOtherHelp.Checked = False
             End If
         End If
@@ -812,17 +766,18 @@ Refresh:
         If Not user Then Return
         If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") Then
             CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherVote.Checked = True
+            CheckHiddenOtherLog.Checked = True
         End If
     End Sub
-    Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change
+    Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherLog.Change
         '更多子页面（无具体内容的）
         If Not user Then Return
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso
-            (Not Setup.Get("UiHiddenOtherFeedback") OrElse Not Setup.Get("UiHiddenOtherVote")) Then
+        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso Setup.Get("UiHiddenOtherLog") AndAlso
+        Not Setup.Get("UiHiddenOtherFeedback") Then
             CheckHiddenOtherAbout.Checked = False
             CheckHiddenOtherTest.Checked = False
             CheckHiddenOtherHelp.Checked = False
+            CheckHiddenOtherLog.Checked = False
         End If
     End Sub
 

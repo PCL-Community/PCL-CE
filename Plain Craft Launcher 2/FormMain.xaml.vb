@@ -4,7 +4,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
-Imports PCL.Core.Link.Lobby
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -75,6 +75,8 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
+        ‘注册 Hint 事件
+        AddHandler HintWrapper.OnShow, AddressOf Hint
         '加载 UI
         InitializeComponent()
         Opacity = 0
@@ -248,7 +250,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
-            GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
@@ -367,7 +368,7 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Sub EndProgram(SendWarning As Boolean)
+    Public Async Sub EndProgram(SendWarning As Boolean)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -384,7 +385,7 @@ Public Class FormMain
             End If
         End If
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -424,10 +425,10 @@ Public Class FormMain
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+    Public Shared Async Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
         'On Error Resume Next
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
         If IsUpdateWaitingRestart Then UpdateRestart(False)
@@ -1035,7 +1036,6 @@ Public Class FormMain
         OtherAbout = 1
         OtherTest = 2
         OtherFeedback = 3
-        OtherVote = 4
         OtherLog = 5
         VersionOverall = 0
         VersionSetup = 1
