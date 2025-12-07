@@ -14,7 +14,7 @@ Public Class PageSetupUpdate
     Private Function IsLatest() As UpdateStatus
         Try
             If RemoteServer.IsLatest(
-                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
                 SemVer.Parse(VersionBaseName),
                 VersionCode) Then
@@ -36,7 +36,7 @@ Public Class PageSetupUpdate
                     Sub()
                         Try
                             UpdateInfo = RemoteServer.GetLatestVersion(
-                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                         Catch ex As Exception
                             checkUpdateEx = ex
