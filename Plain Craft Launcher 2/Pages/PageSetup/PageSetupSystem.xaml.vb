@@ -48,7 +48,7 @@ Class PageSetupSystem
 
         '系统设置
         ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
-        Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
+        Dim branch As Integer = Setup.Get("SystemUpdateChannel")
         ComboSystemUpdateBranch.SelectedIndex = branch
         If branch = 1 Then
             ComboSystemUpdateBranch.IsEnabled = False

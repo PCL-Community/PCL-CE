@@ -3,6 +3,7 @@ Imports System.Management
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
+Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -689,10 +690,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             }),
         New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
     })
-    Public ReadOnly Property IsUpdBetaChannel
+    Public ReadOnly Property IsCurrentVersionBeta
         Get
             If VersionBaseName.Contains("beta") Then Return True
-            Return Setup.Get("SystemSystemUpdateBranch") = 1
+            Return Config.System.Update.UpdateChannel = 1
         End Get
     End Property
 
@@ -713,8 +714,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
     Public Function IsVerisonLatest() As Boolean
         Try
+            If IsCurrentVersionBeta AndAlso Not Config.System.Update.UpdateChannel = 1 Then
+                Dim isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
+                Dim isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
+                Return isNewerThanStable AndAlso isBetaLatest
+            End If
             Return RemoteServer.IsLatest(
-            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
             If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
             SemVer.Parse(VersionBaseName),
             VersionCode)
@@ -731,7 +737,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Sub()
                     Try
                         latest = RemoteServer.GetLatestVersion(
-                            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                             If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                     Catch ex As Exception
                         checkUpdateEx = ex
@@ -760,14 +766,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         RunInNewThread(Sub()
                            Try
                                Dim version = RemoteServer.GetLatestVersion(
-                               If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                               If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                                WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
                                '构造步骤加载器
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
                                Loaders.AddRange(RemoteServer.GetDownloadLoader(
-                                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                                                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                                                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
                                Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
                                                                                            Dim curHash = GetFileSHA256(DlTargetPath)
