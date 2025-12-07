@@ -60,8 +60,8 @@ Public Class PageSetupUpdate
     Private Sub PageSetupUpdate_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         AniControlEnabled += 1
         '初始化更新设置选项
-        ComboSystemUpdateChannel.SelectedIndex = Config.System.UpdateBranch
-        ComboSystemUpdateMode.SelectedIndex = Config.System.UpdateSolution
+        ComboSystemUpdateChannel.SelectedIndex = Config.System.Update.UpdateChannel
+        ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
         AniControlEnabled -= 1
     End Sub
     
@@ -83,7 +83,7 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub ComboSystemUpdateMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateMode.SelectionChanged
-        If AniControlEnabled = 0 Then Config.System.UpdateSolution = ComboSystemUpdateMode.SelectedIndex
+        If AniControlEnabled = 0 Then Config.System.Update.UpdateMode = ComboSystemUpdateMode.SelectedIndex
     End Sub
     
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
@@ -130,7 +130,7 @@ Public Class PageSetupUpdate
             ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
             AniControlEnabled -= 1
         Else
-            Config.System.UpdateBranch = ComboSystemUpdateChannel.SelectedIndex
+            Config.System.Update.UpdateChannel = ComboSystemUpdateChannel.SelectedIndex
         End If
     End Sub
     
