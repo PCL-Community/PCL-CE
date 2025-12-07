@@ -58,8 +58,11 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub PageSetupUpdate_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        AniControlEnabled += 1
+        '初始化更新设置选项
         ComboSystemUpdateChannel.SelectedIndex = Config.System.UpdateBranch
         ComboSystemUpdateMode.SelectedIndex = Config.System.UpdateSolution
+        AniControlEnabled -= 1
     End Sub
     
     Private Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
@@ -79,17 +82,22 @@ Public Class PageSetupUpdate
         MyMsgBoxMarkdown("", "关于此更新")
     End Sub
     
+    Private Sub ComboSystemUpdateMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateMode.SelectionChanged
+        If AniControlEnabled = 0 Then Config.System.UpdateSolution = ComboSystemUpdateMode.SelectedIndex
+    End Sub
+    
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
+        
+        Dim IsCancelled As Boolean = False
         Select Case ComboSystemUpdateChannel.SelectedIndex
             Case 0
-                Return
             Case 1
                 If MyMsgBox("你正在切换启动器更新通道到测试版。" & vbCrLf &
                             "测试版可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
                             "在升级到测试版后，你需要等待下一个正式版发布，或是手动重新下载启动器来切换到正式版。" & vbCrLf &
                             "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
-                    ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
+                    IsCancelled = True
                 Else
                     UpdateCheckByButton()
                 End If
@@ -98,8 +106,8 @@ Public Class PageSetupUpdate
                             "该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。" & vbCrLf & vbCrLf &
                             "在升级到开发版后，只能手动重新下载启动器来切换回正式版或测试版。" & vbCrLf &
                             "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
-                    ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
-                    Return
+                    IsCancelled = True
+                    Exit Select
                 End If
                 Dim ret = MyMsgBoxInput("最终确认", "你确定要切换到开发版通道吗？" & vbCrLf &
                                                 "开发版可能存在严重问题，甚至无法启动！" & vbCrLf &
@@ -107,16 +115,23 @@ Public Class PageSetupUpdate
                                                 "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！" & vbCrLf & 
                                                 "请输入 '我确认切换到此分支并已知晓风险' 以确认。", Button1 := "提交", Button2 := "取消", IsWarn:=True)
                 If ret Is Nothing Then 
-                    ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
-                    Return
+                    IsCancelled = True
+                    Exit Select
                 End If
                 If ret = "我确认切换到此分支并已知晓风险" Then
                     UpdateCheckByButton()
                 Else
                     Hint("你输入了错误的内容...")
-                    ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
+                    IsCancelled = True
                 End If
         End Select
+        If IsCancelled Then
+            AniControlEnabled += 1
+            ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
+            AniControlEnabled -= 1
+        Else
+            Config.System.UpdateBranch = ComboSystemUpdateChannel.SelectedIndex
+        End If
     End Sub
     
     Private Sub TextMirrorCDK_PasswordChanged(sender As Object, e As EventArgs) Handles TextMirrorCDK.PasswordChanged
