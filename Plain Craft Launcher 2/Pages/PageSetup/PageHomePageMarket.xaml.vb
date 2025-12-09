@@ -78,10 +78,8 @@
 
         Try
             Dim content As String = NetGetCodeByRequestRetry(url)
-            Setup.Set("CacheSavedPageUrl", url)
-            WriteFile(PathTemp & "Cache\Custom.xaml", content)
-
             RunInUi(Sub() LoadContent(content))
+
         Catch ex As Exception
             Log(ex, $"加载主页市场失败 ({url})", LogLevel.Hint)
             UpdateLoadingState("加载失败，点击重试", MyLoading.MyLoadingState.Error)
@@ -129,7 +127,6 @@
     Private LoadContentLock As New Object
 
     Public Sub ForceRefresh() Implements IRefreshable.Refresh
-        ClearCache()
         Hint("正在手动刷新...")
         Refresh()
     End Sub
