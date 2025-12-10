@@ -45,6 +45,10 @@ Public Module ModMain
         If HintWaiting Is Nothing Then HintWaiting = New SafeList(Of HintMessage)
         HintWaiting.Add(New HintMessage With {.Text = If(Text, ""), .Type = Type, .Log = Log})
     End Sub
+    
+    Public Sub HintWrapper_OnShow(message As String, messageType As Core.UI.HintType)
+        Hint(message, messageType)
+    End Sub
 
     Private Sub HintTick()
         Try
