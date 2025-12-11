@@ -315,8 +315,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页预设" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset" Grid.Column="1">
-                            <local:MyComboBoxItem Content="你知道吗？" IsSelected="True" />
-                            <local:MyComboBoxItem Content="回声洞" />
+                            <local:MyComboBoxItem Content="你知道吗？(已移除)" Visibility="Collapsed"/>
+                            <local:MyComboBoxItem Content="回声洞 (已移除)" Visibility="Collapsed"/>
                             <local:MyComboBoxItem Content="Minecraft 新闻（作者：最亮的信标）" />
                             <local:MyComboBoxItem Content="简单主页（作者：MFn233）" />
                             <local:MyComboBoxItem Content="每日整合包推荐（作者：wkea）" />
@@ -329,7 +329,7 @@
                             <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
                             <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
                             <local:MyComboBoxItem Content="Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）" />
-                            <local:MyComboBoxItem Content="PCL CE 公告栏" />
+                            <local:MyComboBoxItem Content="PCL CE 公告栏" IsSelected="True"/>
                         </local:MyComboBox>
                     </Grid>
                     <Grid Grid.Row="14">
@@ -379,6 +379,7 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="关于与鸣谢" x:Name="CheckHiddenOtherAbout" Tag="UiHiddenOtherAbout" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4" Text="百宝箱" x:Name="CheckHiddenOtherTest" Tag="UiHiddenOtherTest" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="反馈" x:Name="CheckHiddenOtherFeedback" Tag="UiHiddenOtherFeedback" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="日志浏览" x:Name="CheckHiddenOtherLog" Tag="UiHiddenOtherLog" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="特定功能" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="实例管理" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect" ToolTip="隐藏启动按钮下方的实例选择与实例设置入口。" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="Mod 更新" x:Name="CheckHiddenFunctionModUpdate" Tag="UiHiddenFunctionModUpdate" ToolTip="禁止在 Mod 管理页面更新 Mod。" />

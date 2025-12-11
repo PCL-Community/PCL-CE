@@ -19,12 +19,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.13.4-beta.1" '不含分支前缀的显示用版本名
+    Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 414 '内部版本号
+    Public Const VersionCode As Integer = 417 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -2211,6 +2211,7 @@ NextElement:
     ''' 为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
     ''' </summary>
     Public Sub RunInUiWait(Action As Action)
+        If Application.Current Is Nothing Then Exit Sub
         If RunInUi() Then
             Action()
         Else
@@ -2222,12 +2223,11 @@ NextElement:
     ''' 如果当前并非 UI 线程，也不阻断当前线程的执行。
     ''' </summary>
     Public Sub RunInUi(Action As Action, Optional ForceWaitUntilLoaded As Boolean = False)
-        If ForceWaitUntilLoaded Then
-            Application.Current.Dispatcher.InvokeAsync(Action, Threading.DispatcherPriority.Loaded)
-        ElseIf RunInUi() Then
+        If Application.Current Is Nothing Then Exit Sub
+        If RunInUi() Then
             Action()
         Else
-            Application.Current.Dispatcher.InvokeAsync(Action)
+            Application.Current.Dispatcher.InvokeAsync(Action, If(ForceWaitUntilLoaded, Threading.DispatcherPriority.Loaded, Threading.DispatcherPriority.Normal))
         End If
     End Sub
     ''' <summary>
