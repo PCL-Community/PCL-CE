@@ -1,4 +1,9 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+Imports PCL.Core.UI.Animation.Easings
 
 <ContentProperty("Inlines")>
 Public Class MyButton
@@ -69,10 +74,14 @@ Public Class MyButton
     End Property
 
     '自定义事件
-    Private Const AnimationColorIn As Integer = 100
-    Private Const AnimationColorOut As Integer = 200
+    Private ReadOnly _animationColorIn = TimeSpan.FromMilliseconds(100)
+    Private Readonly _animationColorOut = TimeSpan.FromMilliseconds(200)
     Private Sub RefreshColor(Optional obj = Nothing, Optional e = Nothing) Handles Me.MouseEnter, Me.MouseLeave, Me.Loaded, Me.IsEnabledChanged
         Try
+            Dim animation = New NColorFromToAnimation
+            animation.ValueType = AnimationValueType.Absolute
+            Dim animatable = New WpfAnimatable(PanFore, BorderBrushProperty)
+            
             If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
 
                 If IsEnabled Then
@@ -80,54 +89,75 @@ Public Class MyButton
                         Case ColorState.Normal
                             If IsMouseOver Then
                                 '指向（Main 3）
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush3", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush3", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrush3")
+                                animation.Duration = _animationColorIn
+                                animation.RunFireAndForget(animatable)
                             Else
                                 '普通（Main 1）
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush1", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush1", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrush1")
+                                animation.Duration = _animationColorOut
+                                animation.RunFireAndForget(animatable)
                             End If
                         Case ColorState.Highlight
                             If IsMouseOver Then
                                 '指向（Main 3）
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush3", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush3", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrush3")
+                                animation.Duration = _animationColorIn
+                                animation.RunFireAndForget(animatable)
                             Else
                                 '高亮（Main 2）
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush2", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrush2", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrush2")
+                                animation.Duration = _animationColorOut
+                                animation.RunFireAndForget(animatable)
                             End If
                         Case ColorState.Red
                             If IsMouseOver Then
                                 '红色指向
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrushRedLight", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrushRedLight", AnimationColorIn)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrushRedLight")
+                                animation.Duration = _animationColorIn
+                                animation.RunFireAndForget(animatable)
                             Else
                                 '红色
-                                AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrushRedDark", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                'AniStart({AaColor(PanFore, Border.BorderBrushProperty, "ColorBrushRedDark", AnimationColorOut)}, "MyButton Color " & Uuid)
+                                animation.To = New NColor("ColorBrushRedDark")
+                                animation.Duration = _animationColorOut
+                                animation.RunFireAndForget(animatable)
                             End If
                     End Select
                 Else
                     '不可用（Gray 4）
-                    AniStart({AaColor(PanFore, Border.BorderBrushProperty, ColorGray4 - PanFore.BorderBrush, AnimationColorOut)}, "MyButton Color " & Uuid)
+                    'AniStart({AaColor(PanFore, Border.BorderBrushProperty, ColorGray4 - PanFore.BorderBrush, AnimationColorOut)}, "MyButton Color " & Uuid)
+                    animation.To = New NColor("ColorGray4")
+                    animation.Duration = _animationColorOut
+                    animation.RunFireAndForget(animatable)
                 End If
             Else
-
-                AniStop("MyButton Color " & Uuid)
+                'AniStop("MyButton Color " & Uuid)
+                animation.Cancel()
                 If IsEnabled Then
                     Select Case ColorType
                         Case ColorState.Normal
                             If IsMouseOver Then
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrush3")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush3")
                             Else
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrush1")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush1")
                             End If
                         Case ColorState.Highlight
                             If IsMouseOver Then
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrush3")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush3")
                             Else
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrush2")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush2")
                             End If
                         Case ColorState.Red
                             If IsMouseOver Then
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrushRedLight")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrushRedLight")
                             Else
-                                PanFore.SetResourceReference(Border.BorderBrushProperty, "ColorBrushRedDark")
+                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrushRedDark")
                             End If
                     End Select
                 Else
@@ -176,26 +206,54 @@ Public Class MyButton
     Private Sub Button_MouseDown(sender As Object, e As MouseButtonEventArgs) Handles Me.MouseLeftButtonDown
         IsMouseDown = True
         Focus()
-        AniStart({
-                 AaScaleTransform(PanFore, 0.955 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 80,, New AniEaseOutFluent(AniEasePower.ExtraStrong)),
-                 AaScaleTransform(PanFore, -0.01, 700,, New AniEaseOutFluent(AniEasePower.Middle))
-                 }, "MyButton Scale " & Uuid)
+'        AniStart({
+'                 AaScaleTransform(PanFore, 0.955 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 80,, New AniEaseOutFluent(AniEasePower.ExtraStrong)),
+'                 AaScaleTransform(PanFore, -0.01, 700,, New AniEaseOutFluent(AniEasePower.Middle))
+'                 }, "MyButton Scale " & Uuid)
+        Dim animation = New NScaleTransformFromToAnimation _
+                With {.To = New NScaleTransform(0.954, 0.954),
+                .Duration = TimeSpan.FromMilliseconds(80),
+                .Easing = new ExponentialEaseOut(),
+                .ValueType = AnimationValueType.Absolute}
+        animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
     Private Sub Button_MouseEnter() Handles Me.MouseEnter
-        AniStart(AaColor(PanFore, BackgroundProperty, If(_ColorType = ColorState.Red, "ColorBrushRedBack", "ColorBrush7"), AnimationColorIn), "MyButton Background " & Uuid)
+'        AniStart(AaColor(PanFore, BackgroundProperty, If(_ColorType = ColorState.Red, "ColorBrushRedBack", "ColorBrush7"), AnimationColorIn), "MyButton Background " & Uuid)
+        Dim animation = New NColorFromToAnimation
+        animation.ValueType = AnimationValueType.Absolute
+        animation.To = New NColor(If(_ColorType = ColorState.Red, "ColorBrushRedBack", "ColorBrush7"))
+        animation.Duration = _animationColorIn
+        animation.RunFireAndForget(New WpfAnimatable(PanFore, BackgroundProperty))
     End Sub
     Private Sub Button_MouseUp() Handles Me.MouseLeftButtonUp
         If Not IsMouseDown Then Return
         IsMouseDown = False
-        AniStart({
-               AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 300, 10, New AniEaseOutFluent(AniEasePower.Middle))
-           }, "MyButton Scale " & Uuid)
+'        AniStart({
+'               AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 300, 10, New AniEaseOutFluent(AniEasePower.Middle))
+'           }, "MyButton Scale " & Uuid)
+        Dim animation = New NScaleTransformFromToAnimation()
+        animation.To = New NScaleTransform(1, 1)
+        animation.Duration = TimeSpan.FromMilliseconds(300)
+        animation.Delay = TimeSpan.FromMilliseconds(10)
+        animation.ValueType = AnimationValueType.Absolute
+        animation.Easing = New CubicEaseOut()
+        animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
     Private Sub Button_MouseLeave() Handles Me.MouseLeave
-        AniStart(AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", AnimationColorOut), "MyButton Background " & Uuid)
+'        AniStart(AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", AnimationColorOut), "MyButton Background " & Uuid)
+        Dim animation1 = New NColorFromToAnimation
+        animation1.ValueType = AnimationValueType.Absolute
+        animation1.To = New NColor("ColorBrushHalfWhite")
+        animation1.Duration = _animationColorOut
+        animation1.RunFireAndForget(New WpfAnimatable(PanFore, BackgroundProperty))
         If Not IsMouseDown Then Return
         IsMouseDown = False
-        AniStart(AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 800,, New AniEaseOutFluent(AniEasePower.Strong)), "MyButton Scale " & Uuid)
+'        AniStart(AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 800,, New AniEaseOutFluent(AniEasePower.Strong)), "MyButton Scale " & Uuid)
+        Dim animation2 = New NScaleTransformFromToAnimation()
+        animation2.To = New NScaleTransform(1, 1, 0.5, 0.5)
+        animation2.Duration = TimeSpan.FromMilliseconds(800)
+        animation2.Easing = New QuinticEaseOut
+        animation2.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
 
 End Class
