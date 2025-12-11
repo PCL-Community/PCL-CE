@@ -111,6 +111,12 @@ Public Class PageLaunchLeft
 #Region "切换大页面"
 
     ''' <summary>
+    ''' 获取你知道吗。
+    ''' </summary>
+    Private Function GetRandomHint() As String
+        Return PageLaunchRight.GetRandomHint(True)
+    End Function
+    ''' <summary>
     ''' 切换至启动中页面。
     ''' </summary>
     Public Sub PageChangeToLaunching()
@@ -139,9 +145,12 @@ Public Class PageLaunchLeft
         LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed
         ProgressLaunchingFinished.Width = New GridLength(0, GridUnitType.Star)
         ProgressLaunchingUnfinished.Width = New GridLength(1, GridUnitType.Star)
+        PanLaunchingHint.Opacity = 0
+        PanLaunchingHint.Visibility = Visibility.Collapsed
         PanLaunchingInfo.Width = Double.NaN '重置宽度改变动画
         McLaunchProcess = Nothing
         McLaunchWatcher = Nothing
+        LabLaunchingHint.Text = GetRandomHint()
         '初始化其他页面
         PanInput.IsHitTestVisible = False
         PanLaunching.IsHitTestVisible = False
@@ -598,9 +607,13 @@ ExitRefresh:
             If IsProgressStateChanged Then
                 LabLaunchingProgress.Visibility = Visibility.Visible
                 LabLaunchingProgressLeft.Visibility = Visibility.Visible
+                If IsLaunched Then
+                    PanLaunchingHint.Visibility = Visibility.Visible
+                End If
                 AnimList.AddRange({
                  AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
-                 AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100)
+                 AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
+                 AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 100)
             })
             End If
             AniStart(AnimList, "Launching Progress")

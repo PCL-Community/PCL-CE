@@ -1,4 +1,6 @@
-﻿Public Class PageLaunchRight
+﻿Imports System.Security
+
+Public Class PageLaunchRight
     Implements IRefreshable
 
     Private Sub Init() Handles Me.Loaded
@@ -63,9 +65,19 @@ Download:
                 End If
             Case 3
                 Select Case Setup.Get("UiCustomPreset")
-                    Case 0, 1
-                        Log("[Page] 主页预设：预设 " & Setup.Get("UiCustomPreset") & " 是已被移除的主页预设")
-                        MyMsgBox("你知道吗 和 回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示")
+                    Case 0
+                        Log("[Page] 主页预设：你知道吗")
+                        Dim hintText As String = PageLaunchRight.GetRandomHint(False)
+                        Content = $"
+        <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
+            <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
+            <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
+                EventType=""刷新主页"" EventData=""/""
+                Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
+        </local:MyCard>"
+                    Case 1
+                        Log("[Page] 主页预设：预设 回声洞 是已被移除的主页预设")
+                        MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示")
                         Return
                     Case 2
                         Log("[Page] 主页预设：Minecraft 新闻")
@@ -124,6 +136,47 @@ Download:
         RunInUi(Sub() LoadContent(Content))
     End Sub
     Private RefreshLock As New Object
+
+    Public Shared Function GetRandomHint(Optional enableLengthLimit As Boolean = False) As String
+        '优先尝试外部文件
+        Dim externalPath As String = ExePath & "PCL\hints.txt"
+        If File.Exists(externalPath) Then
+            Try
+                Dim lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
+                If lines.Length > 0 Then
+                    Dim validHints As String() = lines
+                    If enableLengthLimit Then
+                        validHints = lines.Where(Function(l) l.Length < 50).ToArray()
+                        If validHints.Length = 0 Then
+                            validHints = lines
+                            Log("[Page] 外部 hints.txt 中没有字数小于50的提示，已取消字数限制", LogLevel.Debug)
+                        End If
+                    End If
+
+                    Dim hint = validHints(New Random().Next(validHints.Length))
+                    hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
+                    Return hint
+                End If
+                Log("[Page] 外部 hints.txt 文件为空", LogLevel.Debug)
+                Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
+            Catch ex As Exception
+                Log(ex, "[Page] 读取外部 hints.txt 失败", LogLevel.Hint)
+            End Try
+        End If
+        '回退到嵌入式资源
+        Try
+            Using reader As New System.IO.StreamReader(Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream)
+                Dim lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
+                Dim validHints = If(enableLengthLimit, lines.Where(Function(l) l.Length < 50).ToArray(), lines)
+                Dim hint = validHints(New Random().Next(validHints.Length))
+                hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
+                Return hint
+            End Using
+        Catch ex As Exception
+            Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
+            Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
+        End Try
+    End Function
 
     '联网获取主页文件
     Private OnlineLoader As New LoaderTask(Of String, Integer)("下载主页", AddressOf OnlineLoaderSub) With {.ReloadTimeout = 10 * 60 * 1000}
