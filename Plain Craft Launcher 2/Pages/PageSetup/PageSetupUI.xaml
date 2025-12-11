@@ -315,7 +315,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页预设" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset" Grid.Column="1">
-                            <local:MyComboBoxItem Content="你知道吗？(已移除)" Visibility="Collapsed"/>
+                            <local:MyComboBoxItem Content="你知道吗？"/>
                             <local:MyComboBoxItem Content="回声洞 (已移除)" Visibility="Collapsed"/>
                             <local:MyComboBoxItem Content="Minecraft 新闻（作者：最亮的信标）" />
                             <local:MyComboBoxItem Content="简单主页（作者：MFn233）" />
