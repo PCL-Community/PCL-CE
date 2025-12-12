@@ -1,4 +1,9 @@
 Imports System.Threading.Tasks
+Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+Imports PCL.Core.UI.Animation.Easings
 Imports PCL.Core.UI.Controls
 
 Public Class MyCard
@@ -68,7 +73,12 @@ Public Class MyCard
     Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
         Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
         IsThemeChanging = True
-        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
+'        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
+        Dim animation = New NColorFromToAnimation
+        animation.ValueType = AnimationValueType.Absolute
+        animation.To = New NColor("ColorBrushSemiWhite")
+        animation.Duration = TimeSpan.FromMilliseconds(300)
+        animation.RunFireAndForget(New WpfAnimatable(MainBorder, BackgroundProperty))
         Await Task.Delay(300)
         MainBorder.Background = bgBrush
         IsThemeChanging = False
@@ -144,25 +154,93 @@ Public Class MyCard
     Public Property HasMouseAnimation As Boolean = True
     Private Sub MyCard_MouseEnter(sender As Object, e As MouseEventArgs) Handles Me.MouseEnter
         If Not HasMouseAnimation Then Return
-        Dim AniList As New List(Of AniData)
-        If Not IsNothing(MainTextBlock) Then AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90))
-        If Not IsNothing(MainSwap) Then AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush2", 90))
-        AniList.AddRange({
-            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
-            AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
-        })
-        If Not IsThemeChanging Then AniStart(AniList, "MyCard Mouse " & Uuid)
+'        Dim AniList As New List(Of AniData)
+        Dim animation = New ParallelAnimationGroup
+        If Not IsNothing(MainTextBlock) Then 
+'            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90))
+            Dim aniTextColor = New NColorFromToAnimation
+            aniTextColor.ValueType = AnimationValueType.Absolute
+            aniTextColor.To = New NColor("ColorBrush2")
+            aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
+            aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
+            aniTextColor.SetValue(AnimationExtensions.TargetPropertyProperty, TextBlock.ForegroundProperty)
+            animation.Children.Add(aniTextColor)
+        End If
+        If Not IsNothing(MainSwap) Then
+'            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush2", 90))
+            Dim aniSwapColor = New NColorFromToAnimation
+            aniSwapColor.ValueType = AnimationValueType.Absolute
+            aniSwapColor.To = New NColor("ColorBrush2")
+            aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
+            aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
+            aniSwapColor.SetValue(AnimationExtensions.TargetPropertyProperty, Shapes.Path.FillProperty)
+            animation.Children.Add(aniSwapColor)
+        End If
+'        AniList.AddRange({
+'            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
+'            AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
+'        })
+        Dim aniChromeColor = New NColorFromToAnimation
+        aniChromeColor.ValueType = AnimationValueType.Absolute
+        aniChromeColor.To = New NColor("ColorObject4")
+        aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
+        aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
+        Dim aniChromeOpacity = New DoubleFromToAnimation
+        aniChromeOpacity.ValueType = AnimationValueType.Absolute
+        aniChromeOpacity.To = DropShadowHoverOpacity
+        aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
+        animation.Children.Add(aniChromeColor)
+        animation.Children.Add(aniChromeOpacity)
+        
+        
+        If Not IsThemeChanging Then 
+'            AniStart(AniList, "MyCard Mouse " & Uuid)
+            animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
+        End If
     End Sub
     Private Sub MyCard_MouseLeave(sender As Object, e As MouseEventArgs) Handles Me.MouseLeave
         If Not HasMouseAnimation Then Return
-        Dim AniList As New List(Of AniData)
-        If Not IsNothing(MainTextBlock) Then AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90))
-        If Not IsNothing(MainSwap) Then AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush1", 90))
-        AniList.AddRange({
-            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
-            AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
-        })
-        If Not IsThemeChanging Then AniStart(AniList, "MyCard Mouse " & Uuid)
+'        Dim AniList As New List(Of AniData)
+        Dim animation = New ParallelAnimationGroup
+        If Not IsNothing(MainTextBlock) Then
+'            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90))
+            Dim aniTextColor = New NColorFromToAnimation
+            aniTextColor.ValueType = AnimationValueType.Absolute
+            aniTextColor.To = New NColor("ColorBrush1")
+            aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
+            aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
+            aniTextColor.SetValue(AnimationExtensions.TargetPropertyProperty, TextBlock.ForegroundProperty)
+            animation.Children.Add(aniTextColor)
+        End If
+        If Not IsNothing(MainSwap) Then
+'            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush1", 90))
+            Dim aniSwapColor = New NColorFromToAnimation
+            aniSwapColor.ValueType = AnimationValueType.Absolute
+            aniSwapColor.To = New NColor("ColorBrush1")
+            aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
+            aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
+            aniSwapColor.SetValue(AnimationExtensions.TargetPropertyProperty, Shapes.Path.FillProperty)
+            animation.Children.Add(aniSwapColor)
+        End If
+'        AniList.AddRange({
+'            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
+'            AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
+'        })
+        Dim aniChromeColor = New NColorFromToAnimation
+        aniChromeColor.ValueType = AnimationValueType.Absolute
+        aniChromeColor.To = New NColor("ColorObject1")
+        aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
+        aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
+        Dim aniChromeOpacity = New DoubleFromToAnimation
+        aniChromeOpacity.ValueType = AnimationValueType.Absolute
+        aniChromeOpacity.To = DropShadowIdleOpacity
+        aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
+        animation.Children.Add(aniChromeColor)
+        animation.Children.Add(aniChromeOpacity)
+        If Not IsThemeChanging Then 
+'            AniStart(AniList, "MyCard Mouse " & Uuid)
+            animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
+        End If
     End Sub
 
 #Region "高度改变动画"
@@ -286,7 +364,13 @@ Public Class MyCard
             
             ' 根据折叠状态旋转箭头图标
             ' 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
-            AniStart(AaRotateTransform(MainSwap, If(_IsSwapped, If(SwapLogoRight, 270, 0), 180) - CType(MainSwap.RenderTransform, RotateTransform).Angle, 250,, New AniEaseOutFluent(AniEasePower.ExtraStrong)), "MyCard Swap " & Uuid, True)
+'            AniStart(AaRotateTransform(MainSwap, If(_IsSwapped, If(SwapLogoRight, 270, 0), 180) - CType(MainSwap.RenderTransform, RotateTransform).Angle, 250,, New AniEaseOutFluent(AniEasePower.ExtraStrong)), "MyCard Swap " & Uuid, True)
+            Dim aniRotate = New DoubleFromToAnimation
+            aniRotate.ValueType = AnimationValueType.Absolute
+            aniRotate.To = If(_IsSwapped, If(SwapLogoRight, 270, 0), 180)
+            aniRotate.Duration = TimeSpan.FromMilliseconds(250)
+            aniRotate.Easing = new QuinticEaseOut()
+            aniRotate.RunFireAndForget(New WpfAnimatable(MainSwap.RenderTransform, RotateTransform.AngleProperty))
         End Set
     End Property
     Private _IsSwapped As Boolean = False
