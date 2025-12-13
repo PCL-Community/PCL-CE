@@ -367,6 +367,11 @@ Public Class PageInstanceExport
 
             Dim fileContent As String = ReadFile(configPath)
             Dim Segments As String() = fileContent.Split(Sperator)
+                                                                                                                                                                                                
+            If Segments.Length = 0 Then
+                Hint("配置文件内容无效或为空！", HintType.Critical)
+                Return
+            End If
 
             ' === 解析INI段 ===
             Dim Ini As New Dictionary(Of String, String)
@@ -403,7 +408,6 @@ Public Class PageInstanceExport
 
         Catch ex As Exception
             Log(ex, $"读取配置文件失败：{configPath}", LogLevel.Msgbox)
-            Hint("配置文件格式错误或读取失败！", HintType.Critical)
         End Try
     End Sub
 #End Region
