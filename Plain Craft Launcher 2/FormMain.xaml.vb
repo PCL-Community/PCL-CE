@@ -75,7 +75,9 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
-        ‘注册 Hint 事件
+        '注册 MsgBox 事件
+        AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
+        '注册 Hint 事件
         AddHandler HintWrapper.OnShow, AddressOf HintWrapper_OnShow
         '加载 UI
         InitializeComponent()

@@ -441,6 +441,30 @@ EndHint:
             Log(ex, "处理等待中的弹窗失败", LogLevel.Feedback)
         End Try
     End Sub
+    
+    Public Sub MsgBoxWrapper_OnShow(message As String, caption As String,
+                                     buttons As ICollection(Of Core.UI.MsgBoxButtonInfo),
+                                     theme As Core.UI.MsgBoxTheme,
+                                     block As Boolean,
+                                     ByRef result As Integer)
+        Dim btnText1 = If(buttons.Count < 1, "确定", buttons.ElementAt(0).Context)
+        Dim btnAct1 As Action = If(buttons.Count < 1, Nothing, buttons.ElementAt(0).OnClick)
+        Dim btnText2 = If(buttons.Count < 2, "取消", buttons.ElementAt(1).Context)
+        Dim btnAct2 As Action = If(buttons.Count < 2, Nothing, buttons.ElementAt(1).OnClick)
+        Dim btnText3 = If(buttons.Count < 3, "", buttons.ElementAt(2).Context)
+        Dim btnAct3 As Action = If(buttons.Count < 3, Nothing, buttons.ElementAt(2).OnClick)
+
+        Dim isWarn = (theme = Core.UI.MsgBoxTheme.Warning) OrElse (theme = Core.UI.MsgBoxTheme.Error)
+
+        result = MyMsgBox(message, caption,
+                          btnText1, btnText2, btnText3,
+                          IsWarn:=isWarn,
+                          ForceWait:=block,
+                          Button1Action:=btnAct1,
+                          Button2Action:=btnAct2,
+                          Button3Action:=btnAct3)
+    End Sub
+
 
 #End Region
 
