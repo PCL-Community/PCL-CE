@@ -8,6 +8,7 @@ Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Net
 Imports PCL.Core.App
+Imports PCL.Core.Net.Http.Client
 
 Public Module ModLaunch
 

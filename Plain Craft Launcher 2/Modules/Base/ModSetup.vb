@@ -2,6 +2,7 @@ Imports System.Reflection
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils.OS
 
 Public Class ModSetup

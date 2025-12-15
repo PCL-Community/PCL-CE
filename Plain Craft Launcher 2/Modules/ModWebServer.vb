@@ -2,6 +2,7 @@ Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
 Imports PCL.Core.Link.Natayark
 Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Server
 
 Public Module ModWebServer
 
