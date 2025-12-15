@@ -30,6 +30,7 @@ body = """
 ---
 
 [GPG 签名公钥](https://github.com/PCL-Community/PCL2-CE/blob/dev/GPG-PUBLIC-KEY.asc)
+公钥指纹 `81D9430A309B84272D518584EDF4453F0BBB862E`
 
 """
 # Remove leading and trailing whitespaces from the changelog's body.
