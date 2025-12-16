@@ -1,5 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
+Imports PCL.Core.App.Configuration.Impl
 
 Public Class PageSelectRight
 
@@ -380,35 +382,36 @@ Public Class PageSelectRight
     End Sub
 
     '修改此代码时，同时修改 PageInstanceOverall 中的代码
-    Public Shared Sub DeleteVersion(Item As MyListItem, Version As McInstance)
+    Public Shared Sub DeleteVersion(item As MyListItem, instance As McInstance)
         Try
             Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
-            Dim IsHintIndie As Boolean = Version.State <> McInstanceState.Error AndAlso Version.PathIndie <> PathMcFolder
-            Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {Version.Name} 吗？" &
+            Dim IsHintIndie As Boolean = instance.State <> McInstanceState.Error AndAlso instance.PathIndie <> PathMcFolder
+            Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {instance.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, True)
                 Case 1
-                    IniClearCache(Version.PathIndie & "options.txt")
+                    IniClearCache(instance.PathIndie & "options.txt")
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instance.Path)
                     If IsShiftPressed Then
-                        DeleteDirectory(Version.Path)
-                        Hint("实例 " & Version.Name & " 已永久删除！", HintType.Finish)
+                        DeleteDirectory(instance.Path)
+                        Hint("实例 " & instance.Name & " 已永久删除！", HintType.Finish)
                     Else
-                        FileIO.FileSystem.DeleteDirectory(Version.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
-                        Hint("实例 " & Version.Name & " 已删除到回收站！", HintType.Finish)
+                        FileIO.FileSystem.DeleteDirectory(instance.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                        Hint("实例 " & instance.Name & " 已删除到回收站！", HintType.Finish)
                     End If
                 Case 2
                     Return
             End Select
             '从 UI 中移除
-            If Version.DisplayType = McInstanceCardType.Hidden OrElse Not Version.IsStar Then
+            If instance.DisplayType = McInstanceCardType.Hidden OrElse Not instance.IsStar Then
                 '仅出现在当前卡片
-                Dim Parent As StackPanel = Item.Parent
+                Dim Parent As StackPanel = item.Parent
                 If Parent.Children.Count > 2 Then '当前的项目与一个占位符
                     '删除后还有剩
                     Dim Card As MyCard = Parent.Parent
                     Card.Title = Card.Title.Replace(Parent.Children.Count - 1, Parent.Children.Count - 2) '有一个占位符
-                    Parent.Children.Remove(Item)
-                    If McInstanceCurrent IsNot Nothing AndAlso Version.Path = McInstanceCurrent.Path Then
+                    Parent.Children.Remove(item)
+                    If McInstanceCurrent IsNot Nothing AndAlso instance.Path = McInstanceCurrent.Path Then
                         '删除当前实例就更改选择
                         McInstanceCurrent = CType(Parent.Children(0), MyListItem).Tag
                     End If
@@ -422,9 +425,9 @@ Public Class PageSelectRight
                 LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             End If
         Catch ex As OperationCanceledException
-            Log(ex, "删除实例 " & Version.Name & " 被主动取消")
+            Log(ex, "删除实例 " & instance.Name & " 被主动取消")
         Catch ex As Exception
-            Log(ex, "删除实例 " & Version.Name & " 失败", LogLevel.Msgbox)
+            Log(ex, "删除实例 " & instance.Name & " 失败", LogLevel.Msgbox)
         End Try
     End Sub
 
