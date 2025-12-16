@@ -213,7 +213,7 @@ Public Class MyButton
         Dim animation = New NScaleTransformFromToAnimation _
                 With {.To = New NScaleTransform(0.954, 0.954),
                 .Duration = TimeSpan.FromMilliseconds(80),
-                .Easing = new ExponentialEaseOut(),
+                .Easing = ExponentialEaseOut.Shared,
                 .ValueType = AnimationValueType.Absolute}
         animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
@@ -236,7 +236,7 @@ Public Class MyButton
         animation.Duration = TimeSpan.FromMilliseconds(300)
         animation.Delay = TimeSpan.FromMilliseconds(10)
         animation.ValueType = AnimationValueType.Absolute
-        animation.Easing = New CubicEaseOut()
+        animation.Easing = CubicEaseOut.Shared
         animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
     Private Sub Button_MouseLeave() Handles Me.MouseLeave
@@ -252,7 +252,7 @@ Public Class MyButton
         Dim animation2 = New NScaleTransformFromToAnimation()
         animation2.To = New NScaleTransform(1, 1, 0.5, 0.5)
         animation2.Duration = TimeSpan.FromMilliseconds(800)
-        animation2.Easing = New QuinticEaseOut
+        animation2.Easing = QuinticEaseOut.Shared
         animation2.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
 

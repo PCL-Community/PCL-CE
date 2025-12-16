@@ -5,6 +5,10 @@ Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+Imports PCL.Core.UI.Animation.Easings
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -113,7 +117,7 @@ Public Class FormMain
         Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
 
-    Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+    Private Async Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         ApplicationStartTick = TimeUtils.GetTimeTick()
         FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -165,18 +169,64 @@ Public Class FormMain
         ShowWindowToTop()
         Dim HwndSource As Interop.HwndSource = PresentationSource.FromVisual(Me)
         HwndSource.AddHook(New Interop.HwndSourceHook(AddressOf WndProc))
-        AniStart({
-            AaCode(Sub() AniControlEnabled -= 1, 50),
-            AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
-            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
-            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
-            AaCode(
-            Sub()
+'        AniStart({
+'            AaCode(Sub() AniControlEnabled -= 1, 50),
+'            AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
+'            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
+'            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
+'            AaCode(
+'            Sub()
+'                PanBack.RenderTransform = Nothing
+'                IsWindowLoadFinished = True
+'                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
+'            End Sub, , True)
+'        }, "Form Show")
+        
+        Await Task.Delay(50)
+        AniControlEnabled -= 1
+        
+        Dim animation = New ParallelAnimationGroup
+        
+        Dim aniOpacity = New DoubleFromToAnimation
+        aniOpacity.ValueType = AnimationValueType.Absolute
+        aniOpacity.To = Math.Clamp(Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 0.0, 1.0)
+        aniOpacity.Duration = TimeSpan.FromMilliseconds(250)
+        aniOpacity.Delay = TimeSpan.FromMilliseconds(50)
+        aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
+        aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
+        animation.Children.Add(aniOpacity)
+        
+        Dim aniPos = New DoubleFromToAnimation
+        aniPos.ValueType = AnimationValueType.Absolute
+        aniPos.To = 0
+        aniPos.Duration = TimeSpan.FromMilliseconds(600)
+        aniPos.Delay = TimeSpan.FromMilliseconds(50)
+        aniPos.Easing = New BackEaseWithPowerOut(EasePower.Weak)
+        aniPos.SetValue(AnimationExtensions.TargetProperty, TransformPos)
+        aniPos.SetValue(AnimationExtensions.TargetPropertyProperty, TranslateTransform.YProperty)
+        animation.Children.Add(aniPos)
+        
+        Dim aniRotate = New DoubleFromToAnimation
+        aniRotate.ValueType = AnimationValueType.Absolute
+        aniRotate.To = 0
+        aniRotate.Duration = TimeSpan.FromMilliseconds(500)
+        aniRotate.Delay = TimeSpan.FromMilliseconds(50)
+        aniRotate.Easing = New BackEaseWithPowerOut(EasePower.Weak)
+        aniRotate.SetValue(AnimationExtensions.TargetProperty, TransformRotate)
+        aniRotate.SetValue(AnimationExtensions.TargetPropertyProperty, RotateTransform.AngleProperty)
+        animation.Children.Add(aniRotate)
+
+        AddHandler animation.Completed, Sub(sender, args) 
+            RunInUi(Sub()
                 PanBack.RenderTransform = Nothing
                 IsWindowLoadFinished = True
                 Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
-            End Sub, , True)
-        }, "Form Show")
+                Debug.WriteLine(Opacity)
+                End Sub)
+        End Sub
+        
+        animation.RunFireAndForget(EmptyAnimatable.Instance)
+        
         'Timer 启动
         AniStart()
         TimerMainStart()
@@ -401,23 +451,85 @@ Public Class FormMain
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
                 PanBack.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
-                AniStart({
-                    AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
-                    AaDouble(
-                    Sub(i)
-                        TransformScale.ScaleX += i
-                        TransformScale.ScaleY += i
-                    End Sub, 0.88 - TransformScale.ScaleX, 180),
-                    AaDouble(Sub(i) TransformPos.Y += i, 20 - TransformPos.Y, 180, 0, New AniEaseOutFluent(AniEasePower.Weak)),
-                    AaDouble(Sub(i) TransformRotate.Angle += i, 0.6 - TransformRotate.Angle, 180, 0, New AniEaseInoutFluent(AniEasePower.Weak)),
-                    AaCode(
-                    Sub()
+'                AniStart({
+'                    AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
+'                    AaDouble(
+'                    Sub(i)
+'                        TransformScale.ScaleX += i
+'                        TransformScale.ScaleY += i
+'                    End Sub, 0.88 - TransformScale.ScaleX, 180),
+'                    AaDouble(Sub(i) TransformPos.Y += i, 20 - TransformPos.Y, 180, 0, New AniEaseOutFluent(AniEasePower.Weak)),
+'                    AaDouble(Sub(i) TransformRotate.Angle += i, 0.6 - TransformRotate.Angle, 180, 0, New AniEaseInoutFluent(AniEasePower.Weak)),
+'                    AaCode(
+'                    Sub()
+'                        IsHitTestVisible = False
+'                        Top = -10000
+'                        ShowInTaskbar = False
+'                    End Sub, 210),
+'                    AaCode(Sub() EndProgramForce(force:=False), 230)
+'                }, "Form Close")
+                
+                Dim animation = new ParallelAnimationGroup
+                
+                Dim aniOpacity = New DoubleFromToAnimation
+                aniOpacity.ValueType = AnimationValueType.Absolute
+                aniOpacity.To = 0
+                aniOpacity.Duration = TimeSpan.FromMilliseconds(140)
+                aniOpacity.Delay = TimeSpan.FromMilliseconds(40)
+                aniOpacity.Easing = QuadEaseOut.Shared
+                aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
+                aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
+                animation.Children.Add(aniOpacity)
+                
+                Dim aniScaleX = New DoubleFromToAnimation
+                aniScaleX.ValueType = AnimationValueType.Absolute
+                aniScaleX.To = 0.88
+                aniScaleX.Duration = TimeSpan.FromMilliseconds(180)
+                aniScaleX.SetValue(AnimationExtensions.TargetProperty, TransformScale)
+                aniScaleX.SetValue(AnimationExtensions.TargetPropertyProperty, ScaleTransform.ScaleXProperty)
+                animation.Children.Add(aniScaleX)
+                
+                Dim aniScaleY = New DoubleFromToAnimation
+                aniScaleY.ValueType = AnimationValueType.Absolute
+                aniScaleY.To = 0.88
+                aniScaleY.Duration = TimeSpan.FromMilliseconds(180)
+                aniScaleY.SetValue(AnimationExtensions.TargetProperty, TransformScale)
+                aniScaleY.SetValue(AnimationExtensions.TargetPropertyProperty, ScaleTransform.ScaleYProperty)
+                animation.Children.Add(aniScaleY)
+                
+                Dim aniPos = New DoubleFromToAnimation
+                aniPos.ValueType = AnimationValueType.Absolute
+                aniPos.To = 20
+                aniPos.Duration = TimeSpan.FromMilliseconds(180)
+                aniPos.Easing = QuadEaseOut.Shared
+                aniPos.SetValue(AnimationExtensions.TargetProperty, TransformPos)
+                aniPos.SetValue(AnimationExtensions.TargetPropertyProperty, TranslateTransform.YProperty)
+                animation.Children.Add(aniPos)
+                
+                Dim aniRotate = New DoubleFromToAnimation
+                aniRotate.ValueType = AnimationValueType.Absolute
+                aniRotate.To = 0.6
+                aniRotate.Duration = TimeSpan.FromMilliseconds(180)
+                aniRotate.Easing = QuadEaseInOut.Shared
+                aniRotate.SetValue(AnimationExtensions.TargetProperty, TransformRotate)
+                aniRotate.SetValue(AnimationExtensions.TargetPropertyProperty, RotateTransform.AngleProperty)
+                animation.Children.Add(aniRotate)
+                
+                AddHandler animation.Completed, Sub(sender, args) 
+                    RunInUi(Async Sub()
+                        Await Task.Delay(30)
+                    
                         IsHitTestVisible = False
                         Top = -10000
                         ShowInTaskbar = False
-                    End Sub, 210),
-                    AaCode(Sub() EndProgramForce(force:=False), 230)
-                }, "Form Close")
+                    
+                        Await Task.Delay(20)
+                    
+                        EndProgramForce(force:=False)
+                        End Sub)
+                End Sub
+                
+                animation.RunFireAndForget(EmptyAnimatable.Instance)
             Else
                 EndProgramForce(force:=False)
             End If
