@@ -5,6 +5,8 @@ Imports PCL.Core.App
 
 Public Module ModProfile
 
+    Public ProfileLock As New Object
+    
     ''' <summary>
     ''' 当前选定的档案
     ''' </summary>
@@ -281,16 +283,17 @@ Public Module ModProfile
     Public Sub EditProfileId()
         If SelectedProfile.Type = McLoginType.Ms Then
             Dim newUsername As String = Nothing
-            RunInUiWait(Sub() newUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
+            RunInUiWait(Sub() newUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
                                                           ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If newUsername = Nothing Then Exit Sub
-            If String.IsNullOrWhiteSpace(newUsername) Then
+            If String.IsNullOrEmpty(newUsername) Then
                 Hint("欲设置的玩家名称为空")
                 Exit Sub
             End If
             If MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn:=True) = 2 Then Exit Sub
             RunInNewThread(Sub()
+                            SyncLock ProfileLock
                                Try
                                    Dim checkResult As JObject = GetJson(NetRequestRetry($"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", "GET", Nothing, Nothing, Headers:=New Dictionary(Of String, String) From {{"Authorization", "Bearer " & SelectedProfile.AccessToken}}))
                                    If checkResult("status") = "DUPLICATE" Then
@@ -304,10 +307,9 @@ Public Module ModProfile
                                    Dim resultJson As JObject = GetJson(result)
                                    Hint($"玩家 ID 修改成功，当前 ID 为：{resultJson("name")}", HintType.Finish)
                                    '更新档案信息
-                                   ProfileList.Remove(SelectedProfile)
-                                   SelectedProfile.Username = resultJson("name")
-                                   ProfileList.Add(SelectedProfile)
-                                   LastUsedProfile = ProfileList.Count - 1
+                                   Dim profileIndex = ProfileList.IndexOf(SelectedProfile)
+                                   SelectedProfile.Username = resultJson("name").ToString
+                                   ProfileList(profileIndex) = SelectedProfile
                                    '刷新页面信息
                                    FrmLaunchLeft.RefreshPage(True)
                                    SaveProfile()
@@ -320,7 +322,8 @@ Public Module ModProfile
                                    End If
                                    Exit Sub
                                End Try
-                           End Sub
+                            End SyncLock                                                                                    
+                        End Sub
                     )
 
 
