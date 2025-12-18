@@ -46,8 +46,8 @@ Public Module ModMain
         HintWaiting.Add(New HintMessage With {.Text = If(Text, ""), .Type = Type, .Log = Log})
     End Sub
     
-    Public Sub HintWrapper_OnShow(message As String, messageType As Core.UI.HintType)
-        Hint(message, messageType)
+    Public Sub HintWrapper_OnShow(message As String, messageTheme As Core.UI.HintTheme)
+        Hint(message, messageTheme)
     End Sub
 
     Private Sub HintTick()
