@@ -1,5 +1,7 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
+Imports PCL.Core.App.Configuration.Impl
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
@@ -435,13 +437,16 @@ Public Class PageInstanceOverall
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, IsHintIndie OrElse IsShiftPressed)
                 Case 1
+                    Dim instancePath = PageInstanceLeft.Instance.Path
+                    Dim instanceName = PageInstanceLeft.Instance.Name
                     IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instancePath)
                     If IsShiftPressed Then
-                        DeleteDirectory(PageInstanceLeft.Instance.Path)
-                        Hint("实例 " & PageInstanceLeft.Instance.Name & " 已永久删除！", HintType.Finish)
+                        DeleteDirectory(instancePath)
+                        Hint("实例 " & instanceName & " 已永久删除！", HintType.Finish)
                     Else
-                        FileSystem.DeleteDirectory(PageInstanceLeft.Instance.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
-                        Hint("实例 " & PageInstanceLeft.Instance.Name & " 已删除到回收站！", HintType.Finish)
+                        FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
+                        Hint("实例 " & instanceName & " 已删除到回收站！", HintType.Finish)
                     End If
                 Case 2
                     Return
