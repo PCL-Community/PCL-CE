@@ -105,7 +105,7 @@ Public Module ModWebServer
                         If Not Array.Exists(IPGlobalProperties.GetIPGlobalProperties.GetActiveTcpListeners, Function(i) i.Port = port) Then
                             Log($"[OAuth] {serviceName}: 尝试在 {port} 端口初始化 Web 服务端")
                             Try
-                                server = New RoutedWebServer($"127.0.0.1:{port}")
+                                server = New RoutedWebServer({$"127.0.0.1:{port}", $"[::1]:{port}"})
                             Catch ex As HttpListenerException
                                 If ex.NativeErrorCode = &H80004005 Then Continue For
                                 Throw

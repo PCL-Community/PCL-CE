@@ -23,7 +23,7 @@ public class WebServerTest
     public async Task TestRoutedWebServer()
     {
         Console.WriteLine("Starting web server with default listen (127.0.0.1:8080)...");
-        var server = new RoutedWebServer();
+        var server = new RoutedWebServer(["127.0.0.1:8080"]);
         
         server.Route("/test", (path, _) => RoutedResponse.Text(path));
         Console.WriteLine("Test(/test): 200 OK (path relative to /test)");
