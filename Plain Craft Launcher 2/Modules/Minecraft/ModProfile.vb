@@ -233,7 +233,9 @@ Public Module ModProfile
         Dim selectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
                         Dim authTypeList As List(Of IMyRadio)
-                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) Then
+                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) OrElse 
+                           (Core.Utils.RegionUtils.IsRestrictedFeatAllowed AndAlso 
+                            (ProfileList.Any() OrElse Not Core.Net.NetworkHelper.TestHttpConnectionAsync().GetAwaiter().GetResult())) Then
                             authTypeList = New List(Of IMyRadio) From
                             {
                                 New MyListItem With {
@@ -476,7 +478,12 @@ Write:
                                    ProfileList.Add(Profile)
                                Next
                                SaveProfile()
-                               Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
+                               ' 添加：如果导入0个档案
+                               If importNum = 0 Then
+                                   Hint("未找到任何可导入的档案！", HintType.Info)
+                               Else
+                                       Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
+                               End If
                                RunInUi(Sub() FrmLoginProfile.RefreshProfileList())
                            End Sub, "Profile Import")
         Else '导出
