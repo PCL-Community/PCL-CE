@@ -26,14 +26,14 @@
                         </Grid.RowDefinitions>
                         <TextBlock Text="更新通道" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateChannel" Tag="SystemUpdateChannel" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="0">
-                            <local:MyComboBoxItem Content="正式版 / Release" ToolTip="较为稳定的版本，仅推送修复性更新与部分内置资源更新，适合大多数用户使用。" IsSelected="True"/>
+                            <local:MyComboBoxItem Content="正式版 / Release" ToolTip="较为稳定的版本，仅推送修复性更新与部分内置资源更新，适合大多数用户使用。" />
                             <local:MyComboBoxItem Content="测试版 / Beta" ToolTip="可能不稳定的测试版本，将会进行功能的早期测试，适合希望帮助测试且有一定技术能力的用户使用。" />
                             <local:MyComboBoxItem Content="开发版 / Dev" ToolTip="可能极不稳定的开发版本，直接从最新源代码构建，适合高度技术性用户。&#xa;可能需要具备较好的互联网连接质量才能顺利获取此通道更新。" />
                         </local:MyComboBox>
                         <TextBlock Text="自动更新设置" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateMode" Tag="SystemUpdateMode" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2">
                             <local:MyComboBoxItem Content="自动下载并安装更新" ToolTip="启动器将会自动检查并下载可用更新，并在关闭启动器后自动安装更新。" />
-                            <local:MyComboBoxItem Content="自动下载并提示更新" ToolTip="启动器将会自动检查并下载可用更新，并在完成后提示你安装更新。" IsSelected="True" />
+                            <local:MyComboBoxItem Content="自动下载并提示更新" ToolTip="启动器将会自动检查并下载可用更新，并在完成后提示你安装更新。" />
                             <local:MyComboBoxItem Content="提示更新" ToolTip="启动器将会自动检查可用更新，然后提示你下载并安装更新。" />
                             <local:MyComboBoxItem Content="不自动检查更新（不推荐）" ToolTip="关闭自动更新检查。这可能导致你无法及时获得更新。" />
                         </local:MyComboBox>

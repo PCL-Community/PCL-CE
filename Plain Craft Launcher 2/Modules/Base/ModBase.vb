@@ -19,7 +19,7 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
+    Public Const VersionBaseName As String = "2.13.4-beta.3" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.10.5" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash

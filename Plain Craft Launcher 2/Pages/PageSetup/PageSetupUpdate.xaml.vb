@@ -2,6 +2,14 @@
 Imports PCL.Core.Utils
 
 Public Class PageSetupUpdate
+    Private Sub Init() Handles Me.Loaded
+        TextMirrorCDK.Password = Config.System.MirrorChyanKey
+        ComboSystemUpdateChannel.SelectedIndex = Config.System.Update.UpdateChannel
+        ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
+        TextCurrentVersion.Text = "PCL CE " & VersionNameFormat(VersionBaseName)
+        CheckUpdate()
+    End Sub
+    
     Public UpdateInfo As VersionDataModel = Nothing
     
     Private Enum UpdateStatus
@@ -18,8 +26,10 @@ Public Class PageSetupUpdate
                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
                 SemVer.Parse(VersionBaseName),
                 VersionCode) Then
+                Log("[Update] 已是最新版本")
                 Return UpdateStatus.Latest
             Else 
+                Log("[Update] 有可用的新版本")
                 Return UpdateStatus.Available
             End If
         Catch ex As Exception
@@ -28,33 +38,50 @@ Public Class PageSetupUpdate
         End Try
     End Function
     
-    Public Sub CheckUpdate()
+    Public Sub CheckUpdate() Handles BtnCheckAgain.Click
+        Log("[Update] 开始检查更新")
+        CardUpdate.Visibility = Visibility.Collapsed
+        CardCheck.Visibility = Visibility.Visible
+        TextCurrentDesc.Text = "正在检查更新..."
+        BtnCheckAgain.IsEnabled = False
         Select Case IsLatest()
             Case UpdateStatus.Available
                 Dim checkUpdateEx As Exception = Nothing
-                RunInNewThread(
-                    Sub()
-                        Try
-                            UpdateInfo = RemoteServer.GetLatestVersion(
-                                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                        Catch ex As Exception
-                            checkUpdateEx = ex
-                        End Try
-                    End Sub
-                    ).Join()
-                If UpdateInfo Is Nothing Then
-                    Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
-                    Exit Sub
-                End If
+                RunInNewThread(Sub()
+                    Try
+                        UpdateInfo = RemoteServer.GetLatestVersion(
+                            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
+                            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                    Catch ex As Exception
+                        checkUpdateEx = ex
+                    End Try
+                    BtnCheckAgain.IsEnabled = True
+                    If UpdateInfo Is Nothing Then
+                        RunInUi(Sub() TextCurrentDesc.Text = "检查更新时出错")
+                        If checkUpdateEx IsNot Nothing Then
+                            Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
+                        Else 
+                            Log("[Update] 检查更新失败", LogLevel.Msgbox)
+                        End If
+                        Exit Sub
+                    End If
+                    RunInUi(Sub()
+                        CardUpdate.Visibility = Visibility.Visible
+                        CardCheck.Visibility = Visibility.Collapsed
+                    End Sub)
+                End Sub)
             Case UpdateStatus.Latest
                 CardUpdate.Visibility = Visibility.Collapsed
                 CardCheck.Visibility = Visibility.Visible
+                BtnCheckAgain.IsEnabled = True
+                TextCurrentDesc.Text = "已是最新版本"
             Case UpdateStatus.Error
                 CardUpdate.Visibility = Visibility.Collapsed
                 CardCheck.Visibility = Visibility.Visible
+                BtnCheckAgain.IsEnabled = True
                 TextCurrentDesc.Text = "检查更新时出错"
         End Select
+        Log("[Update] 检查更新结束")
     End Sub
     
     Private Sub PageSetupUpdate_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -141,5 +168,15 @@ Public Class PageSetupUpdate
     Private Sub BtnGetMirrorCDK_Click(sender As Object, e As EventArgs) Handles BtnGetMirrorCDK.Click
         OpenWebsite("https://mirrorchyan.com/")
     End Sub
+    
+    Private Sub BtnChangelog_Click(sender As Object, e As EventArgs) Handles BtnChangelog.Click
+        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/" & VersionBaseName)
+    End Sub
+    
+    Public Function VersionNameFormat(str As String) As String
+        Dim add = str.AfterLast("-")
+        str = str.BeforeLast("-")
+        Return str & " " & add.Replace(".", " ").Replace("beta", "Beta").Replace("rc", "RC")
+    End Function
     
 End Class
