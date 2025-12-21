@@ -1,4 +1,6 @@
 ﻿Imports System.IO.Compression
+Imports System.Net.Http
+Imports PCL.Core.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Diff
 
@@ -62,9 +64,9 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
         If IsCacheValid($"{name}.json", _remoteCache(name)) Then
             jsonData = JToken.Parse(ReadFile(localInfoFile))
         Else
-            Dim httpRet = NetGetCodeByRequestRetry($"{_baseUrl}apiv2/{path}{name}.json")
-            jsonData = JToken.Parse(httpRet)
-            WriteFile(localInfoFile, httpRet)
+            Dim response = HttpRequestBuilder.Create($"{_baseUrl}apiv2/{path}{name}.json", HttpMethod.Get).SendAsync().GetAwaiter().GetResult()
+            jsonData = JToken.Parse(response.AsStringContent())
+            WriteFile(localInfoFile, response.AsStringContent())
         End If
         Return jsonData
     End Function

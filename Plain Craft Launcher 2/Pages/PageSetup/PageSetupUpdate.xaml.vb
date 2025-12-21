@@ -3,10 +3,12 @@ Imports PCL.Core.Utils
 
 Public Class PageSetupUpdate
     Private Sub Init() Handles Me.Loaded
+        AniControlEnabled += 1
         TextMirrorCDK.Password = Config.System.MirrorChyanKey
         ComboSystemUpdateChannel.SelectedIndex = Config.System.Update.UpdateChannel
         ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
         TextCurrentVersion.Text = "PCL CE " & VersionNameFormat(VersionBaseName)
+        AniControlEnabled -= 1
         CheckUpdate()
     End Sub
     
@@ -19,9 +21,9 @@ Public Class PageSetupUpdate
         Latest = 3
     End Enum
     
-    Private Function IsLatest() As UpdateStatus
+    Private Async Function IsLatestAsync() As Task(Of UpdateStatus)
         Try
-            If RemoteServer.IsLatest(
+            If Await RemoteServer.IsLatestAsync(
                 If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                 If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
                 SemVer.Parse(VersionBaseName),
@@ -38,38 +40,41 @@ Public Class PageSetupUpdate
         End Try
     End Function
     
-    Public Sub CheckUpdate() Handles BtnCheckAgain.Click
+    Public Async Sub CheckUpdate() Handles BtnCheckAgain.Click
         Log("[Update] 开始检查更新")
         CardUpdate.Visibility = Visibility.Collapsed
         CardCheck.Visibility = Visibility.Visible
         TextCurrentDesc.Text = "正在检查更新..."
         BtnCheckAgain.IsEnabled = False
-        Select Case IsLatest()
+        Select Case Await IsLatestAsync()
             Case UpdateStatus.Available
                 Dim checkUpdateEx As Exception = Nothing
-                RunInNewThread(Sub()
-                    Try
-                        UpdateInfo = RemoteServer.GetLatestVersion(
-                            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                    Catch ex As Exception
-                        checkUpdateEx = ex
-                    End Try
-                    BtnCheckAgain.IsEnabled = True
-                    If UpdateInfo Is Nothing Then
-                        RunInUi(Sub() TextCurrentDesc.Text = "检查更新时出错")
-                        If checkUpdateEx IsNot Nothing Then
-                            Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
-                        Else 
-                            Log("[Update] 检查更新失败", LogLevel.Msgbox)
-                        End If
-                        Exit Sub
+                Try
+                    UpdateInfo = RemoteServer.GetLatestVersion(
+                        If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
+                        If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
+                    TextUpdateName.Text = "PCL CE " & VersionNameFormat(UpdateInfo.VersionName)
+                    Dim summary = UpdateInfo.Changelog.Between("<summary>", "</summary>")
+                    If Not UpdateInfo.Changelog.Contains("<summary>") OrElse String.IsNullOrWhiteSpace(summary.Trim()) Then
+                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了..."
+                    Else
+                        TextChangelog.Text = summary
                     End If
-                    RunInUi(Sub()
-                        CardUpdate.Visibility = Visibility.Visible
-                        CardCheck.Visibility = Visibility.Collapsed
-                    End Sub)
-                End Sub)
+                Catch ex As Exception
+                    checkUpdateEx = ex
+                End Try
+                BtnCheckAgain.IsEnabled = True
+                If UpdateInfo Is Nothing Then
+                    TextCurrentDesc.Text = "检查更新时出错"
+                    If checkUpdateEx IsNot Nothing Then
+                        Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
+                    Else 
+                        Log("[Update] 检查更新失败", LogLevel.Msgbox)
+                    End If
+                    Exit Sub
+                End If
+                CardUpdate.Visibility = Visibility.Visible
+                CardCheck.Visibility = Visibility.Collapsed
             Case UpdateStatus.Latest
                 CardUpdate.Visibility = Visibility.Collapsed
                 CardCheck.Visibility = Visibility.Visible
@@ -82,14 +87,6 @@ Public Class PageSetupUpdate
                 TextCurrentDesc.Text = "检查更新时出错"
         End Select
         Log("[Update] 检查更新结束")
-    End Sub
-    
-    Private Sub PageSetupUpdate_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        AniControlEnabled += 1
-        '初始化更新设置选项
-        ComboSystemUpdateChannel.SelectedIndex = Config.System.Update.UpdateChannel
-        ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
-        AniControlEnabled -= 1
     End Sub
     
     Private Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
@@ -106,7 +103,11 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub BtnChangelogDetail_Click(sender As Object, e As EventArgs) Handles BtnChangelogDetail.Click
-        MyMsgBoxMarkdown("", "关于此更新")
+        If UpdateInfo Is Nothing Then
+            MyMsgBox("没有可用的更新日志...", "关于此更新")
+        Else
+            MyMsgBoxMarkdown(UpdateInfo.Changelog, "关于此更新")
+        End If
     End Sub
     
     Private Sub ComboSystemUpdateMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateMode.SelectionChanged
