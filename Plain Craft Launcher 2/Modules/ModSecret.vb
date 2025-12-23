@@ -92,7 +92,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' 获取设备的短标识码
     ''' </summary>
     Friend Function SecretGetUniqueAddress() As String
-        Return Identify.LauncherId.Value
+        Return Identify.LauncherId
     End Function
 
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))

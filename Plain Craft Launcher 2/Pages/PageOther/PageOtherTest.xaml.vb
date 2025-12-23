@@ -492,7 +492,7 @@ Public Class PageOtherTest
     Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
 
-        Return DJB2Hash(datePart & Identify.LauncherId.Value)
+        Return DJB2Hash(datePart & Identify.LauncherId)
     End Function
     Private Shared Function DJB2Hash(str As String) As Integer
         Dim hash As Long = 5381
