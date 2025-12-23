@@ -62,30 +62,24 @@ Friend Module ModSecret
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End If
-        '社区版提示
-        If Setup.Get("UiLauncherCEHint") Then
-            Dim count As Integer = Setup.Get("UiLauncherCEHintCount")
-            If count <= 0 Then
-                ShowCEAnnounce()
-                count = 11
-            End If
-            Setup.Set("UiLauncherCEHintCount", count - 1)
-        End If
     End Sub
     ''' <summary>
     ''' 展示社区版提示
     ''' </summary>
     ''' <param name="IsUpdate">是否为更新时启动</param>
-    Public Sub ShowCEAnnounce(Optional IsUpdate As Boolean = False)
+    Public Sub ShowCEAnnounce()
         MyMsgBox($"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
 PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
 
 如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
 
 该版本与官方版本的特性区别：
-- 联网通知：暂时没有，在做了在做了.jpg
-- 主题切换：不会制作，这是需要赞助解锁的纪念性质的功能
-- 百宝箱：部分内容更改和缺失，主线分支没有提供相关内容{If(IsUpdate, $"{vbCrLf}{vbCrLf}该提示总会在更新启动器时展示一次。", "")}", "社区版本说明", "我知道了")
+- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
+- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
+
+此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了")
     End Sub
 
     ''' <summary>

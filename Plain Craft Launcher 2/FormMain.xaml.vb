@@ -334,8 +334,8 @@ Public Class FormMain
             Setup.Set("ToolDownloadTranslateV2", Setup.Get("ToolDownloadTranslate") + 1)
             Log("[Start] 已从老版本迁移 Mod 命名设置")
         End If
-        '社区版提示
-        If Not Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce(True)
+        '更新后展示社区版提示
+        ShowCEAnnounce()
         '输出更新日志
         If LastVersionCode <= 0 Then Return
         If LowerVersionCode >= VersionCode Then Return
