@@ -2,6 +2,7 @@
 Imports System.Security.Cryptography
 Imports PCL.Core.Utils.Secret
 Imports System.IO
+Imports PCL.Core.App
 
 Public Module ModProfile
 
@@ -209,9 +210,9 @@ Public Module ModProfile
                 {"profiles", list}
             }
             End If
-            Dim tempFile = Path.Combine(PathAppdata, "profiles.json.tmp")
-            Dim actualFile = Path.Combine(PathAppdata, "profiles.json")
-            Dim bakFile = Path.Combine(PathAppdata, "profiles.json.bak")
+            Dim actualFile = Path.Combine(PathAppdataConfig, "profiles.json")
+            Dim tempFile = actualFile & ".tmp"
+            Dim bakFile = actualFile & ".bak"
             File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Newtonsoft.Json.Formatting.None)))
             If File.Exists(actualFile) Then
                 File.Replace(tempFile, actualFile, bakFile)
@@ -232,23 +233,37 @@ Public Module ModProfile
     Public Sub CreateProfile()
         Dim selectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
-                        Dim authTypeList As New List(Of IMyRadio) From {
+                        Dim authTypeList As List(Of IMyRadio)
+                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) OrElse 
+                           (Core.Utils.RegionUtils.IsRestrictedFeatAllowed AndAlso 
+                            (ProfileList.Any() OrElse Not Core.Net.NetworkHelper.TestHttpConnectionAsync().GetAwaiter().GetResult())) Then
+                            authTypeList = New List(Of IMyRadio) From
+                            {
                                 New MyListItem With {
-                                .Title = "正版验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonAuth
-                            },
+                                    .Title = "正版验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonAuth
+                                }, New MyListItem With {
+                                    .Title = "第三方验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonThirdparty
+                                },
                                 New MyListItem With {
-                                .Title = "第三方验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonThirdparty
-                            },
-                            New MyListItem With {
-                                .Title = "离线验证",
-                                .Type = MyListItem.CheckType.RadioBox,
-                                .Logo = Logo.IconButtonOffline
+                                    .Title = "离线验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonOffline
+                                }
                             }
-                        }
+                        Else
+                            authTypeList = New List(Of IMyRadio) From
+                            {
+                                New MyListItem With {
+                                    .Title = "正版验证",
+                                    .Type = MyListItem.CheckType.RadioBox,
+                                    .Logo = Logo.IconButtonAuth
+                                }
+                            }
+                        End If
                         selectedAuthTypeNum = MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消")
                     End Sub)
         If selectedAuthTypeNum Is Nothing Then Exit Sub
@@ -464,7 +479,12 @@ Write:
                                    ProfileList.Add(Profile)
                                Next
                                SaveProfile()
-                               Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
+                               ' 添加：如果导入0个档案
+                               If importNum = 0 Then
+                                   Hint("未找到任何可导入的档案！", HintType.Info)
+                               Else
+                                       Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
+                               End If
                                RunInUi(Sub() FrmLoginProfile.RefreshProfileList())
                            End Sub, "Profile Import")
         Else '导出
@@ -716,7 +736,7 @@ Retry:
                 Next
                 Throw New Exception("未知错误（" & res & "）")
             Catch ex As Exception
-                If ex.GetType.Equals(GetType(Tasks.TaskCanceledException)) Then
+                If ex.GetType.Equals(GetType(TaskCanceledException)) Then
                     Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Critical)
                 Else
                     Log(ex, "更改皮肤失败", LogLevel.Hint)

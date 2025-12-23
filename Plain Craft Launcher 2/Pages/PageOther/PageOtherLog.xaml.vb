@@ -32,7 +32,8 @@ Class PageOtherLog
     Public Sub LoadList()
         PanList.Children.Clear()
         Dim current = CurrentLogs
-        For Each item In Directory.GetFiles(LogDirectory)
+        Dim logFiles = Directory.GetFiles(LogDirectory).OrderByDescending(Function(f) File.GetLastWriteTime(f)).ToArray()
+        For Each item In logFiles
             Dim fullPath = IO.Path.GetFullPath(item)
             Dim title = IO.Path.GetFileName(item)
             If title.StartsWith("Launch") Then

@@ -324,7 +324,7 @@ echo ------------------------------
 echo ----------------------
 echo 服务端已停止。
 pause"
-                    WriteFile(VersionFolder & "Launch Server.bat", Bat,
+                    WriteFile(VersionFolder & "Launch Server.bat", Bat.Replace(vbLf, vbCrLf),
                         Encoding:=If(Encoding.Default.Equals(Encoding.UTF8), Encoding.UTF8, Encoding.GetEncoding("GB18030")))
                     '删除实例 JSON
                     File.Delete(VersionFolder & Id & ".json")

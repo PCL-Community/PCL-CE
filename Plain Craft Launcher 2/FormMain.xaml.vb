@@ -4,6 +4,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -74,6 +75,10 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
+        '注册 MsgBox 事件
+        AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
+        '注册 Hint 事件
+        AddHandler HintWrapper.OnShow, AddressOf HintWrapper_OnShow
         '加载 UI
         InitializeComponent()
         Opacity = 0
@@ -247,7 +252,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
-            GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
@@ -1034,7 +1038,6 @@ Public Class FormMain
         OtherAbout = 1
         OtherTest = 2
         OtherFeedback = 3
-        OtherVote = 4
         OtherLog = 5
         VersionOverall = 0
         VersionSetup = 1

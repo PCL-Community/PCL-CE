@@ -355,42 +355,114 @@ Public Class PageInstanceExport
             Log(ex, "保存配置失败", LogLevel.Msgbox)
         End Try
     End Sub
-    '读取配置文件
-    Private Sub ImportConfig() Handles BtnAdvancedImport.Click
+#Region "配置文件核心读取逻辑"
+    ''' <summary>
+    ''' 从指定路径读取配置文件（供按钮和拖放调用）
+    ''' </summary>
+    ''' <param name="configPath">配置文件路径</param>
+    Private Sub ReadConfigFile(configPath As String)
         Try
-            Dim ConfigPath As String = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
-            If String.IsNullOrEmpty(ConfigPath) Then Return
-            Setup.Set("CacheExportConfig", ConfigPath)
-            Dim Segments As String() = ReadFile(ConfigPath).Split(Sperator)
-            'ini 段
+            ' 保存配置文件路径到缓存
+            Setup.Set("CacheExportConfig", configPath)
+
+            Dim fileContent As String = ReadFile(configPath)
+            Dim Segments As String() = fileContent.Split(Sperator)
+                                                                                                                                                                                                
+            If Segments.Length = 0 Then
+                Hint("配置文件内容无效或为空！", HintType.Critical)
+                Return
+            End If
+
+            ' === 解析INI段 ===
             Dim Ini As New Dictionary(Of String, String)
             For Each Line In Segments(0).Split(vbCrLf.ToCharArray())
                 Line = Line.Trim
                 If Line = "" OrElse Line.StartsWithF("#") OrElse Line.StartsWithF("=") Then Continue For
                 Dim Index As Integer = Line.IndexOfF(":")
-                If Index > 0 Then Ini(Line.Substring(0, Index)) = Line.Substring(Index + 1)
+                If Index > 0 Then
+                    Ini(Line.Substring(0, Index)) = Line.Substring(Index + 1)
+                End If
             Next
+
+            ' 赋值到界面控件
             TextExportName.Text = Ini.GetOrDefault("Name", "")
             TextExportVersion.Text = Ini.GetOrDefault("Version", "")
-            CheckOptionsPcl.Checked = Ini.GetOrDefault("IncludeLauncher", True)
-            CheckOptionsPclCustom.Checked = Ini.GetOrDefault("IncludeLauncherCustom", True)
-            CheckAdvancedModrinth.Checked = Ini.GetOrDefault("ModrinthUploadMode", False)
-            CheckAdvancedInclude.Checked = Ini.GetOrDefault("DontCheckHostedAssets", False)
+            CheckOptionsPcl.Checked = Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncher", True))
+            CheckOptionsPclCustom.Checked = Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncherCustom", True))
+            CheckAdvancedModrinth.Checked = Convert.ToBoolean(Ini.GetOrDefault("ModrinthUploadMode", False))
+            CheckAdvancedInclude.Checked = Convert.ToBoolean(Ini.GetOrDefault("DontCheckHostedAssets", False))
             ConfigPackPath = Ini.GetOrDefault("PackPath", Nothing)
-            '导出内容段
+
+            ' === 解析导出内容段 ===
             RulesOverrides = Segments(1).Replace(vbCr, vbLf).Replace(vbLf & vbLf, vbLf).Split(vbLf).ToList
-            '追加内容段
+
+            ' === 解析追加内容段 ===
             If Segments.Length > 2 Then
                 ExtraFiles = Segments(2).Replace(vbCr, vbLf).Replace(vbLf & vbLf, vbLf).Split(vbLf).ToList
             Else
                 ExtraFiles = Nothing
             End If
-            '结束
-            Hint("已读取配置文件：" & ConfigPath, HintType.Finish)
+
+            ' 提示成功
+            Hint("已读取配置文件：" & configPath, HintType.Finish)
+
         Catch ex As Exception
-            Log(ex, "读取配置失败", LogLevel.Msgbox)
+            Log(ex, $"读取配置文件失败：{configPath}", LogLevel.Msgbox)
         End Try
     End Sub
+#End Region
+    '读取配置文件
+    Private Sub ImportConfig() Handles BtnAdvancedImport.Click
+        Try
+            Dim ConfigPath As String = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件", Setup.Get("CacheExportConfig"))
+            If String.IsNullOrEmpty(ConfigPath) Then Return
+
+            ' 调用核心读取逻辑
+            ReadConfigFile(ConfigPath)
+
+        Catch ex As Exception
+            Log(ex, "选择配置文件失败", LogLevel.Msgbox)
+        End Try
+    End Sub
+#Region "拖放事件处理"
+    ''' <summary>
+    ''' 文件拖入界面时触发：验证文件类型
+    ''' </summary>
+    Private Sub PanAllBack_DragEnter(sender As Object, e As DragEventArgs)
+        ' 检查是否包含文件拖放数据
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            ' 获取拖入的文件路径数组
+            Dim files As String() = CType(e.Data.GetData(DataFormats.FileDrop), String())
+
+            ' 验证：仅允许单个.txt文件
+            If files.Length = 1 AndAlso files(0).EndsWithF(".txt", StringComparison.OrdinalIgnoreCase) Then
+                e.Effects = DragDropEffects.Copy ' 设置拖放效果为“复制”
+            Else
+                e.Effects = DragDropEffects.None ' 不允许拖放
+            End If
+        Else
+            e.Effects = DragDropEffects.None
+        End If
+
+        e.Handled = True
+    End Sub
+
+    ''' <summary>
+    ''' 文件放下时触发：读取配置文件
+    ''' </summary>
+    Private Sub PanAllBack_Drop(sender As Object, e As DragEventArgs)
+        ' 获取拖入的文件路径
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            Dim files As String() = CType(e.Data.GetData(DataFormats.FileDrop), String())
+            Dim configPath As String = files(0)
+
+            ' 调用核心读取逻辑
+            ReadConfigFile(configPath)
+        End If
+
+        e.Handled = True
+    End Sub
+#End Region
 
 #End Region
 
