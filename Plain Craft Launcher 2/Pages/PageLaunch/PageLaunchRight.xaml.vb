@@ -17,13 +17,8 @@ Public Class PageLaunchRight
     Private Sub BtnHintClose_Click(sender As Object, e As EventArgs) Handles BtnHintClose.Click
         Dim input = MyMsgBoxInput("输入 PCL CE 开发组织名称")
         If input.IsNullOrWhiteSpace() Then Return
-        input = input.
-            Replace(" ", String.Empty).
-            Replace("-", String.Empty).
-            Replace("_", String.Empty).
-            Replace("*", String.Empty). ' AI 给的 Markdown 复制时候携带的标粗符号替换
-            ToLower()
-        If input.StartsWith("pclcommunity") Then
+        input = New String(input.Where(Function(x) Char.IsAsciiLetter(x)).ToArray()).ToLower()
+        If input.Contains("pclcommunity") Then
             AniDispose(PanHint, True)
             Config.Hint.CEMessage = False
         Else
