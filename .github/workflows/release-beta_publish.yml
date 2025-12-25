@@ -67,11 +67,22 @@ jobs:
         run: |
           mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
-      - name: Upload binary to Release
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign the binary
+        run: |
+          gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+
+      - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@v2.2.2
         with:
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
+            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
