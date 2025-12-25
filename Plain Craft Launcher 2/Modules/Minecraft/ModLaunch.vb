@@ -1337,7 +1337,7 @@ LoginFinish:
             McLaunchLog("无合适的 Java，需要确认是否自动下载")
             Dim JavaCode As String
             If MinVer >= New Version(22, 0) Then '潜在的向后兼容
-                JavaCode = MinVer.Minor
+                JavaCode = MinVer.Major
                 If Not JavaDownloadConfirm("Java " & JavaCode) Then Throw New Exception("$$")
             ElseIf MinVer >= New Version(21, 0) Then
                 JavaCode = 21
