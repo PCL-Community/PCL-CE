@@ -137,27 +137,25 @@ Public Module ModComp
     Private _CompDatabase As LiteDatabase = Nothing
     Private ReadOnly Property CompDatabase As LiteDatabase
         Get
-            If _CompDatabase Is Nothing Then
-                SyncLock _compDbLock
-                    If _CompDatabase Is Nothing Then
-                        Dim dbPath = $"{PathTemp}Cache\ModData.db"
-                        If Not File.Exists(dbPath) Then
-                            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath))
-                            Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
-                                Log($"[DB] 解压 ModData 中")
-                                Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
-                                    Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                                        trueDbFile.CopyTo(uncompressedDbFile)
-                                    End Using
+            SyncLock _compDbLock
+                If _CompDatabase Is Nothing Then
+                    Dim dbPath = $"{PathTemp}Cache\ModData.db"
+                    If Not File.Exists(dbPath) Then
+                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath))
+                        Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
+                            Log($"[DB] 解压 ModData 中")
+                            Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
+                                Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                                    trueDbFile.CopyTo(uncompressedDbFile)
                                 End Using
-                                Log($"[DB] 已更新本地 ModData {dbPath}")
                             End Using
-                        End If
-                        _CompDatabase = New LiteDatabase(dbPath)
-                        Log($"[DB] 已加载 ModData，共 {_CompDatabase.GetCollection("ModTranslation").Count()} 条数据")
+                            Log($"[DB] 已更新本地 ModData {dbPath}")
+                        End Using
                     End If
-                End SyncLock
-            End If
+                    _CompDatabase = New LiteDatabase(dbPath)
+                    Log($"[DB] 已加载 ModData，共 {_CompDatabase.GetCollection("ModTranslation").Count()} 条数据")
+                End If
+            End SyncLock
             Return _CompDatabase
         End Get
     End Property
