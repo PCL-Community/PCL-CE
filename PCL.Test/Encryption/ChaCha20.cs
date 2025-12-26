@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Text;
+using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Utils.Exts;
 
 namespace PCL.Test.Encryption;
 
@@ -15,11 +14,10 @@ public class ChaCha20
         Random.Shared.NextBytes(randomData);
 
         var randomKey = new byte[32];
-        Random.Shared.NextBytes(randomKey);
-        var randomKeyString = Convert.ToBase64String(randomKey).ToSecureString();
+        RandomNumberGenerator.Fill(randomKey);
 
-        var encryptedData = Core.Utils.Encryption.ChaCha20.Instance.Encrypt(randomData, randomKeyString);
-        var decryptedData = Core.Utils.Encryption.ChaCha20.Instance.Decrypt(encryptedData, randomKeyString);
+        var encryptedData = Core.Utils.Encryption.ChaCha20.Instance.Encrypt(randomData, randomKey);
+        var decryptedData = Core.Utils.Encryption.ChaCha20.Instance.Decrypt(encryptedData, randomKey);
 
         Assert.AreEqual(randomData.Length, decryptedData.Length);
         for (var i = 0; i < decryptedData.Length; i++)
