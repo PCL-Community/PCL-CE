@@ -2476,7 +2476,8 @@ NextElement:
     End Function
 
 #End Region
-    
+
+    ''' <summary>
     ''' 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
     ''' </summary>
     Public Function CheckPermission(Path As String) As Boolean
@@ -2506,7 +2507,6 @@ NextElement:
         File.Create(Path & "CheckPermission").Dispose()
         File.Delete(Path & "CheckPermission")
     End Sub
-    ''' <summary>
 
 #Region "UI"
 
