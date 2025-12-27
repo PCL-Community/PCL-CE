@@ -619,7 +619,7 @@ Baymaxawa 与 PCL-Community 及其成员和龙腾猫跃无从属关系，且均�
                                Dim version = RemoteServer.GetLatestVersion(
                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                               WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
+                               WriteFile($"{PathTemp}MODUpdateLog.md", version.Changelog)
                                '构造步骤加载器
                                Dim Loaders As New List(Of LoaderBase)
                                '下载
