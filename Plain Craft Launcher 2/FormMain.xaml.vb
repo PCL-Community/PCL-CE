@@ -965,17 +965,13 @@ Public Class FormMain
         ''' </summary>
         Download = 1
         ''' <summary>
-        ''' 联机。
-        ''' </summary>
-        Link = 2
-        ''' <summary>
         ''' 设置。
         ''' </summary>
-        Setup = 3
+        Setup = 2
         ''' <summary>
         ''' 更多。
         ''' </summary>
-        Other = 4
+        Other = 3
         ''' <summary>
         ''' 实例选择。这是一个副页面。
         ''' </summary>
@@ -1222,7 +1218,7 @@ Public Class FormMain
     ''' <summary>
     ''' 通过点击导航栏改变页面。
     ''' </summary>
-    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check, BtnTitleSelect4.Check
+    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check
         If IsChangingPage Then Return
         PageChangeActual(Val(sender.Tag))
     End Sub
@@ -1297,9 +1293,6 @@ Public Class FormMain
                     If FrmDownloadLeft Is Nothing Then FrmDownloadLeft = New PageDownloadLeft
                     'PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                     PageChangeAnim(FrmDownloadLeft, FrmDownloadLeft.PageGet(SubType))
-                Case PageType.Link '联机
-                    If FrmLinkLeft Is Nothing Then FrmLinkLeft = New PageLinkLeft
-                    PageChangeAnim(FrmLinkLeft, FrmLinkLeft.PageGet(SubType))
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))

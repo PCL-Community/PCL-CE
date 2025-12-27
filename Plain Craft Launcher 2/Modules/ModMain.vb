@@ -485,13 +485,6 @@ EndHint:
     Public FrmSpeedLeft As PageSpeedLeft
     Public FrmSpeedRight As PageSpeedRight
 
-    '联机页面声明
-    Public FrmLinkLeft As PageLinkLeft
-    Public FrmLinkLobby As PageLinkLobby
-    Public FrmSetupLink As PageLinkSetup
-    Public FrmLinkHelp As PageLinkQA
-    Public FrmLinkFeedback As PageLinkFeedback
-
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft
     Public FrmDownloadInstall As PageDownloadInstall

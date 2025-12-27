@@ -7,18 +7,18 @@ Public Class PageLaunchRight
         PanBack.ScrollToHome()
         PanScroll = PanBack '不知道为啥不能在 XAML 设置
         PanLog.Visibility = If(ModeDebug, Visibility.Visible, Visibility.Collapsed)
-        '社区版提示
+        '修改版提示
         PanHint.Visibility = If(Setup.Get("UiLauncherCEHint"), Visibility.Visible, Visibility.Collapsed)
-        LabHint1.Text = $"你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。{vbCrLf}{vbCrLf}如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{vbCrLf}此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！{vbCrLf}"
-        LabHint2.Text = $"若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。"
+        LabHint1.Text = $"你正在使用 PCL 修改版！此版本为独立开发和维护，与官方和社区版本维护路线不同，体验有所出入。{vbCrLf}{vbCrLf}如果你是意外下载到了修改版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{vbCrLf}此外，修改版的问题请向修改版的仓库提交 Issue，不要向官方和社区仓库反馈修改版的问题哦！{vbCrLf}"
+        LabHint2.Text = $"若要永久隐藏此提示，请输入正确的 PCL 修改版开发者名称。"
     End Sub
 
     '暂时关闭快照版提示
     Private Sub BtnHintClose_Click(sender As Object, e As EventArgs) Handles BtnHintClose.Click
-        Dim input = MyMsgBoxInput("输入 PCL CE 开发组织名称")
+        Dim input = MyMsgBoxInput("输入 PCL 修改版开发者名称")
         If input.IsNullOrWhiteSpace() Then Return
         input = New String(input.Where(Function(x) Char.IsAsciiLetter(x)).ToArray()).ToLower()
-        If input.Contains("pclcommunity") Then
+        If input.Contains("baymaxawa") Then
             AniDispose(PanHint, True)
             Config.Hint.CEMessage = False
         Else

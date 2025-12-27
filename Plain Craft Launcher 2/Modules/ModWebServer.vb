@@ -196,7 +196,7 @@ Public Module ModWebServer
     End Function
 
     Public Sub StartNaidAuthorize(Optional completeCallback As Action = Nothing)
-        StartOAuthWaitingCallback("NatayarkID", $"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=%r",
+        StartOAuthWaitingCallback("NatayarkID", "", '$"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=%r",
             Function(success, parameters, content)
                 If Not success Then
                     MyMsgBox(content, IsWarn:=True)
