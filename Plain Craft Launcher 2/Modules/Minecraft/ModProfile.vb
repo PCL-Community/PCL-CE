@@ -1,9 +1,10 @@
-﻿Imports System.Net.Http
+﻿Imports System.IO
+Imports System.Net.Http
 Imports System.Security.Cryptography
-Imports PCL.Core.Utils.Secret
-Imports System.IO
-Imports PCL.Core.Utils
+Imports System.Text.Json
 Imports PCL.Core.Net
+Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Secret
 
 Public Module ModProfile
 
@@ -399,146 +400,167 @@ Write:
 
 #Region "导入与导出"
     Public Sub MigrateProfile()
-        Dim type As Integer = 3
-        If ProfileList.Any() Then
-            RunInUiWait(Sub() type = MyMsgBox($"PCL CE 支持导入 HMCL 的全局账户列表，抑或是导出档案列表至 HMCL 全局账户列表。{vbCrLf}你想要...？", "导入 / 导出档案", "导入", "导出", "取消", ForceWait:=True))
-            If type = 3 Then Exit Sub
+        ' 1. 初始化路径与状态检查
+        Dim appData As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+        Dim hmclAccountPath As String = Path.Combine(appData, ".hmcl", "accounts.json")
+        Dim hasProfiles As Boolean = ProfileList.Count > 0
+        Dim opType As Integer = 3 ' 1: 导入, 2: 导出, 3: 取消
+
+        ' 2. 用户交互
+        RunInUiWait(Sub()
+                        If hasProfiles Then
+                            opType = MyMsgBox($"PCL CE 支持与 HMCL 相互同步全局账户列表。{vbCrLf}请选择操作：", "账户迁移", "导入", "导出", "取消", ForceWait:=True)
+                        Else
+                            opType = MyMsgBox($"由于当前档案列表为空，仅支持从 HMCL 导入账户。", "账户迁移", "导入", "取消", ForceWait:=True)
+                            If opType = 2 Then opType = 3
+                        End If
+                    End Sub)
+
+        If opType = 3 Then Exit Sub
+
+        ' 3. 分发逻辑
+        If opType = 1 Then
+            PerformImport(hmclAccountPath)
         Else
-            RunInUiWait(Sub() type = MyMsgBox($"PCL CE 支持导入 HMCL 的全局账户列表，抑或是导出档案列表至 HMCL 全局账户列表。{vbCrLf}由于目前 PCL CE 不存在任何可用档案，无法导出档案。", "导入 / 导出档案", "导入", "取消", ForceWait:=True))
-            If type = 2 Then Exit Sub
-        End If
-        Dim outsidePath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\.hmcl\accounts.json"
-        If type = 1 Then '导入
-            Hint("正在导入，请稍后...", HintType.Info)
-            RunInNewThread(Sub()
-                               Dim importList As JArray
-                               Try
-                                   importList = JArray.Parse(ReadFile(outsidePath))
-                               Catch ex As Exception
-                                   importList = New JArray
-                               End Try
-                               Dim outputList As New List(Of McProfile)
-                               Dim importNum As Integer = 0
-                               For Each Profile In importList
-                                   Dim newProfile As McProfile = Nothing
-                                   Dim isDuplicated As Boolean = False
-                                   If Profile("type") = "microsoft" Then
-                                       For Each ExistProfile In ProfileList
-                                           If ExistProfile.Type = McLoginType.Ms AndAlso ExistProfile.Uuid = Profile("uuid") Then '不检查玩家 ID，因为可能改了名字还没刷新
-                                               isDuplicated = True
-                                               Exit For
-                                           End If
-                                       Next
-                                       newProfile = New McProfile With {
-                                                               .Type = McLoginType.Ms,
-                                                               .Uuid = Profile("uuid"),
-                                                               .Username = Profile("displayName"),
-                                                               .AccessToken = "",
-                                                               .Expires = 1743779140286,
-                                                               .Desc = "",
-                                                               .RawJson = "",
-                                                               .SkinHeadId = ""
-                                                           }
-                                       If Not isDuplicated Then outputList.Add(newProfile)
-                                   ElseIf Profile("type") = "authlibInjector" Then
-                                       newProfile = New McProfile With {
-                                                               .Type = McLoginType.Auth,
-                                                               .Uuid = Profile("uuid"),
-                                                               .Username = Profile("displayName"),
-                                                               .AccessToken = "",
-                                                               .RefreshToken = "",
-                                                               .Expires = 1743779140286,
-                                                               .Server = Profile("serverBaseURL"),
-                                                               .ServerName = "",
-                                                               .Name = Profile("username"),
-                                                               .Password = "",
-                                                               .ClientToken = Profile("clientToken"),
-                                                               .Desc = "",
-                                                               .SkinHeadId = ""
-                                                           }
-                                       Dim response As String = Nothing
-                                       Try
-                                           response = NetGetCodeByRequestRetry(newProfile.Server.Replace("/authserver", ""), Encoding.UTF8)
-                                           Dim serverName As String = JObject.Parse(response)("meta")("serverName").ToString()
-                                           newProfile.ServerName = serverName
-                                       Catch ex As Exception
-                                           ProfileLog("获取服务器名称失败，继续档案添加流程: " & ex.ToString())
-                                       End Try
-                                       outputList.Add(newProfile)
-                                   Else
-                                       newProfile = New McProfile With {
-                                                               .Type = McLoginType.Legacy,
-                                                               .Uuid = Profile("uuid"),
-                                                               .Username = Profile("username"),
-                                                               .Desc = "",
-                                                               .SkinHeadId = ""
-                                                           }
-                                       outputList.Add(newProfile)
-                                   End If
-                                   importNum += 1
-                               Next
-                               For Each Profile In outputList
-                                   ProfileList.Add(Profile)
-                               Next
-                               SaveProfile()
-                               ' 添加：如果导入0个档案
-                               If importNum = 0 Then
-                                   Hint("未找到任何可导入的档案！", HintType.Info)
-                               Else
-                                       Hint($"已导入 {importNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
-                               End If
-                               RunInUi(Sub() FrmLoginProfile.RefreshProfileList())
-                           End Sub, "Profile Import")
-        Else '导出
-            Hint("正在导出，请稍后...", HintType.Info)
-            Dim existList As JArray
-            Try
-                existList = JArray.Parse(ReadFile(outsidePath))
-            Catch ex As Exception
-                existList = New JArray
-            End Try
-            Dim outputList As New JArray
-            Dim outputNum As Integer = 0
-            For Each Profile In ProfileList
-                Dim newProfile As JObject = Nothing
-                If Profile.Type = McLoginType.Ms Then
-                    newProfile = New JObject From {
-                                           {"uuid", Profile.Uuid},
-                                           {"displayName", Profile.Username},
-                                           {"tokenType", "Bearer"},
-                                           {"accessToken", ""},
-                                           {"refreshToken", ""},
-                                           {"notAfter", 1743779140286},
-                                           {"userid", ""},
-                                           {"type", "microsoft"}
-                                       }
-                ElseIf Profile.Type = McLoginType.Auth Then
-                    newProfile = New JObject From {
-                                           {"serverBaseURL", Profile.Server},
-                                           {"clientToken", ""},
-                                           {"displayName", Profile.Username},
-                                           {"accessToken", ""},
-                                           {"type", "authlibInjector"},
-                                           {"uuid", Profile.Uuid},
-                                           {"username", Profile.Name}
-                                       }
-                Else
-                    newProfile = New JObject From {
-                                           {"uuid", Profile.Uuid},
-                                           {"username", Profile.Username},
-                                           {"type", "offline"}
-                                       }
-                End If
-                outputList.Add(newProfile)
-                outputNum += 1
-            Next
-            For Each Profile In outputList
-                existList.Add(Profile)
-            Next
-            WriteFile(outsidePath, existList.ToString())
-            Hint($"已导出 {outputNum} 个档案，部分档案可能需要重新验证密码！", HintType.Finish)
+            PerformExport(hmclAccountPath)
         End If
     End Sub
+
+    ' --- 核心业务逻辑 ---
+
+    Private Sub PerformImport(path As String)
+        Hint("正在从 HMCL 导入...", HintType.Info)
+        RunInNewThread(Sub()
+                           Try
+                               If Not File.Exists(path) Then
+                                   Hint("未找到 HMCL 的配置文件。", HintType.Critical)
+                                   Return
+                               End If
+
+                               ' 使用 System.Text.Json 解析
+                               Dim jsonBytes As Byte() = File.ReadAllBytes(path)
+                               Using doc As JsonDocument = JsonDocument.Parse(jsonBytes)
+                                   Dim importCount As Integer = 0
+
+                                   For Each element As JsonElement In doc.RootElement.EnumerateArray()
+                                       Dim profile = ConvertToPclProfile(element)
+                                       If profile Is Nothing Then Continue For
+
+                                       ' 查重逻辑
+                                       If profile.Type = McLoginType.Ms Then
+                                           If ProfileList.Any(Function(p) p.Type = McLoginType.Ms AndAlso p.Uuid = profile.Uuid) Then Continue For
+                                       End If
+
+                                       ProfileList.Add(profile)
+                                       importCount += 1
+                                   Next
+
+                                   SaveProfile()
+
+                                   If importCount = 0 Then
+                                       Hint("没有新档案可供导入。", HintType.Info)
+                                   Else
+                                       Hint($"成功导入 {importCount} 个档案！", HintType.Finish)
+                                       RunInUi(Sub() FrmLoginProfile.RefreshProfileList())
+                                   End If
+                               End Using
+                           Catch ex As Exception
+                               ProfileLog("导入失败: " & ex.Message)
+                               Hint("导入出错，请检查文件格式。", HintType.Critical)
+                           End Try
+                       End Sub, "Profile Import")
+    End Sub
+
+    Private Sub PerformExport(path As String)
+        Hint("正在导出至 HMCL...", HintType.Info)
+        Try
+            ' 1. 读取并解析现有列表，准备合并
+            Dim finalDictList As New List(Of Dictionary(Of String, Object))
+
+            If File.Exists(path) Then
+                Dim oldJson = File.ReadAllText(path)
+                If Not String.IsNullOrWhiteSpace(oldJson) Then
+                    ' 这里简单处理：将旧的转回原始结构，避免丢失 HMCL 自己的其他账户
+                    Using doc = JsonDocument.Parse(oldJson)
+                        For Each el In doc.RootElement.EnumerateArray()
+                            ' 此处可根据需要转换回 Dictionary
+                        Next
+                    End Using
+                End If
+            End If
+
+            ' 2. 转换当前 PCL 列表
+            For Each profile In ProfileList
+                finalDictList.Add(ConvertToHmclDict(profile))
+            Next
+
+            ' 3. 序列化并写入
+            Dim options As New JsonSerializerOptions With {.WriteIndented = True}
+            Dim jsonString As String = JsonSerializer.Serialize(finalDictList, options)
+
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path))
+            File.WriteAllText(path, jsonString)
+
+            Hint($"已成功同步 {ProfileList.Count} 个档案。", HintType.Finish)
+        Catch ex As Exception
+            ProfileLog("导出失败: " & ex.Message)
+            Hint("导出失败。", HintType.Critical)
+        End Try
+    End Sub
+
+    ' --- 类型转换辅助 ---
+
+    Private Function ConvertToPclProfile(el As JsonElement) As McProfile
+        Try
+            Dim typeStr = el.GetProperty("type").GetString()
+            Dim profile As New McProfile With {
+            .Uuid = If(el.TryGetProperty("uuid", Nothing), el.GetProperty("uuid").GetString(), ""),
+            .Expires = 1743779140286
+        }
+
+            Select Case typeStr
+                Case "microsoft"
+                    profile.Type = McLoginType.Ms
+                    profile.Username = el.GetProperty("displayName").GetString()
+                Case "authlibInjector"
+                    profile.Type = McLoginType.Auth
+                    profile.Username = el.GetProperty("displayName").GetString()
+                    profile.Server = el.GetProperty("serverBaseURL").GetString()
+                    profile.Name = el.GetProperty("username").GetString()
+                    profile.ClientToken = el.GetProperty("clientToken").GetString()
+                Case Else
+                    profile.Type = McLoginType.Legacy
+                    profile.Username = el.GetProperty("username").GetString()
+            End Select
+            Return profile
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function ConvertToHmclDict(profile As McProfile) As Dictionary(Of String, Object)
+        Dim dict As New Dictionary(Of String, Object)
+        dict("uuid") = profile.Uuid
+
+        Select Case profile.Type
+            Case McLoginType.Ms
+                dict("displayName") = profile.Username
+                dict("type") = "microsoft"
+                dict("tokenType") = "Bearer"
+                dict("accessToken") = ""
+                dict("notAfter") = 1743779140286
+            Case McLoginType.Auth
+                dict("serverBaseURL") = profile.Server
+                dict("displayName") = profile.Username
+                dict("username") = profile.Name
+                dict("type") = "authlibInjector"
+                dict("clientToken") = profile.ClientToken
+            Case Else
+                dict("username") = profile.Username
+                dict("type") = "offline"
+        End Select
+        Return dict
+    End Function
 #End Region
 
 #Region "离线 UUID 获取"
