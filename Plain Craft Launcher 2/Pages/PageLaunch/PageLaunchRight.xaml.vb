@@ -13,12 +13,12 @@ Public Class PageLaunchRight
         LabHint2.Text = $"若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。"
     End Sub
 
-    '暂时关闭快照版提示
+    '关闭社区版提示
     Private Sub BtnHintClose_Click(sender As Object, e As EventArgs) Handles BtnHintClose.Click
         Dim input = MyMsgBoxInput("输入 PCL CE 开发组织名称")
         If input.IsNullOrWhiteSpace() Then Return
         input = New String(input.Where(Function(x) Char.IsAsciiLetter(x)).ToArray()).ToLower()
-        If input.Contains("pclcommunity") Then
+        If input.Contains("pclcommunity") OrElse input = "pclc" Then
             AniDispose(PanHint, True)
             Config.Hint.CEMessage = False
         Else
