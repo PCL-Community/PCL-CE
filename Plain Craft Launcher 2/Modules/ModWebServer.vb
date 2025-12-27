@@ -195,36 +195,10 @@ Public Module ModWebServer
         Return True
     End Function
 
-    Public Sub StartNaidAuthorize(Optional completeCallback As Action = Nothing)
-        StartOAuthWaitingCallback("NatayarkID", "", '$"https://account.naids.com/oauth2/authorize?response_type=code&client_id={NatayarkClientId}&redirect_uri=%r",
-            Function(success, parameters, content)
-                If Not success Then
-                    MyMsgBox(content, IsWarn:=True)
-                    completeCallback?.Invoke()
-                    Return Nothing
-                End If
-                Dim status As OAuthCompleteStatus = Nothing
-                Dim code = parameters("code")
-                Dim resultEx As Exception = Nothing
-                Try
-                    NatayarkProfileManager.GetNaidDataAsync(code).Wait()
-                Catch ex As AggregateException
-                    resultEx = ex.InnerExceptions(0)
-                End Try
-                If resultEx Is Nothing Then
-                    status = OAuthCompleteStatus.Complete(NatayarkProfileManager.NaidProfile.Username)
-                Else
-                    status = OAuthCompleteStatus.Failed("获取用户信息失败，请尝试重新登录", resultEx)
-                End If
-                completeCallback?.Invoke()
-                Return status
-            End Function)
-    End Sub
-
 #End Region
 
 #Region "旧的 HTTP 服务端实现"
-#If False
+#If False Then
     Private Server As HttpListener
     Public Class HttpServer
         Public Sub New()
