@@ -1,5 +1,5 @@
-﻿Imports System.Security
-
+﻿Imports PCL.Core.Utils.Exts
+Imports PCL.Core.App
 Public Class PageLaunchRight
     Implements IRefreshable
 
@@ -9,13 +9,21 @@ Public Class PageLaunchRight
         PanLog.Visibility = If(ModeDebug, Visibility.Visible, Visibility.Collapsed)
         '社区版提示
         PanHint.Visibility = If(Setup.Get("UiLauncherCEHint"), Visibility.Visible, Visibility.Collapsed)
-        LabHint1.Text = "社区版包含未在官方主线版本发布的功能，仅用于尝鲜。请不要向官方仓库反馈社区版的问题哦！"
-        LabHint2.Text = $"若要永久隐藏此提示，请参阅 README。"
+        LabHint1.Text = $"你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。{vbCrLf}{vbCrLf}如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{vbCrLf}此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！{vbCrLf}"
+        LabHint2.Text = $"若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。"
     End Sub
 
     '暂时关闭快照版提示
     Private Sub BtnHintClose_Click(sender As Object, e As EventArgs) Handles BtnHintClose.Click
-        AniDispose(PanHint, True)
+        Dim input = MyMsgBoxInput("输入 PCL CE 开发组织名称")
+        If input.IsNullOrWhiteSpace() Then Return
+        input = New String(input.Where(Function(x) Char.IsAsciiLetter(x)).ToArray()).ToLower()
+        If input.Contains("pclcommunity") Then
+            AniDispose(PanHint, True)
+            Config.Hint.CEMessage = False
+        Else
+            Hint("不太对哦……")
+        End If
     End Sub
 
 #Region "主页"

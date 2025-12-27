@@ -29,7 +29,7 @@
 
                 </Grid>
             </local:MyCard>
-            <StackPanel Orientation="Vertical" Margin="25,0,25,10" x:Name="PanContent">
+            <StackPanel Orientation="Vertical" Margin="25,10,25,10" x:Name="PanContent">
 
                 <local:MySearchBox Margin="0,15" HintText="搜索存档名称" x:Name="SearchBox" />
 
