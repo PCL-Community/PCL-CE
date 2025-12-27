@@ -1,4 +1,4 @@
-PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本。
+PCL 修改版是由 Baymaxawa 开发的 PCL 社区版的衍生版本
 
 在 PCL 文件夹下创建 hints.txt ，可以自定义“你知道吗”的内容，注意编码需要为 UTF-8！
 

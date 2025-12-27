@@ -157,7 +157,7 @@ WaitRetry:
             End If
             '删除旧日志
             For i = 1 To 5
-                Dim oldLogFile = $"{ExePath}PCL\Log-CE{i}.log"
+                Dim oldLogFile = $"{ExePath}PCL\Log-MOD{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
             'Pipe RPC 初始化

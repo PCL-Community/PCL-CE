@@ -166,7 +166,7 @@ Download:
                     Return hint
                 End If
                 Log("[Page] 外部 hints.txt 文件为空", LogLevel.Debug)
-                Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
+                Return "PCL 修改版是由 Baymaxawa 开发的 PCL 社区版的衍生版本"
             Catch ex As Exception
                 Log(ex, "[Page] 读取外部 hints.txt 失败", LogLevel.Hint)
             End Try
@@ -182,7 +182,7 @@ Download:
             End Using
         Catch ex As Exception
             Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
-            Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
+            Return "PCL 修改版是由 Baymaxawa 开发的 PCL 社区版的衍生版本"
         End Try
     End Function
 

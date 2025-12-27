@@ -237,20 +237,6 @@ Class PageSetupSystem
     Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
         UpdateCheckByButton()
     End Sub
-    Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
-        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个付费的第三方应用分发平台，用于提供国内有偿高速下载源{vbCrLf}这是一项可选服务，不填入 CDK 不影响软件的正常使用。你如果拥有 Mirror 酱的 CDK，可以提供给 PCL-CE，启动器会优先使用他们的高速下载源下载版本更新，同时也能缓解社区公益更新服务器的一些压力……")
-        If ret Is Nothing Then Return
-        If String.IsNullOrWhiteSpace(ret) Then
-            Setup.Reset("SystemMirrorChyanKey")
-            Hint("已移除 Mirror 酱 CDK！", HintType.Finish)
-        Else
-            Setup.Set("SystemMirrorChyanKey", ret)
-            Hint("设置 Mirror 酱 CDK 成功！", HintType.Finish)
-        End If
-    End Sub
-    Private Sub BtnSystemMirrorChyanGetKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanGetKey.Click
-        OpenWebsite("https://mirrorchyan.com/zh/projects?rid=PCL2-CE&source=pcl2ce-app")
-    End Sub
     ''' <summary>
     ''' 启动器是否已经是最新版？
     ''' 若返回 Nothing，则代表无更新缓存文件或出错。

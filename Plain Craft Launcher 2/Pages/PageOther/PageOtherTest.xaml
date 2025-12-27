@@ -14,7 +14,7 @@
                     <local:MyButton x:Name="BtnClear" MinWidth="120" Text="清理游戏垃圾" ToolTip="清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件" Margin="0,0,15,15" Click="BtnClear_Click"/>
                     <local:MyButton MinWidth="100" Text="今日人品" Margin="0,0,15,15" Click="BtnLuck_Click"/>
                     <local:MyButton MinWidth="100" Text="崩溃测试" ToolTip="点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭" ColorType="Red" Margin="0,0,15,15" Click="BtnCrash_Click"/>
-                    <local:MyButton MinWidth="120" Text="创建快捷方式" ToolTip="创建一个指向 PCL 社区版可执行文件的快捷方式" Margin="0,0,15,15" Click="BtnCreateShortcut_Click"/>
+                    <local:MyButton MinWidth="120" Text="创建快捷方式" ToolTip="创建一个指向 PCL 修改版可执行文件的快捷方式" Margin="0,0,15,15" Click="BtnCreateShortcut_Click"/>
                     <local:MyButton MinWidth="120" Text="查看启动计数" Margin="0,0,15,15" Click="BtnLaunchCount_Click"/>
                 </WrapPanel>
             </local:MyCard>

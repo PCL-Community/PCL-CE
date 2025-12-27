@@ -437,7 +437,7 @@ Public Class FormMain
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
-                Log("请在 https://github.com/Aruvelut-123/PCL2-MOD/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
+                Log("请在 https://github.com/Aruvelut-123/PCL2-MOD/issues 提交错误报告，以便于作者解决此问题！（这也有可能是原版 PCL 的问题）")
                 IsLogShown = True
                 ShellOnly(LogWrapper.CurrentLogger.LogFiles.Last())
             End If

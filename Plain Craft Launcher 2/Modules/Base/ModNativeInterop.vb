@@ -7,7 +7,7 @@ Public Module ModNativeInterop
 
 #Region "命名管道通信"
 
-    Private Const LogPipePrefix As String = "PCLCE_LOG@"
+    Private Const LogPipePrefix As String = "PCLMOD_LOG@"
 
     Private ReadOnly PredefinedProperties As RPCProperty() = {
         New RPCProperty("version",

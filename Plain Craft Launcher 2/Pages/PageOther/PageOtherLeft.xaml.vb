@@ -152,7 +152,7 @@
                                Case 1
                                    Feedback(True, False)
                                Case 2
-                                   OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
+                                   OpenWebsite("https://github.com/Aruvelut-123/PCL2-MOD/issues/")
                            End Select
                        End Sub)
 

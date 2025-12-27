@@ -15,9 +15,9 @@ Friend Module ModSecret
 #Region "杂项"
 
 #If DEBUG Then
-    Public Const RegFolder As String = "PCLMODDebug" '社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    Public Const RegFolder As String = "PCLMODDebug" '修改开发版的注册表与修改常规版的注册表隔离，以防数据冲突
 #Else
-    Public Const RegFolder As String = "PCLMOD" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
+    Public Const RegFolder As String = "PCLMOD" 'PCL 修改版的注册表与 PCL 的注册表隔离，以防数据冲突
 #End If
     '用于微软登录的 ClientId
     Public ReadOnly OAuthClientId As String = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly:=True).ReplaceNullOrEmpty()
@@ -68,18 +68,21 @@ Friend Module ModSecret
     ''' </summary>
     ''' <param name="IsUpdate">是否为更新时启动</param>
     Public Sub ShowCEAnnounce()
-        MyMsgBox($"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
-PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
+        MyMsgBox($"你正在使用来自 PCL-Community 的 PCL 修改版本，遇到问题请不要向官方或社区仓库反馈！
+Baymaxawa 与 PCL-Community 及其成员和龙腾猫跃无从属关系，且均不会为您的使用做担保。
 
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的修改版，建议下载官方版 PCL 使用。
+如果你是意外下载的修改版，建议下载官方版 PCL 使用。
+如果你是意外下载的修改版，建议下载官方版 PCL 使用。
 
 该版本与官方版本的特性区别：
 - 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
 - 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
 
-此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了")
+该版本与社区版本的特性区别：
+- 联机：个人能力原因无法维护，所以移除了。
+
+此提示会在启动器更新后展示一次。", "修改版本说明", "我知道了")
     End Sub
 
     ''' <summary>
