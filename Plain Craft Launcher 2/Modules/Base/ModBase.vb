@@ -19,12 +19,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
-    Public Const UpstreamVersion As String = "2.10.5" '上游版本
+    Public Const VersionBaseName As String = "2.0.0-beta.1" '不含分支前缀的显示用版本名
+    Public Const VersionStandardCode As String = "2.0.0." & VersionBranchCode
+    Public Const UpstreamVersion As String = "2.13.4-beta.5" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 417 '内部版本号
+    Public Const VersionCode As Integer = 100 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -105,7 +105,7 @@ Public Module ModBase
     ''' <summary>
     ''' AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathAppdataConfig As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & If(VersionBranchName = "Debug", "\.pclcedebug\", "\.pclce\")
+    Public PathAppdataConfig As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & If(VersionBranchName = "Debug", "\.pclmoddebug\", "\.pclmod\")
 
     Public PathHelpFolder As String = PathTemp & "CE\Help\"
 
@@ -2888,7 +2888,7 @@ NextElement:
         If ForceOpenLog OrElse (ShowMsgbox AndAlso MyMsgBox("若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" & currentDate & "-[一串数字].log 中包含错误信息的文件。" & vbCrLf & "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") = 1) Then
             OpenExplorer(ExePath & "PCL\Log\")
         End If
-        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
+        OpenWebsite("https://github.com/Aruvelut-123/PCL2-MOD/issues/")
     End Sub
     Public Function CanFeedback(ShowHint As Boolean) As Boolean
         If Not IsVerisonLatest() Then

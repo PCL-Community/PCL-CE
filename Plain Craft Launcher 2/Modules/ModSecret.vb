@@ -549,12 +549,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public IsCheckingUpdates As Boolean = False
     Public IsUpdateWaitingRestart As Boolean = False
     Public RemoteServer As New UpdatesWrapperModel({
-        New UpdatesMirrorChyanModel(),
-        New UpdatesRandomModel({
-                New UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
-                New UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
-            }),
-        New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
+        New UpdatesMinioModel("https://pcl.minecraftisbest.top/pcl2-mod/", "Self-Hosted")
     })
     Public ReadOnly Property IsUpdBetaChannel
         Get
@@ -609,11 +604,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
                 Exit Sub
             End If
-            If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
-                MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
-                         "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
-                Return
-            End If
+            'If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
+            '   MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
+            '             "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
+            '   Return
+            'End If
             If MyMsgBoxMarkdown($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "取消") = 1 Then
                 UpdateStart(False)
             End If
@@ -623,7 +618,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
 
     Public Sub UpdateStart(Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
-        Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
+        Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Modded Edition.exe"
         RunInNewThread(Sub()
                            Try
                                Dim version = RemoteServer.GetLatestVersion(
@@ -663,7 +658,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Sub
     Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
         Try
-            Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
+            Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Modded Edition.exe"
             If Not File.Exists(fileName) Then
                 Log("[System] 更新失败：未找到更新文件")
                 Exit Sub
@@ -744,7 +739,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     ''' </summary>
     Friend Sub DownloadLatestPCL(Optional LoaderToSyncProgress As LoaderBase = Nothing)
         '注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
-        Dim LatestPCLPath As String = PathTemp & "CE-Latest.exe"
+        Dim LatestPCLPath As String = PathTemp & "MOD-Latest.exe"
         Dim target = RemoteServer.GetLatestVersion(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
         If target Is Nothing Then Throw New Exception("无法获取更新")
         If File.Exists(LatestPCLPath) AndAlso GetFileSHA256(LatestPCLPath) = target.SHA256 Then

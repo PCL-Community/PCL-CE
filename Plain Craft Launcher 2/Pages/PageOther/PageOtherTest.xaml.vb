@@ -505,7 +505,7 @@ Public Class PageOtherTest
     End Function
     Public Shared Function GetRating(luckValue As Integer) As String
         If luckValue = 100 Then
-            Return "100！100！" & vbCrLf & "隐藏主题 欧皇…… 不对，社区版应该没有这玩意……"
+            Return "100！100！" & vbCrLf & "隐藏主题 欧皇…… 不对，修改版应该没有这玩意……"
         Else
             Return If(luckValue >= 95, "差一点就到100了呢...",
            If(luckValue >= 90, "好评如潮！",
@@ -518,7 +518,7 @@ Public Class PageOtherTest
     End Function
 
     Private Sub BtnCreateShortcut_Click(sender As Object, e As MouseButtonEventArgs)
-        Const shortcutName = "PCL 社区版.lnk"
+        Const shortcutName = "PCL 修改版.lnk"
         Const desktopName = "桌面"
         Const startName = "开始菜单"
         Dim desktop = FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)

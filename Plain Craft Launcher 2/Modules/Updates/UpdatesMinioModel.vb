@@ -142,7 +142,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
                                                                    Else
                                                                        Using fs As New FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                                                                            Using zip As New ZipArchive(fs)
-                                                                               Dim entry = zip.Entries.Where(Function(x) x.Name.Contains("Plain Craft Launcher Community Edition.exe")).FirstOrDefault()
+                                                                               Dim entry = zip.Entries.Where(Function(x) x.Name.Contains("Plain Craft Launcher Modded Edition.exe")).FirstOrDefault()
                                                                                If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains("Plain Craft Launcher")).FirstOrDefault()
                                                                                If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains("Launcher")).FirstOrDefault()
                                                                                If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains(".exe")).FirstOrDefault()

@@ -16,15 +16,15 @@ Public Class FormMain
     Private Sub ShowUpdateLog()
         RunInNewThread(
             Sub()
-                Dim ChangelogFile = $"{PathTemp}CEUpdateLog.md"
+                Dim ChangelogFile = $"{PathTemp}MODUpdateLog.md"
                 Dim Changelog As String
                 If File.Exists(ChangelogFile) Then
                     Changelog = ReadFile(ChangelogFile)
                 Else
                     Changelog = "欢迎使用呀~"
                 End If
-                If MyMsgBoxMarkdown(Changelog, "PCL CE 已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
-                    OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases")
+                If MyMsgBoxMarkdown(Changelog, "PCL2 修改版已更新至 " & VersionBranchName & " " & VersionBaseName, "确定", "完整更新日志") = 2 Then
+                    OpenWebsite("https://github.com/Aruvelut-123/PCL2-MOD/releases")
                 End If
             End Sub, "UpdateLog Output")
     End Sub
@@ -189,21 +189,21 @@ Public Class FormMain
 #If DEBUG Or DEBUGCI Then
             If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
 #If DEBUG Then
-                Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 修改版为 Debug 版本。" & vbCrLf &
                              "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
                              vbCrLf &
-                             "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
+                             "非开发者用户使用该版本造成的一切问题均不被开发者支持，相关 issue 可能会被直接关闭。" & vbCrLf &
                              "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
 #Else
-                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
+                Const hint = "当前运行的 PCL 修改版为 CI 自动构建版本。" & vbCrLf &
                              "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
                              vbCrLf &
-                             "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
+                             "除非开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
 #End If
                 MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
                          "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
                          Button2Action:=Sub()
-                                            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
+                                            OpenWebsite("https://github.com/Aruvelut-123/PCL2-MOD/releases/latest")
                                             EndProgram(False)
                                         End Sub)
             End If
@@ -262,8 +262,8 @@ Public Class FormMain
         Setup.Set("SystemCount", Setup.Get("SystemCount") + 1)
         If Setup.Get("SystemCount") >= 99 Then
             If ThemeUnlock(6, False) Then
-                MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" & vbCrLf &
-                         "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！", "提示")
+                MyMsgBox("你已经打开了 99 次 PCL 修改版啦，感谢你长期以来的支持！" & vbCrLf &
+                         "隐藏主题 铁杆粉 未解锁！毕竟修改版不包含隐藏主题嘛 :)", "提示")
             End If
         End If
     End Sub
@@ -437,7 +437,7 @@ Public Class FormMain
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
-                Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
+                Log("请在 https://github.com/Aruvelut-123/PCL2-MOD/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
                 IsLogShown = True
                 ShellOnly(LogWrapper.CurrentLogger.LogFiles.Last())
             End If

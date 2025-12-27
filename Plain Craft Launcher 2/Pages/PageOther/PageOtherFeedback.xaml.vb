@@ -42,7 +42,7 @@ Public Class PageOtherFeedback
 
     Public Sub FeedbackListGet(Task As LoaderTask(Of Integer, List(Of Feedback)))
         Dim list As JArray
-        list = NetGetCodeByRequestRetry("https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True) '获取近期 200 条数据就够了
+        list = NetGetCodeByRequestRetry("https://api.github.com/repos/Aruvelut-123/PCL2-MOD/issues?state=all&sort=created&per_page=200", IsJson:=True, UseBrowserUserAgent:=True) '获取近期 200 条数据就够了
         If list Is Nothing Then Throw New Exception("无法获取到内容")
         Dim res As List(Of Feedback) = New List(Of Feedback)
         For Each i As JObject In list

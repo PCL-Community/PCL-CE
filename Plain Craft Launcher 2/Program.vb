@@ -14,7 +14,7 @@ Module Program
             End While
         End If
 #End If
-        Console.WriteLine("Welcome to Plain Craft Launcher 2 Community Edition!")
+        Console.WriteLine("Welcome to Plain Craft Launcher 2 Modded Edition!")
         'Preloading tasks
         ApplicationService.Loading =
             Function()
