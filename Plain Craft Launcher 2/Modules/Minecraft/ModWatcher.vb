@@ -153,9 +153,10 @@ Public Module ModWatcher
                         TimerLog()
                         '设置窗口标题
                         For i = 1 To 3
-                            If IsWindowFinished AndAlso IsWindowAppeared AndAlso WindowTitle <> "" AndAlso State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
-                                Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy/M/d")).Replace("{time}", Date.Now.ToString("HH:mm:ss"))
-                                SetWindowText(WindowHandle, RealTitle.ToCharArray)
+                            If State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
+                                
+                            Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy/M/d")).Replace("{time}", Date.Now.ToString("HH:mm:ss"))
+                                 SetWindowText(WindowHandle, RealTitle)
                             End If
                             Thread.Sleep(64)
                         Next
@@ -428,39 +429,45 @@ Public Module ModWatcher
         Private Function TryGetMinecraftWindow() As KeyValuePair(Of IntPtr, String)?
             TryGetMinecraftWindow = Nothing
             EnumWindows(
-                Sub(hwnd As IntPtr, lParam As Integer)
-                    If TryGetMinecraftWindow IsNot Nothing Then Return
-                    '检查类名
+                Function(hwnd As IntPtr, lParam As IntPtr) As Boolean
+                    If TryGetMinecraftWindow IsNot Nothing Then Return False ' 找到后停止枚举
+                    
                     Dim str As New StringBuilder(512)
                     GetClassName(hwnd, str, str.Capacity)
-                    Dim ClassName As String = str.ToString
-                    If Not (ClassName = "GLFW30" OrElse ClassName = "LWJGL" OrElse ClassName = "SunAwtFrame") Then Return
-                    '获取窗口标题名
+                    Dim ClassName As String = str.ToString()
+
+                    If Not (ClassName = "GLFW30" OrElse ClassName = "LWJGL" OrElse ClassName = "SunAwtFrame") Then Return True
+
+                    ' 获取窗口标题名
                     str = New StringBuilder(512)
                     GetWindowText(hwnd, str, str.Capacity)
-                    Dim WindowText As String = str.ToString
-                    '有的 Mod 可以修改窗口标题，所以不能检测是否为 Minecraft 打头，这并不准确
+                    Dim WindowText As String = str.ToString()
+
                     '部分版本会搞个 GLFW message window 出来所以得反选
-                    If Not (WindowText.StartsWithF("FML") OrElse (WindowText <> "PopupMessageWindow") AndAlso Not WindowText.StartsWithF("GLFW")) Then Return
-                    '获取窗口关联的进程
+                    If Not (WindowText.StartsWithF("FML") OrElse (WindowText <> "PopupMessageWindow") AndAlso Not WindowText.StartsWithF("GLFW")) Then Return True
+
+                    ' 获取窗口关联的进程
                     Dim ProcessId As Integer
                     GetWindowThreadProcessId(hwnd, ProcessId)
                     Try
-                        If Process.GetProcessById(ProcessId).StartTime < GameProcess.StartTime Then Return '需要是此后启动的进程
+                        If ProcessId <> GameProcess.Id Then Return True
                     Catch ex As Exception
-                        Log(ex, "枚举 Minecraft 窗口进程失败")
-                        Return
+                        Return True
                     End Try
-                    '返回
+
+                    ' 找到目标，赋值并停止枚举
                     TryGetMinecraftWindow = New KeyValuePair(Of IntPtr, String)(hwnd, WindowText)
-                End Sub, 0)
+                    Return False
+                End Function, IntPtr.Zero)
             Return TryGetMinecraftWindow
         End Function
-        Private Delegate Sub EnumWindowsSub(hwnd As IntPtr, lParam As Integer)
-        Private Declare Function EnumWindows Lib "user32" (hWnd As EnumWindowsSub, lParam As Integer) As Boolean
-        Private Declare Function GetClassName Lib "user32" Alias "GetClassNameA" (hWnd As Integer, str As StringBuilder, maxCount As Integer) As Integer
-        Private Declare Function GetWindowText Lib "user32" Alias "GetWindowTextA" (hWnd As Integer, str As StringBuilder, maxCount As Integer) As Integer
-        Private Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (hWnd As Integer, str As String) As Boolean
+
+        Private Delegate Function EnumWindowsSub(hwnd As IntPtr, lParam As IntPtr) As Boolean
+        Private Declare Function EnumWindows Lib "user32" (lpEnumFunc As EnumWindowsSub, lParam As IntPtr) As Boolean
+        Private Declare Unicode Function GetClassName Lib "user32" Alias "GetClassNameW" (hWnd As IntPtr, lpClassName As StringBuilder, nMaxCount As Integer) As Integer
+        Private Declare Unicode Function GetWindowText Lib "user32" Alias "GetWindowTextW" (hWnd As IntPtr, lpString As StringBuilder, nMaxCount As Integer) As Integer
+        Private Declare Unicode Function SetWindowText Lib "user32" Alias "SetWindowTextW" (hWnd As IntPtr, lpString As String) As Boolean
+    
         Private Declare Function ShowWindow Lib "user32" (hWnd As IntPtr, cmdWindow As UInteger) As Boolean
         Private Declare Function GetWindowThreadProcessId Lib "user32" (hWnd As IntPtr, ByRef lpdwProcessId As Integer) As Integer
 
