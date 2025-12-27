@@ -171,8 +171,8 @@ Public Class PageOtherTest
 
                         '寻找所有 Minecraft 文件夹
                         For Each mcFolder As McFolder In McFolderList
-                            cleanMcFolderList.Add(New DirectoryInfo(mcFolder.Path))
-                            Dim dirInfo As DirectoryInfo = New DirectoryInfo(mcFolder.Path + "versions")
+                            cleanMcFolderList.Add(New DirectoryInfo(mcFolder.Location))
+                            Dim dirInfo As DirectoryInfo = New DirectoryInfo(mcFolder.Location + "versions")
                             If dirInfo.Exists Then
                                 For Each item As DirectoryInfo In dirInfo.EnumerateDirectories()
                                     cleanMcFolderList.Add(item)

@@ -134,12 +134,12 @@ Public Module ModJava
     End Function
 
     ''' <summary>
-    ''' 获取下载 Java 8/14/17/21 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
+    ''' 获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
     ''' </summary>
-    Public Function JavaFixLoaders(Version As Integer) As LoaderCombo(Of Integer)
+    Public Function GetJavaDownloadLoader() As LoaderCombo(Of String)
         Dim JavaDownloadLoader As New LoaderDownload("下载 Java 文件", New List(Of NetFile)) With {.ProgressWeight = 10}
-        Dim Loader = New LoaderCombo(Of Integer)($"下载 Java {Version}", {
-            New LoaderTask(Of Integer, List(Of NetFile))("获取 Java 下载信息", AddressOf JavaFileList) With {.ProgressWeight = 2},
+        Dim Loader = New LoaderCombo(Of String)($"下载 Java", {
+            New LoaderTask(Of String, List(Of NetFile))("获取 Java 下载信息", AddressOf JavaFileList) With {.ProgressWeight = 2},
             JavaDownloadLoader
         })
         AddHandler JavaDownloadLoader.OnStateChangedThread,
@@ -156,22 +156,29 @@ Public Module ModJava
         Return Loader
     End Function
     Private LastJavaBaseDir As String = Nothing '用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
-    Private Sub JavaFileList(Loader As LoaderTask(Of Integer, List(Of NetFile)))
+    Private Sub JavaFileList(Loader As LoaderTask(Of String, List(Of NetFile)))
         Log("[Java] 开始获取 Java 下载信息")
         Dim IndexFileStr As String = NetGetCodeByLoader(DlVersionListOrder(
             {"https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"},
             {"https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"}
         ), IsJson:=True)
-        '获取下载地址
-        Dim MainEntry As JObject = CType(GetJson(IndexFileStr), JObject)($"windows-x{If(Is32BitSystem, "86", "64")}")
-        Dim Entries = MainEntry.Children.Reverse. '选择最靠后的一项（最新）
-            SelectMany(Function(e As JProperty) CType(e.Value, JArray).Select(Function(v) New KeyValuePair(Of String, JObject)(e.Name, v)))
-        Dim TargetEntry = Entries.First(Function(t) t.Value("version")("name").ToString.StartsWithF(Loader.Input))
-        Dim Address As String = TargetEntry.Value("manifest")("url")
-        Log($"[Java] 准备下载 Java {TargetEntry.Value("version")("name")}（{TargetEntry.Key}）：{Address}")
+        '查找要下载的目标 Java
+        Dim TargetEntry As JProperty = Nothing
+        Dim Components As JObject = CType(GetJson(IndexFileStr), JObject)($"windows-x{If(Is32BitSystem, "86", "64")}")
+        If Components.ContainsKey(Loader.Input) Then '精确匹配
+            TargetEntry = Components.Property(Loader.Input)
+        Else '模糊匹配
+            TargetEntry = Components.Properties.FirstOrDefault(
+                Function(c) c.Value?.ToArray.FirstOrDefault()?("version")("name").ToString.StartsWithF(Loader.Input))
+            If TargetEntry Is Nothing Then Throw New Exception($"未能找到所需的 Java {Loader.Input}")
+        End If
+        Dim TargetComponent = TargetEntry.Value.ToArray.FirstOrDefault
+        If TargetComponent Is Nothing Then Throw New Exception($"Mojang 未提供所需的 Java {Loader.Input}")
         '获取文件列表
-        Dim ListFileStr As String = NetGetCodeByLoader(DlSourceOrder({Address}, {Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")}), IsJson:=True)
-        LastJavaBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\runtime\" & TargetEntry.Key & "\"
+        Dim Address As String = TargetComponent("manifest")("url")
+        McLaunchLog($"准备下载 Java {TargetComponent("version")("name")}（{TargetEntry.Name}）：{Address}")
+        Dim ListFileStr As String = NetGetCodeByRequestRetry(DlSourceOrder({Address}, {Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")}).First(), IsJson:=True)
+        LastJavaBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\runtime\" & TargetEntry.Name & "\"
         Dim Results As New List(Of NetFile)
         For Each File As JProperty In CType(GetJson(ListFileStr), JObject)("files")
             If CType(File.Value, JObject)("downloads")?("raw") Is Nothing Then Continue For

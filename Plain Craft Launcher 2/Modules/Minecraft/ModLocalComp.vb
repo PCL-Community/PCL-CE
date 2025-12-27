@@ -1571,8 +1571,8 @@ Finished:
                             Try
                                 If File.DirectoryName.ToLower & "\" <> RawName Then
                                     If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Version.HasForge AndAlso
-                                            PageInstanceLeft.Instance.Version.McCodeMain < 13 AndAlso
-                                            File.Directory.Name = $"1.{PageInstanceLeft.Instance.Version.McCodeMain}.{PageInstanceLeft.Instance.Version.McCodeSub}") Then
+                                            PageInstanceLeft.Instance.Version.Drop < 130 AndAlso
+                                            File.Directory.Name = PageInstanceLeft.Instance.Version.VanillaName) Then
                                         Continue For
                                     End If
                                 End If
@@ -1637,7 +1637,7 @@ Finished:
                 'End If
                 '读取 Comp 缓存
                 If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
-                Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.McName & Loader.Input.Loaders.Join("")
+                Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.VanillaName & Loader.Input.Loaders.Join("")
                 If Cache.ContainsKey(CacheKey) Then
                     ModEntry.FromJson(Cache(CacheKey))
                     '如果缓存中的信息在 6 小时以内更新过，则无需重新获取
@@ -1682,7 +1682,7 @@ Finished:
         '获取作为检查目标的加载器和版本
         '此处不应向下扩展检查的 MC 小版本，例如 Mod 在更新 1.16.5 后，对早期的 1.16.2 版本发布了修补补丁，这会导致 PCL 将 1.16.5 版本的 Mod 降级到 1.16.2
         Dim ModLoaders = Loader.Input.Loaders
-        Dim McInstance = Loader.Input.GameVersion.Version.McName
+        Dim McInstance = Loader.Input.GameVersion.Version.VanillaName
         '开始网络获取
         Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McInstance}")
         Dim EndedThreadCount As Integer = 0, IsFailed As Boolean = False
@@ -1809,7 +1809,7 @@ Finished:
                                 Dim IndexVersion As String = IndexEntry("gameVersion")
                                 If IndexVersion <> McInstance Then Continue For 'MC 版本匹配
                                 '由于 latestFilesIndexes 是按时间从新到老排序的，所以只需取第一个；如果需要检查多个 releaseType 下的文件，将 > -1 改为 = 1，但这应当并不会获取到更新的文件
-                                If NewestVersion IsNot Nothing AndAlso VersionSortInteger(NewestVersion, IndexVersion) > -1 Then Continue For '只保留最新 MC 版本
+                                If NewestVersion IsNot Nothing AndAlso CompareVersionGe(NewestVersion, IndexVersion) > -1 Then Continue For '只保留最新 MC 版本
                                 If NewestVersion <> IndexVersion Then
                                     NewestVersion = IndexVersion
                                     NewestFileIds.Clear()
@@ -1919,7 +1919,7 @@ Finished:
 
     Public Function GetModLocalCompByKeywords(instance As McInstance, modIds As String(), mainKeyword As String, ParamArray keywords As String()) As LocalCompFile
         If Not instance.Modable Then Return Nothing '跳过不可安装 Mod 实例
-        Dim modFolder = $"{instance.Path}mods"
+        Dim modFolder = $"{instance.PathInstance}mods"
         If Not Directory.Exists(modFolder) Then Return Nothing '确保 mods 目录存在
         For Each file In Directory.EnumerateFiles(modFolder, $"*{mainKeyword}*")
             Dim lowerFilePath = file.ToLower() '统一转为小写

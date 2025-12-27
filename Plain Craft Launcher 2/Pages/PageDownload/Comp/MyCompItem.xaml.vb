@@ -67,8 +67,8 @@ Public Class MyCompItem
         Set(value As List(Of String))
             PanTags.Children.Clear()
             PanTags.Visibility = If(value.Any(), Visibility.Visible, Visibility.Collapsed)
-            For Each TagText In value
-                Dim NewTag As New Border With {
+            For Each tagText In value
+                Dim newTag As New Border With {
                     .Background = New SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
                     .Padding = New Thickness(3, 1, 3, 1),
                     .CornerRadius = New CornerRadius(3),
@@ -76,18 +76,18 @@ Public Class MyCompItem
                     .SnapsToDevicePixels = True,
                     .UseLayoutRounding = False
                 }
-                Dim TagTextBlock As New TextBlock With {
+                Dim tagTextBlock As New TextBlock With {
                     .Text = TagText,
                     .Foreground = New SolidColorBrush(Color.FromRgb(134, 134, 134)),
                     .FontSize = 11
                 }
-                NewTag.Child = TagTextBlock
-                PanTags.Children.Add(NewTag)
+                newTag.Child = tagTextBlock
+                PanTags.Children.Add(newTag)
             Next
         End Set
     End Property
 
-    ‘ 收藏按钮
+    ‘收藏按钮
     Public Property ShowFavoriteBtn As Boolean
         Set
             PanButtons.Visibility = If(value, Visibility.Visible, Visibility.Collapsed)

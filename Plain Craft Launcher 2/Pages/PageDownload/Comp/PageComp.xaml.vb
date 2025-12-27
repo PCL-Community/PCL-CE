@@ -100,7 +100,7 @@ Public Class PageComp
         If TargetVersion IsNot Nothing Then
             '设置目标
             ResetFilter() '重置筛选器
-            TextSearchVersion.Text = TargetVersion.Version.McName
+            TextSearchVersion.Text = TargetVersion.Version.VanillaName
             Dim GetTargetItemByName =
             Function(Name As String) As MyComboBoxItem
                 For Each Item As MyComboBoxItem In ComboSearchLoader.Items
@@ -126,7 +126,13 @@ Public Class PageComp
         If IsLoaderInited Then Return
         IsLoaderInited = True
         CType(Parent, MyPageRight).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, Loader, AddressOf Load_OnFinish, AddressOf LoaderInput)
-        If McVersionHighest = -1 Then McVersionHighest = Math.Max(McVersionHighest, Integer.Parse(CType(TextSearchVersion.Items(1), MyComboBoxItem).Content.ToString.Split(".")(1)))
+        '将最高 Drop 加入筛选
+        If AllDrops?.Any AndAlso AllDrops.First > 250 Then
+            Dim HighestVersion As String = McInstanceInfo.DropToVersion(AllDrops.First)
+            If CType(TextSearchVersion.Items(1), MyComboBoxItem).Content.ToString <> HighestVersion Then '0 是全部
+                TextSearchVersion.Items.Insert(1, New MyComboBoxItem With {.Content = HighestVersion})
+            End If
+        End If
 
         '根据页面类型控制加载器选择的显示
         If PageType = CompType.Shader Then
@@ -193,8 +199,9 @@ Public Class PageComp
             Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {Storage.Results.Count} 个结果，当前在第 {Page + 1} 页")
             '列表项
             PanProjects.Children.Clear()
-            For i = Math.Min(Page * PageSize, Storage.Results.Count - 1) To Math.Min((Page + 1) * PageSize - 1, Storage.Results.Count - 1)
-                PanProjects.Children.Add(Storage.Results(i).ToCompItem(
+            Dim index As Integer = Math.Min(Page * PageSize, Storage.Results.Count - 1)
+            For Each result In Storage.Results.GetRange(index, Math.Min(Storage.Results.Count - index, PageSize))
+                PanProjects.Children.Add(result.ToCompItem(
                     ShowMcVersionDesc:=Loader.Input.GameVersion Is Nothing,
                     ShowLoaderDesc:=Loader.Input.ModLoader = CompLoaderType.Any AndAlso (PageType = CompType.Mod OrElse PageType = CompType.ModPack)))
             Next

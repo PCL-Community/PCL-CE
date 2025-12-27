@@ -91,7 +91,7 @@ Public Class MyImage
             _ActualSource = value
             Dispatcher.BeginInvoke(Async Function() As Task
                 Try
-                    Dim bitmap As MyBitmap = If(value Is Nothing, Nothing, Await Task.Run(Function() New MyBitmap(value))) '在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
+                    Dim bitmap As ImageSource = If(value Is Nothing, Nothing, Await Task.Run(Function() New MyBitmap(value))) '在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
                     MyBase.Source = bitmap
                 Catch ex As Exception
                     Log(ex, $"加载图片失败（{value}）")

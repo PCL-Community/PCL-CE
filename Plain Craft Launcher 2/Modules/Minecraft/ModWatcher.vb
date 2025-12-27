@@ -155,7 +155,7 @@ Public Module ModWatcher
                         For i = 1 To 3
                             If State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
                                 
-                            Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy/M/d")).Replace("{time}", Date.Now.ToString("HH:mm:ss"))
+                            Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy'/'M'/'d")).Replace("{time}", Date.Now.ToString("HH':'mm':'ss"))
                                  SetWindowText(WindowHandle, RealTitle)
                             End If
                             Thread.Sleep(64)
@@ -489,7 +489,7 @@ Public Module ModWatcher
                     Analyzer.Prepare()
                     Analyzer.Analyze(Version)
                     Analyzer.Output(False, New List(Of String) From
-                        {Version.Path & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), ExePath & "PCL\LatestLaunch.bat"})
+                        {Version.PathInstance & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), ExePath & "PCL\LatestLaunch.bat"})
                 Catch ex As Exception
                     Log(ex, "崩溃分析失败", LogLevel.Feedback)
                 End Try

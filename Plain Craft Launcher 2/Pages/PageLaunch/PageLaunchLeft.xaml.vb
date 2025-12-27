@@ -46,18 +46,18 @@ Public Class PageLaunchLeft
                 McFolderListLoader.WaitForExit()
             End If
             '确认 Minecraft 文件夹存在
-            PathMcFolder = Setup.Get("LaunchFolderSelect").ToString.Replace("$", ExePath)
-            If PathMcFolder = "" OrElse Not Directory.Exists(PathMcFolder) Then
+            McFolderSelected = Setup.Get("LaunchFolderSelect").ToString.Replace("$", ExePath)
+            If McFolderSelected = "" OrElse Not Directory.Exists(McFolderSelected) Then
                 '无效的文件夹
-                If PathMcFolder = "" Then
+                If McFolderSelected = "" Then
                     Log("[Launch] 没有已储存的 Minecraft 文件夹")
                 Else
-                    Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" & PathMcFolder, LogLevel.Debug)
+                    Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" & McFolderSelected, LogLevel.Debug)
                 End If
                 McFolderListLoader.WaitForExit(IsForceRestart:=True)
-                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(ExePath, "$"))
+                Setup.Set("LaunchFolderSelect", McFolderList(0).Location.Replace(ExePath, "$"))
             End If
-            Log("[Launch] Minecraft 文件夹：" & PathMcFolder)
+            Log("[Launch] Minecraft 文件夹：" & McFolderSelected)
             If Setup.Get("SystemDebugDelay") Then Thread.Sleep(RandomUtils.NextInt(500, 3000))
             '自动整合包安装
             If PackInstallPath IsNot Nothing Then
@@ -78,10 +78,10 @@ Public Class PageLaunchLeft
             '确认 Minecraft 版本实例
             Dim Selection As String = Setup.Get("LaunchInstanceSelect")
             Dim Instance As McInstance = If(Selection = "", Nothing, New McInstance(Selection))
-            If Instance Is Nothing OrElse Not Instance.Path.StartsWithF(PathMcFolder) OrElse Not Instance.Check() Then
+            If Instance Is Nothing OrElse Not Instance.PathInstance.StartsWithF(McFolderSelected) OrElse Not Instance.Check() Then
                 '无效的实例
-                Log("[Launch] 当前选择的 Minecraft 实例无效：" & If(Instance Is Nothing, "null", Instance.Path), If(IsNothing(Instance), LogLevel.Normal, LogLevel.Debug))
-                If Not McInstanceListLoader.State = LoadState.Finished Then LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\", WaitForExit:=True)
+                Log("[Launch] 当前选择的 Minecraft 实例无效：" & If(Instance Is Nothing, "null", Instance.PathInstance), If(IsNothing(Instance), LogLevel.Normal, LogLevel.Debug))
+                If Not McInstanceListLoader.State = LoadState.Finished Then LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\", WaitForExit:=True)
                 If Not McInstanceList.Any() OrElse McInstanceList.First.Value(0).Logo.Contains("RedstoneBlock") Then
                     Instance = Nothing
                     Setup.Set("LaunchInstanceSelect", "")
@@ -89,12 +89,12 @@ Public Class PageLaunchLeft
                 Else
                     Instance = McInstanceList.First.Value(0)
                     Setup.Set("LaunchInstanceSelect", Instance.Name)
-                    Log("[Launch] 自动选择 Minecraft 实例：" & Instance.Path)
+                    Log("[Launch] 自动选择 Minecraft 实例：" & Instance.PathInstance)
                 End If
             End If
             RunInUi(
             Sub()
-                McInstanceCurrent = Instance '绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
+                McInstanceSelected = Instance '绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
                 IsLoadFinished = True
                 RefreshButtonsUI()
                 RefreshPage(False) '有可能选择的版本变化了，需要重新刷新
@@ -130,7 +130,7 @@ Public Class PageLaunchLeft
                 LabLaunchingMethod.Text = "第三方验证" & If(Not SelectedProfile.ServerName = "", " / " & SelectedProfile.ServerName, "")
         End Select
         '初始化页面
-        LabLaunchingName.Text = McInstanceCurrent.Name
+        LabLaunchingName.Text = McInstanceSelected.Name
         LabLaunchingStage.Text = "初始化"
         LabLaunchingTitle.Text = If(CurrentLaunchOptions?.SaveBatch Is Nothing, "正在启动游戏", "正在导出启动脚本")
         LabLaunchingProgress.Text = "0.00 %"
@@ -446,7 +446,7 @@ Finish:
         End If
         '实际的启动
         If BtnLaunch.Text = "启动游戏" Then
-            If File.Exists(McInstanceCurrent.Path + ".pclignore") Then
+            If File.Exists(McInstanceSelected.PathInstance + ".pclignore") Then
                 Hint("当前实例正在安装，无法启动！", HintType.Critical)
                 Exit Sub
             End If
@@ -464,7 +464,7 @@ Finish:
         If (Not IsLoadFinished) OrElse McInstanceListLoader.State = LoadState.Loading OrElse McFolderListLoader.State = LoadState.Loading Then
             CurrentState = 0
         Else
-            If McInstanceCurrent Is Nothing Then
+            If McInstanceSelected Is Nothing Then
                 If Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow Then
                     CurrentState = 1
                 Else
@@ -476,8 +476,8 @@ Finish:
         End If
         '更新状态
         If CurrentState = BtnLaunchState AndAlso
-           If(McInstanceCurrent Is Nothing, "", McInstanceCurrent.Path) = If(BtnLaunchVersion Is Nothing, "", BtnLaunchVersion.Path) Then GoTo ExitRefresh
-        BtnLaunchVersion = McInstanceCurrent
+           If(McInstanceSelected Is Nothing, "", McInstanceSelected.PathInstance) = If(BtnLaunchVersion Is Nothing, "", BtnLaunchVersion.PathInstance) Then GoTo ExitRefresh
+        BtnLaunchVersion = McInstanceSelected
         BtnLaunchState = CurrentState
         Select Case CurrentState
             Case 0
@@ -502,7 +502,7 @@ Finish:
                 FrmLaunchLeft.BtnInstance.IsEnabled = True
                 FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed
             Case 3
-                Log("[Minecraft] 启动按钮：Minecraft 实例：" & McInstanceCurrent.Path)
+                Log("[Minecraft] 启动按钮：Minecraft 实例：" & McInstanceSelected.PathInstance)
                 FrmLaunchLeft.BtnLaunch.Text = "启动游戏"
                 FrmLaunchLeft.BtnInstance.IsEnabled = True
                 If SelectedProfile IsNot Nothing Then
@@ -510,7 +510,7 @@ Finish:
                 Else
                     BtnLaunch.IsEnabled = False
                 End If
-                FrmLaunchLeft.LabVersion.Text = McInstanceCurrent.Name
+                FrmLaunchLeft.LabVersion.Text = McInstanceSelected.Name
                 'FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
         End Select
 ExitRefresh:
@@ -539,9 +539,9 @@ ExitRefresh:
     '实例设置按钮
     Private Sub BtnMore_Click(sender As Object, e As EventArgs) Handles BtnMore.Click
         If McLaunchLoader.State = LoadState.Loading Then Return
-        McInstanceCurrent.Load()
-        PageInstanceLeft.Instance = McInstanceCurrent
-        If File.Exists(McInstanceCurrent.Path + ".pclignore") Then
+        McInstanceSelected.Load()
+        PageInstanceLeft.Instance = McInstanceSelected
+        If File.Exists(McInstanceSelected.PathInstance + ".pclignore") Then
             Hint("当前实例正在安装，暂无法进行实例设置！", HintType.Critical)
             Exit Sub
         End If

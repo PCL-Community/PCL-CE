@@ -18,7 +18,7 @@
             Next
             For Each Version As DlOptiFineListEntry In DlOptiFineListLoader.Output.Value
                 If Version.Inherit.StartsWith("1.") Then
-                    Dim MainVersion As String = "1." & Version.NameDisplay.Split(".")(1).Split(" ")(0)
+                    Dim MainVersion As String = "1." & Version.DisplayName.Split(".")(1).Split(" ")(0)
                     If Dict.ContainsKey(MainVersion) Then
                         Dict(MainVersion).Add(Version)
                     Else
@@ -40,7 +40,7 @@
                 NewCard.SwapControl = NewStack
                 NewCard.IsSwapped = True
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
-                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) VersionSortBoolean(a.NameDisplay, b.NameDisplay))
+                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) CompareVersionGe(a.DisplayName, b.DisplayName))
                                             For Each item In Stack.Tag
                                                 Stack.Children.Add(OptiFineDownloadListItem(item, AddressOf OptiFineSave_Click, True))
                                             Next

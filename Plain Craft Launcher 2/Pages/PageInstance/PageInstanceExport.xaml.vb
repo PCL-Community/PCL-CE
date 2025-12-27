@@ -22,14 +22,14 @@ Public Class PageInstanceExport
     Private CurrentVersion As String = ""
     Private Sub PageInstanceExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
-        If CurrentVersion <> PageInstanceLeft.Instance.Path Then RefreshAll() '切换到了另一个实例，重置页面
+        If CurrentVersion <> PageInstanceLeft.Instance.PathInstance Then RefreshAll() '切换到了另一个实例，重置页面
         BtnAdvancedHelp.EventData = "指南/整合包制作.json"
         AniControlEnabled -= 1
     End Sub
     Public Sub RefreshAll() Implements IRefreshable.Refresh
         Log($"[Export] 刷新导出页面")
         HintOptiFine.Visibility = If(PageInstanceLeft.Instance.Version.HasOptiFine, Visibility.Visible, Visibility.Collapsed)
-        CurrentVersion = PageInstanceLeft.Instance.Path
+        CurrentVersion = PageInstanceLeft.Instance.PathInstance
         TextExportName.Text = ""
         TextExportName.HintText = PageInstanceLeft.Instance.Name
         TextExportVersion.Text = ""
@@ -609,7 +609,7 @@ Public Class PageInstanceExport
             Next
             Loader.Progress = 0.97
             '复制 PCL 实例设置
-            CopyDirectory(McInstance.Path & "PCL\", OverridesFolder & "PCL\")
+            CopyDirectory(McInstance.PathInstance & "PCL\", OverridesFolder & "PCL\")
 #If RELEASE Then
             '复制 PCL 本体
             If IncludePCL Then CopyFile(ExePathWithName, CacheFolder & "Plain Craft Launcher.exe")
@@ -731,10 +731,10 @@ Public Class PageInstanceExport
             Next
             Loader.Progress = 0.2
             '导出最终 JSON 文件
-            Dim Dependencies As New JObject From {{"minecraft", McInstance.Version.McName}}
-            If McInstance.Version.HasForge Then Dependencies.Add("forge", McInstance.Version.ForgeVersion)
-            If McInstance.Version.HasFabric Then Dependencies.Add("fabric-loader", McInstance.Version.FabricVersion)
-            If McInstance.Version.HasNeoForge Then Dependencies.Add("neoforge", McInstance.Version.NeoForgeVersion)
+            Dim Dependencies As New JObject From {{"minecraft", McInstance.Version.VanillaName}}
+            If McInstance.Version.HasForge Then Dependencies.Add("forge", McInstance.Version.Forge)
+            If McInstance.Version.HasFabric Then Dependencies.Add("fabric-loader", McInstance.Version.Fabric)
+            If McInstance.Version.HasNeoForge Then Dependencies.Add("neoforge", McInstance.Version.NeoForge)
             Dim ResultJson As New JObject From {
                 {"game", "minecraft"},
                 {"formatVersion", 1},

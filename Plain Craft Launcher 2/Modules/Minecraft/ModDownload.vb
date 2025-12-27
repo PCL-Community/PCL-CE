@@ -13,8 +13,8 @@ Public Module ModDownload
     Public Function DlClientJarGet(Version As McInstance, ReturnNothingOnFileUseable As Boolean) As NetFile
         '获取底层继承实例
         Try
-            Do While Not String.IsNullOrEmpty(Version.InheritInstance)
-                Version = New McInstance(Version.InheritInstance)
+            Do While Not String.IsNullOrEmpty(Version.InheritInstanceName)
+                Version = New McInstance(Version.InheritInstanceName)
             Loop
         Catch ex As Exception
             Log(ex, "获取底层继承实例失败")
@@ -25,10 +25,10 @@ Public Module ModDownload
         End If
         '检查文件
         Dim Checker As New FileChecker(MinSize:=1024, ActualSize:=If(Version.JsonObject("downloads")("client")("size"), -1), Hash:=Version.JsonObject("downloads")("client")("sha1"))
-        If ReturnNothingOnFileUseable AndAlso Checker.Check(Version.Path & Version.Name & ".jar") Is Nothing Then Return Nothing '通过校验
+        If ReturnNothingOnFileUseable AndAlso Checker.Check(Version.PathInstance & Version.Name & ".jar") Is Nothing Then Return Nothing '通过校验
         '返回下载信息
         Dim JarUrl As String = Version.JsonObject("downloads")("client")("url")
-        Return New NetFile(DlSourceLauncherOrMetaGet(JarUrl), Version.Path & Version.Name & ".jar", Checker)
+        Return New NetFile(DlSourceLauncherOrMetaGet(JarUrl), Version.PathInstance & Version.Name & ".jar", Checker)
     End Function
 
     ''' <summary>
@@ -37,12 +37,12 @@ Public Module ModDownload
     ''' </summary>
     Public Function DlClientAssetIndexGet(Version As McInstance) As NetFile
         '获取底层继承实例
-        Do While Not String.IsNullOrEmpty(Version.InheritInstance)
-            Version = New McInstance(Version.InheritInstance)
+        Do While Not String.IsNullOrEmpty(Version.InheritInstanceName)
+            Version = New McInstance(Version.InheritInstanceName)
         Loop
         '获取信息
         Dim IndexInfo = McAssetsGetIndex(Version, True, True)
-        Dim IndexAddress As String = PathMcFolder & "assets\indexes\" & IndexInfo("id").ToString & ".json"
+        Dim IndexAddress As String = McFolderSelected & "assets\indexes\" & IndexInfo("id").ToString & ".json"
         Log("[Download] 实例 " & Version.Name & " 对应的资源文件索引为 " & IndexInfo("id").ToString)
         Dim IndexUrl As String = If(IndexInfo("url"), "")
         If IndexUrl = "" Then
@@ -63,7 +63,7 @@ Public Module ModDownload
             Log("[Download] 已跳过所有 Libraries 检查")
         Else
             Dim LoadersLib As New List(Of LoaderBase) From {
-                New LoaderTask(Of String, List(Of NetFile))("分析缺失支持库文件", Sub(Task As LoaderTask(Of String, List(Of NetFile))) Task.Output = McLibFix(Version)) With {.ProgressWeight = 1},
+                New LoaderTask(Of String, List(Of NetFile))("分析缺失支持库文件", Sub(Task As LoaderTask(Of String, List(Of NetFile))) Task.Output = McLibNetFilesFromInstance(Version)) With {.ProgressWeight = 1},
                 New LoaderDownload("下载支持库文件", New List(Of NetFile)) With {.ProgressWeight = 15}
 }
             '构造加载器
@@ -154,6 +154,25 @@ Public Module ModDownload
 
 #Region "DlClientList | Minecraft 客户端 版本列表"
 
+    ''' <summary>
+    ''' 所有正式版的 Minecraft Drop 序数。
+    ''' 若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。
+    ''' </summary>
+    Public Property AllDrops As List(Of Integer)
+        Get
+            If _allDrops Is Nothing Then
+                _allDrops = Setup.Get("CacheDrops").ToString.
+                    Split(",".ToCharArray, StringSplitOptions.RemoveEmptyEntries).Select(Function(d) CInt(Val(d))).ToList()
+            End If
+            Return If(_allDrops.Any, _allDrops, Nothing) '不要将 _AllDrops 再设为 Nothing，以防止反复获取设置尝试初始化
+        End Get
+        Set(value As List(Of Integer))
+            _allDrops = value
+            Setup.Set("CacheDrops", value.Join(","))
+        End Set
+    End Property
+    Private _allDrops As List(Of Integer) = Nothing
+    
     '主加载器
     Public Structure DlClientListResult
         ''' <summary>
@@ -237,20 +256,25 @@ Public Module ModDownload
             'If File.Exists(PathTemp & "Cache\download.json") Then Versions.Merge(GetJson(ReadFile(PathTemp & "Cache\download.json")))
             '返回
             Loader.Output = New DlClientListResult With {.IsOfficial = True, .SourceName = "Mojang 官方源", .Value = Json}
-            '解析更新提示（Release）
-            Dim Version As String = Json("latest")("release")
-            If Setup.Get("ToolUpdateRelease") AndAlso Not Setup.Get("ToolUpdateReleaseLast") = "" AndAlso Version IsNot Nothing AndAlso Not Setup.Get("ToolUpdateReleaseLast") = Version Then
-                McDownloadClientUpdateHint(Version, Json)
-                IsNewClientVersionHinted = True
-            End If
-            McVersionHighest = Version.Split(".")(1)
-            Setup.Set("ToolUpdateReleaseLast", Version)
-            '解析更新提示（Snapshot）
+            'MC 更新提示
+            Static IsHinted As Boolean = False
+            Dim Version As String
+'快照版
             Version = Json("latest")("snapshot")
-            If Setup.Get("ToolUpdateSnapshot") AndAlso Not Setup.Get("ToolUpdateSnapshotLast") = "" AndAlso Version IsNot Nothing AndAlso Not Setup.Get("ToolUpdateSnapshotLast") = Version AndAlso Not IsNewClientVersionHinted Then
+            If Setup.Get("ToolUpdateSnapshot") AndAlso Not Setup.Get("ToolUpdateSnapshotLast") = "" AndAlso
+               Setup.Get("ToolUpdateSnapshotLast") <> Version AndAlso Not IsHinted Then
+                IsHinted = True
                 McDownloadClientUpdateHint(Version, Json)
             End If
             Setup.Set("ToolUpdateSnapshotLast", If(Version, "Nothing"))
+'正式版
+            Version = Json("latest")("release")
+            If Setup.Get("ToolUpdateRelease") AndAlso Not Setup.Get("ToolUpdateReleaseLast") = "" AndAlso
+               Setup.Get("ToolUpdateReleaseLast") <> Version AndAlso Not IsHinted Then
+                IsHinted = True
+                McDownloadClientUpdateHint(Version, Json)
+            End If
+            Setup.Set("ToolUpdateReleaseLast", Version)
         Catch ex As Exception
             Throw New Exception("Minecraft 官方源版本列表解析失败", ex)
         End Try
@@ -351,7 +375,7 @@ Public Module ModDownload
         ''' <summary>
         ''' 显示名称，已去除 HD_U 字样，如“1.12.2 C8”。
         ''' </summary>
-        Public NameDisplay As String
+        Public DisplayName As String
         ''' <summary>
         ''' 原始文件名称，如“preview_OptiFine_1.11_HD_U_E1_pre.jar”。
         ''' </summary>
@@ -439,7 +463,7 @@ Public Module ModDownload
             For i = 0 To ReleaseTime.Count - 1
                 Name(i) = Name(i).Replace("_", " ")
                 Dim Entry As New DlOptiFineListEntry With {
-                             .NameDisplay = Name(i).Replace("HD U ", "").Replace(".0 ", " "),
+                             .DisplayName = Name(i).Replace("HD U ", "").Replace(".0 ", " "),
                              .ReleaseTime = Join({ReleaseTime(i).Split(".")(2), ReleaseTime(i).Split(".")(1), ReleaseTime(i).Split(".")(0)}, "/"),
                              .IsPreview = Name(i).ContainsF("pre", True),
                              .Inherit = Name(i).ToString.Split(" ")(0),
@@ -465,7 +489,7 @@ Public Module ModDownload
             Dim Versions As New List(Of DlOptiFineListEntry)
             For Each Token As JObject In Json
                 Dim Entry As New DlOptiFineListEntry With {
-                             .NameDisplay = (Token("mcversion").ToString & Token("type").ToString.Replace("HD_U", "").Replace("_", " ") & " " & Token("patch").ToString).Replace(".0 ", " "),
+                             .DisplayName = (Token("mcversion").ToString & Token("type").ToString.Replace("HD_U", "").Replace("_", " ") & " " & Token("patch").ToString).Replace(".0 ", " "),
                              .ReleaseTime = "",
                              .IsPreview = Token("patch").ToString.ContainsF("pre", True),
                              .Inherit = Token("mcversion").ToString,

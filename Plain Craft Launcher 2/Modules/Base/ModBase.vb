@@ -21,7 +21,7 @@ Public Module ModBase
     '下列版本信息由更新器自动修改
     Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
-    Public Const UpstreamVersion As String = "2.10.5" '上游版本
+    Public Const UpstreamVersion As String = "2.12.1" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
     Public Const VersionCode As Integer = 417 '内部版本号
@@ -85,7 +85,7 @@ Public Module ModBase
     ''' <summary>
     ''' 是否为 ARM64 架构。
     ''' </summary>
-    Public IsArm64System As Boolean = Runtime.InteropServices.RuntimeInformation.OSArchitecture = Runtime.InteropServices.Architecture.Arm64
+    Public IsArm64System As Boolean = RuntimeInformation.OSArchitecture = Architecture.Arm64
     ''' <summary>
     ''' 是否使用 GBK 编码。
     ''' </summary>
@@ -1121,14 +1121,17 @@ Re:
     Public Class FileChecker
         ''' <summary>
         ''' 文件的准确大小。
+        ''' 不检查则为 -1。
         ''' </summary>
         Public ActualSize As Long = -1
         ''' <summary>
         ''' 文件的最小大小。
+        ''' 不检查则为 -1。
         ''' </summary>
         Public MinSize As Long = -1
         ''' <summary>
         ''' 文件的 MD5、SHA1 或 SHA256。会根据输入字符串的长度自动判断种类。
+        ''' 不检查则为 Nothing。
         ''' </summary>
         Public Hash As String = Nothing
         ''' <summary>
@@ -1136,7 +1139,8 @@ Re:
         ''' </summary>
         Public CanUseExistsFile As Boolean = True
         ''' <summary>
-        ''' 是否为 Json 文件。
+        ''' 是否要求为 JSON 文件。
+        ''' 即，开头结尾必须为 {} 或 []。
         ''' </summary>
         Public IsJson As Boolean = False
         Public Sub New(Optional MinSize As Long = -1, Optional ActualSize As Long = -1, Optional Hash As String = Nothing, Optional CanUseExistsFile As Boolean = True, Optional IsJson As Boolean = False)
@@ -1897,7 +1901,7 @@ RetryDir:
         Implements IDictionary(Of TKey, TValue)
         Implements IEnumerable(Of KeyValuePair(Of TKey, TValue))
 
-        Private ReadOnly SyncRoot As New Object
+        Public ReadOnly SyncRoot As New Object
         Private ReadOnly _Dictionary As New Dictionary(Of TKey, TValue)
 
         '构造函数
@@ -2034,6 +2038,19 @@ RetryDir:
         Inherits Exception
     End Class
 
+    ''' <summary>
+    ''' 判断对象是否为某个泛型类型的实例。
+    ''' </summary>
+    <Extension> Public Function IsInstanceOfGenericType(genericType As Type, obj As Object) As Boolean
+        If obj Is Nothing Then Return False
+        Dim t = obj.GetType()
+        While t IsNot Nothing
+            If t.IsGenericType AndAlso t.GetGenericTypeDefinition() Is genericType Then Return True
+            t = t.BaseType
+        End While
+        Return False
+    End Function
+    
     Private Uuid As Integer = 1
     Private UuidLock As Object
     ''' <summary>
@@ -2073,6 +2090,16 @@ RetryDir:
 NextElement:
         Next i
         Return ResultArray
+    End Function
+    
+    ''' <summary>
+    ''' 对集合的每个元素执行指定操作。
+    ''' </summary>
+    <Extension> Public Function ForEach(Of T)(Collection As IEnumerable(Of T), Action As Action(Of T)) As IEnumerable(Of T)
+        For Each Item As T In Collection
+            Action(Item)
+        Next
+        Return Collection
     End Function
 
     ''' <summary>
@@ -2912,7 +2939,7 @@ NextElement:
             "操作系统：" & RuntimeInformation.OSDescription & "（32 位：" & Is32BitSystem & "）" & vbCrLf &
             "剩余内存：" & Int(phyRam.Available / 1024 / 1024) & " M / " & Int(phyRam.Total / 1024 / 1024) & " M" & vbCrLf &
             "DPI：" & DPI & "（" & Math.Round(DPI / 96, 2) * 100 & "%）" & vbCrLf &
-            "MC 文件夹：" & If(PathMcFolder, "Nothing") & vbCrLf &
+            "MC 文件夹：" & If(McFolderSelected, "Nothing") & vbCrLf &
             "文件位置：" & ExePath)
     End Sub
 

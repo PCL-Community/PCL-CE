@@ -843,7 +843,7 @@ Public Module ModAnimation
     Public Sub AniTimer(DeltaTick As Integer)
         Try
 
-            If DeltaTick / AniSpeed > 200 Then Log("[Animation] 两个动画帧间隔 " & DeltaTick & " ms", LogLevel.Developer)
+            If DeltaTick / AniSpeed > 100 Then Log("[Animation] 两个动画帧间隔 " & DeltaTick & " ms", LogLevel.Developer)
             Dim i As Integer = -1
             '循环每个动画组
             Do While i + 1 < AniGroups.Count

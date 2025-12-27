@@ -518,7 +518,7 @@ Public Class PageInstanceInstall
         Else
             BtnOptiFineClear.Visibility = Visibility.Visible
             ImgOptiFine.Visibility = Visibility.Visible
-            LabOptiFine.Text = SelectedOptiFine.NameDisplay.Replace(SelectedMinecraftId & " ", "")
+            LabOptiFine.Text = SelectedOptiFine.DisplayName.Replace(SelectedMinecraftId & " ", "")
             LabOptiFine.Foreground = ColorGray1
         End If
         'LiteLoader
@@ -884,7 +884,7 @@ Public Class PageInstanceInstall
             Info += ", LiteLoader"
         End If
         If SelectedOptiFine IsNot Nothing Then
-            Info += ", OptiFine " & SelectedOptiFine.NameDisplay.Replace(SelectedMinecraftId & " ", "")
+            Info += ", OptiFine " & SelectedOptiFine.DisplayName.Replace(SelectedMinecraftId & " ", "")
         End If
         If InstalledOtherLoader IsNot Nothing Then
             Info += $", {InstalledOtherLoader} {InstalledOtherInfo}"
@@ -990,36 +990,36 @@ Public Class PageInstanceInstall
         SelectClear()
         BtnSelectStart.IsEnabled = True
         Dim CurrentInstance = PageInstanceLeft.Instance.Version
-        SelectedMinecraftId = CurrentInstance.McName
+        SelectedMinecraftId = CurrentInstance.VanillaName
         If CurrentInstance.HasLiteLoader Then
-            SelectedLiteLoader = New DlLiteLoaderListEntry With {.Inherit = CurrentInstance.McName}
+            SelectedLiteLoader = New DlLiteLoaderListEntry With {.Inherit = CurrentInstance.VanillaName}
         End If
         If CurrentInstance.HasOptiFine Then
-            SelectedOptiFine = New DlOptiFineListEntry With {.NameDisplay = CurrentInstance.McName + " " + CurrentInstance.OptiFineVersion.Replace("_", " "), .IsPreview = CurrentInstance.OptiFineVersion.ContainsF("pre"), .Inherit = CurrentInstance.McName, .NameVersion = CurrentInstance.McName & "-OptiFine_HD_U_" & CurrentInstance.OptiFineVersion}
+            SelectedOptiFine = New DlOptiFineListEntry With {.DisplayName = CurrentInstance.VanillaName + " " + CurrentInstance.OptiFine.Replace("_", " "), .IsPreview = CurrentInstance.OptiFine.ContainsF("pre"), .Inherit = CurrentInstance.VanillaName, .NameVersion = CurrentInstance.VanillaName & "-OptiFine_HD_U_" & CurrentInstance.OptiFine}
         End If
         If CurrentInstance.HasCleanroom Then
             SelectedAPIName = "Cleanroom"
-            SelectedCleanroomVersion = CurrentInstance.CleanroomVersion
+            SelectedCleanroomVersion = CurrentInstance.Cleanroom
         ElseIf CurrentInstance.HasForge Then
             SelectedLoaderName = "Forge"
-            SelectedForge = New DlForgeVersionEntry(CurrentInstance.ForgeVersion, Nothing, CurrentInstance.McName) With {.Category = "installer", .ForgeType = DlForgelikeEntry.ForgelikeType.Forge, .Inherit = CurrentInstance.McName}
+            SelectedForge = New DlForgeVersionEntry(CurrentInstance.Forge, Nothing, CurrentInstance.VanillaName) With {.Category = "installer", .ForgeType = DlForgelikeEntry.ForgelikeType.Forge, .Inherit = CurrentInstance.VanillaName}
         ElseIf CurrentInstance.HasLegacyFabric Then
             SelectedLoaderName = "LegacyFabric"
-            SelectedLegacyFabric = CurrentInstance.LegacyFabricVersion
+            SelectedLegacyFabric = CurrentInstance.LegacyFabric
             SelectedLegacyFabricApi = GetCurrentLegacyFabricApi()
         ElseIf CurrentInstance.HasFabric Then
             SelectedLoaderName = "Fabric"
-            SelectedFabric = CurrentInstance.FabricVersion
+            SelectedFabric = CurrentInstance.Fabric
             SelectedFabricApi = GetCurrentFabricApi()
         ElseIf CurrentInstance.HasLabyMod Then
             SelectedLoaderName = "LabyMod"
-            SelectedLabyModVersion = CurrentInstance.LabyModVersion
+            SelectedLabyModVersion = CurrentInstance.LabyMod
         ElseIf CurrentInstance.HasNeoForge Then
             SelectedLoaderName = "NeoForge"
-            SelectedNeoForgeVersion = CurrentInstance.NeoForgeVersion
+            SelectedNeoForgeVersion = CurrentInstance.NeoForge
         ElseIf CurrentInstance.HasQuilt Then
             SelectedLoaderName = "Quilt"
-            SelectedQuilt = CurrentInstance.QuiltVersion
+            SelectedQuilt = CurrentInstance.Quilt
             SelectedQSL = GetCurrentQsl()
             SelectedFabricApi = GetCurrentFabricApi()
         End If
@@ -1160,17 +1160,17 @@ Public Class PageInstanceInstall
         '是否有 Cleanroom
         If SelectedCleanroom IsNot Nothing Then Return "与 Cleanroom 不兼容"
         '检查 Fabric 1.20.5+: 全部不兼容
-        If SelectedFabric IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 Fabric 不兼容"
+        If SelectedFabric IsNot Nothing AndAlso CompareVersionGe(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 Fabric 不兼容"
         '检查 Forge 1.13 - 1.14.3：全部不兼容
         If SelectedLoaderName = "Forge" AndAlso
-            VersionSortInteger(SelectedMinecraftId, "1.13") >= 0 AndAlso VersionSortInteger("1.14.3", SelectedMinecraftId) >= 0 Then
+           CompareVersionGe(SelectedMinecraftId, "1.13") >= 0 AndAlso CompareVersionGe("1.14.3", SelectedMinecraftId) >= 0 Then
             Return "与 Forge 不兼容"
         End If
         '检查最低 Forge 版本
         Dim MinimalForgeVersion As String = "9999.9999"
         Dim NotSuitForForge As Boolean = False
         For Each OptiFineVersion As DlOptiFineListEntry In DlOptiFineListLoader.Output.Value
-            If Not OptiFineVersion.NameDisplay.StartsWith(SelectedMinecraftId & " ") Then Continue For '不是同一个大版本
+            If Not OptiFineVersion.DisplayName.StartsWith(SelectedMinecraftId & " ") Then Continue For '不是同一个大版本
             If SelectedForge Is Nothing Then Return Nothing '该版本可用
             If IsOptiFineSuitForForge(OptiFineVersion, SelectedForge) Then
                 Return Nothing '该版本可用
@@ -1178,7 +1178,7 @@ Public Class PageInstanceInstall
                 NotSuitForForge = True
                 If OptiFineVersion.RequiredForgeVersion IsNot Nothing Then
                     '设置用于显示的最低允许的 Forge 版本
-                    MinimalForgeVersion = If(VersionSortBoolean(MinimalForgeVersion, OptiFineVersion.RequiredForgeVersion),
+                    MinimalForgeVersion = If(CompareVersionGe(MinimalForgeVersion, OptiFineVersion.RequiredForgeVersion),
                                           OptiFineVersion.RequiredForgeVersion, MinimalForgeVersion)
                 End If
             End If
@@ -1196,7 +1196,7 @@ Public Class PageInstanceInstall
         If OptiFine.RequiredForgeVersion Is Nothing Then Return False '不兼容 Forge
         If String.IsNullOrWhiteSpace(OptiFine.RequiredForgeVersion) Then Return True '#4183
         If OptiFine.RequiredForgeVersion.Contains(".") Then 'XX.X.XXX
-            Return VersionSortInteger(Forge.Version.ToString, OptiFine.RequiredForgeVersion) >= 0
+            Return CompareVersionGe(Forge.Version.ToString, OptiFine.RequiredForgeVersion) >= 0
         Else 'XXXX
             Return Forge.Version.Revision >= OptiFine.RequiredForgeVersion
         End If
@@ -1218,7 +1218,7 @@ Public Class PageInstanceInstall
             Dim Versions As New List(Of DlOptiFineListEntry)
             For Each Version As DlOptiFineListEntry In DlOptiFineListLoader.Output.Value
                 If SelectedForge IsNot Nothing AndAlso Not IsOptiFineSuitForForge(Version, SelectedForge) Then Continue For
-                If Version.NameDisplay.StartsWith(SelectedMinecraftId & " ") Then Versions.Add(Version)
+                If Version.DisplayName.StartsWith(SelectedMinecraftId & " ") Then Versions.Add(Version)
             Next
             If Not Versions.Any() Then Exit Sub
             '排序
@@ -1226,7 +1226,7 @@ Public Class PageInstanceInstall
             Function(Left As DlOptiFineListEntry, Right As DlOptiFineListEntry) As Boolean
                 If Not Left.IsPreview AndAlso Right.IsPreview Then Return True
                 If Left.IsPreview AndAlso Not Right.IsPreview Then Return False
-                Return VersionSortBoolean(Left.NameDisplay, Right.NameDisplay)
+                Return CompareVersionGe(Left.DisplayName, Right.DisplayName)
             End Function)
             '可视化
             PanOptiFine.Children.Clear()
@@ -1343,7 +1343,7 @@ Public Class PageInstanceInstall
             If Version.Category = "universal" OrElse Version.Category = "client" Then Continue For '跳过无法自动安装的版本
             If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Forge" Then Return $"与 {SelectedLoaderName} 不兼容"
             If SelectedOptiFine IsNot Nothing AndAlso
-                VersionSortInteger(SelectedMinecraftId, "1.13") >= 0 AndAlso VersionSortInteger("1.14.3", SelectedMinecraftId) >= 0 Then
+               CompareVersionGe(SelectedMinecraftId, "1.13") >= 0 AndAlso CompareVersionGe("1.14.3", SelectedMinecraftId) >= 0 Then
                 Return "与 OptiFine 不兼容" '1.13 ~ 1.14.3 OptiFine 检查
             End If
             If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, Version) Then
@@ -1546,7 +1546,7 @@ Public Class PageInstanceInstall
         If LoadFabric Is Nothing OrElse LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "正在获取版本列表……"
         If LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadFabric.State, Object).Error.Message
         '检查 OptiFine 1.20.5+: 没有 OptiFabric 故全部不兼容
-        If SelectedOptiFine IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 OptiFine 不兼容"
+        If SelectedOptiFine IsNot Nothing AndAlso CompareVersionGe(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 OptiFine 不兼容"
         For Each Version As JObject In DlFabricListLoader.Output.Value("game")
             If Version("version").ToString = SelectedMinecraftId.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
@@ -2269,13 +2269,13 @@ Public Class PageInstanceInstall
             End If
         End If
         '删除 LabyMod Neo 文件
-        If PageInstanceLeft.Instance.PathIndie <> PageInstanceLeft.Instance.Path AndAlso PageInstanceLeft.Instance.Version.HasLabyMod Then
+        If PageInstanceLeft.Instance.PathIndie <> PageInstanceLeft.Instance.PathInstance AndAlso PageInstanceLeft.Instance.Version.HasLabyMod Then
             Directory.Delete(PageInstanceLeft.Instance.PathIndie & "labymod-neo", True)
         End If
         '备份实例核心文件
-        CopyFile(PageInstanceLeft.Instance.Path + PageInstanceLeft.Instance.Name + ".json", PageInstanceLeft.Instance.Path + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json")
-        If File.Exists(PageInstanceLeft.Instance.Path + PageInstanceLeft.Instance.Name + ".jar") Then
-            CopyFile(PageInstanceLeft.Instance.Path + PageInstanceLeft.Instance.Name + ".jar", PageInstanceLeft.Instance.Path + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".jar")
+        CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json", PageInstanceLeft.Instance.PathInstance + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json")
+        If File.Exists(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar") Then
+            CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar", PageInstanceLeft.Instance.PathInstance + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".jar")
         End If
         '确认独立 API (如 Fabric API 等) 是否需要被修改
         If SelectedFabricApi?.Equals(_currentFabricApi) Then SelectedFabricApi = Nothing
@@ -2285,7 +2285,7 @@ Public Class PageInstanceInstall
         '提交安装申请
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = PageInstanceLeft.Instance.Name,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{PageInstanceLeft.Instance.Name}\",
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{PageInstanceLeft.Instance.Name}\",
             .MinecraftJson = SelectedMinecraftJsonUrl,
             .MinecraftName = SelectedMinecraftId,
             .OptiFineEntry = SelectedOptiFine,

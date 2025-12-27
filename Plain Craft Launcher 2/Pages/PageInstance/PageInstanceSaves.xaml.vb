@@ -139,7 +139,7 @@ Public Class PageInstanceSaves
                     Dim saveLogo = curFolder + "\icon.png"
                     Dim tmpCurFolder = curFolder
                     If File.Exists(saveLogo) Then
-                        Dim target = $"{PageInstanceLeft.Instance.Path}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
+                        Dim target = $"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{GetStringMD5(saveLogo)}.png"
                         CopyFile(saveLogo, target)
                         saveLogo = target
                     Else
