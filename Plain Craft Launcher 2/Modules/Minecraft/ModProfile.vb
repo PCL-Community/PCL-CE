@@ -2,7 +2,8 @@
 Imports System.Security.Cryptography
 Imports PCL.Core.Utils.Secret
 Imports System.IO
-Imports PCL.Core.App
+Imports PCL.Core.Utils
+Imports PCL.Core.Net
 
 Public Module ModProfile
 
@@ -234,9 +235,10 @@ Public Module ModProfile
         Dim selectedAuthTypeNum As Integer? = Nothing '验证类型序号
         RunInUiWait(Sub()
                         Dim authTypeList As List(Of IMyRadio)
-                        If ProfileList.Any(Function(x) x.Type = McLoginType.Ms) OrElse 
-                           (Core.Utils.RegionUtils.IsRestrictedFeatAllowed AndAlso 
-                            (ProfileList.Any() OrElse Not Core.Net.NetworkHelper.TestHttpConnectionAsync().GetAwaiter().GetResult())) Then
+                        Dim HasMinecraftAccount = ProfileList.Any(Function(x) x.Type = McLoginType.Ms)
+                        Dim Restricted = RegionUtils.IsRestrictedFeatAllowed AndAlso ProfileList.Count > 0
+                        Dim HasNetwork = NetworkHelper.IsNetworkAvailable()
+                        If HasMinecraftAccount OrElse Restricted OrElse Not HasNetwork Then
                             authTypeList = New List(Of IMyRadio) From
                             {
                                 New MyListItem With {
