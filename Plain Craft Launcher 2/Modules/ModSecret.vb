@@ -62,65 +62,31 @@ Friend Module ModSecret
                 MsgBoxStyle.Critical, "运行环境错误")
             Environment.[Exit](ProcessReturnValues.Cancel)
         End If
-        '社区版提示
-        If Setup.Get("UiLauncherCEHint") Then
-            Dim count As Integer = Setup.Get("UiLauncherCEHintCount")
-            If count <= 0 Then
-                ShowCEAnnounce()
-                count = 11
-            End If
-            Setup.Set("UiLauncherCEHintCount", count - 1)
-        End If
     End Sub
     ''' <summary>
     ''' 展示社区版提示
     ''' </summary>
     ''' <param name="IsUpdate">是否为更新时启动</param>
-    Public Sub ShowCEAnnounce(Optional IsUpdate As Boolean = False)
+    Public Sub ShowCEAnnounce()
         MyMsgBox($"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
 PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
 
 如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
 
 该版本与官方版本的特性区别：
-- 联网通知：暂时没有，在做了在做了.jpg
-- 主题切换：不会制作，这是需要赞助解锁的纪念性质的功能
-- 百宝箱：部分内容更改和缺失，主线分支没有提供相关内容{If(IsUpdate, $"{vbCrLf}{vbCrLf}该提示总会在更新启动器时展示一次。", "")}", "社区版本说明", "我知道了")
-    End Sub
+- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
+- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
 
-    ''' <summary>
-    ''' 获取原始的设备标识码
-    ''' </summary>
-    ''' <returns></returns>
-    Friend Function SecretGetRawCode() As String
-        Return Identify.RawCode
-    End Function
+此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了")
+    End Sub
 
     ''' <summary>
     ''' 获取设备的短标识码
     ''' </summary>
     Friend Function SecretGetUniqueAddress() As String
-        Return Identify.LaunchId
-    End Function
-
-    Private _EncryptKeyCache As String = Nothing
-    Private ReadOnly _cacheEncryptKeyLock As New Object()
-    ''' <summary>
-    ''' 获取 AES 加密密钥
-    ''' </summary>
-    ''' <returns></returns>
-    Friend Function SecretGetEncryptKey() As String
-        SyncLock _cacheEncryptKeyLock
-            If _EncryptKeyCache IsNot Nothing Then Return _EncryptKeyCache
-            Dim rawCode = SecretGetRawCode()
-            Using SHA512 As SHA512 = SHA512.Create()
-                Dim hash As Byte() = SHA512.ComputeHash(Encoding.UTF8.GetBytes(rawCode))
-                Dim key As String = BitConverter.ToString(hash).Replace("-", "")
-                key = key.Substring(4, 32)
-                _EncryptKeyCache = key
-                Return key
-            End Using
-        End SyncLock
+        Return Identify.LauncherId
     End Function
 
     Friend Sub SecretLaunchJvmArgs(ByRef DataList As List(Of String))
@@ -165,105 +131,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
         Client.Headers.Add("Referer", "http://" & VersionCode & ".ce.open.pcl2.server/")
     End Sub
-
-#End Region
-
-#Region "字符串加解密"
-
-    Friend Function SecretDecrptyOld(SourceString As String) As String
-        Dim Key = "00000000"
-        Dim btKey As Byte() = Encoding.UTF8.GetBytes(Key)
-        Dim btIV As Byte() = Encoding.UTF8.GetBytes("87160295")
-        Using des As DES = DES.Create()
-            Using MS As New MemoryStream
-                Dim inData As Byte() = Convert.FromBase64String(SourceString)
-                Using cs As New CryptoStream(MS, des.CreateDecryptor(btKey, btIV), CryptoStreamMode.Write)
-                    cs.Write(inData, 0, inData.Length)
-                    cs.FlushFinalBlock()
-                    Return Encoding.UTF8.GetString(MS.ToArray())
-                End Using
-            End Using
-        End Using
-    End Function
-
-    ''' <summary>
-    ''' 加密字符串（优化版）。
-    ''' </summary>
-    Friend Function SecretEncrypt(SourceString As String) As String
-        If SourceString = "" Then Return ""
-        If String.IsNullOrWhiteSpace(SourceString) Then Return Nothing
-        Dim Key = SecretGetEncryptKey()
-
-        Using aes = AesCng.Create()
-            aes.KeySize = 256
-            aes.BlockSize = 128
-            aes.Mode = CipherMode.CBC
-            aes.Padding = PaddingMode.PKCS7
-
-            Dim salt As Byte() = New Byte(31) {}
-            Using rng = RandomNumberGenerator.Create()
-                rng.GetBytes(salt)
-            End Using
-
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
-                aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
-                aes.GenerateIV()
-            End Using
-
-            Using ms = New MemoryStream()
-                ms.Write(salt, 0, salt.Length)
-                ms.Write(aes.IV, 0, aes.IV.Length)
-
-                Using cs = New CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write)
-                    Dim data = Encoding.UTF8.GetBytes(SourceString)
-                    cs.Write(data, 0, data.Length)
-                End Using
-
-                Return Convert.ToBase64String(ms.ToArray())
-            End Using
-        End Using
-    End Function
-
-    ''' <summary>
-    ''' 解密字符串。
-    ''' </summary>
-    Friend Function SecretDecrypt(SourceString As String) As String
-        If SourceString = "" Then Return ""
-        If String.IsNullOrWhiteSpace(SourceString) Then Return Nothing
-        Dim Key = SecretGetEncryptKey()
-        Dim encryptedData = Convert.FromBase64String(SourceString)
-
-        Using aes = AesCng.Create()
-            aes.KeySize = 256
-            aes.BlockSize = 128
-            aes.Mode = CipherMode.CBC
-            aes.Padding = PaddingMode.PKCS7
-
-            Dim salt = New Byte(31) {}
-            Array.Copy(encryptedData, 0, salt, 0, salt.Length)
-
-            Dim iv = New Byte(aes.BlockSize \ 8 - 1) {}
-            Array.Copy(encryptedData, salt.Length, iv, 0, iv.Length)
-            aes.IV = iv
-
-            If encryptedData.Length < salt.Length + iv.Length Then
-                Throw New ArgumentException("加密数据格式无效或已损坏")
-            End If
-
-            Using deriveBytes = New Rfc2898DeriveBytes(Key, salt, 1000, HashAlgorithmName.SHA1)
-                aes.Key = deriveBytes.GetBytes(aes.KeySize \ 8)
-            End Using
-
-            Dim cipherTextLength = encryptedData.Length - salt.Length - iv.Length
-            Using ms = New MemoryStream(encryptedData, salt.Length + iv.Length, cipherTextLength)
-                Using cs = New CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read)
-                    Using sr = New StreamReader(cs, Encoding.UTF8)
-                        Return sr.ReadToEnd()
-                    End Using
-                End Using
-            End Using
-        End Using
-    End Function
 
 #End Region
 
