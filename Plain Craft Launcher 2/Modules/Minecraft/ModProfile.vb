@@ -1,5 +1,6 @@
 ﻿Imports System.Net.Http
 Imports System.Security.Cryptography
+Imports PCL.Core.Utils.Secret
 Imports System.IO
 Imports PCL.Core.App
 
@@ -104,11 +105,11 @@ Public Module ModProfile
                         .Type = McLoginType.Ms,
                         .Uuid = Profile("uuid"),
                         .Username = Profile("username"),
-                        .AccessToken = SecretDecrypt(Profile("accessToken")),
-                        .RefreshToken = SecretDecrypt(Profile("refreshToken")),
+                        .AccessToken = EncryptHelper.SecretDecrypt(Profile("accessToken")),
+                        .RefreshToken = EncryptHelper.SecretDecrypt(Profile("refreshToken")),
                         .Expires = Profile("expires"),
                         .Desc = Profile("desc"),
-                        .RawJson = SecretDecrypt(Profile("rawJson")),
+                        .RawJson = EncryptHelper.SecretDecrypt(Profile("rawJson")),
                         .SkinHeadId = Profile("skinHeadId")
                     }
                 ElseIf Profile("type") = "authlib" Then
@@ -116,14 +117,14 @@ Public Module ModProfile
                         .Type = McLoginType.Auth,
                         .Uuid = Profile("uuid"),
                         .Username = Profile("username"),
-                        .AccessToken = SecretDecrypt(Profile("accessToken")),
-                        .RefreshToken = SecretDecrypt(Profile("refreshToken")),
+                        .AccessToken = EncryptHelper.SecretDecrypt(Profile("accessToken")),
+                        .RefreshToken = EncryptHelper.SecretDecrypt(Profile("refreshToken")),
                         .Expires = Profile("expires"),
                         .Server = Profile("server"),
                         .ServerName = Profile("serverName"),
-                        .Name = SecretDecrypt(Profile("name")),
-                        .Password = SecretDecrypt(Profile("password")),
-                        .ClientToken = SecretDecrypt(Profile("clientToken")),
+                        .Name = EncryptHelper.SecretDecrypt(Profile("name")),
+                        .Password = EncryptHelper.SecretDecrypt(Profile("password")),
+                        .ClientToken = EncryptHelper.SecretDecrypt(Profile("clientToken")),
                         .Desc = Profile("desc"),
                         .SkinHeadId = Profile("skinHeadId")
                     }
@@ -169,11 +170,11 @@ Public Module ModProfile
                             {"type", "microsoft"},
                             {"uuid", Profile.Uuid},
                             {"username", Profile.Username},
-                            {"accessToken", SecretEncrypt(Profile.AccessToken)},
-                            {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
+                            {"accessToken", EncryptHelper.SecretEncrypt(Profile.AccessToken)},
+                            {"refreshToken", EncryptHelper.SecretEncrypt(Profile.RefreshToken)},
                             {"expires", Profile.Expires},
                             {"desc", Profile.Desc},
-                            {"rawJson", SecretEncrypt(Profile.RawJson)},
+                            {"rawJson", EncryptHelper.SecretEncrypt(Profile.RawJson)},
                             {"skinHeadId", Profile.SkinHeadId}
                         }
                     ElseIf Profile.Type = McLoginType.Auth Then
@@ -181,14 +182,14 @@ Public Module ModProfile
                             {"type", "authlib"},
                             {"uuid", Profile.Uuid},
                             {"username", Profile.Username},
-                            {"accessToken", SecretEncrypt(Profile.AccessToken)},
-                            {"refreshToken", SecretEncrypt(Profile.RefreshToken)},
+                            {"accessToken", EncryptHelper.SecretEncrypt(Profile.AccessToken)},
+                            {"refreshToken", EncryptHelper.SecretEncrypt(Profile.RefreshToken)},
                             {"expires", Profile.Expires},
                             {"server", Profile.Server},
                             {"serverName", Profile.ServerName},
-                            {"name", SecretEncrypt(Profile.Name)},
-                            {"password", SecretEncrypt(Profile.Password)},
-                            {"clientToken", SecretEncrypt(Profile.ClientToken)},
+                            {"name", EncryptHelper.SecretEncrypt(Profile.Name)},
+                            {"password", EncryptHelper.SecretEncrypt(Profile.Password)},
+                            {"clientToken", EncryptHelper.SecretEncrypt(Profile.ClientToken)},
                             {"desc", Profile.Desc},
                             {"skinHeadId", Profile.SkinHeadId}
                         }
