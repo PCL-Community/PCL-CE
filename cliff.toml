@@ -29,8 +29,8 @@ body = """
 
 ---
 
-[GPG 签名公钥](https://github.com/PCL-Community/PCL2-CE/blob/dev/GPG-PUBLIC-KEY.asc)
-公钥指纹 `81D9430A309B84272D518584EDF4453F0BBB862E`
+[GPG 签名公钥](https://github.com/Aruvelut-123/PCL2-MOD/blob/dev/GPG-PUBLIC-KEY.asc)
+公钥指纹 `1C426A83B6A46F6DFBC412629A0A636426F300B4`
 
 """
 # Remove leading and trailing whitespaces from the changelog's body.
