@@ -151,7 +151,7 @@ Public Module ModWatcher
                     Do Until State = MinecraftState.Ended OrElse State = MinecraftState.Crashed OrElse State = MinecraftState.Canceled OrElse Loader.State = LoadState.Aborted
                         TimerWindow()
                         TimerLog()
-                        
+                        '设置窗口标题
                         For i = 1 To 3
                             If State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
                                 
@@ -428,7 +428,6 @@ Public Module ModWatcher
         ''' </summary>
         Private Function TryGetMinecraftWindow() As KeyValuePair(Of IntPtr, String)?
             TryGetMinecraftWindow = Nothing
-            ' 注意：EnumWindows 的第二个参数改为了 IntPtr.Zero
             EnumWindows(
                 Function(hwnd As IntPtr, lParam As IntPtr) As Boolean
                     If TryGetMinecraftWindow IsNot Nothing Then Return False ' 找到后停止枚举
