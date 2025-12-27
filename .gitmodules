@@ -1,5 +1,5 @@
 [submodule "PCL.Core"]
 	path = PCL.Core
-	url = https://github.com/PCL-Community/PCL.Core.git
+	url = https://github.com/Aruvelut-123/PCL.Core.git
 	branch = main
 	ignore = all
