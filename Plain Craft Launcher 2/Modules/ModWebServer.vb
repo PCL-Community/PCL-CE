@@ -6,7 +6,7 @@ Imports PCL.Core.Net.Http.Server
 
 Public Module ModWebServer
 
-    Private _webServers As New Dictionary(Of String, WebServer)
+    Private _webServers As New Dictionary(Of String, HttpServer)
 
     ''' <summary>
     ''' 在新的 <see cref="Task"/> 中开始 HTTP 服务端响应。
@@ -14,26 +14,38 @@ Public Module ModWebServer
     ''' <param name="name">服务端名称</param>
     ''' <param name="server">服务端实例</param>
     ''' <returns>是否成功开始，若已存在同名实例则返回 <c>false</c></returns>
-    Public Function StartWebServer(name As String, server As WebServer) As Boolean
+    Public Function StartWebServer(name As String, server As HttpServer) As Boolean
         name = name.ToLowerInvariant()
         SyncLock _webServers
             If _webServers.ContainsKey(name) Then Return False
             _webServers(name) = server
         End SyncLock
         Task.Run(
-            Async Function() As Task
+            Sub()
                 Log($"[WebServer] 服务端 '{name}' 已启动")
                 Try
-                    Await server.StartResponseAsync()
+                    server.Start()
+                    ' 保持服务器运行直到被停止（通过检查字典中是否还存在该服务器）
+                    While True
+                        SyncLock _webServers
+                            If Not _webServers.ContainsKey(name) Then Exit While
+                        End SyncLock
+                        System.Threading.Thread.Sleep(100)
+                    End While
                 Catch ex As Exception
                     Log(ex, $"[WebServer] 服务端 '{name}' 运行出错")
+                Finally
+                    Try
+                        server.Dispose()
+                    Catch
+                        ' 忽略已释放的异常
+                    End Try
+                    Log($"[WebServer] 服务端 '{name}' 已停止")
+                    SyncLock _webServers
+                        _webServers.Remove(name)
+                    End SyncLock
                 End Try
-                server.Dispose()
-                Log($"[WebServer] 服务端 '{name}' 已停止")
-                SyncLock _webServers
-                    _webServers.Remove(name)
-                End SyncLock
-            End Function)
+            End Sub)
         Return True
     End Function
 
@@ -99,13 +111,13 @@ Public Module ModWebServer
             Sub()
                 Dim port As UShort
                 SyncLock _webServers
-                    Dim server As RoutedWebServer = Nothing
+                    Dim server As RoutedHttpServer = Nothing
                     '寻找可用端口号创建服务端实例
                     For port = 29992 To 30992
                         If Not Array.Exists(IPGlobalProperties.GetIPGlobalProperties.GetActiveTcpListeners, Function(i) i.Port = port) Then
                             Log($"[OAuth] {serviceName}: 尝试在 {port} 端口初始化 Web 服务端")
                             Try
-                                server = New RoutedWebServer({$"127.0.0.1:{port}", $"[::1]:{port}"})
+                                server = New RoutedHttpServer({$"127.0.0.1:{port}", $"[::1]:{port}"})
                             Catch ex As HttpListenerException
                                 If ex.NativeErrorCode = &H80004005 Then Continue For
                                 Throw
@@ -125,7 +137,7 @@ Public Module ModWebServer
                     Dim callbackParameters As IDictionary(Of String, String) = Nothing
                     Dim callbackContent As String = Nothing
                     '设置路由
-                    Dim redirect = RoutedResponse.Redirect("/complete")
+                    Dim redirect = HttpRouteResponse.Redirect("/complete")
                     server.Route("/callback",
                         Function(path, request)
                             '解析回调 URL 参数
@@ -161,7 +173,7 @@ Public Module ModWebServer
                         End Function)
                     server.Route("/status",
                         Function()
-                            If callbackParameters Is Nothing Then Return RoutedResponse.NotFound
+                            If callbackParameters Is Nothing Then Return HttpRouteResponse.NotFound
                             server.StopResponse()
                             Try
                                 If status Is Nothing Then
@@ -173,15 +185,15 @@ Public Module ModWebServer
                             Catch ex As Exception
                                 status = OAuthCompleteStatus.Failed("处理回调出错", ex)
                             End Try
-                            Return RoutedResponse.Json(status)
+                            Return HttpRouteResponse.Json(status)
                         End Function)
                     server.Route("/assets/background",
                         Function()
-                            If String.IsNullOrWhiteSpace(PicAddress) Then Return RoutedResponse.NotFound
-                            Return RoutedResponse.Input(New FileStream(PicAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
+                            If String.IsNullOrWhiteSpace(PicAddress) Then Return HttpRouteResponse.NotFound
+                            Return HttpRouteResponse.Input(New FileStream(PicAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
                         End Function)
-                    server.Route("/assets/icon", Function() RoutedResponse.Input(GetResourceStream("Images/icon.ico")))
-                    server.Route("/complete", Function() RoutedResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html"))
+                    server.Route("/assets/icon", Function() HttpRouteResponse.Input(GetResourceStream("Images/icon.ico")))
+                    server.Route("/complete", Function() HttpRouteResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html"))
                     '开始响应请求
                     Dim webServiceName = $"oauth/{serviceName}"
                     If DisposeWebServer(webServiceName) Then
