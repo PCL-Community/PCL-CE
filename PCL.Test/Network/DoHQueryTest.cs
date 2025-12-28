@@ -18,7 +18,7 @@ public class DoHQueryTest
     public async Task TestIpQuery()
     {
         var query = DnsQuery.Instance;
-        var addr = await query.QueryForIPAsync("cloudflare.com", TestContext.CancellationTokenSource.Token);
+        var addr = await query.QueryForIpAsync("cloudflare.com", TestContext.CancellationTokenSource.Token);
         Assert.IsNotNull(addr);
         Assert.IsGreaterThan(0, addr.Length);
         Console.WriteLine(string.Join(", ", addr.Select(x => x.ToString())));
