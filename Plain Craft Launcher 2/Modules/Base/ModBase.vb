@@ -11,6 +11,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
@@ -97,7 +98,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = If(Setup.Get("SystemSystemCache") = "", IO.Path.GetTempPath() & "PCL\", Setup.Get("SystemSystemCache")).ToString.Replace("/", "\").TrimEnd("\") & "\"
+    Public PathTemp As String = FileService.TempPath.Replace("/", "\").TrimEnd("\") & "\"
     ''' <summary>
     ''' AppData 中的 PCL 文件夹路径，以 \ 结尾。
     ''' </summary>

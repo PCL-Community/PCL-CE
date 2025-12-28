@@ -76,18 +76,6 @@ Public Class Application
             '初始化文件结构
             Directory.CreateDirectory(ExePath & "PCL\Pictures")
             Directory.CreateDirectory(ExePath & "PCL\Musics")
-            Try
-                Directory.CreateDirectory(PathTemp)
-                If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
-            Catch ex As Exception
-                If PathTemp = IO.Path.GetTempPath() & "PCL\" Then
-                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
-                Else
-                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
-                    Setup.Set("SystemSystemCache", "")
-                    PathTemp = IO.Path.GetTempPath() & "PCL\"
-                End If
-            End Try
             Directory.CreateDirectory(PathTemp & "Cache")
             Directory.CreateDirectory(PathTemp & "Download")
             Directory.CreateDirectory(PathAppdata)

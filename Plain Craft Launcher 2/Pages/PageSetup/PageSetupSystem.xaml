@@ -126,8 +126,8 @@
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
+                        <RowDefinition Height="0" />
+                        <RowDefinition Height="0" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
                         <RowDefinition Height="28" />
@@ -154,13 +154,6 @@
                         <local:MyComboBoxItem Content="仅在有重要通知时显示公告" />
                         <local:MyComboBoxItem Content="关闭所有公告" />
                     </local:MyComboBox>
-                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="缓存文件夹" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextSystemCache" Grid.Row="6" Grid.ColumnSpan="2" Tag="SystemSystemCache" Grid.Column="1" ToolTip="PCL 的下载、皮肤等缓存文件的存储位置。&#xa;不推荐路径中带有空格。&#xa;留空即为默认值，重启 PCL 后生效。" HintText="默认">
-                        <local:MyTextBox.ValidateRules>
-                            <local:ValidateNullable />
-                            <local:ValidateFolderPath UseMinecraftCharCheck="False" />
-                        </local:MyTextBox.ValidateRules>
-                    </local:MyTextBox>
                     <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最高动画帧率" Margin="0,0,25,0" />
                     <local:MySlider x:Name="SliderAniFPS" Grid.Row="8" Tag="UiAniFPS" MaxValue="59" Value="59" Grid.Column="1"
                                     ToolTip="如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用" />

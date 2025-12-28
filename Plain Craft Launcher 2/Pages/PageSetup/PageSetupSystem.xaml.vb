@@ -56,7 +56,6 @@ Class PageSetupSystem
             ComboSystemUpdateBranch.IsEnabled = True
         End If
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
-        TextSystemCache.Text = Setup.Get("SystemSystemCache")
         CheckSystemDisableHardwareAcceleration.Checked = Setup.Get("SystemDisableHardwareAcceleration")
         SliderAniFPS.Value = Setup.Get("UiAniFPS")
         SliderMaxLog.Value = Setup.Get("SystemMaxLog")
@@ -98,7 +97,6 @@ Class PageSetupSystem
             Setup.Reset("SystemDebugAnim")
             Setup.Reset("SystemDebugDelay")
             Setup.Reset("SystemDebugSkipCopy")
-            Setup.Reset("SystemSystemCache")
             Setup.Reset("SystemSystemUpdate")
             Setup.Reset("SystemSystemActivity")
             Setup.Reset("SystemDisableHardwareAcceleration")
@@ -128,9 +126,6 @@ Class PageSetupSystem
     End Sub
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboDownloadMod.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
-    End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioHttpProxyType0.Check, RadioHttpProxyType1.Check, RadioHttpProxyType2.Check
         Dim gotCfg = sender.Tag.ToString.Split("/")
