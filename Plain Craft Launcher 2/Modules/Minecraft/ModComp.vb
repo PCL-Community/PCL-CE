@@ -686,33 +686,33 @@ Public Module ModComp
                         End If
                     End If
                     For ii = i + 1 To Drops.Count - 1
-                        If AllDrops Is Nothing OrElse AllDrops.IndexOf(Drops(ii)) <> AllDrops.IndexOf(EndDrop) + 1 Then Exit For
+                        If AllDrops Is Nothing OrElse AllDrops.IndexOf(Drops(ii)) <> AllDrops.IndexOf(endDrop) + 1 Then Exit For
                         endDrop = Drops(ii)
                         i = ii
                     Next
                     '将版本号段转为描述文本
-                    Dim startName = McInstanceInfo.DropToVersion(StartDrop)
-                    Dim endName = McInstanceInfo.DropToVersion(EndDrop)
-                    If StartDrop = EndDrop Then
-                        Segments.Add(startName)
-                    ElseIf AllDrops?.Any AndAlso StartDrop >= AllDrops.First Then
-                        If EndDrop < 100 Then
-                            Segments.Clear()
-                            Segments.Add("全版本")
+                    Dim startName = McInstanceInfo.DropToVersion(startDrop)
+                    Dim endName = McInstanceInfo.DropToVersion(endDrop)
+                    If startDrop = endDrop Then
+                        segments.Add(startName)
+                    ElseIf AllDrops?.Any AndAlso startDrop >= AllDrops.First Then
+                        If endDrop < 100 Then
+                            segments.Clear()
+                            segments.Add("全版本")
                             Exit For
                         Else
-                            Segments.Add(endName & "+")
+                            segments.Add(endName & "+")
                         End If
-                    ElseIf EndDrop < 100 Then
-                        Segments.Add(startName & "-")
+                    ElseIf endDrop < 100 Then
+                        segments.Add(startName & "-")
                         Exit For
-                    ElseIf AllDrops Is Nothing OrElse AllDrops.IndexOf(EndDrop) - AllDrops.IndexOf(StartDrop) = 1 Then
-                        Segments.Add(startName & ", " & endName)
+                    ElseIf AllDrops Is Nothing OrElse AllDrops.IndexOf(endDrop) - AllDrops.IndexOf(startDrop) = 1 Then
+                        segments.Add(startName & ", " & endName)
                     Else
-                        Segments.Add(startName & "~" & endName)
+                        segments.Add(startName & "~" & endName)
                     End If
                 Next
-                GameVersionDescription = Segments.Join(", ")
+                gameVersionDescription = segments.Join(", ")
             End If
             '获取 Mod 加载器描述
             Dim modLoaderDescriptionFull As String, modLoaderDescriptionPart As String

@@ -1032,21 +1032,21 @@ Public Class PageDownloadInstall
     Private Sub Forge_Loaded() Handles LoadForge.StateChanged
         Try
             If Not LoadForge.State.IsLoader Then Return
-            Dim Loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
-            If _vanillaName <> Loader.Input Then Return
-            If Loader.State <> LoadState.Finished Then Return
+            Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
+            If _vanillaName <> loader.Input Then Return
+            If loader.State <> LoadState.Finished Then Return
             '获取要显示的版本
-            Dim Versions = Loader.Output.ToList '复制数组，以免 Output 在实例化后变空
-            If Not Loader.Output.Any() Then Return
+            Dim versions = loader.Output.ToList '复制数组，以免 Output 在实例化后变空
+            If Not loader.Output.Any() Then Return
             PanForge.Children.Clear()
-            Versions = Versions.Where(
+            versions = versions.Where(
             Function(v)
                 If v.Category = "universal" OrElse v.Category = "client" Then Return False '跳过无法自动安装的版本
                 If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, v) Then Return False
                 Return True
             End Function).OrderByDescending(Function(v) v).ToList()
-            ForgeDownloadListItemPreload(PanForge, Versions, AddressOf Forge_Selected, False)
-            For Each Version In Versions
+            ForgeDownloadListItemPreload(PanForge, versions, AddressOf Forge_Selected, False)
+            For Each Version In versions
                 PanForge.Children.Add(ForgeDownloadListItem(Version, AddressOf Forge_Selected, False))
             Next
         Catch ex As Exception

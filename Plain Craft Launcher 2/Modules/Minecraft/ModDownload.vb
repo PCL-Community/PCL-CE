@@ -1,5 +1,6 @@
 Imports PCL.Core.Net
 Imports System.Net.Http
+Imports PCL.Core.App
 Imports PCL.Core.Utils
 
 Public Module ModDownload
@@ -161,14 +162,14 @@ Public Module ModDownload
     Public Property AllDrops As List(Of Integer)
         Get
             If _allDrops Is Nothing Then
-                _allDrops = Setup.Get("CacheDrops").ToString.
+                _allDrops = Config.Cache.Drops.
                     Split(",".ToCharArray, StringSplitOptions.RemoveEmptyEntries).Select(Function(d) CInt(Val(d))).ToList()
             End If
             Return If(_allDrops.Any, _allDrops, Nothing) '不要将 _AllDrops 再设为 Nothing，以防止反复获取设置尝试初始化
         End Get
         Set(value As List(Of Integer))
             _allDrops = value
-            Setup.Set("CacheDrops", value.Join(","))
+            Config.Cache.Drops = value.Join(",")
         End Set
     End Property
     Private _allDrops As List(Of Integer) = Nothing
@@ -197,24 +198,30 @@ Public Module ModDownload
     ''' 若要求镜像源必须包含某个版本，则将该版本 ID 作为输入（#5195）。
     ''' </summary>
     Public DlClientListLoader As New LoaderTask(Of String, DlClientListResult)("DlClientList Main", AddressOf DlClientListMain)
-    Private Sub DlClientListMain(Loader As LoaderTask(Of String, DlClientListResult))
+    Private Sub DlClientListMain(loader As LoaderTask(Of String, DlClientListResult))
         Select Case Setup.Get("ToolDownloadVersion")
             Case 0
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListBmclapiLoader, 30),
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListMojangLoader, 30 + 60)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
             Case 1
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListMojangLoader, 5),
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListBmclapiLoader, 5 + 30)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
             Case Else
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListMojangLoader, 60),
                     New KeyValuePair(Of LoaderTask(Of String, DlClientListResult), Integer)(DlClientListBmclapiLoader, 60 + 60)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
         End Select
+        '提取所有 Drop 序数
+        Dim drops As New List(Of Integer)
+        For Each version As JObject In loader.Output.Value("versions")
+            drops.Add(McInstanceInfo.VersionToDrop(version("id")))
+        Next
+        AllDrops = drops.Distinct.OrderByDescending(Function(d) d).ToList()
     End Sub
 
     '各个下载源的分加载器
@@ -581,6 +588,8 @@ Public Module ModDownload
 #Region "DlForgeVersion | Forge 版本列表"
 
     Public MustInherit Class DlForgelikeEntry
+        Implements IComparable(Of DlForgelikeEntry)
+        
         ''' <summary>
         ''' Forgelike 种类。Forge、NeoForge、Cleanroom。
         ''' </summary>
@@ -644,6 +653,14 @@ Public Module ModDownload
         ''' 对应的 Minecraft 版本，如“1.12.2”。
         ''' </summary>
         Public Inherit As String
+        
+        Public Function CompareTo(other As DlForgelikeEntry) As Integer Implements IComparable(Of DlForgelikeEntry).CompareTo
+            If Version <> other.Version Then
+                Return Version.CompareTo(other.Version)
+            Else
+                Return CompareVersion(VersionName, other.VersionName)
+            End If
+        End Function
     End Class
 
     Public Class DlForgeVersionEntry
@@ -716,9 +733,15 @@ Public Module ModDownload
             Result = NetGetCodeByLoader("https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" &
                                           Loader.Input.Replace("-", "_") & '兼容 Forge 1.7.10-pre4，#4057
                                           ".html", UseBrowserUserAgent:=True)
+        Catch ex As HttpRequestFailedException
+            If ex.StatusCode = HttpStatusCode.NotFound Then
+                Throw New Exception("无")
+            Else 
+                Throw
+            End If
         Catch ex As Exception
             If ex.Message.Contains("(404)") Then
-                Throw New Exception("不可用")
+                Throw New Exception("无")
             Else
                 Throw
             End If
@@ -880,10 +903,20 @@ Public Module ModDownload
                 VersionName = ApiName.Replace("1.20.1-", "")
                 Version = New Version("19." & VersionName)
                 Inherit = "1.20.1"
-            Else '20.4.30-beta
+            ElseIf ApiName.StartsWith("0.") Then '0.25w14craftmine.3-beta
+                VersionName = ApiName
+                Dim Segments = ApiName.BeforeFirst("-").Split("."c)
+                Version = New Version(0, 0, Segments.Last)
+                Inherit = Segments(1)
+            Else '20.4.30-beta；26.1.0.0-alpha.1+snapshot-1
                 VersionName = ApiName
                 Version = New Version(ApiName.BeforeFirst("-"))
-                Inherit = $"1.{Version.Major}" & If(Version.Minor = 0, "", "." & Version.Minor)
+                If Version.Major >= 24 Then
+                    Inherit = Version.ToString.Replace(".0", "")
+                Else
+                    Inherit = "1." & Version.Major & If(Version.Minor > 0, "." & Version.Minor, "")
+                End If
+                If VersionName.Contains("+") Then Inherit &= "-" & VersionName.AfterFirst("+")
             End If
         End Sub
     End Class
