@@ -873,7 +873,9 @@ Public Module ModNet
 
                 '条件检测
                 If NetTaskThreadCount >= NetTaskThreadLimit OrElse IsSourceFailed() OrElse
-                    (IsNoSplit AndAlso Threads IsNot Nothing AndAlso Threads.State <> NetState.Error) Then Return Nothing
+                    (IsNoSplit AndAlso Threads IsNot Nothing AndAlso Threads.State <> NetState.Error AndAlso
+                     Threads.State <> NetState.WaitForDownload AndAlso TimeUtils.GetTimeTick() - Threads.InitTime < 30000) Then Return Nothing
+                '小文件线程卡住检测：如果线程启动超过30秒仍处于Connect或Get状态，允许重试
                 If State >= NetState.Merge OrElse State = NetState.WaitForCheck Then Return Nothing
                 SyncLock LockState
                     If State < NetState.Connect Then State = NetState.Connect
@@ -891,6 +893,13 @@ Public Module ModNet
                         If SourcesOnce(0).Thread IsNot Nothing AndAlso SourcesOnce(0).Thread.State <> NetState.Error Then Return Nothing
                         '占用此点
 Capture:
+                        '小文件缓存保护：只有在确认需要重新开始时才清空缓存
+                        '如果已有缓存且线程正在运行，不清空缓存
+                        If IsNoSplit AndAlso SmailFileCache IsNot Nothing AndAlso Threads IsNot Nothing AndAlso
+                           Threads.State <> NetState.Error AndAlso Threads.State <> NetState.Finish Then
+                            '已有缓存且线程未完成，不清空，直接返回
+                            Return Nothing
+                        End If
                         SmailFileCache = Nothing
                         Threads = Nothing
                         NetManager.DownloadDone -= DownloadDone
@@ -977,6 +986,8 @@ StartThread:
             Dim Timeout As Integer = Math.Min(Math.Max(ConnectAverage, 6000) * (1 + Info.Source.FailCount), 25000)
             Dim ContentLength As Long = 0
             Info.State = NetState.Connect
+            '记录连接开始时间，用于检测连接阶段卡住
+            Dim ConnectStartTime As Long = TimeUtils.GetTimeTick()
             Try
                 Dim HttpDataCount As Integer = 0
                 If SourcesOnce.Contains(Info.Source) AndAlso Not Info.Equals(Info.Source.Thread) Then GoTo SourceBreak
@@ -986,7 +997,17 @@ StartThread:
                 If Not Info.IsFirstThread OrElse Info.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(Info.DownloadStart, Nothing)
                 Using cts As New CancellationTokenSource
                     cts.CancelAfter(Timeout)
-                    Using response = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token).GetAwaiter().GetResult()
+                    '连接阶段超时检测：如果连接耗时过长，提前抛出异常
+                    Dim ConnectTask = NetworkService.GetClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
+                    '等待连接完成，但检查是否超时
+                    While Not ConnectTask.IsCompleted
+                        If TimeUtils.GetTimeTick() - ConnectStartTime > Timeout Then
+                            cts.Cancel()
+                            Throw New TimeoutException($"连接阶段超时，耗时超过 {Timeout}ms（{Info.Source.Url}）")
+                        End If
+                        Threading.Thread.Sleep(50)
+                    End While
+                    Using response = ConnectTask.GetAwaiter().GetResult()
                         EnsureSuccessStatusCode(response)
                         If State = NetState.Error Then GoTo SourceBreak '快速中断
                         Dim Redirected = response.RequestMessage.RequestUri.OriginalString
@@ -1075,7 +1096,16 @@ NotSupportRange:
                             If Setup.Get("SystemDebugDelay") Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
                             Const bufferSize As Integer = 16384
                             Dim HttpData As Byte() = New Byte(bufferSize) {}
+                            '首次读取前记录时间，用于检测首次读取卡住的情况
+                            Dim FirstReadStartTime As Long = TimeUtils.GetTimeTick()
                             HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
+                            '首次读取后立即更新 LastReceiveTime，避免首次读取卡住无法检测超时
+                            If HttpDataCount > 0 Then
+                                Info.LastReceiveTime = TimeUtils.GetTimeTick()
+                            Else
+                                '首次读取返回0，记录时间用于后续超时检测
+                                Info.LastReceiveTime = FirstReadStartTime
+                            End If
                             While (IsUnknownSize OrElse Info.DownloadUndone > 0) AndAlso '判断是否下载完成
                                 HttpDataCount > 0 AndAlso Not IsProgramEnded AndAlso State < NetState.Merge AndAlso (Not Info.Source.IsFailed OrElse Info.Equals(Info.Source.Thread))
                                 '限速
@@ -1135,10 +1165,18 @@ NotSupportRange:
                                     '已完成
                                     If Info.DownloadUndone = 0 AndAlso Not IsUnknownSize Then Exit While
                                 ElseIf Info.LastReceiveTime > 0 AndAlso DeltaTime > Timeout Then
-                                    '无数据，且已超时
+                                    '无数据，且已超时（包括首次读取后长时间无数据的情况）
                                     Throw New TimeoutException("操作超时，无数据。")
                                 End If
+                                '记录读取开始时间，用于检测读取操作本身卡住
+                                Dim ReadStartTime As Long = TimeUtils.GetTimeTick()
                                 HttpDataCount = HttpStream.Read(HttpData, 0, bufferSize)
+                                '如果读取操作耗时过长，可能是网络卡住
+                                Dim ReadElapsed = TimeUtils.GetTimeTick() - ReadStartTime
+                                If ReadElapsed > Timeout * 0.5 AndAlso HttpDataCount = 0 Then
+                                    '读取操作本身耗时过长且返回0，可能网络已断开
+                                    Throw New TimeoutException($"读取操作超时，耗时 {ReadElapsed}ms，返回数据量 {HttpDataCount}。")
+                                End If
                             End While
                         End Using
                     End Using
@@ -1274,10 +1312,18 @@ Retry:
                     '合并文件
                     If IsNoSplit Then
                         '仅有一个线程，从缓存中输出
-                        If ModeDebug Then Log($"[Download] {LocalName}：下载结束，从缓存输出文件，长度：" & SmailFileCache.Count)
+                        '检查缓存是否存在
+                        If SmailFileCache Is Nothing Then
+                            Throw New Exception($"小文件缓存为空，无法合并文件（{LocalName}）。可能原因：缓存被意外清空或下载未完成。")
+                        End If
+                        Dim CacheArray = SmailFileCache.ToArray
+                        If ModeDebug Then Log($"[Download] {LocalName}：下载结束，从缓存输出文件，长度：" & CacheArray.Length)
+                        If CacheArray.Length = 0 Then
+                            Throw New Exception($"小文件缓存长度为0，无法合并文件（{LocalName}）。")
+                        End If
                         MergeFile = New FileStream(LocalPath, FileMode.Create)
                         AddWriter = New BinaryWriter(MergeFile)
-                        AddWriter.Write(SmailFileCache.ToArray)
+                        AddWriter.Write(CacheArray)
                         AddWriter.Dispose() : AddWriter = Nothing
                         MergeFile.Dispose() : MergeFile = Nothing
                     ElseIf Threads.DownloadDone = DownloadDone AndAlso Threads.Temp IsNot Nothing Then

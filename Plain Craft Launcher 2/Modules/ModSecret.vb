@@ -578,20 +578,25 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                            End Try
                        End Sub)
     End Sub
-    Public Function IsVerisonLatest() As Boolean
+    Public Enum VersionStatus
+        Latest
+        NotLatest
+        Unknown
+    End Enum
+    Public Function GetVersionStatus() As VersionStatus
         Try
-            Return RemoteServer.IsLatest(
+            Return If(RemoteServer.IsLatest(
             If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
             If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
             SemVer.Parse(VersionBaseName),
-            VersionCode)
+            VersionCode), VersionStatus.Latest, VersionStatus.NotLatest)
         Catch ex As Exception
             Log(ex, "无法获取最新版本信息，请检查网络连接", LogLevel.Hint)
-            Return False
+            Return VersionStatus.Unknown
         End Try
     End Function
     Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
-        If Not IsVerisonLatest() Then
+        If GetVersionStatus() <> VersionStatus.Latest Then
             Dim latest As VersionDataModel = Nothing
             Dim checkUpdateEx As Exception = Nothing
             RunInNewThread(
@@ -773,7 +778,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim AnnouncementDesire = Setup.Get("SystemSystemActivity")
         Select Case UpdateDesire
             Case 0
-                If Not IsVerisonLatest() Then
+                If GetVersionStatus() <> VersionStatus.Latest Then
                     UpdateStart(True) '静默更新
                 End If
             Case 1
