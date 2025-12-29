@@ -98,7 +98,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = FileService.TempPath.Replace("/", "\").TrimEnd("\") & "\"
+    Public PathTemp As String = FileService.TempPath & "\"
     ''' <summary>
     ''' AppData 中的 PCL 文件夹路径，以 \ 结尾。
     ''' </summary>
