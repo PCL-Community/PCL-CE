@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Install git-cliff
         uses: taiki-e/install-action@git-cliff
 
@@ -56,6 +56,10 @@ jobs:
             architecture: x64
           - configuration: Release
             architecture: ARM64
+    permissions:
+      id-token: write  # 必须：用于 Sigstore keyless 签名
+      contents: write  # 用于上传到 Release
+
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
@@ -67,22 +71,24 @@ jobs:
         run: |
           mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          python-version: '3.10'
 
-      - name: Sign the binary
-        run: |
-          gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+      - name: Sign the binary with Sigstore (keyless)
+        uses: sigstore/gh-action-sigstore-python@v3.2.0
+        with:
+          inputs: "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+          release-signing-artifacts: true
+          upload-signing-artifacts: false
 
       - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@v2.2.2
         with:
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
+            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.sigstore.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
