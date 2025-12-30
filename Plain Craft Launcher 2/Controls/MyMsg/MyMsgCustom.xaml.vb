@@ -207,7 +207,9 @@ Public Class MyMsgCustom
 
     Private Sub Close()
         '结束线程阻塞
-        If _Item.ForceWait OrElse ButtonList.Count > 1 Then _Item.WaitFrame.Continue = False
+        If _Item.ForceWait OrElse ButtonList.Count > 1 OrElse TypeOf _Item.Content Is MyMsgContentLogin Then 
+            _Item.WaitFrame.Continue = False
+        End If
         Interop.ComponentDispatcher.PopModal()
         '动画
         AniStart({
@@ -269,6 +271,15 @@ Public Class MyMsgCustom
         Get
             If ButtonList.Count > 2 Then
                 Return ButtonList(2).Visibility
+            End If
+            Return Visibility.Collapsed
+        End Get
+    End Property
+
+    Public ReadOnly Property Btn1Visibility As Visibility
+        Get
+            If ButtonList.Count > 0 Then
+                Return ButtonList(0).Visibility
             End If
             Return Visibility.Collapsed
         End Get

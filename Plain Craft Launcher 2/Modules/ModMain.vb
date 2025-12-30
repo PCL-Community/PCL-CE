@@ -510,14 +510,8 @@ EndHint:
                     If Not String.IsNullOrEmpty(item.Button3) Then item.Buttons.Add(item.Button3)
                 End If
                 
-                ' 显示弹窗（根据内容类型判断，Login 类型需要特殊处理）
-                If item.LoginData IsNot Nothing Then
-                    ' Login 类型需要特殊处理（保持原有逻辑）
-                    FrmMain.PanMsg.Children.Add(New MyMsgLogin(item))
-                Else
-                    ' 其他类型统一使用 MyMsgCustom
-                    FrmMain.PanMsg.Children.Add(New MyMsgCustom(item))
-                End If
+                ' 显示弹窗（所有类型统一使用 MyMsgCustom）
+                FrmMain.PanMsg.Children.Add(New MyMsgCustom(item))
                 WaitingMyMsgBox.RemoveAt(0)
             Else
                 '没有弹窗，没有等待的弹窗

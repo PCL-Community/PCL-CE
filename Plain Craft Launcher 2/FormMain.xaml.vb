@@ -535,11 +535,17 @@ Public Class FormMain
                 Dim Msg As Object = PanMsg.Children(0)
                 If TypeOf Msg Is MyMsgCustom Then
                     Dim customMsg = CType(Msg, MyMsgCustom)
-                    ' 检查是否是 Input 或 Select 类型（需要特殊处理）
-                    If customMsg IsNot Nothing Then
+                    ' 检查内容类型
+                    Dim content = customMsg.MyConverter.Content
+                    If TypeOf content Is MyMsgContentInput OrElse TypeOf content Is MyMsgContentSelect Then
                         ' Input 和 Select 类型：Escape 触发第二个按钮（取消）
                         If customMsg.Btn2Visibility = Visibility.Visible Then
                             customMsg.Btn2_Click()
+                        End If
+                    ElseIf TypeOf content Is MyMsgContentLogin Then
+                        ' Login 类型：Escape 触发第一个按钮（取消）
+                        If customMsg.Btn1Visibility = Visibility.Visible Then
+                            customMsg.Btn1_Click()
                         End If
                     ElseIf customMsg.Btn3Visibility = Visibility.Visible Then
                         customMsg.Btn3_Click()

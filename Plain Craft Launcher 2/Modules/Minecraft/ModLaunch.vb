@@ -614,8 +614,24 @@ Retry:
         McLaunchLog("网页登录地址：" & PrepareJson("verification_uri").ToString)
 
         '弹窗
-        Dim item As New MyMsgBoxItem With {.LoginData = PrepareJson, .ForceWait = True, .Title = "登录 Minecraft"}
-        WaitingMyMsgBox.Add(item)
+        Dim item As MyMsgBoxItem
+        RunInUiWait(Sub()
+                        Dim loginContent As New MyMsgContentLogin(PrepareJson, "https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
+                        item = New MyMsgBoxItem With {
+                            .Title = "登录 Minecraft",
+                            .ForceWait = True,
+                            .Content = loginContent,
+                            .Button1 = "取消",
+                            .Button1Action = Sub()
+                                                 If Not item.IsExited Then
+                                                     item.IsExited = True
+                                                     item.Result = New ThreadInterruptedException
+                                                     item.WaitFrame.Continue = False
+                                                 End If
+                                             End Sub
+                        }
+                        WaitingMyMsgBox.Add(item)
+                    End Sub)
         While item.Result Is Nothing
             Thread.Sleep(100)
         End While
