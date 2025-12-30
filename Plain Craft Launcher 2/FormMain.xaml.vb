@@ -533,12 +533,31 @@ Public Class FormMain
                 Return
             ElseIf e.Key = Key.Escape Then
                 Dim Msg As Object = PanMsg.Children(0)
-                If TypeOf Msg IsNot MyMsgInput AndAlso TypeOf Msg IsNot MyMsgSelect AndAlso Msg.Btn3.Visibility = Visibility.Visible Then
-                    Msg.Btn3_Click()
-                ElseIf Msg.Btn2.Visibility = Visibility.Visible Then
-                    Msg.Btn2_Click()
+                If TypeOf Msg Is MyMsgCustom Then
+                    Dim customMsg = CType(Msg, MyMsgCustom)
+                    ' 检查是否是 Input 或 Select 类型（需要特殊处理）
+                    Dim content = customMsg.MyConverter.CustomContent
+                    If TypeOf content Is MyMsgContentInput OrElse TypeOf content Is MyMsgContentSelect Then
+                        ' Input 和 Select 类型：Escape 触发第二个按钮（取消）
+                        If customMsg.Btn2Visibility = Visibility.Visible Then
+                            customMsg.Btn2_Click()
+                        End If
+                    ElseIf customMsg.Btn3Visibility = Visibility.Visible Then
+                        customMsg.Btn3_Click()
+                    ElseIf customMsg.Btn2Visibility = Visibility.Visible Then
+                        customMsg.Btn2_Click()
+                    Else
+                        customMsg.Btn1_Click()
+                    End If
                 Else
-                    Msg.Btn1_Click()
+                    ' 兼容其他类型（如 Login）
+                    If Msg.Btn3.Visibility = Visibility.Visible Then
+                        Msg.Btn3_Click()
+                    ElseIf Msg.Btn2.Visibility = Visibility.Visible Then
+                        Msg.Btn2_Click()
+                    Else
+                        Msg.Btn1_Click()
+                    End If
                 End If
                 Return
             End If

@@ -1,0 +1,10 @@
+<UserControl x:Class="MyMsgContentSelect"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:my="clr-namespace:PCL">
+    <my:MyScrollViewer VerticalAlignment="Top" x:Name="PanCaption" Margin="0,0,0,0" Padding="7,0,15,0"
+                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" DeltaMult="0.7">
+        <StackPanel x:Name="PanSelection" Orientation="Vertical" />
+    </my:MyScrollViewer>
+</UserControl>
+

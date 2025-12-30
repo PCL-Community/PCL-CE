@@ -1,0 +1,12 @@
+<UserControl x:Class="MyMsgContentMarkdown"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:my="clr-namespace:PCL"
+             xmlns:markdig="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf">
+    <my:MyScrollViewer VerticalAlignment="Top" x:Name="PanCaption" Margin="0,0,0,0" Padding="0,0,7,0"
+                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" DeltaMult="0.7">
+        <markdig:MarkdownViewer VerticalAlignment="Top" Name="LabCaption"
+                   Foreground="{DynamicResource ColorBrushMsgBoxText}" FontWeight="Normal" />
+    </my:MyScrollViewer>
+</UserControl>
+
