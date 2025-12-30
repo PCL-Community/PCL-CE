@@ -1,21 +1,30 @@
 Imports PCL.Core.UI.Controls
 
-Public Class MyMsgContentInput
-    Inherits UserControl
+Partial Public Class MyMsgContentInput
+    Inherits MyMsgContent
 
-    Public Property Converter As MyMsgBoxConverter
+    Private _Text As String
+    Private _DefaultInput As String
+    Private _HintText As String
+    Private _ValidateRules As ObjectModel.Collection(Of Validate)
 
-    Public Sub New(conv As MyMsgBoxConverter)
+    Public Sub New(text As String, defaultInput As String, hintText As String, validateRules As ObjectModel.Collection(Of Validate))
         InitializeComponent()
-        Converter = conv
-        LabText.Text = conv.Text
-        PanText.Visibility = If(conv.Text = "", Visibility.Collapsed, Visibility.Visible)
-        TextArea.Text = conv.Content
-        TextArea.HintText = conv.HintText
-        TextArea.ValidateRules = conv.ValidateRules
+        _Text = text
+        _DefaultInput = defaultInput
+        _HintText = hintText
+        _ValidateRules = validateRules
     End Sub
 
-    Public Function GetResult() As String
+    Public Overrides Sub Initialize()
+        LabText.Text = _Text
+        PanText.Visibility = If(_Text = "", Visibility.Collapsed, Visibility.Visible)
+        TextArea.Text = _DefaultInput
+        TextArea.HintText = _HintText
+        TextArea.ValidateRules = _ValidateRules
+    End Sub
+
+    Public Overrides Function GetResult() As Object
         TextArea.Validate()
         If TextArea.IsValidated Then
             Return TextArea.Text

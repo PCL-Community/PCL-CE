@@ -1,4 +1,4 @@
-<UserControl x:Class="MyMsgContentInput"
+<my:MyMsgContent x:Class="MyMsgContentInput"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:my="clr-namespace:PCL">
@@ -10,5 +10,4 @@
         </my:MyScrollViewer>
         <my:MyTextBox Margin="7,0,7,0" x:Name="TextArea" UseLayoutRounding="False" MaxLength="1000" MinWidth="450" />
     </StackPanel>
-</UserControl>
-
+</my:MyMsgContent>

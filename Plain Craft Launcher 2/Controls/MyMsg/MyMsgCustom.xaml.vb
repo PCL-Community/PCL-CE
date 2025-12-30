@@ -2,10 +2,10 @@ Imports PCL.Core.UI.Controls
 
 Public Class MyMsgCustom
 
-    Private _MyConverter As MyMsgBoxConverter
-    Public ReadOnly Property MyConverter As MyMsgBoxConverter
+    Private _Item As MyMsgBoxItem
+    Public ReadOnly Property MyConverter As MyMsgBoxItem
         Get
-            Return _MyConverter
+            Return _Item
         End Get
     End Property
     Private ReadOnly Uuid As Integer = GetUuid()
@@ -13,45 +13,48 @@ Public Class MyMsgCustom
     Private ContentInput As MyMsgContentInput = Nothing
     Private ContentSelect As MyMsgContentSelect = Nothing
 
-    Public Sub New(Converter As MyMsgBoxConverter)
+    Public Sub New(item As MyMsgBoxItem)
         Try
 
             InitializeComponent()
-            _MyConverter = Converter
-            LabTitle.Text = Converter.Title
+            _Item = item
+            LabTitle.Text = item.Title
 
-            ' 嵌入自定义内容
-            If Converter.CustomContent IsNot Nothing Then
-                ContentPresenter.Content = Converter.CustomContent
+            ' 嵌入内容控件
+            If item.Content IsNot Nothing Then
+                ' 初始化内容控件
+                item.Content.Item = item
+                item.Content.Initialize()
+                ContentPresenter.Content = item.Content
 
                 ' 保存特殊内容控件的引用，以便后续处理
-                If TypeOf Converter.CustomContent Is MyMsgContentInput Then
-                    ContentInput = CType(Converter.CustomContent, MyMsgContentInput)
+                If TypeOf item.Content Is MyMsgContentInput Then
+                    ContentInput = CType(item.Content, MyMsgContentInput)
                     ' 监听验证状态变化
                     AddHandler ContentInput.ValidateChanged, AddressOf Input_ValidateChanged
-                ElseIf TypeOf Converter.CustomContent Is MyMsgContentSelect Then
-                    ContentSelect = CType(Converter.CustomContent, MyMsgContentSelect)
+                ElseIf TypeOf item.Content Is MyMsgContentSelect Then
+                    ContentSelect = CType(item.Content, MyMsgContentSelect)
                     ' 监听选择变化
                     AddHandler ContentSelect.SelectionChanged, AddressOf Select_SelectionChanged
                 End If
             End If
 
             ' 设置警告样式
-            If Converter.IsWarn Then
+            If item.IsWarn Then
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight")
             End If
 
             ' 动态生成按钮
             Dim buttonsToUse As List(Of String) = Nothing
-            If Converter.Buttons IsNot Nothing AndAlso Converter.Buttons.Count > 0 Then
+            If item.Buttons IsNot Nothing AndAlso item.Buttons.Count > 0 Then
                 ' 使用 Buttons 列表
-                buttonsToUse = Converter.Buttons
+                buttonsToUse = item.Buttons
             Else
                 ' 回退到 Button1/Button2/Button3
                 buttonsToUse = New List(Of String)
-                If Not String.IsNullOrEmpty(Converter.Button1) Then buttonsToUse.Add(Converter.Button1)
-                If Not String.IsNullOrEmpty(Converter.Button2) Then buttonsToUse.Add(Converter.Button2)
-                If Not String.IsNullOrEmpty(Converter.Button3) Then buttonsToUse.Add(Converter.Button3)
+                If Not String.IsNullOrEmpty(item.Button1) Then buttonsToUse.Add(item.Button1)
+                If Not String.IsNullOrEmpty(item.Button2) Then buttonsToUse.Add(item.Button2)
+                If Not String.IsNullOrEmpty(item.Button3) Then buttonsToUse.Add(item.Button3)
             End If
 
             ' 创建按钮
@@ -69,7 +72,7 @@ Public Class MyMsgCustom
 
                 ' 第一个按钮的特殊处理
                 If i = 0 Then
-                    If Converter.IsWarn Then
+                    If item.IsWarn Then
                         btn.ColorType = MyButton.ColorState.Red
                     ElseIf buttonsToUse.Count > 1 Then
                         btn.ColorType = MyButton.ColorState.Highlight
@@ -79,7 +82,7 @@ Public Class MyMsgCustom
                 ' 绑定点击事件
                 Dim buttonIndex As Integer = i + 1
                 AddHandler btn.Click, Sub()
-                                          If _MyConverter.IsExited Then Return
+                                          If _Item.IsExited Then Return
 
                                           ' 处理特殊内容控件的逻辑
                                           If buttonIndex = 1 Then
@@ -88,28 +91,22 @@ Public Class MyMsgCustom
                                                   ' Input 模式：需要验证
                                                   Dim result = ContentInput.GetResult()
                                                   If result Is Nothing Then Return ' 验证失败，不关闭
-                                                  _MyConverter.IsExited = True
-                                                  _MyConverter.Result = result
+                                                  _Item.IsExited = True
+                                                  _Item.Result = result
                                                   Close()
                                                   Return
                                               ElseIf ContentSelect IsNot Nothing Then
                                                   ' Select 模式：需要检查是否已选择
                                                   If Not ContentSelect.HasSelection Then Return ' 未选择，不关闭
-                                                  _MyConverter.IsExited = True
-                                                  _MyConverter.Result = ContentSelect.GetSelectedIndex
+                                                  _Item.IsExited = True
+                                                  _Item.Result = ContentSelect.GetResult()
                                                   Close()
                                                   Return
                                               End If
-                                          ElseIf buttonIndex = 2 AndAlso ContentInput IsNot Nothing Then
-                                              ' Input 模式的取消按钮
-                                              _MyConverter.IsExited = True
-                                              _MyConverter.Result = Nothing
-                                              Close()
-                                              Return
-                                          ElseIf buttonIndex = 2 AndAlso ContentSelect IsNot Nothing Then
-                                              ' Select 模式的取消按钮
-                                              _MyConverter.IsExited = True
-                                              _MyConverter.Result = Nothing
+                                          ElseIf buttonIndex = 2 AndAlso (ContentInput IsNot Nothing OrElse ContentSelect IsNot Nothing) Then
+                                              ' Input/Select 模式的取消按钮
+                                              _Item.IsExited = True
+                                              _Item.Result = Nothing
                                               Close()
                                               Return
                                           End If
@@ -118,18 +115,24 @@ Public Class MyMsgCustom
                                           Dim action As Action = Nothing
                                           Select Case buttonIndex
                                               Case 1
-                                                  action = _MyConverter.Button1Action
+                                                  action = _Item.Button1Action
                                               Case 2
-                                                  action = _MyConverter.Button2Action
+                                                  action = _Item.Button2Action
                                               Case 3
-                                                  action = _MyConverter.Button3Action
+                                                  action = _Item.Button3Action
                                           End Select
 
                                           If action IsNot Nothing Then
                                               action()
                                           Else
-                                              _MyConverter.IsExited = True
-                                              _MyConverter.Result = buttonIndex
+                                              _Item.IsExited = True
+                                              ' 从内容控件获取结果，如果内容控件返回 Nothing，则使用按钮编号
+                                              If _Item.Content IsNot Nothing Then
+                                                  Dim contentResult = _Item.Content.GetResult()
+                                                  _Item.Result = If(contentResult IsNot Nothing, contentResult, buttonIndex)
+                                              Else
+                                                  _Item.Result = buttonIndex
+                                              End If
                                               Close()
                                           End If
                                       End Sub
@@ -188,7 +191,7 @@ Public Class MyMsgCustom
             End If
             '动画
             Opacity = 0
-            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(_MyConverter.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background, 200), "PanMsgBackground Background")
+            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(_Item.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background, 200), "PanMsgBackground Background")
             AniStart({
                 AaOpacity(Me, 1, 120, 60),
                 AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 300, 60, New AniEaseOutBack(AniEasePower.Weak)),
@@ -204,7 +207,7 @@ Public Class MyMsgCustom
 
     Private Sub Close()
         '结束线程阻塞
-        If _MyConverter.ForceWait OrElse ButtonList.Count > 1 Then _MyConverter.WaitFrame.Continue = False
+        If _Item.ForceWait OrElse ButtonList.Count > 1 Then _Item.WaitFrame.Continue = False
         Interop.ComponentDispatcher.PopModal()
         '动画
         AniStart({

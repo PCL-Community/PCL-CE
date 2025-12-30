@@ -10,19 +10,19 @@ Public Class MyMsgLogin
 
 #Region "弹窗"
 
-    Private ReadOnly MyConverter As MyMsgBoxConverter
+    Private ReadOnly MyItem As MyMsgBoxItem
     Private ReadOnly Uuid As Integer = GetUuid()
 
-    Public Sub New(Converter As MyMsgBoxConverter)
+    Public Sub New(item As MyMsgBoxItem)
         Try
             InitializeComponent()
             Btn1.Name = Btn1.Name & GetUuid()
             Btn2.Name = Btn2.Name & GetUuid()
             Btn3.Name = Btn3.Name & GetUuid()
-            MyConverter = Converter
+            MyItem = item
             ShapeLine.StrokeThickness = GetWPFSize(1)
-            Data = Converter.Content
-            OAuthUrl = Converter.AuthUrl
+            Data = item.LoginData
+            OAuthUrl = item.AuthUrl
             Init()
         Catch ex As Exception
             Log(ex, "正版验证弹窗初始化失败", LogLevel.Hint)
@@ -33,7 +33,7 @@ Public Class MyMsgLogin
         Try
             '动画
             Opacity = 0
-            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(MyConverter.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background, 200), "PanMsgBackground Background")
+            AniStart(AaColor(FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty, If(MyItem.IsWarn, New MyColor(140, 80, 0, 0), New MyColor(90, 0, 0, 0)) - FrmMain.PanMsgBackground.Background, 200), "PanMsgBackground Background")
             AniStart({
                 AaOpacity(Me, 1, 120, 60),
                 AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 300, 60, New AniEaseOutBack(AniEasePower.Weak)),
@@ -76,9 +76,10 @@ Public Class MyMsgLogin
 #End Region
 
     Private Sub Finished(Result As Object)
-        If MyConverter.IsExited Then Return
-        MyConverter.IsExited = True
-        MyConverter.Result = Result
+        If MyItem.IsExited Then Return
+        MyItem.IsExited = True
+        MyItem.Result = Result
+        MyItem.WaitFrame.Continue = False
         RunInUi(AddressOf Close)
         Thread.Sleep(200)
         FrmMain.ShowWindowToTop()
@@ -110,13 +111,13 @@ Public Class MyMsgLogin
 
     Private Sub WorkThread()
         Thread.Sleep(3000)
-        If MyConverter.IsExited Then Return
+        If MyItem.IsExited Then Return
         OpenWebsite(Website)
         ClipboardSet(UserCode)
         Thread.Sleep((Data("interval").ToObject(Of Integer) - 1) * 1000)
         '轮询
         Dim UnknownFailureCount As Integer = 0
-        Do While Not MyConverter.IsExited
+        Do While Not MyItem.IsExited
             Try
                 Dim Result = NetRequestOnce(
                     "https://login.microsoftonline.com/consumers/oauth2/v2.0/token", "POST",

@@ -614,12 +614,12 @@ Retry:
         McLaunchLog("网页登录地址：" & PrepareJson("verification_uri").ToString)
 
         '弹窗
-        Dim Converter As New MyMsgBoxConverter With {.Content = PrepareJson, .ForceWait = True, .Type = MyMsgBoxType.Login}
-        WaitingMyMsgBox.Add(Converter)
-        While Converter.Result Is Nothing
+        Dim item As New MyMsgBoxItem With {.LoginData = PrepareJson, .ForceWait = True, .Title = "登录 Minecraft"}
+        WaitingMyMsgBox.Add(item)
+        While item.Result Is Nothing
             Thread.Sleep(100)
         End While
-        If TypeOf Converter.Result Is RestartException Then
+        If TypeOf item.Result Is RestartException Then
             If MyMsgBox($"请在登录时选择 {vbLQ}其他登录方法{vbRQ}，然后选择 {vbLQ}使用我的密码{vbRQ}。{vbCrLf}如果没有该选项，请选择 {vbLQ}设置密码{vbRQ}，设置完毕后再登录。",
                 "需要使用密码登录", "重新登录", "设置密码", "取消",
                 Button2Action:=Sub() OpenWebsite("https://account.live.com/password/Change")) = 1 Then
@@ -627,10 +627,10 @@ Retry:
             Else
                 Throw New Exception("$$")
             End If
-        ElseIf TypeOf Converter.Result Is Exception Then
-            Throw CType(Converter.Result, Exception)
+        ElseIf TypeOf item.Result Is Exception Then
+            Throw CType(item.Result, Exception)
         Else
-            Return Converter.Result
+            Return item.Result
         End If
     End Function
     ''' <summary>

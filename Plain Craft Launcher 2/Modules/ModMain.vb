@@ -176,29 +176,11 @@ EndHint:
 #Region "弹窗"
 
     ''' <summary>
-    ''' 存储弹窗信息的转换器。
+    ''' 存储弹窗信息的项，只包含通用数据（标题、按钮等）。
+    ''' 特有数据应保存在 MyMsgContent 子类中。
     ''' </summary>
-    Public Class MyMsgBoxConverter
-        Public Type As MyMsgBoxType
+    Public Class MyMsgBoxItem
         Public Title As String
-        Public Text As String
-        ''' <summary>
-        ''' 输入模式：文本框的文本。
-        ''' 选择模式：需要放进去的 List(Of MyListItem)。
-        ''' 登录模式：登录步骤 1 中返回的 JSON。
-        ''' </summary>
-        Public Content As Object
-
-        '设置轮询 Url
-        Public AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
-        ''' <summary>
-        ''' 输入模式：输入验证规则。
-        ''' </summary>
-        Public ValidateRules As ObjectModel.Collection(Of Validate)
-        ''' <summary>
-        ''' 输入模式：提示文本。
-        ''' </summary>
-        Public HintText As String = ""
         ''' <summary>
         ''' 有多个按钮时，是否给第一个按钮加高亮。
         ''' </summary>
@@ -226,28 +208,26 @@ EndHint:
         ''' </summary>
         Public IsExited As Boolean = False
         ''' <summary>
-        ''' 输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
-        ''' 选择模式：点击的按钮编号，从 1 开始。
-        ''' 登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
+        ''' 弹窗的结果数据。
         ''' </summary>
         Public Result As Object
         ''' <summary>
-        ''' 自定义模式：自定义的 UI 内容（UserControl/UIElement）。
+        ''' 弹窗的内容控件（MyMsgContent 或其子类）。
         ''' </summary>
-        Public CustomContent As UIElement = Nothing
+        Public Content As MyMsgContent = Nothing
         ''' <summary>
-        ''' 自定义模式：按钮文本列表，用于动态生成按钮。
+        ''' 按钮文本列表，用于动态生成按钮。如果为空，则使用 Button1/Button2/Button3。
         ''' </summary>
         Public Buttons As List(Of String) = Nothing
+        ''' <summary>
+        ''' Login 模式：登录步骤 1 中返回的 JSON。
+        ''' </summary>
+        Public LoginData As Object = Nothing
+        ''' <summary>
+        ''' Login 模式：设置轮询 Url。
+        ''' </summary>
+        Public AuthUrl As String = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
     End Class
-    Public Enum MyMsgBoxType
-        Text
-        [Select]
-        Input
-        Login
-        Markdown
-        Custom
-    End Enum
 
     ''' <summary>
     ''' 显示弹窗，返回点击按钮的编号（从 1 开始）。
@@ -265,46 +245,56 @@ EndHint:
                              Optional Button1 As String = "确定", Optional Button2 As String = "", Optional Button3 As String = "",
                              Optional IsWarn As Boolean = False, Optional HighLight As Boolean = True, Optional ForceWait As Boolean = False,
                              Optional Button1Action As Action = Nothing, Optional Button2Action As Action = Nothing, Optional Button3Action As Action = Nothing) As Integer
-        '将弹窗列入队列
-        Dim Converter As New MyMsgBoxConverter With {.Type = MyMsgBoxType.Text, .Button1 = Button1, .Button2 = Button2, .Button3 = Button3, .Text = Caption, .IsWarn = IsWarn, .Title = Title, .HighLight = HighLight, .ForceWait = True, .Button1Action = Button1Action, .Button2Action = Button2Action, .Button3Action = Button3Action}
-        WaitingMyMsgBox.Add(Converter)
+        '创建内容控件
+        Dim content As New MyMsgContentText(Caption)
+        '创建弹窗项
+        Dim item As New MyMsgBoxItem With {
+            .Title = Title,
+            .Button1 = Button1,
+            .Button2 = Button2,
+            .Button3 = Button3,
+            .IsWarn = IsWarn,
+            .HighLight = HighLight,
+            .ForceWait = ForceWait,
+            .Button1Action = Button1Action,
+            .Button2Action = Button2Action,
+            .Button3Action = Button3Action,
+            .Content = content
+        }
+        WaitingMyMsgBox.Add(item)
         If RunInUi() Then
-            '若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick()
         End If
         If Button2.Length > 0 OrElse ForceWait Then
-            '若有多个按钮则开始等待
             If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing AndAlso RunInUi() Then
-                '主窗体尚未加载，用老土的弹窗来替代
-                WaitingMyMsgBox.Remove(Converter)
+                WaitingMyMsgBox.Remove(item)
                 If Button2.Length > 0 Then
                     Dim RawResult As MsgBoxResult = MsgBox(Caption, If(Button3.Length > 0, MsgBoxStyle.YesNoCancel, MsgBoxStyle.YesNo) + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
                     Select Case RawResult
                         Case MsgBoxResult.Yes
-                            Converter.Result = 1
+                            item.Result = 1
                         Case MsgBoxResult.No
-                            Converter.Result = 2
+                            item.Result = 2
                         Case MsgBoxResult.Cancel
-                            Converter.Result = 3
+                            item.Result = 3
                     End Select
                 Else
                     MsgBox(Caption, MsgBoxStyle.OkOnly + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
-                    Converter.Result = 1
+                    item.Result = 1
                 End If
                 Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" & Button1 & "," & Button2 & "," & Button3, LogLevel.Debug)
             Else
                 Try
                     FrmMain.DragStop()
                     ComponentDispatcher.PushModal()
-                    Dispatcher.PushFrame(Converter.WaitFrame)
+                    Dispatcher.PushFrame(item.WaitFrame)
                 Finally
                     ComponentDispatcher.PopModal()
                 End Try
             End If
-            Log("[Control] 普通弹框返回：" & If(Converter.Result, "null"))
-            Return Converter.Result
+            Log("[Control] 普通弹框返回：" & If(item.Result, "null"))
+            Return If(item.Result, 1)
         Else
-            '不进行等待，直接返回
             Return 1
         End If
     End Function
@@ -324,46 +314,56 @@ EndHint:
                              Optional Button1 As String = "确定", Optional Button2 As String = "", Optional Button3 As String = "",
                              Optional IsWarn As Boolean = False, Optional HighLight As Boolean = True, Optional ForceWait As Boolean = False,
                              Optional Button1Action As Action = Nothing, Optional Button2Action As Action = Nothing, Optional Button3Action As Action = Nothing) As Integer
-        '将弹窗列入队列
-        Dim Converter As New MyMsgBoxConverter With {.Type = MyMsgBoxType.Markdown, .Button1 = Button1, .Button2 = Button2, .Button3 = Button3, .Text = Caption, .IsWarn = IsWarn, .Title = Title, .HighLight = HighLight, .ForceWait = True, .Button1Action = Button1Action, .Button2Action = Button2Action, .Button3Action = Button3Action}
-        WaitingMyMsgBox.Add(Converter)
+        '创建内容控件
+        Dim content As New MyMsgContentMarkdown(Caption)
+        '创建弹窗项
+        Dim item As New MyMsgBoxItem With {
+            .Title = Title,
+            .Button1 = Button1,
+            .Button2 = Button2,
+            .Button3 = Button3,
+            .IsWarn = IsWarn,
+            .HighLight = HighLight,
+            .ForceWait = ForceWait,
+            .Button1Action = Button1Action,
+            .Button2Action = Button2Action,
+            .Button3Action = Button3Action,
+            .Content = content
+        }
+        WaitingMyMsgBox.Add(item)
         If RunInUi() Then
-            '若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick()
         End If
         If Button2.Length > 0 OrElse ForceWait Then
-            '若有多个按钮则开始等待
             If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing AndAlso RunInUi() Then
-                '主窗体尚未加载，用老土的弹窗来替代
-                WaitingMyMsgBox.Remove(Converter)
+                WaitingMyMsgBox.Remove(item)
                 If Button2.Length > 0 Then
                     Dim RawResult As MsgBoxResult = MsgBox(Caption, If(Button3.Length > 0, MsgBoxStyle.YesNoCancel, MsgBoxStyle.YesNo) + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
                     Select Case RawResult
                         Case MsgBoxResult.Yes
-                            Converter.Result = 1
+                            item.Result = 1
                         Case MsgBoxResult.No
-                            Converter.Result = 2
+                            item.Result = 2
                         Case MsgBoxResult.Cancel
-                            Converter.Result = 3
+                            item.Result = 3
                     End Select
                 Else
                     MsgBox(Caption, MsgBoxStyle.OkOnly + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
-                    Converter.Result = 1
+                    item.Result = 1
                 End If
                 Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" & Button1 & "," & Button2 & "," & Button3, LogLevel.Debug)
             Else
                 Try
                     FrmMain.DragStop()
                     ComponentDispatcher.PushModal()
-                    Dispatcher.PushFrame(Converter.WaitFrame)
+                    Dispatcher.PushFrame(item.WaitFrame)
                 Finally
                     ComponentDispatcher.PopModal()
                 End Try
             End If
-            Log("[Control] 普通弹框返回：" & If(Converter.Result, "null"))
-            Return Converter.Result
+            Log("[Control] 普通弹框返回：" & If(item.Result, "null"))
+            Return If(item.Result, 1)
         Else
-            '不进行等待，直接返回
             Return 1
         End If
     End Function
@@ -379,19 +379,26 @@ EndHint:
     ''' <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
     ''' <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     Public Function MyMsgBoxInput(Title As String, Optional Text As String = "", Optional DefaultInput As String = "", Optional ValidateRules As ObjectModel.Collection(Of Validate) = Nothing, Optional HintText As String = "", Optional Button1 As String = "确定", Optional Button2 As String = "取消", Optional IsWarn As Boolean = False) As String
-        '将弹窗列入队列
-        Dim Converter As New MyMsgBoxConverter With {.Text = Text, .HintText = HintText, .Type = MyMsgBoxType.Input, .ValidateRules = If(ValidateRules, New ObjectModel.Collection(Of Validate)), .Button1 = Button1, .Button2 = Button2, .Content = DefaultInput, .IsWarn = IsWarn, .Title = Title}
-        WaitingMyMsgBox.Add(Converter)
-        '虽然我也不知道这是啥但是能用就成了 :)
+        '创建内容控件
+        Dim content As New MyMsgContentInput(Text, DefaultInput, HintText, If(ValidateRules, New ObjectModel.Collection(Of Validate)))
+        '创建弹窗项
+        Dim item As New MyMsgBoxItem With {
+            .Title = Title,
+            .Button1 = Button1,
+            .Button2 = Button2,
+            .IsWarn = IsWarn,
+            .Content = content
+        }
+        WaitingMyMsgBox.Add(item)
         Try
             If FrmMain IsNot Nothing Then FrmMain.DragStop()
             ComponentDispatcher.PushModal()
-            Dispatcher.PushFrame(Converter.WaitFrame)
+            Dispatcher.PushFrame(item.WaitFrame)
         Finally
             ComponentDispatcher.PopModal()
         End Try
-        Log("[Control] 输入弹框返回：" & If(Converter.Result, "null"))
-        Return Converter.Result
+        Log("[Control] 输入弹框返回：" & If(item.Result, "null"))
+        Return item.Result
     End Function
     ''' <summary>
     ''' 显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
@@ -401,19 +408,26 @@ EndHint:
     ''' <param name="Button2">显示的第二个按钮，默认为空。</param>
     ''' <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     Public Function MyMsgBoxSelect(Selections As List(Of IMyRadio), Optional Title As String = "提示", Optional Button1 As String = "确定", Optional Button2 As String = "", Optional IsWarn As Boolean = False) As Integer?
-        '将弹窗列入队列
-        Dim Converter As New MyMsgBoxConverter With {.Type = MyMsgBoxType.Select, .Button1 = Button1, .Button2 = Button2, .Content = Selections, .IsWarn = IsWarn, .Title = Title}
-        WaitingMyMsgBox.Add(Converter)
-        '虽然我也不知道这是啥但是能用就成了 :)
+        '创建内容控件
+        Dim content As New MyMsgContentSelect(Selections)
+        '创建弹窗项
+        Dim item As New MyMsgBoxItem With {
+            .Title = Title,
+            .Button1 = Button1,
+            .Button2 = Button2,
+            .IsWarn = IsWarn,
+            .Content = content
+        }
+        WaitingMyMsgBox.Add(item)
         Try
             If FrmMain IsNot Nothing Then FrmMain.DragStop()
             ComponentDispatcher.PushModal()
-            Dispatcher.PushFrame(Converter.WaitFrame)
+            Dispatcher.PushFrame(item.WaitFrame)
         Finally
             ComponentDispatcher.PopModal()
         End Try
-        Log("[Control] 选择弹框返回：" & If(Converter.Result, "null"))
-        Return Converter.Result
+        Log("[Control] 选择弹框返回：" & If(item.Result, "null"))
+        Return item.Result
     End Function
     ''' <summary>
     ''' 显示自定义内容弹窗并返回点击的按钮编号（从 1 开始）。类似 WinUI 3 ContentDialog 的方式。
@@ -424,57 +438,51 @@ EndHint:
     ''' <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     ''' <param name="ForceWait">是否强制等待，即使只有一个按钮也等待用户操作。</param>
     ''' <returns>点击的按钮编号（从 1 开始），对应 Buttons 列表的索引。</returns>
-    Public Function MyMsgBoxCustom(Title As String, Content As UIElement, Optional Buttons As List(Of String) = Nothing, Optional IsWarn As Boolean = False, Optional ForceWait As Boolean = False) As Integer
+    Public Function MyMsgBoxCustom(Title As String, Content As MyMsgContent, Optional Buttons As List(Of String) = Nothing, Optional IsWarn As Boolean = False, Optional ForceWait As Boolean = False) As Integer
         '将弹窗列入队列
         Dim buttonList As List(Of String) = If(Buttons, New List(Of String) From {"确定"})
-        Dim Converter As New MyMsgBoxConverter With {
-            .Type = MyMsgBoxType.Custom,
+        Dim item As New MyMsgBoxItem With {
             .Title = Title,
-            .CustomContent = Content,
+            .Content = Content,
             .Buttons = buttonList,
             .IsWarn = IsWarn,
             .ForceWait = ForceWait
         }
-        WaitingMyMsgBox.Add(Converter)
+        WaitingMyMsgBox.Add(item)
         If RunInUi() Then
-            '若为 UI 线程，立即执行弹窗，避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick()
         End If
         '开始等待
         If buttonList.Count > 1 OrElse ForceWait Then
-            '若有多个按钮或强制等待则开始等待
             If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing AndAlso RunInUi() Then
-                '主窗体尚未加载，用老土的弹窗来替代
-                WaitingMyMsgBox.Remove(Converter)
+                WaitingMyMsgBox.Remove(item)
                 If buttonList.Count > 1 Then
-                    Dim buttonTexts As String = String.Join(" / ", buttonList)
                     Dim RawResult As MsgBoxResult = MsgBox(Title & vbCrLf & "自定义内容弹窗", If(buttonList.Count > 2, MsgBoxStyle.YesNoCancel, MsgBoxStyle.YesNo) + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
                     Select Case RawResult
                         Case MsgBoxResult.Yes
-                            Converter.Result = 1
+                            item.Result = 1
                         Case MsgBoxResult.No
-                            Converter.Result = 2
+                            item.Result = 2
                         Case MsgBoxResult.Cancel
-                            Converter.Result = 3
+                            item.Result = 3
                     End Select
                 Else
                     MsgBox(Title & vbCrLf & "自定义内容弹窗", MsgBoxStyle.OkOnly + If(IsWarn, MsgBoxStyle.Critical, MsgBoxStyle.Question), Title)
-                    Converter.Result = 1
+                    item.Result = 1
                 End If
                 Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" & String.Join(", ", buttonList), LogLevel.Debug)
             Else
                 Try
                     FrmMain.DragStop()
                     ComponentDispatcher.PushModal()
-                    Dispatcher.PushFrame(Converter.WaitFrame)
+                    Dispatcher.PushFrame(item.WaitFrame)
                 Finally
                     ComponentDispatcher.PopModal()
                 End Try
             End If
-            Log("[Control] 自定义弹框返回：" & If(Converter.Result, "null"))
-            Return Converter.Result
+            Log("[Control] 自定义弹框返回：" & If(item.Result, "null"))
+            Return If(item.Result, 1)
         Else
-            '不进行等待，直接返回
             Return 1
         End If
     End Function
@@ -482,7 +490,7 @@ EndHint:
     ''' <summary>
     ''' 等待显示的弹窗。
     ''' </summary>
-    Public WaitingMyMsgBox As List(Of MyMsgBoxConverter) = If(WaitingMyMsgBox, New List(Of MyMsgBoxConverter))
+    Public WaitingMyMsgBox As List(Of MyMsgBoxItem) = If(WaitingMyMsgBox, New List(Of MyMsgBoxItem))
     Public Sub MyMsgBoxTick()
         Try
             If FrmMain Is Nothing OrElse FrmMain.PanMsg Is Nothing OrElse FrmMain.WindowState = WindowState.Minimized Then Return
@@ -492,44 +500,24 @@ EndHint:
             ElseIf WaitingMyMsgBox.Any Then
                 '没有弹窗，显示一个等待的弹窗
                 FrmMain.PanMsgBackground.Visibility = Visibility.Visible
-                Dim converter As MyMsgBoxConverter = WaitingMyMsgBox(0)
+                Dim item As MyMsgBoxItem = WaitingMyMsgBox(0)
                 
-                ' 将 Text、Input、Select、Markdown 类型转换为 Custom 类型
-                If converter.Type = MyMsgBoxType.Text OrElse converter.Type = MyMsgBoxType.Input OrElse 
-                   converter.Type = MyMsgBoxType.Select OrElse converter.Type = MyMsgBoxType.Markdown Then
-                    ' 创建对应的内容控件
-                    Dim contentControl As UIElement = Nothing
-                    Select Case converter.Type
-                        Case MyMsgBoxType.Text
-                            contentControl = New MyMsgContentText(converter)
-                        Case MyMsgBoxType.Input
-                            contentControl = New MyMsgContentInput(converter)
-                        Case MyMsgBoxType.Select
-                            contentControl = New MyMsgContentSelect(converter)
-                        Case MyMsgBoxType.Markdown
-                            contentControl = New MyMsgContentMarkdown(converter)
-                    End Select
-                    
-                    ' 设置按钮列表
-                    If converter.Buttons Is Nothing Then
-                        converter.Buttons = New List(Of String)
-                        If Not String.IsNullOrEmpty(converter.Button1) Then converter.Buttons.Add(converter.Button1)
-                        If Not String.IsNullOrEmpty(converter.Button2) Then converter.Buttons.Add(converter.Button2)
-                        If Not String.IsNullOrEmpty(converter.Button3) Then converter.Buttons.Add(converter.Button3)
-                    End If
-                    
-                    ' 转换为 Custom 类型
-                    converter.Type = MyMsgBoxType.Custom
-                    converter.CustomContent = contentControl
+                ' 设置按钮列表（如果未设置）
+                If item.Buttons Is Nothing Then
+                    item.Buttons = New List(Of String)
+                    If Not String.IsNullOrEmpty(item.Button1) Then item.Buttons.Add(item.Button1)
+                    If Not String.IsNullOrEmpty(item.Button2) Then item.Buttons.Add(item.Button2)
+                    If Not String.IsNullOrEmpty(item.Button3) Then item.Buttons.Add(item.Button3)
                 End If
                 
-                ' 显示弹窗
-                Select Case converter.Type
-                    Case MyMsgBoxType.Login
-                        FrmMain.PanMsg.Children.Add(New MyMsgLogin(converter))
-                    Case MyMsgBoxType.Custom
-                        FrmMain.PanMsg.Children.Add(New MyMsgCustom(converter))
-                End Select
+                ' 显示弹窗（根据内容类型判断，Login 类型需要特殊处理）
+                If item.LoginData IsNot Nothing Then
+                    ' Login 类型需要特殊处理（保持原有逻辑）
+                    FrmMain.PanMsg.Children.Add(New MyMsgLogin(item))
+                Else
+                    ' 其他类型统一使用 MyMsgCustom
+                    FrmMain.PanMsg.Children.Add(New MyMsgCustom(item))
+                End If
                 WaitingMyMsgBox.RemoveAt(0)
             Else
                 '没有弹窗，没有等待的弹窗

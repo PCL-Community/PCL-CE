@@ -1,15 +1,23 @@
 Imports PCL.Core.UI.Controls
 
-Public Class MyMsgContentText
-    Inherits UserControl
+Partial Public Class MyMsgContentText
+    Inherits MyMsgContent
 
-    Public Property Converter As MyMsgBoxConverter
+    Private _Text As String
 
-    Public Sub New(conv As MyMsgBoxConverter)
+    Public Sub New(text As String)
         InitializeComponent()
-        Converter = conv
-        LabCaption.Text = conv.Text
+        _Text = text
     End Sub
+
+    Public Overrides Sub Initialize()
+        LabCaption.Text = _Text
+    End Sub
+
+    Public Overrides Function GetResult() As Object
+        ' Text 类型返回按钮编号（在 MyMsgCustom 中处理）
+        Return Nothing
+    End Function
 
 End Class
 

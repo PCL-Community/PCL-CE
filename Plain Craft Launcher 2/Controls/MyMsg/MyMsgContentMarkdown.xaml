@@ -1,4 +1,4 @@
-<UserControl x:Class="MyMsgContentMarkdown"
+<my:MyMsgContent x:Class="MyMsgContentMarkdown"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:my="clr-namespace:PCL"
@@ -8,5 +8,5 @@
         <markdig:MarkdownViewer VerticalAlignment="Top" Name="LabCaption"
                    Foreground="{DynamicResource ColorBrushMsgBoxText}" FontWeight="Normal" />
     </my:MyScrollViewer>
-</UserControl>
+</my:MyMsgContent>
 

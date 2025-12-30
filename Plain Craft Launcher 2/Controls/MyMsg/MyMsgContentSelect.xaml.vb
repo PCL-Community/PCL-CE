@@ -1,16 +1,19 @@
 Imports PCL.Core.UI.Controls
 
-Public Class MyMsgContentSelect
-    Inherits UserControl
+Partial Public Class MyMsgContentSelect
+    Inherits MyMsgContent
 
-    Public Property Converter As MyMsgBoxConverter
+    Private _Selections As List(Of IMyRadio)
     Private SelectedIndex As Integer = -1
 
-    Public Sub New(conv As MyMsgBoxConverter)
+    Public Sub New(selections As List(Of IMyRadio))
         InitializeComponent()
-        Converter = conv
+        _Selections = selections
+    End Sub
+
+    Public Overrides Sub Initialize()
         '添加选择控件
-        For Each Selection As IMyRadio In conv.Content
+        For Each Selection As IMyRadio In _Selections
             PanSelection.Children.Add(Selection)
             AddHandler Selection.Check, AddressOf OnChecked
             If TypeOf Selection Is MyListItem Then
@@ -33,14 +36,12 @@ Public Class MyMsgContentSelect
         End Get
     End Property
 
-    Public ReadOnly Property GetSelectedIndex As Integer?
-        Get
-            If SelectedIndex >= 0 Then
-                Return SelectedIndex
-            End If
-            Return Nothing
-        End Get
-    End Property
+    Public Overrides Function GetResult() As Object
+        If SelectedIndex >= 0 Then
+            Return SelectedIndex
+        End If
+        Return Nothing
+    End Function
 
     Public Event SelectionChanged As EventHandler
 

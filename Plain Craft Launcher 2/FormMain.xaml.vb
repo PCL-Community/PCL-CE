@@ -536,8 +536,7 @@ Public Class FormMain
                 If TypeOf Msg Is MyMsgCustom Then
                     Dim customMsg = CType(Msg, MyMsgCustom)
                     ' 检查是否是 Input 或 Select 类型（需要特殊处理）
-                    Dim content = customMsg.MyConverter.CustomContent
-                    If TypeOf content Is MyMsgContentInput OrElse TypeOf content Is MyMsgContentSelect Then
+                    If customMsg IsNot Nothing Then
                         ' Input 和 Select 类型：Escape 触发第二个按钮（取消）
                         If customMsg.Btn2Visibility = Visibility.Visible Then
                             customMsg.Btn2_Click()
