@@ -984,12 +984,12 @@ Public Module ModDownload
 
     Private Function GetNeoForgeEntries(latestJson As String, latestLegacyJson As String) As List(Of DlNeoForgeListEntry)
         Dim versionNames = RegexSearch(latestLegacyJson & latestJson,
-                                       "(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(?="")") '我寻思直接正则就行.jpg
+                                       "(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(?="")")
         Dim versions = versionNames.
             Where(Function(name) name <> "47.1.82"). '这个版本虽然在版本列表中，但不能下载
-            Select(Function(name) New DlNeoForgeListEntry(name)).ToList
+                Select(Function(name) New DlNeoForgeListEntry(name)).
+                OrderByDescending(Function(a) a).ToList
         If Not versions.Any() Then Throw New Exception("无可用版本")
-        versions = versions.OrderByDescending(Function(a) a.Version).ToList
         Return versions
     End Function
 
