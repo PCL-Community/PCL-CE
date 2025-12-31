@@ -426,13 +426,12 @@ Public Module ModComp
                         Files.Add(New KeyValuePair(Of Integer, List(Of String))(File("id"), GameVersions))
                     Next
                     For Each File In If(Data("latestFilesIndexes"), New JArray) '这俩玩意儿包含的文件不一样，见 #3599
-                        If Not File("gameVersion").ToString.StartsWithF("1.") Then Continue For
+                        If Not McInstanceInfo.IsFormatFit(File("gameVersion")) Then Continue For
                         Files.Add(New KeyValuePair(Of Integer, List(Of String))(File("fileId"), {File("gameVersion").ToString}.ToList))
                     Next
                     CurseForgeFileIds = Files.Select(Function(f) f.Key).Distinct.ToList
-                    Drops = Files.SelectMany(Function(f) f.Value).Where(Function(v) v.StartsWithF("1.")).
-                        Select(Function(v) CInt(Val(v.Split(".")(1).BeforeFirst("-")))).Where(Function(v) v > 0).
-                        Distinct.OrderByDescending(Function(v) v).ToList
+                    Drops = Files.SelectMany(Function(f) f.Value).
+                        Select(Function(v) McInstanceInfo.VersionToDrop(v)).Where(Function(v) v > 0).Distinct.OrderByDescending(Function(v) v).ToList
                     ModLoaders = ModLoaders.Distinct.OrderBy(Of Integer)(Function(t) t).ToList
                     'Tags
                     Tags = New List(Of String)
@@ -536,9 +535,7 @@ Public Module ModComp
                     'GameVersions
                     '搜索结果的键为 versions，获取特定工程的键为 game_versions
                     Drops = If(CType(If(Data("game_versions"), Data("versions")), JArray), New JArray).
-                                       Select(Function(v) v.ToString).Where(Function(v) v.StartsWithF("1.")).
-                                       Select(Of Integer)(Function(v) Val(v.Split(".")(1).BeforeFirst("-"))).Where(Function(v) v > 0).
-                                       Distinct.OrderByDescending(Function(v) v).ToList
+                        Select(Function(v) McInstanceInfo.VersionToDrop(v)).Where(Function(v) v > 0).Distinct.OrderByDescending(Function(v) v).ToList
                     'Type
                     Select Case Data("project_type").ToString
                         Case "modpack" : Type = CompType.ModPack

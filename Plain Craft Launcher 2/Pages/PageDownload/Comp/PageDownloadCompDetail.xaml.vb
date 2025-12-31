@@ -536,6 +536,7 @@ GroupDone:
                             FileName = File.FileName
                     End Select
                 End If
+                If File.Type = CompType.Mod Then FileName = FileName.Replace("~", "-") '~ 会导致 Mixin 加载失败
                 RunInUi(
                 Sub()
                     '弹窗要求选择保存位置

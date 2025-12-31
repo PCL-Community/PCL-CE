@@ -425,7 +425,7 @@ Public Class PageDownloadInstall
             End If
         End If
         'LegacyFabricApi
-        If SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then
+        If SelectedLegacyFabric Is Nothing Then
             CardLegacyFabricApi.Visibility = Visibility.Collapsed
         Else
             CardLegacyFabricApi.Visibility = Visibility.Visible
@@ -862,7 +862,7 @@ Public Class PageDownloadInstall
             If OptiFineVersion.RequiredForgeVersion IsNot Nothing Then HasRequiredVersion = True
         Next
         If Not HasAny Then
-            Return "无"
+            Return "无可用版本"
         ElseIf HasRequiredVersion Then
             Return "仅兼容特定版本的 Forge"
         Else
@@ -950,7 +950,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadLiteLoader) IsNot Nothing Then Return GetLoaderError(LoadLiteLoader)
         '检查版本
-        Return If(DlLiteLoaderListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无")
+        Return If(DlLiteLoaderListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1001,7 +1001,7 @@ Public Class PageDownloadInstall
     ''' 获取 Forge 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadForgeGetError() As String
-        If CompareVersionGE("1.5.1", _vanillaName) AndAlso CompareVersionGE(_vanillaName, "1.1") Then Return "无"
+        If CompareVersionGE("1.5.1", _vanillaName) AndAlso CompareVersionGE(_vanillaName, "1.1") Then Return "无可用版本"
         '检查 Loader
         If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
         Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
@@ -1085,7 +1085,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
         '检查版本
-        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无")
+        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1144,7 +1144,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
         '检查版本
-        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无")
+        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1208,7 +1208,7 @@ Public Class PageDownloadInstall
                 Return Nothing
             End If
         Next
-        Return "无"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1231,7 +1231,7 @@ Public Class PageDownloadInstall
             CardFabric.SwapControl = PanFabric
             CardFabric.InstallMethod = Sub(stack As StackPanel)
                                            For Each item In stack.Tag
-                                               stack.Children.Add(FabricDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.Fabric_Selected))
+                                               stack.Children.Add(FabricDownloadListItem(CType(item, JObject), AddressOf Fabric_Selected))
                                            Next
                                        End Sub
         Catch ex As Exception
@@ -1241,6 +1241,7 @@ Public Class PageDownloadInstall
 
     '选择与清除
     Public Sub Fabric_Selected(sender As MyListItem, e As EventArgs)
+        Log(sender.Tag.ToString)
         SelectedFabric = sender.Tag("version").ToString
         SelectedLoaderName = "Fabric"
         FabricApi_Loaded()
@@ -1316,7 +1317,7 @@ Public Class PageDownloadInstall
         If DlFabricApiLoader.Output.Any(Function(f) IsFabricApiCompatible(f)) Then
             Return If(SelectedFabric Is Nothing, "需要安装 Fabric", Nothing)
         Else
-            Return "无"
+            Return "无可用版本"
         End If
     End Function
 
@@ -1395,7 +1396,7 @@ Public Class PageDownloadInstall
                 Return Nothing
             End If
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1418,7 +1419,7 @@ Public Class PageDownloadInstall
             CardLegacyFabric.SwapControl = PanLegacyFabric
             CardLegacyFabric.InstallMethod = Sub(Stack As StackPanel)
                                                  For Each item In Stack.Tag
-                                                     Stack.Children.Add(LegacyFabricDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.LegacyFabric_Selected))
+                                                     Stack.Children.Add(LegacyFabricDownloadListItem(CType(item, JObject), AddressOf LegacyFabric_Selected))
                                                  Next
                                              End Sub
         Catch ex As Exception
@@ -1481,7 +1482,7 @@ Public Class PageDownloadInstall
             If SelectedLegacyFabric Is Nothing Then Return "需要安装 LegacyFabric"
             Return Nothing
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1549,7 +1550,7 @@ Public Class PageDownloadInstall
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Quilt" Then Return $"与 {SelectedLoaderName} 不兼容"
         '检查 Loader
-        If GetLoaderError(LoadFabric) IsNot Nothing Then Return GetLoaderError(LoadFabric)
+        If GetLoaderError(LoadQuilt) IsNot Nothing Then Return GetLoaderError(LoadQuilt)
         '检查版本
         For Each version As JObject In DlFabricListLoader.Output.Value("game")
             If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
@@ -1557,7 +1558,7 @@ Public Class PageDownloadInstall
                 Return Nothing
             End If
         Next
-        Return "无"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1580,7 +1581,7 @@ Public Class PageDownloadInstall
             CardQuilt.SwapControl = PanQuilt
             CardQuilt.InstallMethod = Sub(Stack As StackPanel)
                                           For Each item In Stack.Tag
-                                              Stack.Children.Add(QuiltDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.Quilt_Selected))
+                                              Stack.Children.Add(QuiltDownloadListItem(CType(item, JObject), AddressOf Quilt_Selected))
                                           Next
                                       End Sub
         Catch ex As Exception
@@ -1744,7 +1745,7 @@ Public Class PageDownloadInstall
             If SelectedOptiFine Is Nothing Then Return "需要安装 OptiFine"
             Return Nothing '通过检查
         Next
-        Return "无"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1806,21 +1807,17 @@ Public Class PageDownloadInstall
     Private Function LoadLabyModGetError() As String
         If LoadLabyMod Is Nothing OrElse LoadLabyMod.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
         If LoadLabyMod.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadLabyMod.State, Object).Error.Message
+        '检查 Loader
+        If GetLoaderError(LoadLabyMod) IsNot Nothing Then Return GetLoaderError(LoadLabyMod)
+        If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
         For Each Version As JObject In DlLabyModListLoader.Output.Value("production")("minecraftVersions")
-            If Version("version").ToString = _vanillaName Then
-                If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
-                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
-                Return Nothing
-            End If
+            If Version("version").ToString = _vanillaName Then Return Nothing
         Next
         For Each Version As JObject In DlLabyModListLoader.Output.Value("snapshot")("minecraftVersions")
-            If Version("version").ToString = _vanillaName Then
-                If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
-                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
-                Return Nothing
-            End If
+            If Version("version").ToString = _vanillaName Then Return Nothing
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1863,7 +1860,7 @@ Public Class PageDownloadInstall
             CardLabyMod.SwapControl = PanLabyMod
             CardLabyMod.InstallMethod = Sub(Stack As StackPanel)
                                             For Each item As JObject In Stack.Tag
-                                                Stack.Children.Add(LabyModDownloadListItem(item, AddressOf FrmDownloadInstall.LabyMod_Selected))
+                                                Stack.Children.Add(LabyModDownloadListItem(item, AddressOf LabyMod_Selected))
                                             Next
                                         End Sub
         Catch ex As Exception
@@ -1944,7 +1941,7 @@ Public Class PageDownloadInstall
                 Return "获取中……"
             Case MyLoading.MyLoadingState.Error
                 Dim message As String = CType(loader.State, LoaderBase).Error.Message
-                Return If(message = "无", "无", "获取失败：" & message)
+                Return If(message = "无可用版本", "无可用版本", "获取失败：" & message)
             Case MyLoading.MyLoadingState.Unloaded
                 Return "未知错误，状态为 Unloaded"
             Case Else
