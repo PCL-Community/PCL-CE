@@ -14,7 +14,7 @@
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
-        <RowDefinition Height="17" />
+        <RowDefinition Height="20" />
         <RowDefinition Height="18" />
         <RowDefinition Height="16" />
         <RowDefinition Height="1.1*" />
@@ -28,18 +28,18 @@
         <local:MyImage x:Name="PathLogo" RenderOptions.BitmapScalingMode="HighQuality" FallbackSource="pack://application:,,,/images/Icons/NoIcon.png" />
     </Border>
     <!-- 标题 -->
-    <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Bottom" Margin="0,1,0,0" Orientation="Horizontal" 
+    <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center" Orientation="Horizontal" 
                 IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
         <TextBlock x:Name="LabTitle" TextTrimming="WordEllipsis" FontSize="14" Foreground="{DynamicResource ColorBrush1}" />
-        <TextBlock x:Name="LabTitleRaw" TextTrimming="WordEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Bottom" Visibility="Collapsed" />
+        <TextBlock x:Name="LabTitleRaw" TextTrimming="WordEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center" Visibility="Collapsed" />
     </StackPanel>
     <!-- Tag 与 详情 -->
-    <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="-1,0,1,0" Visibility="Collapsed">
+    <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="-1,0,1,0" Visibility="Collapsed">
         <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
             <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
     </StackPanel>
-    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,3,0.5"
+    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5"
                TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray3}"
                IsHitTestVisible="True" SnapsToDevicePixels="False" UseLayoutRounding="False"
                ToolTipService.InitialShowDelay="100" ToolTipService.BetweenShowDelay="100"
@@ -49,7 +49,7 @@
         </TextBlock.ToolTip>
     </TextBlock>
     <!-- 下边栏 -->
-    <Grid Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" VerticalAlignment="Bottom"
+    <Grid Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" VerticalAlignment="Center"
           IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="ColumnVersion1" Width="Auto" />
