@@ -982,7 +982,7 @@ PCL-CE 支持导入 HMCL 档案。
 
 PCL-CE 由 PCL-Community 开发，但 PCL-Community 不止开发了 PCL-CE 。
 
-PCL-CE 全称是 Plain Craft Launcher Community Edition（Plain Craft Launcher 社区版 ）。
+PCL-CE 全称是 Plain Craft Launcher Community Edition（Plain Craft Launcher 社区版）。
 
 你下载 MInecraft 这么快得多亏了 bangbang93 的 BMCLAPI！
 
