@@ -907,7 +907,7 @@ Capture:
                         '小文件缓存保护：只有在确认需要重新开始时才清空缓存
                         '如果已有缓存且线程正在运行，不清空缓存
                         If IsNoSplit AndAlso SmailFileCache IsNot Nothing AndAlso Threads IsNot Nothing AndAlso
-                           Threads.State <> NetState.Error AndAlso Threads.State <> NetState.Finish Then
+                           Threads.State <> NetState.Interrupted AndAlso Threads.State <> NetState.Finished Then
                             '已有缓存且线程未完成，不清空，直接返回
                             Return Nothing
                         End If
@@ -994,7 +994,7 @@ StartThread:
             Dim resultStream As Stream = Nothing
             '部分下载源真的特别慢，并且只需要一个请求，例如 Ping 为 20s，如果增长太慢，就会造成类似 2.5s 5s 7.5s 10s 12.5s... 的极大延迟
             '延迟过长会导致某些特别慢的链接迟迟不被掐死
-            Dim Timeout As Integer = Math.Min(Math.Max(ConnectAverage, 6000) * (1 + Info.Source.FailCount), 25000)
+            Dim Timeout As Integer = Math.Min(Math.Max(ConnectAverage, 6000) * (1 + th.Source.FailCount), 25000)
             Dim ContentLength As Long = 0
             th.State = NetState.Connecting
             '记录连接开始时间，用于检测连接阶段卡住
@@ -1014,7 +1014,7 @@ StartThread:
                     While Not ConnectTask.IsCompleted
                         If TimeUtils.GetTimeTick() - ConnectStartTime > Timeout Then
                             cts.Cancel()
-                            Throw New TimeoutException($"连接阶段超时，耗时超过 {Timeout}ms（{Info.Source.Url}）")
+                            Throw New TimeoutException($"连接阶段超时，耗时超过 {Timeout}ms（{th.Source.Url}）")
                         End If
                         Threading.Thread.Sleep(50)
                     End While
@@ -1117,8 +1117,8 @@ NotSupportRange:
                                 '首次读取返回0，记录时间用于后续超时检测
                                 th.LastReceiveTime = FirstReadStartTime
                             End If
-                            While (IsUnknownSize OrElse Info.DownloadUndone > 0) AndAlso '判断是否下载完成
-                                HttpDataCount > 0 AndAlso Not IsProgramEnded AndAlso State < NetState.Merge AndAlso (Not Info.Source.IsFailed OrElse Info.Equals(Info.Source.Thread))
+                            While (IsUnknownSize OrElse th.DownloadUndone > 0) AndAlso '判断是否下载完成
+                                HttpDataCount > 0 AndAlso Not IsProgramEnded AndAlso State < NetState.Merging AndAlso Not th.Source.IsFailed
                                 '限速
                                 While NetTaskSpeedLimitHigh > 0 AndAlso NetTaskSpeedLimitLeft <= 0
                                     Threading.Thread.Sleep(8)
