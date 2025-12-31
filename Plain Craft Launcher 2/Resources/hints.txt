@@ -984,7 +984,7 @@ PCL CE 由 PCL-Community 开发，但 PCL-Community 不止开发了 PCL CE 。
 
 PCL CE 全称是 Plain Craft Launcher Community Edition（Plain Craft Launcher 社区版）。
 
-你下载 MInecraft 这么快得多亏了 bangbang93 的 BMCLAPI！
+你下载 Minecraft 这么快得多亏了 bangbang93 的 BMCLAPI！
 
 PCL CE 可以直接更新 Minecraft 本体与模组加载器了，就在“实例设置-修改”选项卡。
 
@@ -997,7 +997,6 @@ PCL CE 可以设置动态背景。
 PCL CE 已实现官方 PCL 中的部分百宝箱功能，如内存优化、今日人品、清理游戏垃圾、高速下载等，同时提供了更多社区独立开发的小工具。  
 
 PCL CE 支持日志查看与导出，方便用户提交 BUG 时附带详细日志。  
-
 
 PCL CE 支持使用 Mirror 酱加速更新。
 
