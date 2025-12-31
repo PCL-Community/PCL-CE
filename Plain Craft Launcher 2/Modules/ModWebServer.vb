@@ -2,10 +2,11 @@ Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
 Imports PCL.Core.Link.Natayark
 Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Server
 
 Public Module ModWebServer
 
-    Private _webServers As New Dictionary(Of String, WebServer)
+    Private _webServers As New Dictionary(Of String, HttpServer)
 
     ''' <summary>
     ''' 在新的 <see cref="Task"/> 中开始 HTTP 服务端响应。
@@ -13,26 +14,38 @@ Public Module ModWebServer
     ''' <param name="name">服务端名称</param>
     ''' <param name="server">服务端实例</param>
     ''' <returns>是否成功开始，若已存在同名实例则返回 <c>false</c></returns>
-    Public Function StartWebServer(name As String, server As WebServer) As Boolean
+    Public Function StartWebServer(name As String, server As HttpServer) As Boolean
         name = name.ToLowerInvariant()
         SyncLock _webServers
             If _webServers.ContainsKey(name) Then Return False
             _webServers(name) = server
         End SyncLock
         Task.Run(
-            Async Function() As Task
+            Sub()
                 Log($"[WebServer] 服务端 '{name}' 已启动")
                 Try
-                    Await server.StartResponseAsync()
+                    server.Start()
+                    ' 保持服务器运行直到被停止（通过检查字典中是否还存在该服务器）
+                    While True
+                        SyncLock _webServers
+                            If Not _webServers.ContainsKey(name) Then Exit While
+                        End SyncLock
+                        System.Threading.Thread.Sleep(100)
+                    End While
                 Catch ex As Exception
                     Log(ex, $"[WebServer] 服务端 '{name}' 运行出错")
+                Finally
+                    Try
+                        server.Dispose()
+                    Catch
+                        ' 忽略已释放的异常
+                    End Try
+                    Log($"[WebServer] 服务端 '{name}' 已停止")
+                    SyncLock _webServers
+                        _webServers.Remove(name)
+                    End SyncLock
                 End Try
-                server.Dispose()
-                Log($"[WebServer] 服务端 '{name}' 已停止")
-                SyncLock _webServers
-                    _webServers.Remove(name)
-                End SyncLock
-            End Function)
+            End Sub)
         Return True
     End Function
 
@@ -67,6 +80,112 @@ Public Module ModWebServer
 
 #Region "网页登录回调"
 
+    Public Class NaidCallbackServer
+        Inherits HttpServer
+
+        Private _status As OAuthCompleteStatus = Nothing
+        Private _callbackParameters As IDictionary(Of String, String) = Nothing
+        Private _callbackContent As String = Nothing
+        Private _completeCallback As OAuthComplete = Nothing
+        Private _serviceName As String = Nothing
+        Private _picAddress As String = Nothing
+
+        Sub New(serviceName As String, completeCallback As OAuthComplete, picAddress As String)
+            MyBase.New({IPAddress.Parse("127.0.0.1")})
+            _serviceName = serviceName
+            _completeCallback = completeCallback
+            _picAddress = picAddress
+        End Sub
+
+        Protected Overrides Sub Init()
+            ' 注册回调路由
+            MyBase.Register(Net.Http.HttpMethod.Get, "/callback", AddressOf HandleCallback)
+            MyBase.Register(Net.Http.HttpMethod.Post, "/callback", AddressOf HandleCallback)
+
+            ' 注册状态路由
+            MyBase.Register(Net.Http.HttpMethod.Get, "/status", AddressOf HandleStatus)
+
+            ' 注册资源路由
+            MyBase.Register(Net.Http.HttpMethod.Get, "/assets/background", AddressOf HandleBackground)
+            MyBase.Register(Net.Http.HttpMethod.Get, "/assets/icon", AddressOf HandleIcon)
+            MyBase.Register(Net.Http.HttpMethod.Get, "/complete", AddressOf HandleComplete)
+        End Sub
+
+        Private Async Function HandleCallback(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If Not request.IsLocal Then Return HttpRouteResponse.Forbidden
+
+            Dim redirect = HttpRouteResponse.Redirect("/complete")
+
+            ' 解析回调 URL 参数
+            Dim parameterMap As New Dictionary(Of String, String)
+            Dim query = request.Url.Query
+            Dim queryIndex = query.IndexOf("?"c)
+            If queryIndex <> -1 AndAlso query.Length > queryIndex Then
+                Try
+                    Dim sq = query.Substring(queryIndex + 1).Split("&"c)
+                    Dim splitChar = {"="c}
+                    For Each iq In sq
+                        Dim q = iq.Split(splitChar, 2)
+                        If q.Length = 2 Then
+                            parameterMap(q(0)) = q(1)
+                        End If
+                    Next
+                Catch ex As Exception
+                    _status = OAuthCompleteStatus.Failed("回调参数解析出错", ex)
+                    Return redirect
+                End Try
+            End If
+            _callbackParameters = parameterMap
+
+            ' 读取回调内容
+            If request.HasEntityBody Then
+                Try
+                    Using reader As New StreamReader(request.InputStream, request.ContentEncoding)
+                        _callbackContent = reader.ReadToEnd()
+                    End Using
+                Catch ex As Exception
+                    _status = OAuthCompleteStatus.Failed("读取回调内容出错", ex)
+                    Return redirect
+                End Try
+            End If
+
+            Return redirect
+        End Function
+
+        Private Async Function HandleStatus(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If _callbackParameters Is Nothing Then Return HttpRouteResponse.NotFound
+
+            Try
+                If _status Is Nothing Then
+                    _callbackParameters("Port") = Me.Port.ToString()
+                    _status = _completeCallback(True, _callbackParameters, _callbackContent)
+                ElseIf Not _status.success Then
+                    Log($"[OAuth] {_serviceName}: {_status.message}{vbCrLf}{_status.stacktrace}")
+                    Dim pa = New Dictionary(Of String, String)
+                    pa("Port") = Me.Port.ToString()
+                    _completeCallback(False, pa, _status.message)
+                End If
+            Catch ex As Exception
+                _status = OAuthCompleteStatus.Failed("处理回调出错", ex)
+            End Try
+
+            Return HttpRouteResponse.Json(_status)
+        End Function
+
+        Private Async Function HandleBackground(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If String.IsNullOrWhiteSpace(_picAddress) Then Return HttpRouteResponse.NotFound
+            Return HttpRouteResponse.Input(New FileStream(_picAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
+        End Function
+
+        Private Async Function HandleIcon(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            Return HttpRouteResponse.Input(GetResourceStream("Images/icon.ico"))
+        End Function
+
+        Private Async Function HandleComplete(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            Return HttpRouteResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html")
+        End Function
+    End Class
+
     Private ChangeLock As New Object
     Private PicAddress As String
     Public Function BackgroundPicChangeCallback(Pic As String)
@@ -96,91 +215,17 @@ Public Module ModWebServer
         If IsWebServerRunning(serviceName) Then Return False
         RunInNewThread(
             Sub()
-                Dim port As UShort
+                Dim ServerPort As UShort = 0
                 SyncLock _webServers
-                    Dim server As RoutedWebServer = Nothing
+                    Dim server As NaidCallbackServer = Nothing
                     '寻找可用端口号创建服务端实例
-                    For port = 29992 To 30992
-                        If Not Array.Exists(IPGlobalProperties.GetIPGlobalProperties.GetActiveTcpListeners, Function(i) i.Port = port) Then
-                            Log($"[OAuth] {serviceName}: 尝试在 {port} 端口初始化 Web 服务端")
-                            Try
-                                server = New RoutedWebServer($"127.0.0.1:{port}")
-                            Catch ex As HttpListenerException
-                                If ex.NativeErrorCode = &H80004005 Then Continue For
-                                Throw
-                            End Try
-                            Log($"[OAuth] {serviceName}: 已开始监听 {port} 端口，正在初始化路由")
-                            Exit For
-                        End If
-                    Next
-                    If port > 30992 Then
-                        Dim message = "29992 ~ 30992 范围内没有任何可用端口号"
-                        completeCallback(False, Nothing, message)
-                        Log($"[OAuth] {serviceName}: {message}")
-                        Exit Sub
-                    End If
-                    '状态数据
-                    Dim status As OAuthCompleteStatus = Nothing
-                    Dim callbackParameters As IDictionary(Of String, String) = Nothing
-                    Dim callbackContent As String = Nothing
-                    '设置路由
-                    Dim redirect = RoutedResponse.Redirect("/complete")
-                    server.Route("/callback",
-                        Function(path, request)
-                            '解析回调 URL 参数
-                            Dim parameterMap As New Dictionary(Of String, String)
-                            Dim query = request.Url.Query
-                            Dim queryIndex = query.IndexOf("?"c)
-                            If queryIndex <> -1 AndAlso query.Length > queryIndex Then
-                                Try
-                                    Dim sq = query.Substring(queryIndex + 1).Split("&"c)
-                                    Dim splitChar = {"="c}
-                                    For Each iq In sq
-                                        Dim q = iq.Split(splitChar, 2)
-                                        parameterMap(q(0)) = q(1)
-                                    Next
-                                Catch ex As Exception
-                                    status = OAuthCompleteStatus.Failed("回调参数解析出错", ex)
-                                    Return redirect
-                                End Try
-                            End If
-                            callbackParameters = parameterMap
-                            '读取回调内容
-                            If request.HasEntityBody Then
-                                Try
-                                    Using reader As New StreamReader(request.InputStream, request.ContentEncoding)
-                                        callbackContent = reader.ReadToEnd()
-                                    End Using
-                                Catch ex As Exception
-                                    status = OAuthCompleteStatus.Failed("读取回调内容出错", ex)
-                                    Return redirect
-                                End Try
-                            End If
-                            Return redirect
-                        End Function)
-                    server.Route("/status",
-                        Function()
-                            If callbackParameters Is Nothing Then Return RoutedResponse.NotFound
-                            server.StopResponse()
-                            Try
-                                If status Is Nothing Then
-                                    status = completeCallback(True, callbackParameters, callbackContent)
-                                ElseIf Not status.success Then
-                                    Log($"[OAuth] {serviceName}: {status.message}{vbCrLf}{status.stacktrace}")
-                                    completeCallback(False, Nothing, status.message)
-                                End If
-                            Catch ex As Exception
-                                status = OAuthCompleteStatus.Failed("处理回调出错", ex)
-                            End Try
-                            Return RoutedResponse.Json(status)
-                        End Function)
-                    server.Route("/assets/background",
-                        Function()
-                            If String.IsNullOrWhiteSpace(PicAddress) Then Return RoutedResponse.NotFound
-                            Return RoutedResponse.Input(New FileStream(PicAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
-                        End Function)
-                    server.Route("/assets/icon", Function() RoutedResponse.Input(GetResourceStream("Images/icon.ico")))
-                    server.Route("/complete", Function() RoutedResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html"))
+                    Dim currentPicAddress As String
+                    SyncLock ChangeLock
+                        currentPicAddress = PicAddress
+                    End SyncLock
+                    server = New NaidCallbackServer(serviceName, completeCallback, currentPicAddress)
+                    ServerPort = server.Port
+                    Log($"[OAuth] {serviceName}: 已开始监听 {server.Port} 端口，正在初始化路由")
                     '开始响应请求
                     Dim webServiceName = $"oauth/{serviceName}"
                     If DisposeWebServer(webServiceName) Then
@@ -190,7 +235,7 @@ Public Module ModWebServer
                     Log($"[OAuth] {serviceName}: 初始化完成，开始响应 HTTP 请求")
                 End SyncLock
                 '打开 OAuth URL
-                OpenWebsite(url.Replace("%r", $"http://localhost:{port}/callback"))
+                OpenWebsite(url.Replace("%r", $"http://localhost:{ServerPort}/callback"))
             End Sub, $"CallbackWebServerLoading/{serviceName}")
         Return True
     End Function
@@ -207,7 +252,7 @@ Public Module ModWebServer
                 Dim code = parameters("code")
                 Dim resultEx As Exception = Nothing
                 Try
-                    NatayarkProfileManager.GetNaidDataAsync(code).Wait()
+                    NatayarkProfileManager.GetNaidDataAsync(code, port:=UShort.Parse(parameters("Port"))).Wait()
                 Catch ex As AggregateException
                     resultEx = ex.InnerExceptions(0)
                 End Try

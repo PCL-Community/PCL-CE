@@ -11,6 +11,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
@@ -19,12 +20,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
+    Public Const VersionBaseName As String = "2.13.4-beta.6" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.12.1" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 417 '内部版本号
+    Public Const VersionCode As Integer = 418 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -97,7 +98,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = If(Setup.Get("SystemSystemCache") = "", IO.Path.GetTempPath() & "PCL\", Setup.Get("SystemSystemCache")).ToString.Replace("/", "\").TrimEnd("\") & "\"
+    Public PathTemp As String = FileService.TempPath & "\"
     ''' <summary>
     ''' AppData 中的 PCL 文件夹路径，以 \ 结尾。
     ''' </summary>
@@ -2918,9 +2919,14 @@ NextElement:
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
     End Sub
     Public Function CanFeedback(ShowHint As Boolean) As Boolean
-        If Not IsVerisonLatest() Then
+        Dim stat As VersionStatus = GetVersionStatus()
+        If stat <> VersionStatus.Latest Then
             If ShowHint Then
-                If MyMsgBox($"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。", "无法提交反馈", "更新", "取消") = 1 Then
+                If MyMsgBox(
+                    If(stat = VersionStatus.NotLatest,
+                    $"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
+                    $"你的 PCL 检查更新失败，因此无法提交反馈。{vbCrLf}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。"),
+                    "无法提交反馈", If(stat = VersionStatus.NotLatest, "更新", "重新检查更新"), "取消") = 1 Then
                     UpdateCheckByButton()
                 End If
             End If

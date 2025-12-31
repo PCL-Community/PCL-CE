@@ -2,6 +2,7 @@ Imports System.IO.Compression
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Net
 Imports System.Net.Http
+Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.UI
 
 Public Module ModDownloadLib
