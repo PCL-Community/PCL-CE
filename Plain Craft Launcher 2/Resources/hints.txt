@@ -999,7 +999,7 @@ PCL CE 已实现官方 PCL 中的部分百宝箱功能，如内存优化、今�
 PCL CE 支持日志查看与导出，方便用户提交 BUG 时附带详细日志。  
 
 
-PCL CE 支持使用Mirror酱加速更新。
+PCL CE 支持使用 Mirror 酱加速更新。
 
 PCL CE 支持深色模式，在晚上偷玩 Minecraft 时再也不会被亮瞎眼了。
 
