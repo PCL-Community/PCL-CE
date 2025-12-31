@@ -980,7 +980,7 @@ PCL CE 由 PCL-Community 基于 PCL 官方版开发，与龙腾猫跃没有隶�
 
 PCL CE 支持导入 HMCL 档案。
 
-PCL CE 由 PCL-Community 开发，但 PCL-Community 不止开发了 PCL CE 。
+PCL CE 由 PCL-Community 开发，但 PCL-Community 不止开发了 PCL CE。
 
 PCL CE 全称是 Plain Craft Launcher Community Edition（Plain Craft Launcher 社区版）。
 
