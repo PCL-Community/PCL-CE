@@ -976,38 +976,38 @@ eruption 决斗室的外圈地面上用涂蜡的氧化切制铜块标记出发�
 
 村庄的原住民起初是猪人，而猪人后来的设计概念被沿用成为猪灵。
 
-PCL-CE由PCL-Community基于PCL官方版开发，与龙腾猫跃没有隶属关系。
+PCL-CE 由 PCL-Community 基于 PCL 官方版开发，与龙腾猫跃没有隶属关系。
 
-PCL-CE支持导入HMCL档案。
+PCL-CE 支持导入 HMCL 档案。
 
-PCL-CE由PCL-Community开发，但PCL-Community不止开发了PCL-CE。
+PCL-CE 由 PCL-Community 开发，但 PCL-Community 不止开发了 PCL-CE 。
 
-PCL-CE全称Plain Craft Launcher Community Edition（Plain Craft Launcher社区版）。
+PCL-CE 全称 Plain Craft Launcher Community Edition（Plain Craft Launcher 社区版 ）。
 
-你下载MInecraft这么快得多亏了bangbang93的BMCLapi！
+你下载 MInecraft 这么快得多亏了 bangbang93 的 BMCLapi！
 
-PCL-CE可以直接更新MInecraft本体与模组加载器了，就在“实例设置-修改”选项卡。
+PCL-CE 可以直接更新 MInecraft 本体与模组加载器了，就在“实例设置-修改”选项卡。
 
-PCL-CE支持高斯模糊了。
+PCL-CE 支持高斯模糊了。
 
-PCL-CE可以设置动态背景。
+PCL-CE 可以设置动态背景。
 
 就官方版统计，有94.5%的用户点击了官方版的千万别点（别想了，这个社区版没有）。
 
-PCL-CE已经有官方版的部分百宝箱功能，如内存优化，今日人品，清理游戏垃圾，高速下载等，还有更多官方版没有的小工具。
+PCL-CE 已经有官方版的部分百宝箱功能，如内存优化，今日人品，清理游戏垃圾，高速下载等，还有更多官方版没有的小工具。
 
-PCL-CE有日志管理功能，可以更方便的反馈BUG。
+PCL-CE 有日志管理功能，可以更方便的反馈 BUG 。
 
-PCL-CE支持使用Mirror酱加速更新。
+PCL-CE 支持使用Mirror酱加速更新。
 
-PCL-CE支持深色模式，在晚上偷玩MInecraft时再也不会被亮瞎眼了。
+PCL-CE 支持深色模式，在晚上偷玩 MInecraft 时再也不会被亮瞎眼了。
 
-PCL-CE支持官方版的所有拖拽操作，可以直接把整合包或Mod拖进来安装。
+PCL-CE 支持官方版的所有拖拽操作，可以直接把整合包或 Mod 拖进来安装。
 
-PCL-CE有自己的用户群，但是知道群号的前提是你打得开Github。
+PCL-CE 有自己的用户群，但是知道群号的前提是你打得开 Github。
 
 游戏崩溃时一定不要只给别人发一个截图！一定要发日志！！不发日志上帝来的都不知道怎么解决！！！
 
-Alt+F4是关闭窗口，不是钻石或礼包！
+Alt+F4 是关闭窗口，不是钻石或礼包！
 
-PCL-CE的开发团队大都是学生，所以发版开发慢是正常现象。
+PCL-CE 的开发团队成员大都是学生，所以更新速度上会有亿点慢。
