@@ -5,23 +5,30 @@
 
 
     Private RealOffset As Double
+    Private TooltipHideId As String = $"HideTooltip_{Me.GetHashCode()}"
     Private Sub MyScrollViewer_PreviewMouseWheel(sender As Object, e As MouseWheelEventArgs) Handles Me.PreviewMouseWheel
-        If e.Delta = 0 OrElse ActualHeight = 0 OrElse ScrollableHeight = 0 Then Return
-        Dim SourceType = e.Source.GetType
-        If Content.TemplatedParent Is Nothing AndAlso (
-                (GetType(ComboBox).IsAssignableFrom(SourceType) AndAlso CType(e.Source, ComboBox).IsDropDownOpen) OrElse
-                (GetType(TextBox).IsAssignableFrom(SourceType) AndAlso CType(e.Source, TextBox).AcceptsReturn) OrElse
-                GetType(ComboBoxItem).IsAssignableFrom(SourceType) OrElse
-                TypeOf e.Source Is CheckBox) Then
-            '如果当前是在对有滚动条的下拉框或文本框执行，则不接管操作
-            Return
+        If e.Delta = 0 OrElse ScrollableHeight <= 0 Then Return
+
+        Dim src = e.Source
+        If Content.TemplatedParent Is Nothing Then
+            If TypeOf src Is ComboBox Then
+                If DirectCast(src, ComboBox).IsDropDownOpen Then Return
+            ElseIf TypeOf src Is TextBox Then
+                If DirectCast(src, TextBox).AcceptsReturn Then Return
+            ElseIf TypeOf src Is ComboBoxItem OrElse TypeOf src Is CheckBox Then
+                Return
+            End If
         End If
+
         e.Handled = True
         PerformVerticalOffsetDelta(-e.Delta)
-        '关闭 Tooltip (#2552)
-        For Each TooltipBorder In Application.ShowingTooltips
-            AniStart(AaOpacity(TooltipBorder, -1, 100), $"Hide Tooltip {GetUuid()}")
-        Next
+
+        If Application.ShowingTooltips.Count > 0 Then
+            For Each TooltipBorder In Application.ShowingTooltips
+                ' 建议：如果动画已经在执行，则不再重复触发
+                AniStart(AaOpacity(TooltipBorder, -1, 100), TooltipHideId)
+            Next
+        End If
     End Sub
     Public Sub PerformVerticalOffsetDelta(Delta As Double)
         AniStart(
