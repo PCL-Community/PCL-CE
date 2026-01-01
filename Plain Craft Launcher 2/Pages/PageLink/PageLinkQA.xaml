@@ -8,12 +8,12 @@
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
             <local:MyCard Title="跨启动器联机行不行？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL（陶瓦）实现基础的互联功能，你可以直接与使用 HMCL（陶瓦）的朋友们共享大厅编号并联机。&#xa;另外，PCL CE 正在与 HMCL 协商并共同开发 Scaffolding（暂名）跨启动器联机协议，未来将支持更多扩展功能。&#xa;&#xa;由于 PCL CE 暂未完整实现 Scaffolding 协议，可能无法加入较新版本陶瓦创建的大厅，但陶瓦可以反向连接 PCL CE 大厅。&#xa;该问题将在晚些时候解决。"/>
+                    <TextBlock TextWrapping="Wrap" Text="截至目前，PCL CE 已经与 HMCL、FCL 等启动器通过 Scaffolding 脚手架协议实现基础的互联功能，你可以直接与使用这些启动器的朋友们共享大厅编号并联机，未来将支持更多扩展功能。&#xa;对官方版 PCL 大厅的有限支持将在较晚加入。"/>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Title="NAT 类型是什么，对联机有影响么？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="简单来说：会，但是在使用大厅的过程中影响不大。如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
+                    <TextBlock TextWrapping="Wrap" Text="简单来说：会，并且在最近一段时间内影响会较大。&#xa;你可以自行进行 NAT 测试，推荐让 NAT 类型最宽松的朋友作为大厅创建者。&#xa;如果实在搞不明白，那就在碰到连接问题的时候交换大厅创建者和加入者身份再试试。&#xa;&#xa;如果你希望了解更多，可以继续阅读下面的简要介绍。&#xa;&#xa;NAT 是计算机网络中的一个概念，它会将多个内网 IP 地址映射为一个公网 IP 地址。&#xa;更加宽松的 NAT 环境可以提高点对点连接成功率，这可以使联机延迟更低。&#xa;一般来说，绝大部分中国大陆家庭宽带的 NAT 类型均为端口受限圆锥或对称。&#xa;&#xa;你还可以阅读来自 Tailscale 的介绍文章（英文）以对 NAT 有更深入的了解。"/>
                     <local:MyButton Text="打开介绍文章" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://tailscale.com/blog/how-nat-traversal-works"/>
                 </StackPanel>
             </local:MyCard>
@@ -32,12 +32,12 @@
                     <TextBlock TextWrapping="Wrap" Text="最短路径是指在分布式系统或网络中，从源节点到目标节点所需转发跳数（hop）最少的路径。&#xa;&#xa;例如，有三个节点 A、B、C，其中 A 是源节点(你)，C 是目标节点(房主)，B 是中间节点(中继服务器)。&#xa;如果 A 与 C 之间存在直接的网络连接（即路由可达），那么最短路径就是 A -> C，跳数为 1。&#xa;否则，数据必须通过 B 中转，此时最短路径为 A -> B -> C，跳数为 2。&#xa;&#xa;最低延迟路径则是指数据从源节点到达目标节点所需总时间最短的路径。该路径不仅取决于跳数，还受每跳的处理延迟、链路带宽、网络拥塞程度、物理距离等多种因素影响。&#xa;&#xa;例如，在同样的拓扑中，即使 A -> C 是跳数最少的路径，但如果该链路存在严重干扰或拥塞，导致其传输延迟高于路径 A -> B -> C，那么从性能角度看，A -> B -> C 才是真正的最低延迟路径。"/>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
+            <!--<local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以在设置中加入其他社区节点辅助连接。"/>
                     <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
                 </StackPanel>
-            </local:MyCard>
+            </local:MyCard>-->
             <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截。同时确保你没有使用精简版系统，精简版系统缺失部分组件，可能无法支撑 EasyTier 运行。有问题可以加入用户群，或是前往 GitHub 反馈。"/>
