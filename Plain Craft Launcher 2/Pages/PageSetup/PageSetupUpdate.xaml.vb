@@ -56,7 +56,7 @@ Public Class PageSetupUpdate
                     TextUpdateName.Text = "PCL CE " & VersionNameFormat(UpdateInfo.VersionName)
                     Dim summary = UpdateInfo.Changelog.Between("<summary>", "</summary>")
                     If Not UpdateInfo.Changelog.Contains("<summary>") OrElse String.IsNullOrWhiteSpace(summary.Trim()) Then
-                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了..."
+                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？"
                     Else
                         TextChangelog.Text = summary
                     End If
@@ -72,6 +72,13 @@ Public Class PageSetupUpdate
                         Log("[Update] 检查更新失败", LogLevel.Msgbox)
                     End If
                     Exit Sub
+                End If
+                If UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading Then
+                    BtnUpdate_Timer()
+                    BtnUpdate.IsEnabled = False
+                Else
+                    TextCurrentDesc.Text = "下载并安装"
+                    BtnUpdate.IsEnabled = True
                 End If
                 CardUpdate.Visibility = Visibility.Visible
                 CardCheck.Visibility = Visibility.Collapsed
@@ -89,6 +96,13 @@ Public Class PageSetupUpdate
         Log("[Update] 检查更新结束")
     End Sub
     
+    Private Sub BtnUpdate_Timer()
+        While UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading
+            BtnUpdate.Text = $"{Val(UpdateLoader.Progress)}%"
+            Thread.Sleep(200)
+        End While
+    End Sub
+    
     Private Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
         '检查 .NET 版本
         If Not UpdateInfo.VersionName.StartsWithF("2.13.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 10.0.", True) Then
@@ -96,10 +110,9 @@ Public Class PageSetupUpdate
                      "下载 .NET 10 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/10"), ForceWait:=True)
             Return
         End If
+        BtnUpdate_Timer()
         '开始更新流程
-        UpdateStart(False)
-        'FrmMain.BtnExtraUpdateRestart.ShowRefresh()
-        'FrmMain.BtnExtraUpdateRestart.Ribble()
+        UpdateStart(UpdateType.UpdateNow)
     End Sub
     
     Private Sub BtnChangelogDetail_Click(sender As Object, e As EventArgs) Handles BtnChangelogDetail.Click
@@ -127,7 +140,7 @@ Public Class PageSetupUpdate
                             "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
                     IsCancelled = True
                 Else
-                    UpdateCheckByButton()
+                    CheckUpdate()
                 End If
             Case 2
                 If MyMsgBox("你正在切换启动器更新通道到开发版。" & vbCrLf &
@@ -147,7 +160,7 @@ Public Class PageSetupUpdate
                     Exit Select
                 End If
                 If ret = "我确认切换到此分支并已知晓风险" Then
-                    UpdateCheckByButton()
+                    CheckUpdate()
                 Else
                     Hint("你输入了错误的内容...")
                     IsCancelled = True
@@ -175,6 +188,7 @@ Public Class PageSetupUpdate
     End Sub
     
     Public Function VersionNameFormat(str As String) As String
+        If Not str.Contains("-") Then Return str
         Dim add = str.AfterLast("-")
         str = str.BeforeLast("-")
         Return str & " " & add.Replace(".", " ").Replace("beta", "Beta").Replace("rc", "RC")
