@@ -619,8 +619,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Enum
 
     Public UpdateLoader As LoaderCombo(Of JObject)
-    Public Sub UpdateStart(type As UpdateType, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
-        Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
+    Public Sub UpdateStart(type As UpdateType, Optional receivedKey As String = Nothing, Optional forceValidated As Boolean = False)
+        Dim dlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
         RunInNewThread(Sub()
                            Try
                                Dim version = RemoteServer.GetLatestVersion(
@@ -628,28 +628,31 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                                WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
                                '构造步骤加载器
-                               Dim Loaders As New List(Of LoaderBase)
+                               Dim loaders As New List(Of LoaderBase)
                                '下载
-                               Loaders.AddRange(RemoteServer.GetDownloadLoader(
+                               loaders.AddRange(RemoteServer.GetDownloadLoader(
                                                 If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
-                                                                                           Dim curHash = GetFileSHA256(DlTargetPath)
+                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), dlTargetPath))
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
+                                                                                           Dim curHash = GetFileSHA256(dlTargetPath)
                                                                                            If curHash <> version.SHA256 Then
                                                                                                Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
                                                                                            End If
                                                                                        End Sub))
                                If type = UpdateType.UpdateNow Then
-                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
+                               ElseIf type = UpdateType.Silent Then
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("准备更新", Sub() IsUpdateWaitingRestart = True))
                                ElseIf type = UpdateType.DownloadAndPrompt Then
-                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("显示按钮", Sub()
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("显示按钮", Sub()
+                                                                                               IsUpdateWaitingRestart = True
                                                                                                FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} -> {version.VersionName})"
                                                                                                FrmMain.BtnExtraUpdateRestart.ShowRefresh()
                                                                                                FrmMain.BtnExtraUpdateRestart.Ribble()
                                                                                            End Sub) With {.Show = False})
                                End If
                                '启动
-                               UpdateLoader = New LoaderCombo(Of JObject)("启动器更新", Loaders)
+                               UpdateLoader = New LoaderCombo(Of JObject)("启动器更新", loaders)
                                UpdateLoader.Start()
                                If type = UpdateType.Silent Then
                                    IsUpdateWaitingRestart = True
@@ -664,7 +667,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                            End Try
                        End Sub)
     End Sub
-    Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
+    Public Sub UpdateRestart(triggerRestartAndByEnd As Boolean)
         Try
             Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
             If Not File.Exists(fileName) Then
@@ -675,7 +678,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{ExePathWithName}"" ""{fileName}"" true"
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
-            If TriggerRestartAndByEnd Then
+            If triggerRestartAndByEnd Then
                 FrmMain.EndProgram(False)
                 Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
             End If
@@ -686,9 +689,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             End If
         End Try
     End Sub
-    Public Sub UpdateReplace(ProcessId As Integer, OldFileName As String, NewFileName As String, TriggerRestart As Boolean)
+    Public Sub UpdateReplace(processId As Integer, oldFileName As String, newFileName As String, triggerRestart As Boolean)
         Try
-            Dim ps = Process.GetProcessById(ProcessId)
+            Dim ps = Process.GetProcessById(processId)
             If Not ps.HasExited Then
                 ps.Kill()
             End If
@@ -698,10 +701,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim num As Integer = 0
         Do
             Try
-                If File.Exists(OldFileName) Then
-                    File.Delete(OldFileName)
+                If File.Exists(oldFileName) Then
+                    File.Delete(oldFileName)
                 End If
-                If Not File.Exists(OldFileName) Then
+                If Not File.Exists(oldFileName) Then
                     Exit Try
                 End If
             Catch ex3 As Exception
@@ -711,18 +714,18 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             End Try
             num += 1
         Loop While num <= 4
-        If (Not File.Exists(OldFileName)) AndAlso File.Exists(NewFileName) Then
+        If (Not File.Exists(oldFileName)) AndAlso File.Exists(newFileName) Then
             Try
-                CopyFile(NewFileName, OldFileName)
+                CopyFile(newFileName, oldFileName)
             Catch ex4 As UnauthorizedAccessException
                 MsgBox("PCL 更新失败：权限不足。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf & "若 PCL 位于桌面或 C 盘，你可以尝试将其挪到其他文件夹，这可能可以解决权限问题。" & vbCrLf + ex4.Message, MsgBoxStyle.Critical, "更新失败")
             Catch ex5 As Exception
                 MsgBox("PCL 更新失败：无法复制新文件。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf + ex5.Message, MsgBoxStyle.Critical, "更新失败")
                 Return
             End Try
-            If TriggerRestart Then
+            If triggerRestart Then
                 Try
-                    Process.Start(OldFileName)
+                    Process.Start(oldFileName)
                 Catch ex6 As Exception
                     MsgBox("PCL 更新失败：无法重新启动。" & vbCrLf + ex6.Message, MsgBoxStyle.Critical, "更新失败")
                 End Try

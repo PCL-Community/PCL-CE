@@ -1493,7 +1493,7 @@ Public Class FormMain
 
     '更新重启
     Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
-        Return True
+        Return IsUpdateWaitingRestart
     End Function
     
     '音乐
