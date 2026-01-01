@@ -654,9 +654,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                '启动
                                UpdateLoader = New LoaderCombo(Of JObject)("启动器更新", loaders)
                                UpdateLoader.Start()
-                               If type = UpdateType.Silent Then
-                                   IsUpdateWaitingRestart = True
-                               ElseIf type = UpdateType.UpdateNow Then
+                               If type = UpdateType.UpdateNow Then
                                    LoaderTaskbarAdd(UpdateLoader)
                                    FrmMain.BtnExtraDownload.ShowRefresh()
                                    FrmMain.BtnExtraDownload.Ribble()
