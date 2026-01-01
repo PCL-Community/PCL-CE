@@ -519,12 +519,12 @@ EndHint:
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
     Public FrmSetupJava As PageSetupJava
-    Public FrmHomePageMarket As PageHomePageMarket
+    Public FrmHomePageMarket As PageHomepageMarket
+    Public FrmSetupSoftwareAbout As PageSetupSoftwareAbout
 
     '其他页面声明
     Public FrmOtherLeft As PageOtherLeft
     Public FrmOtherHelp As PageOtherHelp
-    Public FrmOtherAbout As PageOtherAbout
     Public FrmOtherTest As PageOtherTest
     Public FrmOtherFeedback As PageOtherFeedback
     Public FrmOtherLog As PageOtherLog

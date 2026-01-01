@@ -661,6 +661,7 @@ Refresh:
                 FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupLaunch"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupUi"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupSystem"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemSoftwareAbout.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡
                 Dim AvaliableCount As Integer = 0
                 If Not Setup.Get("UiHiddenSetupLaunch") Then AvaliableCount += 1
@@ -678,7 +679,6 @@ Refresh:
             If FrmOtherLeft IsNot Nothing Then
                 FrmOtherLeft.ItemHelp.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherHelp"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherFeedback"), Visibility.Collapsed, Visibility.Visible)
-                FrmOtherLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherTest"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherLog"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡

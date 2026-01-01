@@ -8,6 +8,7 @@ Public Class PageSetupLeft
         If ItemLaunch.Checked AndAlso Setup.Get("UiHiddenSetupLaunch") Then IsHiddenPage = True
         If ItemUI.Checked AndAlso Setup.Get("UiHiddenSetupUi") Then IsHiddenPage = True
         If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
+        If ItemSoftwareAbout.Checked AndAlso Setup.Get("UiHiddenOtherAbout") Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
         If IsLoad AndAlso Not IsHiddenPage Then Return
@@ -22,6 +23,8 @@ Public Class PageSetupLeft
             ItemUI.SetChecked(True, False, False)
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             ItemSystem.SetChecked(True, False, False)
+        ElseIf Not Setup.Get("UiHiddenOtherAbout") Then
+            ItemSoftwareAbout.SetChecked(True, False, False)
         Else
             ItemLaunch.SetChecked(True, False, False)
         End If
@@ -53,7 +56,7 @@ Public Class PageSetupLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check
+    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check, ItemSoftwareAbout.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -74,6 +77,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupSystem
                 If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
                 Return FrmSetupSystem
+            Case FormMain.PageSubType.SetupSoftwareAbout
+                If FrmSetupSoftwareAbout Is Nothing Then FrmSetupSoftwareAbout = New PageSetupSoftwareAbout
+                Return FrmSetupSoftwareAbout
             Case Else
                 Throw New Exception("未知的设置子页面种类：" & ID)
         End Select
@@ -87,21 +93,7 @@ Public Class PageSetupLeft
         AniControlEnabled += 1
         IsPageSwitched = True
         Try
-
-            Select Case ID
-                Case FormMain.PageSubType.SetupLaunch
-                    If IsNothing(FrmSetupLaunch) Then FrmSetupLaunch = New PageSetupLaunch
-                    PageChangeRun(FrmSetupLaunch)
-                Case FormMain.PageSubType.SetupUI
-                    If IsNothing(FrmSetupUI) Then FrmSetupUI = New PageSetupUI
-                    PageChangeRun(FrmSetupUI)
-                Case FormMain.PageSubType.SetupSystem
-                    If IsNothing(FrmSetupSystem) Then FrmSetupSystem = New PageSetupSystem
-                    PageChangeRun(FrmSetupSystem)
-                Case Else
-                    Throw New Exception("未知的设置子页面种类：" & ID)
-            End Select
-
+            PageChangeRun(PageGet(ID))
             PageID = ID
         Catch ex As Exception
             Log(ex, "切换分页面失败（ID " & ID & "）", LogLevel.Feedback)

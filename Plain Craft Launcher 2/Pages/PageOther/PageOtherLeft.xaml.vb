@@ -6,7 +6,6 @@
         '是否处于隐藏的子页面
         Dim IsHiddenPage As Boolean = False
         If ItemHelp.Checked AndAlso Setup.Get("UiHiddenOtherHelp") Then IsHiddenPage = True
-        If ItemAbout.Checked AndAlso Setup.Get("UiHiddenOtherAbout") Then IsHiddenPage = True
         If ItemTest.Checked AndAlso Setup.Get("UiHiddenOtherTest") Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
@@ -18,8 +17,6 @@
         If IsPageSwitched Then Return
         If Not Setup.Get("UiHiddenOtherHelp") Then
             ItemHelp.SetChecked(True, False, False)
-        ElseIf Not Setup.Get("UiHiddenOtherAbout") Then
-            ItemAbout.SetChecked(True, False, False)
         Else
             ItemTest.SetChecked(True, False, False)
         End If
@@ -40,7 +37,7 @@
         If Not Setup.Get("UiHiddenOtherHelp") Then
             PageID = FormMain.PageSubType.OtherHelp
         ElseIf Not Setup.Get("UiHiddenOtherAbout") Then
-            PageID = FormMain.PageSubType.OtherAbout
+            PageID = FormMain.PageSubType.SetupSoftwareAbout
         Else
             PageID = FormMain.PageSubType.OtherTest
         End If
@@ -49,8 +46,7 @@
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemAbout.Check,
-        ItemHelp.Check,
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemHelp.Check,
         ItemTest.Check,
         ItemFeedback.Check,
         ItemLog.Check
@@ -65,9 +61,9 @@
             Case FormMain.PageSubType.OtherHelp
                 If FrmOtherHelp Is Nothing Then FrmOtherHelp = New PageOtherHelp
                 Return FrmOtherHelp
-            Case FormMain.PageSubType.OtherAbout
-                If FrmOtherAbout Is Nothing Then FrmOtherAbout = New PageOtherAbout
-                Return FrmOtherAbout
+            Case FormMain.PageSubType.SetupSoftwareAbout
+                If FrmSetupSoftwareAbout Is Nothing Then FrmSetupSoftwareAbout = New PageSetupSoftwareAbout
+                Return FrmSetupSoftwareAbout
             Case FormMain.PageSubType.OtherTest
                 If FrmOtherTest Is Nothing Then FrmOtherTest = New PageOtherTest
                 Return FrmOtherTest

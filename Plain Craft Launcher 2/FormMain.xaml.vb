@@ -1030,12 +1030,12 @@ Public Class FormMain
         SetupUI = 1
         SetupSystem = 2
         SetupLink = 3
+        SetupSoftwareAbout = 4
         LinkLobby = 1
         LinkSetup = 4
         LinkHelp = 5
         LinkFeedback = 6
         OtherHelp = 0
-        OtherAbout = 1
         OtherTest = 2
         OtherFeedback = 3
         OtherLog = 5
