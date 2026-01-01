@@ -1694,10 +1694,10 @@ Retry:
                     'GameVersions
                     Dim RawVersions As List(Of String) = Data("game_versions").Select(Function(t) t.ToString.Trim.ToLower).ToList
                     GameVersions = RawVersions.Where(Function(v) v.Contains(".")).
-                                               Select(Function(v) If(v.Contains("-"), v.BeforeFirst("-") & " 预览版", If(v.StartsWithF("b1."), "远古版本", v))).ToList
+                        Select(Function(v) If(v.Contains("-"), v.BeforeFirst("-") & " 预览版", If(v.StartsWithF("b1."), "远古版本", v))).ToList
                     If GameVersions.Count > 1 Then
                         GameVersions = GameVersions.Sort(AddressOf CompareVersionGe).ToList
-                        If Type = CompType.ModPack Then GameVersions = New List(Of String) From {GameVersions(0)} '整合包理应只 "支持" 一个版本
+                        If Type = CompType.ModPack Then GameVersions = New List(Of String) From {GameVersions(0)} '整合包理应只 “支持” 一个版本
                     ElseIf GameVersions.Count = 1 Then
                         '无需处理
                     ElseIf RawVersions.Any(Function(v) RegexCheck(v, "[0-9]{2}w[0-9]{2}[a-z]")) Then
