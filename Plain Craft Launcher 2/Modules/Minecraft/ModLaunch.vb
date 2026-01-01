@@ -214,7 +214,7 @@ NextInner:
         Dim Finished As Boolean = False
         RunInNewThread(
         Sub()
-            PageOtherTest.MemoryOptimize(False)
+            PageToolsTest.MemoryOptimize(False)
             Finished = True
         End Sub, "Launch Memory Optimize")
         Do While Not Finished AndAlso Not Loader.IsAborted

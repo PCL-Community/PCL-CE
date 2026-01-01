@@ -7,7 +7,7 @@ Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Scaffolding.Client.Models
 
-Public Class PageLinkLobby
+Public Class PageToolsGameLink
 
 #Region "初始化"
 
@@ -74,7 +74,7 @@ Public Class PageLinkLobby
                             RunInUi(
                                 Sub()
                                     FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                                    FrmLinkLobby = Nothing
+                                    FrmToolsGameLink = Nothing
                                 End Sub)
                     End Select
                 End If
@@ -538,9 +538,9 @@ Public Class PageLinkLobby
         Log("连接步骤：" & intro)
         _loadStep = [step]
         RunInUiWait(Sub()
-                        If FrmLinkLobby Is Nothing OrElse Not FrmLinkLobby.LabLoadDesc.IsLoaded Then Exit Sub
-                        FrmLinkLobby.LabLoadDesc.Text = intro
-                        FrmLinkLobby.UpdateProgress()
+                        If FrmToolsGameLink Is Nothing OrElse Not FrmToolsGameLink.LabLoadDesc.IsLoaded Then Exit Sub
+                        FrmToolsGameLink.LabLoadDesc.Text = intro
+                        FrmToolsGameLink.UpdateProgress()
                     End Sub)
     End Sub
 
@@ -628,8 +628,8 @@ Public Class PageLinkLobby
     End Property
 
     Private Sub PageLinkLobby_OnPageEnter() Handles Me.PageEnter
-        FrmLinkLobby.PanSelect.Visibility = If(CurrentSubpage = Subpages.PanSelect, Visibility.Visible, Visibility.Collapsed)
-        FrmLinkLobby.PanFinish.Visibility = If(CurrentSubpage = Subpages.PanFinish, Visibility.Visible, Visibility.Collapsed)
+        FrmToolsGameLink.PanSelect.Visibility = If(CurrentSubpage = Subpages.PanSelect, Visibility.Visible, Visibility.Collapsed)
+        FrmToolsGameLink.PanFinish.Visibility = If(CurrentSubpage = Subpages.PanFinish, Visibility.Visible, Visibility.Collapsed)
     End Sub
 
 #End Region

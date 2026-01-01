@@ -30,7 +30,7 @@
                             Log($"[Control] 打开类自定义事件实际路径：{Location}，工作目录：{WorkingDir}")
                             '执行
                             If Type = "打开帮助" Then
-                                PageOtherHelp.EnterHelpPage(Location)
+                                PageToolsHelp.EnterHelpPage(Location)
                             Else
                                 If Not Setup.Get("HintCustomCommand") Then
                                     Select Case MyMsgBox(
@@ -77,16 +77,16 @@
                     If Data(0) = "" Then Hint("已刷新主页！", HintType.Finish)
 
                 Case "刷新帮助"
-                    PageOtherLeft.RefreshHelp()
+                    PageToolsLeft.RefreshHelp()
 
                 Case "今日人品"
-                    PageOtherTest.Jrrp()
+                    PageToolsTest.Jrrp()
 
                 Case "内存优化"
-                    RunInThread(Sub() PageOtherTest.MemoryOptimize(True))
+                    RunInThread(Sub() PageToolsTest.MemoryOptimize(True))
 
                 Case "清理垃圾"
-                    RunInThread(Sub() PageOtherTest.RubbishClear())
+                    RunInThread(Sub() PageToolsTest.RubbishClear())
 
                 Case "弹出窗口"
                     MyMsgBox(Data(1).Replace("\n", vbCrLf), Data(0).Replace("\n", vbCrLf))
@@ -106,14 +106,14 @@
                     Try
                         Select Case Data.Length
                             Case 1
-                                PageOtherTest.StartCustomDownload(Data(0), GetFileNameFromPath(Data(0)))
+                                PageToolsTest.StartCustomDownload(Data(0), GetFileNameFromPath(Data(0)))
                             Case 2
-                                PageOtherTest.StartCustomDownload(Data(0), Data(1))
+                                PageToolsTest.StartCustomDownload(Data(0), Data(1))
                             Case Else
-                                PageOtherTest.StartCustomDownload(Data(0), Data(1), Data(2))
+                                PageToolsTest.StartCustomDownload(Data(0), Data(1), Data(2))
                         End Select
                     Catch
-                        PageOtherTest.StartCustomDownload(Data(0), "未知")
+                        PageToolsTest.StartCustomDownload(Data(0), "未知")
                     End Try
 
                 Case Else

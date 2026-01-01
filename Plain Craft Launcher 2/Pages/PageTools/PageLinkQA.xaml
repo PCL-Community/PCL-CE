@@ -33,11 +33,11 @@
                 </StackPanel>
             </local:MyCard>
             <!--<local:MyCard Title="加入大厅超时怎么办？" Margin="0,0,0,15">
-                <StackPanel Margin="20,40,18,18">
-                    <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以在设置中加入其他社区节点辅助连接。"/>
-                    <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
-                </StackPanel>
-            </local:MyCard>-->
+            <StackPanel Margin="20,40,18,18">
+                <TextBlock TextWrapping="Wrap" Text="请先检查联机设置中的 EasyTier 设置，请确保你的节点行为设置中允许“自有节点”加入帮助互相发现。如果多次尝试无果可以在设置中加入其他社区节点辅助连接。"/>
+                <local:MyButton Text="获取社区节点" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="120" Height="36" EventType="打开网页" EventData="https://uptime.easytier.cn/"/>
+            </StackPanel>
+        </local:MyCard>-->
             <local:MyCard Title="启动 EasyTier 失败怎么办？" Margin="0,0,0,15">
                 <StackPanel Margin="20,40,18,18">
                     <TextBlock TextWrapping="Wrap" Text="请检查 EasyTier 是否被杀毒软件拦截。同时确保你没有使用精简版系统，精简版系统缺失部分组件，可能无法支撑 EasyTier 运行。有问题可以加入用户群，或是前往 GitHub 反馈。"/>

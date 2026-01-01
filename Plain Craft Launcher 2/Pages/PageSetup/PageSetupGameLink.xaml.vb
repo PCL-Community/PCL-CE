@@ -4,7 +4,7 @@ Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link
 Imports PCL.Core.App
 
-Class PageLinkSetup
+Class PageSetupGameLink
 
     Private Shadows IsLoaded As Boolean = False
     Private IsFirstLoad As Boolean = True
@@ -24,9 +24,9 @@ Class PageLinkSetup
     End Sub
     Public Sub Reload() Handles Me.Loaded
         TextLinkUsername.Text = Config.Link.Username
-'        TextLinkRelay.Text = Config.Link.RelayServer
-'        ComboRelayType.SelectedIndex = Config.Link.RelayType
-'        ComboServerType.SelectedIndex = Config.Link.ServerType
+        '        TextLinkRelay.Text = Config.Link.RelayServer
+        '        ComboRelayType.SelectedIndex = Config.Link.RelayType
+        '        ComboServerType.SelectedIndex = Config.Link.ServerType
         CheckLatencyFirstMode.Checked = Config.Link.LatencyFirstMode
         ComboPreferProtocol.SelectedIndex = CInt(Config.Link.ProtocolPreference)
         CheckTryPunchSym.Checked = Config.Link.TryPunchSym
@@ -48,27 +48,34 @@ Class PageLinkSetup
                 TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealNamed, "已完成实名验证", "尚未进行实名验证")}"
             End If
         End If
-'        TextRelays.Text = "正在获取信息..."
-'        Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
-'            Thread.Sleep(500)
-'        Loop
-'        If ETRelay.RelayList.Count > 0 Then
-'            TextRelays.Text = ""
-'            For Each Relay In ETRelay.RelayList
-'                Select Case Relay.Type
-'                    Case ETRelayType.Community
-'                        TextRelays.Text += "[社区] "
-'                    Case ETRelayType.Selfhosted
-'                        TextRelays.Text += "[自有] "
-'                    Case Else 'ETRelayType.Custom
-'                        TextRelays.Text += "[自定义] "
-'                End Select
-'                TextRelays.Text += Relay.Name & "，"
-'            Next
-'            TextRelays.Text = TextRelays.Text.BeforeLast("，")
-'        Else
-'            TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
-'        End If
+
+        If Not Config.Link.LinkEula Then
+            CardEulaStop.Visibility = Visibility.Collapsed
+            CardLogged.Visibility = Visibility.Collapsed
+            CardNotLogged.Visibility = Visibility.Collapsed
+        End If
+
+        '        TextRelays.Text = "正在获取信息..."
+        '        Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
+        '            Thread.Sleep(500)
+        '        Loop
+        '        If ETRelay.RelayList.Count > 0 Then
+        '            TextRelays.Text = ""
+        '            For Each Relay In ETRelay.RelayList
+        '                Select Case Relay.Type
+        '                    Case ETRelayType.Community
+        '                        TextRelays.Text += "[社区] "
+        '                    Case ETRelayType.Selfhosted
+        '                        TextRelays.Text += "[自有] "
+        '                    Case Else 'ETRelayType.Custom
+        '                        TextRelays.Text += "[自定义] "
+        '                End Select
+        '                TextRelays.Text += Relay.Name & "，"
+        '            Next
+        '            TextRelays.Text = TextRelays.Text.BeforeLast("，")
+        '        Else
+        '            TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
+        '        End If
     End Sub
     Private Sub ReloadNaidData()
         RunInNewThread(Sub()
@@ -99,7 +106,8 @@ Class PageLinkSetup
                        End Sub)
     End Sub
     Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogin.Click
-        If Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed) Then
+        If FrmToolsGameLink Is Nothing Then FrmToolsGameLink = New PageToolsGameLink
+        If Not (PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Failed) Then
             Hint("正在拉取大厅公告，请稍后再试...")
             Exit Sub
         End If
@@ -140,13 +148,9 @@ Class PageLinkSetup
         If MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn:=True) = 1 Then
             Config.Link.NaidRefreshTokenConfig.Reset()
             Config.Link.LinkEulaConfig.Reset()
-            RunInUi(Sub()
-                        FrmLinkLeft.PageChange(FormMain.PageSubType.LinkLobby)
-                        FrmLinkLeft.ItemLobby.SetChecked(True, False, False)
-                        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                        FrmLinkLobby = Nothing
-                    End Sub)
+            FrmToolsGameLink = Nothing
             Hint("联机功能已停用！")
+            Reload()
         End If
     End Sub
     '初始化
@@ -198,20 +202,20 @@ Class PageLinkSetup
             BtnNetTest.IsEnabled = False
             BtnNetTest.Text = "正在测试"
             RunInNewThread(Sub()
-                Dim status = Scaffolding.EasyTier.CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult()
-                RunInUi(Sub()
-                    TextUdpNatType.Text = "UDP NAT 类型: " & Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.UdpNatType)
-                    TextTcpNatType.Text = "TCP NAT 类型: " & Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.TcpNatType)
-                    TextIpv6Status.Text = "IPv6: " & If(status.SupportIPv6, "支持", "不支持")
-                    BtnNetTest.IsEnabled = True
-                    BtnNetTest.Text = "开始测试"
-                End Sub)
-            End Sub)
+                               Dim status = Scaffolding.EasyTier.CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult()
+                               RunInUi(Sub()
+                                           TextUdpNatType.Text = "UDP NAT 类型: " & Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.UdpNatType)
+                                           TextTcpNatType.Text = "TCP NAT 类型: " & Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.TcpNatType)
+                                           TextIpv6Status.Text = "IPv6: " & If(status.SupportIPv6, "支持", "不支持")
+                                           BtnNetTest.IsEnabled = True
+                                           BtnNetTest.Text = "开始测试"
+                                       End Sub)
+                           End Sub)
         Catch ex As Exception
             Log(ex, "[Link] 获取网络测试结果失败", LogLevel.Hint)
             BtnNetTest.IsEnabled = True
             BtnNetTest.Text = "开始测试"
         End Try
     End Sub
-    
+
 End Class

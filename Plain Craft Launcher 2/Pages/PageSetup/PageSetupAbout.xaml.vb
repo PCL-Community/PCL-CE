@@ -1,4 +1,4 @@
-﻿Public Class PageSetupSoftwareAbout
+﻿Public Class PageSetupAbout
 
     Private Shadows IsLoaded As Boolean = False
     Private Sub PageOtherAbout_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
