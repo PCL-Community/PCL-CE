@@ -18,9 +18,9 @@ Public Class PageDownloadInstall
         DlLegacyFabricListLoader.Start()
 
         '重载预览
-        TextSelectName.ValidateRules = New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(PathMcFolder & "versions")}
+        TextSelectName.ValidateRules = New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(McFolderSelected & "versions")}
         TextSelectName.Validate()
-        SelectReload()
+        ReloadSelected()
 
         '非重复加载部分
         If IsLoad Then Return
@@ -91,10 +91,10 @@ Public Class PageDownloadInstall
         Next
 
         '启动 Forge 加载
-        If SelectedMinecraftId.StartsWith("1.") Then
-            Dim ForgeLoader = New LoaderTask(Of String, List(Of DlForgeVersionEntry))("DlForgeVersion " & SelectedMinecraftId, AddressOf DlForgeVersionMain)
+        If McInstanceInfo.IsFormatFit(_vanillaName) Then
+            Dim ForgeLoader = New LoaderTask(Of String, List(Of DlForgeVersionEntry))("DlForgeVersion " & _vanillaName, AddressOf DlForgeVersionMain)
             LoadForge.State = ForgeLoader
-            ForgeLoader.Start(SelectedMinecraftId)
+            ForgeLoader.Start(_vanillaName)
         End If
 
         '启动 Fabric API、QSL、Legacy Fabric API、OptiFabric、LabyMod 加载
@@ -124,7 +124,7 @@ Public Class PageDownloadInstall
                 QSL_Loaded()
                 OptiFabric_Loaded()
                 LabyMod_Loaded()
-                SelectReload()
+                ReloadSelected()
                 PanMinecraft.Visibility = Visibility.Collapsed
             End Sub, After:=True),
             AaOpacity(PanSelect, 1 - PanSelect.Opacity, 70, 100),
@@ -159,7 +159,7 @@ Public Class PageDownloadInstall
 
         DisabledPageAnimControls.Add(BtnStart)
         BtnStart.Show = False
-        SelectClear() '清除已选择项
+        ClearSelected() '清除已选择项
         PanMinecraft.Visibility = Visibility.Visible
         PanSelect.IsHitTestVisible = False
         PanMinecraft.IsHitTestVisible = True
@@ -180,9 +180,9 @@ Public Class PageDownloadInstall
         }, "FrmDownloadInstall SelectPageSwitch")
     End Sub
     Public Sub MinecraftSelected(sender As MyListItem, e As MouseButtonEventArgs)
-        SelectedMinecraftId = sender.Title
-        SelectedMinecraftJsonUrl = sender.Tag("url").ToString
-        SelectedMinecraftIcon = sender.Logo
+        _vanillaName = sender.Title
+        _vanillaData = sender.Tag
+        _vanillaIcon = sender.Logo
         EnterSelectPage()
     End Sub
 
@@ -191,29 +191,17 @@ Public Class PageDownloadInstall
 #Region "选择"
 
     'Minecraft
-    Private SelectedMinecraftId As String
-    Private SelectedMinecraftJsonUrl As String
-    Private SelectedMinecraftIcon As String
+    Private _vanillaName As String
+    Private _vanillaData As JObject
+    Private _vanillaIcon As String
+    Private ReadOnly Property VanillaDrop As Integer
+        Get
+            Return McInstanceInfo.VersionToDrop(_vanillaName, True)
+        End Get
+    End Property
 
     'OptiFine
     Private SelectedOptiFine As DlOptiFineListEntry = Nothing
-    Private Sub SetOptiFineInfoShow(IsShow As String)
-        If PanOptiFineInfo.Tag = IsShow Then Return
-        PanOptiFineInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanOptiFineInfo, -CType(PanOptiFineInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanOptiFineInfo, 1 - PanOptiFineInfo.Opacity, 80, 90)
-            }, "SetOptiFineInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanOptiFineInfo, 6 - CType(PanOptiFineInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanOptiFineInfo, -PanOptiFineInfo.Opacity, 50)
-            }, "SetOptiFineInfoShow")
-        End If
-    End Sub
 
     ''' <summary>
     ''' 选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod
@@ -227,253 +215,49 @@ Public Class PageDownloadInstall
 
     'LiteLoader
     Private SelectedLiteLoader As DlLiteLoaderListEntry = Nothing
-    Private Sub SetLiteLoaderInfoShow(IsShow As String)
-        If PanLiteLoaderInfo.Tag = IsShow Then Return
-        PanLiteLoaderInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanLiteLoaderInfo, -CType(PanLiteLoaderInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanLiteLoaderInfo, 1 - PanLiteLoaderInfo.Opacity, 80, 90)
-            }, "SetLiteLoaderInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanLiteLoaderInfo, 6 - CType(PanLiteLoaderInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanLiteLoaderInfo, -PanLiteLoaderInfo.Opacity, 50)
-            }, "SetLiteLoaderInfoShow")
-        End If
-    End Sub
 
     'Forge
     Private SelectedForge As DlForgeVersionEntry = Nothing
-    Private Sub SetForgeInfoShow(IsShow As String)
-        If PanForgeInfo.Tag = IsShow Then Return
-        PanForgeInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanForgeInfo, -CType(PanForgeInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanForgeInfo, 1 - PanForgeInfo.Opacity, 80, 90)
-            }, "SetForgeInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanForgeInfo, 6 - CType(PanForgeInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanForgeInfo, -PanForgeInfo.Opacity, 50)
-            }, "SetForgeInfoShow")
-        End If
-    End Sub
 
     'Cleanroom
     Private SelectedCleanroom As DlCleanroomListEntry = Nothing
-    Private Sub SetCleanroomInfoShow(IsShow As String)
-        If PanCleanroomInfo.Tag = IsShow Then Exit Sub
-        PanCleanroomInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanCleanroomInfo, -CType(PanCleanroomInfo.RenderTransform, TranslateTransform).Y, 270, 100, Ease:=New AniEaseOutBack),
-                AaOpacity(PanCleanroomInfo, 1 - PanCleanroomInfo.Opacity, 100, 90)
-            }, "SetCleanroomInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanCleanroomInfo, 6 - CType(PanCleanroomInfo.RenderTransform, TranslateTransform).Y, 200),
-                AaOpacity(PanCleanroomInfo, -PanCleanroomInfo.Opacity, 100)
-            }, "SetCleanroomInfoShow")
-        End If
-    End Sub
 
     'NeoForge
     Private SelectedNeoForge As DlNeoForgeListEntry = Nothing
-    Private Sub SetNeoForgeInfoShow(IsShow As String)
-        If PanNeoForgeInfo.Tag = IsShow Then Return
-        PanNeoForgeInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanNeoForgeInfo, -CType(PanNeoForgeInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanNeoForgeInfo, 1 - PanNeoForgeInfo.Opacity, 80, 90)
-            }, "SetNeoForgeInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanNeoForgeInfo, 6 - CType(PanNeoForgeInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanNeoForgeInfo, -PanNeoForgeInfo.Opacity, 50)
-            }, "SetNeoForgeInfoShow")
-        End If
-    End Sub
 
     'Fabric
     Private SelectedFabric As String = Nothing
-    Private Sub SetFabricInfoShow(IsShow As String)
-        If PanFabricInfo.Tag = IsShow Then Return
-        PanFabricInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanFabricInfo, -CType(PanFabricInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanFabricInfo, 1 - PanFabricInfo.Opacity, 80, 90)
-            }, "SetFabricInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanFabricInfo, 6 - CType(PanFabricInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanFabricInfo, -PanFabricInfo.Opacity, 50)
-            }, "SetFabricInfoShow")
-        End If
-    End Sub
 
     'FabricApi
     Private SelectedFabricApi As CompFile = Nothing
-    Private Sub SetFabricApiInfoShow(IsShow As String)
-        If PanFabricApiInfo.Tag = IsShow Then Return
-        PanFabricApiInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanFabricApiInfo, -CType(PanFabricApiInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanFabricApiInfo, 1 - PanFabricApiInfo.Opacity, 80, 90)
-            }, "SetFabricApiInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanFabricApiInfo, 6 - CType(PanFabricApiInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanFabricApiInfo, -PanFabricApiInfo.Opacity, 50)
-            }, "SetFabricApiInfoShow")
-        End If
-    End Sub
 
     'LegacyFabric
     Private SelectedLegacyFabric As String = Nothing
-    Private Sub SetLegacyFabricInfoShow(IsShow As String)
-        If PanLegacyFabricInfo.Tag = IsShow Then Return
-        PanLegacyFabricInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanLegacyFabricInfo, -CType(PanLegacyFabricInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanLegacyFabricInfo, 1 - PanLegacyFabricInfo.Opacity, 80, 90)
-            }, "SetLegacyFabricInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanLegacyFabricInfo, 6 - CType(PanLegacyFabricInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanLegacyFabricInfo, -PanLegacyFabricInfo.Opacity, 50)
-            }, "SetLegacyFabricInfoShow")
-        End If
-    End Sub
 
     'Legacy FabricApi
     Private SelectedLegacyFabricApi As CompFile = Nothing
-    Private Sub SetLegacyFabricApiInfoShow(IsShow As String)
-        If PanLegacyFabricApiInfo.Tag = IsShow Then Return
-        PanLegacyFabricApiInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanLegacyFabricApiInfo, -CType(PanLegacyFabricApiInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanLegacyFabricApiInfo, 1 - PanLegacyFabricApiInfo.Opacity, 80, 90)
-            }, "SetFabricApiInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanLegacyFabricApiInfo, 6 - CType(PanLegacyFabricApiInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanLegacyFabricApiInfo, -PanLegacyFabricApiInfo.Opacity, 50)
-            }, "SetFabricApiInfoShow")
-        End If
-    End Sub
 
     'Quilt
     Private SelectedQuilt As String = Nothing
-    Private Sub SetQuiltInfoShow(IsShow As String)
-        If PanQuiltInfo.Tag = IsShow Then Exit Sub
-        PanQuiltInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanQuiltInfo, -CType(PanQuiltInfo.RenderTransform, TranslateTransform).Y, 270, 100, Ease:=New AniEaseOutBack),
-                AaOpacity(PanQuiltInfo, 1 - PanQuiltInfo.Opacity, 100, 90)
-            }, "SetQuiltInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanQuiltInfo, 6 - CType(PanQuiltInfo.RenderTransform, TranslateTransform).Y, 200),
-                AaOpacity(PanQuiltInfo, -PanQuiltInfo.Opacity, 100)
-            }, "SetQuiltInfoShow")
-        End If
-    End Sub
 
     'QSL
     Private SelectedQSL As CompFile = Nothing
-    Private Sub SetQSLInfoShow(IsShow As String)
-        If PanQSLInfo.Tag = IsShow Then Exit Sub
-        PanQSLInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanQSLInfo, -CType(PanQSLInfo.RenderTransform, TranslateTransform).Y, 270, 100, Ease:=New AniEaseOutBack),
-                AaOpacity(PanQSLInfo, 1 - PanQSLInfo.Opacity, 100, 90)
-            }, "SetQSLInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanQSLInfo, 6 - CType(PanQSLInfo.RenderTransform, TranslateTransform).Y, 200),
-                AaOpacity(PanQSLInfo, -PanQSLInfo.Opacity, 100)
-            }, "SetQSLInfoShow")
-        End If
-    End Sub
 
     'LabyMod
     Private SelectedLabyModChannel As String = Nothing
     Private SelectedLabyModCommitRef As String = Nothing
     Private SelectedLabyModVersion As String = Nothing
-    Private Sub SetLabyModInfoShow(IsShow As String)
-        If PanLabyModInfo.Tag = IsShow Then Exit Sub
-        PanLabyModInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanLabyModInfo, -CType(PanLabyModInfo.RenderTransform, TranslateTransform).Y, 270, 100, Ease:=New AniEaseOutBack),
-                AaOpacity(PanLabyModInfo, 1 - PanLabyModInfo.Opacity, 100, 90)
-            }, "SetLabyModInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanLabyModInfo, 6 - CType(PanLabyModInfo.RenderTransform, TranslateTransform).Y, 200),
-                AaOpacity(PanLabyModInfo, -PanLabyModInfo.Opacity, 100)
-            }, "SetLabyModInfoShow")
-        End If
-    End Sub
 
     'OptiFabric
     Private SelectedOptiFabric As CompFile = Nothing
-    Private Sub SetOptiFabricInfoShow(IsShow As String)
-        If PanOptiFabricInfo.Tag = IsShow Then Return
-        PanOptiFabricInfo.Tag = IsShow
-        If IsShow = "True" Then
-            '显示信息栏
-            AniStart({
-                AaTranslateY(PanOptiFabricInfo, -CType(PanOptiFabricInfo.RenderTransform, TranslateTransform).Y, 200, 100, Ease:=New AniEaseOutFluent),
-                AaOpacity(PanOptiFabricInfo, 1 - PanOptiFabricInfo.Opacity, 80, 90)
-            }, "SetOptiFabricInfoShow")
-        Else
-            '隐藏信息栏
-            AniStart({
-                AaTranslateY(PanOptiFabricInfo, 6 - CType(PanOptiFabricInfo.RenderTransform, TranslateTransform).Y, 120),
-                AaOpacity(PanOptiFabricInfo, -PanOptiFabricInfo.Opacity, 50)
-            }, "SetOptiFabricInfoShow")
-        End If
-    End Sub
-
-    Private IsReloading As Boolean = False '#3742 中，LoadOptiFineGetError 会初始化 LoadOptiFine，触发事件 LoadOptiFine.StateChanged，导致再次调用 SelectReload
+    
     ''' <summary>
     ''' 重载已选择的项目的显示。
     ''' </summary>
-    Private Sub SelectReload() Handles CardOptiFine.Swap, LoadOptiFine.StateChanged, CardForge.Swap, LoadForge.StateChanged, CardNeoForge.Swap, LoadNeoForge.StateChanged, CardFabric.Swap, LoadFabric.StateChanged, CardFabricApi.Swap, LoadFabricApi.StateChanged, CardOptiFabric.Swap, LoadOptiFabric.StateChanged, CardLiteLoader.Swap, LoadLiteLoader.StateChanged, LoadQuilt.StateChanged, CardQuilt.Swap, LoadQSL.StateChanged, CardQSL.Swap, LoadCleanroom.StateChanged, CardCleanroom.Swap, LoadLabyMod.StateChanged, CardLabyMod.Swap
-        If SelectedMinecraftId Is Nothing OrElse IsReloading Then Return
-        IsReloading = True
+    Private Sub ReloadSelected() Handles CardOptiFine.Swap, LoadOptiFine.StateChanged, CardForge.Swap, LoadForge.StateChanged, CardNeoForge.Swap, LoadNeoForge.StateChanged, CardFabric.Swap, LoadFabric.StateChanged, CardFabricApi.Swap, LoadFabricApi.StateChanged, CardOptiFabric.Swap, LoadOptiFabric.StateChanged, CardLiteLoader.Swap, LoadLiteLoader.StateChanged, LoadQuilt.StateChanged, CardQuilt.Swap, LoadQSL.StateChanged, CardQSL.Swap, LoadCleanroom.StateChanged, CardCleanroom.Swap, LoadLabyMod.StateChanged, CardLabyMod.Swap
+        Static Ongoing As Boolean = False '#3742 中，LoadOptiFineGetError 会初始化 LoadOptiFine，触发事件 LoadOptiFine.StateChanged，导致再次调用 SelectReload
+        If _vanillaName Is Nothing OrElse Ongoing Then Return
+        Ongoing = True
         '主预览
         SelectNameUpdate()
         ImgLogo.Source = GetSelectLogo()
@@ -481,7 +265,7 @@ Public Class PageDownloadInstall
         Dim OptiFineError As String = LoadOptiFineGetError()
         CardOptiFine.MainSwap.Visibility = If(OptiFineError Is Nothing, Visibility.Visible, Visibility.Collapsed)
         If OptiFineError IsNot Nothing Then CardOptiFine.IsSwapped = True '例如在同时展开卡片时选择了不兼容项则强制折叠
-        SetOptiFineInfoShow(CardOptiFine.IsSwapped)
+        SetPanelVisibility(PanOptiFineInfo, CardOptiFine.IsSwapped)
         If SelectedOptiFine Is Nothing Then
             BtnOptiFineClear.Visibility = Visibility.Collapsed
             ImgOptiFine.Visibility = Visibility.Collapsed
@@ -490,18 +274,18 @@ Public Class PageDownloadInstall
         Else
             BtnOptiFineClear.Visibility = Visibility.Visible
             ImgOptiFine.Visibility = Visibility.Visible
-            LabOptiFine.Text = SelectedOptiFine.NameDisplay.Replace(SelectedMinecraftId & " ", "")
+            LabOptiFine.Text = SelectedOptiFine.DisplayName.Replace(_vanillaName & " ", "")
             LabOptiFine.Foreground = ColorGray1
         End If
         'LiteLoader
-        If Not SelectedMinecraftId.Contains("1.") OrElse Val(SelectedMinecraftId.Split(".")(1)) > 12 Then
+        If VanillaDrop >= 130 Then
             CardLiteLoader.Visibility = Visibility.Collapsed
         Else
             CardLiteLoader.Visibility = Visibility.Visible
             Dim LiteLoaderError As String = LoadLiteLoaderGetError()
             CardLiteLoader.MainSwap.Visibility = If(LiteLoaderError Is Nothing, Visibility.Visible, Visibility.Collapsed)
             If LiteLoaderError IsNot Nothing Then CardLiteLoader.IsSwapped = True '例如在同时展开卡片时选择了不兼容项则强制折叠
-            SetLiteLoaderInfoShow(CardLiteLoader.IsSwapped)
+            SetPanelVisibility(PanLiteLoaderInfo, CardLiteLoader.IsSwapped)
             If SelectedLiteLoader Is Nothing Then
                 BtnLiteLoaderClear.Visibility = Visibility.Collapsed
                 ImgLiteLoader.Visibility = Visibility.Collapsed
@@ -515,32 +299,37 @@ Public Class PageDownloadInstall
             End If
         End If
         'Forge
-        Dim ForgeError As String = LoadForgeGetError()
-        CardForge.MainSwap.Visibility = If(ForgeError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-        If ForgeError IsNot Nothing Then CardForge.IsSwapped = True
-        SetForgeInfoShow(CardForge.IsSwapped)
-        If SelectedForge Is Nothing Then
-            BtnForgeClear.Visibility = Visibility.Collapsed
-            ImgForge.Visibility = Visibility.Collapsed
-            LabForge.Text = If(ForgeError, "可以添加")
-            LabForge.Foreground = ColorGray4
+        If Not McInstanceInfo.IsFormatFit(_vanillaName) Then
+            CardForge.Visibility = Visibility.Collapsed
         Else
-            BtnForgeClear.Visibility = Visibility.Visible
-            ImgForge.Visibility = Visibility.Visible
-            LabForge.Text = SelectedForge.VersionName
-            LabForge.Foreground = ColorGray1
+            CardForge.Visibility = Visibility.Visible
+            Dim forgeError As String = LoadForgeGetError()
+            CardForge.MainSwap.Visibility = If(forgeError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If forgeError IsNot Nothing Then CardForge.IsSwapped = True
+            SetPanelVisibility(PanForgeInfo, CardForge.IsSwapped)
+            If SelectedForge Is Nothing Then
+                BtnForgeClear.Visibility = Visibility.Collapsed
+                ImgForge.Visibility = Visibility.Collapsed
+                LabForge.Text = If(forgeError, "可以添加")
+                LabForge.Foreground = ColorGray4
+            Else
+                BtnForgeClear.Visibility = Visibility.Visible
+                ImgForge.Visibility = Visibility.Visible
+                LabForge.Text = SelectedForge.VersionName
+                LabForge.Foreground = ColorGray1
+            End If
         End If
         'Cleanroom
-        If SelectedMinecraftId = "1.12.2" Then
+        If _vanillaName = "1.12.2" Then
             CardCleanroom.Visibility = Visibility.Visible
-            Dim CleanroomError As String = LoadCleanroomGetError()
-            CardCleanroom.MainSwap.Visibility = If(CleanroomError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If CleanroomError IsNot Nothing Then CardCleanroom.IsSwapped = True
-            SetCleanroomInfoShow(CardCleanroom.IsSwapped)
+            Dim cleanroomError As String = LoadCleanroomGetError()
+            CardCleanroom.MainSwap.Visibility = If(cleanroomError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If cleanroomError IsNot Nothing Then CardCleanroom.IsSwapped = True
+            SetPanelVisibility(PanCleanroomInfo, CardCleanroom.IsSwapped)
             If SelectedCleanroom Is Nothing Then
                 BtnCleanroomClear.Visibility = Visibility.Collapsed
                 ImgCleanroom.Visibility = Visibility.Collapsed
-                LabCleanroom.Text = If(CleanroomError, "可以添加")
+                LabCleanroom.Text = If(cleanroomError, "可以添加")
                 LabCleanroom.Foreground = ColorGray4
             Else
                 BtnCleanroomClear.Visibility = Visibility.Visible
@@ -552,18 +341,18 @@ Public Class PageDownloadInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If Not SelectedMinecraftId.Contains("1.") OrElse Val(SelectedMinecraftId.Split(".")(1)) <= 19 Then
+        If _vanillaData("releaseTime").ToObject(Of Date) < New Date(2023, 6, 11) Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
-            Dim NeoForgeError As String = LoadNeoForgeGetError()
-            CardNeoForge.MainSwap.Visibility = If(NeoForgeError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If NeoForgeError IsNot Nothing Then CardNeoForge.IsSwapped = True
-            SetNeoForgeInfoShow(CardNeoForge.IsSwapped)
+            Dim neoForgeError As String = LoadNeoForgeGetError()
+            CardNeoForge.MainSwap.Visibility = If(neoForgeError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If neoForgeError IsNot Nothing Then CardNeoForge.IsSwapped = True
+            SetPanelVisibility(PanNeoForgeInfo, CardNeoForge.IsSwapped)
             If SelectedNeoForge Is Nothing Then
                 BtnNeoForgeClear.Visibility = Visibility.Collapsed
                 ImgNeoForge.Visibility = Visibility.Collapsed
-                LabNeoForge.Text = If(NeoForgeError, "可以添加")
+                LabNeoForge.Text = If(neoForgeError, "可以添加")
                 LabNeoForge.Foreground = ColorGray4
             Else
                 BtnNeoForgeClear.Visibility = Visibility.Visible
@@ -573,18 +362,18 @@ Public Class PageDownloadInstall
             End If
         End If
         'Fabric
-        If SelectedMinecraftId.Contains("1.") AndAlso Val(SelectedMinecraftId.Split(".")(1)) <= 13 Then
+        If VanillaDrop <= 130 Then
             CardFabric.Visibility = Visibility.Collapsed
         Else
             CardFabric.Visibility = Visibility.Visible
-            Dim FabricError As String = LoadFabricGetError()
-            CardFabric.MainSwap.Visibility = If(FabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If FabricError IsNot Nothing Then CardFabric.IsSwapped = True
-            SetFabricInfoShow(CardFabric.IsSwapped)
+            Dim fabricError As String = LoadFabricGetError()
+            CardFabric.MainSwap.Visibility = If(fabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If fabricError IsNot Nothing Then CardFabric.IsSwapped = True
+            SetPanelVisibility(PanFabricInfo, CardFabric.IsSwapped)
             If SelectedFabric Is Nothing Then
                 BtnFabricClear.Visibility = Visibility.Collapsed
                 ImgFabric.Visibility = Visibility.Collapsed
-                LabFabric.Text = If(FabricError, "可以添加")
+                LabFabric.Text = If(fabricError, "可以添加")
                 LabFabric.Foreground = ColorGray4
             Else
                 BtnFabricClear.Visibility = Visibility.Visible
@@ -598,14 +387,14 @@ Public Class PageDownloadInstall
             CardFabricApi.Visibility = Visibility.Collapsed
         Else
             CardFabricApi.Visibility = Visibility.Visible
-            Dim FabricApiError As String = LoadFabricApiGetError()
-            CardFabricApi.MainSwap.Visibility = If(FabricApiError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If FabricApiError IsNot Nothing OrElse SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then CardFabricApi.IsSwapped = True
-            SetFabricApiInfoShow(CardFabricApi.IsSwapped)
+            Dim fabricApiError As String = LoadFabricApiGetError()
+            CardFabricApi.MainSwap.Visibility = If(fabricApiError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If fabricApiError IsNot Nothing OrElse SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then CardFabricApi.IsSwapped = True
+            SetPanelVisibility(PanFabricApiInfo, CardFabricApi.IsSwapped)
             If SelectedFabricApi Is Nothing Then
                 BtnFabricApiClear.Visibility = Visibility.Collapsed
                 ImgFabricApi.Visibility = Visibility.Collapsed
-                LabFabricApi.Text = If(FabricApiError, "可以添加")
+                LabFabricApi.Text = If(fabricApiError, "可以添加")
                 LabFabricApi.Foreground = ColorGray4
             Else
                 BtnFabricApiClear.Visibility = Visibility.Visible
@@ -615,18 +404,18 @@ Public Class PageDownloadInstall
             End If
         End If
         'LegacyFabric
-        If SelectedMinecraftId.Contains("1.") AndAlso Val(SelectedMinecraftId.Split(".")(1)) > 13 Then
+        If VanillaDrop > 130 Then
             CardLegacyFabric.Visibility = Visibility.Collapsed
         Else
             CardLegacyFabric.Visibility = Visibility.Visible
-            Dim LegacyFabricError As String = LoadLegacyFabricGetError()
-            CardLegacyFabric.MainSwap.Visibility = If(LegacyFabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If LegacyFabricError IsNot Nothing Then CardLegacyFabric.IsSwapped = True
-            SetLegacyFabricInfoShow(CardLegacyFabric.IsSwapped)
+            Dim legacyFabricError As String = LoadLegacyFabricGetError()
+            CardLegacyFabric.MainSwap.Visibility = If(legacyFabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If legacyFabricError IsNot Nothing Then CardLegacyFabric.IsSwapped = True
+            SetPanelVisibility(PanLegacyFabricInfo, CardLegacyFabric.IsSwapped)
             If SelectedLegacyFabric Is Nothing Then
                 BtnLegacyFabricClear.Visibility = Visibility.Collapsed
                 ImgLegacyFabric.Visibility = Visibility.Collapsed
-                LabLegacyFabric.Text = If(LegacyFabricError, "可以添加")
+                LabLegacyFabric.Text = If(legacyFabricError, "可以添加")
                 LabLegacyFabric.Foreground = ColorGray4
             Else
                 BtnLegacyFabricClear.Visibility = Visibility.Visible
@@ -636,18 +425,18 @@ Public Class PageDownloadInstall
             End If
         End If
         'LegacyFabricApi
-        If SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then
+        If SelectedLegacyFabric Is Nothing Then
             CardLegacyFabricApi.Visibility = Visibility.Collapsed
         Else
             CardLegacyFabricApi.Visibility = Visibility.Visible
-            Dim LegacyFabricApiError As String = LoadLegacyFabricApiGetError()
-            CardLegacyFabricApi.MainSwap.Visibility = If(LegacyFabricApiError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If LegacyFabricApiError IsNot Nothing OrElse SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then CardLegacyFabricApi.IsSwapped = True
-            SetLegacyFabricApiInfoShow(CardLegacyFabricApi.IsSwapped)
+            Dim legacyFabricApiError As String = LoadLegacyFabricApiGetError()
+            CardLegacyFabricApi.MainSwap.Visibility = If(legacyFabricApiError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If legacyFabricApiError IsNot Nothing OrElse SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then CardLegacyFabricApi.IsSwapped = True
+            SetPanelVisibility(PanLegacyFabricApiInfo, CardLegacyFabricApi.IsSwapped)
             If SelectedLegacyFabricApi Is Nothing Then
                 BtnLegacyFabricApiClear.Visibility = Visibility.Collapsed
                 ImgLegacyFabricApi.Visibility = Visibility.Collapsed
-                LabLegacyFabricApi.Text = If(LegacyFabricApiError, "可以添加")
+                LabLegacyFabricApi.Text = If(legacyFabricApiError, "可以添加")
                 LabLegacyFabricApi.Foreground = ColorGray4
             Else
                 BtnLegacyFabricApiClear.Visibility = Visibility.Visible
@@ -657,18 +446,18 @@ Public Class PageDownloadInstall
             End If
         End If
         'Quilt
-        If SelectedMinecraftId.Contains("1.") AndAlso Val(SelectedMinecraftId.Split(".")(1)) <= 14 AndAlso Not SelectedMinecraftId.Contains("1.14.4") Then
+        If VanillaDrop < 144 Then
             CardQuilt.Visibility = Visibility.Collapsed
         Else
             CardQuilt.Visibility = Visibility.Visible
-            Dim QuiltError As String = LoadQuiltGetError()
-            CardQuilt.MainSwap.Visibility = If(QuiltError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If QuiltError IsNot Nothing Then CardQuilt.IsSwapped = True
-            SetQuiltInfoShow(CardQuilt.IsSwapped)
+            Dim quiltError As String = LoadQuiltGetError()
+            CardQuilt.MainSwap.Visibility = If(quiltError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If quiltError IsNot Nothing Then CardQuilt.IsSwapped = True
+            SetPanelVisibility(PanQuiltInfo, CardQuilt.IsSwapped)
             If SelectedQuilt Is Nothing Then
                 BtnQuiltClear.Visibility = Visibility.Collapsed
                 ImgQuilt.Visibility = Visibility.Collapsed
-                LabQuilt.Text = If(QuiltError, "可以添加")
+                LabQuilt.Text = If(quiltError, "可以添加")
                 LabQuilt.Foreground = ColorGray4
             Else
                 BtnQuiltClear.Visibility = Visibility.Visible
@@ -682,14 +471,14 @@ Public Class PageDownloadInstall
             CardQSL.Visibility = Visibility.Collapsed
         Else
             CardQSL.Visibility = Visibility.Visible
-            Dim QSLError As String = LoadQSLGetError()
-            CardQSL.MainSwap.Visibility = If(QSLError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If QSLError IsNot Nothing OrElse SelectedQuilt Is Nothing Then CardQSL.IsSwapped = True
-            SetQSLInfoShow(CardQSL.IsSwapped)
+            Dim qslError As String = LoadQSLGetError()
+            CardQSL.MainSwap.Visibility = If(qslError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If qslError IsNot Nothing OrElse SelectedQuilt Is Nothing Then CardQSL.IsSwapped = True
+            SetPanelVisibility(PanQSLInfo, CardQSL.IsSwapped)
             If SelectedQSL Is Nothing Then
                 BtnQSLClear.Visibility = Visibility.Collapsed
                 ImgQSL.Visibility = Visibility.Collapsed
-                LabQSL.Text = If(QSLError, "可以添加")
+                LabQSL.Text = If(qslError, "可以添加")
                 LabQSL.Foreground = ColorGray4
             Else
                 BtnQSLClear.Visibility = Visibility.Visible
@@ -699,18 +488,18 @@ Public Class PageDownloadInstall
             End If
         End If
         'LabyMod
-        If SelectedMinecraftId.Contains("1.") AndAlso Val(SelectedMinecraftId.Split(".")(1)) < 8 Then
+        If VanillaDrop < 80 Then
             CardLabyMod.Visibility = Visibility.Collapsed
         Else
             CardLabyMod.Visibility = Visibility.Visible
-            Dim LabyModError As String = LoadLabyModGetError()
-            CardLabyMod.MainSwap.Visibility = If(LabyModError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If LabyModError IsNot Nothing Then CardLabyMod.IsSwapped = True
-            SetLabyModInfoShow(CardLabyMod.IsSwapped)
+            Dim labyModError As String = LoadLabyModGetError()
+            CardLabyMod.MainSwap.Visibility = If(labyModError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If labyModError IsNot Nothing Then CardLabyMod.IsSwapped = True
+            SetPanelVisibility(PanLabyModInfo, CardLabyMod.IsSwapped)
             If SelectedLabyModVersion Is Nothing Then
                 BtnLabyModClear.Visibility = Visibility.Collapsed
                 ImgLabyMod.Visibility = Visibility.Collapsed
-                LabLabyMod.Text = If(LabyModError, "可以添加")
+                LabLabyMod.Text = If(labyModError, "可以添加")
                 LabLabyMod.Foreground = ColorGray4
             Else
                 BtnLabyModClear.Visibility = Visibility.Visible
@@ -724,14 +513,14 @@ Public Class PageDownloadInstall
             CardOptiFabric.Visibility = Visibility.Collapsed
         Else
             CardOptiFabric.Visibility = Visibility.Visible
-            Dim OptiFabricError As String = LoadOptiFabricGetError()
-            CardOptiFabric.MainSwap.Visibility = If(OptiFabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
-            If OptiFabricError IsNot Nothing OrElse SelectedFabric Is Nothing Then CardOptiFabric.IsSwapped = True
-            SetOptiFabricInfoShow(CardOptiFabric.IsSwapped)
+            Dim optiFabricError As String = LoadOptiFabricGetError()
+            CardOptiFabric.MainSwap.Visibility = If(optiFabricError Is Nothing, Visibility.Visible, Visibility.Collapsed)
+            If optiFabricError IsNot Nothing OrElse SelectedFabric Is Nothing Then CardOptiFabric.IsSwapped = True
+            SetPanelVisibility(PanOptiFabricInfo, CardOptiFabric.IsSwapped)
             If SelectedOptiFabric Is Nothing Then
                 BtnOptiFabricClear.Visibility = Visibility.Collapsed
                 ImgOptiFabric.Visibility = Visibility.Collapsed
-                LabOptiFabric.Text = If(OptiFabricError, "可以添加")
+                LabOptiFabric.Text = If(optiFabricError, "可以添加")
                 LabOptiFabric.Foreground = ColorGray4
             Else
                 BtnOptiFabricClear.Visibility = Visibility.Visible
@@ -758,7 +547,7 @@ Public Class PageDownloadInstall
         End If
         If SelectedQuilt IsNot Nothing AndAlso SelectedFabricApi IsNot Nothing AndAlso DlQSLLoader.Output IsNot Nothing Then
             For Each Version In DlQSLLoader.Output
-                If IsSuitableQSL(Version.GameVersions, SelectedMinecraftId) Then
+                If IsSuitableQSL(Version.GameVersions, _vanillaName) Then
                     HintQuiltFabricAPI.Visibility = Visibility.Visible
                     Exit For
                 Else
@@ -769,7 +558,7 @@ Public Class PageDownloadInstall
             HintQuiltFabricAPI.Visibility = Visibility.Collapsed
         End If
         If (SelectedFabric IsNot Nothing Or SelectedLegacyFabric IsNot Nothing) AndAlso SelectedOptiFine IsNot Nothing AndAlso SelectedOptiFabric Is Nothing Then
-            If SelectedMinecraftId.StartsWith("1.14") OrElse SelectedMinecraftId.StartsWith("1.15") Then
+            If VanillaDrop >= 140 AndAlso VanillaDrop <= 150 Then
                 HintOptiFabric.Visibility = Visibility.Collapsed
                 HintLegacyOptiFabric.Visibility = Visibility.Collapsed
                 HintOptiFabricOld.Visibility = Visibility.Visible
@@ -787,22 +576,22 @@ Public Class PageDownloadInstall
             HintOptiFabricOld.Visibility = Visibility.Collapsed
             HintLegacyOptiFabric.Visibility = Visibility.Collapsed
         End If
-        If SelectedMinecraftId.Contains("1.") AndAlso Val(SelectedMinecraftId.Split(".")(1)) >= 16 AndAlso SelectedOptiFine IsNot Nothing AndAlso
+        If VanillaDrop >= 160 AndAlso SelectedOptiFine IsNot Nothing AndAlso
            (SelectedForge IsNot Nothing OrElse SelectedFabric IsNot Nothing) Then
             HintModOptiFine.Visibility = Visibility.Visible
         Else
             HintModOptiFine.Visibility = Visibility.Collapsed
         End If
         '结束
-        IsReloading = False
+        Ongoing = False
     End Sub
     ''' <summary>
     ''' 清空已选择的项目。
     ''' </summary>
-    Private Sub SelectClear()
-        SelectedMinecraftId = Nothing
-        SelectedMinecraftJsonUrl = Nothing
-        SelectedMinecraftIcon = Nothing
+    Private Sub ClearSelected()
+        _vanillaName = Nothing
+        _vanillaData = Nothing
+        _vanillaIcon = Nothing
         SelectedOptiFine = Nothing
         SelectedLiteLoader = Nothing
         SelectedLoaderName = Nothing
@@ -821,7 +610,23 @@ Public Class PageDownloadInstall
         SelectedLegacyFabric = Nothing
         SelectedLegacyFabricApi = Nothing
     End Sub
-
+    '信息栏动画
+    Private Sub SetPanelVisibility(panel As Grid, visible As Boolean)
+        If panel.Tag = visible.ToString Then Return
+        panel.Tag = visible.ToString
+        If visible Then
+            AniStart({
+                         AaTranslateY(panel, -CType(panel.RenderTransform, TranslateTransform).Y, 150, Ease:=New AniEaseOutFluent),
+                         AaOpacity(panel, 1 - panel.Opacity, 60)
+                     }, "PageDownloadInstall Visibility " & panel.Name)
+        Else
+            AniStart({
+                         AaTranslateY(panel, 6 - CType(panel.RenderTransform, TranslateTransform).Y, 60),
+                         AaOpacity(panel, -panel.Opacity, 60)
+                     }, "PageDownloadInstall Visibility " & panel.Name)
+        End If
+    End Sub
+    
     ''' <summary>
     ''' 获取实例图标。
     ''' </summary>
@@ -845,7 +650,7 @@ Public Class PageDownloadInstall
         ElseIf SelectedLabyModVersion IsNot Nothing Then
             Return "pack://application:,,,/images/Blocks/LabyMod.png"
         Else
-            Return SelectedMinecraftIcon
+            Return _vanillaIcon
         End If
     End Function
 
@@ -854,35 +659,35 @@ Public Class PageDownloadInstall
     ''' 获取默认实例名。
     ''' </summary>
     Private Function GetSelectName() As String
-        Dim Name As String = SelectedMinecraftId
+        Dim name As String = _vanillaName
         If SelectedFabric IsNot Nothing Then
-            Name += "-Fabric_" & SelectedFabric.Replace("+build", "")
+            name += "-Fabric_" & SelectedFabric.Replace("+build", "")
         End If
         If SelectedLegacyFabric IsNot Nothing Then
-            Name += "-LegacyFabric_" & SelectedLegacyFabric
+            name += "-LegacyFabric_" & SelectedLegacyFabric
         End If
         If SelectedQuilt IsNot Nothing Then
-            Name += "-Quilt_" & SelectedQuilt
+            name += "-Quilt_" & SelectedQuilt
         End If
         If SelectedLabyModVersion IsNot Nothing Then
-            Name += "-LabyMod_" & SelectedLabyModVersion.Replace(" 稳定版", "_Production").Replace(" 快照版", "_Snapshot")
+            name += "-LabyMod_" & SelectedLabyModVersion.Replace(" 稳定版", "_Production").Replace(" 快照版", "_Snapshot")
         End If
         If SelectedForge IsNot Nothing Then
-            Name += "-Forge_" & SelectedForge.VersionName
+            name += "-Forge_" & SelectedForge.VersionName
         End If
         If SelectedNeoForge IsNot Nothing Then
-            Name += "-NeoForge_" & SelectedNeoForge.VersionName
+            name += "-NeoForge_" & SelectedNeoForge.VersionName
         End If
         If SelectedCleanroom IsNot Nothing Then
-            Name += "-Cleanroom_" & SelectedCleanroom.VersionName
+            name += "-Cleanroom_" & SelectedCleanroom.VersionName
         End If
         If SelectedLiteLoader IsNot Nothing Then
-            Name += "-LiteLoader"
+            name += "-LiteLoader"
         End If
         If SelectedOptiFine IsNot Nothing Then
-            Name += "-OptiFine_" & SelectedOptiFine.NameDisplay.Replace(SelectedMinecraftId & " ", "").Replace(" ", "_")
+            name += "-OptiFine_" & SelectedOptiFine.DisplayName.Replace(_vanillaName & " ", "").Replace(" ", "_")
         End If
-        Return Name
+        Return name
     End Function
     Private IsSelectNameEdited As Boolean = False
     Private IsSelectNameChanging As Boolean = False
@@ -895,7 +700,7 @@ Public Class PageDownloadInstall
     Private Sub TextSelectName_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextSelectName.TextChanged
         If IsSelectNameChanging Then Return
         IsSelectNameEdited = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub TextSelectName_ValidateChanged(sender As Object, e As EventArgs) Handles TextSelectName.ValidateChanged
         BtnStart.IsEnabled = TextSelectName.IsValidated
@@ -1039,23 +844,25 @@ Public Class PageDownloadInstall
         If SelectedCleanroom IsNot Nothing Then Return "与 Cleanroom 不兼容"
         '检查 Forge 1.13 - 1.14.3：全部不兼容
         If SelectedLoaderName = "Forge" AndAlso
-            VersionSortInteger(SelectedMinecraftId, "1.13") >= 0 AndAlso VersionSortInteger("1.14.3", SelectedMinecraftId) >= 0 Then
+           CompareVersion(_vanillaName, "1.13") >= 0 AndAlso CompareVersion("1.14.3", _vanillaName) >= 0 Then
             Return "与 Forge 不兼容"
         End If
         '检查 Fabric 1.20.5+: 全部不兼容
-        If SelectedFabric IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 Fabric 不兼容"
+        If SelectedFabric IsNot Nothing AndAlso CompareVersion(_vanillaName, "1.20.4") > 0 Then Return "与 Fabric 不兼容"
+        '检查 Loader
+        If GetLoaderError(LoadOptiFine) IsNot Nothing Then Return GetLoaderError(LoadOptiFine)
         '检查 Forge 版本
         Dim HasAny As Boolean = False
         Dim HasRequiredVersion As Boolean = False
         For Each OptiFineVersion As DlOptiFineListEntry In DlOptiFineListLoader.Output.Value
-            If Not OptiFineVersion.NameDisplay.StartsWith(SelectedMinecraftId & " ") Then Continue For '不是同一个大版本
+            If Not OptiFineVersion.DisplayName.StartsWith(_vanillaName & " ") Then Continue For '不是同一个大版本
             HasAny = True
             If SelectedForge Is Nothing Then Return Nothing '未选择 Forge
             If IsOptiFineSuitForForge(OptiFineVersion, SelectedForge) Then Return Nothing '该版本可用
             If OptiFineVersion.RequiredForgeVersion IsNot Nothing Then HasRequiredVersion = True
         Next
         If Not HasAny Then
-            Return "不可用"
+            Return "无可用版本"
         ElseIf HasRequiredVersion Then
             Return "仅兼容特定版本的 Forge"
         Else
@@ -1069,7 +876,7 @@ Public Class PageDownloadInstall
         If OptiFine.RequiredForgeVersion Is Nothing Then Return False '不兼容 Forge
         If String.IsNullOrWhiteSpace(OptiFine.RequiredForgeVersion) Then Return True '#4183
         If OptiFine.RequiredForgeVersion.Contains(".") Then 'XX.X.XXX
-            Return VersionSortInteger(Forge.Version.ToString, OptiFine.RequiredForgeVersion) = 0
+            Return CompareVersion(Forge.Version.ToString, OptiFine.RequiredForgeVersion) = 0
         Else 'XXXX
             Return Forge.Version.Revision = OptiFine.RequiredForgeVersion
         End If
@@ -1091,7 +898,7 @@ Public Class PageDownloadInstall
             Dim Versions As New List(Of DlOptiFineListEntry)
             For Each Version As DlOptiFineListEntry In DlOptiFineListLoader.Output.Value
                 If SelectedForge IsNot Nothing AndAlso Not IsOptiFineSuitForForge(Version, SelectedForge) Then Continue For
-                If Version.NameDisplay.StartsWith(SelectedMinecraftId & " ") Then Versions.Add(Version)
+                If Version.DisplayName.StartsWith(_vanillaName & " ") Then Versions.Add(Version)
             Next
             If Not Versions.Any() Then Return
             '排序
@@ -1099,7 +906,7 @@ Public Class PageDownloadInstall
             Function(Left As DlOptiFineListEntry, Right As DlOptiFineListEntry) As Boolean
                 If Not Left.IsPreview AndAlso Right.IsPreview Then Return True
                 If Left.IsPreview AndAlso Not Right.IsPreview Then Return False
-                Return VersionSortBoolean(Left.NameDisplay, Right.NameDisplay)
+                Return CompareVersionGe(Left.DisplayName, Right.DisplayName)
             End Function)
             '可视化
             PanOptiFine.Children.Clear()
@@ -1119,7 +926,7 @@ Public Class PageDownloadInstall
         Forge_Loaded()
         NeoForge_Loaded()
         CardOptiFine.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub OptiFine_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnOptiFineClear.MouseLeftButtonUp
         SelectedOptiFine = Nothing
@@ -1129,7 +936,7 @@ Public Class PageDownloadInstall
         e.Handled = True
         Forge_Loaded()
         NeoForge_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1140,14 +947,10 @@ Public Class PageDownloadInstall
     ''' 获取 LiteLoader 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadLiteLoaderGetError() As String
-        If SelectedLegacyFabric IsNot Nothing Then Return "与 LiteLoader 不兼容"
-        If Not SelectedMinecraftId.Contains("1.") OrElse Val(SelectedMinecraftId.Split(".")(1)) > 12 Then Return "不可用"
-        If LoadLiteLoader Is Nothing OrElse LoadLiteLoader.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadLiteLoader.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadLiteLoader.State, Object).Error.Message
-        For Each Version As DlLiteLoaderListEntry In DlLiteLoaderListLoader.Output.Value
-            If Version.Inherit = SelectedMinecraftId Then Return Nothing
-        Next
-        Return "不可用"
+        '检查 Loader
+        If GetLoaderError(LoadLiteLoader) IsNot Nothing Then Return GetLoaderError(LoadLiteLoader)
+        '检查版本
+        Return If(DlLiteLoaderListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1164,7 +967,7 @@ Public Class PageDownloadInstall
             '获取版本列表
             Dim Versions As New List(Of DlLiteLoaderListEntry)
             For Each Version As DlLiteLoaderListEntry In DlLiteLoaderListLoader.Output.Value
-                If Version.Inherit = SelectedMinecraftId Then Versions.Add(Version)
+                If Version.Inherit = _vanillaName Then Versions.Add(Version)
             Next
             If Not Versions.Any() Then Return
             '可视化
@@ -1181,13 +984,13 @@ Public Class PageDownloadInstall
     Private Sub LiteLoader_Selected(sender As MyListItem, e As EventArgs)
         SelectedLiteLoader = sender.Tag
         CardLiteLoader.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub LiteLoader_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnLiteLoaderClear.MouseLeftButtonUp
         SelectedLiteLoader = Nothing
         CardLiteLoader.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1198,35 +1001,24 @@ Public Class PageDownloadInstall
     ''' 获取 Forge 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadForgeGetError() As String
-        If Not SelectedMinecraftId.StartsWith("1.") Then Return "不可用"
-        If Not LoadForge.State.IsLoader Then Return "加载中……"
-        Dim Loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
-        If SelectedMinecraftId <> Loader.Input Then Return "加载中……"
-        If Loader.State = LoadState.Loading Then Return "加载中……"
-        If Loader.State = LoadState.Failed Then
-            Dim ErrorMessage As String = Loader.Error.Message
-            If ErrorMessage.Contains("不可用") Then
-                Return "不可用"
-            Else
-                Return "获取版本列表失败：" & ErrorMessage
-            End If
-        End If
-        If Loader.State <> LoadState.Finished Then Return "获取版本列表失败：未知错误，状态为 " & GetStringFromEnum(Loader.State)
-        Dim NotSuitForOptiFine As Boolean = False
-        For Each Version In Loader.Output
+        If CompareVersionGE("1.5.1", _vanillaName) AndAlso CompareVersionGE(_vanillaName, "1.1") Then Return "无可用版本"
+        '检查 Loader
+        If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
+        Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
+        If _vanillaName <> loader.Input Then Return "获取中……"
+        '检查版本
+        For Each Version In loader.Output
             If Version.Category = "universal" OrElse Version.Category = "client" Then Continue For '跳过无法自动安装的版本
-            If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Forge" Then Return $"与 {SelectedLoaderName} 不兼容"
+            If SelectedNeoForge IsNot Nothing Then Return "与 NeoForge 不兼容"
+            If SelectedFabric IsNot Nothing Then Return "与 Fabric 不兼容"
             If SelectedOptiFine IsNot Nothing AndAlso
-                VersionSortInteger(SelectedMinecraftId, "1.13") >= 0 AndAlso VersionSortInteger("1.14.3", SelectedMinecraftId) >= 0 Then
+               CompareVersionGE(_vanillaName, "1.13") AndAlso CompareVersionGE("1.14.3", _vanillaName) Then
                 Return "与 OptiFine 不兼容" '1.13 ~ 1.14.3 OptiFine 检查
             End If
-            If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, Version) Then
-                NotSuitForOptiFine = True '与 OptiFine 不兼容
-                Continue For
-            End If
+            If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, Version) Then Continue For
             Return Nothing
         Next
-        Return If(NotSuitForOptiFine, "与 OptiFine 不兼容", "该版本不支持自动安装")
+        Return "与 OptiFine 不兼容"
     End Function
 
     '限制展开
@@ -1240,21 +1032,21 @@ Public Class PageDownloadInstall
     Private Sub Forge_Loaded() Handles LoadForge.StateChanged
         Try
             If Not LoadForge.State.IsLoader Then Return
-            Dim Loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
-            If SelectedMinecraftId <> Loader.Input Then Return
-            If Loader.State <> LoadState.Finished Then Return
+            Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
+            If _vanillaName <> loader.Input Then Return
+            If loader.State <> LoadState.Finished Then Return
             '获取要显示的版本
-            Dim Versions = Loader.Output.ToList '复制数组，以免 Output 在实例化后变空
-            If Not Loader.Output.Any() Then Return
+            Dim versions = loader.Output.ToList '复制数组，以免 Output 在实例化后变空
+            If Not loader.Output.Any() Then Return
             PanForge.Children.Clear()
-            Versions = Versions.Where(
+            versions = versions.Where(
             Function(v)
                 If v.Category = "universal" OrElse v.Category = "client" Then Return False '跳过无法自动安装的版本
                 If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, v) Then Return False
                 Return True
-            End Function).OrderByDescending(Function(v) v.Version).ToList()
-            ForgeDownloadListItemPreload(PanForge, Versions, AddressOf Forge_Selected, False)
-            For Each Version In Versions
+            End Function).OrderByDescending(Function(v) v).ToList()
+            ForgeDownloadListItemPreload(PanForge, versions, AddressOf Forge_Selected, False)
+            For Each Version In versions
                 PanForge.Children.Add(ForgeDownloadListItem(Version, AddressOf Forge_Selected, False))
             Next
         Catch ex As Exception
@@ -1269,7 +1061,7 @@ Public Class PageDownloadInstall
         CardForge.IsSwapped = True
         If SelectedOptiFine IsNot Nothing AndAlso Not IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge) Then SelectedOptiFine = Nothing
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub Forge_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnForgeClear.MouseLeftButtonUp
         SelectedForge = Nothing
@@ -1277,7 +1069,7 @@ Public Class PageDownloadInstall
         CardForge.IsSwapped = True
         e.Handled = True
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1288,16 +1080,12 @@ Public Class PageDownloadInstall
     ''' 获取 NeoForge 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadNeoForgeGetError() As String
-        If Not SelectedMinecraftId.StartsWith("1.") Then Return "不可用"
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "NeoForge" Then Return $"与 {SelectedLoaderName} 不兼容"
-        If LoadNeoForge Is Nothing OrElse LoadNeoForge.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadNeoForge.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadNeoForge.State, Object).Error.Message
-        If DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = SelectedMinecraftId) Then
-            Return Nothing
-        Else
-            Return "不可用"
-        End If
+        '检查 Loader
+        If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
+        '检查版本
+        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1312,7 +1100,7 @@ Public Class PageDownloadInstall
         Try
             '获取版本列表
             If DlNeoForgeListLoader.State <> LoadState.Finished Then Return
-            Dim Versions = DlNeoForgeListLoader.Output.Value.Where(Function(v) v.Inherit = SelectedMinecraftId).ToList
+            Dim Versions = DlNeoForgeListLoader.Output.Value.Where(Function(v) v.Inherit = _vanillaName).ToList
             If Not Versions.Any() Then Return
             '可视化
             PanNeoForge.Children.Clear()
@@ -1331,7 +1119,7 @@ Public Class PageDownloadInstall
         SelectedLoaderName = "NeoForge"
         CardNeoForge.IsSwapped = True
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub NeoForge_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnNeoForgeClear.MouseLeftButtonUp
         SelectedNeoForge = Nothing
@@ -1339,7 +1127,7 @@ Public Class PageDownloadInstall
         CardNeoForge.IsSwapped = True
         e.Handled = True
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1350,17 +1138,13 @@ Public Class PageDownloadInstall
     ''' 获取 Cleanroom 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadCleanroomGetError() As String
-        If Not SelectedMinecraftId.StartsWith("1.") Then Return "没有可用版本"
+        If Not _vanillaName.StartsWith("1.") Then Return "没有可用版本"
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Cleanroom" Then Return $"与 {SelectedLoaderName} 不兼容"
-        If LoadCleanroom Is Nothing OrElse LoadCleanroom.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "正在获取版本列表……"
-        If LoadCleanroom.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadCleanroom.State, Object).Error.Message
-        Return Nothing
-        'If DlCleanroomListLoader.Output.Value.Any(Function(v) v.Inherit = SelectedMinecraftId) Then
-        '    Return Nothing
-        'Else
-        '    Return "没有可用版本"
-        'End If
+        '检查 Loader
+        If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
+        '检查版本
+        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1375,7 +1159,7 @@ Public Class PageDownloadInstall
         Try
             '获取版本列表
             If DlCleanroomListLoader.State <> LoadState.Finished Then Exit Sub
-            Dim Versions = DlCleanroomListLoader.Output.Value.Where(Function(v) v.Inherit = SelectedMinecraftId).ToList
+            Dim Versions = DlCleanroomListLoader.Output.Value.Where(Function(v) v.Inherit = _vanillaName).ToList
             If Not Versions.Any() Then Exit Sub
             '可视化
             PanCleanroom.Children.Clear()
@@ -1394,7 +1178,7 @@ Public Class PageDownloadInstall
         SelectedLoaderName = "Cleanroom"
         CardCleanroom.IsSwapped = True
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub Cleanroom_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnCleanroomClear.MouseLeftButtonUp
         SelectedCleanroom = Nothing
@@ -1402,7 +1186,7 @@ Public Class PageDownloadInstall
         CardCleanroom.IsSwapped = True
         e.Handled = True
         OptiFine_Loaded()
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1413,17 +1197,18 @@ Public Class PageDownloadInstall
     ''' 获取 Fabric 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadFabricGetError() As String
-        If LoadFabric Is Nothing OrElse LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadFabric.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadFabric.State, Object).Error.Message
-        '检查 OptiFine 1.20.5+: 没有 OptiFabric 故全部不兼容
-        If SelectedOptiFine IsNot Nothing AndAlso VersionSortInteger(SelectedMinecraftId, "1.20.4") > 0 Then Return "与 OptiFine 不兼容"
-        For Each Version As JObject In DlFabricListLoader.Output.Value("game")
-            If Version("version").ToString = SelectedMinecraftId.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
+        '检查 OptiFine 1.20.5+：没有 OptiFabric 故全部不兼容
+        If SelectedOptiFine IsNot Nothing AndAlso CompareVersionGE(_vanillaName, "1.20.5") Then Return "与 OptiFine 不兼容"
+        '检查 Loader
+        If GetLoaderError(LoadFabric) IsNot Nothing Then Return GetLoaderError(LoadFabric)
+        '检查版本
+        For Each version As JObject In DlFabricListLoader.Output.Value("game")
+            If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing
             End If
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1438,15 +1223,15 @@ Public Class PageDownloadInstall
         Try
             If DlFabricListLoader.State <> LoadState.Finished Then Return
             '获取版本列表
-            Dim Versions As JArray = DlFabricListLoader.Output.Value("loader")
-            If Not Versions.Any() Then Return
+            Dim versions As JArray = DlFabricListLoader.Output.Value("loader")
+            If Not versions.Any() Then Return
             '可视化
             PanFabric.Children.Clear()
-            PanFabric.Tag = Versions
+            PanFabric.Tag = versions
             CardFabric.SwapControl = PanFabric
-            CardFabric.InstallMethod = Sub(Stack As StackPanel)
-                                           For Each item In Stack.Tag
-                                               Stack.Children.Add(FabricDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.Fabric_Selected))
+            CardFabric.InstallMethod = Sub(stack As StackPanel)
+                                           For Each item In stack.Tag
+                                               stack.Children.Add(FabricDownloadListItem(CType(item, JObject), AddressOf Fabric_Selected))
                                            Next
                                        End Sub
         Catch ex As Exception
@@ -1456,12 +1241,13 @@ Public Class PageDownloadInstall
 
     '选择与清除
     Public Sub Fabric_Selected(sender As MyListItem, e As EventArgs)
+        Log(sender.Tag.ToString)
         SelectedFabric = sender.Tag("version").ToString
         SelectedLoaderName = "Fabric"
         FabricApi_Loaded()
         OptiFabric_Loaded()
         CardFabric.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub Fabric_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnFabricClear.MouseLeftButtonUp
         SelectedFabric = Nothing
@@ -1473,7 +1259,7 @@ Public Class PageDownloadInstall
         SelectedAPIName = Nothing
         CardFabric.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1481,40 +1267,41 @@ Public Class PageDownloadInstall
 #Region "Fabric API 列表"
 
     ''' <summary>
-    ''' 从显示名判断该 API 是否与某版本适配。
+    ''' 判断某 Fabric API 是否适配当前选择的原版版本。
     ''' </summary>
-    Public Shared Function IsSuitableFabricApi(DisplayName As String, MinecraftVersion As String) As Boolean
+    Public Function IsFabricApiCompatible(fabricApi As CompFile) As Boolean
+        Dim fabricApiName = fabricApi.DisplayName
         Try
-            If DisplayName Is Nothing OrElse MinecraftVersion Is Nothing Then Return False
-            DisplayName = DisplayName.ToLower : MinecraftVersion = MinecraftVersion.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower
-            If DisplayName.StartsWith("[" & MinecraftVersion & "]") Then Return True
-            If Not DisplayName.Contains("/") OrElse Not DisplayName.Contains("]") Then Return False
+            If fabricApiName Is Nothing OrElse _vanillaName Is Nothing Then Return False
+            fabricApiName = fabricApiName.ToLower : _vanillaName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower
+            If fabricApiName.StartsWith("[" & _vanillaName & "]") Then Return True
+            If Not fabricApiName.Contains("/") OrElse Not fabricApiName.Contains("]") Then Return False
             '直接的判断（例如 1.18.1/22w03a）
-            For Each Part As String In DisplayName.BeforeFirst("]").TrimStart("[").Split("/")
-                If Part = MinecraftVersion Then Return True
+            For Each part As String In fabricApiName.BeforeFirst("]").TrimStart("[").Split("/")
+                If part = _vanillaName Then Return True
             Next
             '将版本名分割语素（例如 1.16.4/5）
-            Dim Lefts = RegexSearch(DisplayName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
-            Dim Rights = RegexSearch(MinecraftVersion.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
+            Dim lefts = RegexSearch(fabricApiName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
+            Dim rights = RegexSearch(_vanillaName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
             '对每段进行判断
             Dim i As Integer = 0
             While True
                 '两边均缺失，感觉是一个东西
-                If Lefts.Count - 1 < i AndAlso Rights.Count - 1 < i Then Return True
+                If lefts.Count - 1 < i AndAlso rights.Count - 1 < i Then Return True
                 '确定两边是否一致
-                Dim LeftValue As String = If(Lefts.Count - 1 < i, "-1", Lefts(i))
-                Dim RightValue As String = If(Rights.Count - 1 < i, "-1", Rights(i))
-                If Not LeftValue.Contains("/") Then
-                    If LeftValue <> RightValue Then Return False
+                Dim leftValue As String = If(lefts.Count - 1 < i, "-1", lefts(i))
+                Dim rightValue As String = If(rights.Count - 1 < i, "-1", rights(i))
+                If Not leftValue.Contains("/") Then
+                    If leftValue <> rightValue Then Return False
                 Else
                     '左边存在斜杠
-                    If Not LeftValue.Contains(RightValue) Then Return False
+                    If Not leftValue.Contains(rightValue) Then Return False
                 End If
                 i += 1
             End While
             Return True
         Catch ex As Exception
-            Log(ex, "判断 Fabric API 版本适配性出错（" & DisplayName & ", " & MinecraftVersion & "）")
+            Log(ex, "判断 Fabric API 版本适配性出错（" & FabricApiName & ", " & _vanillaName & "）")
             Return False
         End Try
     End Function
@@ -1523,19 +1310,15 @@ Public Class PageDownloadInstall
     ''' 获取 FabricApi 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadFabricApiGetError() As String
-        If LoadFabricApi Is Nothing OrElse LoadFabricApi.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadFabricApi.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadFabricApi.State, Object).Error.Message
-        If SelectedAPIName IsNot Nothing AndAlso SelectedAPIName IsNot "Fabric API" Then Return $"与 {SelectedAPIName} 不兼容"
-        If DlFabricApiLoader.Output Is Nothing Then
-            If SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then Return "需要安装 Fabric / Quilt"
-            Return "加载中……"
+        '检查 Loader
+        If GetLoaderError(LoadFabricApi) IsNot Nothing Then Return GetLoaderError(LoadFabricApi)
+        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing, "需要安装 Fabric", "获取中……")
+        '检查版本
+        If DlFabricApiLoader.Output.Any(Function(f) IsFabricApiCompatible(f)) Then
+            Return If(SelectedFabric Is Nothing, "需要安装 Fabric", Nothing)
+        Else
+            Return "无可用版本"
         End If
-        For Each Version In DlFabricApiLoader.Output
-            If Not IsSuitableFabricApi(Version.DisplayName, SelectedMinecraftId) Then Continue For
-            If SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing Then Return "需要安装 Fabric / Quilt"
-            Return Nothing
-        Next
-        Return "不可用"
     End Function
 
     '限制展开
@@ -1550,24 +1333,24 @@ Public Class PageDownloadInstall
     Private Sub FabricApi_Loaded() Handles LoadFabricApi.StateChanged
         Try
             If DlFabricApiLoader.State <> LoadState.Finished Then Exit Sub
-            If SelectedMinecraftId Is Nothing OrElse (SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing) Then Exit Sub
+            If _vanillaName Is Nothing OrElse (SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing) Then Exit Sub
             '获取版本列表
-            Dim Versions As New List(Of CompFile)
-            For Each Version In DlFabricApiLoader.Output
-                If IsSuitableFabricApi(Version.DisplayName, SelectedMinecraftId) Then
-                    If Not Version.DisplayName.StartsWith("[") Then
-                        Log("[Download] 已特判修改 Fabric API 显示名：" & Version.DisplayName, LogLevel.Debug)
-                        Version.DisplayName = "[" & SelectedMinecraftId & "] " & Version.DisplayName
+            Dim versions As New List(Of CompFile)
+            For Each version In DlFabricApiLoader.Output
+                If IsFabricApiCompatible(version) Then
+                    If Not version.DisplayName.StartsWith("[") Then
+                        Log("[Download] 已特判修改 Fabric API 显示名：" & version.DisplayName, LogLevel.Debug)
+                        version.DisplayName = "[" & _vanillaName & "] " & version.DisplayName
                     End If
-                    Versions.Add(Version)
+                    versions.Add(version)
                 End If
             Next
-            If Not Versions.Any() Then Return
-            Versions = Versions.OrderByDescending(Function(v) v.ReleaseDate).ToList
+            If Not versions.Any() Then Return
+            versions = versions.OrderByDescending(Function(v) v.ReleaseDate).ToList
             '可视化
             PanFabricApi.Children.Clear()
-            For Each Version In Versions
-                If Not IsSuitableFabricApi(Version.DisplayName, SelectedMinecraftId) Then Continue For
+            For Each version In versions
+                If Not IsFabricApiCompatible(version) Then Continue For
                 PanFabricApi.Children.Add(FabricApiDownloadListItem(Version, AddressOf FabricApi_Selected))
             Next
             '自动选择 Fabric API
@@ -1586,14 +1369,14 @@ Public Class PageDownloadInstall
         SelectedFabricApi = sender.Tag
         SelectedAPIName = "Fabric API"
         CardFabricApi.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub FabricApi_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnFabricApiClear.MouseLeftButtonUp
         SelectedFabricApi = Nothing
         SelectedAPIName = Nothing
         CardFabricApi.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1607,13 +1390,13 @@ Public Class PageDownloadInstall
         If LoadLegacyFabric Is Nothing OrElse LoadLegacyFabric.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
         If LoadLegacyFabric.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadLegacyFabric.State, Object).Error.Message
         For Each Version As JObject In DlLegacyFabricListLoader.Output.Value("game")
-            If Version("version").ToString = SelectedMinecraftId Then
+            If Version("version").ToString = _vanillaName Then
                 If SelectedLiteLoader IsNot Nothing Then Return "与 LiteLoader 不兼容"
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LegacyFabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing
             End If
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1636,7 +1419,7 @@ Public Class PageDownloadInstall
             CardLegacyFabric.SwapControl = PanLegacyFabric
             CardLegacyFabric.InstallMethod = Sub(Stack As StackPanel)
                                                  For Each item In Stack.Tag
-                                                     Stack.Children.Add(LegacyFabricDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.LegacyFabric_Selected))
+                                                     Stack.Children.Add(LegacyFabricDownloadListItem(CType(item, JObject), AddressOf LegacyFabric_Selected))
                                                  Next
                                              End Sub
         Catch ex As Exception
@@ -1650,7 +1433,7 @@ Public Class PageDownloadInstall
         SelectedLoaderName = "LegacyFabric"
         LegacyFabricApi_Loaded()
         CardLegacyFabric.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub LegacyFabric_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnLegacyFabricClear.MouseLeftButtonUp
         SelectedLegacyFabric = Nothing
@@ -1660,7 +1443,7 @@ Public Class PageDownloadInstall
         SelectedAPIName = Nothing
         CardLegacyFabric.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1695,11 +1478,11 @@ Public Class PageDownloadInstall
             Return "加载中……"
         End If
         For Each Version In DlLegacyFabricApiLoader.Output
-            If Not IsSuitableLegacyFabricApi(Version.GameVersions, SelectedMinecraftId) Then Continue For
+            If Not IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName) Then Continue For
             If SelectedLegacyFabric Is Nothing Then Return "需要安装 LegacyFabric"
             Return Nothing
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1714,11 +1497,11 @@ Public Class PageDownloadInstall
     Private Sub LegacyFabricApi_Loaded() Handles LoadLegacyFabricApi.StateChanged
         Try
             If DlLegacyFabricApiLoader.State <> LoadState.Finished Then Exit Sub
-            If SelectedMinecraftId Is Nothing OrElse (SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing) Then Exit Sub
+            If _vanillaName Is Nothing OrElse (SelectedLegacyFabric Is Nothing AndAlso SelectedQuilt Is Nothing) Then Exit Sub
             '获取版本列表
             Dim Versions As New List(Of CompFile)
             For Each Version In DlLegacyFabricApiLoader.Output
-                If IsSuitableLegacyFabricApi(Version.GameVersions, SelectedMinecraftId) Then
+                If IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName) Then
                     Versions.Add(Version)
                 End If
             Next
@@ -1727,7 +1510,7 @@ Public Class PageDownloadInstall
             '可视化
             PanLegacyFabricApi.Children.Clear()
             For Each Version In Versions
-                If Not IsSuitableLegacyFabricApi(Version.GameVersions, SelectedMinecraftId) Then Continue For
+                If Not IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName) Then Continue For
                 PanLegacyFabricApi.Children.Add(LegacyFabricApiDownloadListItem(Version, AddressOf LegacyFabricApi_Selected))
             Next
             '自动选择 Legacy Fabric API
@@ -1746,14 +1529,14 @@ Public Class PageDownloadInstall
         SelectedLegacyFabricApi = sender.Tag
         SelectedAPIName = "Legacy Fabric API"
         CardLegacyFabricApi.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub LegacyFabricApi_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnLegacyFabricApiClear.MouseLeftButtonUp
         SelectedLegacyFabricApi = Nothing
         SelectedAPIName = Nothing
         CardLegacyFabricApi.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1764,16 +1547,18 @@ Public Class PageDownloadInstall
     ''' 获取 Quilt 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadQuiltGetError() As String
-        If LoadQuilt Is Nothing OrElse LoadQuilt.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadQuilt.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadQuilt.State, Object).Error.Message
-        For Each Version As JObject In DlQuiltListLoader.Output.Value("game")
-            If Version("version").ToString = SelectedMinecraftId.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
-                If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
-                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Quilt" Then Return $"与 {SelectedLoaderName} 不兼容"
+        If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Quilt" Then Return $"与 {SelectedLoaderName} 不兼容"
+        '检查 Loader
+        If GetLoaderError(LoadQuilt) IsNot Nothing Then Return GetLoaderError(LoadQuilt)
+        '检查版本
+        For Each version As JObject In DlFabricListLoader.Output.Value("game")
+            If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
+                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing
             End If
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1796,7 +1581,7 @@ Public Class PageDownloadInstall
             CardQuilt.SwapControl = PanQuilt
             CardQuilt.InstallMethod = Sub(Stack As StackPanel)
                                           For Each item In Stack.Tag
-                                              Stack.Children.Add(QuiltDownloadListItem(CType(item, JObject), AddressOf FrmDownloadInstall.Quilt_Selected))
+                                              Stack.Children.Add(QuiltDownloadListItem(CType(item, JObject), AddressOf Quilt_Selected))
                                           Next
                                       End Sub
         Catch ex As Exception
@@ -1811,7 +1596,7 @@ Public Class PageDownloadInstall
         FabricApi_Loaded()
         QSL_Loaded()
         CardQuilt.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub Quilt_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnQuiltClear.MouseLeftButtonUp
         SelectedQuilt = Nothing
@@ -1821,7 +1606,7 @@ Public Class PageDownloadInstall
         SelectedAPIName = Nothing
         CardQuilt.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1856,7 +1641,7 @@ Public Class PageDownloadInstall
             Return "正在获取版本列表……"
         End If
         For Each Version In DlQSLLoader.Output
-            If Not IsSuitableQSL(Version.GameVersions, SelectedMinecraftId) Then Continue For
+            If Not IsSuitableQSL(Version.GameVersions, _vanillaName) Then Continue For
             If SelectedQuilt Is Nothing Then Return "需要安装 Quilt"
             Return Nothing
         Next
@@ -1875,14 +1660,14 @@ Public Class PageDownloadInstall
     Private Sub QSL_Loaded() Handles LoadQSL.StateChanged
         Try
             If DlQSLLoader.State <> LoadState.Finished Then Exit Sub
-            If SelectedMinecraftId Is Nothing OrElse SelectedQuilt Is Nothing Then Exit Sub
+            If _vanillaName Is Nothing OrElse SelectedQuilt Is Nothing Then Exit Sub
             '获取版本列表
             Dim Versions As New List(Of CompFile)
             For Each Version In DlQSLLoader.Output
-                If IsSuitableQSL(Version.GameVersions, SelectedMinecraftId) Then
+                If IsSuitableQSL(Version.GameVersions, _vanillaName) Then
                     If Not Version.DisplayName.StartsWith("[") Then
                         Log("[Download] 已特判修改 QSL 显示名：" & Version.DisplayName, LogLevel.Debug)
-                        Version.DisplayName = "[" & SelectedMinecraftId & "] " & Version.DisplayName
+                        Version.DisplayName = "[" & _vanillaName & "] " & Version.DisplayName
                     End If
                     Versions.Add(Version)
                 End If
@@ -1892,7 +1677,7 @@ Public Class PageDownloadInstall
             '可视化
             PanQSL.Children.Clear()
             For Each Version In Versions
-                If Not IsSuitableQSL(Version.GameVersions, SelectedMinecraftId) Then Continue For
+                If Not IsSuitableQSL(Version.GameVersions, _vanillaName) Then Continue For
                 PanQSL.Children.Add(QSLDownloadListItem(Version, AddressOf QSL_Selected))
             Next
             '自动选择 QSL
@@ -1911,14 +1696,14 @@ Public Class PageDownloadInstall
         SelectedQSL = sender.Tag
         SelectedAPIName = "QFAPI / QSL"
         CardQSL.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub QSL_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnQSLClear.MouseLeftButtonUp
         SelectedQSL = Nothing
         SelectedAPIName = Nothing
         CardQSL.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -1926,14 +1711,14 @@ Public Class PageDownloadInstall
 #Region "OptiFabric 列表"
 
     ''' <summary>
-    ''' 从显示名判断该 Mod 是否与某版本适配。
+    ''' 判断某 OptiFabric 是否适配当前选择的原版版本。
     ''' </summary>
-    Private Function IsSuitableOptiFabric(ModFile As CompFile, MinecraftVersion As String) As Boolean
+    Private Function IsOptiFabricCompatible(modFile As CompFile) As Boolean
         Try
-            If MinecraftVersion Is Nothing Then Return False
-            Return ModFile.GameVersions.Contains(MinecraftVersion)
+            If _vanillaName Is Nothing Then Return False
+            Return modFile.GameVersions.Contains(_vanillaName)
         Catch ex As Exception
-            Log(ex, "判断 OptiFabric 版本适配性出错（" & MinecraftVersion & "）")
+            Log(ex, "判断 OptiFabric 版本适配性出错（" & _vanillaName & "）")
             Return False
         End Try
     End Function
@@ -1943,23 +1728,24 @@ Public Class PageDownloadInstall
     ''' 获取 OptiFabric 的加载异常信息。若正常则返回 Nothing。
     ''' </summary>
     Private Function LoadOptiFabricGetError() As String
-        If SelectedMinecraftId.StartsWith("1.14") OrElse SelectedMinecraftId.StartsWith("1.15") Then Return "不兼容老版本 Fabric，请手动下载 OptiFabric Origins"
-        If LoadOptiFabric Is Nothing OrElse LoadOptiFabric.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
-        If LoadOptiFabric.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadOptiFabric.State, Object).Error.Message
+        If VanillaDrop >= 140 AndAlso VanillaDrop <= 150 Then Return "不兼容老版本 Fabric，请手动下载 OptiFabric Origins"
+        '检查 Loader
+        If GetLoaderError(LoadOptiFabric) IsNot Nothing Then Return GetLoaderError(LoadOptiFabric)
+        '检查版本
         If DlOptiFabricLoader.Output Is Nothing Then
             If SelectedFabric Is Nothing AndAlso SelectedOptiFine Is Nothing Then Return "需要安装 OptiFine 与 Fabric"
             If SelectedFabric Is Nothing Then Return "需要安装 Fabric"
             If SelectedOptiFine Is Nothing Then Return "需要安装 OptiFine"
-            Return "加载中……"
+            Return "获取中……"
         End If
-        For Each Version In DlOptiFabricLoader.Output
-            If Not IsSuitableOptiFabric(Version, SelectedMinecraftId) Then Continue For '2135#
+        For Each version In DlOptiFabricLoader.Output
+            If Not IsOptiFabricCompatible(version) Then Continue For '2135#
             If SelectedFabric Is Nothing AndAlso SelectedOptiFine Is Nothing Then Return "需要安装 OptiFine 与 Fabric"
             If SelectedFabric Is Nothing Then Return "需要安装 Fabric"
             If SelectedOptiFine Is Nothing Then Return "需要安装 OptiFine"
             Return Nothing '通过检查
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -1973,28 +1759,26 @@ Public Class PageDownloadInstall
     Private Sub OptiFabric_Loaded() Handles LoadOptiFabric.StateChanged
         Try
             If DlOptiFabricLoader.State <> LoadState.Finished Then Return
-            If SelectedMinecraftId Is Nothing OrElse SelectedFabric Is Nothing OrElse SelectedOptiFine Is Nothing Then Return
+            If _vanillaName Is Nothing OrElse SelectedFabric Is Nothing OrElse SelectedOptiFine Is Nothing Then Return
             '获取版本列表
-            Dim Versions As New List(Of CompFile)
+            Dim versions As New List(Of CompFile)
             For Each Version In DlOptiFabricLoader.Output
-                If IsSuitableOptiFabric(Version, SelectedMinecraftId) Then Versions.Add(Version)
+                If IsOptiFabricCompatible(Version) Then versions.Add(Version)
             Next
-            If Not Versions.Any() Then Return
+            If Not versions.Any() Then Return
             '排序
-            Versions = Versions.OrderByDescending(Function(v) v.ReleaseDate).ToList
+            versions = versions.OrderByDescending(Function(v) v.ReleaseDate).ToList
             '可视化
             PanOptiFabric.Children.Clear()
-            For Each Version In Versions
-                If Not IsSuitableOptiFabric(Version, SelectedMinecraftId) Then Continue For
+            For Each Version In versions
+                If Not IsOptiFabricCompatible(Version) Then Continue For
                 PanOptiFabric.Children.Add(OptiFabricDownloadListItem(Version, AddressOf OptiFabric_Selected))
             Next
             '自动选择 OptiFabric
-            If Not AutoSelectedOptiFabric AndAlso
-                Not (SelectedMinecraftId.StartsWith("1.14") OrElse SelectedMinecraftId.StartsWith("1.15")) Then '1.14~15 不自动选择
-                AutoSelectedOptiFabric = True
-                Log($"[Download] 已自动选择 OptiFabric：{CType(PanOptiFabric.Children(0), MyListItem).Title}")
-                OptiFabric_Selected(PanOptiFabric.Children(0), Nothing)
-            End If
+            If AutoSelectedOptiFabric OrElse VanillaDrop >= 140 AndAlso VanillaDrop <= 150 Then Return '1.14~15 不自动选择
+            AutoSelectedOptiFabric = True
+            Log($"[Download] 已自动选择 OptiFabric：{CType(PanOptiFabric.Children(0), MyListItem).Title}")
+            OptiFabric_Selected(PanOptiFabric.Children(0), Nothing)
         Catch ex As Exception
             Log(ex, "可视化 OptiFabric 安装版本列表出错", LogLevel.Feedback)
         End Try
@@ -2004,13 +1788,13 @@ Public Class PageDownloadInstall
     Private Sub OptiFabric_Selected(sender As MyListItem, e As EventArgs)
         SelectedOptiFabric = sender.Tag
         CardOptiFabric.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub OptiFabric_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnOptiFabricClear.MouseLeftButtonUp
         SelectedOptiFabric = Nothing
         CardOptiFabric.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 
 #End Region
@@ -2023,21 +1807,17 @@ Public Class PageDownloadInstall
     Private Function LoadLabyModGetError() As String
         If LoadLabyMod Is Nothing OrElse LoadLabyMod.State.LoadingState = MyLoading.MyLoadingState.Run Then Return "加载中……"
         If LoadLabyMod.State.LoadingState = MyLoading.MyLoadingState.Error Then Return "获取版本列表失败：" & CType(LoadLabyMod.State, Object).Error.Message
+        '检查 Loader
+        If GetLoaderError(LoadLabyMod) IsNot Nothing Then Return GetLoaderError(LoadLabyMod)
+        If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
         For Each Version As JObject In DlLabyModListLoader.Output.Value("production")("minecraftVersions")
-            If Version("version").ToString = SelectedMinecraftId Then
-                If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
-                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
-                Return Nothing
-            End If
+            If Version("version").ToString = _vanillaName Then Return Nothing
         Next
         For Each Version As JObject In DlLabyModListLoader.Output.Value("snapshot")("minecraftVersions")
-            If Version("version").ToString = SelectedMinecraftId Then
-                If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
-                If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "LabyMod" Then Return $"与 {SelectedLoaderName} 不兼容"
-                Return Nothing
-            End If
+            If Version("version").ToString = _vanillaName Then Return Nothing
         Next
-        Return "不可用"
+        Return "无可用版本"
     End Function
 
     '限制展开
@@ -2057,7 +1837,7 @@ Public Class PageDownloadInstall
             '可视化
             Dim ProcessedVersions As New JArray
             For Each Production As JObject In Versions("production")("minecraftVersions")
-                If Production("version").ToString = SelectedMinecraftId Then
+                If Production("version").ToString = _vanillaName Then
                     Dim ProductionVersion As New JObject
                     ProductionVersion.Add("version", Versions("production")("labyModVersion"))
                     ProductionVersion.Add("channel", "production")
@@ -2066,7 +1846,7 @@ Public Class PageDownloadInstall
                 End If
             Next
             For Each Snapshot As JObject In Versions("snapshot")("minecraftVersions")
-                If Snapshot("version").ToString = SelectedMinecraftId Then
+                If Snapshot("version").ToString = _vanillaName Then
                     Dim SnapshotVersion As New JObject
                     SnapshotVersion.Add("version", Versions("production")("labyModVersion"))
                     SnapshotVersion.Add("channel", "snapshot")
@@ -2080,7 +1860,7 @@ Public Class PageDownloadInstall
             CardLabyMod.SwapControl = PanLabyMod
             CardLabyMod.InstallMethod = Sub(Stack As StackPanel)
                                             For Each item As JObject In Stack.Tag
-                                                Stack.Children.Add(LabyModDownloadListItem(item, AddressOf FrmDownloadInstall.LabyMod_Selected))
+                                                Stack.Children.Add(LabyModDownloadListItem(item, AddressOf LabyMod_Selected))
                                             Next
                                         End Sub
         Catch ex As Exception
@@ -2095,7 +1875,7 @@ Public Class PageDownloadInstall
         SelectedLabyModVersion = sender.Tag("version").ToString & If(SelectedLabyModChannel = "snapshot", " 快照版", " 稳定版")
         SelectedLoaderName = "LabyMod"
         CardLabyMod.IsSwapped = True
-        SelectReload()
+        ReloadSelected()
     End Sub
     Private Sub LabyMod_Clear(sender As Object, e As MouseButtonEventArgs) Handles BtnLabyModClear.MouseLeftButtonUp
         SelectedLabyModCommitRef = Nothing
@@ -2105,7 +1885,7 @@ Public Class PageDownloadInstall
         SelectedAPIName = Nothing
         CardLabyMod.IsSwapped = True
         e.Handled = True
-        SelectReload()
+        ReloadSelected()
     End Sub
 #End Region
 
@@ -2125,12 +1905,12 @@ Public Class PageDownloadInstall
             End If
         End If
         '提交安装申请
-        Dim VersionName As String = TextSelectName.Text
-        Dim Request As New McInstallRequest With {
-            .TargetInstanceName = VersionName,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{VersionName}\",
-            .MinecraftJson = SelectedMinecraftJsonUrl,
-            .MinecraftName = SelectedMinecraftId,
+        Dim instanceName As String = TextSelectName.Text
+        Dim request As New McInstallRequest With {
+            .TargetInstanceName = instanceName,
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{instanceName}\",
+            .MinecraftJson = _vanillaData("url").ToString(),
+            .MinecraftName = _vanillaName,
             .OptiFineEntry = SelectedOptiFine,
             .ForgeEntry = SelectedForge,
             .NeoForgeEntry = SelectedNeoForge,
@@ -2146,11 +1926,27 @@ Public Class PageDownloadInstall
             .LegacyFabricVersion = SelectedLegacyFabric,
             .LegacyFabricApi = SelectedLegacyFabricApi
         }
-        If Not McInstall(Request) Then Return
+        If Not McInstall(request) Then Return
         '返回，这样在再次进入安装页面时这个实例就会显示文件夹已重复
         ExitSelectPage()
     End Sub
 
 #End Region
 
+    Private Function GetLoaderError(loader As MyLoading) As String
+        If loader Is Nothing Then Return "获取中……"
+        If Not loader.State.IsLoader Then Return "获取中……"
+        Select Case loader.State.LoadingState
+            Case MyLoading.MyLoadingState.Run
+                Return "获取中……"
+            Case MyLoading.MyLoadingState.Error
+                Dim message As String = CType(loader.State, LoaderBase).Error.Message
+                Return If(message = "无可用版本", "无可用版本", "获取失败：" & message)
+            Case MyLoading.MyLoadingState.Unloaded
+                Return "未知错误，状态为 Unloaded"
+            Case Else
+                Return Nothing
+        End Select
+    End Function
+    
 End Class

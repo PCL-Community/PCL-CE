@@ -39,7 +39,7 @@ Public Class PageSelectLeft
                 '添加控件
                 Dim ContMenu As ContextMenu = Nothing
                 Select Case Folder.Type
-                    Case McFolderType.Original
+                    Case McFolder.Types.Original
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
@@ -50,7 +50,7 @@ Public Class PageSelectLeft
                                     <local:MyMenuItem x:Name="Delete" Header="删除" Padding="0,0,0,2" Icon="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
                                 </ContextMenu>
                         )
-                    Case McFolderType.RenamedOriginal
+                    Case McFolder.Types.RenamedOriginal
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Restore" Header="复原名称" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
@@ -62,7 +62,7 @@ Public Class PageSelectLeft
                                     <local:MyMenuItem x:Name="Delete" Header="删除" Padding="0,0,0,2" Icon="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
                                 </ContextMenu>
                         )
-                    Case McFolderType.Custom
+                    Case McFolder.Types.Custom
                         ContMenu = GetObjectFromXML(
                                 <ContextMenu xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PCL;assembly=Plain Craft Launcher 2">
                                     <local:MyMenuItem x:Name="Rename" Header="重命名" Padding="0,2,0,0" Icon="F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z"/>
@@ -90,10 +90,10 @@ Public Class PageSelectLeft
                     moveDownItem.Visibility = Visibility.Collapsed
                 End If
                 
-                If (Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
+                If (Folder.Type = McFolder.Types.Original OrElse Folder.Type = McFolder.Types.RenamedOriginal) AndAlso Folder.Location = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1 Then CType(ContMenu.FindName("Delete"), MyMenuItem).Header = "清空"
                 '注册事件
-                If Folder.Type = McFolderType.Custom Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
-                If Folder.Type = McFolderType.RenamedOriginal Then CType(ContMenu.FindName("Restore"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Restore_Click))
+                If Folder.Type = McFolder.Types.Custom Then CType(ContMenu.FindName("Remove"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Remove_Click))
+                If Folder.Type = McFolder.Types.RenamedOriginal Then CType(ContMenu.FindName("Restore"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Restore_Click))
                 moveUpItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveUp_Click))
                 moveDownItem.AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.MoveDown_Click))
                 CType(ContMenu.FindName("Open"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Open_Click))
@@ -102,7 +102,7 @@ Public Class PageSelectLeft
                 CType(ContMenu.FindName("Refresh"), MyMenuItem).AddHandler(MyMenuItem.ClickEvent, New RoutedEventHandler(AddressOf FrmSelectLeft.Refresh_Click))
 
                 ' 构建框架与图表按钮
-                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Folder.Name, .Info = Folder.Path, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
+                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Folder.Name, .Info = Folder.Location, .Height = 40, .ContextMenu = ContMenu, .Tag = Folder}
                 AddHandler NewItem.Changed, AddressOf FrmSelectLeft.Folder_Change
                 
                 ' 启用拖拽功能
@@ -120,7 +120,7 @@ Public Class PageSelectLeft
                                                 End Sub
                 NewItem.Buttons = {NewIconButton}
                 FrmSelectLeft.PanList.Children.Add(NewItem)
-                Log("[Minecraft] 有效的 Minecraft 文件夹：" & Folder.Name & " > " & Folder.Path)
+                Log("[Minecraft] 有效的 Minecraft 文件夹：" & Folder.Name & " > " & Folder.Location)
             Next
 
             '标题文本
@@ -164,7 +164,7 @@ Public Class PageSelectLeft
 
             '确认勾选状态
             For i = 0 To McFolderList.Count - 1
-                If McFolderList(i).Path = PathMcFolder Then
+                If McFolderList(i).Location = McFolderSelected Then
                     CType(FrmSelectLeft.PanList.Children(i + 1), MyListItem).Checked = True '去掉第一个标题
                     Return
                 End If
@@ -172,14 +172,14 @@ Public Class PageSelectLeft
             If Not McFolderList.Any() Then
                 Throw New ArgumentNullException("没有可用的 Minecraft 文件夹")
             Else
-                Setup.Set("LaunchFolderSelect", McFolderList(0).Path.Replace(ExePath, "$"))
+                Setup.Set("LaunchFolderSelect", McFolderList(0).Location.Replace(ExePath, "$"))
                 CType(FrmSelectLeft.PanList.Children(1), MyListItem).Checked = True
             End If
 
         Catch ex As Exception
             Log(ex, "构建 Minecraft 文件夹列表 UI 出错", LogLevel.Feedback)
         Finally
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
         End Try
     End Sub
     Private McFolderListLast As List(Of McFolder)
@@ -207,7 +207,7 @@ Public Class PageSelectLeft
     Private Sub UpdateFolderOrder()
         Dim folders As New List(Of String)
         For Each folder As McFolder In McFolderList
-            folders.Add(folder.Name & ">" & folder.Path)
+            folders.Add(folder.Name & ">" & folder.Location)
         Next
         Setup.Set("LaunchFolders", Join(folders.ToArray, "|"))
         McFolderListUi()
@@ -216,7 +216,7 @@ Public Class PageSelectLeft
     Private Sub Restore_Click(sender As Object, e As RoutedEventArgs)
         Dim folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
         Dim index = McFolderList.IndexOf(folder)
-        McFolderList(index).Type = McFolderType.Original
+        McFolderList(index).Type = McFolder.Types.Original
         McFolderList(index).Name = "官方启动器文件夹"
         UpdateFolderOrder()
     End Sub
@@ -316,7 +316,7 @@ Public Class PageSelectLeft
                     Version.Load()
                     If Not Version.Modable Then Continue For
                     '4. 该实例的隔离文件夹下不存在 mods
-                    Dim ModIndieFolder As New DirectoryInfo(Version.Path & "mods\")
+                    Dim ModIndieFolder As New DirectoryInfo(Version.PathInstance & "mods\")
                     If ModIndieFolder.Exists AndAlso ModIndieFolder.EnumerateFiles.Any Then Return
                     '满足以上全部条件则视为根目录整合包
                     Setup.Set("VersionArgumentIndie", 2, instance:=Version)
@@ -354,9 +354,9 @@ Public Class PageSelectLeft
             Select Case MyMsgBox("是否需要清理 PCL 在该文件夹中的配置文件？" & vbCrLf & "这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。", "配置文件清理", "删除", "保留", "取消")
                 Case 1
                     '删除配置文件
-                    If File.Exists(Folder.Path & "PCL.ini") Then File.Delete(Folder.Path & "PCL.ini")
-                    If Directory.Exists(Folder.Path & "versions\") Then
-                        For Each Version In New DirectoryInfo(Folder.Path & "versions\").EnumerateDirectories
+                    If File.Exists(Folder.Location & "PCL.ini") Then File.Delete(Folder.Location & "PCL.ini")
+                    If Directory.Exists(Folder.Location & "versions\") Then
+                        For Each Version In New DirectoryInfo(Folder.Location & "versions\").EnumerateDirectories
                             If Directory.Exists(Version.FullName & "\PCL\") Then Directory.Delete(Version.FullName & "\PCL\", True)
                         Next
                     End If
@@ -372,7 +372,7 @@ Public Class PageSelectLeft
             Dim Name As String = ""
             For i = 0 To Folders.Count - 1
                 If Folders(i) = "" Then Exit For
-                If Folders(i).ToString.EndsWith(Folder.Path) Then
+                If Folders(i).ToString.EndsWith(Folder.Location) Then
                     Name = Folders(i).ToString.BeforeFirst(">")
                     Folders.RemoveAt(i)
                     Exit For
@@ -380,7 +380,7 @@ Public Class PageSelectLeft
             Next
             '保存
             Setup.Set("LaunchFolders", If(Not Folders.Any(), "", Join(Folders.ToArray, "|")))
-            Hint(If(Folder.Type = McFolderType.Custom, "文件夹 " & Name & " 已从列表中移除！", "文件夹名称已复原！"), HintType.Finish)
+            Hint(If(Folder.Type = McFolder.Types.Custom, "文件夹 " & Name & " 已从列表中移除！", "文件夹名称已复原！"), HintType.Finish)
             McFolderListLoader.Start(IsForceRestart:=True)
 
         Catch ex As Exception
@@ -389,13 +389,13 @@ Public Class PageSelectLeft
     End Sub
     Public Sub Delete_Click(sender As Object, e As RoutedEventArgs)
         Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-        Dim DeleteText As String = If((Folder.Type = McFolderType.Original OrElse Folder.Type = McFolderType.RenamedOriginal) AndAlso Folder.Path = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1, "清空", "删除")
-        If MyMsgBox("你确定要" & DeleteText & "这个文件夹吗？" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！", "删除警告", "取消", "确认", "取消") <> 2 Then Return
-        If MyMsgBox("如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！" & vbCrLf & "继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！" & vbCrLf & "目标文件夹：" & Folder.Path & vbCrLf & vbCrLf & "这是最后一次警告！", "删除警告", "确认" & DeleteText, "取消", IsWarn:=True) <> 1 Then Return
+        Dim DeleteText As String = If((Folder.Type = McFolder.Types.Original OrElse Folder.Type = McFolder.Types.RenamedOriginal) AndAlso Folder.Location = ExePath & ".minecraft\" AndAlso McFolderList.Count = 1, "清空", "删除")
+        If MyMsgBox("你确定要" & DeleteText & "这个文件夹吗？" & vbCrLf & "目标文件夹：" & Folder.Location & vbCrLf & vbCrLf & "这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！", "删除警告", "取消", "确认", "取消") <> 2 Then Return
+        If MyMsgBox("如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！" & vbCrLf & "继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！" & vbCrLf & "目标文件夹：" & Folder.Location & vbCrLf & vbCrLf & "这是最后一次警告！", "删除警告", "确认" & DeleteText, "取消", IsWarn:=True) <> 1 Then Return
         '移出列表
         Dim Folders As New List(Of String)(Setup.Get("LaunchFolders").ToString.Split("|"))
         For i = Folders.Count - 1 To 0 Step -1
-            If Folders(i) <> "" AndAlso Folders(i).ToString.EndsWith(Folder.Path) Then
+            If Folders(i) <> "" AndAlso Folders(i).ToString.EndsWith(Folder.Location) Then
                 Folders.RemoveAt(i)
                 Exit For
             End If
@@ -406,8 +406,8 @@ Public Class PageSelectLeft
             '删除文件夹
             Try
                 Hint("正在" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Info)
-                DeleteDirectory(Folder.Path)
-                If DeleteText = "清空" Then Directory.CreateDirectory(Folder.Path)
+                DeleteDirectory(Folder.Location)
+                If DeleteText = "清空" Then Directory.CreateDirectory(Folder.Location)
                 Hint("已" & DeleteText & "文件夹 " & Folder.Name & "！", HintType.Finish)
             Catch ex As Exception
                 Log(ex, DeleteText & "文件夹 " & Folder.Name & " 失败", LogLevel.Hint)
@@ -422,14 +422,14 @@ Public Class PageSelectLeft
     End Sub
     Public Sub Refresh_Click(sender As Object, e As RoutedEventArgs)
         Dim Data As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
-        RefreshCurrent(Data.Path)
+        RefreshCurrent(Data.Location)
     End Sub
     Public Sub RefreshCurrent() Implements IRefreshable.Refresh
-        RefreshCurrent(PathMcFolder)
+        RefreshCurrent(McFolderSelected)
     End Sub
     Public Shared Sub RefreshCurrent(Folder As String)
         WriteIni(Folder & "PCL.ini", "InstanceCache", "") '删除缓存以强制要求下一次加载时更新列表
-        If Folder = PathMcFolder Then LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+        If Folder = McFolderSelected Then LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
     Public Sub Rename_Click(sender As Object, e As RoutedEventArgs)
         Dim Folder As McFolder = CType(CType(CType(sender.Parent, ContextMenu).Parent, Primitives.Popup).PlacementTarget, MyListItem).Tag
@@ -445,19 +445,19 @@ Public Class PageSelectLeft
             For i = 0 To Folders.Count - 1
                 Dim FolderCurrent As String = Folders(i)
                 If FolderCurrent = "" Then Continue For
-                If FolderCurrent.Split(">")(1) = Folder.Path Then
+                If FolderCurrent.Split(">")(1) = Folder.Location Then
                     IsAdded = True
                     If FolderCurrent.Split(">")(0) = NewName Then
                         '名称未修改
                         Return
                     Else
-                        Folders(i) = NewName & ">" & Folder.Path
+                        Folders(i) = NewName & ">" & Folder.Location
                     End If
                     Exit For
                 End If
             Next
             '如果没有添加过，则添加进去（因为修改了默认项的名称）
-            If Not IsAdded Then Folders.Add(NewName & ">" & Folder.Path)
+            If Not IsAdded Then Folders.Add(NewName & ">" & Folder.Location)
             Hint("文件夹名称已更新为 " & NewName & " ！", HintType.Finish)
             '保存
             Setup.Set("LaunchFolders", Join(Folders.ToArray, "|"))
@@ -477,9 +477,9 @@ Public Class PageSelectLeft
             Return
         End If
         '更换
-        Setup.Set("LaunchFolderSelect", CType(sender.Tag, McFolder).Path.Replace(ExePath, "$"))
+        Setup.Set("LaunchFolderSelect", CType(sender.Tag, McFolder).Location.Replace(ExePath, "$"))
         McFolderListLoader.Start(IsForceRestart:=True)
-        LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
+        LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\") '刷新实例列表
     End Sub
 
 #Region "拖拽排序功能"

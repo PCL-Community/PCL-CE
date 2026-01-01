@@ -9,7 +9,7 @@ Public Class PageSetupLaunch
         '重复加载部分
         PanBack.ScrollToHome()
         RefreshRam(False)
-        If McInstanceCurrent Is Nothing Then
+        If McInstanceSelected Is Nothing Then
             BtnSwitch.Visibility = Visibility.Collapsed
         Else
             BtnSwitch.Visibility = Visibility.Visible
@@ -141,7 +141,7 @@ Public Class PageSetupLaunch
     Public Sub RefreshRam(ShowAnim As Boolean)
         If LabRamGame Is Nothing OrElse LabRamUsed Is Nothing OrElse FrmMain.PageCurrent <> FormMain.PageType.Setup OrElse FrmSetupLeft.PageID <> FormMain.PageSubType.SetupLaunch Then Return
         '获取内存情况
-        Dim RamGame As Double = Math.Round(GetRam(McInstanceCurrent, False), 5)
+        Dim RamGame As Double = Math.Round(GetRam(McInstanceSelected, False), 5)
         Dim phyRam = KernelInterop.GetPhysicalMemoryBytes()
         Dim RamTotal As Double = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1)
         Dim RamAvailable As Double = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1)
@@ -434,8 +434,8 @@ PreFin:
 
     '切换到实例独立设置
     Private Sub BtnSwitch_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnSwitch.Click
-        McInstanceCurrent.Load()
-        PageInstanceLeft.Instance = McInstanceCurrent
+        McInstanceSelected.Load()
+        PageInstanceLeft.Instance = McInstanceSelected
         FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup)
     End Sub
 

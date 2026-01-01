@@ -33,7 +33,7 @@ Public Class PageInstanceOverall
 
         Dim instance = PageInstanceLeft.Instance
         '刷新设置项目
-        ComboDisplayType.SelectedIndex = Config.Instance.CardType(instance.Path)
+        ComboDisplayType.SelectedIndex = Config.Instance.CardType(instance.PathInstance)
         BtnDisplayStar.Text = If(instance.IsStar, "从收藏夹中移除", "加入收藏夹")
         BtnFolderMods.Visibility = If(instance.Modable, Visibility.Visible, Visibility.Collapsed)
         '刷新实例显示
@@ -46,8 +46,8 @@ Public Class PageInstanceOverall
         GetInstanceInfo()
         '刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0
-        Dim Logo As String = Config.Instance.LogoPath(instance.Path)
-        Dim LogoCustom As Boolean = Config.Instance.IsLogoCustom(instance.Path)
+        Dim Logo As String = Config.Instance.LogoPath(instance.PathInstance)
+        Dim LogoCustom As Boolean = Config.Instance.IsLogoCustom(instance.PathInstance)
         If LogoCustom Then
             For Each Selection As MyComboBoxItem In ComboDisplayLogo.Items
                 If Selection.Tag = Logo OrElse (Selection.Tag = "PCL\Logo.png" AndAlso Logo.EndsWith("PCL\Logo.png")) Then
@@ -70,9 +70,9 @@ Public Class PageInstanceOverall
                 End Sub)
         Dim loaders As New List(Of LoaderBase)
         loaders.Add(New LoaderTask(Of Integer, Integer)("获取可能的整合包信息", Sub()
-                                                                          Dim modpackId = Config.Instance.ModpackId(PageInstanceLeft.Instance.Path)
+                                                                          Dim modpackId = Config.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)
                                                                           If Not String.IsNullOrWhiteSpace(modpackId) Then
-                                                                              Dim compProjects = CompRequest.GetCompProjectsByIds(New List(Of String) From {Config.Instance.ModpackId(PageInstanceLeft.Instance.Path)})
+                                                                              Dim compProjects = CompRequest.GetCompProjectsByIds(New List(Of String) From {Config.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)})
                                                                               If Not compProjects.Count = 0 Then RunInUi(Sub()
                                                                                                                              ModpackCompItem = compProjects.First().ToCompItem(False, False)
                                                                                                                              ModpackCompItem.Tag = compProjects.First()
@@ -84,23 +84,23 @@ Public Class PageInstanceOverall
                                                                                   Dim instance = PageInstanceLeft.Instance
                                                                                   Dim instanceInfo = instance.Version
                                                                                   Dim items As New List(Of MyListItem)
-                                                                                  Dim launchCount = Config.Instance.LaunchCount(instance.Path)
+                                                                                  Dim launchCount = Config.Instance.LaunchCount(instance.PathInstance)
                                                                                   If launchCount = 0 Then
                                                                                       items.Add(New MyListItem With {.Title = "启动次数", .Info = "从未启动", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOff.png"})
                                                                                   Else
-                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "已启动 " & Config.Instance.LaunchCount(instance.Path).ToString() & " 次", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"})
+                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "已启动 " & Config.Instance.LaunchCount(instance.PathInstance).ToString() & " 次", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"})
                                                                                   End If
-                                                                                  If Not String.IsNullOrWhiteSpace(Config.Instance.ModpackVersion(instance.Path)) Then items.Add(New MyListItem With {.Title = "整合包版本", .Info = Config.Instance.ModpackVersion(instance.Path), .Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"})
-                                                                                  items.Add(New MyListItem With {.Title = "Minecraft", .Info = instanceInfo.McName, .Logo = "pack://application:,,,/images/Blocks/Grass.png"})
-                                                                                  If instanceInfo.HasForge Then items.Add(New MyListItem With {.Title = "Forge", .Info = instanceInfo.ForgeVersion, .Logo = "pack://application:,,,/images/Blocks/Anvil.png"})
-                                                                                  If instanceInfo.HasNeoForge Then items.Add(New MyListItem With {.Title = "NeoForge", .Info = instanceInfo.NeoForgeVersion, .Logo = "pack://application:,,,/images/Blocks/NeoForge.png"})
-                                                                                  If instanceInfo.HasCleanroom Then items.Add(New MyListItem With {.Title = "Cleanroom", .Info = instanceInfo.CleanroomVersion, .Logo = "pack://application:,,,/images/Blocks/Cleanroom.png"})
-                                                                                  If instanceInfo.HasFabric Then items.Add(New MyListItem With {.Title = "Fabric", .Info = instanceInfo.FabricVersion, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
-                                                                                  If instanceInfo.HasQuilt Then items.Add(New MyListItem With {.Title = "Quilt", .Info = instanceInfo.QuiltVersion, .Logo = "pack://application:,,,/images/Blocks/Quilt.png"})
-                                                                                  If instanceInfo.HasOptiFine Then items.Add(New MyListItem With {.Title = "OptiFine", .Info = instanceInfo.OptiFineVersion, .Logo = "pack://application:,,,/images/Blocks/GrassPath.png"})
+                                                                                  If Not String.IsNullOrWhiteSpace(Config.Instance.ModpackVersion(instance.PathInstance)) Then items.Add(New MyListItem With {.Title = "整合包版本", .Info = Config.Instance.ModpackVersion(instance.PathInstance), .Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"})
+                                                                                  items.Add(New MyListItem With {.Title = "Minecraft", .Info = instanceInfo.VanillaName, .Logo = "pack://application:,,,/images/Blocks/Grass.png"})
+                                                                                  If instanceInfo.HasForge Then items.Add(New MyListItem With {.Title = "Forge", .Info = instanceInfo.Forge, .Logo = "pack://application:,,,/images/Blocks/Anvil.png"})
+                                                                                  If instanceInfo.HasNeoForge Then items.Add(New MyListItem With {.Title = "NeoForge", .Info = instanceInfo.NeoForge, .Logo = "pack://application:,,,/images/Blocks/NeoForge.png"})
+                                                                                  If instanceInfo.HasCleanroom Then items.Add(New MyListItem With {.Title = "Cleanroom", .Info = instanceInfo.Cleanroom, .Logo = "pack://application:,,,/images/Blocks/Cleanroom.png"})
+                                                                                  If instanceInfo.HasFabric Then items.Add(New MyListItem With {.Title = "Fabric", .Info = instanceInfo.Fabric, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
+                                                                                  If instanceInfo.HasQuilt Then items.Add(New MyListItem With {.Title = "Quilt", .Info = instanceInfo.Quilt, .Logo = "pack://application:,,,/images/Blocks/Quilt.png"})
+                                                                                  If instanceInfo.HasOptiFine Then items.Add(New MyListItem With {.Title = "OptiFine", .Info = instanceInfo.OptiFine, .Logo = "pack://application:,,,/images/Blocks/GrassPath.png"})
                                                                                   If instanceInfo.HasLiteLoader Then items.Add(New MyListItem With {.Title = "LiteLoader", .Info = "已安装", .Logo = "pack://application:,,,/images/Blocks/Egg.png"})
-                                                                                  If instanceInfo.HasLegacyFabric Then items.Add(New MyListItem With {.Title = "Legacy Fabric", .Info = instanceInfo.LegacyFabricVersion, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
-                                                                                  If instanceInfo.HasLabyMod Then items.Add(New MyListItem With {.Title = "LabyMod", .Info = instanceInfo.LabyModVersion, .Logo = "pack://application:,,,/images/Blocks/LabyMod.png"})
+                                                                                  If instanceInfo.HasLegacyFabric Then items.Add(New MyListItem With {.Title = "Legacy Fabric", .Info = instanceInfo.LegacyFabric, .Logo = "pack://application:,,,/images/Blocks/Fabric.png"})
+                                                                                  If instanceInfo.HasLabyMod Then items.Add(New MyListItem With {.Title = "LabyMod", .Info = instanceInfo.LabyMod, .Logo = "pack://application:,,,/images/Blocks/LabyMod.png"})
                                                                                   Dim wrapPanel As New WrapPanel With {.Margin = New Thickness(0, -5, -20, 7)}
                                                                                   For Each item In items
                                                                                       wrapPanel.Children.Add(item)
@@ -127,12 +127,12 @@ Public Class PageInstanceOverall
             '改为不隐藏
             Try
                 '若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                Config.Instance.CardType(PageInstanceLeft.Instance.Path) = ComboDisplayType.SelectedIndex
-                PageInstanceLeft.Instance.DisplayType = Config.Instance.CardType(PageInstanceLeft.Instance.Path)
+                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = ComboDisplayType.SelectedIndex
+                PageInstanceLeft.Instance.DisplayType = Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance)
                 FrmInstanceLeft.RefreshModDisabled()
 
-                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
-                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "修改实例分类失败（" & PageInstanceLeft.Instance.Name & "）", LogLevel.Feedback)
             End Try
@@ -147,9 +147,9 @@ Public Class PageInstanceOverall
                     End If
                     Setup.Set("HintHide", True)
                 End If
-                Config.Instance.CardType(PageInstanceLeft.Instance.Path) = CInt(McInstanceCardType.Hidden)
-                WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
-                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = CInt(McInstanceCardType.Hidden)
+                WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+                LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
                 Log(ex, "隐藏实例 " & PageInstanceLeft.Instance.Name & " 失败", LogLevel.Feedback)
             End Try
@@ -159,12 +159,12 @@ Public Class PageInstanceOverall
     '更改描述
     Private Sub BtnDisplayDesc_Click(sender As Object, e As EventArgs) Handles BtnDisplayDesc.Click
         Try
-            Dim OldInfo As String = Config.Instance.CustomInfo(PageInstanceLeft.Instance.Path)
+            Dim OldInfo As String = Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance)
             Dim NewInfo As String = MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo, New ObjectModel.Collection(Of Validate), "默认描述")
-            If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then Config.Instance.CustomInfo(PageInstanceLeft.Instance.Path) = NewInfo
+            If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance) = NewInfo
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "实例 " & PageInstanceLeft.Instance.Name & " 描述更改失败", LogLevel.Msgbox)
         End Try
@@ -175,19 +175,19 @@ Public Class PageInstanceOverall
         Try
             '确认输入的新名称
             Dim OldName As String = PageInstanceLeft.Instance.Name
-            Dim OldPath As String = PageInstanceLeft.Instance.Path
+            Dim OldPath As String = PageInstanceLeft.Instance.PathInstance
             '修改此部分的同时修改快速安装的实例名检测*
-            Dim NewName As String = MyMsgBoxInput("重命名实例", "", OldName, New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(PathMcFolder & "versions", IgnoreCase:=False)})
+            Dim NewName As String = MyMsgBoxInput("重命名实例", "", OldName, New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(McFolderSelected & "versions", IgnoreCase:=False)})
             If String.IsNullOrWhiteSpace(NewName) Then Return
-            Dim NewPath As String = PathMcFolder & "versions\" & NewName & "\"
+            Dim NewPath As String = McFolderSelected & "versions\" & NewName & "\"
             '获取临时中间名，以防止仅修改大小写的重命名失败
             Dim TempName As String = NewName & "_temp"
-            Dim TempPath As String = PathMcFolder & "versions\" & TempName & "\"
+            Dim TempPath As String = McFolderSelected & "versions\" & TempName & "\"
             Dim IsCaseChangedOnly As Boolean = NewName.ToLower = OldName.ToLower
             '重新加载实例 Json 信息，避免 HMCL 项被合并
             Dim JsonObject As JObject
             Try
-                JsonObject = GetJson(ReadFile(PageInstanceLeft.Instance.Path & PageInstanceLeft.Instance.Name & ".json"))
+                JsonObject = GetJson(ReadFile(PageInstanceLeft.Instance.PathInstance & PageInstanceLeft.Instance.Name & ".json"))
             Catch ex As Exception
                 Log(ex, "重命名读取 Json 时失败")
                 JsonObject = PageInstanceLeft.Instance.JsonObject
@@ -222,8 +222,8 @@ Public Class PageInstanceOverall
                 WriteFile(NewPath & "PCL\Setup.ini", ReadFile(NewPath & "PCL\Setup.ini").Replace(OldPath, NewPath))
             End If
             '更改已选中的实例
-            If ReadIni(PathMcFolder & "PCL.ini", "Version") = OldName Then
-                WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
+            If ReadIni(McFolderSelected & "PCL.ini", "Version") = OldName Then
+                WriteIni(McFolderSelected & "PCL.ini", "Version", NewName)
             End If
             '写入实例 Json
             Try
@@ -235,9 +235,9 @@ Public Class PageInstanceOverall
             '刷新与提示
             Hint("重命名成功！", HintType.Finish)
             PageInstanceLeft.Instance = New McInstance(NewName).Load()
-            If Not IsNothing(McInstanceCurrent) AndAlso McInstanceCurrent.Equals(PageInstanceLeft.Instance) Then WriteIni(PathMcFolder & "PCL.ini", "Version", NewName)
+            If Not IsNothing(McInstanceSelected) AndAlso McInstanceSelected.Equals(PageInstanceLeft.Instance) Then WriteIni(McFolderSelected & "PCL.ini", "Version", NewName)
             Reload()
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "重命名实例失败", LogLevel.Msgbox)
         End Try
@@ -254,9 +254,9 @@ Public Class PageInstanceOverall
                     Reload() '还原选项
                     Return
                 End If
-                CopyFile(FileName, PageInstanceLeft.Instance.Path & "PCL\Logo.png")
+                CopyFile(FileName, PageInstanceLeft.Instance.PathInstance & "PCL\Logo.png")
             Else
-                File.Delete(PageInstanceLeft.Instance.Path & "PCL\Logo.png")
+                File.Delete(PageInstanceLeft.Instance.PathInstance & "PCL\Logo.png")
             End If
         Catch ex As Exception
             Log(ex, "更改自定义实例图标失败（" & PageInstanceLeft.Instance.Name & "）", LogLevel.Feedback)
@@ -264,13 +264,13 @@ Public Class PageInstanceOverall
         '进行更改
         Try
             Dim NewLogo As String = ComboDisplayLogo.SelectedItem.Tag
-            Config.Instance.LogoPath(PageInstanceLeft.Instance.Path) = NewLogo
-            Config.Instance.IsLogoCustom(PageInstanceLeft.Instance.Path) = Not NewLogo = ""
+            Config.Instance.LogoPath(PageInstanceLeft.Instance.PathInstance) = NewLogo
+            Config.Instance.IsLogoCustom(PageInstanceLeft.Instance.PathInstance) = Not NewLogo = ""
             '刷新显示
-            WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "") '要求刷新缓存
+            WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "更改实例图标失败（" & PageInstanceLeft.Instance.Name & "）", LogLevel.Feedback)
         End Try
@@ -279,11 +279,11 @@ Public Class PageInstanceOverall
     '收藏夹
     Private Sub BtnDisplayStar_Click(sender As Object, e As EventArgs) Handles BtnDisplayStar.Click
         Try
-            Config.Instance.Starred(PageInstanceLeft.Instance.Path) = Not PageInstanceLeft.Instance.IsStar
+            Config.Instance.Starred(PageInstanceLeft.Instance.PathInstance) = Not PageInstanceLeft.Instance.IsStar
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
             McInstanceListForceRefresh = True
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         Catch ex As Exception
             Log(ex, "实例 " & PageInstanceLeft.Instance.Name & " 收藏状态更改失败", LogLevel.Msgbox)
         End Try
@@ -298,7 +298,7 @@ Public Class PageInstanceOverall
         OpenVersionFolder(PageInstanceLeft.Instance)
     End Sub
     Public Shared Sub OpenVersionFolder(Version As McInstance)
-        OpenExplorer(Version.Path)
+        OpenExplorer(Version.PathInstance)
     End Sub
 
     '存档文件夹
@@ -383,7 +383,7 @@ Public Class PageInstanceOverall
     Private Sub BtnManageRestore_Click(sender As Object, e As EventArgs) Handles BtnManageRestore.Click
         Try
             Dim CurrentVersion = PageInstanceLeft.Instance.Version
-            If Not CurrentVersion.McCodeMain = 99 AndAlso VersionSortInteger(CurrentVersion.McName, "1.5.2") = -1 AndAlso CurrentVersion.HasForge Then
+            If Not CurrentVersion.Drop = 99 AndAlso CompareVersionGe(CurrentVersion.VanillaName, "1.5.2") = -1 AndAlso CurrentVersion.HasForge Then
                 Hint("该实例暂不支持重置！", HintType.Info)
                 Exit Sub
             End If
@@ -391,22 +391,22 @@ Public Class PageInstanceOverall
             If MyMsgBox("你确定要重置实例 " & PageInstanceLeft.Instance.Name & " 吗？" & vbCrLf & "PCL 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。", "实例重置确认", "确认", "取消") = 2 Then Exit Sub
 
             '备份实例核心文件
-            CopyFile(PageInstanceLeft.Instance.Path + PageInstanceLeft.Instance.Name + ".json", PageInstanceLeft.Instance.Path + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json")
-            CopyFile(PageInstanceLeft.Instance.Path + PageInstanceLeft.Instance.Name + ".jar", PageInstanceLeft.Instance.Path + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".jar")
+            CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json", PageInstanceLeft.Instance.PathInstance + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json")
+            CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar", PageInstanceLeft.Instance.PathInstance + "PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".jar")
             '提交安装申请
             Dim Request As New McInstallRequest With {
                 .TargetInstanceName = PageInstanceLeft.Instance.Name,
-                .TargetInstanceFolder = $"{PathMcFolder}versions\{PageInstanceLeft.Instance.Name}\",
-                .MinecraftName = CurrentVersion.McName,
-                .OptiFineEntry = If(CurrentVersion.HasOptiFine, New DlOptiFineListEntry With {.Inherit = CurrentVersion.McName, .NameDisplay = CurrentVersion.McName + " " + CurrentVersion.OptiFineVersion}, Nothing),
-                .ForgeEntry = If(CurrentVersion.HasForge, New DlForgeVersionEntry(CurrentVersion.ForgeVersion, Nothing, Inherit:=CurrentVersion.McName) With {.Category = "installer"}, Nothing),
-                .ForgeVersion = If(CurrentVersion.HasForge, CurrentVersion.ForgeVersion, Nothing),
-                .NeoForgeVersion = If(CurrentVersion.HasNeoForge, CurrentVersion.NeoForgeVersion, Nothing),
-                .CleanroomVersion = If(CurrentVersion.HasCleanroom, CurrentVersion.CleanroomVersion, Nothing),
-                .FabricVersion = If(CurrentVersion.HasFabric, CurrentVersion.FabricVersion, Nothing),
-                .QuiltVersion = If(CurrentVersion.HasQuilt, CurrentVersion.QuiltVersion, Nothing),
-                .LiteLoaderEntry = If(CurrentVersion.HasLiteLoader, New DlLiteLoaderListEntry With {.Inherit = CurrentVersion.McName}, Nothing),
-                .LegacyFabricVersion = If(CurrentVersion.HasLegacyFabric, CurrentVersion.LegacyFabricVersion, Nothing)
+                .TargetInstanceFolder = $"{McFolderSelected}versions\{PageInstanceLeft.Instance.Name}\",
+                .MinecraftName = CurrentVersion.VanillaName,
+                .OptiFineEntry = If(CurrentVersion.HasOptiFine, New DlOptiFineListEntry With {.Inherit = CurrentVersion.VanillaName, .DisplayName = CurrentVersion.VanillaName + " " + CurrentVersion.OptiFine}, Nothing),
+                .ForgeEntry = If(CurrentVersion.HasForge, New DlForgeVersionEntry(CurrentVersion.Forge, Nothing, Inherit:=CurrentVersion.VanillaName) With {.Category = "installer"}, Nothing),
+                .ForgeVersion = If(CurrentVersion.HasForge, CurrentVersion.Forge, Nothing),
+                .NeoForgeVersion = If(CurrentVersion.HasNeoForge, CurrentVersion.NeoForge, Nothing),
+                .CleanroomVersion = If(CurrentVersion.HasCleanroom, CurrentVersion.Cleanroom, Nothing),
+                .FabricVersion = If(CurrentVersion.HasFabric, CurrentVersion.Fabric, Nothing),
+                .QuiltVersion = If(CurrentVersion.HasQuilt, CurrentVersion.Quilt, Nothing),
+                .LiteLoaderEntry = If(CurrentVersion.HasLiteLoader, New DlLiteLoaderListEntry With {.Inherit = CurrentVersion.VanillaName}, Nothing),
+                .LegacyFabricVersion = If(CurrentVersion.HasLegacyFabric, CurrentVersion.LegacyFabric, Nothing)
             }
             '.MinecraftJson = CurrentVersion.McName,
             If Not McInstall(Request, "重置") Then Exit Sub
@@ -432,12 +432,12 @@ Public Class PageInstanceOverall
     Private Sub BtnManageDelete_Click(sender As Object, e As EventArgs) Handles BtnManageDelete.Click
         Try
             Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
-            Dim IsHintIndie As Boolean = PageInstanceLeft.Instance.State <> McInstanceState.Error AndAlso PageInstanceLeft.Instance.PathIndie <> PathMcFolder
+            Dim IsHintIndie As Boolean = PageInstanceLeft.Instance.State <> McInstanceState.Error AndAlso PageInstanceLeft.Instance.PathIndie <> McFolderSelected
             Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {PageInstanceLeft.Instance.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, IsHintIndie OrElse IsShiftPressed)
                 Case 1
-                    Dim instancePath = PageInstanceLeft.Instance.Path
+                    Dim instancePath = PageInstanceLeft.Instance.PathInstance
                     Dim instanceName = PageInstanceLeft.Instance.Name
                     IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
                     CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instancePath)
@@ -451,7 +451,7 @@ Public Class PageInstanceOverall
                 Case 2
                     Return
             End Select
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             FrmMain.PageBack()
         Catch ex As OperationCanceledException
             Log(ex, "删除实例 " & PageInstanceLeft.Instance.Name & " 被主动取消")
@@ -469,7 +469,7 @@ Public Class PageInstanceOverall
                 Hint("正在修补游戏核心，这可能需要一段时间")
                 RunInNewThread(
                     Sub()
-                        Dim Core As New GameCore(PageInstanceLeft.Instance.Path & PageInstanceLeft.Instance.Name & ".jar")
+                        Dim Core As New GameCore(PageInstanceLeft.Instance.PathInstance & PageInstanceLeft.Instance.Name & ".jar")
                         Core.AddToCore(UserInput)
                         Hint("修补游戏核心成功", HintType.Finish)
                         Setup.Set(“VersionAdvanceAssetsV2", True, instance:=PageInstanceLeft.Instance)

@@ -13,7 +13,7 @@ Public Class PageSelectRight
 
     '窗口基础
     Private Sub PageSelectRight_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+        LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
         PanBack.ScrollToHome()
         AddHandler PanVerSearchBox.TextChanged, AddressOf PanVerSearchBox_TextChanged
 
@@ -78,7 +78,7 @@ Public Class PageSelectRight
 
     Private Sub Load_Click(sender As Object, e As MouseButtonEventArgs) Handles Load.Click
         If McInstanceListLoader.State = LoadState.Failed Then
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
         End If
     End Sub
 
@@ -262,26 +262,26 @@ Public Class PageSelectRight
         Dim NewItem As New MyListItem With {.Title = instance.Name, .Info = instance.Info, .Height = 42, .Tag = instance, .SnapsToDevicePixels = True, .Type = MyListItem.CheckType.Clickable}
         Dim instanceInfo = instance.Version
         Dim tags As New List(Of String)
-        tags.Add(instanceInfo.McName)
+        tags.Add(instanceInfo.VanillaName)
         If instanceInfo.HasForge Then
-            tags.Add("Forge " & instanceInfo.ForgeVersion)
+            tags.Add("Forge " & instanceInfo.Forge)
         ElseIf instanceInfo.HasNeoForge Then
-            tags.Add("NeoForge " & instanceInfo.NeoForgeVersion)
+            tags.Add("NeoForge " & instanceInfo.NeoForge)
         ElseIf instanceInfo.HasCleanroom Then
-            tags.Add("Cleanroom " & instanceInfo.CleanroomVersion)
+            tags.Add("Cleanroom " & instanceInfo.Cleanroom)
         ElseIf instanceInfo.HasLabyMod Then
-            tags.Add("LabyMod " & instanceInfo.LabyModVersion)
+            tags.Add("LabyMod " & instanceInfo.LabyMod)
         ElseIf instanceInfo.HasQuilt Then
-            tags.Add("Quilt " & instanceInfo.QuiltVersion)
+            tags.Add("Quilt " & instanceInfo.Quilt)
         ElseIf instanceInfo.HasFabric Then
-            tags.Add("Fabric " & instanceInfo.FabricVersion)
+            tags.Add("Fabric " & instanceInfo.Fabric)
         End If
         If instanceInfo.HasLiteLoader Then tags.Add("LiteLoader")
-        If instanceInfo.HasOptiFine Then tags.Add("OptiFine " & instanceInfo.OptiFineVersion)
+        If instanceInfo.HasOptiFine Then tags.Add("OptiFine " & instanceInfo.OptiFine)
         NewItem.Tags = tags
         Try
             If instance.Logo.EndsWith("PCL\Logo.png") Then
-                NewItem.Logo = instance.Path & "PCL\Logo.png" '修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
+                NewItem.Logo = instance.PathInstance & "PCL\Logo.png" '修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
             Else
                 NewItem.Logo = instance.Logo
             End If
@@ -314,9 +314,9 @@ Public Class PageSelectRight
             BtnStar.Logo = Logo.IconButtonLikeLine
         End If
         AddHandler BtnStar.Click, Sub()
-                                      Config.Instance.Starred(Version.Path) = Not Version.IsStar
+                                      Config.Instance.Starred(Version.PathInstance) = Not Version.IsStar
                                       McInstanceListForceRefresh = True
-                                      LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                                      LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
                                   End Sub
         Dim BtnOpenFolder As New MyIconButton With {.LogoScale = 1.1, .Logo = Logo.IconButtonOpen}
         BtnOpenFolder.ToolTip = "打开实例目录"
@@ -366,10 +366,10 @@ Public Class PageSelectRight
     '点击选项
     Public Shared Sub Item_Click(sender As MyListItem, e As EventArgs)
         Dim instance As McInstance = sender.Tag
-        If New McInstance(instance.Path).Check Then
+        If New McInstance(instance.PathInstance).Check Then
             '正常实例
-            McInstanceCurrent = instance
-            Setup.Set("LaunchInstanceSelect", McInstanceCurrent.Name)
+            McInstanceSelected = instance
+            Setup.Set("LaunchInstanceSelect", McInstanceSelected.Name)
             FrmMain.PageBack()
         Else
             '错误实例
@@ -385,18 +385,18 @@ Public Class PageSelectRight
     Public Shared Sub DeleteVersion(item As MyListItem, instance As McInstance)
         Try
             Dim IsShiftPressed As Boolean = Keyboard.IsKeyDown(Key.LeftShift) OrElse Keyboard.IsKeyDown(Key.RightShift)
-            Dim IsHintIndie As Boolean = instance.State <> McInstanceState.Error AndAlso instance.PathIndie <> PathMcFolder
+            Dim IsHintIndie As Boolean = instance.State <> McInstanceState.Error AndAlso instance.PathIndie <> McFolderSelected
             Select Case MyMsgBox($"你确定要{If(IsShiftPressed, "永久", "")}删除实例 {instance.Name} 吗？" &
                         If(IsHintIndie, vbCrLf & "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！", ""),
                         "实例删除确认", , "取消",, True)
                 Case 1
                     IniClearCache(instance.PathIndie & "options.txt")
-                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instance.Path)
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instance.PathInstance)
                     If IsShiftPressed Then
-                        DeleteDirectory(instance.Path)
+                        DeleteDirectory(instance.PathInstance)
                         Hint("实例 " & instance.Name & " 已永久删除！", HintType.Finish)
                     Else
-                        FileIO.FileSystem.DeleteDirectory(instance.Path, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
+                        FileIO.FileSystem.DeleteDirectory(instance.PathInstance, FileIO.UIOption.AllDialogs, FileIO.RecycleOption.SendToRecycleBin)
                         Hint("实例 " & instance.Name & " 已删除到回收站！", HintType.Finish)
                     End If
                 Case 2
@@ -411,18 +411,18 @@ Public Class PageSelectRight
                     Dim Card As MyCard = Parent.Parent
                     Card.Title = Card.Title.Replace(Parent.Children.Count - 1, Parent.Children.Count - 2) '有一个占位符
                     Parent.Children.Remove(item)
-                    If McInstanceCurrent IsNot Nothing AndAlso instance.Path = McInstanceCurrent.Path Then
+                    If McInstanceSelected IsNot Nothing AndAlso instance.PathInstance = McInstanceSelected.PathInstance Then
                         '删除当前实例就更改选择
-                        McInstanceCurrent = CType(Parent.Children(0), MyListItem).Tag
+                        McInstanceSelected = CType(Parent.Children(0), MyListItem).Tag
                     End If
-                    LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.UpdateOnly, MaxDepth:=1, ExtraPath:="versions\")
+                    LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.UpdateOnly, MaxDepth:=1, ExtraPath:="versions\")
                 Else
                     '删除后没剩了
-                    LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                    LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
                 End If
             Else
                 '同时出现在当前卡片与收藏夹
-                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+                LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             End If
         Catch ex As OperationCanceledException
             Log(ex, "删除实例 " & instance.Name & " 被主动取消")

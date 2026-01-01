@@ -335,8 +335,8 @@ Public Class FormMain
             Setup.Set("ToolDownloadTranslateV2", Setup.Get("ToolDownloadTranslate") + 1)
             Log("[Start] 已从老版本迁移 Mod 命名设置")
         End If
-        '社区版提示
-        If Not Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce(True)
+        '更新后展示社区版提示
+        ShowCEAnnounce()
         '输出更新日志
         If LastVersionCode <= 0 Then Return
         If LowerVersionCode >= VersionCode Then Return
@@ -549,7 +549,7 @@ Public Class FormMain
         '更改隐藏实例可见性
         If e.Key = Key.F11 AndAlso PageCurrent = FormMain.PageType.InstanceSelect Then
             FrmSelectRight.ShowHidden = Not FrmSelectRight.ShowHidden
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Return
         End If
         '更改功能隐藏可见性
@@ -613,7 +613,7 @@ Public Class FormMain
                 If FrmInstanceSchematic IsNot Nothing Then FrmInstanceSchematic.ReloadCompFileList()
             ElseIf PageCurrent = PageType.InstanceSelect Then
                 '实例选择自动刷新
-                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+                LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
             End If
         Catch ex As Exception
             Log(ex, "切回窗口时出错", LogLevel.Feedback)

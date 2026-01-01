@@ -2,6 +2,7 @@ Imports System.Reflection
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
@@ -43,7 +44,7 @@ Public Class ModSetup
     ''' 改变某个设置项的值。
     ''' </summary>
     Public Sub [Set](key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        GetConfigItem(key).SetValueNoType(value, instance?.Path)
+        GetConfigItem(key).SetValueNoType(value, instance?.PathInstance)
     End Sub
 
     ''' <summary>
@@ -60,14 +61,14 @@ Public Class ModSetup
     ''' 获取某个设置项的值。
     ''' </summary>
     Public Function [Get](key As String, Optional instance As McInstance = Nothing) As Object
-        Return GetConfigItem(key).GetValueNoType(instance?.Path)
+        Return GetConfigItem(key).GetValueNoType(instance?.PathInstance)
     End Function
 
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
     Public Sub Reset(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        GetConfigItem(key).Reset(instance?.Path)
+        GetConfigItem(key).Reset(instance?.PathInstance)
     End Sub
 
     ''' <summary>
@@ -81,7 +82,7 @@ Public Class ModSetup
     ''' 某个设置项是否从未被设置过。
     ''' </summary>
     Public Function IsUnset(key As String, Optional instance As McInstance = Nothing) As Boolean
-        Return GetConfigItem(key).IsDefault(instance?.Path)
+        Return GetConfigItem(key).IsDefault(instance?.PathInstance)
     End Function
 
 #End Region
@@ -91,11 +92,11 @@ Public Class ModSetup
     '切换选择
     Public Sub LaunchInstanceSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 版本：" & Value)
-        WriteIni(PathMcFolder & "PCL.ini", "Version", If(IsNothing(McInstanceCurrent), "", McInstanceCurrent.Name))
+        WriteIni(McFolderSelected & "PCL.ini", "Version", If(IsNothing(McInstanceSelected), "", McInstanceSelected.Name))
     End Sub
     Public Sub LaunchFolderSelect(Value As String)
         Log("[Setup] 当前选择的 Minecraft 文件夹：" & Value.ToString.Replace("$", ExePath))
-        PathMcFolder = Value.ToString.Replace("$", ExePath)
+        McFolderSelected = Value.ToString.Replace("$", ExePath)
     End Sub
 
     '游戏内存
@@ -501,10 +502,10 @@ Public Class ModSetup
     Public Sub VersionServerLogin(Type As Integer)
         If FrmInstanceSetup Is Nothing Then Return
         '为第三方登录清空缓存以更新描述
-        WriteIni(PathMcFolder & "PCL.ini", "InstanceCache", "")
+        WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "")
         If PageInstanceLeft.Instance Is Nothing Then Return
         PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
-        LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+        LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
     End Sub
 
 #End Region

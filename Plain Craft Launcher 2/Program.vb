@@ -7,6 +7,13 @@ Module Program
     ''' </summary>
     <STAThread>
     Public Sub Main()
+#If DEBUG
+        If Environment.GetCommandLineArgs().Contains("--debug") Then
+            While Not Debugger.IsAttached
+                Thread.Sleep(50)
+            End While
+        End If
+#End If
         Console.WriteLine("Welcome to Plain Craft Launcher 2 Community Edition!")
         'Preloading tasks
         ApplicationService.Loading =

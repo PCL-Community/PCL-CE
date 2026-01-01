@@ -83,7 +83,7 @@ Public Class PageInstanceCompResource
                 RequireLoaders = {CompLoaderType.Minecraft}.ToList()
         End Select
         res.Loaders = RequireLoaders
-        res.CompPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+        res.CompPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
         res.CompType = CurrentCompType
         Return res
     End Function
@@ -178,7 +178,7 @@ Public Class PageInstanceCompResource
         Dim LoadPath As String
         If String.IsNullOrEmpty(CurrentFolderPath) Then
             '加载根目录
-            LoadPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            LoadPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
         Else
             '加载当前文件夹
             LoadPath = CurrentFolderPath
@@ -233,7 +233,7 @@ Public Class PageInstanceCompResource
         
         Try
             '获取根路径
-            Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
             rootPath = System.IO.Path.GetFullPath(rootPath.TrimEnd("\"))
             
             '获取父级路径
@@ -257,7 +257,7 @@ Public Class PageInstanceCompResource
         Dim LoadPath As String
         If String.IsNullOrEmpty(CurrentFolderPath) Then
             '返回到根目录
-            LoadPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            LoadPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
         Else
             '加载当前文件夹
             LoadPath = CurrentFolderPath
@@ -336,7 +336,7 @@ Public Class PageInstanceCompResource
             End If
             '修改缓存
             ModItems.Clear()
-            Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
             rootPath = System.IO.Path.GetFullPath(rootPath.TrimEnd("\"))
 
             Dim itemsToShow = CompResourceListLoader.Output.Where(Function(item)
@@ -654,7 +654,7 @@ Public Class PageInstanceCompResource
             ' 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
             If String.IsNullOrEmpty(CurrentFolderPath) Then
                 ' 打开根目录
-                CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+                CompFilePath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
             Else
                 ' 打开当前子文件夹
                 CompFilePath = If(CurrentFolderPath.EndsWith("\"), CurrentFolderPath, CurrentFolderPath & "\")
@@ -704,7 +704,7 @@ Public Class PageInstanceCompResource
             Return True
         End If
         '获取并检查目标实例
-        Dim targetInstance As McInstance = McInstanceCurrent
+        Dim targetInstance As McInstance = McInstanceSelected
         If FrmMain.PageCurrent = FormMain.PageType.InstanceSetup Then targetInstance = PageInstanceLeft.Instance
         If FrmMain.PageCurrent = FormMain.PageType.InstanceSelect OrElse targetInstance Is Nothing OrElse Not targetInstance.Modable Then
             '正在选择实例，或当前实例不能安装 Mod
@@ -715,7 +715,7 @@ Public Class PageInstanceCompResource
         Else
             '处于 Mod 管理页面
 Install:
-            Dim ModFolder = targetInstance.PathIndie & If(targetInstance.Version.HasLabyMod, "labymod-neo\fabric\" & targetInstance.Version.McName & "\", "") & "mods\"
+            Dim ModFolder = targetInstance.PathIndie & If(targetInstance.Version.HasLabyMod, "labymod-neo\fabric\" & targetInstance.Version.VanillaName & "\", "") & "mods\"
             Try
                 For Each ModFile In FilePathList
                     Dim NewFileName = GetFileNameFromPath(ModFile).Replace(".disabled", "").Replace(".old", "")
@@ -756,7 +756,7 @@ Install:
         End If
 
         '获取并检查目标实例
-        Dim targetInstance As McInstance = McInstanceCurrent
+        Dim targetInstance As McInstance = McInstanceSelected
         If FrmMain.PageCurrent = FormMain.PageType.InstanceSetup Then targetInstance = PageInstanceLeft.Instance
 
         '根据组件类型设置相关参数
@@ -765,7 +765,7 @@ Install:
                 ValidExtensions = {"jar", "litemod", "disabled", "old"}
                 CompTypeName = "Mod"
                 If String.IsNullOrEmpty(TargetFolderPath) Then
-                    CompFolder = targetInstance.PathIndie & If(targetInstance.Version.HasLabyMod, "labymod-neo\fabric\" & targetInstance.Version.McName & "\", "") & "mods\"
+                    CompFolder = targetInstance.PathIndie & If(targetInstance.Version.HasLabyMod, "labymod-neo\fabric\" & targetInstance.Version.VanillaName & "\", "") & "mods\"
                 Else
                     CompFolder = TargetFolderPath & "\"
                 End If
@@ -1409,7 +1409,7 @@ Install:
             End Sub))
             '结束处理
             Dim Loader As New LoaderCombo(Of IEnumerable(Of LocalCompFile))("资源更新：" & PageInstanceLeft.Instance.Name, InstallLoaders)
-            Dim PathMods As String = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.McName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
+            Dim PathMods As String = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Version.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Version.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
             Loader.OnStateChanged =
             Sub()
                 '结果提示
@@ -1585,7 +1585,7 @@ Install:
             If ModEntry.Comp IsNot Nothing Then
                 '跳转到 Mod 下载页面
                 FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
-                    .Additional = {ModEntry.Comp, New List(Of String), PageInstanceLeft.Instance.Version.McName,
+                    .Additional = {ModEntry.Comp, New List(Of String), PageInstanceLeft.Instance.Version.VanillaName,
                         If(PageInstanceLeft.Instance.Version.HasForge, CompLoaderType.Forge,
                         If(PageInstanceLeft.Instance.Version.HasNeoForge, CompLoaderType.NeoForge,
                         If(PageInstanceLeft.Instance.Version.HasFabric OrElse ModdedLabyMod, CompLoaderType.Fabric, CompLoaderType.Any))), CurrentCompType}})

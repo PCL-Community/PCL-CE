@@ -57,11 +57,11 @@
 
                 Case "启动游戏"
                     If Data(0) = "\current" Then
-                        If McInstanceCurrent Is Nothing Then
+                        If McInstanceSelected Is Nothing Then
                             Hint("请先选择一个 Minecraft 实例！", HintType.Critical)
                             Return
                         Else
-                            Data(0) = McInstanceCurrent.Name
+                            Data(0) = McInstanceSelected.Name
                         End If
                     End If
                     If McLaunchStart(New McLaunchOptions With

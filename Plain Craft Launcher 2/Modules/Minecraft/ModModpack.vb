@@ -32,7 +32,7 @@ Public Module ModModpack
         Dim ArchiveBaseFolder As String = ""
         Try
             '字符校验
-            Dim TargetFolder As String = $"{PathMcFolder}versions\{InstanceName}\"
+            Dim TargetFolder As String = $"{McFolderSelected}versions\{InstanceName}\"
             If TargetFolder.Contains("!") OrElse TargetFolder.Contains(";") Then Hint("游戏路径中不能含有感叹号或分号：" & TargetFolder, HintType.Critical) : Throw New CancelledException
             '获取整合包种类与关键 Json
             Dim PackType As Integer = -1
@@ -185,7 +185,7 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
             If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
             If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
@@ -237,7 +237,7 @@ Retry:
                 ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6)
                 CopyOverrideDirectory(
                     InstallTemp & ArchiveBaseFolder & If(OverrideHome = "." OrElse OverrideHome = "./", "", OverrideHome), '#5613
-                    $"{PathMcFolder}versions\{InstanceName}",
+                    $"{McFolderSelected}versions\{InstanceName}",
                     Task, 0.4)
             End Sub) With {
             .ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
@@ -313,7 +313,7 @@ Retry:
                     Dim File As New CompFile(ModJson, Type)
                     If Not File.Available Then Continue For
                     '实际的添加
-                    FileList.Add(Id, File.ToNetFile($"{PathMcFolder}versions\{InstanceName}\{TargetFolder}\"))
+                    FileList.Add(Id, File.ToNetFile($"{McFolderSelected}versions\{InstanceName}\{TargetFolder}\"))
                     Task.Progress += 1 / (1 + ModList.Count)
                 Next
                 Task.Output = FileList.Values.ToList
@@ -328,7 +328,7 @@ Retry:
         '构造加载器
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = InstanceName,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{InstanceName}\",
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{InstanceName}\",
             .MinecraftName = Json("minecraft")("version").ToString,
             .ForgeVersion = ForgeVersion,
             .NeoForgeVersion = NeoForgeVersion,
@@ -343,7 +343,7 @@ Retry:
         Loaders.Add(New LoaderTask(Of String, String)("最终整理文件",
         Sub(Task As LoaderTask(Of String, String))
             '设置图标
-            Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}\"
+            Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
                 Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
@@ -433,7 +433,7 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
             If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
             If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
@@ -446,11 +446,11 @@ Retry:
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.5)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & "overrides",
-                PathMcFolder & "versions\" & InstanceName,
+                McFolderSelected & "versions\" & InstanceName,
                 Task, 0.4)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & "client-overrides",
-                PathMcFolder & "versions\" & InstanceName,
+                McFolderSelected & "versions\" & InstanceName,
                 Task, 0.1)
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '获取下载文件列表
@@ -472,8 +472,8 @@ Retry:
             Dim Urls = File("downloads").Select(Function(x) CompFile.HandleCurseForgeDownloadUrls(x.ToString())).ToList()
             '镜像源
             Urls = Urls.SelectMany(Function(x As String) DlSourceModDownloadGet(x)).ToList()
-            Dim TargetPath As String = $"{PathMcFolder}versions\{InstanceName}\{File("path")}"
-            If Not IO.Path.GetFullPath(TargetPath).StartsWithF($"{PathMcFolder}versions\{InstanceName}\", True) Then
+            Dim TargetPath As String = $"{McFolderSelected}versions\{InstanceName}\{File("path")}"
+            If Not IO.Path.GetFullPath(TargetPath).StartsWithF($"{McFolderSelected}versions\{InstanceName}\", True) Then
                 MyMsgBox($"整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！" & vbCrLf & "错误的文件：" & TargetPath, "文件路径校验失败", IsWarn:=True)
                 Throw New CancelledException
             End If
@@ -487,7 +487,7 @@ Retry:
         '构造加载器
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = InstanceName,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{InstanceName}\",
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{InstanceName}\",
             .MinecraftName = MinecraftVersion,
             .ForgeVersion = ForgeVersion,
             .NeoForgeVersion = NeoForgeVersion,
@@ -502,7 +502,7 @@ Retry:
         Loaders.Add(New LoaderTask(Of String, String)("最终整理文件",
         Sub(Task As LoaderTask(Of String, String))
             '设置图标
-            Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}\"
+            Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
                 Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
@@ -563,7 +563,7 @@ Retry:
         End Try
         '获取实例名
         Dim InstanceName As String = If(Json("name"), "")
-        Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
+        Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
         If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
         If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
         If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
@@ -575,14 +575,14 @@ Retry:
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & "minecraft",
-                PathMcFolder & "versions\" & InstanceName,
+                McFolderSelected & "versions\" & InstanceName,
                 Task, 0.4)
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造游戏本体安装加载器
         If Json("gameVersion") Is Nothing Then Throw New Exception("该 HMCL 整合包未提供游戏版本信息，无法安装！")
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = InstanceName,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{InstanceName}\",
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{InstanceName}\",
             .MinecraftName = Json("gameVersion").ToString
         }
         Dim MergeLoaders As List(Of LoaderBase) = McInstallLoader(Request)
@@ -807,24 +807,24 @@ Retry:
         End Try
         '获取实例名
         Dim InstanceName As String = If(RegexSeek(PackInstance, "(?<=\nname\=)[^\n]+"), "")
-        Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
+        Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
         If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
         If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
         If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         '解压
         Dim InstallTemp As String = RequestTaskTempFolder()
-        Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}"
+        Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}"
         Dim InstallLoaders As New List(Of LoaderBase)
         InstallLoaders.Add(New LoaderTask(Of String, Integer)("解压整合包文件",
         Sub(Task As LoaderTask(Of String, Integer))
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.55)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & "libraries",
-                PathMcFolder & "versions\" & InstanceName & "\libraries",
+                McFolderSelected & "versions\" & InstanceName & "\libraries",
                 Task, 0.2)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & ".minecraft",
-                PathMcFolder & "versions\" & InstanceName,
+                McFolderSelected & "versions\" & InstanceName,
                 Task, 0.2)
 
 #Region "instance.cfg"
@@ -865,7 +865,7 @@ Retry:
                     If Logo <> "" AndAlso File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png") Then
                         Config.Instance.IsLogoCustom(VersionFolder) = True
                         Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
-                        CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png", $"{PathMcFolder}versions\{InstanceName}\PCL\Logo.png")
+                        CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png", $"{McFolderSelected}versions\{InstanceName}\PCL\Logo.png")
                         Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）")
                     End If
                     'JVM 参数
@@ -889,7 +889,7 @@ Retry:
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造实例安装请求
         If PackJson("components") Is Nothing Then Throw New Exception("该 MMC 整合包未提供游戏版本信息，无法安装！")
-        Dim Request As New McInstallRequest With {.TargetInstanceName = InstanceName, .TargetInstanceFolder = $"{PathMcFolder}versions\{InstanceName}\"}
+        Dim Request As New McInstallRequest With {.TargetInstanceName = InstanceName, .TargetInstanceFolder = $"{McFolderSelected}versions\{InstanceName}\"}
         For Each Component In PackJson("components")
             Select Case If(Component("uid"), "").ToString
                 Case "org.lwjgl"
@@ -949,21 +949,21 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New ValidateFolderName(PathMcFolder & "versions")
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
             If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
             If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         End If
         '解压
         Dim InstallTemp As String = RequestTaskTempFolder()
-        Dim VersionFolder As String = $"{PathMcFolder}versions\{InstanceName}"
+        Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}"
         Dim InstallLoaders As New List(Of LoaderBase)
         InstallLoaders.Add(New LoaderTask(Of String, Integer)("解压整合包文件",
         Sub(Task As LoaderTask(Of String, Integer))
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6)
             CopyOverrideDirectory(
                 InstallTemp & ArchiveBaseFolder & "overrides",
-                PathMcFolder & "versions\" & InstanceName,
+                McFolderSelected & "versions\" & InstanceName,
                 Task, 0.4)
             'JVM 参数
             If Json("launchInfo") IsNot Nothing Then
@@ -988,7 +988,7 @@ Retry:
         End If
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = InstanceName,
-            .TargetInstanceFolder = $"{PathMcFolder}versions\{InstanceName}\",
+            .TargetInstanceFolder = $"{McFolderSelected}versions\{InstanceName}\",
             .MinecraftName = Addons("game"),
             .OptiFineVersion = If(Addons.ContainsKey("optifine"), Addons("optifine"), Nothing),
             .ForgeVersion = If(Addons.ContainsKey("forge"), Addons("forge"), Nothing),

@@ -8,6 +8,7 @@ Imports PCL.Core.IO
 Imports PCL.Core.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Utils.Secret
 
 Public Class PageOtherTest
     Public Sub New()
@@ -170,8 +171,8 @@ Public Class PageOtherTest
 
                         '寻找所有 Minecraft 文件夹
                         For Each mcFolder As McFolder In McFolderList
-                            cleanMcFolderList.Add(New DirectoryInfo(mcFolder.Path))
-                            Dim dirInfo As DirectoryInfo = New DirectoryInfo(mcFolder.Path + "versions")
+                            cleanMcFolderList.Add(New DirectoryInfo(mcFolder.Location))
+                            Dim dirInfo As DirectoryInfo = New DirectoryInfo(mcFolder.Location + "versions")
                             If dirInfo.Exists Then
                                 For Each item As DirectoryInfo In dirInfo.EnumerateDirectories()
                                     cleanMcFolderList.Add(item)
@@ -207,7 +208,7 @@ Public Class PageOtherTest
                             MyMsgBox(String.Format("清理了 {0} 个文件！", num) + vbCrLf & "PCL 即将自动重启……", "缓存已清理", "确定", "", "", False, True, True, Nothing, Nothing, Nothing)
                             Process.Start(New ProcessStartInfo(ExePathWithName))
                             FormMain.EndProgramForce(ProcessReturnValues.Success)
-                        Else 
+                        Else
                             Hint("没有找到任何可以清理的文件！", HintType.Info, True)
                         End If
                     Else
@@ -490,8 +491,8 @@ Public Class PageOtherTest
 
     Public Shared Function GenerateDailySeed() As Integer
         Dim datePart As String = Date.Today.ToString("yyyyMMdd")
-        Dim secretCode As String = SecretGetRawCode()
-        Return DJB2Hash(datePart & secretCode)
+
+        Return DJB2Hash(datePart & Identify.LauncherId)
     End Function
     Private Shared Function DJB2Hash(str As String) As Integer
         Dim hash As Long = 5381
