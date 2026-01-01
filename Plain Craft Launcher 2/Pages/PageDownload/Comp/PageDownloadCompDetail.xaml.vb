@@ -365,7 +365,7 @@ GroupDone:
                         If Version Is Nothing Then Return False
                         If Not Version.IsLoaded Then Version.Load()
                         If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
-                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.VanillaName) Then Return False
+                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Info.VanillaName) Then Return False
                         '加载器
                         If Not AllowedLoaders.Any() Then Return True '无要求
                         Return False
@@ -471,14 +471,14 @@ GroupDone:
                         '只对 Mod 和数据包进行版本检测
                         If File.Type = CompType.Mod OrElse File.Type = CompType.DataPack Then
                             If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
-                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.VanillaName) Then Return False
+                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Info.VanillaName) Then Return False
                         End If
                         '加载器
                         If Not AllowedLoaders.Any() Then Return True '无要求
-                        If AllowedLoaders.Contains(CompLoaderType.Forge) AndAlso Version.Version.HasForge Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Version.HasFabric OrElse Version.Version.HasLegacyFabric Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.NeoForge) AndAlso Version.Version.HasNeoForge Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.LiteLoader) AndAlso Version.Version.HasLiteLoader Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.Forge) AndAlso Version.Info.HasForge Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Info.HasFabric OrElse Version.Info.HasLegacyFabric Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.NeoForge) AndAlso Version.Info.HasNeoForge Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.LiteLoader) AndAlso Version.Info.HasLiteLoader Then Return True
                         Return False
                     End Function
                     '获取常规资源默认下载位置

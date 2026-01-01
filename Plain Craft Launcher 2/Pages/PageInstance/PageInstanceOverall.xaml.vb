@@ -82,7 +82,7 @@ Public Class PageInstanceOverall
         loaders.Add(New LoaderTask(Of Integer, Integer)("获取实例信息", Sub()
                                                                       RunInUi(Sub()
                                                                                   Dim instance = PageInstanceLeft.Instance
-                                                                                  Dim instanceInfo = instance.Version
+                                                                                  Dim instanceInfo = instance.Info
                                                                                   Dim items As New List(Of MyListItem)
                                                                                   Dim launchCount = Config.Instance.LaunchCount(instance.PathInstance)
                                                                                   If launchCount = 0 Then
@@ -331,7 +331,7 @@ Public Class PageInstanceOverall
                 Return
             End If
             '生成脚本
-            If McLaunchStart(New McLaunchOptions With {.SaveBatch = SavePath, .Version = PageInstanceLeft.Instance}) Then
+            If McLaunchStart(New McLaunchOptions With {.SaveBatch = SavePath, .Instance = PageInstanceLeft.Instance}) Then
                 If SelectedProfile.Type = McLoginType.Legacy Then
                     Hint("正在导出启动脚本……")
                 Else
@@ -382,7 +382,7 @@ Public Class PageInstanceOverall
     '重置
     Private Sub BtnManageRestore_Click(sender As Object, e As EventArgs) Handles BtnManageRestore.Click
         Try
-            Dim CurrentVersion = PageInstanceLeft.Instance.Version
+            Dim CurrentVersion = PageInstanceLeft.Instance.Info
             If Not CurrentVersion.Drop = 99 AndAlso CompareVersionGe(CurrentVersion.VanillaName, "1.5.2") = -1 AndAlso CurrentVersion.HasForge Then
                 Hint("该实例暂不支持重置！", HintType.Info)
                 Exit Sub
@@ -420,7 +420,7 @@ Public Class PageInstanceOverall
     Private Sub BtnManageTest_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnManageTest.Click
         Try
             McLaunchStart(New McLaunchOptions With
-                 {.Version = PageInstanceLeft.Instance, .Test = True})
+                 {.Instance = PageInstanceLeft.Instance, .IsTest = True})
             FrmMain.PageChange(FormMain.PageType.Launch)
         Catch ex As Exception
             Log(ex, "测试游戏失败", LogLevel.Feedback)

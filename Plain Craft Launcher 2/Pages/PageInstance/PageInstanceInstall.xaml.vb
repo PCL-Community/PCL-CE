@@ -779,7 +779,7 @@ Public Class PageInstanceInstall
     Public Sub GetCurrentInfo()
         ClearSelected()
         BtnSelectStart.IsEnabled = True
-        Dim CurrentInstance = PageInstanceLeft.Instance.Version
+        Dim CurrentInstance = PageInstanceLeft.Instance.Info
         _vanillaName = CurrentInstance.VanillaName
         If CurrentInstance.HasLiteLoader Then
             SelectedLiteLoader = New DlLiteLoaderListEntry With {.Inherit = CurrentInstance.VanillaName}
@@ -2023,7 +2023,7 @@ Public Class PageInstanceInstall
             End If
         End If
         '删除 LabyMod Neo 文件
-        If PageInstanceLeft.Instance.PathIndie <> PageInstanceLeft.Instance.PathInstance AndAlso PageInstanceLeft.Instance.Version.HasLabyMod Then
+        If PageInstanceLeft.Instance.PathIndie <> PageInstanceLeft.Instance.PathInstance AndAlso PageInstanceLeft.Instance.Info.HasLabyMod Then
             Directory.Delete(PageInstanceLeft.Instance.PathIndie & "labymod-neo", True)
         End If
         '备份实例核心文件

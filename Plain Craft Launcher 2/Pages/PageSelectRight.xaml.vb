@@ -109,7 +109,7 @@ Public Class PageSelectRight
                 Dim filteredInstances = Card.Value.Where(Function(v)
                                                              If String.IsNullOrEmpty(searchText) Then Return True
                                                              Return v.Name.ToLower().Contains(searchText) OrElse
-                                                                    (v.Info IsNot Nothing AndAlso v.Info.ToLower().Contains(searchText)) OrElse
+                                                                    (v.Desc IsNot Nothing AndAlso v.Desc.ToLower().Contains(searchText)) OrElse
                                                                     v.GetDefaultDescription().Replace(",", "").ToLower().Trim().Contains(searchText)
                                                          End Function).ToList()
                 If filteredInstances.Count = 0 Then Continue For
@@ -132,13 +132,13 @@ Public Class PageSelectRight
                         Dim IsCleanroomExists As Boolean = False
                         Dim IsLabyModExists As Boolean = False
                         For Each instance As McInstance In Card.Value
-                            If instance.Version.HasFabric Then IsFabricExists = True
-                            If instance.Version.HasQuilt Then IsQuiltExists = True
-                            If instance.Version.HasLiteLoader Then IsLiteExists = True
-                            If instance.Version.HasForge Then IsForgeExists = True
-                            If instance.Version.HasNeoForge Then IsNeoForgeExists = True
-                            If instance.Version.HasCleanroom Then IsCleanroomExists = True
-                            If instance.Version.HasLabyMod Then IsLabyModExists = True
+                            If instance.Info.HasFabric Then IsFabricExists = True
+                            If instance.Info.HasQuilt Then IsQuiltExists = True
+                            If instance.Info.HasLiteLoader Then IsLiteExists = True
+                            If instance.Info.HasForge Then IsForgeExists = True
+                            If instance.Info.HasNeoForge Then IsNeoForgeExists = True
+                            If instance.Info.HasCleanroom Then IsCleanroomExists = True
+                            If instance.Info.HasLabyMod Then IsLabyModExists = True
                         Next
                         If If(IsLiteExists, 1, 0) + If(IsForgeExists, 1, 0) + If(IsFabricExists, 1, 0) + If(IsNeoForgeExists, 1, 0) + If(IsQuiltExists, 1, 0) + If(IsCleanroomExists, 1, 0) + If(IsLabyModExists, 1, 0) > 1 Then
                             CardName = "可安装 Mod"
@@ -259,8 +259,8 @@ Public Class PageSelectRight
         End Try
     End Sub
     Public Shared Function McVersionListItem(instance As McInstance) As MyListItem
-        Dim NewItem As New MyListItem With {.Title = instance.Name, .Info = instance.Info, .Height = 42, .Tag = instance, .SnapsToDevicePixels = True, .Type = MyListItem.CheckType.Clickable}
-        Dim instanceInfo = instance.Version
+        Dim NewItem As New MyListItem With {.Title = instance.Name, .Info = instance.Desc, .Height = 42, .Tag = instance, .SnapsToDevicePixels = True, .Type = MyListItem.CheckType.Clickable}
+        Dim instanceInfo = instance.Info
         Dim tags As New List(Of String)
         tags.Add(instanceInfo.VanillaName)
         If instanceInfo.HasForge Then

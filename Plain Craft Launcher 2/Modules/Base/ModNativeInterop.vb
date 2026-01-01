@@ -86,7 +86,7 @@ Public Module ModNativeInterop
                     Dim realtime = watcher.RealTimeLog
                     Dim game = watcher.Version
                     Dim name = game.Name
-                    Dim version = game.Version.ToString()
+                    Dim version = game.Info.ToString()
                     infoList.Add(New MinecraftLog With {
                         .id = id, .name = name, .pending = pending, .realtime = realtime,
                         .state = state, .version = version})

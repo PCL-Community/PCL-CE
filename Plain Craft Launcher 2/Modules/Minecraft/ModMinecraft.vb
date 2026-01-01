@@ -236,11 +236,11 @@ Public Module ModMinecraft
                             Case 0 '关闭
                                 Return False
                             Case 1 '仅隔离可安装 Mod 的实例
-                                Return Version.HasLabyMod OrElse Modable
+                                Return Info.HasLabyMod OrElse Modable
                             Case 2 '仅隔离非正式版
                                 Return Not IsRelease
                             Case 3 '隔离非正式版与可安装 Mod 的实例
-                                Return Version.HasLabyMod OrElse Modable OrElse Not IsRelease
+                                Return Info.HasLabyMod OrElse Modable OrElse Not IsRelease
                             Case Else '隔离所有实例
                                 Return True
                         End Select
@@ -266,7 +266,7 @@ Public Module ModMinecraft
         ''' <summary>
         ''' 显示的描述文本。
         ''' </summary>
-        Public Info As String = "该实例未被加载，请向作者反馈此问题"
+        Public Desc As String = "该实例未被加载，请向作者反馈此问题"
         ''' <summary>
         ''' 该实例的列表检查原始结果，不受自定义影响。
         ''' </summary>
@@ -289,17 +289,17 @@ Public Module ModMinecraft
         Public ReadOnly Property Modable As Boolean
             Get
                 If Not IsLoaded Then Load()
-                Return Version.HasFabric OrElse Version.HasLegacyFabric OrElse Version.HasQuilt OrElse Version.HasForge OrElse Version.HasLiteLoader OrElse Version.HasNeoForge OrElse Version.HasCleanroom OrElse
+                Return Info.HasFabric OrElse Info.HasLegacyFabric OrElse Info.HasQuilt OrElse Info.HasForge OrElse Info.HasLiteLoader OrElse Info.HasNeoForge OrElse Info.HasCleanroom OrElse
                     DisplayType = McInstanceCardType.API '#223
             End Get
         End Property
         ''' <summary>
         ''' 实例信息。
         ''' </summary>
-                Public Property Version As McInstanceInfo
+        Public Property Info As McInstanceInfo
             Get
-                If _Version IsNot Nothing Then Return _Version
-                _Version = New McInstanceInfo
+                If _info IsNot Nothing Then Return _info
+                _info = New McInstanceInfo
 #Region "获取游戏版本"
                 Try
                     '获取发布时间并判断是否为老版本
@@ -310,7 +310,7 @@ Public Module ModMinecraft
                             ReleaseTime = JsonObject("releaseTime").ToObject(Of Date)
                         End If
                         If ReleaseTime.Year > 2000 AndAlso ReleaseTime.Year < 2013 Then
-                            _Version.VanillaName = "Old"
+                            _info.VanillaName = "Old"
                             GoTo VersionSearchFinish
                         End If
                     Catch
@@ -318,19 +318,19 @@ Public Module ModMinecraft
                     End Try
                     '实验性快照
                     If If(JsonObject("type"), "") = "pending" Then
-                        _Version.VanillaName = "pending"
+                        _info.VanillaName = "pending"
                         GoTo VersionSearchFinish
                     End If
                     '从 PCL 下载的版本信息中获取版本号
                     If JsonObject("clientVersion") IsNot Nothing Then
-                        _Version.VanillaName = JsonObject("clientVersion")
+                        _info.VanillaName = JsonObject("clientVersion")
                         GoTo VersionSearchFinish
                     End If
                     '从 HMCL 下载的版本信息中获取版本号
                     If JsonObject("patches") IsNot Nothing Then
                         For Each patch As JObject In JsonObject("patches")
                             If If(patch("id"), "").ToString = "game" AndAlso patch("version") IsNot Nothing Then
-                                _Version.VanillaName = patch("version").ToString
+                                _info.VanillaName = patch("version").ToString
                                 GoTo VersionSearchFinish
                             End If
                         Next
@@ -341,7 +341,7 @@ Public Module ModMinecraft
                             Dim Mark As Boolean = False
                             For Each Argument In JsonObject("arguments")("game")
                                 If Mark Then
-                                    _Version.VanillaName = Argument.ToString
+                                    _info.VanillaName = Argument.ToString
                                     GoTo VersionSearchFinish
                                 End If
                                 If Argument.ToString = "--fml.mcVersion" Then Mark = True
@@ -351,7 +351,7 @@ Public Module ModMinecraft
                             For Each Argument In JsonObject("arguments")("game")
                                 Dim regexArgument = RegexSeek(Argument.ToString, "(?<=-Dnet.labymod.running-version=)1.[0-9+.]+")
                                 If regexArgument IsNot Nothing Then
-                                    _Version.VanillaName = regexArgument
+                                    _info.VanillaName = regexArgument
                                     GoTo VersionSearchFinish
                                 End If
                             Next
@@ -359,45 +359,45 @@ Public Module ModMinecraft
                     End If
                     '从继承实例中获取版本号
                     If Not InheritInstanceName = "" Then
-                        _Version.VanillaName = If(JsonObject("jar"), "").ToString 'LiteLoader 优先使用 Jar
-                        If _Version.VanillaName = "" Then _Version.VanillaName = InheritInstanceName
+                        _info.VanillaName = If(JsonObject("jar"), "").ToString 'LiteLoader 优先使用 Jar
+                        If _info.VanillaName = "" Then _info.VanillaName = InheritInstanceName
                         GoTo VersionSearchFinish
                     End If
                     '从下载地址中获取版本号
                     Dim regex As String = RegexSeek(If(JsonObject("downloads"), "").ToString, "(?<=launcher.mojang.com/mc/game/)[^/]*")
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 Forge 版本中获取版本号
                     Dim librariesString As String = JsonObject("libraries").ToString
                     regex = If(RegexSeek(librariesString, "(?<=net.minecraftforge:forge:)[0-9]{1,2}.[0-9+.]+"), RegexSeek(librariesString, "(?<=net.minecraftforge:fmlloader:)[0-9]{1,2}.[0-9+.]+"))
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 OptiFine 版本中获取版本号
                     regex = RegexSeek(librariesString, "(?<=optifine:OptiFine:)[0-9]{1,2}.[0-9+.]+")
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 Fabric / Quilt / Legacy Fabric 版本中获取版本号
                     regex = RegexSeek(librariesString, "(?<=((fabricmc)|(quiltmc)|(legacyfabric)):intermediary:)[^""]*")
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 jar 项中获取版本号
                     If JsonObject("jar") IsNot Nothing Then
-                        _Version.VanillaName = JsonObject("jar").ToString
+                        _info.VanillaName = JsonObject("jar").ToString
                         GoTo VersionSearchFinish
                     End If
                     '从 jar 文件的 version.json 中获取版本号
                     If JsonVersion?("name") IsNot Nothing Then
                         Dim jsonVerName As String = JsonVersion("name").ToString
                         If jsonVerName.Length < 32 Then '因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
-                            _Version.VanillaName = jsonVerName
+                            _info.VanillaName = jsonVerName
                             Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" & jsonVerName)
                             GoTo VersionSearchFinish
                         End If
@@ -406,16 +406,16 @@ Public Module ModMinecraft
                     Static pattern = "(([1-9][0-9]w[0-9]{2}[a-g])|((1|[2-9][0-9])\.[0-9]+(\.[0-9]+)?(-(pre|rc|snapshot-?)[1-9]*| Pre-Release( [1-9])?)?))(_unobfuscated)?"
                     regex = RegexSeek(JsonObject("id"), pattern, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '非准确的版本判断警告
                     Log("[Minecraft] 无法完全确认 MC 版本号的版本：" & Name)
-                    _Version.Reliable = False
+                    _info.Reliable = False
                     '从文件夹名中获取
                     regex = RegexSeek(Name, pattern, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 JSON 出现的版本号中获取
@@ -424,43 +424,43 @@ Public Module ModMinecraft
                     Dim JsonRawText As String = JsonRaw.ToString
                     regex = RegexSeek(JsonRawText, pattern, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
-                        _Version.VanillaName = regex
+                        _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '无法获取
-                    _Version.VanillaName = "Unknown"
-                    Info = "PCL 无法识别该版本的 MC 版本号"
+                    _info.VanillaName = "Unknown"
+                    Desc = "PCL 无法识别该版本的 MC 版本号"
                 Catch ex As Exception
                     Log(ex, "识别 Minecraft 版本时出错")
-                    _Version.VanillaName = "Unknown"
-                    Info = "无法识别：" & ex.Message
+                    _info.VanillaName = "Unknown"
+                    Desc = "无法识别：" & ex.Message
                 End Try
 #End Region
 VersionSearchFinish:
-                _Version.VanillaName = _Version.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "")
+                _info.VanillaName = _info.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "")
                 '获取版本号
-                If _Version.VanillaName.StartsWithF("1.") Then
-                    Dim segments = _Version.VanillaName.Split(" _-.".ToCharArray)
-                    _Version.Vanilla = New Version(
+                If _info.VanillaName.StartsWithF("1.") Then
+                    Dim segments = _info.VanillaName.Split(" _-.".ToCharArray)
+                    _info.Vanilla = New Version(
                         Val(If(segments.Count >= 2, segments(1), "0")),
                         0,
                         Val(If(segments.Count >= 3, segments(2), "0")))
-                ElseIf RegexCheck(_Version.VanillaName, "^[2-9][0-9]\.") Then
-                    Dim segments = _Version.VanillaName.Split(" _-.".ToCharArray)
-                    _Version.Vanilla = New Version(
+                ElseIf RegexCheck(_info.VanillaName, "^[2-9][0-9]\.") Then
+                    Dim segments = _info.VanillaName.Split(" _-.".ToCharArray)
+                    _info.Vanilla = New Version(
                         Val(segments(0)),
                         Val(If(segments.Count >= 2, segments(1), "0")),
                         Val(If(segments.Count >= 3, segments(2), "0")))
                 Else
-                    _Version.Vanilla = New Version(9999, 0, 0)
+                    _info.Vanilla = New Version(9999, 0, 0)
                 End If
-                Return _Version
+                Return _info
             End Get
             Set(value As McInstanceInfo)
-                _Version = value
+                _info = value
             End Set
         End Property
-        Private _Version As McInstanceInfo = Nothing
+        Private _info As McInstanceInfo = Nothing
 
         ''' <summary>
         ''' 实例的发布时间。
@@ -636,8 +636,8 @@ Recheck:
                     '由于过老的 LiteLoader 中没有 Inherits（例如 1.5.2），需要手动判断以获取真实继承实例
                     '此外，由于这里的加载早于实例种类判断，所以需要手动判断是否为 LiteLoader
                     '如果实例提供了不同的 JAR，代表所需的 JAR 可能已被更改，则跳过 Inherit 替换
-                    If JsonText.Contains("liteloader") AndAlso Version.VanillaName <> Name AndAlso Not JsonText.Contains("logging") Then
-                        If If(JsonObject("jar"), Version.VanillaName).ToString = Version.VanillaName Then _inheritInstanceName = Version.VanillaName
+                    If JsonText.Contains("liteloader") AndAlso Info.VanillaName <> Name AndAlso Not JsonText.Contains("logging") Then
+                        If If(JsonObject("jar"), Info.VanillaName).ToString = Info.VanillaName Then _inheritInstanceName = Info.VanillaName
                     End If
                     'HMCL 实例无 JSON
                     If IsHmclFormatJson Then _inheritInstanceName = ""
@@ -663,7 +663,7 @@ Recheck:
             '检查文件夹
             If Not Directory.Exists(PathInstance) Then
                 State = McInstanceState.Error
-                Info = "未找到实例 " & Name
+                Desc = "未找到实例 " & Name
                 Return False
             End If
             '检查权限
@@ -672,7 +672,7 @@ Recheck:
                 CheckPermissionWithException(PathInstance & "PCL\")
             Catch ex As Exception
                 State = McInstanceState.Error
-                Info = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL"
+                Desc = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL"
                 Log(ex, "没有访问实例文件夹的权限")
                 Return False
             End Try
@@ -683,17 +683,17 @@ Recheck:
                 Log(ex, "实例 JSON 可用性检查失败（" & PathInstance & "）")
                 JsonText = ""
                 JsonObject = Nothing
-                Info = ex.Message
+                Desc = ex.Message
                 State = McInstanceState.Error
                 Return False
             End Try
             '检查版本号获取
             Try
-                If String.IsNullOrEmpty(Version.VanillaName) Then Throw New Exception("无法获取版本号，结果为空")
+                If String.IsNullOrEmpty(Info.VanillaName) Then Throw New Exception("无法获取版本号，结果为空")
             Catch ex As Exception
                 Log(ex, "版本号获取失败（" & Name & "）")
                 State = McInstanceState.Error
-                Info = "版本号获取失败：" & ex.ToString()
+                Desc = "版本号获取失败：" & ex.ToString()
                 Return False
             End Try
             '检查依赖实例
@@ -701,14 +701,14 @@ Recheck:
                 If Not InheritInstanceName = "" Then
                     If Not File.Exists(GetPathFromFullPath(PathInstance) & InheritInstanceName & "\" & InheritInstanceName & ".json") Then
                         State = McInstanceState.Error
-                        Info = "需要安装 " & InheritInstanceName & " 作为前置实例"
+                        Desc = "需要安装 " & InheritInstanceName & " 作为前置实例"
                         Return False
                     End If
                 End If
             Catch ex As Exception
                 Log(ex, "依赖实例检查出错（" & Name & "）")
                 State = McInstanceState.Error
-                Info = "未知错误：" & ex.ToString()
+                Desc = "未知错误：" & ex.ToString()
                 Return False
             End Try
 
@@ -723,7 +723,7 @@ Recheck:
                 '检查实例，若出错则跳过数据确定阶段
                 If Not Check() Then GoTo ExitDataLoad
 #Region "确定实例分类"
-                Select Case Version.VanillaName '在获取 Version.Original 对象时会完成它的加载
+                Select Case Info.VanillaName '在获取 Version.Original 对象时会完成它的加载
                     Case "Unknown"
                         State = McInstanceState.Error
                     Case "Old"
@@ -731,7 +731,7 @@ Recheck:
                     Case Else '根据 API 进行筛选
                         Dim realJson As String = If(JsonObject, JsonText).ToString
                         '愚人节与快照版本
-                        If If(JsonObject("type"), "").ToString = "fool" OrElse GetMcFoolName(Version.VanillaName) <> "" Then
+                        If If(JsonObject("type"), "").ToString = "fool" OrElse GetMcFoolName(Info.VanillaName) <> "" Then
                             State = McInstanceState.Fool
                         ElseIf IsSnapshot() Then
                             State = McInstanceState.Snapshot
@@ -739,47 +739,47 @@ Recheck:
                         'OptiFine
                         If realJson.Contains("optifine") Then
                             State = McInstanceState.OptiFine
-                            Version.HasOptiFine = True
-                            Version.OptiFine = If(RegexSeek(realJson, "(?<=HD_U_)[^"":/]+"), "未知版本")
+                            Info.HasOptiFine = True
+                            Info.OptiFine = If(RegexSeek(realJson, "(?<=HD_U_)[^"":/]+"), "未知版本")
                         End If
                         'LiteLoader
                         If realJson.Contains("liteloader") Then
                             State = McInstanceState.LiteLoader
-                            Version.HasLiteLoader = True
+                            Info.HasLiteLoader = True
                         End If
                         'Fabric、Forge、Quilt、LabyMod、Legacy Fabric
                         If realJson.Contains("labymod_data") Then
                             State = McInstanceState.LabyMod
-                            Version.HasLabyMod = True
-                            Version.LabyMod = JsonObject("labymod_data")("version")
+                            Info.HasLabyMod = True
+                            Info.LabyMod = JsonObject("labymod_data")("version")
                         ElseIf realJson.Contains("net.legacyfabric:intermediary") Then
                             State = McInstanceState.LegacyFabric
-                            Version.HasLegacyFabric = True
-                            Version.LegacyFabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
+                            Info.HasLegacyFabric = True
+                            Info.LegacyFabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("net.fabricmc:fabric-loader") Then
                             State = McInstanceState.Fabric
-                            Version.HasFabric = True
-                            Version.Fabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
+                            Info.HasFabric = True
+                            Info.Fabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("org.quiltmc:quilt-loader") Then
                             State = McInstanceState.Quilt
-                            Version.HasQuilt = True
-                            Version.Quilt = If(RegexSeek(realJson, "(?<=(org.quiltmc:quilt-loader:))[0-9\.]+(\+build.[0-9]+)?((-beta.)[0-9]([0-9]?))"), "未知版本").Replace("+build", "")
+                            Info.HasQuilt = True
+                            Info.Quilt = If(RegexSeek(realJson, "(?<=(org.quiltmc:quilt-loader:))[0-9\.]+(\+build.[0-9]+)?((-beta.)[0-9]([0-9]?))"), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("com.cleanroommc:cleanroom:") Then
                             State = McInstanceState.Cleanroom
-                            Version.HasCleanroom = True
-                            Version.Cleanroom = If(RegexSeek(realJson, "(?<=(com.cleanroommc:cleanroom:))[0-9\.]+(\+build.[0-9]+)?(-alpha)?"), "未知版本").Replace("+build", "")
+                            Info.HasCleanroom = True
+                            Info.Cleanroom = If(RegexSeek(realJson, "(?<=(com.cleanroommc:cleanroom:))[0-9\.]+(\+build.[0-9]+)?(-alpha)?"), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("minecraftforge") AndAlso Not realJson.Contains("net.neoforge") Then
                             State = McInstanceState.Forge
-                            Version.HasForge = True
-                            Version.Forge = RegexSeek(realJson, "(?<=forge:[0-9\.]+(_pre[0-9]*)?\-)[0-9\.]+")
-                            If Version.Forge Is Nothing Then Version.Forge = RegexSeek(realJson, "(?<=net\.minecraftforge:minecraftforge:)[0-9\.]+")
-                            If Version.Forge Is Nothing Then Version.Forge = If(RegexSeek(realJson, "(?<=net\.minecraftforge:fmlloader:[0-9\.]+-)[0-9\.]+"), "未知版本")
+                            Info.HasForge = True
+                            Info.Forge = RegexSeek(realJson, "(?<=forge:[0-9\.]+(_pre[0-9]*)?\-)[0-9\.]+")
+                            If Info.Forge Is Nothing Then Info.Forge = RegexSeek(realJson, "(?<=net\.minecraftforge:minecraftforge:)[0-9\.]+")
+                            If Info.Forge Is Nothing Then Info.Forge = If(RegexSeek(realJson, "(?<=net\.minecraftforge:fmlloader:[0-9\.]+-)[0-9\.]+"), "未知版本")
                         ElseIf realJson.Contains("net.neoforge") Then
                             '1.20.1 JSON 范例："--fml.forgeVersion", "47.1.99"
                             '1.20.2+ JSON 范例："--fml.neoForgeVersion", "20.6.119-beta"
                             State = McInstanceState.NeoForge
-                            Version.HasNeoForge = True
-                            Version.NeoForge = If(RegexSeek(realJson, "(?<=orgeVersion"",[^""]*?"")[^""]+(?="",)"), "未知版本")
+                            Info.HasNeoForge = True
+                            Info.NeoForge = If(RegexSeek(realJson, "(?<=orgeVersion"",[^""]*?"")[^""]+(?="",)"), "未知版本")
                         End If
                 End Select
 #End Region
@@ -820,10 +820,10 @@ ExitDataLoad:
                 End If
                 '确定实例描述
                 If State = McInstanceState.Error Then
-                    Info = Me.Info
+                    Desc = Me.Desc
                 Else
-                    Info = Config.Instance.CustomInfo(PathInstance)
-                    If Info = GetDefaultDescription() Then Info = ""
+                    Desc = Config.Instance.CustomInfo(PathInstance)
+                    If Desc = GetDefaultDescription() Then Desc = ""
                 End If
                 '确定实例收藏状态
                 IsStar = Config.Instance.Starred(PathInstance)
@@ -832,24 +832,24 @@ ExitDataLoad:
                 '写入缓存
                 If Directory.Exists(PathInstance) Then
                     Config.Instance.State(PathInstance) = State
-                    Config.Instance.Info(PathInstance) = Info
+                    Config.Instance.Info(PathInstance) = Desc
                     Config.Instance.LogoPath(PathInstance) = Logo
                 End If
                 If State <> McInstanceState.Error Then
                     Config.Instance.ReleaseTime(PathInstance) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
-                    Config.Instance.FabricVersion(PathInstance) = Version.Fabric
-                    Config.Instance.LegacyFabricVersion(PathInstance) = Version.LegacyFabric
-                    Config.Instance.QuiltVersion(PathInstance) = Version.Quilt
-                    Config.Instance.LabyModVersion(PathInstance) = Version.LabyMod
-                    Config.Instance.OptiFineVersion(PathInstance) = Version.OptiFine
-                    Config.Instance.HasLiteLoader(PathInstance) = Version.HasLiteLoader
-                    Config.Instance.ForgeVersion(PathInstance) = Version.Forge
-                    Config.Instance.NeoForgeVersion(PathInstance) = Version.NeoForge
-                    Config.Instance.CleanroomVersion(PathInstance) = Version.Cleanroom
-                    Config.Instance.VanillaVersionName(PathInstance) = Version.VanillaName
+                    Config.Instance.FabricVersion(PathInstance) = Info.Fabric
+                    Config.Instance.LegacyFabricVersion(PathInstance) = Info.LegacyFabric
+                    Config.Instance.QuiltVersion(PathInstance) = Info.Quilt
+                    Config.Instance.LabyModVersion(PathInstance) = Info.LabyMod
+                    Config.Instance.OptiFineVersion(PathInstance) = Info.OptiFine
+                    Config.Instance.HasLiteLoader(PathInstance) = Info.HasLiteLoader
+                    Config.Instance.ForgeVersion(PathInstance) = Info.Forge
+                    Config.Instance.NeoForgeVersion(PathInstance) = Info.NeoForge
+                    Config.Instance.CleanroomVersion(PathInstance) = Info.Cleanroom
+                    Config.Instance.VanillaVersionName(PathInstance) = Info.VanillaName
                 End If
             Catch ex As Exception
-                Info = "未知错误：" & ex.ToString()
+                Desc = "未知错误：" & ex.ToString()
                 Logo = PathImage & "Blocks/RedstoneBlock.png"
                 State = McInstanceState.Error
                 Log(ex, "加载实例失败（" & Name & "）", LogLevel.Feedback)
@@ -859,7 +859,7 @@ ExitDataLoad:
             Return Me
         End Function
         Private Function IsSnapshot() As Boolean
-            Return {"w", "snapshot", "rc", "pre", "experimental", "-"}.Any(Function(s) Version.VanillaName.ContainsF(s, True)) OrElse
+            Return {"w", "snapshot", "rc", "pre", "experimental", "-"}.Any(Function(s) Info.VanillaName.ContainsF(s, True)) OrElse
                    Name.ContainsF("combat", True) OrElse
                    If(JsonObject("type"), "").ToString = "snapshot" OrElse If(JsonObject("type"), "").ToString = "pending"
         End Function
@@ -869,38 +869,38 @@ ExitDataLoad:
         Public Function GetDefaultDescription() As String
             'Mod Loader 信息
             Dim ModLoaderInfo As String = ""
-            If Version.HasForge Then ModLoaderInfo += ", Forge" & If(Version.Forge = "未知版本", "", " " & Version.Forge)
-            If Version.HasNeoForge Then ModLoaderInfo += ", NeoForge" & If(Version.NeoForge = "未知版本", "", " " & Version.NeoForge)
-            If Version.HasCleanroom Then ModLoaderInfo += ", Cleanroom" & If(Version.Cleanroom = "未知版本", "", " " & Version.Cleanroom)
-            If Version.HasLabyMod Then ModLoaderInfo += ", LabyMod" & If(Version.LabyMod = "未知版本", "", " " & Version.LabyMod)
-            If Version.HasFabric Then ModLoaderInfo += ", Fabric" & If(Version.Fabric = "未知版本", "", " " & Version.Fabric)
-            If Version.HasQuilt Then ModLoaderInfo += ", Quilt" & If(Version.Quilt = "未知版本", "", " " & Version.Quilt)
-            If Version.HasLegacyFabric Then ModLoaderInfo += ", Legacy Fabric" & If(Version.LegacyFabric = "未知版本", "", " " & Version.LegacyFabric)
-            If Version.HasOptiFine Then ModLoaderInfo += ", OptiFine" & If(Version.OptiFine = "未知版本", "", " " & Version.OptiFine.Replace("-", " ").Replace("_", " "))
-            If Version.HasLiteLoader Then ModLoaderInfo += ", LiteLoader"
+            If Me.Info.HasForge Then ModLoaderInfo += ", Forge" & If(Me.Info.Forge = "未知版本", "", " " & Me.Info.Forge)
+            If Me.Info.HasNeoForge Then ModLoaderInfo += ", NeoForge" & If(Me.Info.NeoForge = "未知版本", "", " " & Me.Info.NeoForge)
+            If Me.Info.HasCleanroom Then ModLoaderInfo += ", Cleanroom" & If(Me.Info.Cleanroom = "未知版本", "", " " & Me.Info.Cleanroom)
+            If Me.Info.HasLabyMod Then ModLoaderInfo += ", LabyMod" & If(Me.Info.LabyMod = "未知版本", "", " " & Me.Info.LabyMod)
+            If Me.Info.HasFabric Then ModLoaderInfo += ", Fabric" & If(Me.Info.Fabric = "未知版本", "", " " & Me.Info.Fabric)
+            If Me.Info.HasQuilt Then ModLoaderInfo += ", Quilt" & If(Me.Info.Quilt = "未知版本", "", " " & Me.Info.Quilt)
+            If Me.Info.HasLegacyFabric Then ModLoaderInfo += ", Legacy Fabric" & If(Me.Info.LegacyFabric = "未知版本", "", " " & Me.Info.LegacyFabric)
+            If Me.Info.HasOptiFine Then ModLoaderInfo += ", OptiFine" & If(Me.Info.OptiFine = "未知版本", "", " " & Me.Info.OptiFine.Replace("-", " ").Replace("_", " "))
+            If Me.Info.HasLiteLoader Then ModLoaderInfo += ", LiteLoader"
 '基础信息
             Dim Info As String
             Select Case State
                 Case McInstanceState.Snapshot, McInstanceState.Original, McInstanceState.Forge, McInstanceState.NeoForge, McInstanceState.Fabric, McInstanceState.OptiFine, McInstanceState.LiteLoader
-                    If Version.VanillaName.ContainsF("pre", True) Then
-                        Info = "预发布版 " & Version.VanillaName
-                    ElseIf Version.VanillaName.ContainsF("rc", True) Then
-                        Info = "发布候选 " & Version.VanillaName
-                    ElseIf Version.VanillaName.Contains("experimental") Then
-                        Info = "实验性快照" & Version.VanillaName
-                    ElseIf Version.VanillaName = "pending" Then
+                    If Me.Info.VanillaName.ContainsF("pre", True) Then
+                        Info = "预发布版 " & Me.Info.VanillaName
+                    ElseIf Me.Info.VanillaName.ContainsF("rc", True) Then
+                        Info = "发布候选 " & Me.Info.VanillaName
+                    ElseIf Me.Info.VanillaName.Contains("experimental") Then
+                        Info = "实验性快照" & Me.Info.VanillaName
+                    ElseIf Me.Info.VanillaName = "pending" Then
                         Info = "实验性快照"
                     ElseIf IsSnapshot Then
-                        Info = If(Version.Reliable, "快照版 " & Version.VanillaName.Replace("-snapshot", ""), "快照版")
+                        Info = If(Me.Info.Reliable, "快照版 " & Me.Info.VanillaName.Replace("-snapshot", ""), "快照版")
                     Else
-                        Info = If(Version.Reliable, "正式版 " & Version.VanillaName, "正式版")
+                        Info = If(Me.Info.Reliable, "正式版 " & Me.Info.VanillaName, "正式版")
                     End If
                 Case McInstanceState.Old
                     Info = "远古版本"
                 Case McInstanceState.Fool
-                    Info = "愚人节版本 " & Version.VanillaName
+                    Info = "愚人节版本 " & Me.Info.VanillaName
                 Case McInstanceState.Error
-                    Return Me.Info '已有错误信息
+                    Return Me.Desc '已有错误信息
                 Case Else
                     Return "发生了未知错误，请向作者反馈此问题"
             End Select
@@ -1383,10 +1383,10 @@ OnLoaded:
                         '读取单个实例
                         Dim instance As New McInstance(versionFolder)
                         instanceList.Add(instance)
-                        instance.Info = Config.Instance.CustomInfo(instance.PathInstance)
+                        instance.Desc = Config.Instance.CustomInfo(instance.PathInstance)
 
                         Dim instanceCfg = Config.Instance
-                        If instance.Info = "" Then instance.Info = instanceCfg.Info(instance.PathInstance)
+                        If instance.Desc = "" Then instance.Desc = instanceCfg.Info(instance.PathInstance)
                         If Not instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance) Then _
                             instance.Logo = instanceCfg.LogoPath(instance.PathInstance)
                         If Not instanceCfg.ReleaseTimeConfig.IsDefault(instance.PathInstance) Then _
@@ -1417,19 +1417,19 @@ OnLoaded:
                             instanceInfo.HasNeoForge = instanceInfo.NeoForge.Any()
                             instanceInfo.HasCleanroom = instanceInfo.Cleanroom.Any()
                             instanceInfo.HasOptiFine = instanceInfo.OptiFine.Any()
-                            instance.Version = instanceInfo
+                            instance.Info = instanceInfo
                         End If
 
                         '重新检查错误实例
                         If instance.State = McInstanceState.Error Then
                             '重新获取实例错误信息
-                            Dim OldDesc As String = instance.Info
+                            Dim OldDesc As String = instance.Desc
                             instance.State = McInstanceState.Original
                             instance.Check()
                             '校验错误原因是否改变
                             Dim CustomInfo As String = Config.Instance.CustomInfo(instance.PathInstance)
-                            If instance.State = McInstanceState.Original OrElse (CustomInfo = "" AndAlso Not OldDesc = instance.Info) Then
-                                Log("[Minecraft] 实例 " & instance.Name & " 的错误状态已变更，新的状态为：" & instance.Info)
+                            If instance.State = McInstanceState.Original OrElse (CustomInfo = "" AndAlso Not OldDesc = instance.Desc) Then
+                                Log("[Minecraft] 实例 " & instance.Name & " 的错误状态已变更，新的状态为：" & instance.Desc)
                                 Return Nothing
                             End If
                         End If
@@ -1533,15 +1533,15 @@ OnLoaded:
             Dim newerInstance As New Dictionary(Of String, McInstance)
             Dim existDrops As New List(Of Integer)
             For Each instance As McInstance In InstanceList
-                If Not instance.Version.Valid Then Continue For
-                If Not existDrops.Contains(instance.Version.Drop) Then existDrops.Add(instance.Version.Drop)
-                Dim key As String = instance.Version.Drop & "-" & instance.State
+                If Not instance.Info.Valid Then Continue For
+                If Not existDrops.Contains(instance.Info.Drop) Then existDrops.Add(instance.Info.Drop)
+                Dim key As String = instance.Info.Drop & "-" & instance.State
                 If Not newerInstance.ContainsKey(key) Then
                     newerInstance.Add(key, instance)
                     Continue For
                 End If
-                If instance.Version.HasOptiFine Then
-                    If instance.Version.OptiFineCode > newerInstance(key).Version.OptiFineCode Then newerInstance(key) = instance 'OptiFine 根据版本号判断
+                If instance.Info.HasOptiFine Then
+                    If instance.Info.OptiFineCode > newerInstance(key).Info.OptiFineCode Then newerInstance(key) = instance 'OptiFine 根据版本号判断
                 Else
                     If instance.ReleaseTime > newerInstance(key).ReleaseTime Then newerInstance(key) = instance '原版根据发布时间判断
                 End If
@@ -1553,7 +1553,7 @@ OnLoaded:
                     '同时存在 OptiFine 与原版
                     Dim vanillaInstance As McInstance = newerInstance(drop & "-" & McInstanceState.Original)
                     Dim optiFineInstance As McInstance = newerInstance(drop & "-" & McInstanceState.OptiFine)
-                    If vanillaInstance.Version.Drop > optiFineInstance.Version.Drop Then
+                    If vanillaInstance.Info.Drop > optiFineInstance.Info.Drop Then
                         '仅在原版比 OptiFine 更新时才加入原版
                         instanceUseful.Add(vanillaInstance)
                         instanceList.Remove(vanillaInstance)
@@ -1605,8 +1605,8 @@ OnLoaded:
             If Not results.ContainsKey(CardType) Then Continue For
             Dim getComponentCode =
                     Function(instance As McInstance) As Integer
-                        If instance.Version.ForgelikeCode > 0 Then Return instance.Version.ForgelikeCode
-                        If instance.Version.HasOptiFine Then Return instance.Version.OptiFineCode
+                        If instance.Info.ForgelikeCode > 0 Then Return instance.Info.ForgelikeCode
+                        If instance.Info.HasOptiFine Then Return instance.Info.OptiFineCode
                         Return 0
                     End Function
             results(CardType) = SortUtils.Sort(results(cardType), Function(left As McInstance, right As McInstance)
@@ -1614,15 +1614,15 @@ OnLoaded:
                 If (left.ReleaseTime.Year >= 2000 OrElse right.ReleaseTime.Year >= 2000) AndAlso
                    left.ReleaseTime <> right.ReleaseTime Then Return left.ReleaseTime > right.ReleaseTime
                 '附加组件种类
-                If left.Version.HasFabric <> right.Version.HasFabric Then Return left.Version.HasFabric
-                If left.Version.HasQuilt <> right.Version.HasQuilt Then Return left.Version.HasQuilt
-                If left.Version.HasLegacyFabric <> right.Version.HasLegacyFabric Then Return left.Version.HasLegacyFabric
-                If left.Version.HasNeoForge <> right.Version.HasNeoForge Then Return left.Version.HasNeoForge
-                If left.Version.HasForge <> right.Version.HasForge Then Return left.Version.HasForge
-                If left.Version.HasCleanroom <> right.Version.HasCleanroom Then Return left.Version.HasCleanroom
-                If left.Version.HasLabyMod <> right.Version.HasLabyMod Then Return left.Version.HasLabyMod
-                If left.Version.HasOptiFine <> right.Version.HasOptiFine Then Return left.Version.HasOptiFine
-                If left.Version.HasLiteLoader <> right.Version.HasLiteLoader Then Return left.Version.HasLiteLoader
+                If left.Info.HasFabric <> right.Info.HasFabric Then Return left.Info.HasFabric
+                If left.Info.HasQuilt <> right.Info.HasQuilt Then Return left.Info.HasQuilt
+                If left.Info.HasLegacyFabric <> right.Info.HasLegacyFabric Then Return left.Info.HasLegacyFabric
+                If left.Info.HasNeoForge <> right.Info.HasNeoForge Then Return left.Info.HasNeoForge
+                If left.Info.HasForge <> right.Info.HasForge Then Return left.Info.HasForge
+                If left.Info.HasCleanroom <> right.Info.HasCleanroom Then Return left.Info.HasCleanroom
+                If left.Info.HasLabyMod <> right.Info.HasLabyMod Then Return left.Info.HasLabyMod
+                If left.Info.HasOptiFine <> right.Info.HasOptiFine Then Return left.Info.HasOptiFine
+                If left.Info.HasLiteLoader <> right.Info.HasLiteLoader Then Return left.Info.HasLiteLoader
                 '附加组件版本
                 If getComponentCode(left) <> getComponentCode(right) Then Return getComponentCode(left) > getComponentCode(right)
                 '名称
@@ -1946,7 +1946,7 @@ OnLoaded:
                 '根据 Inherit 获取最深层实例
                 Dim OriginalInstance As McInstance = Instance
                 '1.17+ 的 Forge 不寻找 Inherit
-                If Not ((Instance.Version.HasForge OrElse Instance.Version.HasNeoForge) AndAlso Instance.Version.Drop >= 170) Then
+                If Not ((Instance.Info.HasForge OrElse Instance.Info.HasNeoForge) AndAlso Instance.Info.Drop >= 170) Then
                     Do Until OriginalInstance.InheritInstanceName = ""
                         If OriginalInstance.InheritInstanceName = OriginalInstance.Name Then Exit Do
                         OriginalInstance = New McInstance(McFolderSelected & "versions\" & OriginalInstance.InheritInstanceName & "\")
@@ -2154,7 +2154,7 @@ OnLoaded:
         End If
 
         'LabyMod Assets 文件
-        If instance.Version.HasLabyMod Then
+        If instance.Info.HasLabyMod Then
             If instance.PathIndie = instance.PathInstance Then
                 If Directory.Exists(instance.PathInstance & "labymod-neo") Then Directory.Delete(instance.PathInstance & "labymod-neo", True)
                 CreateSymbolicLink(instance.PathInstance & "labymod-neo", McFolderSelected & "labymod-neo", &H2)

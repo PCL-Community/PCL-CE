@@ -1570,9 +1570,9 @@ Finished:
                         For Each File As FileInfo In EnumerateFiles(Loader.Input.CompPath)
                             Try
                                 If File.DirectoryName.ToLower & "\" <> RawName Then
-                                    If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Version.HasForge AndAlso
-                                            PageInstanceLeft.Instance.Version.Drop < 130 AndAlso
-                                            File.Directory.Name = PageInstanceLeft.Instance.Version.VanillaName) Then
+                                    If Not (PageInstanceLeft.Instance IsNot Nothing AndAlso PageInstanceLeft.Instance.Info.HasForge AndAlso
+                                            PageInstanceLeft.Instance.Info.Drop < 130 AndAlso
+                                            File.Directory.Name = PageInstanceLeft.Instance.Info.VanillaName) Then
                                         Continue For
                                     End If
                                 End If
@@ -1637,7 +1637,7 @@ Finished:
                 'End If
                 '读取 Comp 缓存
                 If ModEntry.State = LocalCompFile.LocalFileStatus.Unavailable Then Continue For
-                Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Version.VanillaName & Loader.Input.Loaders.Join("")
+                Dim CacheKey = ModEntry.ModrinthHash & Loader.Input.GameVersion.Info.VanillaName & Loader.Input.Loaders.Join("")
                 If Cache.ContainsKey(CacheKey) Then
                     ModEntry.FromJson(Cache(CacheKey))
                     '如果缓存中的信息在 6 小时以内更新过，则无需重新获取
@@ -1682,7 +1682,7 @@ Finished:
         '获取作为检查目标的加载器和版本
         '此处不应向下扩展检查的 MC 小版本，例如 Mod 在更新 1.16.5 后，对早期的 1.16.2 版本发布了修补补丁，这会导致 PCL 将 1.16.5 版本的 Mod 降级到 1.16.2
         Dim ModLoaders = Loader.Input.Loaders
-        Dim McInstance = Loader.Input.GameVersion.Version.VanillaName
+        Dim McInstance = Loader.Input.GameVersion.Info.VanillaName
         '开始网络获取
         Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McInstance}")
         Dim EndedThreadCount As Integer = 0, IsFailed As Boolean = False
@@ -1883,11 +1883,11 @@ Finished:
 
     Public Function GetCurrentVersionModLoader() As List(Of CompLoaderType)
         Dim ModLoaders As New List(Of CompLoaderType)
-        If PageInstanceLeft.Instance.Version.HasForge Then ModLoaders.Add(CompLoaderType.Forge)
-        If PageInstanceLeft.Instance.Version.HasNeoForge Then ModLoaders.Add(CompLoaderType.NeoForge)
-        If PageInstanceLeft.Instance.Version.HasFabric Then ModLoaders.Add(CompLoaderType.Fabric)
-        If PageInstanceLeft.Instance.Version.HasQuilt Then ModLoaders.AddRange({CompLoaderType.Fabric, CompLoaderType.Quilt})
-        If PageInstanceLeft.Instance.Version.HasLiteLoader Then ModLoaders.Add(CompLoaderType.LiteLoader)
+        If PageInstanceLeft.Instance.Info.HasForge Then ModLoaders.Add(CompLoaderType.Forge)
+        If PageInstanceLeft.Instance.Info.HasNeoForge Then ModLoaders.Add(CompLoaderType.NeoForge)
+        If PageInstanceLeft.Instance.Info.HasFabric Then ModLoaders.Add(CompLoaderType.Fabric)
+        If PageInstanceLeft.Instance.Info.HasQuilt Then ModLoaders.AddRange({CompLoaderType.Fabric, CompLoaderType.Quilt})
+        If PageInstanceLeft.Instance.Info.HasLiteLoader Then ModLoaders.Add(CompLoaderType.LiteLoader)
         If Not ModLoaders.Any() Then ModLoaders.AddRange({CompLoaderType.Forge, CompLoaderType.NeoForge, CompLoaderType.Fabric, CompLoaderType.LiteLoader, CompLoaderType.Quilt})
         Return ModLoaders
     End Function

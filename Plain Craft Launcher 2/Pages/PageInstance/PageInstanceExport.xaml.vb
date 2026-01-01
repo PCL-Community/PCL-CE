@@ -28,7 +28,7 @@ Public Class PageInstanceExport
     End Sub
     Public Sub RefreshAll() Implements IRefreshable.Refresh
         Log($"[Export] 刷新导出页面")
-        HintOptiFine.Visibility = If(PageInstanceLeft.Instance.Version.HasOptiFine, Visibility.Visible, Visibility.Collapsed)
+        HintOptiFine.Visibility = If(PageInstanceLeft.Instance.Info.HasOptiFine, Visibility.Visible, Visibility.Collapsed)
         CurrentVersion = PageInstanceLeft.Instance.PathInstance
         TextExportName.Text = ""
         TextExportName.HintText = PageInstanceLeft.Instance.Name
@@ -119,9 +119,9 @@ Public Class PageInstanceExport
         Dim IsVisible =
         Function(TargetOption As ExportOption) As Boolean
             '检查需要 OptiFine 或 Mod 加载器
-            If TargetOption.RequireOptiFine AndAlso Not PageInstanceLeft.Instance.Version.HasOptiFine Then Return False
+            If TargetOption.RequireOptiFine AndAlso Not PageInstanceLeft.Instance.Info.HasOptiFine Then Return False
             If TargetOption.RequireModLoader AndAlso Not PageInstanceLeft.Instance.Modable Then Return False
-            If TargetOption.RequireModLoaderOrOptiFine AndAlso Not PageInstanceLeft.Instance.Version.HasOptiFine AndAlso Not PageInstanceLeft.Instance.Modable Then Return False
+            If TargetOption.RequireModLoaderOrOptiFine AndAlso Not PageInstanceLeft.Instance.Info.HasOptiFine AndAlso Not PageInstanceLeft.Instance.Modable Then Return False
             '粗略检查是否可能有符合规则的文件/文件夹
             Return StandardizeLines(If(TargetOption.Rules, TargetOption.ShowRules).Split("|"c), True).Any(
             Function(Rule As String)
@@ -731,16 +731,16 @@ Public Class PageInstanceExport
             Next
             Loader.Progress = 0.2
             '导出最终 JSON 文件
-            Dim Dependencies As New JObject From {{"minecraft", McInstance.Version.VanillaName}}
-            If McInstance.Version.HasForge Then Dependencies.Add("forge", McInstance.Version.Forge)
-            If McInstance.Version.HasFabric Then Dependencies.Add("fabric-loader", McInstance.Version.Fabric)
-            If McInstance.Version.HasNeoForge Then Dependencies.Add("neoforge", McInstance.Version.NeoForge)
+            Dim Dependencies As New JObject From {{"minecraft", McInstance.Info.VanillaName}}
+            If McInstance.Info.HasForge Then Dependencies.Add("forge", McInstance.Info.Forge)
+            If McInstance.Info.HasFabric Then Dependencies.Add("fabric-loader", McInstance.Info.Fabric)
+            If McInstance.Info.HasNeoForge Then Dependencies.Add("neoforge", McInstance.Info.NeoForge)
             Dim ResultJson As New JObject From {
                 {"game", "minecraft"},
                 {"formatVersion", 1},
                 {"versionId", PackVersion},
                 {"name", PackName},
-                {"summary", McInstance.Info},
+                {"summary", McInstance.Desc},
                 {"files", Files},
                 {"dependencies", Dependencies}
             }
