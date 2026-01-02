@@ -164,7 +164,7 @@ Public Class MyImage
             ElseIf EnableCache Then
                 '保存缓存并显示
                 If File.Exists(TempPath) Then File.Delete(TempPath)
-                FileSystem.Rename(TempDownloadingPath, TempPath)
+                File.Move(TempDownloadingPath, TempPath, True)
                 ActualSource = TempPath
             Else
                 '直接显示

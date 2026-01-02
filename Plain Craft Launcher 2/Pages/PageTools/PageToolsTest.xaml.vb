@@ -10,7 +10,7 @@ Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
 
-Public Class PageOtherTest
+Public Class PageToolsTest
     Public Sub New()
         InitializeComponent()
         AddHandler BtnSelectSkin.Click, AddressOf BtnSelectSkin_Click
@@ -132,8 +132,8 @@ Public Class PageOtherTest
     Public Shared Sub RubbishClear()
         RunInUi(
             Sub()
-                If Not IsNothing(FrmOtherTest) AndAlso Not IsNothing(FrmOtherTest.BtnClear) Then
-                    FrmOtherTest.BtnClear.IsEnabled = False
+                If Not IsNothing(FrmToolsTest) AndAlso Not IsNothing(FrmToolsTest.BtnClear) Then
+                    FrmToolsTest.BtnClear.IsEnabled = False
                 End If
             End Sub)
         RunInNewThread(
@@ -219,8 +219,8 @@ Public Class PageOtherTest
                 Finally
                     RunInUiWait(
                         Sub()
-                            If Not IsNothing(FrmOtherTest) AndAlso Not IsNothing(FrmOtherTest.BtnClear) Then
-                                FrmOtherTest.BtnClear.IsEnabled = True
+                            If Not IsNothing(FrmToolsTest) AndAlso Not IsNothing(FrmToolsTest.BtnClear) Then
+                                FrmToolsTest.BtnClear.IsEnabled = True
                             End If
                         End Sub)
                 End Try

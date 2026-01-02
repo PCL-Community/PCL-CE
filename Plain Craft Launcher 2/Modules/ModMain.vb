@@ -485,12 +485,11 @@ EndHint:
     Public FrmSpeedLeft As PageSpeedLeft
     Public FrmSpeedRight As PageSpeedRight
 
-    '联机页面声明
-    Public FrmLinkLeft As PageLinkLeft
-    Public FrmLinkLobby As PageLinkLobby
-    Public FrmSetupLink As PageLinkSetup
-    Public FrmLinkHelp As PageLinkQA
-    Public FrmLinkFeedback As PageLinkFeedback
+    '工具页面声明
+    Public FrmToolsLeft As PageToolsLeft
+    Public FrmToolsGameLink As PageToolsGameLink
+    Public FrmToolsHelp As PageToolsHelp
+    Public FrmToolsTest As PageToolsTest
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft
@@ -520,15 +519,11 @@ EndHint:
     Public FrmSetupSystem As PageSetupSystem
     Public FrmSetupUpdate As PageSetupUpdate
     Public FrmSetupJava As PageSetupJava
-    Public FrmHomePageMarket As PageHomePageMarket
-
-    '其他页面声明
-    Public FrmOtherLeft As PageOtherLeft
-    Public FrmOtherHelp As PageOtherHelp
-    Public FrmOtherAbout As PageOtherAbout
-    Public FrmOtherTest As PageOtherTest
-    Public FrmOtherFeedback As PageOtherFeedback
-    Public FrmOtherLog As PageOtherLog
+    Public FrmHomePageMarket As PageHomepageMarket
+    Public FrmSetupAbout As PageSetupAbout
+    Public FrmSetupLog As PageSetupLog
+    Public FrmSetupFeedback As PageSetupFeedback
+    Public FrmSetupGameLink As PageSetupGameLink
 
     '登录页面声明
     Public FrmLoginAuth As PageLoginAuth
@@ -694,7 +689,7 @@ EndHint:
                 .EventData = Nothing
             End With
             '项目的点击事件
-            AddHandler Item.Click, Sub(sender, e) PageOtherHelp.OnItemClick(sender.Tag)
+            AddHandler Item.Click, Sub(sender, e) PageToolsHelp.OnItemClick(sender.Tag)
             Return Item
         End Function
 
@@ -794,8 +789,8 @@ NextFile:
     ''' </summary>
     Public Function HelpArgumentReplace(Xaml As String) As String
         Dim Result = Xaml.Replace("{path}", EscapeXML(ExePath))
-        Result = Result.RegexReplaceEach("\{hint\}", Function() EscapeXML(PageOtherTest.GetRandomHint()))
-        Result = Result.RegexReplaceEach("\{cave\}", Function() EscapeXML(PageOtherTest.GetRandomCave()))
+        Result = Result.RegexReplaceEach("\{hint\}", Function() EscapeXML(PageToolsTest.GetRandomHint()))
+        Result = Result.RegexReplaceEach("\{cave\}", Function() EscapeXML(PageToolsTest.GetRandomCave()))
         Return Result
     End Function
 

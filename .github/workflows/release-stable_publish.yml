@@ -36,7 +36,7 @@ jobs:
         uses: taiki-e/install-action@git-cliff
 
       - name: Generate changelog
-        run: git-cliff
+        run: git-cliff --latest
 
       - name: Add changelog to release
         uses: softprops/action-gh-release@v2.2.2

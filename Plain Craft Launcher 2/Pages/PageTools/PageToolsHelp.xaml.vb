@@ -1,4 +1,4 @@
-﻿Public Class PageOtherHelp
+﻿Public Class PageToolsHelp
     Implements IRefreshable
 
 #Region "初始化"
@@ -184,6 +184,6 @@
     End Sub
 
     Public Sub Refresh() Implements IRefreshable.Refresh
-        PageOtherLeft.RefreshHelp()
+        FrmToolsLeft.RefreshHelp()
     End Sub
 End Class

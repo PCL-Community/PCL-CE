@@ -26,7 +26,7 @@ Public Module ModModpack
     ''' 必须在工作线程执行。
     ''' </summary>
     ''' <exception cref="CancelledException" />
-    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
+    Public Function ModpackInstall(File As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing, Optional isOnlineInstall As Boolean = False) As LoaderCombo(Of String)
         Log("[ModPack] 整合包安装请求：" & If(File, "null"))
         Dim Archive As ZipArchive = Nothing
         Dim ArchiveBaseFolder As String = ""
@@ -87,7 +87,7 @@ Public Module ModModpack
             Select Case PackType
                 Case 0
                     Log("[ModPack] 整合包种类：CurseForge")
-                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
+                    Return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId, isOnlineInstall)
                 Case 1
                     Log("[ModPack] 整合包种类：HMCL")
                     Return InstallPackHMCL(File, Archive, ArchiveBaseFolder)
@@ -99,7 +99,7 @@ Public Module ModModpack
                     Return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName)
                 Case 4
                     Log("[ModPack] 整合包种类：Modrinth")
-                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId)
+                    Return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId, isOnlineInstall)
                 Case 9
                     Log("[ModPack] 整合包种类：带启动器的压缩包")
                     Return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder)
@@ -171,7 +171,7 @@ Retry:
 
 #Region "CurseForge"
     Private Function InstallPackCurseForge(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String,
-                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
+                                           Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing, Optional isOnlineInstall As Boolean = False) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -388,13 +388,13 @@ Retry:
         Loader.Start(Request.TargetInstanceFolder)
         LoaderTaskbarAdd(Loader)
         FrmMain.BtnExtraDownload.ShowRefresh()
-        RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.TaskManager))
+        If Not isOnlineInstall Then RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.TaskManager))
         Return Loader
     End Function
 #End Region
 
 #Region "Modrinth"
-    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing) As LoaderCombo(Of String)
+    Private Function InstallPackModrinth(FileAddress As String, Archive As Compression.ZipArchive, ArchiveBaseFolder As String, Optional InstanceName As String = Nothing, Optional Logo As String = Nothing, Optional resourceId As String = Nothing, Optional isOnlineInstall As Boolean = False) As LoaderCombo(Of String)
 
         '读取 Json 文件
         Dim Json As JObject
@@ -547,7 +547,7 @@ Retry:
         Loader.Start(Request.TargetInstanceFolder)
         LoaderTaskbarAdd(Loader)
         FrmMain.BtnExtraDownload.ShowRefresh()
-        RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.TaskManager))
+        If Not isOnlineInstall Then RunInUi(Sub() FrmMain.PageChange(FormMain.PageType.TaskManager))
         Return Loader
     End Function
 #End Region
