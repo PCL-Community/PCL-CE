@@ -695,7 +695,7 @@ Public Class PageOtherTest
         ' 构建 JSON 对象
         Dim jsonObj As New Dictionary(Of String, Object) From {
             {"i", 0},
-            {"id", iconId},    ' 保留 id 字段，与用户要求一致（部分生成器可能使用 id）
+            {"id", iconId},
             {"f", font},
             {"tc", titleColor},
             {"t", title},
@@ -723,7 +723,6 @@ Public Class PageOtherTest
 
         ' 返回 Base64 字符串
         Return $"http://mc.whitegem.net/image/{finalBase64}.png"
-
     End Function
 
     Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)
