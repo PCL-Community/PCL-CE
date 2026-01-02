@@ -190,10 +190,10 @@ Public Module ModMinecraft
         Get
             Return _mcInstanceSelected
         End Get
-        Set(value As McInstance)
-            Static mcInstanceSelectedLast = 0 '为 0 以保证与 Nothing 不相同，使得 UI 显示可以正常初始化
+        Set
+            Static mcInstanceSelectedLast As Object = 0 '为 0 以保证与 Nothing 不相同，使得 UI 显示可以正常初始化
             If ReferenceEquals(mcInstanceSelectedLast, value) Then Return
-            _McInstanceSelected = value '由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
+            _mcInstanceSelected = value '由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
             mcInstanceSelectedLast = value
             If value Is Nothing Then Return
             '重置缓存的 Mod 文件夹
