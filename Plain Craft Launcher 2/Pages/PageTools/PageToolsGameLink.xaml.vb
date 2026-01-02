@@ -447,7 +447,7 @@ Public Class PageToolsGameLink
                                    Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
                                    Exit Sub
                                Else
-                                   GetNaidData(Config.Link.NaidRefreshToken, True)
+                                   GetNaidDataAsync(Config.Link.NaidRefreshToken, True).GetAwaiter().GetResult()
                                End If
                                While String.IsNullOrWhiteSpace(NaidProfile.Username)
                                    Thread.Sleep(1000)
