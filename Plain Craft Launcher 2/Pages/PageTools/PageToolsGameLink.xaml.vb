@@ -516,6 +516,8 @@ Public Class PageToolsGameLink
             Log(ex, "[Link] 获取网络测试结果失败", LogLevel.Hint)
             BtnNatTest.IsEnabled = True
             LabNatType.Text = "测试失败"
+        Finally
+            BtnNatTest.IsEnabled = True
         End Try
     End Sub
 
