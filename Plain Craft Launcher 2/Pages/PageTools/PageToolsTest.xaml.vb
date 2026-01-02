@@ -46,11 +46,11 @@ Public Class PageToolsTest
 
         BtnDownloadOpen.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult)
 
-        BtnAchievementPreview.IsEnabled = (String.IsNullOrWhiteSpace(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
+        BtnAchievementPreview.IsEnabled = (String.IsNullOrWhiteSpace(AchievementBlockTextBox.ValidateResult) OrElse AchievementBlockComboBox.SelectedItem.Tag) AndAlso
                                      String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                      String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
 
-        BtnAchievementSave.IsEnabled = (String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
+        BtnAchievementSave.IsEnabled = (String.IsNullOrWhiteSpace(AchievementBlockTextBox.ValidateResult) OrElse AchievementBlockComboBox.SelectedItem.Tag) AndAlso
                                           String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                           String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
     End Sub
