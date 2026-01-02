@@ -18,12 +18,12 @@
     ''' <summary>
     ''' 当前页面的编号。
     ''' </summary>
-    Public PageID As FormMain.PageSubType = FormMain.PageSubType.ToolsLauncherHelp
+    Public PageID As FormMain.PageSubType = FormMain.PageSubType.ToolsGameLink
 
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemGameLink.Check, ItemLinkHelp.Check, ItemLauncherHelp.Check, ItemTest.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemGameLink.Check, ItemLauncherHelp.Check, ItemTest.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -38,9 +38,6 @@
             Case FormMain.PageSubType.SetupGameLink
                 If FrmSetupGameLink Is Nothing Then FrmSetupGameLink = New PageSetupGameLink
                 Return FrmSetupGameLink
-            Case FormMain.PageSubType.ToolsLinkHelp
-                If FrmLinkHelp Is Nothing Then FrmLinkHelp = New PageLinkQA
-                Return FrmLinkHelp
             Case FormMain.PageSubType.ToolsTest
                 If FrmToolsTest Is Nothing Then FrmToolsTest = New PageToolsTest
                 Return FrmToolsTest

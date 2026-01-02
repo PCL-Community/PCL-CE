@@ -32,28 +32,6 @@ Class PageSetupGameLink
         CheckTryPunchSym.Checked = Config.Link.TryPunchSym
         CheckEnableIPv6.Checked = Config.Link.EnableIPv6
         CheckEnableCliOutput.Checked = Config.Link.EnableCliOutput
-        If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
-            CardLogged.Visibility = Visibility.Collapsed
-            CardNotLogged.Visibility = Visibility.Visible
-        Else
-            CardLogged.Visibility = Visibility.Visible
-            CardNotLogged.Visibility = Visibility.Collapsed
-            TextUsername.Text = "正在从 Natayark Network 获取账号信息..."
-            TextStatus.Text = ""
-            If IsFirstLoad Then
-                ReloadNaidData()
-                IsFirstLoad = False
-            Else
-                TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
-                TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")} / {If(NaidProfile.IsRealNamed, "已完成实名验证", "尚未进行实名验证")}"
-            End If
-        End If
-
-        If Not Config.Link.LinkEula Then
-            CardEulaStop.Visibility = Visibility.Collapsed
-            CardLogged.Visibility = Visibility.Collapsed
-            CardNotLogged.Visibility = Visibility.Collapsed
-        End If
 
         '        TextRelays.Text = "正在获取信息..."
         '        Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
@@ -77,35 +55,8 @@ Class PageSetupGameLink
         '            TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
         '        End If
     End Sub
-    Private Sub ReloadNaidData()
-        RunInNewThread(Sub()
-                           Try
-                               If Convert.ToDateTime(Config.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
-                                   Setup.Set("LinkNaidRefreshToken", "")
-                                   Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
-                                   Exit Sub
-                               Else
-                                   GetNaidData(Config.Link.NaidRefreshToken, True)
-                               End If
-                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
-                                   Thread.Sleep(1000)
-                               End While
-                               RunInUi(Sub()
-                                           TextUsername.Text = $"已以 {NaidProfile.Username} 的身份登录至 Natayark Network"
-                                           TextStatus.Text = $"账号状态：{If(NaidProfile.Status = 0, "正常", "异常")}{If(NaidProfile.IsRealNamed, " / 已完成实名验证", If(RequiresRealName, " / 未完成实名验证", Nothing))}"
-                                           CardLogged.Visibility = Visibility.Visible
-                                           CardNotLogged.Visibility = Visibility.Collapsed
-                                       End Sub)
-                           Catch ex As Exception
-                               Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
-                               RunInUi(Sub()
-                                           CardLogged.Visibility = Visibility.Collapsed
-                                           CardNotLogged.Visibility = Visibility.Visible
-                                       End Sub)
-                           End Try
-                       End Sub)
-    End Sub
-    Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogin.Click
+
+    Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs)
         If FrmToolsGameLink Is Nothing Then FrmToolsGameLink = New PageToolsGameLink
         If Not (PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Failed) Then
             Hint("正在拉取大厅公告，请稍后再试...")
@@ -124,7 +75,7 @@ Class PageSetupGameLink
             StartNaidAuthorize()
         End If
     End Sub
-    Private Sub BtnCancel_Click(sender As Object, e As RoutedEventArgs) Handles BtnCancel.Click
+    Private Sub BtnCancel_Click(sender As Object, e As RoutedEventArgs)
         BtnLogin.Visibility = Visibility.Visible
         BtnRegister.Visibility = Visibility.Visible
         BtnCancel.Visibility = Visibility.Collapsed
@@ -132,7 +83,7 @@ Class PageSetupGameLink
         DisposeWebServer("oauth/NatayarkID")
         Hint("已取消登录！")
     End Sub
-    Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs) Handles BtnLogout.Click
+    Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs)
         If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
             Config.Link.NaidRefreshTokenConfig.Reset()
             BtnLogin.Visibility = Visibility.Visible
@@ -142,15 +93,6 @@ Class PageSetupGameLink
             Reload()
             Log("[Link] 已退出登录 Natayark Network")
             Hint("已退出登录！", HintType.Finish, False)
-        End If
-    End Sub
-    Private Sub BtnQuit_Click(sender As Object, e As RoutedEventArgs) Handles BtnQuit.Click
-        If MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn:=True) = 1 Then
-            Config.Link.NaidRefreshTokenConfig.Reset()
-            Config.Link.LinkEulaConfig.Reset()
-            FrmToolsGameLink = Nothing
-            Hint("联机功能已停用！")
-            Reload()
         End If
     End Sub
     '初始化

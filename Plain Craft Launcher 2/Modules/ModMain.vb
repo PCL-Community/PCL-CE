@@ -488,7 +488,6 @@ EndHint:
     '工具页面声明
     Public FrmToolsLeft As PageToolsLeft
     Public FrmToolsGameLink As PageToolsGameLink
-    Public FrmLinkHelp As PageLinkQA
     Public FrmToolsHelp As PageToolsHelp
     Public FrmToolsTest As PageToolsTest
 

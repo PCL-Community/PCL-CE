@@ -6,51 +6,6 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="15,10">
-            <local:MyCard Margin="10" Title="Natayark ID" x:Name="CardLogged">
-                <StackPanel Margin="25,40,25,20" Orientation="Vertical">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition Width="1*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="10" />
-                            <RowDefinition Height="30" />
-                        </Grid.RowDefinitions>
-                        <TextBlock x:Name="TextUsername" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                               Text="已以 玩家 的身份登录至 Natayark Network" />
-                        <local:MyButton x:Name="BtnLogout" Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                                    Width="100" ColorType="Highlight" Text="退出登录"/>
-                        <local:MyButton x:Name="BtnManage" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                        Width="100" ColorType="Normal" Text="账号管理" EventType="打开网页" EventData="https://account.naids.com/dashboard"/>
-                        <TextBlock x:Name="TextStatus" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                        Text="账号状态：正常 / 已完成实名验证" />
-                    </Grid>
-                </StackPanel>
-            </local:MyCard>
-            <local:MyCard Margin="10" Title="Natayark ID" x:Name="CardNotLogged">
-                <StackPanel Margin="25,40,25,20" Orientation="Vertical">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="100" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30" />
-                        </Grid.RowDefinitions>
-                        <TextBlock x:Name="TextLogin" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="登录 Natayark ID 或在下方填写用户名以使用大厅" />
-                        <local:MyButton x:Name="BtnLogin" Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                        Width="100" ColorType="Highlight" Text="登录"/>
-                        <local:MyButton x:Name="BtnRegister" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" 
-                        Width="100" ColorType="Normal" Text="注册" EventType="打开网页" EventData="https://account.naids.com/register"/>
-                        <local:MyButton x:Name="BtnCancel" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="100" ColorType="Normal" Text="取消登录" Visibility="Collapsed"/>
-                    </Grid>
-                </StackPanel>
-            </local:MyCard>
             <local:MyCard Margin="10" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <local:MyHint Text="修改此处的设置后，需要重新启动大厅以使设置生效。" Theme="Yellow" Margin="0,0,0,10"/>
@@ -134,22 +89,6 @@
                         <TextBlock x:Name="TextTcpNatType" Text="TCP NAT 类型: 尚未检测" Grid.Row="1" />
                         <TextBlock x:Name="TextIpv6Status" Text="IPv6: 尚未检测" Grid.Row="2" />
                         <local:MyButton x:Name="BtnNetTest" Text="开始测试" Grid.Row="4" ColorType="Highlight" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-                    </Grid>
-                </StackPanel>
-            </local:MyCard>
-            <local:MyCard Margin="10" Title="停止使用" x:Name="CardEulaStop" Grid.Column="2">
-                <StackPanel Margin="25,40,25,15" Orientation="Vertical">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="10"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="若要撤回协议授权并停止使用 PCL CE 联机大厅，请点击下面的按钮。&#xa;PCL CE 将会从 Natayark Network 登出，并关闭联机功能。&#xa;&#xa;需要注意，Natayark ID 注销需要前往其用户中心操作。" Grid.Row="0" VerticalAlignment="Stretch" HorizontalAlignment="Left" TextWrapping="Wrap"/>
-                        <local:MyButton x:Name="BtnQuit" Text="撤回授权并停止使用" Grid.Row="2" Width="180" Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" ColorType="Red"/>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
