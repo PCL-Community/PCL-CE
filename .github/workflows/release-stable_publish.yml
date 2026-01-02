@@ -78,7 +78,7 @@ jobs:
           gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
       - name: Upload binary and signature to Release
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe

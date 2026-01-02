@@ -39,7 +39,7 @@ jobs:
         run: git-cliff --latest
 
       - name: Add changelog to release
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           tag_name: ${{ github.event.release.tag_name }}
           body_path: CHANGELOG.md
