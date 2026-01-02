@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.App
+Imports PCL.Core.App.Updates
 Imports PCL.Core.Utils
 
 Public Class PageSetupUpdate
@@ -114,7 +115,7 @@ Public Class PageSetupUpdate
             Return
         End If
         If IsUpdateWaitingRestart Then
-            UpdateRestart(True, True)
+            UpdateHelper.Restart(True)
         End If
         '开始更新流程
         UpdateStart(UpdateType.UpdateNow)
