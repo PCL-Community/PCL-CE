@@ -639,7 +639,7 @@ Public Class PageOtherTest
                 File.WriteAllBytes(savePath, imageBytes)
 
                 Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
-                If (path = "") Then
+                If path = "" Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
                     Return
