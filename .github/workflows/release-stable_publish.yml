@@ -1,5 +1,8 @@
 name: Publish (Release)
 
+permissions:
+  contents: read
+
 on:
   release:
     types: [published]
@@ -23,6 +26,8 @@ jobs:
     secrets: inherit
 
   changelog:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ !github.event.release.prerelease }}
@@ -31,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Install git-cliff
         uses: taiki-e/install-action@git-cliff
 
@@ -47,6 +52,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rename_and_release:
+    permissions:
+      contents: write
+      actions: write
     needs: [build, changelog]
     runs-on: ubuntu-latest
     strategy:
