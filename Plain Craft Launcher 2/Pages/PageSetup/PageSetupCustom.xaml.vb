@@ -135,8 +135,9 @@ Public Class PageSetupCustom
         Dim url As String = "https://github.com/Ignis-Studio/HomepageList/raw/main/homepages.json"
 
         Dim httpClient = NetworkService.GetClient()
-        ' 获取字节数组而不是字符串
-        Dim responseBytes() As Byte = Await httpClient.GetByteArrayAsync(url)
+        Try
+            ' 获取字节数组而不是字符串
+            Dim responseBytes() As Byte = Await httpClient.GetByteArrayAsync(url)
 
             ' 使用 GBK 编码解码
             Dim gbkEncoding As Encoding = Encoding.GetEncoding("GBK")
@@ -145,31 +146,34 @@ Public Class PageSetupCustom
             Dim homepages As JObject = jsonObj("homepages")
 
 
-        Dispatcher.Invoke(Sub()
-                              HomepagesPan.Children.Clear()
-                              Dim index As Integer = 1
+            RunInUi(Sub()
+                        HomepagesPan.Children.Clear()
+                        Dim index As Integer = 1
 
-                              For Each homepage As JProperty In homepages.Properties()
-                                  Dim item As JObject = homepage.Value
-                                  Dim isPreset As Boolean = item("preset").ToObject(Of Boolean)()
-                                  ' 设置图标（直接使用固定路径）
-                                  Dim listItem As New MyListItem With {
-                                          .Margin = New Thickness(10, 8, 10, 8),
-                                          .ToolTip = "预设主页",
-                                          .Title = item("alias").ToString(),
-                                          .Info = item("desc").ToString(),
-                                          .Type = MyListItem.CheckType.Clickable,
-                                          .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png",
-                                          .Tag = item("link")
-                                      }
+                        For Each homepage As JProperty In homepages.Properties()
+                            Dim item As JObject = homepage.Value
+                            Dim isPreset As Boolean = item("preset").ToObject(Of Boolean)()
+                            ' 设置图标（直接使用固定路径）
+                            Dim listItem As New MyListItem With {
+                                              .Margin = New Thickness(10, 8, 10, 8),
+                                              .ToolTip = "预设主页",
+                                              .Title = item("alias").ToString(),
+                                              .Info = item("desc").ToString(),
+                                              .Type = MyListItem.CheckType.Clickable,
+                                              .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png",
+                                              .Tag = item("link")
+                                          }
 
-                                  ' 添加点击事件处理
-                                  AddHandler listItem.Click, AddressOf PresetSelectedFromCard
+                            ' 添加点击事件处理
+                            AddHandler listItem.Click, AddressOf PresetSelectedFromCard
 
-                                  HomepagesPan.Children.Add(listItem)
-                                  index += 1
-                              Next
-                          End Sub)
+                            HomepagesPan.Children.Add(listItem)
+                            index += 1
+                        Next
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "加载联网主页列表失败", LogLevel.Debug)
+        End Try
     End Sub
 
 End Class
