@@ -7,8 +7,9 @@ Public Class PageSetupLeft
         Dim IsHiddenPage As Boolean = False
         If ItemLaunch.Checked AndAlso Setup.Get("UiHiddenSetupLaunch") Then IsHiddenPage = True
         If ItemUI.Checked AndAlso Setup.Get("UiHiddenSetupUi") Then IsHiddenPage = True
-        If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
+        If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupCustom") Then IsHiddenPage = True
         If ItemAbout.Checked AndAlso Setup.Get("UiHiddenOtherAbout") Then IsHiddenPage = True
+        If ItemCustom.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
         If IsLoad AndAlso Not IsHiddenPage Then Return
@@ -23,6 +24,8 @@ Public Class PageSetupLeft
             ItemUI.SetChecked(True, False, False)
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             ItemSystem.SetChecked(True, False, False)
+        ElseIf Not Setup.Get("UiHiddenSetupCustom") Then
+            ItemCustom.SetChecked(True, False, False)
         ElseIf Not Setup.Get("UiHiddenOtherAbout") Then
             ItemAbout.SetChecked(True, False, False)
         Else
@@ -48,6 +51,8 @@ Public Class PageSetupLeft
             PageID = FormMain.PageSubType.SetupUI
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             PageID = FormMain.PageSubType.SetupSystem
+        ElseIf Not Setup.Get("UiHiddenSetupCustom") Then
+            PageID = FormMain.PageSubType.SetupCustom
         ElseIf Not Setup.Get("UiHiddenSetupUpdate") Then
             PageID = FormMain.PageSubType.SetupUpdate
         Else
@@ -58,7 +63,7 @@ Public Class PageSetupLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check, ItemGameLink.Check, ItemUpdate.Check
+    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemCustom.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check, ItemGameLink.Check, ItemUpdate.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -79,6 +84,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupSystem
                 If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
                 Return FrmSetupSystem
+            Case FormMain.PageSubType.SetupCustom
+                If FrmSetupCustom Is Nothing Then FrmSetupCustom = New PageSetupCustom
+                Return FrmSetupCustom
             Case FormMain.PageSubType.SetupUpdate
                 If FrmSetupUpdate Is Nothing Then FrmSetupUpdate = New PageSetupUpdate
                 Return FrmSetupUpdate
@@ -155,6 +163,12 @@ Public Class PageSetupLeft
                     If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
                     FrmSetupSystem.Reset()
                     ItemSystem.Checked = True
+                End If
+            Case FormMain.PageSubType.SetupCustom
+                If MyMsgBox("是否要初始化 主页管理 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                    If IsNothing(FrmSetupCustom) Then FrmSetupCustom = New PageSetupCustom
+                    FrmSetupCustom.Reset()
+                    ItemCustom.Checked = True
                 End If
             Case FormMain.PageSubType.SetupGameLink
                 If MyMsgBox("是否要初始化 联机 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then

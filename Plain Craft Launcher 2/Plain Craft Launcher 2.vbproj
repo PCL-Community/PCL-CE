@@ -112,4 +112,9 @@
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\PageSetup\PageSetupCustom.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

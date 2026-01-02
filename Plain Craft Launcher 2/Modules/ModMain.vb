@@ -524,6 +524,7 @@ EndHint:
     Public FrmSetupLog As PageSetupLog
     Public FrmSetupFeedback As PageSetupFeedback
     Public FrmSetupGameLink As PageSetupGameLink
+    Public FrmSetupCustom As PageSetupCustom
 
     '登录页面声明
     Public FrmLoginAuth As PageLoginAuth

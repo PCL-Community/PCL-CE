@@ -1033,6 +1033,7 @@ Public Class FormMain
         SetupFeedback = 6
         SetupGameLink = 7
         SetupUpdate = 8
+        SetupCustom = 9
 
         ToolsGameLink = 1
         ToolsLauncherHelp = 2
