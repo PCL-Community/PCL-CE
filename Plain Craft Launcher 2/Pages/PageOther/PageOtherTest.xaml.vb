@@ -46,7 +46,7 @@ Public Class PageOtherTest
 
         BtnDownloadOpen.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult)
 
-        BtnAchievementPreview.IsEnabled = (String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
+        BtnAchievementPreview.IsEnabled = (String.IsNullOrWhiteSpace(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
                                      String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                      String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
 
