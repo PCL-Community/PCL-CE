@@ -76,8 +76,11 @@ Public Class PageSetupUpdate
                 If UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading Then
                     BtnUpdate_Timer()
                     BtnUpdate.IsEnabled = False
+                ElseIf IsUpdateWaitingRestart Then
+                    BtnUpdate.Text = "重启安装"
+                    BtnUpdate.IsEnabled = True
                 Else
-                    TextCurrentDesc.Text = "下载并安装"
+                    BtnUpdate.Text = "下载并安装"
                     BtnUpdate.IsEnabled = True
                 End If
                 CardUpdate.Visibility = Visibility.Visible
@@ -96,9 +99,9 @@ Public Class PageSetupUpdate
         Log("[Update] 检查更新结束")
     End Sub
     
-    Private Sub BtnUpdate_Timer()
+    Public Sub BtnUpdate_Timer()
         While UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading
-            BtnUpdate.Text = $"{Val(UpdateLoader.Progress)}%"
+            RunInUi(Sub() BtnUpdate.Text = $"{Math.Round(UpdateLoader.Progress, 2)}%")
             Thread.Sleep(200)
         End While
     End Sub
@@ -110,7 +113,9 @@ Public Class PageSetupUpdate
                      "下载 .NET 10 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/10"), ForceWait:=True)
             Return
         End If
-        BtnUpdate_Timer()
+        If IsUpdateWaitingRestart Then
+            UpdateRestart(True, True)
+        End If
         '开始更新流程
         UpdateStart(UpdateType.UpdateNow)
     End Sub

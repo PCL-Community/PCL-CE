@@ -434,7 +434,7 @@ Public Class FormMain
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False)
+        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -1481,6 +1481,9 @@ Public Class FormMain
 #Region "附加按钮"
 
     '更新重启
+    Private Sub BtnExtraUpdateRestart_Click() Handles BtnExtraUpdateRestart.Click
+        UpdateRestart(True, True)
+    End Sub
     Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
         Return IsUpdateWaitingRestart
     End Function

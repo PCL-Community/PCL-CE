@@ -87,8 +87,8 @@
                             <RowDefinition Height="1" />
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
-                        <Image Source="/Images/Icons/Tahoe.png" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                        <!--<local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/>-->
+                        <Image Source="pack://application:,,,/Images/icon.png" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        <!-- <local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/> -->
                         <TextBlock x:Name="TextCurrentVersion" Text="PCL CE 2.13.4" FontWeight="Bold" FontSize="20" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextCurrentDesc" Text="已是最新版本" FontSize="14" Grid.Row="2" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         <local:MyButton x:Name="BtnCheckAgain" Text="再次检查" ColorType="Highlight" Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
