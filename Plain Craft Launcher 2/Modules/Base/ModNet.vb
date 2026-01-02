@@ -666,7 +666,7 @@ Public Module ModNet
         Private Function GetSource(Optional Id As Integer = 0) As NetSource
             If Id >= Sources.Count OrElse Id < 0 Then Id = 0
             SyncLock LockSource
-                If Not HasAvailableSource(False) Then
+                If HasAvailableSource(False) Then
                     '存在多线程可用源
                     Dim CurrentSource As NetSource = Sources(Id)
                     While CurrentSource.IsFailed
@@ -883,7 +883,7 @@ Public Module ModNet
             Try
 
                 '条件检测
-                If NetTaskThreadCount >= NetTaskThreadLimit OrElse HasAvailableSource() OrElse
+                If NetTaskThreadCount >= NetTaskThreadLimit OrElse Not HasAvailableSource() OrElse
                     (IsNoSplit AndAlso Threads IsNot Nothing AndAlso Threads.State <> NetState.Interrupted AndAlso
                      Threads.State <> NetState.WaitingToDownload AndAlso TimeUtils.GetTimeTick() - Threads.InitTime < 30000) Then Return Nothing
                 '小文件线程卡住检测：如果线程启动超过30秒仍处于Connect或Get状态，允许重试
@@ -899,7 +899,7 @@ Public Module ModNet
                     '不分割
                     If IsNoSplit Then GoTo Capture
                     '单线程
-                    If HasAvailableSource(False) Then
+                    If Not HasAvailableSource(False) Then
                         '确认没有其他线程正使用此点
                         If SourcesOnce(0).SingleThread IsNot Nothing AndAlso SourcesOnce(0).SingleThread.State <> NetState.Interrupted Then Return Nothing
                         '占用此点
@@ -976,7 +976,7 @@ StartThread:
                     NetTaskThreadCount += 1
                 End SyncLock
                 SyncLock LockSource
-                    If HasAvailableSource(False) Then SourcesOnce(0).SingleThread = ThreadInfo
+                    If Not HasAvailableSource(False) Then SourcesOnce(0).SingleThread = ThreadInfo
                 End SyncLock
                 Th.Start(ThreadInfo)
                 Return ThreadInfo
@@ -1603,7 +1603,7 @@ FinishExCatch:
                                 Source.IsFailed = True
                             End If
                         Next
-                        If File.HasAvailableSource() Then Throw New ArgumentException("输入的下载链接不正确！")
+                        If Not File.HasAvailableSource() Then Throw New ArgumentException("输入的下载链接不正确！")
                         File.LocalPath = File.LocalPath.Replace("/", "\")
                         If Not File.LocalPath.ToLower.Contains(":\") Then Throw New ArgumentException("输入的本地文件地址不正确: " & File.LocalPath)
                         If File.LocalPath.EndsWithF("\") Then Throw New ArgumentException("请输入含文件名的完整文件路径: " & File.LocalPath)
@@ -1611,7 +1611,7 @@ FinishExCatch:
                     Next
                     '接入任务管理器
                     NetManager.Start(Me)
-                                        '====================================
+                    '====================================
                     ' 已存在文件查找
                     '====================================
 

@@ -127,6 +127,7 @@ Public Class FormMain
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
+        BtnExtraUpdateRestart.ShowCheck = AddressOf BtnExtraUpdateRestart_ShowCheck
         BtnExtraDownload.ShowCheck = AddressOf BtnExtraDownload_ShowCheck
         BtnExtraBack.ShowCheck = AddressOf BtnExtraBack_ShowCheck
         BtnExtraApril.ShowCheck = AddressOf BtnExtraApril_ShowCheck
@@ -433,7 +434,7 @@ Public Class FormMain
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False)
+        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -967,15 +968,11 @@ Public Class FormMain
         ''' <summary>
         ''' 联机。
         ''' </summary>
-        Link = 2
+        Tools = 2
         ''' <summary>
         ''' 设置。
         ''' </summary>
         Setup = 3
-        ''' <summary>
-        ''' 更多。
-        ''' </summary>
-        Other = 4
         ''' <summary>
         ''' 实例选择。这是一个副页面。
         ''' </summary>
@@ -1026,19 +1023,21 @@ Public Class FormMain
         DownloadShader = 6
         DownloadWorld = 7
         DownloadCompFavorites = 8
+
         SetupLaunch = 0
         SetupUI = 1
         SetupSystem = 2
         SetupLink = 3
-        LinkLobby = 1
-        LinkSetup = 4
-        LinkHelp = 5
-        LinkFeedback = 6
-        OtherHelp = 0
-        OtherAbout = 1
-        OtherTest = 2
-        OtherFeedback = 3
-        OtherLog = 5
+        SetupAbout = 4
+        SetupLog = 5
+        SetupFeedback = 6
+        SetupGameLink = 7
+        SetupUpdate = 8
+
+        ToolsGameLink = 1
+        ToolsLauncherHelp = 2
+        ToolsTest = 3
+
         VersionOverall = 0
         VersionSetup = 1
         VersionExport = 2
@@ -1115,9 +1114,6 @@ Public Class FormMain
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     Return FrmSetupLeft.PageID
-                Case PageType.Other
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    Return FrmOtherLeft.PageID
                 Case PageType.InstanceSetup
                     If FrmInstanceLeft Is Nothing Then FrmInstanceLeft = New PageInstanceLeft
                     Return FrmInstanceLeft.PageID
@@ -1191,9 +1187,6 @@ Public Class FormMain
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     CType(FrmSetupLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
-                Case PageType.Other
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    CType(FrmOtherLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
             End Select
             PageChangeActual(Stack, SubType)
         Else
@@ -1222,7 +1215,7 @@ Public Class FormMain
     ''' <summary>
     ''' 通过点击导航栏改变页面。
     ''' </summary>
-    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check, BtnTitleSelect4.Check
+    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check
         If IsChangingPage Then Return
         PageChangeActual(Val(sender.Tag))
     End Sub
@@ -1297,18 +1290,15 @@ Public Class FormMain
                     If FrmDownloadLeft Is Nothing Then FrmDownloadLeft = New PageDownloadLeft
                     'PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                     PageChangeAnim(FrmDownloadLeft, FrmDownloadLeft.PageGet(SubType))
-                Case PageType.Link '联机
-                    If FrmLinkLeft Is Nothing Then FrmLinkLeft = New PageLinkLeft
-                    PageChangeAnim(FrmLinkLeft, FrmLinkLeft.PageGet(SubType))
+                Case PageType.Tools '联机
+                    If FrmToolsLeft Is Nothing Then FrmToolsLeft = New PageToolsLeft
+                    PageChangeAnim(FrmToolsLeft, FrmToolsLeft.PageGet(SubType))
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
                 Case PageType.SetupJava 'Java 设置
                     FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
                     PageChangeAnim(New MyPageLeft, FrmSetupJava)
-                Case PageType.Other '更多
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    PageChangeAnim(FrmOtherLeft, FrmOtherLeft.PageGet(SubType))
                 Case PageType.GameLog '实时日志
                     If FrmLogLeft Is Nothing Then FrmLogLeft = New PageLogLeft
                     If FrmLogLeft Is Nothing Then FrmLogRight = New PageLogRight
@@ -1490,6 +1480,14 @@ Public Class FormMain
 
 #Region "附加按钮"
 
+    '更新重启
+    Private Sub BtnExtraUpdateRestart_Click() Handles BtnExtraUpdateRestart.Click
+        UpdateRestart(True, True)
+    End Sub
+    Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
+        Return IsUpdateWaitingRestart
+    End Function
+    
     '音乐
     Private Sub BtnExtraMusic_Click(sender As Object, e As EventArgs) Handles BtnExtraMusic.Click
         MusicControlPause()

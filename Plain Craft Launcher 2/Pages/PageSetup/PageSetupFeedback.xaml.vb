@@ -1,6 +1,6 @@
 ﻿Imports PCL.Core.Utils
 
-Public Class PageOtherFeedback
+Public Class PageSetupFeedback
 
     Public Class Feedback
         Public Property User As String
@@ -178,6 +178,6 @@ Public Class PageOtherFeedback
     End Sub
 
     Private Sub Feedback_Click(sender As Object, e As MouseButtonEventArgs)
-        PageOtherLeft.TryFeedback()
+        PageSetupLeft.TryFeedback()
     End Sub
 End Class

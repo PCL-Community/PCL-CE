@@ -6,8 +6,10 @@ Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Scaffolding.Client.Models
+Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Utils.Exts
 
-Public Class PageLinkLobby
+Public Class PageToolsGameLink
 
 #Region "初始化"
 
@@ -62,24 +64,6 @@ Public Class PageLinkLobby
         HintAnnounce.Text = "正在连接到大厅服务器..."
         HintAnnounce.Theme = MyHint.Themes.Blue
 
-        RunInNewThread(
-            Sub()
-                If Not Setup.Get("LinkEula") Then
-                    Select Case MyMsgBox($"在使用 PCL CE 大厅之前，请阅读并同意以下条款：{vbCrLf}{vbCrLf}我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。{vbCrLf}我已知晓大厅功能使用途中可能需要提供管理员权限以用于必要的操作，并会确保 PCL CE 为从官方发布渠道下载的副本。{vbCrLf}我承诺使用大厅功能带来的一切风险自行承担。{vbCrLf}我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。{vbCrLf}为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。{vbCrLf}{vbCrLf}另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。", "联机大厅协议授权",
-                                         "我已阅读并同意", "拒绝并返回", "查看相关隐私协议",
-                                         Button3Action:=Sub() OpenWebsite("https://www.pclc.cc/privacy/personal-info-brief.html"))
-                        Case 1
-                            Setup.Set("LinkEula", True)
-                        Case 2
-                            RunInUi(
-                                Sub()
-                                    FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
-                                    FrmLinkLobby = Nothing
-                                End Sub)
-                    End Select
-                End If
-            End Sub)
-
         '加载公告
         LobbyAnnouncementLoader.Start()
         If _linkAnnounceUpdateCancelSource IsNot Nothing Then _linkAnnounceUpdateCancelSource.Cancel()
@@ -87,6 +71,20 @@ Public Class PageLinkLobby
         Await Dispatcher.BeginInvoke(Async Sub() Await _LinkAnnounceUpdate()) '我实在不理解为啥 BeginInvoke 这个委托要 MustBeInherit
 
         Await LobbyService.InitializeAsync().ConfigureAwait(False)
+    End Sub
+
+    Private Sub BtnAgreeEula_Click(sender As Object, e As EventArgs) Handles BtnEulaAgree.Click
+        Config.Link.LinkEula = True
+        CurrentSubpage = Subpages.PanSelect
+    End Sub
+
+    Private Sub BtnEulaStop_Click(sender As Object, e As EventArgs) Handles BtnEulaStop.Click
+        If MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn:=True) = 1 Then
+            Config.Link.NaidRefreshTokenConfig.Reset()
+            Config.Link.LinkEulaConfig.Reset()
+            Hint("联机功能已停用！")
+            CurrentSubpage = Subpages.PanEula
+        End If
     End Sub
 
 #End Region
@@ -366,6 +364,31 @@ Public Class PageLinkLobby
                             .Type = If(relay("type") = "official", ETRelayType.Selfhosted, ETRelayType.Community)
                         })
                     Next
+
+                    If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
+                        RunInUi(Sub()
+                                    LabNatayarkUserName.Text = "点击登录 Natayark 账户"
+                                End Sub)
+                    Else
+                        RunInUi(Sub()
+                                    LabNatayarkUserName.Text = "加载中……"
+                                End Sub)
+                        If NaidProfile.Username.IsNullOrEmpty() Then
+                            ReloadNaidData()
+                        Else
+                            RunInUi(Sub()
+                                        If NaidProfile.Status = 0 Then '状态是否正常
+                                            LabNatayarkUserName.Text = $"{NaidProfile.Username}"
+                                            LabNatayarkUserName.Opacity = 1
+                                        Else
+                                            LabNatayarkUserName.Text = $"{NaidProfile.Username}(状态异常)"
+                                            LabNatayarkUserName.Opacity = 0.6
+                                        End If
+                                    End Sub)
+                        End If
+                    End If
+
+
                 Catch ex As Exception
                     IsLobbyAvailable = False
                     RunInUi(Sub()
@@ -376,6 +399,7 @@ Public Class PageLinkLobby
                 End Try
             End Sub)
     End Sub
+
 #End Region
 
 #Region "信息获取与展示"
@@ -413,6 +437,88 @@ Public Class PageLinkLobby
         MyMsgBox(msg, $"玩家 {info.Name} 的详细信息")
     End Sub
 #End Region
+
+#Region "Natayark 账户相关功能"
+    Private Sub ReloadNaidData()
+        RunInNewThread(Sub()
+                           Try
+                               If Convert.ToDateTime(Config.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
+                                   Setup.Set("LinkNaidRefreshToken", "")
+                                   Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
+                                   Exit Sub
+                               Else
+                                   GetNaidDataAsync(Config.Link.NaidRefreshToken, True).GetAwaiter().GetResult()
+                               End If
+                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
+                                   Thread.Sleep(1000)
+                               End While
+                               RunInUi(Sub()
+                                           If NaidProfile.Status = 0 Then '状态是否正常
+                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}"
+                                               LabNatayarkUserName.Opacity = 1
+                                           Else
+                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}(状态异常)"
+                                               LabNatayarkUserName.Opacity = 0.6
+                                           End If
+                                       End Sub)
+                           Catch ex As Exception
+                               Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
+                               RunInUi(Sub()
+                                           LabNatayarkUserName.Text = $"获取信息失败"
+                                       End Sub)
+                           End Try
+                       End Sub)
+    End Sub
+
+    Private Sub LabNatayarkUserName_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnNatayarkUserName.MouseLeftButtonUp
+        'If Not IsLobbyAvailable Then
+        '    Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+        '    Exit Sub
+        'End If
+
+        If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
+            ' 当前未登录，显示登录选项
+            If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
+                        "登录至 Natayark Network", "继续", "取消") = 1 Then
+                LabNatayarkUserName.Text = "请在浏览器中继续..."
+                LabNatayarkUserName.Opacity = 0.6
+                BtnNatayarkUserName.IsEnabled = False
+                StartNaidAuthorize(Sub()
+                                       RunInUi(Sub()
+                                                   BtnNatayarkUserName.IsEnabled = True
+                                               End Sub)
+                                       Hint("已完成登录操作", HintType.Finish)
+                                       ReloadNaidData()
+                                   End Sub)
+            End If
+        Else
+            ' 当前已登录，显示登出选项
+            If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
+                Config.Link.NaidRefreshTokenConfig.Reset()
+                LabNatayarkUserName.Text = "点击登录 Natayark 账户"
+                Log("[Link] 已退出登录 Natayark Network")
+                Hint("已退出登录！", HintType.Finish, False)
+            End If
+        End If
+    End Sub
+#End Region
+
+    ' 网络测试功能
+    Private Async Sub BtnNetTest_Click(sender As Object, e As RoutedEventArgs) Handles BtnNatTest.MouseLeftButtonUp
+        Try
+            BtnNatTest.IsEnabled = False
+            LabNatType.Text = "正在测试"
+            Dim status = Await Scaffolding.EasyTier.CliNetTest.GetNetStatusAsync()
+            RunInUi(Sub()
+                        LabNatType.Text = $"{Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.UdpNatType)} (UDP), {Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.TcpNatType)}(TCP)"
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "[Link] 获取网络测试结果失败", LogLevel.Hint)
+            BtnNatTest.IsEnabled = True
+            LabNatType.Text = "测试失败"
+        End Try
+    End Sub
+
     Private Sub PasteLobbyId() Handles BtnPaste.Click
         Dim lobbyId As String
         Try
@@ -439,7 +545,7 @@ Public Class PageLinkLobby
     Private Sub BtnRefresh_Click(sender As Object, e As EventArgs) Handles BtnRefresh.Click
         Dim lobby = LobbyService.DiscoverWorldAsync()
     End Sub
-    
+
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then
@@ -538,9 +644,9 @@ Public Class PageLinkLobby
         Log("连接步骤：" & intro)
         _loadStep = [step]
         RunInUiWait(Sub()
-                        If FrmLinkLobby Is Nothing OrElse Not FrmLinkLobby.LabLoadDesc.IsLoaded Then Exit Sub
-                        FrmLinkLobby.LabLoadDesc.Text = intro
-                        FrmLinkLobby.UpdateProgress()
+                        If FrmToolsGameLink Is Nothing OrElse Not FrmToolsGameLink.LabLoadDesc.IsLoaded Then Exit Sub
+                        FrmToolsGameLink.LabLoadDesc.Text = intro
+                        FrmToolsGameLink.UpdateProgress()
                     End Sub)
     End Sub
 
@@ -611,10 +717,11 @@ Public Class PageLinkLobby
 #Region "子页面管理"
 
     Public Enum Subpages
+        PanEula
         PanSelect
         PanFinish
     End Enum
-    Private _CurrentSubpage As Subpages = Subpages.PanSelect
+    Private _CurrentSubpage As Subpages = If(Config.Link.LinkEula, Subpages.PanSelect, Subpages.PanEula)
     Public Property CurrentSubpage As Subpages
         Get
             Return _CurrentSubpage
@@ -628,8 +735,9 @@ Public Class PageLinkLobby
     End Property
 
     Private Sub PageLinkLobby_OnPageEnter() Handles Me.PageEnter
-        FrmLinkLobby.PanSelect.Visibility = If(CurrentSubpage = Subpages.PanSelect, Visibility.Visible, Visibility.Collapsed)
-        FrmLinkLobby.PanFinish.Visibility = If(CurrentSubpage = Subpages.PanFinish, Visibility.Visible, Visibility.Collapsed)
+        FrmToolsGameLink.PanEula.Visibility = If(CurrentSubpage = Subpages.PanEula, Visibility.Visible, Visibility.Collapsed)
+        FrmToolsGameLink.PanSelect.Visibility = If(CurrentSubpage = Subpages.PanSelect, Visibility.Visible, Visibility.Collapsed)
+        FrmToolsGameLink.PanFinish.Visibility = If(CurrentSubpage = Subpages.PanFinish, Visibility.Visible, Visibility.Collapsed)
     End Sub
 
 #End Region

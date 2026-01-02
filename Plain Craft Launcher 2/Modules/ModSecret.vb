@@ -3,6 +3,7 @@ Imports System.Management
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
+Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -556,28 +557,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             }),
         New UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
     })
-    Public ReadOnly Property IsUpdBetaChannel
+    Public ReadOnly Property IsCurrentVersionBeta
         Get
             If VersionBaseName.Contains("beta") Then Return True
-            Return Setup.Get("SystemSystemUpdateBranch") = 1
+            Return Config.System.Update.UpdateChannel = 1
         End Get
     End Property
 
-    Public Sub UpdateCheckByButton()
-        If IsCheckingUpdates Then
-            Hint("正在检查更新中，请稍后再试……")
-            Exit Sub
-        End If
-        Hint("正在获取更新信息...")
-        RunInNewThread(Sub()
-                           Try
-                               NoticeUserUpdate()
-                           Catch ex As Exception
-                               Log(ex, "[Update] 获取启动器更新信息失败", LogLevel.Hint)
-                               Hint("获取启动器更新信息失败，请检查网络连接", HintType.Critical)
-                           End Try
-                       End Sub)
-    End Sub
     Public Enum VersionStatus
         Latest
         NotLatest
@@ -585,17 +571,22 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Enum
     Public Function GetVersionStatus() As VersionStatus
         Try
+            If IsCurrentVersionBeta AndAlso Not Config.System.Update.UpdateChannel = 1 Then
+                Dim isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
+                Dim isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
+                Return isNewerThanStable AndAlso isBetaLatest
+            End If
             Return If(RemoteServer.IsLatest(
-            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
-            SemVer.Parse(VersionBaseName),
-            VersionCode), VersionStatus.Latest, VersionStatus.NotLatest)
+                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
+                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
+                SemVer.Parse(VersionBaseName),
+                VersionCode), VersionStatus.Latest, VersionStatus.NotLatest)
         Catch ex As Exception
             Log(ex, "无法获取最新版本信息，请检查网络连接", LogLevel.Hint)
             Return VersionStatus.Unknown
         End Try
     End Function
-    Public Sub NoticeUserUpdate(Optional Silent As Boolean = False)
+    Public Sub NoticeUserUpdate()
         If GetVersionStatus() <> VersionStatus.Latest Then
             Dim latest As VersionDataModel = Nothing
             Dim checkUpdateEx As Exception = Nothing
@@ -603,7 +594,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Sub()
                     Try
                         latest = RemoteServer.GetLatestVersion(
-                            If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                             If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                     Catch ex As Exception
                         checkUpdateEx = ex
@@ -611,62 +602,91 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 End Sub
             ).Join()
             If latest Is Nothing Then
-                Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
+                Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Hint)
                 Exit Sub
             End If
-            If Not latest.VersionName.StartsWithF("2.12.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 8.0.", True) Then
-                MyMsgBox($"发现了启动器更新（版本 2.13.0），但是新版本要求你的电脑安装 .NET 8 才可以运行。{vbCrLf}你需要先安装 .NET 8 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
-                         "下载 .NET 8 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/8"), ForceWait:=True)
-                Return
+            If MyMsgBox($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？", "启动器更新", "更新", "取消") = 1 Then
+                FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate)
             End If
-            If MyMsgBoxMarkdown($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？{vbCrLf}{vbCrLf}{latest.Changelog}", "启动器更新", "更新", "取消") = 1 Then
-                UpdateStart(False)
-            End If
-        Else
-            If Not Silent Then Hint("启动器已是最新版 " + VersionBaseName + "，无须更新啦！", HintType.Finish)
         End If
     End Sub
 
-    Public Sub UpdateStart(Slient As Boolean, Optional ReceivedKey As String = Nothing, Optional ForceValidated As Boolean = False)
-        Dim DlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
+    Public Enum UpdateType
+        Silent = 0
+        PromptOnly = 1
+        DownloadAndPrompt = 2
+        UpdateNow = 3
+    End Enum
+
+    Public UpdateLoader As LoaderCombo(Of JObject)
+    Public Sub UpdateStart(type As UpdateType, Optional receivedKey As String = Nothing, Optional forceValidated As Boolean = False)
+        Dim dlTargetPath As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
         RunInNewThread(Sub()
                            Try
                                Dim version = RemoteServer.GetLatestVersion(
-                               If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
+                               If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                                WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
+                               Log($"[Update] 远程最新版本: {version.VersionCode}, 当前版本: {VersionCode}")
+                               If Not version.VersionCode > VersionCode Then Return
+                               If type = UpdateType.PromptOnly Then
+                                   Log("[Test]")
+                                   RunInUi(Sub()
+                                       If MyMsgBox($"启动器有新版本可用（｛VersionBaseName｝ -> {version.VersionName}){vbCrLf}是否立即更新？", "启动器更新", "更新", "取消") = 1 Then
+                                           FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate)
+                                       End If
+                                   End Sub)
+                                   Return
+                               End If
                                '构造步骤加载器
-                               Dim Loaders As New List(Of LoaderBase)
+                               Dim loaders As New List(Of LoaderBase)
                                '下载
-                               Loaders.AddRange(RemoteServer.GetDownloadLoader(
-                                                If(IsUpdBetaChannel, UpdateChannel.beta, UpdateChannel.stable),
-                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), DlTargetPath))
-                               Loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
-                                                                                           Dim curHash = GetFileSHA256(DlTargetPath)
+                               loaders.AddRange(RemoteServer.GetDownloadLoader(
+                                                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
+                                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), dlTargetPath))
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("校验更新", Sub()
+                                                                                           Dim curHash = GetFileSHA256(dlTargetPath)
                                                                                            If curHash <> version.SHA256 Then
                                                                                                Throw New Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}")
                                                                                            End If
                                                                                        End Sub))
-                               If Not Slient Then
-                                   Loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True)))
+                               If type = UpdateType.UpdateNow Then
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateRestart(True, True)))
+                               ElseIf type = UpdateType.Silent Then
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("准备更新", Sub() IsUpdateWaitingRestart = True))
+                               ElseIf type = UpdateType.DownloadAndPrompt Then
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("显示按钮", Sub()
+                                       IsUpdateWaitingRestart = True
+                                       RunInUi(Sub()
+                                           FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} -> {version.VersionName})"
+                                           FrmMain.BtnExtraUpdateRestart.ShowRefresh()
+                                           FrmMain.BtnExtraUpdateRestart.Ribble()
+                                       End Sub)
+                                   End Sub) With {.Show = False})
                                End If
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("刷新设置 UI", Sub()
+                                   If FrmSetupUpdate IsNot Nothing Then
+                                       RunInUi(Sub() 
+                                           FrmSetupUpdate.BtnUpdate.Text = "重启安装"
+                                           FrmSetupUpdate.BtnUpdate.IsEnabled = True
+                                       End Sub)
+                                   End If
+                               End Sub) With {.Show = False})
                                '启动
-                               Dim Loader As New LoaderCombo(Of JObject)("启动器更新", Loaders)
-                               Loader.Start()
-                               If Slient Then
-                                   IsUpdateWaitingRestart = True
-                               Else
-                                   LoaderTaskbarAdd(Loader)
+                               UpdateLoader = New LoaderCombo(Of JObject)("启动器更新", loaders)
+                               UpdateLoader.Start()
+                               If type = UpdateType.UpdateNow Then
+                                   LoaderTaskbarAdd(UpdateLoader)
                                    FrmMain.BtnExtraDownload.ShowRefresh()
                                    FrmMain.BtnExtraDownload.Ribble()
                                End If
                            Catch ex As Exception
-                               Log(ex, "[Update] 下载启动器更新文件失败", LogLevel.Hint)
-                               Hint("下载启动器更新文件失败，请检查网络连接", HintType.Critical)
+                               Log(ex, "[Update] 获取启动器更新失败", LogLevel.Debug)
+                               If type <> UpdateType.Silent Then Hint("获取启动器更新失败，请检查网络连接", HintType.Critical)
                            End Try
                        End Sub)
     End Sub
-    Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
+    Public Sub UpdateRestart(triggerRestartAndByEnd As Boolean, Optional triggerRestart As Boolean = True)
         Try
             Dim fileName As String = ExePath + "PCL\Plain Craft Launcher Community Edition.exe"
             If Not File.Exists(fileName) Then
@@ -674,10 +694,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Exit Sub
             End If
             ' id old new restart
-            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{ExePathWithName}"" ""{fileName}"" true"
+            Dim text As String = $"update {Process.GetCurrentProcess().Id} ""{ExePathWithName}"" ""{fileName}"" {If(triggerRestart, "true", "false")}"
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
-            If TriggerRestartAndByEnd Then
+            If triggerRestartAndByEnd Then
                 FrmMain.EndProgram(False)
                 Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
             End If
@@ -688,9 +708,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             End If
         End Try
     End Sub
-    Public Sub UpdateReplace(ProcessId As Integer, OldFileName As String, NewFileName As String, TriggerRestart As Boolean)
+    Public Sub UpdateReplace(processId As Integer, oldFileName As String, newFileName As String, triggerRestart As Boolean)
         Try
-            Dim ps = Process.GetProcessById(ProcessId)
+            Dim ps = Process.GetProcessById(processId)
             If Not ps.HasExited Then
                 ps.Kill()
             End If
@@ -700,10 +720,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim num As Integer = 0
         Do
             Try
-                If File.Exists(OldFileName) Then
-                    File.Delete(OldFileName)
+                If File.Exists(oldFileName) Then
+                    File.Delete(oldFileName)
                 End If
-                If Not File.Exists(OldFileName) Then
+                If Not File.Exists(oldFileName) Then
                     Exit Try
                 End If
             Catch ex3 As Exception
@@ -713,18 +733,18 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             End Try
             num += 1
         Loop While num <= 4
-        If (Not File.Exists(OldFileName)) AndAlso File.Exists(NewFileName) Then
+        If (Not File.Exists(oldFileName)) AndAlso File.Exists(newFileName) Then
             Try
-                CopyFile(NewFileName, OldFileName)
+                CopyFile(newFileName, oldFileName)
             Catch ex4 As UnauthorizedAccessException
                 MsgBox("PCL 更新失败：权限不足。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf & "若 PCL 位于桌面或 C 盘，你可以尝试将其挪到其他文件夹，这可能可以解决权限问题。" & vbCrLf + ex4.Message, MsgBoxStyle.Critical, "更新失败")
             Catch ex5 As Exception
                 MsgBox("PCL 更新失败：无法复制新文件。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf + ex5.Message, MsgBoxStyle.Critical, "更新失败")
                 Return
             End Try
-            If TriggerRestart Then
+            If triggerRestart Then
                 Try
-                    Process.Start(OldFileName)
+                    Process.Start(oldFileName)
                 Catch ex6 As Exception
                     MsgBox("PCL 更新失败：无法重新启动。" & vbCrLf + ex6.Message, MsgBoxStyle.Critical, "更新失败")
                 End Try
@@ -771,19 +791,25 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
 #Region "联网通知"
 
-    Public ServerLoader As New LoaderTask(Of Integer, Integer)("PCL 服务", AddressOf LoadOnlineInfo, Priority:=ThreadPriority.BelowNormal)
+    Public ServerLoader As New LoaderTask(Of Integer, Integer)("PCL CE 服务", AddressOf LoadOnlineInfo, Priority:=ThreadPriority.BelowNormal)
 
     Private Sub LoadOnlineInfo()
-        Dim UpdateDesire = Setup.Get("SystemSystemUpdate")
+        Dim updateDesire = Setup.Get("SystemSystemUpdate")
         Dim AnnouncementDesire = Setup.Get("SystemSystemActivity")
-        Select Case UpdateDesire
-            Case 0
+        Select Case updateDesire
+            Case 0 '静默更新
+                Log("[Update] 更新设置: 自动下载并安装更新")
                 If GetVersionStatus() <> VersionStatus.Latest Then
-                    UpdateStart(True) '静默更新
+                    UpdateStart(UpdateType.Silent)
                 End If
-            Case 1
-                NoticeUserUpdate(True)
-            Case 2, 3
+            Case 1 '自动下载，提示更新
+                Log("[Update] 更新设置: 自动下载并提示更新")
+                UpdateStart(UpdateType.DownloadAndPrompt)
+            Case 2 '提示更新
+                Log("[Update] 更新设置: 提示更新")
+                UpdateStart(UpdateType.PromptOnly)
+            Case Else
+                Log("[Update] 更新设置: 不自动检查更新")
                 Exit Sub
         End Select
         If AnnouncementDesire <= 1 Then

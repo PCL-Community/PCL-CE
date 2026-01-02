@@ -1,5 +1,6 @@
-﻿
-
+﻿Imports System.Net.Http
+Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils
 
 Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式
@@ -13,7 +14,8 @@ Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式
         Return Not String.IsNullOrWhiteSpace(Setup.Get("SystemMirrorChyanKey"))
     End Function
     Public Function GetLatestVersion(channel As UpdateChannel, arch As UpdateArch) As VersionDataModel Implements IUpdateSource.GetLatestVersion
-        Dim ret As JObject = NetGetCodeByRequestRetry(GetUrl(channel, arch), IsJson:=True)
+        Dim response = HttpRequestBuilder.Create(GetUrl(channel, arch), HttpMethod.Get).SendAsync().GetAwaiter().GetResult()
+        Dim ret As JObject = GetJson(response.AsStringContent())
             If CType(ret("code"), Integer) <> 0 Then Throw New Exception("Mirror 酱获取数据不成功")
             Dim data = ret("data")
             Dim upd_url = data("url")?.ToString()

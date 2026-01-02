@@ -52,7 +52,7 @@ Public Class Application
                     '内存优化
                     Dim Ram = KernelInterop.GetAvailablePhysicalMemoryBytes()
                     Try
-                        PageOtherTest.MemoryOptimizeInternal(False)
+                        PageToolsTest.MemoryOptimizeInternal(False)
                     Catch ex As Exception
                         MsgBox(ex.Message, MsgBoxStyle.Critical, "内存优化失败")
                         Environment.Exit(-1)
@@ -139,7 +139,7 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
-            Dim updateBranchCfg = Config.System.UpdateBranchConfig
+            Dim updateBranchCfg = Config.System.Update.UpdateChannelConfig
             If updateBranchCfg.IsDefault() Then
                 updateBranchCfg.SetValue(If(VersionBaseName.Contains("beta"), 1, 0))
             End If

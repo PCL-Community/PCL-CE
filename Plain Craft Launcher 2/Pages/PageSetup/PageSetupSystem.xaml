@@ -114,7 +114,7 @@
                 </Grid>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="系统">
-                <Grid Margin="25,40,25,20">
+                <Grid Margin="25,40,25,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                         <ColumnDefinition Width="1*" />
@@ -123,45 +123,40 @@
                         <RowDefinition Height="28" />
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="8" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器更新" Margin="0,0,25,0" />
-                    <local:MyComboBox x:Name="ComboSystemUpdate" Tag="SystemSystemUpdate" Grid.Column="1">
-                        <local:MyComboBoxItem Content="在有新版本时自动下载" x:Name="ItemSystemUpdateDownload" />
-                        <local:MyComboBoxItem Content="在有新版本时显示提示" />
-                        <local:MyComboBoxItem Content="仅在有重大漏洞更新时显示提示" />
-                        <local:MyComboBoxItem Content="关闭更新提示" />
-                    </local:MyComboBox>
-                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器更新通道" Margin="0,0,25,0" Grid.Row="2"/>
-                    <local:MyComboBox x:Name="ComboSystemUpdateBranch" Tag="SystemSystemUpdateBranch" Grid.Column="1" Grid.Row="2" 
-                        ToolTip="PCL 社区版提供了两种更新通道：&#xa;Slow Ring：较为稳定，功能通常已经过测试。&#xa;Fast Ring：更新较快，但可能包含未经充分测试的功能，可能不稳定。&#xa;&#xa;Fast Ring 仅推荐具有一定基础知识和能力的用户使用，且不适合用于制作整合包。&#xa;在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。&#xa;&#xa;如果你不知道你在干什么，请选择 Slow Ring。">
-                        <local:MyComboBoxItem Content="Slow Ring" />
-                        <local:MyComboBoxItem Content="Fast Ring" />
-                    </local:MyComboBox>
-                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器公告" Margin="0,0,25,0" Grid.Row="4" />
-                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1" Grid.Row="4">
+                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器公告" Margin="0,0,25,0" Grid.Row="0" />
+                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1" Grid.Row="0">
                         <local:MyComboBoxItem Content="显示所有公告" ToolTip="显示包括启动器功能调查、活动等在内的全部公告" />
                         <local:MyComboBoxItem Content="仅在有重要通知时显示公告" />
                         <local:MyComboBoxItem Content="关闭所有公告" />
                     </local:MyComboBox>
-                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最高动画帧率" Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="6" Tag="UiAniFPS" MaxValue="59" Value="59" Grid.Column="1"
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最高动画帧率" Margin="0,0,25,0" />
+                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="2" Tag="UiAniFPS" MaxValue="59" Value="59" Grid.Column="1"
                                     ToolTip="如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用" />
-                    <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="实时日志行数" Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="8" Tag="SystemMaxLog" MaxValue="29" Value="13" Grid.Column="1"
+                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="实时日志行数" Margin="0,0,25,0" />
+                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="4" Tag="SystemMaxLog" MaxValue="29" Value="13" Grid.Column="1"
                                     ToolTip="实时日志功能中最大显示行数，超过该值会自动删除旧的日志。" />
-                    <local:MyCheckBox Grid.Row="10" Text="禁用硬件加速" x:Name="CheckSystemDisableHardwareAcceleration" Tag="SystemDisableHardwareAcceleration"/>
-                    <local:MyCheckBox Grid.Row="10" Grid.Column="1" Text="参与 PCL CE 软硬件调查" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" 
+                    <Grid Grid.Row="6" Grid.ColumnSpan="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"/>
+                        </Grid.RowDefinitions>
+                        <local:MyCheckBox Grid.Row="0" Grid.Column="0" Text="禁用硬件加速" x:Name="CheckSystemDisableHardwareAcceleration" Tag="SystemDisableHardwareAcceleration"/>
+                        <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="参与 PCL CE 软硬件调查" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" 
                                       ToolTip="这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。&#xa;如果选择参与调查，我们将会收集以下信息：&#xa;启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过官方版 PCL、HMCL 或 BakaXL&#xa;&#xa;这些数据均不与你关联，我们也绝不会向第三方出售数据。不参与调查不会影响你使用其他功能。"/>
-                    <Grid Grid.Row="11" Grid.ColumnSpan="5" Margin="0,8,0,0">
+                    </Grid>
+                    <Grid Grid.Row="8" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
@@ -170,14 +165,9 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="35"/>
-                            <RowDefinition Height="7"/>
-                            <RowDefinition Height="35"/>
                         </Grid.RowDefinitions>
-                        <local:MyButton Grid.Column="0" x:Name="BtnSystemUpdate" MinWidth="100" Text="检查更新" Padding="13,0" Margin="0,0,20,0" />
-                        <local:MyButton Grid.Column="1" x:Name="BtnSystemMirrorChyanKey" MinWidth="100" Text="设置 Mirror 酱 CDK" Padding="13,0" Margin="0,0,20,0" ToolTip="设置用于 Mirror 酱服务器请求的 CDK"/>
-                        <local:MyButton Grid.Column="2" x:Name="BtnSystemMirrorChyanGetKey" MinWidth="100" Text="获取 Mirror 酱 CDK" Padding="13,0" Margin="0,0,20,0" ToolTip="获取用于 Mirror 酱服务器请求的 CDK"/>
-                        <local:MyButton Grid.Column="0" Grid.Row="2" x:Name="BtnSystemSettingExp" MinWidth="100" Text="导出设置" Padding="13,0" Margin="0,0,20,0"/>
-                        <local:MyButton Grid.Column="1" Grid.Row="2" x:Name="BtnSystemSettingImp" MinWidth="100" Text="导入设置" Padding="13,0" Margin="0,0,20,0"/>
+                        <local:MyButton Grid.Column="0" Grid.Row="0" x:Name="BtnSystemSettingExp" MinWidth="100" Text="导出设置" Padding="13,0" Margin="0,0,20,0"/>
+                        <local:MyButton Grid.Column="1" Grid.Row="0" x:Name="BtnSystemSettingImp" MinWidth="100" Text="导入设置" Padding="13,0" Margin="0,0,20,0"/>
                     </Grid>
                 </Grid>
             </local:MyCard>
@@ -200,16 +190,16 @@
             </local:MyCard> -->
 
             <local:MyCard Margin="0,0,0,15" Title="网络">
-                <Grid Margin="25,40,25,15">
+                <Grid Margin="25,38,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
+                        <RowDefinition Height="4" />
                         <RowDefinition Height="28" />
-                        <RowDefinition Height="9" />
+                        <RowDefinition Height="4" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <local:MyCheckBox x:Name="CheckNetDohEnable" Tag="SystemNetEnableDoH" Grid.Row="0" Grid.ColumnSpan="2" Text="使用 DoH 解析地址" ToolTip="使用 DoH 解析地址可以获取更加优质的 IP 结果，提高启动器的网络访问水平。如果您已部署 DoH 解析服务，可以关闭此功能。"/>
