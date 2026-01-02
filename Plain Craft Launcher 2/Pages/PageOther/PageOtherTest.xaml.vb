@@ -1,8 +1,14 @@
+Imports System.Collections.Specialized
 Imports System.Drawing
+Imports System.IO
 Imports System.Net
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
+Imports System.Security.Principal
+Imports System.Text
+Imports System.Text.RegularExpressions
 Imports System.Threading.Tasks
+Imports Microsoft.VisualStudio.Threading.AsyncReaderWriterLock
 Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.Net
@@ -40,11 +46,11 @@ Public Class PageOtherTest
 
         BtnDownloadOpen.IsEnabled = String.IsNullOrEmpty(TextDownloadFolder.ValidateResult)
 
-        BtnAchievementPreview.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
+        BtnAchievementPreview.IsEnabled = (String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
                                      String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                      String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
 
-        BtnAchievementSave.IsEnabled = String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) AndAlso
+        BtnAchievementSave.IsEnabled = (String.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) Or AchievementBlockComboBox.SelectedItem.Tag) AndAlso
                                           String.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) AndAlso
                                           String.IsNullOrEmpty(AchievementString1TextBox.ValidateResult)
     End Sub
@@ -104,7 +110,7 @@ Public Class PageOtherTest
             Else 'UNC 路径
                 loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))
             End If
-            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
+            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderdownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)
             FrmMain.BtnExtraDownload.ShowRefresh()
@@ -533,11 +539,35 @@ Public Class PageOtherTest
         Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
-    
+
     ' 启动计数显示
     Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
         MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数")
+    End Sub
+
+    Private Sub AchievementApiSource_SelectionChanged(sender As Object, e As Object) Handles AchievementApiSource.SelectionChanged
+        If Not IsLoaded Then Return
+
+        Dim type As Integer = AchievementApiSource.SelectedIndex
+
+        If (type.Equals(0)) Then
+            AchievementBlockTextBoxText.Visibility = Visibility.Visible
+            AchievementBlockTextBox.Visibility = Visibility.Visible
+            AchievementBlockComboBoxText.Visibility = Visibility.Collapsed
+            AchievementBlockComboBox.Visibility = Visibility.Collapsed
+            AchievementString2TextBoxText.Visibility = Visibility.Visible
+            AchievementString2TextBox.Visibility = Visibility.Visible
+            AchievementString1TextBoxText.Text = "第一行"
+        ElseIf (type.Equals(1)) Then
+            AchievementBlockTextBoxText.Visibility = Visibility.Collapsed
+            AchievementBlockTextBox.Visibility = Visibility.Collapsed
+            AchievementBlockComboBoxText.Visibility = Visibility.Visible
+            AchievementBlockComboBox.Visibility = Visibility.Visible
+            AchievementString2TextBoxText.Visibility = Visibility.Collapsed
+            AchievementString2TextBox.Visibility = Visibility.Collapsed
+            AchievementString1TextBoxText.Text = "正文内容"
+        End If
     End Sub
 
     Private Async Sub BtnAchievementPreview_Click(sender As Object, e As MouseButtonEventArgs)
@@ -545,9 +575,12 @@ Public Class PageOtherTest
         Log("[Net] 获取网络结果" & url)
         Await LoadImageAsync(url)
     End Sub
-    
+
     Private Async Function LoadImageAsync(imageUrl As String) As Task
-        Dim client = NetworkService.GetClient() 
+        Dim client = NetworkService.GetClient()
+        If (imageUrl.StartsWith("http://mc.whitegem.net")) Then
+            client.DefaultRequestHeaders.Add("Referer", "http://mc.whitegem.net/MCA_Regen/generate")
+        End If
         Try
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
             If response.IsSuccessStatusCode Then
@@ -560,50 +593,53 @@ Public Class PageOtherTest
                     bitmapImage.Freeze()
 
                     Dispatcher.Invoke(Sub()
-                        AchievementImage.Source = bitmapImage
-                        AchievementImage.Visibility = Visibility.Visible
-                    End Sub)
+                                          AchievementImage.Source = bitmapImage
+                                          AchievementImage.Visibility = Visibility.Visible
+                                      End Sub)
                 End Using
             ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（404）")
-                    Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
-                End Sub)
+                                      Log("获取成就图片失败（404）")
+                                      Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+                                  End Sub)
             Else
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（" & response.StatusCode & "）")
-                End Sub)
+                                      Log("获取成就图片失败（" & response.StatusCode & "）")
+                                  End Sub)
             End If
 
         Catch ex As Exception
             Dispatcher.Invoke(Sub()
-                Log(ex, "获取成就图片失败")
-            End Sub)
+                                  Log(ex, "获取成就图片失败")
+                              End Sub)
         End Try
     End Function
 
     Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
         Dim url = GetAchievementUrl()
-        await DownloadImageToLocalAsync(url)
+        Await DownloadImageToLocalAsync(url)
     End Sub
-    
+
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
         Dim client = NetworkService.GetClient()
+        If (imageUrl.StartsWith("http://mc.whitegem.net")) Then
+            client.DefaultRequestHeaders.Add("Referer", "http://mc.whitegem.net/MCA_Regen/generate")
+        End If
         Try
             ' 异步发送 GET 请求
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
-            
+
             ' 如果响应状态码是成功的，则继续
             If response.IsSuccessStatusCode Then
                 ' 异步读取响应内容为字节流
                 Dim imageBytes As Byte() = Await response.Content.ReadAsByteArrayAsync()
-                
+
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
-                
+
                 Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
-                If(path = "") Then
+                If (path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
                     Return
@@ -620,23 +656,74 @@ Public Class PageOtherTest
                 ' 处理其他非成功状态码
                 Log("获取成就图片失败（" & response.StatusCode & "）")
             End If
-            
+
         Catch ex As Exception
             ' 捕获所有其他异常（如网络连接问题）
             Log(ex, "获取成就图片失败")
         End Try
     End Function
-    
+
     Private Function GetAchievementUrl() As String
         Dim block = AchievementBlockTextBox.Text.Trim()
+        Dim icon = AchievementBlockComboBox.SelectedItem.Tag
         Dim title = AchievementTitleTextBox.Text.Replace(" ", "..")
         Dim str1 = AchievementString1TextBox.Text.Replace(" ", "..")
         Dim str2 = AchievementString2TextBox.Text.Replace(" ", "..")
-        Dim url = $"https://minecraft-api.com/api/achivements/{block}/{title}/{str1}"
-        If Not String.IsNullOrEmpty(str2) Then
-            url &= $"/{str2}"
+        Dim url As String
+
+        Dim type As Integer = AchievementApiSource.SelectedIndex
+        If (type.Equals(0)) Then
+            url = $"https://minecraft-api.com/api/achivements/{block}/{title}/{str1}"
+            If Not String.IsNullOrEmpty(str2) Then
+                url &= $"/{str2}"
+            End If
+        ElseIf (type.Equals(1)) Then
+            url = GenerateMinecraftAchievementUrl(iconId:=icon, title:=title, content:=str1)
         End If
         Return url
+    End Function
+
+    Private Function GenerateMinecraftAchievementUrl(
+        Optional iconId As String = "",
+        Optional title As String = "获得成就!",
+        Optional content As String = "",
+        Optional titleColor As String = "#FFFF00",
+        Optional contentColor As String = "#FFFFFF",
+        Optional font As String = "simsun.ttf"
+    ) As String
+
+        ' 构建 JSON 对象
+        Dim jsonObj As New Dictionary(Of String, Object) From {
+            {"i", 0},
+            {"id", iconId},    ' 保留 id 字段，与用户要求一致（部分生成器可能使用 id）
+            {"f", font},
+            {"tc", titleColor},
+            {"t", title},
+            {"cc", contentColor},
+            {"c", content}
+        }
+
+        ' 将 title 和 content 转为 UTF-8 字节序列后 Base64 编码（用户明确要求）
+        Dim utf8 As New UTF8Encoding(False)  ' 不带 BOM
+
+        Dim titleBytes() As Byte = utf8.GetBytes(title)
+        Dim titleBase64 As String = Convert.ToBase64String(titleBytes)
+        jsonObj("t") = titleBase64
+
+        Dim contentBytes() As Byte = utf8.GetBytes(content)
+        Dim contentBase64 As String = Convert.ToBase64String(contentBytes)
+        jsonObj("c") = contentBase64
+
+        ' 序列化为 JSON 字符串
+        Dim json As String = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj)
+
+        ' 将整个 JSON 字符串转为 UTF-8 Base64
+        Dim jsonBytes() As Byte = utf8.GetBytes(json)
+        Dim finalBase64 As String = Convert.ToBase64String(jsonBytes)
+
+        ' 返回 Base64 字符串
+        Return $"http://mc.whitegem.net/image/{finalBase64}.png"
+
     End Function
 
     Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)

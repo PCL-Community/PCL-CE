@@ -106,44 +106,572 @@
             <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
                 <local:MinecraftServerQuery Margin="15,40,15,15"/>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器 (仅支持英文)" CanSwap="True" IsSwapped="True">
+            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器" CanSwap="True" IsSwapped="True">
                 <StackPanel Margin="25,30,25,15">
                     <Grid Margin="0,4,0,2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="128"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="48"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="物品名（ID）" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10" >
+                        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="API 源" Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" x:Name="AchievementApiSource" Margin="0,10">
+                            <local:MyComboBoxItem Content="minecraft-api.com (仅支持英文)" IsSelected="True" />
+                            <local:MyComboBoxItem Content="mc.whitegem.net (仅支持预设图标)" />
+                        </local:MyComboBox>
+
+                        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="AchievementBlockTextBoxText" Text="物品名（ID）" Margin="0,-10,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,0,0,12" >
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateRegex Regex="^[a-z0-9_]+$" ErrorDescription="请输入正确的物品 ID！"/>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        
-                        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="成就名" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementTitleTextBox" MaxLength="50">
+
+                        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="AchievementBlockComboBoxText" Text="图标 ID" Margin="0,-10,25,0" Visibility="Collapsed" />
+                        <local:MyComboBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementBlockComboBox" Margin="0,0,0,10" Height="28" Visibility="Collapsed" MaxDropDownHeight="320">
+                            <local:MyComboBoxItem Content="方块" Tag="1" />
+                            <local:MyComboBoxItem Content="石头平面" Tag="1" Margin="15,0,0,0" IsSelected="True" />
+                            <local:MyComboBoxItem Content="石头方块" Tag="1.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="草地平面" Tag="2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="草地方块" Tag="2.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="泥土平面" Tag="3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="泥土方块" Tag="3.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石平面" Tag="4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石方块" Tag="4.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡木木板平面" Tag="5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡木树木板方块" Tag="5.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松木木板平面" Tag="5.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松木木板方块" Tag="5.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦木木板平面" Tag="5.4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦木木板方块" Tag="5.5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林木木板平面" Tag="5.6" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林木木板方块" Tag="5.7" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡树树苗" Tag="6" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松树苗" Tag="6.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦树苗" Tag="6.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林树苗" Tag="6.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地壳平面" Tag="7" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地壳方块" Tag="7.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="水平面" Tag="9" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="水方块" Tag="9.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="岩浆平面" Tag="11" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="岩浆方块" Tag="11.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙子平面" Tag="12" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙子方块" Tag="12.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙砾平面" Tag="13" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙砾方块" Tag="13.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金矿平面" Tag="14" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金矿方块" Tag="14.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁矿平面" Tag="15" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁矿方块" Tag="15.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="煤矿平面" Tag="16" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="煤矿方块" Tag="16.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡木平面" Tag="17" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松木平面" Tag="17.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦木平面" Tag="17.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡木方块" Tag="17.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松木方块" Tag="17.4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦木方块" Tag="17.5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林木平面" Tag="17.6" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林木方块" Tag="17.7" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡树叶平面" Tag="18" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橡树叶方块" Tag="18.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松树叶平面" Tag="18.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="松树叶方块" Tag="18.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦树叶平面" Tag="18.4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="桦树叶方块" Tag="18.5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林树叶平面" Tag="18.6" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丛林树叶方块" Tag="18.7" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="海绵平面" Tag="19" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="海绵方块" Tag="19.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="玻璃平面" Tag="20" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="玻璃方块" Tag="20.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青金石矿平面" Tag="21" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青金石矿方块" Tag="21.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青金石块平面" Tag="22" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青金石块方块" Tag="22.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="发射器平面" Tag="23" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="发射器方块" Tag="23.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙石平面" Tag="24" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="沙石方块" Tag="24.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="錾制沙石平面" Tag="24.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="錾制沙石方块" Tag="24.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="平滑沙石平面" Tag="24.4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="平滑沙石方块" Tag="24.5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="音符乐盒平面" Tag="25" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="音符乐盒方块" Tag="25.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="动力轨道" Tag="27" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="探测轨道" Tag="28" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粘性活塞平面" Tag="29" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粘性活塞方块" Tag="29.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蜘蛛网" Tag="30" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="草丛" Tag="31" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="小树块" Tag="31.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="枯树苗" Tag="32" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="活塞头平面" Tag="33" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="活塞方块" Tag="33.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="活塞侧面" Tag="33.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="白色羊毛平面" Tag="35" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橙色羊毛平面" Tag="35.01" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫色羊毛平面" Tag="35.02" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="淡蓝色羊毛平面" Tag="35.03" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄色羊毛平面" Tag="35.04" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿色羊毛平面" Tag="35.05" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粉色羊毛平面" Tag="35.06" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黑色羊毛平面" Tag="35.07" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="亮灰色羊毛平面" Tag="35.08" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蓝色羊毛平面" Tag="35.09" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫红色羊毛平面" Tag="35.10" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="深蓝色羊毛平面" Tag="35.11" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="褐色羊毛平面" Tag="35.12" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="深绿色羊毛平面" Tag="35.13" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红色羊毛平面" Tag="35.14" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灰色羊毛平面" Tag="35.15" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="白色羊毛方块" Tag="35.16" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橙色羊毛方块" Tag="35.17" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫色羊毛方块" Tag="35.18" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="淡蓝色羊毛方块" Tag="35.19" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄色羊毛方块" Tag="35.20" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿色羊毛方块" Tag="35.21" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粉色羊毛方块" Tag="35.22" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黑色羊毛方块" Tag="35.23" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="亮灰色羊毛方块" Tag="35.24" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蓝色羊毛方块" Tag="35.25" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫红色羊毛方块" Tag="35.26" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="深蓝色羊毛方块" Tag="35.27" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="褐色羊毛方块" Tag="35.28" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="深绿色羊毛方块" Tag="35.29" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红色羊毛方块" Tag="35.30" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灰色羊毛方块" Tag="35.31" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蒲公英花" Tag="37" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="玫瑰花" Tag="38" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灰色蘑菇" Tag="39" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红色蘑菇" Tag="40" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金块平面" Tag="41" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金块方块" Tag="41.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁块平面" Tag="42" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁块方块" Tag="42.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="双石砖" Tag="43" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="台阶平面" Tag="44" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="台阶方块" Tag="44.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="砖块平面" Tag="45" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="砖块方块" Tag="45.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="TNT平面" Tag="46" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="TNT方块" Tag="46.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="书架平面" Tag="47" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="书架方块" Tag="47.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="苔石平面" Tag="48" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="苔石方块" Tag="48.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黑曜石平面" Tag="49" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黑曜石方块" Tag="49.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="火把" Tag="50" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="火焰" Tag="51" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="刷怪笼平面" Tag="52" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="刷怪笼方块" Tag="52.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木质楼梯平面" Tag="53" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木质楼梯方块" Tag="53.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="箱子平面" Tag="54" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="箱子方块" Tag="54.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红石线" Tag="55" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石矿平面" Tag="56" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石矿方块" Tag="56.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石块平面" Tag="57" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石块方块" Tag="57.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="工作台平面" Tag="58" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="工作台方块" Tag="58.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="成熟的小麦" Tag="59" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="耕地平面" Tag="60" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="耕地方块" Tag="60.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熔炉平面" Tag="61" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熔炉方块" Tag="61.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="燃着的熔炉平面" Tag="62" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="燃着的熔炉方块" Tag="62.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某未知绿色方块平面)" Tag="63" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木梯" Tag="65" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁轨" Tag="66" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石楼梯平面" Tag="67" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石楼梯方块" Tag="67.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="告示牌" Tag="68" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="拉杆开关" Tag="69" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石踏板平面" Tag="70" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石踏板方块" Tag="70.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木质踏板平面" Tag="72" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木质踏板方块" Tag="72.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红石矿平面" Tag="74" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红石矿方块" Tag="74.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熄灭的红石火把" Tag="75" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="明亮的红石火把" Tag="76" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="按钮平面" Tag="77" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="按钮方块" Tag="77.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="冰块平面" Tag="79" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="冰块方块" Tag="79.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="雪块平面" Tag="80" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="雪块方块" Tag="80.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="仙人掌平面" Tag="81" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="仙人掌方块" Tag="81.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粘土平面" Tag="82" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粘土方块" Tag="82.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="甘蔗" Tag="83" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="唱片机平面" Tag="84" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="唱片机方块" Tag="84.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="栅栏平面" Tag="85" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="栅栏方块" Tag="85.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="南瓜平面" Tag="86" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="南瓜方块" Tag="86.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱岩平面" Tag="87" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱岩方块" Tag="87.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灵魂沙平面" Tag="88" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灵魂沙方块" Tag="88.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="萤石平面" Tag="89" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="萤石方块" Tag="89.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="传送门平面" Tag="90" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="传送门方块" Tag="90.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="南瓜灯方块" Tag="91" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="南瓜灯平面" Tag="91.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="齿轮" Tag="92" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="弓箭袋" Tag="93" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="生命" Tag="94" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="护甲" Tag="95" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="锻造" Tag="96" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="工具损坏" Tag="97" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="哭泣的黑曜石平面" Tag="98" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="哭泣的黑曜石方块" Tag="98.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="陷阱门平面" Tag="99" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="陷阱门方块" Tag="99.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="大红蘑菇平面" Tag="100" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="大红蘑菇方块" Tag="100.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="大棕蘑菇平面" Tag="101" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="大棕蘑菇方块" Tag="101.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蘑菇梗侧面" Tag="102" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蘑菇梗截面" Tag="103" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蘑菇梗方块" Tag="103.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="成熟西瓜/南瓜苗" Tag="104" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="西瓜平面" Tag="105" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="西瓜方块" Tag="105.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="藤蔓" Tag="106" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁栏杆" Tag="107" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石砖平面" Tag="108" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石砖方块" Tag="108.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石砖平面" Tag="109" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="碎石砖方块" Tag="109.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="苔石砖平面" Tag="110" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="苔石砖方块" Tag="110.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="荷叶" Tag="111" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱砖平面" Tag="112" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱砖方块" Tag="112.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱砖栅栏" Tag="113" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱转楼梯" Tag="114" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱疣" Tag="115" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="附魔台" Tag="116" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="酿造台" Tag="117" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某未知蓝色方块平面)" Tag="120" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某未知蓝色方块)" Tag="120.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末地石" Tag="121" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="龙蛋" Tag="122" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="菌丝" Tag="123" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石质楼梯" Tag="124" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红砖楼梯" Tag="125" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熄灭红石灯平面" Tag="126" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熄灭红石灯方块" Tag="126.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="激活的红石灯平面" Tag="127" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="激活的红石灯方块" Tag="127.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末地传送门平面" Tag="128" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末地传送门方块-已填充末影之眼" Tag="128.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末地传送门方块-为填充" Tag="128.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="錾制石砖平面" Tag="129" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="錾制石砖方块" Tag="129.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="可可豆" Tag="130" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿宝石矿平面" Tag="131" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿宝石矿方块" Tag="131.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红宝石矿平面" Tag="131.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红宝石矿方块" Tag="131.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末影箱平面" Tag="132" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末影箱方块" Tag="132.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿宝石块平面" Tag="133" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿宝石矿方块" Tag="133.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绊线钩平面" Tag="134" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绊线钩方块" Tag="134.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁铲" Tag="256" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁镐" Tag="257" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁斧" Tag="258" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="打火石" Tag="259" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="苹果" Tag="260" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="弓,正常" Tag="261" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="弓,蓄力1" Tag="261.01" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="弓,蓄力2" Tag="261.02" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="弓,最大蓄力" Tag="261.03" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="箭" Tag="262" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="煤" Tag="263" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石" Tag="264" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁锭" Tag="265" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金锭" Tag="266" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁剑" Tag="267" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木剑" Tag="268" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木铲" Tag="269" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木镐" Tag="270" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木斧" Tag="271" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石剑" Tag="272" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石铲" Tag="273" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石镐" Tag="274" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石斧" Tag="275" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石剑" Tag="276" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石铲" Tag="277" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石镐" Tag="278" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石斧" Tag="279" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木棍" Tag="280" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="空碗" Tag="281" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蘑菇汤碗" Tag="282" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金剑" Tag="283" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金铲" Tag="284" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金镐" Tag="285" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金斧" Tag="286" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="丝线" Tag="287" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="羽毛" Tag="288" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="火药" Tag="289" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木犁" Tag="290" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="石犁" Tag="291" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁犁" Tag="292" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石犁" Tag="293" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金犁" Tag="294" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="种子" Tag="295" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="麦子" Tag="296" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="面包" Tag="297" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="皮质帽子" Tag="298" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="皮质外套" Tag="299" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="皮质裤子" Tag="300" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="皮质鞋子" Tag="301" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="锁链头盔" Tag="302" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="锁链胸甲" Tag="303" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="锁链护腿" Tag="304" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="锁链靴子" Tag="305" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁质头盔" Tag="306" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁质胸甲" Tag="307" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁质护腿" Tag="308" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁质靴子" Tag="309" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石头盔" Tag="310" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石胸甲" Tag="311" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石护腿" Tag="312" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钻石靴子" Tag="313" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金头盔" Tag="314" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金胸甲" Tag="315" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金护腿" Tag="316" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="黄金靴子" Tag="317" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="燧石" Tag="318" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="生猪排" Tag="319" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熟猪排" Tag="320" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="油画" Tag="321" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金苹果" Tag="322" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="告示牌" Tag="323" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="木门" Tag="324" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="空铁桶" Tag="325" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="水桶" Tag="326" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="岩浆桶" Tag="327" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="矿车" Tag="328" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="鞍" Tag="329" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁门" Tag="330" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红石" Tag="331" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="雪球" Tag="332" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="船" Tag="333" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="皮革" Tag="334" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="牛奶桶" Tag="335" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="砖块" Tag="336" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粘土" Tag="337" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="甘蔗" Tag="338" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="纸张" Tag="339" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="书本" Tag="340" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="书写中的书" Tag="340.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="书写完成的书" Tag="340.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="史莱姆球" Tag="341" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="运输矿车" Tag="342" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="动力矿车" Tag="343" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="鸡蛋" Tag="344" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="指南针" Tag="345" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="钓鱼竿" Tag="346" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="时钟" Tag="347" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="萤石粉" Tag="348" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="生鱼" Tag="349" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熟鱼" Tag="350" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="墨囊" Tag="351" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="玫瑰红" Tag="351.01" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="仙人掌绿" Tag="351.02" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="可可豆" Tag="351.03" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青金石色染料" Tag="351.04" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫色染料" Tag="351.05" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="青色染料" Tag="351.06" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="淡灰色染料" Tag="351.07" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="灰色染料" Tag="351.08" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="粉红色染料" Tag="351.09" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿色染料" Tag="351.10" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="柠檬黄色染料" Tag="351.11" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="淡蓝色染料" Tag="351.12" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="紫红色染料" Tag="351.13" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="橙色染料" Tag="351.14" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="骨粉" Tag="351.15" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="骨头" Tag="352" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="砂糖" Tag="353" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蛋糕" Tag="354" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="床" Tag="355" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红石中继器" Tag="356" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="饼干" Tag="357" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地图" Tag="358" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="剪刀" Tag="359" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="西瓜片" Tag="360" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="南瓜种子" Tag="361" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="西瓜种子" Tag="362" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="生牛肉" Tag="363" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熟牛肉" Tag="364" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="生鸡肉" Tag="365" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熟鸡肉" Tag="366" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="腐肉" Tag="367" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末影珍珠" Tag="368" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="烈焰棒" Tag="369" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="恶魂之泪" Tag="370" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="金粒" Tag="371" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="地狱孢子" Tag="372" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="药瓶" Tag="373" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.1)" Tag="373.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.101)" Tag="373.101" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.102)" Tag="373.102" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.103)" Tag="373.103" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.104)" Tag="373.104" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.105)" Tag="373.105" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.106)" Tag="373.106" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.107)" Tag="373.107" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.108)" Tag="373.108" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.109)" Tag="373.109" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.2)" Tag="373.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.3)" Tag="373.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.4)" Tag="373.4" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.5)" Tag="373.5" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.6)" Tag="373.6" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.7)" Tag="373.7" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.8)" Tag="373.8" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种药水 (373.9)" Tag="373.9" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="玻璃瓶" Tag="374" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蜘蛛眼" Tag="375" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="发酵蛛眼" Tag="376" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="烈焰粉" Tag="377" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="熔岩球" Tag="378" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="酿造台" Tag="379" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="坩埚" Tag="380" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末世之眼" Tag="381" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="发光西瓜" Tag="382" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="经验瓶" Tag="384" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="火球" Tag="385" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="绿宝石" Tag="388" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="红宝石" Tag="388.1" Margin="15,0,0,0" />
+                            
+                            <local:MyComboBoxItem Content="刷怪蛋"/>
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.01)" Tag="383.01" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.02)" Tag="383.02" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.03)" Tag="383.03" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.04)" Tag="383.04" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.05)" Tag="383.05" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.06)" Tag="383.06" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.07)" Tag="383.07" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.08)" Tag="383.08" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.09)" Tag="383.09" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.10)" Tag="383.10" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.11)" Tag="383.11" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.12)" Tag="383.12" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.13)" Tag="383.13" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.14)" Tag="383.14" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.15)" Tag="383.15" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.16)" Tag="383.16" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.17)" Tag="383.17" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.18)" Tag="383.18" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.19)" Tag="383.19" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某种刷怪蛋 (383.20)" Tag="383.20" Margin="15,0,0,0" />
+                            
+                            <local:MyComboBoxItem Content="唱片"/>
+                            <local:MyComboBoxItem Content="某张唱片 (2256)" Tag="2256" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2257)" Tag="2257" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2258)" Tag="2258" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2259)" Tag="2259" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2260)" Tag="2260" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2261)" Tag="2261" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2262)" Tag="2262" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2263)" Tag="2263" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2264)" Tag="2264" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2265)" Tag="2265" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="某张唱片 (2266)" Tag="2266" Margin="15,0,0,0" />
+
+                            <local:MyComboBoxItem Content="太阳/月亮" Tag="3000" />
+                            <local:MyComboBoxItem Content="月亮" Tag="3000" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="太阳" Tag="3001" Margin="15,0,0,0" />
+
+                            <local:MyComboBoxItem Content="动物头像" Tag="5000" />
+                            <local:MyComboBoxItem Content="鸡" Tag="5000" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="猪" Tag="5001" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="牛" Tag="5002" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="羊" Tag="5003" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="鱿鱼" Tag="5004" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="野生的狼" Tag="5005" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="被驯服的狼" Tag="5005.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="被激怒的狼" Tag="5005.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="哞菇" Tag="5006" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="雪人的脸" Tag="5007" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="村民" Tag="5008" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="豹猫" Tag="5009" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="豹猫 黑色变种" Tag="5009.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="豹猫 橘色变种" Tag="5009.2" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="豹猫 灰色变种" Tag="5009.3" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="铁傀儡" Tag="5010" Margin="15,0,0,0" />
+
+                            <local:MyComboBoxItem Content="怪物头像" Tag="6000" />
+                            <local:MyComboBoxItem Content="爬行者" Tag="6000" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="僵尸" Tag="6001" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="骷髅" Tag="6002" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蜘蛛" Tag="6003" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="隐身蜘蛛" Tag="6003.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="史莱姆" Tag="6004" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="恶魂" Tag="6005" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="僵尸猪人" Tag="6006" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="洞穴蜘蛛" Tag="6007" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末影人" Tag="6008" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蠹虫脸部" Tag="6009" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="蠹虫" Tag="6009.1" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="烈焰人" Tag="6010" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="岩浆怪" Tag="6011" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="末影龙" Tag="6012" Margin="15,0,0,0" />
+                            
+                            <local:MyComboBoxItem Content="人物头像" Tag="7000" />
+                            <local:MyComboBoxItem Content="Steve" Tag="7000" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某不知名绿色人物)" Tag="7001" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某不知名棕色人物)" Tag="7002" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某不知名可爱角色)" Tag="7003" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="(某不知名肤色人物)" Tag="7004" Margin="15,0,0,0" />
+                            
+                            <local:MyComboBoxItem Content="经典头像!" Tag="9000" />
+                            <local:MyComboBoxItem Content="Notch 像素" Tag="9000" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="Notch 真人" Tag="9001" Margin="15,0,0,0" />
+                            <local:MyComboBoxItem Content="Herobrine!" Tag="9002" Margin="15,0,0,0" />
+                        </local:MyComboBox>
+
+                        <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="成就名" Margin="0,-2,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" x:Name="AchievementTitleTextBox" MaxLength="50" Margin="0,0,0,0">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateNullOrEmpty/>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        
-                        <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="第一行" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
+
+                        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="AchievementString1TextBoxText" Text="第一行" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateNullOrEmpty/>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        
-                        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" Text="第二行（可选）" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" x:Name="AchievementString2TextBox" MaxLength="50" />
+
+                        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="AchievementString2TextBoxText" Text="第二行（可选）" Margin="0,0,25,0" />
+                        <local:MyTextBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" x:Name="AchievementString2TextBox" MaxLength="50" />
                     </Grid>
                     <Grid Margin="0,15,0,10">
                         <Grid.RowDefinitions>
