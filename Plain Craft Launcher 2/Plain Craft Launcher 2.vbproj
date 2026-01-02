@@ -112,7 +112,4 @@
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Pages\PageLink\" />
-  </ItemGroup>
 </Project>

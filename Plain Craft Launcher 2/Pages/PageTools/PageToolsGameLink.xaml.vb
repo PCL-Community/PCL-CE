@@ -400,36 +400,6 @@ Public Class PageToolsGameLink
             End Sub)
     End Sub
 
-    Private Sub ReloadNaidData()
-        RunInNewThread(Sub()
-                           Try
-                               If Convert.ToDateTime(Config.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
-                                   Setup.Set("LinkNaidRefreshToken", "")
-                                   Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
-                                   Exit Sub
-                               Else
-                                   GetNaidData(Config.Link.NaidRefreshToken, True)
-                               End If
-                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
-                                   Thread.Sleep(1000)
-                               End While
-                               RunInUi(Sub()
-                                           If NaidProfile.Status = 0 Then '状态是否正常
-                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}"
-                                               LabNatayarkUserName.Opacity = 1
-                                           Else
-                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}(状态异常)"
-                                               LabNatayarkUserName.Opacity = 0.6
-                                           End If
-                                       End Sub)
-                           Catch ex As Exception
-                               Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
-                               RunInUi(Sub()
-                                           LabNatayarkUserName.Text = $"获取信息失败"
-                                       End Sub)
-                           End Try
-                       End Sub)
-    End Sub
 #End Region
 
 #Region "信息获取与展示"
@@ -467,6 +437,88 @@ Public Class PageToolsGameLink
         MyMsgBox(msg, $"玩家 {info.Name} 的详细信息")
     End Sub
 #End Region
+
+#Region "Natayark 账户相关功能"
+    Private Sub ReloadNaidData()
+        RunInNewThread(Sub()
+                           Try
+                               If Convert.ToDateTime(Config.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
+                                   Setup.Set("LinkNaidRefreshToken", "")
+                                   Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
+                                   Exit Sub
+                               Else
+                                   GetNaidData(Config.Link.NaidRefreshToken, True)
+                               End If
+                               While String.IsNullOrWhiteSpace(NaidProfile.Username)
+                                   Thread.Sleep(1000)
+                               End While
+                               RunInUi(Sub()
+                                           If NaidProfile.Status = 0 Then '状态是否正常
+                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}"
+                                               LabNatayarkUserName.Opacity = 1
+                                           Else
+                                               LabNatayarkUserName.Text = $"{NaidProfile.Username}(状态异常)"
+                                               LabNatayarkUserName.Opacity = 0.6
+                                           End If
+                                       End Sub)
+                           Catch ex As Exception
+                               Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
+                               RunInUi(Sub()
+                                           LabNatayarkUserName.Text = $"获取信息失败"
+                                       End Sub)
+                           End Try
+                       End Sub)
+    End Sub
+
+    Private Sub LabNatayarkUserName_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles BtnNatayarkUserName.MouseLeftButtonUp
+        'If Not IsLobbyAvailable Then
+        '    Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
+        '    Exit Sub
+        'End If
+
+        If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
+            ' 当前未登录，显示登录选项
+            If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
+                        "登录至 Natayark Network", "继续", "取消") = 1 Then
+                LabNatayarkUserName.Text = "请在浏览器中继续..."
+                LabNatayarkUserName.Opacity = 0.6
+                BtnNatayarkUserName.IsEnabled = False
+                StartNaidAuthorize(Sub()
+                                       RunInUi(Sub()
+                                                   BtnNatayarkUserName.IsEnabled = True
+                                               End Sub)
+                                       Hint("已完成登录操作", HintType.Finish)
+                                       ReloadNaidData()
+                                   End Sub)
+            End If
+        Else
+            ' 当前已登录，显示登出选项
+            If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
+                Config.Link.NaidRefreshTokenConfig.Reset()
+                LabNatayarkUserName.Text = "点击登录 Natayark 账户"
+                Log("[Link] 已退出登录 Natayark Network")
+                Hint("已退出登录！", HintType.Finish, False)
+            End If
+        End If
+    End Sub
+#End Region
+
+    ' 网络测试功能
+    Private Async Sub BtnNetTest_Click(sender As Object, e As RoutedEventArgs) Handles BtnNatTest.MouseLeftButtonUp
+        Try
+            BtnNatTest.IsEnabled = False
+            LabNatType.Text = "正在测试"
+            Dim status = Await Scaffolding.EasyTier.CliNetTest.GetNetStatusAsync()
+            RunInUi(Sub()
+                        LabNatType.Text = $"{Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.UdpNatType)} (UDP), {Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.TcpNatType)}(TCP)"
+                    End Sub)
+        Catch ex As Exception
+            Log(ex, "[Link] 获取网络测试结果失败", LogLevel.Hint)
+            BtnNatTest.IsEnabled = True
+            LabNatType.Text = "测试失败"
+        End Try
+    End Sub
+
     Private Sub PasteLobbyId() Handles BtnPaste.Click
         Dim lobbyId As String
         Try
@@ -493,7 +545,7 @@ Public Class PageToolsGameLink
     Private Sub BtnRefresh_Click(sender As Object, e As EventArgs) Handles BtnRefresh.Click
         Dim lobby = LobbyService.DiscoverWorldAsync()
     End Sub
-    
+
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then

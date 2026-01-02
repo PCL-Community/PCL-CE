@@ -55,46 +55,6 @@ Class PageSetupGameLink
         '            TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
         '        End If
     End Sub
-
-    Private Sub BtnLogin_Click(sender As Object, e As RoutedEventArgs)
-        If FrmToolsGameLink Is Nothing Then FrmToolsGameLink = New PageToolsGameLink
-        If Not (PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageToolsGameLink.LobbyAnnouncementLoader.State = LoadState.Failed) Then
-            Hint("正在拉取大厅公告，请稍后再试...")
-            Exit Sub
-        End If
-        If Not IsLobbyAvailable Then
-            Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
-            Exit Sub
-        End If
-        If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
-                    "登录至 Natayark Network", "继续", "取消") = 1 Then
-            BtnLogin.Visibility = Visibility.Collapsed
-            BtnRegister.Visibility = Visibility.Collapsed
-            BtnCancel.Visibility = Visibility.Visible
-            TextLogin.Text = "请在浏览器中完成登录，然后回到启动器中继续..."
-            StartNaidAuthorize()
-        End If
-    End Sub
-    Private Sub BtnCancel_Click(sender As Object, e As RoutedEventArgs)
-        BtnLogin.Visibility = Visibility.Visible
-        BtnRegister.Visibility = Visibility.Visible
-        BtnCancel.Visibility = Visibility.Collapsed
-        TextLogin.Text = "登录至 Natayark Network 以使用大厅等在线服务"
-        DisposeWebServer("oauth/NatayarkID")
-        Hint("已取消登录！")
-    End Sub
-    Private Sub BtnLogout_Click(sender As Object, e As RoutedEventArgs)
-        If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
-            Config.Link.NaidRefreshTokenConfig.Reset()
-            BtnLogin.Visibility = Visibility.Visible
-            BtnRegister.Visibility = Visibility.Visible
-            BtnCancel.Visibility = Visibility.Collapsed
-            TextLogin.Text = "登录至 Natayark Network 以使用大厅等在线服务"
-            Reload()
-            Log("[Link] 已退出登录 Natayark Network")
-            Hint("已退出登录！", HintType.Finish, False)
-        End If
-    End Sub
     '初始化
     Public Sub Reset()
         Try
