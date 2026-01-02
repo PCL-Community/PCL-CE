@@ -706,9 +706,8 @@ Retry:
         }
         Dim Result As String
         Try
-            Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
-                WithContent(contentData, "application/json").
+                WithJsonContent(requestData).
                 SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
@@ -755,9 +754,8 @@ Retry:
             .TokenType = "JWT"
         }
         Dim result As String
-        Dim contentData = JsonSerializer.Serialize(requestData)
         Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
-                WithContent(contentData, "application/json").
+                WithJsonContent(requestData).
                 SendAsync().GetAwaiter().GetResult()
             result = response.AsStringContent()
 
@@ -820,9 +818,8 @@ Retry:
         }
         Dim Result As String
         Try
-            Dim contentData = JsonSerializer.Serialize(requestData)
             Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post).
-                WithContent(contentData, "application/json").
+                WithJsonContent(requestData).
                 SendAsync(True).GetAwaiter().GetResult()
                 Result = response.AsStringContent()
             End Using
