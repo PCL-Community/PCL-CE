@@ -8,14 +8,14 @@ on:
     inputs:
       channel:
         required: true
-        default: "stable"
+        default: 'stable'
         type: choice
         options:
           - stable
           - beta
       arch:
         required: true
-        default: "x64"
+        default: 'x64'
         type: choice
         options:
           - x64

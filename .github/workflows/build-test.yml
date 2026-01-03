@@ -7,16 +7,16 @@ on:
   push:
     branches: [dev]
     paths:
-      - "Plain Craft Launcher 2/**"
-      - "Plain Craft Launcher 2.sln"
-      - ".github/workflows/**"
-      - "PCL.Core"
+      - 'Plain Craft Launcher 2/**'
+      - 'Plain Craft Launcher 2.sln'
+      - '.github/workflows/**'
+      - 'PCL.Core'
   pull_request:
     paths:
-      - "Plain Craft Launcher 2/**"
-      - "Plain Craft Launcher 2.sln"
-      - ".github/workflows/**"
-      - "PCL.Core"
+      - 'Plain Craft Launcher 2/**'
+      - 'Plain Craft Launcher 2.sln'
+      - '.github/workflows/**'
+      - 'PCL.Core'
   workflow_dispatch:
 
 jobs:

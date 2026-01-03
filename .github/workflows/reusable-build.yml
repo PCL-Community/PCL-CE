@@ -51,7 +51,7 @@ jobs:
 
       - name: Build Project
         env:
-          PCL_WRITE_SECRET: "1"
+          PCL_WRITE_SECRET: '1'
           PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           PCL_TELEMETRY_KEY: ${{ secrets.TELEMETRY_KEY }}
