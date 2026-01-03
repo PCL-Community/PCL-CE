@@ -141,6 +141,7 @@ Public Class PageSetupUI
             CheckHiddenSetupLaunch.Checked = Setup.Get("UiHiddenSetupLaunch")
             CheckHiddenSetupUI.Checked = Setup.Get("UiHiddenSetupUi")
             CheckHiddenSetupSystem.Checked = Setup.Get("UiHiddenSetupSystem")
+            CheckHiddenSetupCustom.Checked = Setup.Get("UiHiddenSetupCustom")
             CheckHiddenOtherAbout.Checked = Setup.Get("UiHiddenOtherAbout")
             CheckHiddenOtherFeedback.Checked = Setup.Get("UiHiddenOtherFeedback")
             CheckHiddenOtherLog.Checked = Setup.Get("UiHiddenOtherLog")
@@ -204,6 +205,7 @@ Public Class PageSetupUI
             Setup.Reset("UiHiddenSetupLaunch")
             Setup.Reset("UiHiddenSetupUi")
             Setup.Reset("UiHiddenSetupSystem")
+            Setup.Reset("UiHiddenSetupCustom")
             Setup.Reset("UiHiddenOtherAbout")
             Setup.Reset("UiHiddenOtherFeedback")
             Setup.Reset("UiHiddenOtherHelp")
@@ -598,6 +600,7 @@ Refresh:
                 FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupLaunch"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupUi"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupSystem"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemCustom.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupCustom"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherFeedback"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherLog"), Visibility.Collapsed, Visibility.Visible)
@@ -606,6 +609,7 @@ Refresh:
                 If Not Setup.Get("UiHiddenSetupLaunch") Then AvaliableCount += 1
                 If Not Setup.Get("UiHiddenSetupUi") Then AvaliableCount += 1
                 If Not Setup.Get("UiHiddenSetupSystem") Then AvaliableCount += 1
+                If Not Setup.Get("UiHiddenSetupCustom") Then AvaliableCount += 1
                 FrmSetupLeft.PanItem.Visibility = If(AvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
             '工具子页面
@@ -642,16 +646,17 @@ Refresh:
             CheckHiddenSetupUI.Checked = True
         Else
             '关闭
-            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
+            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") AndAlso Setup.Get("UiHiddenSetupCustom") Then
                 CheckHiddenSetupLaunch.Checked = False
                 CheckHiddenSetupSystem.Checked = False
                 CheckHiddenSetupUI.Checked = False
+                CheckHiddenSetupCustom.Checked = False
             End If
         End If
     End Sub
-    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
+    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenSetupCustom.Change
         '设置子页面
-        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
+        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") AndAlso Setup.Get("UiHiddenSetupCustom") Then
             '已被全部隐藏
             CheckHiddenPageSetup.Checked = True
         Else

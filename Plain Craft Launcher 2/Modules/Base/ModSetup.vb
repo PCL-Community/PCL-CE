@@ -369,6 +369,9 @@ Public Class ModSetup
     Public Sub UiHiddenSetupSystem(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
+    Public Sub UiHiddenSetupCustom(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
     Public Sub UiHiddenOtherHelp(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub

@@ -153,14 +153,13 @@ Public Class PageSetupCustom
                         For Each homepage As JProperty In homepages.Properties()
                             Dim item As JObject = homepage.Value
                             Dim isPreset As Boolean = item("preset").ToObject(Of Boolean)()
-                            ' 设置图标（直接使用固定路径）
                             Dim listItem As New MyListItem With {
                                               .Margin = New Thickness(10, 8, 10, 8),
-                                              .ToolTip = "预设主页",
+                                              .ToolTip = If(isPreset, "预设主页", "非预设主页"),
                                               .Title = item("alias").ToString(),
                                               .Info = item("desc").ToString(),
                                               .Type = MyListItem.CheckType.Clickable,
-                                              .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png",
+                                              .Logo = $"pack://application:,,,/images/Blocks/RedstoneLamp{If(isPreset, "On", "Off")}.png",
                                               .Tag = item("link")
                                           }
 
