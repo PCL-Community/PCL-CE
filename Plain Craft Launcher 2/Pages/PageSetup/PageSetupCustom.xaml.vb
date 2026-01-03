@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Net
+Imports PCL.Core.Net
 
 Public Class PageSetupCustom
 
@@ -132,7 +132,7 @@ Public Class PageSetupCustom
         FrmSetupCustom.CardCustom.TriggerForceResize()
     End Sub
     Private Async Sub LoadHomepages()
-        Dim url As String = "https://github.com/Ignis-Studio/HomepageList/raw/main/homepages.json"
+        Dim url As String = "https://pclhomeplazaoss.lingyunawa.top:26993/d/Homepages/Ext1nguisher/homepages.json"
 
         Dim httpClient = NetworkService.GetClient()
         Try
