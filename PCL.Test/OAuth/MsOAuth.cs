@@ -15,7 +15,7 @@ namespace PCL.Test.OAuth
         public async Task TestOAuthLogin()
         {
             return; // Set return when auto test
-            var oauth = new MicrosoftCodeFlowOAuthSession("d783841c-a30a-4351-8d4c-bd9c03dc7978", "https://graph.microsoft.com/mail.read");
+            var oauth = new MicrosoftCodeFlowOAuthSession("", "https://graph.microsoft.com/mail.read");
             oauth.StateChanged += (sender, state) =>
             {
                 switch (state)
