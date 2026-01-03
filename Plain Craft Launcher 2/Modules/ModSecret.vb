@@ -652,7 +652,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                                                                            End If
                                                                                        End Sub))
                                If type = UpdateType.UpdateNow Then
-                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateHelper.Restart(True)))
+                                   loaders.Add(New LoaderTask(Of Integer, Integer)("安装更新", Sub() UpdateHelper.Restart(True, True)))
                                ElseIf type = UpdateType.Silent Then
                                    loaders.Add(New LoaderTask(Of Integer, Integer)("准备更新", Sub() IsUpdateWaitingRestart = True))
                                ElseIf type = UpdateType.DownloadAndPrompt Then

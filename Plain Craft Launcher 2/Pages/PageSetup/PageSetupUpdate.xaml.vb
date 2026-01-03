@@ -115,7 +115,7 @@ Public Class PageSetupUpdate
             Return
         End If
         If IsUpdateWaitingRestart Then
-            UpdateHelper.Restart(True)
+            UpdateHelper.Restart(True, True)
         End If
         '开始更新流程
         UpdateStart(UpdateType.UpdateNow)
