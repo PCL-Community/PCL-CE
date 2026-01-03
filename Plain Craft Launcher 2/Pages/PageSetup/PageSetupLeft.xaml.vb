@@ -123,7 +123,7 @@ Public Class PageSetupLeft
         AniStart({
                          AaCode(Sub()
                                     CType(FrmMain.PanMainRight.Child, MyPageRight).PageOnForceExit()
-            FrmMain.PanMainRight.Child = FrmMain.PageRight
+                                    FrmMain.PanMainRight.Child = FrmMain.PageRight
                                     FrmMain.PageRight.Opacity = 0
                                 End Sub, 130),
                          AaCode(Sub()
@@ -178,5 +178,14 @@ Public Class PageSetupLeft
                        End Sub)
 
     End Sub
-
+    Public Sub Refresh(sender As Object, e As EventArgs) '由边栏按钮匿名调用
+        Select Case Val(sender.Tag)
+            Case FormMain.PageSubType.SetupFeedback
+                If FrmSetupFeedback IsNot Nothing Then
+                    FrmSetupFeedback.Loader.Start(IsForceRestart:=True)
+                End If
+                ItemFeedback.Checked = True
+        End Select
+        Hint("正在刷新……", Log:=False)
+    End Sub
 End Class
