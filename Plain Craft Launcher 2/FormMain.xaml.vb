@@ -968,11 +968,11 @@ Public Class FormMain
         ''' <summary>
         ''' 联机。
         ''' </summary>
-        Tools = 2
+        Tools = 3
         ''' <summary>
         ''' 设置。
         ''' </summary>
-        Setup = 3
+        Setup = 2
         ''' <summary>
         ''' 实例选择。这是一个副页面。
         ''' </summary>
