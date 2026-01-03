@@ -139,8 +139,8 @@ Public Class PageSetupCustom
             ' 获取字节数组而不是字符串
             Dim responseBytes() As Byte = Await httpClient.GetByteArrayAsync(url)
 
-            ' 使用 GBK 编码解码
-            Dim gbkEncoding As Encoding = Encoding.GetEncoding("GBK")
+            ' 使用 UTF-8 编码解码
+            Dim gbkEncoding As Encoding = Encoding.GetEncoding("UTF-8")
             Dim jsonString As String = gbkEncoding.GetString(responseBytes)
             Dim jsonObj As JObject = JObject.Parse(jsonString)
             Dim homepages As JObject = jsonObj("homepages")
