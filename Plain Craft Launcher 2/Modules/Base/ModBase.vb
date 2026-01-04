@@ -1220,6 +1220,10 @@ Re:
     Public Sub ExtractFile(CompressFilePath As String, DestDirectory As String, Optional Encode As Encoding = Nothing,
                            Optional ProgressIncrementHandler As Action(Of Double) = Nothing)
         Directory.CreateDirectory(DestDirectory)
+        DestDirectory = IO.Path.GetFullPath(DestDirectory)
+        If Not DestDirectory.EndsWith(IO.Path.DirectorySeparatorChar.ToString()) Then
+            DestDirectory += IO.Path.DirectorySeparatorChar
+        End If
         If CompressFilePath.EndsWithF(".gz", True) Then
             '以 gz 方式解压
             Using compressedFile As New FileStream(CompressFilePath, FileMode.Open, FileAccess.Read)
@@ -1235,7 +1239,10 @@ Re:
                 Dim TotalCount As Integer = Archive.Entries.Count
                 For Each Entry As ZipArchiveEntry In Archive.Entries
                     If ProgressIncrementHandler IsNot Nothing Then ProgressIncrementHandler(1 / TotalCount)
-                    Dim DestinationPath As String = IO.Path.Combine(DestDirectory, Entry.FullName)
+                    Dim DestinationPath As String = IO.Path.GetFullPath(IO.Path.Combine(DestDirectory, Entry.FullName))
+                    If Not DestinationPath.StartsWithF(DestDirectory) Then
+                        Throw New Exception($"解压文件 {Entry.FullName} 错误：解压文件路径 {DestinationPath} 不在目标目录 {DestDirectory} 内")
+                    End If
                     If DestinationPath.EndsWithF("\") OrElse DestinationPath.EndsWithF("/") Then
                         Continue For '不创建空文件夹
                     Else
