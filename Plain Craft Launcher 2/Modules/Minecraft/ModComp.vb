@@ -1175,7 +1175,7 @@ NoSubtitle:
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
             Using conn = CompDB
                 Dim sql = "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p"
-                Dim searchRes = conn.Query(Of CompDatabaseEntry)(sql, New With {Key .p = RawFilter})
+                Dim searchRes = conn.Query(Of CompDatabaseEntry)(sql, New With {Key .p = $"%{RawFilter}%"})
                 For Each searchItem In searchRes
                     If searchItem.ChineseName.Contains("动态的树") Then Continue For
                     Dim entry As New SearchEntry(Of CompDatabaseEntry) With {
