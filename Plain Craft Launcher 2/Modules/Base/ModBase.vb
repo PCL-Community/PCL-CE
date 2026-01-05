@@ -20,12 +20,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.14.0-beta.3" '不含分支前缀的显示用版本名
+    Public Const VersionBaseName As String = "2.14.0-beta.4" '不含分支前缀的显示用版本名
     Public Const VersionStandardCode As String = "2.14.0." & VersionBranchCode
     Public Const UpstreamVersion As String = "2.12.1" '上游版本
     Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
     Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 501 '内部版本号
+    Public Const VersionCode As Integer = 502 '内部版本号
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -1220,6 +1220,10 @@ Re:
     Public Sub ExtractFile(CompressFilePath As String, DestDirectory As String, Optional Encode As Encoding = Nothing,
                            Optional ProgressIncrementHandler As Action(Of Double) = Nothing)
         Directory.CreateDirectory(DestDirectory)
+        DestDirectory = IO.Path.GetFullPath(DestDirectory)
+        If Not DestDirectory.EndsWith(IO.Path.DirectorySeparatorChar.ToString()) Then
+            DestDirectory += IO.Path.DirectorySeparatorChar
+        End If
         If CompressFilePath.EndsWithF(".gz", True) Then
             '以 gz 方式解压
             Using compressedFile As New FileStream(CompressFilePath, FileMode.Open, FileAccess.Read)
@@ -1235,7 +1239,10 @@ Re:
                 Dim TotalCount As Integer = Archive.Entries.Count
                 For Each Entry As ZipArchiveEntry In Archive.Entries
                     If ProgressIncrementHandler IsNot Nothing Then ProgressIncrementHandler(1 / TotalCount)
-                    Dim DestinationPath As String = IO.Path.Combine(DestDirectory, Entry.FullName)
+                    Dim DestinationPath As String = IO.Path.GetFullPath(IO.Path.Combine(DestDirectory, Entry.FullName))
+                    If Not DestinationPath.StartsWithF(DestDirectory) Then
+                        Throw New Exception($"解压文件 {Entry.FullName} 错误：解压文件路径 {DestinationPath} 不在目标目录 {DestDirectory} 内")
+                    End If
                     If DestinationPath.EndsWithF("\") OrElse DestinationPath.EndsWithF("/") Then
                         Continue For '不创建空文件夹
                     Else

@@ -1,7 +1,9 @@
-﻿Imports System.Threading.Tasks
+﻿Imports System.Collections.Concurrent
 Imports System.Net.Http
-Imports System.Collections.Concurrent
+Imports System.Threading.Tasks
+Imports Dapper
 Imports LiteDB
+Imports Microsoft.Data.Sqlite
 Imports PCL.Core.Utils
 
 Public Module ModComp
@@ -133,41 +135,44 @@ Public Module ModComp
 
 #Region "CompDatabase | Mod 数据库"
 
-    Private _compDbLock As New Object()
-    Private _CompDatabase As LiteDatabase = Nothing
-    Private ReadOnly Property CompDatabase As LiteDatabase
+    Private ReadOnly _dbInitializer As New Lazy(Of String)(AddressOf _InitializeAndGetConnectionString)
+
+    Private ReadOnly Property CompDBConnectionString As String
         Get
-            SyncLock _compDbLock
-                If _CompDatabase Is Nothing Then
-                    Dim dbPath = $"{PathTemp}Cache\ModData.db"
-                    If Not File.Exists(dbPath) Then
-                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath))
-                        Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
-                            Log($"[DB] 解压 ModData 中")
-                            Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
-                                Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                                    trueDbFile.CopyTo(uncompressedDbFile)
-                                End Using
-                            End Using
-                            Log($"[DB] 已更新本地 ModData {dbPath}")
-                        End Using
-                    End If
-                    _CompDatabase = New LiteDatabase(dbPath)
-                    Log($"[DB] 已加载 ModData，共 {_CompDatabase.GetCollection("ModTranslation").Count()} 条数据")
-                End If
-            End SyncLock
-            Return _CompDatabase
+            Return _dbInitializer.Value
+        End Get
+    End Property
+
+    Private Function _InitializeAndGetConnectionString() As String
+        Dim dbPath = $"{PathTemp}Cache\ModData.sqlite"
+        If Not File.Exists(dbPath) Then
+            Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
+            Log($"[DB] 解压 ModData (SQLite) 中")
+            Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
+                Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
+                    Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                        trueDbFile.CopyTo(uncompressedDbFile)
+                    End Using
+                End Using
+            End Using
+        End If
+        Return $"Data Source={dbPath};Cache=Shared"
+    End Function
+
+    Private ReadOnly Property CompDB As SqliteConnection
+        Get
+            Dim conn = New SqliteConnection(_dbInitializer.Value)
+            conn.Open()
+            Return conn
         End Get
     End Property
 
     Private Function GetCompWikiEntryBySlug(slug As String) As CompDatabaseEntry
-        Dim dataCollection = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
-        Dim paSlug = New BsonValue(slug)
-        Dim queryCmd = Query.Or(
-                Query.EQ("CurseForgeSlug", paSlug),
-                Query.EQ("ModrinthSlug", paSlug)
-                )
-        Return dataCollection.Find(queryCmd).FirstOrDefault()
+        Using conn = CompDB
+            Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
+            "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
+            New With {Key .s = slug})
+        End Using
     End Function
 
     Private Class CompDatabaseEntry
@@ -1168,22 +1173,25 @@ NoSubtitle:
         If IsChineseSearch AndAlso (Request.Type = CompType.Mod OrElse Request.Type = CompType.DataPack) Then
             '构造搜索请求
             Dim SearchEntries As New List(Of SearchEntry(Of CompDatabaseEntry))
-            Dim datas = CompDatabase.GetCollection(Of CompDatabaseEntry)("ModTranslation")
-            Dim queryCmd = Query.Or(
-                Query.Contains("ChineseName", RawFilter),
-                Query.Contains("CurseForgeSlug", RawFilter),
-                Query.Contains("ModrinthSlug", RawFilter)
-                )
-            Dim searchRes = datas.Find(queryCmd)
-            For Each searchItem In searchRes
-                If searchItem.ChineseName.Contains("动态的树") Then Continue For
-                SearchEntries.Add(New SearchEntry(Of CompDatabaseEntry) With {
-                    .Item = searchItem,
-                    .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
-                        New KeyValuePair(Of String, Double)(searchItem.ChineseName & If(searchItem.CurseForgeSlug, "") & If(searchItem.ModrinthSlug, ""), 1)
+            Using conn = CompDB
+                Dim sql = "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p"
+                Dim searchRes = conn.Query(Of CompDatabaseEntry)(sql, New With {Key .p = $"%{RawFilter}%"})
+                For Each searchItem In searchRes
+                    If searchItem.ChineseName.Contains("动态的树") Then Continue For
+                    Dim entry As New SearchEntry(Of CompDatabaseEntry) With {
+                        .Item = searchItem,
+                        .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
+                            New KeyValuePair(Of String, Double)(
+                                searchItem.ChineseName &
+                                If(searchItem.CurseForgeSlug, "") &
+                                If(searchItem.ModrinthSlug, ""),
+                                1.0
+                            )
+                        }
                     }
-                })
-            Next
+                    SearchEntries.Add(entry)
+                Next
+            End Using
             '获取搜索结果
             Dim SearchResults = Search(SearchEntries, Request.SearchText, 3)
             If Not SearchResults.Any() Then Throw New Exception("无搜索结果，请尝试搜索英文名称")
@@ -1804,95 +1812,106 @@ Retry:
     ''' <summary>
     ''' 已知文件信息的缓存。
     ''' </summary>
-    Public CompFilesCache As New Dictionary(Of String, List(Of CompFile))
+    Public CompFilesCache As New ConcurrentDictionary(Of String, List(Of CompFile))
     ''' <summary>
     ''' 获取某个工程下的全部文件列表。
     ''' 必须在工作线程执行，失败会抛出异常。
     ''' </summary>
     Public Function CompFilesGet(ProjectId As String, FromCurseForge As Boolean) As List(Of CompFile)
-        '获取工程对象
-        Dim TargetProject As CompProject
-        If CompProjectCache.ContainsKey(ProjectId) Then '存在缓存
-            TargetProject = CompProjectCache(ProjectId)
-        ElseIf FromCurseForge Then 'CurseForge
-            TargetProject = New CompProject(DlModRequest("https://api.curseforge.com/v1/mods/" & ProjectId, IsJson:=True)("data"))
-        Else 'Modrinth
-            TargetProject = New CompProject(DlModRequest("https://api.modrinth.com/v2/project/" & ProjectId, IsJson:=True))
+        ' 1. 获取工程对象（使用 TryGetValue 提高效率并防止并发异常）
+        Dim TargetProject As CompProject = Nothing
+        If Not CompProjectCache.TryGetValue(ProjectId, TargetProject) Then
+            Dim url As String = If(FromCurseForge,
+            $"https://api.curseforge.com/v1/mods/{ProjectId}",
+            $"https://api.modrinth.com/v2/project/{ProjectId}")
+            TargetProject = New CompProject(DlModRequest(url, IsJson:=True)(If(FromCurseForge, "data", Nothing)))
+            ' 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         End If
-        '获取工程对象的文件列表
-        If Not CompFilesCache.ContainsKey(ProjectId) Then '有缓存也不能直接返回，这时候前置可能没获取（#5173）
+
+        ' 2. 获取并缓存文件列表
+        If Not CompFilesCache.ContainsKey(ProjectId) Then
             Log("[Comp] 开始获取文件列表：" & ProjectId)
             Dim ResultJsonArray As JArray
             If FromCurseForge Then
-                'CurseForge
-                'HMCL 一次性请求了 10000 个文件，虽然不知道会不会出问题但先这样吧……（#5522）
+                ' 注意：若 pageSize=10000 失效，需考虑分页逻辑
                 ResultJsonArray = DlModRequest($"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000", IsJson:=True)("data")
-                '之前只请求一部分文件的方法备份如下：
-                'If TargetProject.Type = CompType.Mod Then 'Mod 使用每个版本最新的文件
-                '    ResultJsonArray = GetJson(DlModRequest("https://api.curseforge.com/v1/mods/files", "POST", "{""fileIds"": [" & Join(TargetProject.CurseForgeFileIds, ",") & "]}", "application/json"))("data")
-                'Else '否则使用全部文件
-                '    ResultJsonArray = DlModRequest($"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=999", IsJson:=True)("data")
-                'End If
             Else
-                'Modrinth
                 ResultJsonArray = DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version", IsJson:=True)
             End If
-            CompFilesCache(ProjectId) = ResultJsonArray.Select(Function(a) New CompFile(a, TargetProject.Type)).
-                Where(Function(a) a.Available).ToList.
-                Distinct(Function(a, b) a.Id = b.Id) 'CurseForge 可能会重复返回相同项（#1330）
+
+            CompFilesCache(ProjectId) = ResultJsonArray.
+            Select(Function(a) New CompFile(a, TargetProject.Type)).
+            Where(Function(a) a.Available).
+            GroupBy(Function(a) a.Id).Select(Function(g) g.First()). ' 使用 GroupBy 实现更高效的 Distinct
+            ToList()
         End If
-        '获取前置列表
-        Dim Deps As List(Of String) = CompFilesCache(ProjectId).SelectMany(Function(f) f.RawDependencies).Distinct().ToList
-        Dim UndoneDeps = Deps.Where(Function(f) Not CompProjectCache.ContainsKey(f)).ToList
-        Dim OptionalDeps As List(Of String) = CompFilesCache(ProjectId).SelectMany(Function(f) f.RawOptionalDependencies).Distinct().ToList
-        Dim UndoneOptionalDeps = Deps.Where(Function(f) Not CompProjectCache.ContainsKey(f)).ToList
-        '获取前置工程信息
-        If UndoneDeps.Any Then
-            Log($"[Comp] {ProjectId} 文件列表中还需要获取信息的必要前置：{Join(UndoneDeps, "，")}")
+
+        Dim CurrentFiles = CompFilesCache(ProjectId)
+
+        ' 3. 提取所有需要获取信息的前置 ID（合并必要和可选）
+        Dim AllRawDeps = CurrentFiles.SelectMany(Function(f) f.RawDependencies.Concat(f.RawOptionalDependencies)).Distinct().ToList()
+        Dim UndoneDeps = AllRawDeps.Where(Function(id) Not CompProjectCache.ContainsKey(id)).ToList()
+
+        ' 4. 批量请求缺失的前置工程信息
+        If UndoneDeps.Any() Then
+            Log($"[Comp] {ProjectId} 需要补全信息的依赖项共 {UndoneDeps.Count} 个")
             Dim Projects As JArray
-            If TargetProject.FromCurseForge Then
-                Projects = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
-                    "POST", "{""modIds"": [" & Join(UndoneDeps, ",") & "]}", "application/json"))("data")
+            If FromCurseForge Then
+                Projects = GetJson(DlModRequest("https://api.curseforge.com/v1/mods", "POST",
+                "{""modIds"": [" & Join(UndoneDeps, ",") & "]}", "application/json"))("data")
             Else
                 Projects = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Join(UndoneDeps, """,""")}""]", IsJson:=True)
             End If
+
             For Each Project In Projects
-                Dim Unused As New CompProject(Project) '在 New 的时候会添加缓存以便之后读取
+                Dim Unused As New CompProject(Project) ' 构造函数自动入缓存
             Next
         End If
-        If UndoneOptionalDeps.Any Then
-            Log($"[Comp] {ProjectId} 文件列表中还需要获取信息的可选前置：{Join(UndoneDeps, "，")}")
-            Dim Projects As JArray
-            If TargetProject.FromCurseForge Then
-                Projects = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
-                                                "POST", "{""modIds"": [" & Join(UndoneOptionalDeps, ",") & "]}", "application/json"))("data")
-            Else
-                Projects = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Join(UndoneOptionalDeps, """,""")}""]", IsJson:=True)
-            End If
-            For Each Project In Projects
-                Dim Unused As New CompProject(Project) '在 New 的时候会添加缓存以便之后读取
+
+        ' 5. 建立文件与依赖工程的关联映射
+        ' 优化：预先筛选出存在于缓存中的依赖工程，避免在多层循环中重复查询字典
+        Dim AvailableDeps = AllRawDeps.
+        Where(Function(id) CompProjectCache.ContainsKey(id) AndAlso id <> ProjectId).
+        Select(Function(id) CompProjectCache(id)).ToList()
+
+        For Each file In CurrentFiles
+            For Each dep In AvailableDeps
+                ' 处理必要依赖
+                If file.RawDependencies.Contains(dep.Id) Then
+                    If Not file.Dependencies.Contains(dep.Id) Then file.Dependencies.Add(dep.Id)
+                End If
+                ' 处理可选依赖
+                If file.RawOptionalDependencies.Contains(dep.Id) Then
+                    If Not file.OptionalDependencies.Contains(dep.Id) Then file.OptionalDependencies.Add(dep.Id)
+                End If
             Next
-        End If
-        '更新前置信息
-        If Deps.Any Then
-            For Each DepProject In Deps.Where(Function(id) CompProjectCache.ContainsKey(id)).Select(Function(id) CompProjectCache(id))
-                For Each File In CompFilesCache(ProjectId)
-                    If File.RawDependencies.Contains(DepProject.Id) AndAlso DepProject.Id <> ProjectId Then
-                        If Not File.Dependencies.Contains(DepProject.Id) Then File.Dependencies.Add(DepProject.Id)
-                    End If
-                Next
-            Next
-        End If
-        If OptionalDeps.Any Then
-            For Each DepProject In OptionalDeps.Where(Function(id) CompProjectCache.ContainsKey(id)).Select(Function(id) CompProjectCache(id))
-                For Each File In CompFilesCache(ProjectId)
-                    If File.RawOptionalDependencies.Contains(DepProject.Id) AndAlso DepProject.Id <> ProjectId Then
-                        If Not File.OptionalDependencies.Contains(DepProject.Id) Then File.OptionalDependencies.Add(DepProject.Id)
-                    End If
-                Next
-            Next
-        End If
+        Next
+
         Return CompFilesCache(ProjectId)
+    End Function
+
+    Public Function CompFileNameGet(proj As CompProject, file As CompFile) As String
+        Dim FileName As String
+        If proj.TranslatedName = proj.RawName Then
+            FileName = file.FileName
+        Else
+            Dim ChineseName As String = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").
+                        Replace("\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("""", "").Replace("： ", "：")
+            Select Case Setup.Get("ToolDownloadTranslateV2")
+                Case 0
+                    FileName = $"【{ChineseName}】{file.FileName}"
+                Case 1
+                    FileName = $"[{ChineseName}] {file.FileName}"
+                Case 2
+                    FileName = $"{ChineseName}-{file.FileName}"
+                Case 3
+                    FileName = $"{file.FileName}-{ChineseName}"
+                Case Else
+                    FileName = file.FileName
+            End Select
+        End If
+        If file.Type = CompType.Mod Then FileName = FileName.Replace("~", "-") '~ 会导致 Mixin 加载失败
+        Return FileName
     End Function
 
     ''' <summary>

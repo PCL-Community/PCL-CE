@@ -29,13 +29,13 @@
                 <local:MyCard Title="等待处理" Margin="0,0,0,15" x:Name="PanContentWaitingProcess" CanSwap="True">
                     <StackPanel x:Name="PanListWaitingProcess" Orientation="Vertical" Margin="20,36,18,18"/>
                 </local:MyCard>
-                <local:MyCard Title="WAIT" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True">
+                <local:MyCard Title="等待" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True">
                     <StackPanel x:Name="PanListWait" Orientation="Vertical" Margin="20,36,18,18"/>
                 </local:MyCard>
-                <local:MyCard Title="PAUSE" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True">
+                <local:MyCard Title="暂停" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True">
                     <StackPanel x:Name="PanListPause" Orientation="Vertical" Margin="20,36,18,18"/>
                 </local:MyCard>
-                <local:MyCard Title="UP NEXT" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True">
+                <local:MyCard Title="在即" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True">
                     <StackPanel x:Name="PanListUpnext" Orientation="Vertical" Margin="20,36,18,18"/>
                 </local:MyCard>
                 <local:MyCard Title="已完成" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True" IsSwapped="True">
