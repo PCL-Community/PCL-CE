@@ -676,7 +676,7 @@ Refresh:
     End Sub
 
     Private Sub HiddenSetupSub(sender As Object, user As Boolean) Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupUI.Change,
-    CheckHiddenSetupSystem.Change, CheckHiddenSetupCustom, CheckHiddenSetupUpdate.Change, CheckHiddenSetupGameLink.Change,
+    CheckHiddenSetupSystem.Change, CheckHiddenSetupCustom.Change, CheckHiddenSetupUpdate.Change, CheckHiddenSetupGameLink.Change,
     CheckHiddenSetupAbout.Change, CheckHiddenSetupFeedback.Change, CheckHiddenSetupLog.Change
 
         If Not user Then Return
