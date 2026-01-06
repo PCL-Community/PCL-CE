@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
@@ -114,10 +114,5 @@
     <Page Include="**\*.xaml" Exclude="bin\**;obj\**;@(ApplicationDefinition)" />
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Pages\PageSetup\PageSetupCustom.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 </Project>
