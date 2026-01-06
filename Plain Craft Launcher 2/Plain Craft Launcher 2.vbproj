@@ -114,6 +114,6 @@
     <Page Include="**\*.xaml" Exclude="bin\**;obj\**;@(ApplicationDefinition)" />
     <Resource Include="Images\**" />
     <Resource Include="Resources\**" />
-    <Resource Include="metadata.json" />
+    <EmbeddedResource Include="metadata.json" />
   </ItemGroup>
 </Project>

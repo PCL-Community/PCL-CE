@@ -20,12 +20,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.14.0-beta.4" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.14.0." & VersionBranchCode
-    Public Const UpstreamVersion As String = "2.12.1" '上游版本
-    Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
-    Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 502 '内部版本号
+    Public ReadOnly VersionBaseName As String = Basics.VersionName
+    Public ReadOnly VersionStandardCode As String = Basics.Metadata.Version.StandardVersion
+    Public ReadOnly UpstreamVersion As String = Basics.Metadata.Version.UpstreamVersion
+    Public ReadOnly CommitHash As String = Basics.Metadata.Version.Commit
+    Public ReadOnly CommitHashShort As String = Basics.Metadata.Version.CommitDigest
+    Public ReadOnly VersionCode As Integer = Basics.VersionCode
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
