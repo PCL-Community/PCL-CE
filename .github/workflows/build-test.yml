@@ -1,5 +1,8 @@
 name: Build (CI)
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [dev]

@@ -11,6 +11,7 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.IO
 Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
@@ -19,12 +20,12 @@ Public Module ModBase
 #Region "声明"
 
     '下列版本信息由更新器自动修改
-    Public Const VersionBaseName As String = "2.13.4-beta.5" '不含分支前缀的显示用版本名
-    Public Const VersionStandardCode As String = "2.13.4." & VersionBranchCode
-    Public Const UpstreamVersion As String = "2.10.5" '上游版本
-    Public ReadOnly CommitHash As String = If(EnvironmentInterop.GetSecret("GITHUB_SHA", False), "native") 'Commit Hash
-    Public ReadOnly CommitHashShort As String = If(CommitHash = "native", "native", CommitHash.Substring(0, 7)) 'Commit Hash，取前 7 位
-    Public Const VersionCode As Integer = 417 '内部版本号
+    Public ReadOnly VersionBaseName As String = Basics.VersionName
+    Public ReadOnly VersionStandardCode As String = Basics.Metadata.Version.StandardVersion
+    Public ReadOnly UpstreamVersion As String = Basics.Metadata.Version.UpstreamVersion
+    Public ReadOnly CommitHash As String = Basics.Metadata.Version.Commit
+    Public ReadOnly CommitHashShort As String = Basics.Metadata.Version.CommitDigest
+    Public ReadOnly VersionCode As Integer = Basics.VersionCode
     '自动生成的版本信息
 #If DEBUG Then
     Public Const VersionBranchName As String = "Debug"
@@ -85,7 +86,7 @@ Public Module ModBase
     ''' <summary>
     ''' 是否为 ARM64 架构。
     ''' </summary>
-    Public IsArm64System As Boolean = Runtime.InteropServices.RuntimeInformation.OSArchitecture = Runtime.InteropServices.Architecture.Arm64
+    Public IsArm64System As Boolean = RuntimeInformation.OSArchitecture = Architecture.Arm64
     ''' <summary>
     ''' 是否使用 GBK 编码。
     ''' </summary>
@@ -97,7 +98,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = If(Setup.Get("SystemSystemCache") = "", IO.Path.GetTempPath() & "PCL\", Setup.Get("SystemSystemCache")).ToString.Replace("/", "\").TrimEnd("\") & "\"
+    Public PathTemp As String = FileService.TempPath & "\"
     ''' <summary>
     ''' AppData 中的 PCL 文件夹路径，以 \ 结尾。
     ''' </summary>
@@ -217,15 +218,15 @@ Public Module ModBase
         ''' <summary>
         ''' 图标，创建，0.9x
         ''' </summary>
-        Public Const IconButtonCreate As String = "M103.331925 384.978025l25.805736 0L129.137661 161.847132c0-18.313088 14.905478-33.718963 33.718963-33.718963l0.969071 0 253.006318 0c10.82044 0 20.218484 4.797259 26.500561 12.257162l117.579929 126.753869 297.819966 0c18.297738 0 33.736359 15.179724 33.736359 33.977859l0 0.952698 0 82.909292 25.547863 0c18.538215 0 34.187637 15.179724 34.187637 33.977859 0 2.163269-0.469698 3.617387-0.469698 5.539156l-54.437843 432.971086c-1.210571 10.382465-7.007601 19.056008-14.968923 24.352641-6.249331 5.765307-14.680351 9.624195-23.595394 9.624195l-0.969071 0-694.906773 0c-9.155521 0-17.344017-3.858888-23.626094-9.155521-8.67252-5.765307-14.453177-14.939247-15.389502-25.758664L69.597613 423.040922c-2.165316-18.313088 10.868535-35.414581 29.665647-38.062897L103.331925 384.978025 103.331925 384.978025zM196.576609 384.978025 196.576609 384.978025l627.938546 0 0-49.625234L546.461371 335.352791l0 0c-9.400091 0-18.329461-4.117784-25.048489-11.110035L402.363486 196.067514 196.576609 196.067514 196.576609 384.978025 196.576609 384.978025zM879.469767 452.916347 879.469767 452.916347l-20.267603 0-0.469698 0-0.969071 0-694.906773 0-0.984421 0-20.218484 0 45.781696 366.728382 646.218888 0L879.469767 452.916347 879.469767 452.916347z"
+        Public Const IconButtonCreate As String = "F1 M 4 2 C 2.35499 2 1 3.35499 1 5 v 13 c 0 1.64501 1.35499 3 3 3 h 16 c 1.64501 0 3 -1.35499 3 -3 V 8 C 23 6.35499 21.645 5 20 5 h -7.90039 a 1.0001 1.0001 0 0 0 -0.0098 0 C 11.7487 5.00334 11.4337 4.83568 11.2461 4.55078 a 1.0001 1.0001 0 0 0 -0.0078 -0.00977 L 10.4355 3.34961 C 9.88132 2.50803 8.93736 2.00017 7.92969 2 Z m 0 2 h 3.92969 c 0.337496 5.56e-05 0.650315 0.167354 0.835938 0.449219 a 1.0001 1.0001 0 0 0 0.00586 0.00977 l 0.802734 1.19141 c 0.000794 0.00121 0.00311 0.0007486 0.00391 0.00195 C 10.1385 6.50064 11.0926 7.00997 12.1094 7 H 20 c 0.564129 0 1 0.435871 1 1 v 10 c 0 0.564129 -0.435871 1 -1 1 H 4 C 3.43587 19 3 18.5641 3 18 V 5 C 3 4.43587 3.43587 4 4 4 Z m 5 8 a 1 1 0 0 0 -1 1 a 1 1 0 0 0 1 1 h 6 a 1 1 0 0 0 1 -1 a 1 1 0 0 0 -1 -1 z m 3 -3 a 1 1 0 0 0 -1 1 v 6 a 1 1 0 0 0 1 1 a 1 1 0 0 0 1 -1 V 10 A 1 1 0 0 0 12 9 Z"
         ''' <summary>
         ''' 图标，分享，1x
         ''' </summary>
-        Public Const IconButtonShare As String = "M768.704 703.616c-35.648 0-67.904 14.72-91.136 38.304l-309.152-171.712c9.056-17.568 14.688-37.184 14.688-58.272 0-12.576-2.368-24.48-5.76-35.936l304.608-189.152c22.688 20.416 52.384 33.184 85.216 33.184 70.592 0 128-57.408 128-128s-57.408-128-128-128-128 57.408-128 128c0 14.56 2.976 28.352 7.456 41.408l-301.824 187.392c-23.136-22.784-54.784-36.928-89.728-36.928-70.592 0-128 57.408-128 128 0 70.592 57.408 128 128 128 25.664 0 49.504-7.744 69.568-20.8l321.216 178.4c-3.04 10.944-5.184 22.208-5.184 34.08 0 70.592 57.408 128 128 128s128-57.408 128-128S839.328 703.616 768.704 703.616zM767.2 128.032c35.296 0 64 28.704 64 64s-28.704 64-64 64-64-28.704-64-64S731.904 128.032 767.2 128.032zM191.136 511.936c0-35.296 28.704-64 64-64s64 28.704 64 64c0 35.296-28.704 64-64 64S191.136 547.232 191.136 511.936zM768.704 895.616c-35.296 0-64-28.704-64-64s28.704-64 64-64 64 28.704 64 64S804 895.616 768.704 895.616z"
+        Public Const IconButtonShare As String = "F1 M 14.9062 5.64648 L 8.08594 9.62695 A 1 1 0 0 0 7.72656 10.9941 A 1 1 0 0 0 9.09375 11.3535 L 15.9141 7.37305 A 1 1 0 0 0 16.2734 6.00586 A 1 1 0 0 0 14.9062 5.64648 Z m -5.8125 7 a 1 1 0 0 0 -1.36719 0.359375 a 1 1 0 0 0 0.359375 1.36719 l 6.83008 3.98047 a 1 1 0 0 0 1.36719 -0.359375 a 1 1 0 0 0 -0.359375 -1.36719 z M 18 15 c -2.19729 0 -4 1.80271 -4 4 c 0 2.19729 1.80271 4 4 4 c 2.19729 0 4 -1.80271 4 -4 c 0 -2.19729 -1.80271 -4 -4 -4 z m 0 2 c 1.11641 0 2 0.883586 2 2 c 0 1.11641 -0.883586 2 -2 2 c -1.11641 0 -2 -0.883586 -2 -2 c 0 -1.11641 0.883586 -2 2 -2 z M 6 8 c -2.19729 0 -4 1.80271 -4 4 c 0 2.19729 1.80271 4 4 4 c 2.19729 0 4 -1.80271 4 -4 C 10 9.80271 8.19729 8 6 8 Z m 0 2 c 1.11641 0 2 0.883586 2 2 c 0 1.11641 -0.883586 2 -2 2 C 4.88359 14 4 13.1164 4 12 C 4 10.8836 4.88359 10 6 10 Z M 18 1 c -2.19729 0 -4 1.80271 -4 4 c 0 2.19729 1.80271 4 4 4 c 2.19729 0 4 -1.80271 4 -4 c 0 -2.19729 -1.80271 -4 -4 -4 z m 0 2 c 1.11641 0 2 0.883586 2 2 c 0 1.11641 -0.883586 2 -2 2 c -1.11641 0 -2 -0.883586 -2 -2 c 0 -1.11641 0.883586 -2 2 -2 z"
         ''' <summary>
         ''' 图标，添加，1x
         ''' </summary>
-        Public Const IconButtonAdd As String = "M512.277 954.412c-118.89 0-230.659-46.078-314.73-129.73S67.12 629.666 67.12 511.222s46.327-229.744 130.398-313.427 195.82-129.73 314.73-129.73 230.659 46.078 314.72 129.73S957.397 392.81 957.397 511.183 911.078 740.96 826.97 824.642s-195.8 129.77-314.692 129.77z m0-822.784c-101.972 0-197.809 39.494-269.865 111.222s-111.7 166.997-111.7 268.373 39.653 196.695 111.67 268.335S410.246 890.78 512.248 890.78s197.809-39.484 269.865-111.222 111.7-166.998 111.67-268.374c-0.03-101.375-39.654-196.665-111.67-268.303S614.22 131.628 512.277 131.628z m222.585 347.8H544.073V288.64c-0.76-17.561-15.613-31.18-33.173-30.419-16.495 0.714-29.704 13.924-30.419 30.419v190.787H289.703c-17.56 0.761-31.179 15.614-30.419 33.174 0.715 16.494 13.924 29.703 30.42 30.418H480.48v190.788c0.761 17.56 15.614 31.179 33.174 30.419 16.494-0.715 29.703-13.925 30.418-30.42V543.02h190.788c17.56 0.762 32.413-12.857 33.173-30.418 0.762-17.561-12.858-32.414-30.419-33.174a31.683 31.683 0 0 0-2.753 0z"
+        Public Const IconButtonAdd As String = "F1 m 12 7 a 1 1 0 0 0 -1 1 v 8 a 1 1 0 0 0 1 1 a 1 1 0 0 0 1 -1 V 8 A 1 1 0 0 0 12 7 Z m -4 4 a 1 1 0 0 0 -1 1 a 1 1 0 0 0 1 1 h 8 a 1 1 0 0 0 1 -1 a 1 1 0 0 0 -1 -1 z M 12 1 C 5.93671 1 1 5.93671 1 12 C 1 18.0633 5.93671 23 12 23 C 18.0633 23 23 18.0633 23 12 C 23 5.93671 18.0633 1 12 1 Z m 0 2 c 4.98241 0 9 4.01759 9 9 c 0 4.98241 -4.01759 9 -9 9 C 7.01759 21 3 16.9824 3 12 C 3 7.01759 7.01759 3 12 3 Z"
         ''' <summary>
         ''' 图标，开始游戏，1x
         ''' </summary>
@@ -1121,14 +1122,17 @@ Re:
     Public Class FileChecker
         ''' <summary>
         ''' 文件的准确大小。
+        ''' 不检查则为 -1。
         ''' </summary>
         Public ActualSize As Long = -1
         ''' <summary>
         ''' 文件的最小大小。
+        ''' 不检查则为 -1。
         ''' </summary>
         Public MinSize As Long = -1
         ''' <summary>
         ''' 文件的 MD5、SHA1 或 SHA256。会根据输入字符串的长度自动判断种类。
+        ''' 不检查则为 Nothing。
         ''' </summary>
         Public Hash As String = Nothing
         ''' <summary>
@@ -1136,7 +1140,8 @@ Re:
         ''' </summary>
         Public CanUseExistsFile As Boolean = True
         ''' <summary>
-        ''' 是否为 Json 文件。
+        ''' 是否要求为 JSON 文件。
+        ''' 即，开头结尾必须为 {} 或 []。
         ''' </summary>
         Public IsJson As Boolean = False
         Public Sub New(Optional MinSize As Long = -1, Optional ActualSize As Long = -1, Optional Hash As String = Nothing, Optional CanUseExistsFile As Boolean = True, Optional IsJson As Boolean = False)
@@ -1215,6 +1220,10 @@ Re:
     Public Sub ExtractFile(CompressFilePath As String, DestDirectory As String, Optional Encode As Encoding = Nothing,
                            Optional ProgressIncrementHandler As Action(Of Double) = Nothing)
         Directory.CreateDirectory(DestDirectory)
+        DestDirectory = IO.Path.GetFullPath(DestDirectory)
+        If Not DestDirectory.EndsWith(IO.Path.DirectorySeparatorChar.ToString()) Then
+            DestDirectory += IO.Path.DirectorySeparatorChar
+        End If
         If CompressFilePath.EndsWithF(".gz", True) Then
             '以 gz 方式解压
             Using compressedFile As New FileStream(CompressFilePath, FileMode.Open, FileAccess.Read)
@@ -1230,7 +1239,10 @@ Re:
                 Dim TotalCount As Integer = Archive.Entries.Count
                 For Each Entry As ZipArchiveEntry In Archive.Entries
                     If ProgressIncrementHandler IsNot Nothing Then ProgressIncrementHandler(1 / TotalCount)
-                    Dim DestinationPath As String = IO.Path.Combine(DestDirectory, Entry.FullName)
+                    Dim DestinationPath As String = IO.Path.GetFullPath(IO.Path.Combine(DestDirectory, Entry.FullName))
+                    If Not DestinationPath.StartsWithF(DestDirectory) Then
+                        Throw New Exception($"解压文件 {Entry.FullName} 错误：解压文件路径 {DestinationPath} 不在目标目录 {DestDirectory} 内")
+                    End If
                     If DestinationPath.EndsWithF("\") OrElse DestinationPath.EndsWithF("/") Then
                         Continue For '不创建空文件夹
                     Else
@@ -1897,7 +1909,7 @@ RetryDir:
         Implements IDictionary(Of TKey, TValue)
         Implements IEnumerable(Of KeyValuePair(Of TKey, TValue))
 
-        Private ReadOnly SyncRoot As New Object
+        Public ReadOnly SyncRoot As New Object
         Private ReadOnly _Dictionary As New Dictionary(Of TKey, TValue)
 
         '构造函数
@@ -2034,6 +2046,19 @@ RetryDir:
         Inherits Exception
     End Class
 
+    ''' <summary>
+    ''' 判断对象是否为某个泛型类型的实例。
+    ''' </summary>
+    <Extension> Public Function IsInstanceOfGenericType(genericType As Type, obj As Object) As Boolean
+        If obj Is Nothing Then Return False
+        Dim t = obj.GetType()
+        While t IsNot Nothing
+            If t.IsGenericType AndAlso t.GetGenericTypeDefinition() Is genericType Then Return True
+            t = t.BaseType
+        End While
+        Return False
+    End Function
+    
     Private Uuid As Integer = 1
     Private UuidLock As Object
     ''' <summary>
@@ -2073,6 +2098,16 @@ RetryDir:
 NextElement:
         Next i
         Return ResultArray
+    End Function
+    
+    ''' <summary>
+    ''' 对集合的每个元素执行指定操作。
+    ''' </summary>
+    <Extension> Public Function ForEach(Of T)(Collection As IEnumerable(Of T), Action As Action(Of T)) As IEnumerable(Of T)
+        For Each Item As T In Collection
+            Action(Item)
+        Next
+        Return Collection
     End Function
 
     ''' <summary>
@@ -2476,7 +2511,8 @@ NextElement:
     End Function
 
 #End Region
-    
+
+    ''' <summary>
     ''' 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
     ''' </summary>
     Public Function CheckPermission(Path As String) As Boolean
@@ -2506,7 +2542,6 @@ NextElement:
         File.Create(Path & "CheckPermission").Dispose()
         File.Delete(Path & "CheckPermission")
     End Sub
-    ''' <summary>
 
 #Region "UI"
 
@@ -2891,10 +2926,15 @@ NextElement:
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/")
     End Sub
     Public Function CanFeedback(ShowHint As Boolean) As Boolean
-        If Not IsVerisonLatest() Then
+        Dim stat As VersionStatus = GetVersionStatus()
+        If stat <> VersionStatus.Latest Then
             If ShowHint Then
-                If MyMsgBox($"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。", "无法提交反馈", "更新", "取消") = 1 Then
-                    UpdateCheckByButton()
+                If MyMsgBox(
+                    If(stat = VersionStatus.NotLatest,
+                    $"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
+                    $"你的 PCL 检查更新失败，因此无法提交反馈。{vbCrLf}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。"),
+                    "无法提交反馈", If(stat = VersionStatus.NotLatest, "更新", "重新检查更新"), "取消") = 1 Then
+                    FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate)
                 End If
             End If
             Return False
@@ -2912,7 +2952,7 @@ NextElement:
             "操作系统：" & RuntimeInformation.OSDescription & "（32 位：" & Is32BitSystem & "）" & vbCrLf &
             "剩余内存：" & Int(phyRam.Available / 1024 / 1024) & " M / " & Int(phyRam.Total / 1024 / 1024) & " M" & vbCrLf &
             "DPI：" & DPI & "（" & Math.Round(DPI / 96, 2) * 100 & "%）" & vbCrLf &
-            "MC 文件夹：" & If(PathMcFolder, "Nothing") & vbCrLf &
+            "MC 文件夹：" & If(McFolderSelected, "Nothing") & vbCrLf &
             "文件位置：" & ExePath)
     End Sub
 

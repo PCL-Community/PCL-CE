@@ -231,7 +231,7 @@ Public Module ModLink
                 Return False
             End If
             Try
-                GetNaidData(Setup.Get("LinkNaidRefreshToken"), True)
+                GetNaidDataAsync(Setup.Get("LinkNaidRefreshToken"), True).GetAwaiter().GetResult()
             Catch ex As Exception
                 Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录")
                 Hint("请重新登录 Natayark Network 账号再试！", HintType.Critical)

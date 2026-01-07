@@ -1,5 +1,8 @@
 name: Mirror Chyan (Upload)
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:

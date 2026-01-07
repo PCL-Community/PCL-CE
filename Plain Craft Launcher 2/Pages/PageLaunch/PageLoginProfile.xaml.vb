@@ -43,7 +43,7 @@ Class PageLoginProfile
             For Each Profile In ProfileList
             ProfileCollection.Add(New ProfileItem(Profile))
             Next
-            Log($"[Profile] 档案列表刷新完成")
+            Log("[Profile] 档案列表刷新完成")
         Catch ex As Exception
             Log(ex, "读取档案列表失败", LogLevel.Feedback)
         End Try
@@ -73,27 +73,35 @@ Class PageLoginProfile
                 End Sub)
     End Sub
     Private Sub ProfileContMenuBuild(sender As MyListItem, e As EventArgs)
-        Dim BtnUUID As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "更改 UUID", .Tag = sender.Tag}
-        ToolTipService.SetPlacement(BtnUUID, Primitives.PlacementMode.Center)
-        ToolTipService.SetVerticalOffset(BtnUUID, 30)
-        ToolTipService.SetHorizontalOffset(BtnUUID, 2)
-        AddHandler BtnUUID.Click, AddressOf EditProfileUuid
-        Dim BtnServerName As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "更改验证服务器名称", .Tag = sender.Tag}
-        ToolTipService.SetPlacement(BtnServerName, Primitives.PlacementMode.Center)
-        ToolTipService.SetVerticalOffset(BtnServerName, 30)
-        ToolTipService.SetHorizontalOffset(BtnServerName, 2)
-        AddHandler BtnServerName.Click, AddressOf EditProfileServer
-        Dim BtnDelete As New MyIconButton With {.Logo = Logo.IconButtonDelete, .ToolTip = "删除档案", .Tag = sender.Tag}
-        ToolTipService.SetPlacement(BtnDelete, Primitives.PlacementMode.Center)
-        ToolTipService.SetVerticalOffset(BtnDelete, 30)
-        ToolTipService.SetHorizontalOffset(BtnDelete, 2)
-        AddHandler BtnDelete.Click, AddressOf DeleteProfile
-        If sender.Tag.Type = 0 Then
-            sender.Buttons = {BtnUUID, BtnDelete}
-        ElseIf sender.Tag.Type = 3 Then
-            sender.Buttons = {BtnDelete}
+        '更改 UUID
+        Dim btnEditUuid As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "更改 UUID", .Tag = sender.Tag}
+        ToolTipService.SetPlacement(btnEditUuid, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnEditUuid, 30)
+        ToolTipService.SetHorizontalOffset(btnEditUuid, 2)
+        AddHandler btnEditUuid.Click, AddressOf EditProfileUuid
+        '复制 UUID
+        Dim btnCopyUuid As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "复制 UUID", .Tag = sender.Tag}
+        ToolTipService.SetPlacement(btnCopyUuid, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnCopyUuid, 30)
+        ToolTipService.SetHorizontalOffset(btnCopyUuid, 2)
+        AddHandler btnCopyUuid.Click, AddressOf CopyProfileUuid
+        '更改验证服务器名称
+        Dim btnEditServerName As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "更改验证服务器名称", .Tag = sender.Tag}
+        ToolTipService.SetPlacement(btnEditServerName, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnEditServerName, 30)
+        ToolTipService.SetHorizontalOffset(btnEditServerName, 2)
+        AddHandler btnEditServerName.Click, AddressOf EditProfileServer
+        '删除档案
+        Dim btnDelete As New MyIconButton With {.Logo = Logo.IconButtonDelete, .ToolTip = "删除档案", .Tag = sender.Tag}
+        ToolTipService.SetPlacement(btnDelete, Primitives.PlacementMode.Center)
+        ToolTipService.SetVerticalOffset(btnDelete, 30)
+        ToolTipService.SetHorizontalOffset(btnDelete, 2)
+        AddHandler btnDelete.Click, AddressOf DeleteProfile
+        '根据档案类型显示不同的菜单项
+        If sender.Tag.Type = McLoginType.Legacy Then
+            sender.Buttons = {btnEditUuid, btnDelete}
         Else
-            sender.Buttons = {BtnDelete}
+            sender.Buttons = {btnCopyUuid, btnDelete}
         End If
     End Sub
     '创建档案
@@ -107,11 +115,14 @@ Class PageLoginProfile
     Private Sub EditProfileUuid(sender As Object, e As EventArgs)
         EditOfflineUuid(sender.Tag)
     End Sub
+    Private Sub CopyProfileUuid(sender As Object, e As EventArgs)
+        ClipboardSet(sender.Tag.UUID)
+    End Sub
     '编辑验证服务器名称
     Private Sub EditProfileServer(sender As Object, e As EventArgs)
-        Dim Name As String = MyMsgBoxInput("修改验证服务器名称", $"请输入新的验证服务器名称", sender.Tag.ServerName)
-        If Name IsNot Nothing Then
-            EditAuthServerName(sender.Tag, Name)
+        Dim name As String = MyMsgBoxInput("修改验证服务器名称", $"请输入新的验证服务器名称", sender.Tag.ServerName)
+        If name IsNot Nothing Then
+            EditAuthServerName(sender.Tag, name)
         End If
     End Sub
     '删除档案
