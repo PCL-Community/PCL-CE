@@ -1824,7 +1824,11 @@ Retry:
             Dim url As String = If(FromCurseForge,
             $"https://api.curseforge.com/v1/mods/{ProjectId}",
             $"https://api.modrinth.com/v2/project/{ProjectId}")
-            TargetProject = New CompProject(DlModRequest(url, IsJson:=True)(If(FromCurseForge, "data", Nothing)))
+            If FromCurseForge Then
+                TargetProject = New CompProject(DlModRequest(url, IsJson:=True)("data"))
+            Else
+                TargetProject = New CompProject(DlModRequest(url, IsJson:=True))
+            End If
             ' 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         End If
 

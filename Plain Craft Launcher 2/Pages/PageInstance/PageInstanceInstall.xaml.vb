@@ -2040,7 +2040,7 @@ Public Class PageInstanceInstall
         Dim Request As New McInstallRequest With {
             .TargetInstanceName = PageInstanceLeft.Instance.Name,
             .TargetInstanceFolder = $"{McFolderSelected}versions\{PageInstanceLeft.Instance.Name}\",
-            .MinecraftJson = _vanillaData("url").ToString(),
+            .MinecraftJson = _vanillaData?("url").ToString(),
             .MinecraftName = _vanillaName,
             .OptiFineEntry = SelectedOptiFine,
             .ForgeEntry = SelectedForge,
