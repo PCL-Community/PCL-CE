@@ -136,46 +136,46 @@ Public Class MyResizer
 
     Public Sub addResizerRight(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.rightElements.Add(element, 0)
+        Me.rightElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerLeft(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.leftElements.Add(element, 0)
+        Me.leftElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerUp(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.upElements.Add(element, 0)
+        Me.upElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerDown(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.downElements.Add(element, 0)
+        Me.downElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerRightDown(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.rightElements.Add(element, 0)
-        Me.downElements.Add(element, 0)
+        Me.rightElements.TryAdd(element, 0)
+        Me.downElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerLeftDown(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.leftElements.Add(element, 0)
-        Me.downElements.Add(element, 0)
+        Me.leftElements.TryAdd(element, 0)
+        Me.downElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerRightUp(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.rightElements.Add(element, 0)
-        Me.upElements.Add(element, 0)
+        Me.rightElements.TryAdd(element, 0)
+        Me.upElements.TryAdd(element, 0)
     End Sub
 
     Public Sub addResizerLeftUp(element As UIElement)
         Me.connectMouseHandlers(element)
-        Me.leftElements.Add(element, 0)
-        Me.upElements.Add(element, 0)
+        Me.leftElements.TryAdd(element, 0)
+        Me.upElements.TryAdd(element, 0)
     End Sub
     Public Sub removeAllResizers()
         Me.leftElements.Clear()

@@ -376,27 +376,18 @@ Public Class ModSetup
     End Sub
 
     '功能隐藏
-    Public Sub UiHiddenPageLink(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
+    ' 主页面
     Public Sub UiHiddenPageDownload(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenPageSetup(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenPageOther(Value As Boolean)
+    Public Sub UiHiddenPageTools(Value As Boolean) ' 更名：Other -> Tools
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenFunctionSelect(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenFunctionModUpdate(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenFunctionHidden(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
+
+    ' 子页面 设置
     Public Sub UiHiddenSetupLaunch(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
@@ -406,21 +397,34 @@ Public Class ModSetup
     Public Sub UiHiddenSetupSystem(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenOtherHelp(Value As Boolean)
+    Public Sub UiHiddenSetupUpdate(Value As Boolean) ' 新增
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenOtherFeedback(Value As Boolean)
+    Public Sub UiHiddenSetupGameLink(Value As Boolean) ' 新增
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenOtherLog(Value As Boolean)
+    Public Sub UiHiddenSetupAbout(Value As Boolean) ' 新增/同步
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenOtherAbout(Value As Boolean)
+    Public Sub UiHiddenSetupFeedback(Value As Boolean) ' 新增/同步
         PageSetupUI.HiddenRefresh()
     End Sub
-    Public Sub UiHiddenOtherTest(Value As Boolean)
+    Public Sub UiHiddenSetupLog(Value As Boolean) ' 新增/同步
         PageSetupUI.HiddenRefresh()
     End Sub
+
+    ' 子页面 工具
+    Public Sub UiHiddenToolsGameLink(Value As Boolean) ' 新增
+        PageSetupUI.HiddenRefresh()
+    End Sub
+    Public Sub UiHiddenToolsHelp(Value As Boolean) ' 新增
+        PageSetupUI.HiddenRefresh()
+    End Sub
+    Public Sub UiHiddenToolsTest(Value As Boolean) ' 新增
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    ' 子页面 实例设置
     Public Sub UiHiddenVersionEdit(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
@@ -443,6 +447,20 @@ Public Class ModSetup
         PageSetupUI.HiddenRefresh()
     End Sub
     Public Sub UiHiddenVersionSchematic(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+    Public Sub UiHiddenVersionServer(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    ' 特定功能
+    Public Sub UiHiddenFunctionSelect(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+    Public Sub UiHiddenFunctionModUpdate(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+    Public Sub UiHiddenFunctionHidden(Value As Boolean)
         PageSetupUI.HiddenRefresh()
     End Sub
 
