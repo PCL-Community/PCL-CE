@@ -14,7 +14,7 @@ body:
       required: true
     - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭"
       required: false
-    - label: "我确认正在使用 Fast Ring 通道的最新版，若不是，此 issue 可能会被直接关闭（最新版获取方式：启动器 `设置-其他-系统` 切换至 Fast Ring 通道并单击“检查更新”，或在 [Releases](https://github.com/PCL-Community/PCL2-CE/releases) 页面的最顶部直接下载）"
+    - label: "我确认正在使用 测试版 / Beta 的最新版，若不是，此 issue 可能会被直接关闭（最新版获取方式：启动器 `设置-软件更新-更新通道` 切换至 测试版 / Beta 并检查更新，或在 [Releases](https://github.com/PCL-Community/PCL2-CE/releases) 页面的最顶部直接下载）"
       required: true
     - label: "我确认会详细描述我所遇到的问题，并附上日志和截图，而不是随便填点东西敷衍了事。"
       required: true
@@ -29,7 +29,7 @@ body:
   id: "yml-3"
   attributes:
     label: PCL CE 错误报告、日志与附件
-    description: "上传 PCL CE 提供的错误报告 (在崩溃时选择导出错误报告)。如果没有，请在游戏崩溃后不要关掉启动器，使用 `更多-日志浏览-导出日志` 得到日志压缩包并上传。"
+    description: "上传 PCL CE 提供的错误报告 (在崩溃时选择导出错误报告)。如果没有，请在游戏崩溃后不要关掉启动器，使用 `设置-查看日志-导出日志` 得到日志压缩包并上传。"
     placeholder: |
       先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。
       如果缺少相关错误报告或日志用于分析问题，此 issue 可能会被直接关闭。
@@ -39,7 +39,7 @@ body:
   id: "yml-4"
   attributes:
     label: HMCL 启动脚本
-    description: "在 HMCL 中进入版本列表，点击版本右侧的三个点，选择“生成启动脚本”。"
+    description: "在 HMCL 中进入实例列表，点击版本右侧的三个点，选择“生成启动脚本”。"
     placeholder: "先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。"
   validations:
     required: false
