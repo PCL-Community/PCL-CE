@@ -166,8 +166,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="35"/>
                         </Grid.RowDefinitions>
-                        <local:MyButton Grid.Column="0" Grid.Row="0" x:Name="BtnSystemSettingExp" MinWidth="100" Text="导出设置" Padding="13,0" Margin="0,0,20,0"/>
-                        <local:MyButton Grid.Column="1" Grid.Row="0" x:Name="BtnSystemSettingImp" MinWidth="100" Text="导入设置" Padding="13,0" Margin="0,0,20,0"/>
+                        <local:MyButton Grid.Column="0" Grid.Row="0" x:Name="BtnSystemSettingExp" MinWidth="140" Text="导出设置" Padding="13,0" Margin="0,0,20,0"/>
+                        <local:MyButton Grid.Column="1" Grid.Row="0" x:Name="BtnSystemSettingImp" MinWidth="140" Text="导入设置" Padding="13,0" Margin="0,0,20,0"/>
                     </Grid>
                 </Grid>
             </local:MyCard>
