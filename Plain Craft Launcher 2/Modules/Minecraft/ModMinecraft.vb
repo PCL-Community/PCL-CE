@@ -847,6 +847,7 @@ ExitDataLoad:
                     Config.Instance.NeoForgeVersion(PathInstance) = Info.NeoForge
                     Config.Instance.CleanroomVersion(PathInstance) = Info.Cleanroom
                     Config.Instance.VanillaVersionName(PathInstance) = Info.VanillaName
+                    Config.Instance.VanillaVersion(PathInstance) = Info.Vanilla.ToString()
                 End If
             Catch ex As Exception
                 Desc = "未知错误：" & ex.ToString()
