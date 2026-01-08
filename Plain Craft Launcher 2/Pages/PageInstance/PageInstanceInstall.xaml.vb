@@ -907,7 +907,7 @@ Public Class PageInstanceInstall
             Dim PanInfo As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = TopestVersions}
             Dim StackInstall = Sub(Stack As StackPanel)
                                    For Each item In Stack.Tag
-                                       Stack.Children.Add(McDownloadListItem(item, Sub(sender, e) FrmDownloadInstall.MinecraftSelected(sender, e), False))
+                                       Stack.Children.Add(McDownloadListItem(item, Sub(sender, e) MinecraftSelected(sender, e), False))
                                    Next
                                End Sub
             MyCard.StackInstall(PanInfo, StackInstall)
