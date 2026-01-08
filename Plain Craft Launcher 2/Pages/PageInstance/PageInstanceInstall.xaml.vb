@@ -807,6 +807,7 @@ Public Class PageInstanceInstall
         ElseIf CurrentInstance.HasNeoForge Then
             SelectedLoaderName = "NeoForge"
             SelectedNeoForgeVersion = CurrentInstance.NeoForge
+            SelectedNeoForge = New DlNeoForgeListEntry(CurrentInstance.NeoForge) With {.VersionName = CurrentInstance.NeoForge, .Inherit = CurrentInstance.VanillaName, .ForgeType = DlForgelikeEntry.ForgelikeType.NeoForge}
         ElseIf CurrentInstance.HasQuilt Then
             SelectedLoaderName = "Quilt"
             SelectedQuilt = CurrentInstance.Quilt
