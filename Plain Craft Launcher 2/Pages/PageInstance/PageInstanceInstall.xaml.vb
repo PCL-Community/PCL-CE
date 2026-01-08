@@ -360,7 +360,7 @@ Public Class PageInstanceInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If _vanillaData Is Nothing OrElse _vanillaData("releaseTime").ToObject(Of Date) < New Date(2023, 6, 11) Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
