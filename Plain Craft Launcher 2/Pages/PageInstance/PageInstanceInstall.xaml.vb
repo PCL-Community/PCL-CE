@@ -24,6 +24,10 @@ Public Class PageInstanceInstall
         DlCleanroomListLoader.Start(IsForceRestart:=NeedRefresh)
         DlLabyModListLoader.Start(IsForceRestart:=NeedRefresh)
         DlLegacyFabricListLoader.Start(IsForceRestart:=NeedRefresh)
+        DlFabricApiLoader.Start(IsForceRestart:=NeedRefresh)
+        DlQSLLoader.Start(IsForceRestart:=NeedRefresh)
+        DlLegacyFabricApiLoader.Start(IsForceRestart:=NeedRefresh)
+        DlOptiFabricLoader.Start(IsForceRestart:=NeedRefresh)
 
         '重载预览
         ReloadSelected()
@@ -80,6 +84,8 @@ Public Class PageInstanceInstall
         CardQSL.IsSwapped = True
         CardOptiFabric.IsSwapped = True
         CardLabyMod.IsSwapped = True
+        CardLegacyFabric.IsSwapped = True
+        CardLegacyFabricApi.IsSwapped = True
 
         If Not Setup.Get("HintInstallBack") Then
             Setup.Set("HintInstallBack", True)
@@ -617,7 +623,9 @@ Public Class PageInstanceInstall
         SelectedAPIName = Nothing
         SelectedForge = Nothing
         SelectedNeoForge = Nothing
+        SelectedNeoForgeVersion = Nothing
         SelectedCleanroom = Nothing
+        SelectedCleanroomVersion = Nothing
         SelectedFabric = Nothing
         SelectedFabricApi = Nothing
         SelectedQuilt = Nothing
