@@ -218,7 +218,6 @@ Public Class PageSetupUI
             Setup.Reset("UiCustomType")
             Setup.Reset("UiCustomPreset")
             Setup.Reset("UiCustomNet")
-            Setup.Reset("UiLockWindowSize")
             Setup.Reset("UiShowLaunchingHint")
             Config.UI.Hide.Reset()
             Setup.Reset("UiAutoPauseVideo")
