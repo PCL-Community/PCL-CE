@@ -84,7 +84,6 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            CheckLockWindowSize.Checked = Setup.Get("UiLockWindowSize")
             CheckShowLaunchingHint.Checked = Setup.Get("UiShowLaunchingHint")
 
             '字体设置
