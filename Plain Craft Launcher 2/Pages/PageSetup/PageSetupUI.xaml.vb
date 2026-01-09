@@ -1,9 +1,6 @@
-Imports System.Collections.ObjectModel
-Imports System.Threading.Tasks
 Imports PCL.Core.App
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
-Imports PCL.Core.Utils.Exts
 
 Public Class PageSetupUI
 
@@ -140,30 +137,44 @@ Public Class PageSetupUI
             TextCustomNet.Text = Setup.Get("UiCustomNet")
 
             '功能隐藏
-            CheckHiddenPageDownload.Checked = Setup.Get("UiHiddenPageDownload")
-            CheckHiddenPageLink.Checked = Setup.Get("UiHiddenPageLink")
-            CheckHiddenPageSetup.Checked = Setup.Get("UiHiddenPageSetup")
-            CheckHiddenPageOther.Checked = Setup.Get("UiHiddenPageOther")
-            CheckHiddenFunctionSelect.Checked = Setup.Get("UiHiddenFunctionSelect")
-            CheckHiddenFunctionModUpdate.Checked = Setup.Get("UiHiddenFunctionModUpdate")
-            CheckHiddenFunctionHidden.Checked = Setup.Get("UiHiddenFunctionHidden")
-            CheckHiddenSetupLaunch.Checked = Setup.Get("UiHiddenSetupLaunch")
-            CheckHiddenSetupUI.Checked = Setup.Get("UiHiddenSetupUi")
-            CheckHiddenSetupSystem.Checked = Setup.Get("UiHiddenSetupSystem")
-            CheckHiddenOtherAbout.Checked = Setup.Get("UiHiddenOtherAbout")
-            CheckHiddenOtherFeedback.Checked = Setup.Get("UiHiddenOtherFeedback")
-            CheckHiddenOtherLog.Checked = Setup.Get("UiHiddenOtherLog")
-            CheckHiddenOtherHelp.Checked = Setup.Get("UiHiddenOtherHelp")
-            CheckHiddenOtherTest.Checked = Setup.Get("UiHiddenOtherTest")
-            CheckHiddenVersionEdit.Checked = Setup.Get("UiHiddenVersionEdit")
-            CheckHiddenVersionExport.Checked = Setup.Get("UiHiddenVersionExport")
-            CheckHiddenVersionSave.Checked = Setup.Get("UiHiddenVersionSave")
-            CheckHiddenVersionScreenshot.Checked = Setup.Get("UiHiddenVersionScreenshot")
-            CheckHiddenVersionMod.Checked = Setup.Get("UiHiddenVersionMod")
-            CheckHiddenVersionResourcePack.Checked = Setup.Get("UiHiddenVersionResourcePack")
-            CheckHiddenVersionShader.Checked = Setup.Get("UiHiddenVersionShader")
-            CheckHiddenVersionSchematic.Checked = Setup.Get("UiHiddenVersionSchematic")
-            CheckHiddenVersionServer.Checked = Setup.Get("UiHiddenVersionServer")
+            ' 获取配置组引用
+            Dim uiHidden = Config.UI.Hide
+
+            ' 主页面
+            CheckHiddenPageDownload.Checked = uiHidden.PageDownload
+            CheckHiddenPageSetup.Checked = uiHidden.PageSetup
+            CheckHiddenPageTools.Checked = uiHidden.PageTools
+
+            ' 子页面 设置
+            CheckHiddenSetupLaunch.Checked = uiHidden.SetupLaunch
+            CheckHiddenSetupUI.Checked = uiHidden.SetupUi
+            CheckHiddenSetupSystem.Checked = uiHidden.SetupSystem
+            CheckHiddenSetupUpdate.Checked = uiHidden.SetupUpdate
+            CheckHiddenSetupGameLink.Checked = uiHidden.SetupGameLink
+            CheckHiddenSetupAbout.Checked = uiHidden.SetupAbout
+            CheckHiddenSetupFeedback.Checked = uiHidden.SetupFeedback
+            CheckHiddenSetupLog.Checked = uiHidden.SetupLog
+
+            ' 子页面 工具
+            CheckHiddenToolsGameLink.Checked = uiHidden.ToolsGameLink
+            CheckHiddenToolsHelp.Checked = uiHidden.ToolsHelp
+            CheckHiddenToolsTest.Checked = uiHidden.ToolsTest
+
+            ' 子页面 实例设置
+            CheckHiddenVersionEdit.Checked = uiHidden.InstanceEdit
+            CheckHiddenVersionExport.Checked = uiHidden.InstanceExport
+            CheckHiddenVersionSave.Checked = uiHidden.InstanceSave
+            CheckHiddenVersionScreenshot.Checked = uiHidden.InstanceScreenshot
+            CheckHiddenVersionMod.Checked = uiHidden.InstanceMod
+            CheckHiddenVersionResourcePack.Checked = uiHidden.InstanceResourcePack
+            CheckHiddenVersionShader.Checked = uiHidden.InstanceShader
+            CheckHiddenVersionSchematic.Checked = uiHidden.InstanceSchematic
+            CheckHiddenVersionServer.Checked = uiHidden.InstanceServer
+
+            ' 特定功能
+            CheckHiddenFunctionSelect.Checked = uiHidden.FunctionSelect
+            CheckHiddenFunctionModUpdate.Checked = uiHidden.FunctionModUpdate
+            CheckHiddenFunctionHidden.Checked = uiHidden.FunctionHidden
 
         Catch ex As NullReferenceException
             Log(ex, "个性化设置项存在异常，已被自动重置", LogLevel.Msgbox)
@@ -206,30 +217,7 @@ Public Class PageSetupUI
             Setup.Reset("UiCustomType")
             Setup.Reset("UiCustomPreset")
             Setup.Reset("UiCustomNet")
-            Setup.Reset("UiHiddenPageDownload")
-            Setup.Reset("UiHiddenPageLink")
-            Setup.Reset("UiHiddenPageSetup")
-            Setup.Reset("UiHiddenPageOther")
-            Setup.Reset("UiHiddenFunctionSelect")
-            Setup.Reset("UiHiddenFunctionModUpdate")
-            Setup.Reset("UiHiddenFunctionHidden")
-            Setup.Reset("UiHiddenSetupLaunch")
-            Setup.Reset("UiHiddenSetupUi")
-            Setup.Reset("UiHiddenSetupSystem")
-            Setup.Reset("UiHiddenOtherAbout")
-            Setup.Reset("UiHiddenOtherFeedback")
-            Setup.Reset("UiHiddenOtherHelp")
-            Setup.Reset("UiHiddenOtherTest")
-            Setup.Reset("UiHiddenOtherLog")
-            Setup.Reset("UiHiddenVersionEdit")
-            Setup.Reset("UiHiddenVersionExport")
-            Setup.Reset("UiHiddenVersionSave")
-            Setup.Reset("UiHiddenVersionScreenshot")
-            Setup.Reset("UiHiddenVersionMod")
-            Setup.Reset("UiHiddenVersionResourcePack")
-            Setup.Reset("UiHiddenVersionShader")
-            Setup.Reset("UiHiddenVersionSchematic")
-            Setup.Reset("UiHiddenVersionServer")
+            Config.UI.Hide.Reset()
             Setup.Reset("UiAutoPauseVideo")
 
             Log("[Setup] 已初始化个性化设置！")
@@ -248,8 +236,24 @@ Public Class PageSetupUI
     Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDarkMode.SelectionChanged, ComboBackgroundSuit.SelectionChanged, ComboCustomPreset.SelectionChanged, ComboBlurType.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckHiddenOtherLog.Change, CheckLockWindowSize.Change, CheckBlur.Change, CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change, CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change, CheckHiddenPageDownload.Change, CheckHiddenPageLink.Change, CheckHiddenPageOther.Change, CheckHiddenPageSetup.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherFeedback.Change, CheckHiddenOtherHelp.Change, CheckHiddenOtherTest.Change, CheckMusicStart.Change, CheckMusicSMTC.Change, CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change, CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change, CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckAutoPauseVideo.Change
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles _
+    CheckLockWindowSize.Change, CheckBlur.Change, CheckAutoPauseVideo.Change,
+    CheckMusicStop.Change, CheckMusicRandom.Change, CheckMusicAuto.Change, CheckMusicStart.Change, CheckMusicSMTC.Change,
+    CheckBackgroundColorful.Change, CheckLogoLeft.Change, CheckLauncherLogo.Change,
+    CheckHiddenFunctionHidden.Change, CheckHiddenFunctionSelect.Change, CheckHiddenFunctionModUpdate.Change,
+    CheckHiddenPageDownload.Change, CheckHiddenPageSetup.Change, CheckHiddenPageTools.Change,
+    CheckHiddenSetupLaunch.Change, CheckHiddenSetupUI.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUpdate.Change, CheckHiddenSetupGameLink.Change,
+    CheckHiddenSetupAbout.Change, CheckHiddenSetupFeedback.Change, CheckHiddenSetupLog.Change,
+    CheckHiddenToolsGameLink.Change, CheckHiddenToolsHelp.Change, CheckHiddenToolsTest.Change,
+    CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change,
+    CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change,
+    CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change
+
+        ' 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
+        If AniControlEnabled = 0 Then
+            Setup.Set(sender.Tag, sender.Checked)
+        End If
+
     End Sub
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
@@ -607,134 +611,131 @@ Refresh:
     Public Shared Sub HiddenRefresh() Handles Me.Loaded
         If FrmMain.PanTitleSelect Is Nothing OrElse Not FrmMain.PanTitleSelect.IsLoaded Then Return
         Try
-            '顶部栏
-            If Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageDownload") AndAlso Setup.Get("UiHiddenPageLink") AndAlso Setup.Get("UiHiddenPageSetup") AndAlso Setup.Get("UiHiddenPageOther") Then
-                '顶部栏已被全部隐藏
+            ' 获取配置组引用以缩短代码
+            Dim conf = Config.UI.Hide
+
+            ' 顶部栏：下载、设置、工具
+            Dim IsAllTitleHidden As Boolean = Not HiddenForceShow AndAlso
+                                        conf.PageDownload AndAlso
+                                        conf.PageSetup AndAlso
+                                        conf.PageTools
+
+            If IsAllTitleHidden Then
                 FrmMain.PanTitleSelect.Visibility = Visibility.Collapsed
             Else
-                '顶部栏未被全部隐藏
                 FrmMain.PanTitleSelect.Visibility = Visibility.Visible
-                FrmMain.BtnTitleSelect1.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageDownload"), Visibility.Collapsed, Visibility.Visible)
-                FrmMain.BtnTitleSelect2.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageLink"), Visibility.Collapsed, Visibility.Visible)
-                FrmMain.BtnTitleSelect3.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenPageSetup"), Visibility.Collapsed, Visibility.Visible)
+                FrmMain.BtnTitleSelect1.Visibility = If(Not HiddenForceShow AndAlso conf.PageDownload, Visibility.Collapsed, Visibility.Visible)
+                FrmMain.BtnTitleSelect2.Visibility = If(Not HiddenForceShow AndAlso conf.PageSetup, Visibility.Collapsed, Visibility.Visible)
+                FrmMain.BtnTitleSelect3.Visibility = If(Not HiddenForceShow AndAlso conf.PageTools, Visibility.Collapsed, Visibility.Visible)
             End If
-            '功能
-            FrmLaunchLeft.RefreshButtonsUI()
+
+            ' 功能隐藏设置卡片
             If FrmSetupUI IsNot Nothing Then
-                FrmSetupUI.CardSwitch.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenFunctionHidden"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupUI.CardSwitch.Visibility = If(Not HiddenForceShow AndAlso conf.FunctionHidden, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupUI.CardSwitch.Title = If(HiddenForceShow, "功能隐藏（已暂时关闭，按 F12 以重新启用）", "功能隐藏")
             End If
-            '设置子页面
+
+            ' 设置子页面 (FrmSetupLeft)
             If FrmSetupLeft IsNot Nothing Then
-                FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupLaunch"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupUi"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenSetupSystem"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherFeedback"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherLog"), Visibility.Collapsed, Visibility.Visible)
-                '隐藏左边选择卡
-                Dim AvaliableCount As Integer = 0
-                If Not Setup.Get("UiHiddenSetupLaunch") Then AvaliableCount += 1
-                If Not Setup.Get("UiHiddenSetupUi") Then AvaliableCount += 1
-                If Not Setup.Get("UiHiddenSetupSystem") Then AvaliableCount += 1
-                FrmSetupLeft.PanItem.Visibility = If(AvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso conf.SetupLaunch, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso conf.SetupUi, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso conf.SetupSystem, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemUpdate.Visibility = If(Not HiddenForceShow AndAlso conf.SetupUpdate, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemGameLink.Visibility = If(Not HiddenForceShow AndAlso conf.SetupGameLink, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso conf.SetupAbout, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso conf.SetupFeedback, Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso conf.SetupLog, Visibility.Collapsed, Visibility.Visible)
+
+                ' 统计设置页可用项数量
+                Dim SetupCount As Integer = 0
+                If Not conf.SetupLaunch Then SetupCount += 1
+                If Not conf.SetupUi Then SetupCount += 1
+                If Not conf.SetupSystem Then SetupCount += 1
+                If Not conf.SetupUpdate Then SetupCount += 1
+                If Not conf.SetupGameLink Then SetupCount += 1
+                FrmSetupLeft.PanItem.Visibility = If(SetupCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
-            '工具子页面
-            Dim OtherAvaliableCount As Integer = 0
-            If Not Setup.Get("UiHiddenOtherHelp") Then OtherAvaliableCount += 1
-            If Not Setup.Get("UiHiddenOtherAbout") Then OtherAvaliableCount += 1
-            If Not Setup.Get("UiHiddenOtherTest") Then OtherAvaliableCount += 1
-            If Not Setup.Get("UiHiddenOtherFeedback") Then OtherAvaliableCount += 1
-            If Not Setup.Get("UiHiddenOtherLog") Then OtherAvaliableCount += 1
+
+            ' 工具子页面 (FrmToolsLeft)
             If FrmToolsLeft IsNot Nothing Then
-                FrmToolsLeft.ItemLauncherHelp.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherHelp"), Visibility.Collapsed, Visibility.Visible)
-                FrmToolsLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso Setup.Get("UiHiddenOtherTest"), Visibility.Collapsed, Visibility.Visible)
-                '隐藏左边选择卡
-                FrmToolsLeft.PanItem.Visibility = If(OtherAvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                FrmToolsLeft.ItemGameLink.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsGameLink, Visibility.Collapsed, Visibility.Visible)
+                FrmToolsLeft.ItemLauncherHelp.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsHelp, Visibility.Collapsed, Visibility.Visible)
+                FrmToolsLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsTest, Visibility.Collapsed, Visibility.Visible)
+
+                ' 统计工具页可用项数量
+                Dim ToolsCount As Integer = 0
+                If Not conf.ToolsGameLink Then ToolsCount += 1
+                If Not conf.ToolsHelp Then ToolsCount += 1
+                If Not conf.ToolsTest Then ToolsCount += 1
+                FrmToolsLeft.PanItem.Visibility = If(ToolsCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
-            '各个页面的入口
+
+            ' 其他入口刷新
             If FrmMain.PageCurrent = FormMain.PageType.InstanceSelect Then FrmSelectRight.BtnEmptyDownload_Loaded()
             If FrmMain.PageCurrent = FormMain.PageType.Launch Then FrmLaunchLeft.RefreshButtonsUI()
             If FrmMain.PageCurrent = FormMain.PageType.InstanceSetup AndAlso FrmInstanceModDisabled IsNot Nothing Then FrmInstanceModDisabled.BtnDownload_Loaded()
-            '备注
-            If FrmSetupUI IsNot Nothing Then FrmSetupUI.CardSwitch.Title = If(HiddenForceShow, "功能隐藏（已暂时关闭，按 F12 以重新启用）", "功能隐藏")
+
         Catch ex As Exception
             Log(ex, "刷新功能隐藏项目失败", LogLevel.Feedback)
         End Try
     End Sub
 
-    'UI 协同改变
+    ' ================= 设置页面协同 =================
     Private Sub HiddenSetupMain() Handles CheckHiddenPageSetup.Change
-        '设置主页面
-        If CheckHiddenPageSetup.Checked Then
-            '开启
-            CheckHiddenSetupLaunch.Checked = True
-            CheckHiddenSetupSystem.Checked = True
-            CheckHiddenSetupUI.Checked = True
-        Else
-            '关闭
-            If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
-                CheckHiddenSetupLaunch.Checked = False
-                CheckHiddenSetupSystem.Checked = False
-                CheckHiddenSetupUI.Checked = False
-            End If
-        End If
+        Dim IsChecked As Boolean = CheckHiddenPageSetup.Checked
+        CheckHiddenSetupLaunch.Checked = IsChecked
+        CheckHiddenSetupUI.Checked = IsChecked
+        CheckHiddenSetupSystem.Checked = IsChecked
+        CheckHiddenSetupUpdate.Checked = IsChecked
+        CheckHiddenSetupGameLink.Checked = IsChecked
+        CheckHiddenSetupAbout.Checked = IsChecked
+        CheckHiddenSetupFeedback.Checked = IsChecked
+        CheckHiddenSetupLog.Checked = IsChecked
     End Sub
-    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
-        '设置子页面
-        If Setup.Get("UiHiddenSetupLaunch") AndAlso Setup.Get("UiHiddenSetupUi") AndAlso Setup.Get("UiHiddenSetupSystem") Then
-            '已被全部隐藏
-            CheckHiddenPageSetup.Checked = True
-        Else
-            '未被全部隐藏
-            CheckHiddenPageSetup.Checked = False
-        End If
+
+    ' ================= 设置页面协同 =================
+    Private Sub HiddenSetupMain(sender As Object, user As Boolean) Handles CheckHiddenPageSetup.Change
+        If Not user Then Return ' 仅处理用户点击，防止死循环
+        Dim IsChecked As Boolean = CheckHiddenPageSetup.Checked
+        CheckHiddenSetupLaunch.Checked = IsChecked
+        CheckHiddenSetupUI.Checked = IsChecked
+        CheckHiddenSetupSystem.Checked = IsChecked
+        CheckHiddenSetupUpdate.Checked = IsChecked
+        CheckHiddenSetupGameLink.Checked = IsChecked
+        CheckHiddenSetupAbout.Checked = IsChecked
+        CheckHiddenSetupFeedback.Checked = IsChecked
+        CheckHiddenSetupLog.Checked = IsChecked
     End Sub
-    Private Sub HiddenOtherMain() Handles CheckHiddenPageOther.Change
-        '更多主页面
-        If CheckHiddenPageOther.Checked Then
-            '开启
-            CheckHiddenOtherAbout.Checked = True
-            CheckHiddenOtherTest.Checked = True
-            CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherLog.Checked = True
-            CheckHiddenOtherHelp.Checked = True
-        Else
-            '关闭
-            If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso Setup.Get("UiHiddenOtherFeedback") AndAlso Setup.Get("UiHiddenOtherLog") Then
-                CheckHiddenOtherAbout.Checked = False
-                CheckHiddenOtherTest.Checked = False
-                CheckHiddenOtherFeedback.Checked = False
-                CheckHiddenOtherLog.Checked = False
-                CheckHiddenOtherHelp.Checked = False
-            End If
-        End If
-    End Sub
-    Private Sub HiddenOtherSub(sender As Object, user As Boolean) Handles CheckHiddenOtherHelp.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherTest.Change
-        '更多子页面（有具体内容的）
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") Then
-            '已被全部隐藏
-            CheckHiddenPageOther.Checked = True
-        Else
-            '未被全部隐藏
-            CheckHiddenPageOther.Checked = False
-        End If
-        '修改无具体内容的项
+
+    Private Sub HiddenSetupSub(sender As Object, user As Boolean) Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupUI.Change,
+    CheckHiddenSetupSystem.Change, CheckHiddenSetupUpdate.Change, CheckHiddenSetupGameLink.Change,
+    CheckHiddenSetupAbout.Change, CheckHiddenSetupFeedback.Change, CheckHiddenSetupLog.Change
+
         If Not user Then Return
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") Then
-            CheckHiddenOtherFeedback.Checked = True
-            CheckHiddenOtherLog.Checked = True
-        End If
+        Dim conf = Config.UI.Hide
+        ' 判断是否全部勾选
+        Dim AllChecked As Boolean = conf.SetupLaunch AndAlso conf.SetupUi AndAlso conf.SetupSystem AndAlso
+                               conf.SetupUpdate AndAlso conf.SetupGameLink AndAlso conf.SetupAbout AndAlso
+                               conf.SetupFeedback AndAlso conf.SetupLog
+        CheckHiddenPageSetup.Checked = AllChecked
     End Sub
-    Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherLog.Change
-        '更多子页面（无具体内容的）
+
+    ' ================= 工具页面协同 =================
+    Private Sub HiddenToolsMain(sender As Object, user As Boolean) Handles CheckHiddenPageTools.Change
         If Not user Then Return
-        If Setup.Get("UiHiddenOtherHelp") AndAlso Setup.Get("UiHiddenOtherAbout") AndAlso Setup.Get("UiHiddenOtherTest") AndAlso Setup.Get("UiHiddenOtherLog") AndAlso
-        Not Setup.Get("UiHiddenOtherFeedback") Then
-            CheckHiddenOtherAbout.Checked = False
-            CheckHiddenOtherTest.Checked = False
-            CheckHiddenOtherHelp.Checked = False
-            CheckHiddenOtherLog.Checked = False
-        End If
+        Dim IsChecked As Boolean = CheckHiddenPageTools.Checked
+        CheckHiddenToolsGameLink.Checked = IsChecked
+        CheckHiddenToolsHelp.Checked = IsChecked
+        CheckHiddenToolsTest.Checked = IsChecked
+    End Sub
+
+    Private Sub HiddenToolsSub(sender As Object, user As Boolean) Handles CheckHiddenToolsGameLink.Change,
+    CheckHiddenToolsHelp.Change, CheckHiddenToolsTest.Change
+
+        If Not user Then Return
+        Dim conf = Config.UI.Hide
+        Dim AllChecked As Boolean = conf.ToolsGameLink AndAlso conf.ToolsHelp AndAlso conf.ToolsTest
+        CheckHiddenPageTools.Checked = AllChecked
     End Sub
 
     '警告提示

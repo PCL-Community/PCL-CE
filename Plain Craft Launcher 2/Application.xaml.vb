@@ -19,8 +19,6 @@ Public Class Application
 #End If
 
     Public Sub New()
-        Basics.VersionName = VersionBaseName
-        Basics.VersionNumber = VersionCode
         '注册生命周期事件
         Lifecycle.When(LifecycleState.Loaded, AddressOf Application_Startup)
     End Sub

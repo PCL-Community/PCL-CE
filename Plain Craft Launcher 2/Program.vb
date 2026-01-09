@@ -25,7 +25,6 @@ Module Program
         MainWindowService.Loading =
             Function()
                 Dim form As New FormMain()
-                form.InitializeComponent()
                 Return form
             End Function
         'From dotnet/wpf #2393: fix tablet devices broken on .NET Core 3.0+

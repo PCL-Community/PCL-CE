@@ -100,7 +100,7 @@ Public Class PageComp
         If TargetVersion IsNot Nothing Then
             '设置目标
             ResetFilter() '重置筛选器
-            TextSearchVersion.Text = TargetVersion.Version.VanillaName
+            TextSearchVersion.Text = TargetVersion.Info.VanillaName
             Dim GetTargetItemByName =
             Function(Name As String) As MyComboBoxItem
                 For Each Item As MyComboBoxItem In ComboSearchLoader.Items
@@ -108,13 +108,13 @@ Public Class PageComp
                 Next
                 Return ComboSearchLoader.Items(0)
             End Function
-            If TargetVersion.Version.HasForge Then
+            If TargetVersion.Info.HasForge Then
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Forge")
-            ElseIf TargetVersion.Version.HasFabric Then
+            ElseIf TargetVersion.Info.HasFabric Then
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Fabric")
-            ElseIf TargetVersion.Version.HasNeoForge Then
+            ElseIf TargetVersion.Info.HasNeoForge Then
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("NeoForge")
-            ElseIf TargetVersion.Version.HasQuilt Then
+            ElseIf TargetVersion.Info.HasQuilt Then
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt")
             End If
             TargetVersion = Nothing
@@ -127,7 +127,7 @@ Public Class PageComp
         IsLoaderInited = True
         CType(Parent, MyPageRight).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, Loader, AddressOf Load_OnFinish, AddressOf LoaderInput)
         '将最高 Drop 加入筛选
-        If AllDrops?.Any AndAlso AllDrops.First > 250 Then
+        If AllDrops?.Any() AndAlso AllDrops.First > 250 Then
             Dim HighestVersion As String = McInstanceInfo.DropToVersion(AllDrops.First)
             If CType(TextSearchVersion.Items(1), MyComboBoxItem).Content.ToString <> HighestVersion Then '0 是全部
                 TextSearchVersion.Items.Insert(1, New MyComboBoxItem With {.Content = HighestVersion})

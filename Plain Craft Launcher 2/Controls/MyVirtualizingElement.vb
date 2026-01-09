@@ -4,7 +4,7 @@ Public Class MyVirtualizingElement(Of T As FrameworkElement)
     Private _initializer As Func(Of T)
     Public Sub New(initializer As Func(Of T))
         Me._initializer = initializer
-        OnFirstEnterScrollViewerViewport(AddressOf Init)
+        EnableLazyLoad(AddressOf Init)
     End Sub
 
     ''' <summary>
@@ -34,7 +34,7 @@ Public Class MyVirtualizingElement
     Private _initializer As Func(Of FrameworkElement)
     Public Sub New(initializer As Func(Of FrameworkElement))
         Me._initializer = initializer
-        OnFirstEnterScrollViewerViewport(AddressOf Init)
+        EnableLazyLoad(AddressOf Init)
     End Sub
 
     ''' <summary>

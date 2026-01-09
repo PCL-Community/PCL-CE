@@ -40,7 +40,7 @@
                 NewCard.SwapControl = NewStack
                 NewCard.IsSwapped = True
                 NewCard.InstallMethod = Sub(Stack As StackPanel)
-                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) CompareVersionGe(a.DisplayName, b.DisplayName))
+                                            Stack.Tag = Sort(CType(Stack.Tag, List(Of DlOptiFineListEntry)), Function(a, b) CompareVersion(a.DisplayName, b.DisplayName))
                                             For Each item In Stack.Tag
                                                 Stack.Children.Add(OptiFineDownloadListItem(item, AddressOf OptiFineSave_Click, True))
                                             Next

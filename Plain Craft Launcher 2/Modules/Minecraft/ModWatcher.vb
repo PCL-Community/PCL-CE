@@ -1,4 +1,5 @@
 ﻿Imports PCL.Core.Logging
+Imports PCL.Core.Utils.Exts
 
 Public Module ModWatcher
 
@@ -125,7 +126,7 @@ Public Module ModWatcher
             Me.JStackPath = JStackPath
 
             WatcherLog("开始 Minecraft 日志监控")
-            If Me.WindowTitle <> "" Then WatcherLog("要求窗口标题：" & WindowTitle)
+            If Me.WindowTitle.IsNullOrWhiteSpace() Then WatcherLog("要求窗口标题：" & WindowTitle)
 
             '更改列表
             Dim NewWatcherList As New List(Of Watcher)
@@ -152,14 +153,17 @@ Public Module ModWatcher
                         TimerWindow()
                         TimerLog()
                         '设置窗口标题
-                        For i = 1 To 3
-                            If State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
-                                
-                            Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy'/'M'/'d")).Replace("{time}", Date.Now.ToString("HH':'mm':'ss"))
-                                 SetWindowText(WindowHandle, RealTitle)
-                            End If
-                            Thread.Sleep(64)
-                        Next
+                        If Not WindowTitle.IsNullOrWhiteSpace() Then
+                            For i = 1 To 3
+                                If State = MinecraftState.Running AndAlso Not GameProcess.HasExited Then
+
+                                    Dim RealTitle As String = WindowTitle.Replace("{date}", Date.Now.ToString("yyyy'/'M'/'d")).Replace("{time}", Date.Now.ToString("HH':'mm':'ss"))
+                                    SetWindowText(WindowHandle, RealTitle)
+                                End If
+                                Thread.Sleep(64)
+                            Next
+                        End If
+                        Thread.Sleep(10)
                     Loop
                     WatcherLog("Minecraft 日志监控已退出")
                 Catch ex As Exception

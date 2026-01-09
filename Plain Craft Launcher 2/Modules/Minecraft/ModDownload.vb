@@ -162,19 +162,29 @@ Public Module ModDownload
     ''' </summary>
     Public Property AllDrops As List(Of Integer)
         Get
-            If _allDrops Is Nothing Then
-                _allDrops = Config.Cache.Drops.
-                    Split(",".ToCharArray, StringSplitOptions.RemoveEmptyEntries).Select(Function(d) CInt(Val(d))).ToList()
-            End If
-            Return If(_allDrops.Any, _allDrops, Nothing) '不要将 _AllDrops 再设为 Nothing，以防止反复获取设置尝试初始化
+            SyncLock _allDropsLock
+                If _allDrops Is Nothing Then
+                    Dim rawData As String = Config.Cache.Drops
+                    If String.IsNullOrEmpty(rawData) Then
+                        _allDrops = New List(Of Integer)()
+                    Else
+                        _allDrops = rawData.Split({","}, StringSplitOptions.RemoveEmptyEntries) _
+                                           .Select(Function(d) CInt(Val(d))).ToList()
+                    End If
+                End If
+                Return If(_allDrops.Count <> 0, _allDrops, Nothing)
+            End SyncLock
         End Get
         Set(value As List(Of Integer))
-            _allDrops = value
-            Config.Cache.Drops = value.Join(",")
+            SyncLock _allDropsLock
+                _allDrops = value
+                Config.Cache.Drops = value.Join(",")
+            End SyncLock
         End Set
     End Property
     Private _allDrops As List(Of Integer) = Nothing
-    
+    Private _allDropsLock As New Object
+
     '主加载器
     Public Structure DlClientListResult
         ''' <summary>

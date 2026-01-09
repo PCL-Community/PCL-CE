@@ -861,7 +861,7 @@ Retry:
                         Config.Instance.IgnoreJavaCompatibility(VersionFolder) = True
                         Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告")
                     End If
-                    Dim Logo As String = ReadIni(MMCSetupFile, "iconKey", "")
+                    Dim Logo As String = IO.Path.GetFileName(ReadIni(MMCSetupFile, "iconKey", ""))
                     If Logo <> "" AndAlso File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png") Then
                         Config.Instance.IsLogoCustom(VersionFolder) = True
                         Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"

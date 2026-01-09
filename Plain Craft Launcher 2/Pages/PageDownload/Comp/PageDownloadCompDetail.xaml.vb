@@ -153,104 +153,167 @@ GroupDone:
     End Sub
     Private Sub UpdateFilterResult()
         Dim results = GetResults()
+        If results Is Nothing Then Exit Sub
 
-        Dim targetVersionText = If(_targetLoader <> CompLoaderType.Any, _targetLoader.ToString & " ", "")
+        ' 1. 预处理基础变量
+        Dim targetVersionText As String = If(_targetLoader <> CompLoaderType.Any, _targetLoader.ToString() & " ", "")
         Dim targetCardName As String = If(_targetInstance <> "" OrElse _targetLoader <> CompLoaderType.Any,
-            $"所选版本：{targetVersionText}{_targetInstance}", "")
-        '归类到卡片下
+                                      $"所选版本：{targetVersionText}{_targetInstance}", "")
+
+        ' 使用 HashSet 提高查询性能 O(1)
+        Dim supportedLoaders As New HashSet(Of CompLoaderType)([Enum].GetValues(GetType(CompLoaderType)).Cast(Of CompLoaderType))
+        Dim ignoreQuilt As Boolean = Setup.Get("ToolDownloadIgnoreQuilt")
+        Dim hasMultipleLoaders As Boolean = _project.ModLoaders.Count > 1
+
+        ' 2. 核心数据归类 (使用 Dictionary 配合 HashSet 去重)
         Dim dict As New SortedDictionary(Of String, List(Of CompFile))(New CardSorter(targetCardName))
         dict.Add("其他", New List(Of CompFile))
-        Dim supportedLoaders As New List(Of Integer)([Enum].GetValues(GetType(CompLoaderType)))
+
+        ' 用于记录每个卡片内已存在的 version，防止 Contains(version) 的 O(n) 消耗
+        Dim versionDuplicateChecker As New Dictionary(Of String, HashSet(Of CompFile))
+
         For Each version As CompFile In results
+            ' 处理普通卡片归类
             For Each gameVersion In version.GameVersions
-                '检查是否符合版本筛选器
-                If _versionFilter IsNot Nothing AndAlso
-                   GetGroupedVersionName(gameVersion, GroupedDrop, GroupedOld) <> _versionFilter Then Continue For
-                '决定添加到哪个卡片
+                ' 筛选器预检查
+                Dim currentGroupedName As String = GetGroupedVersionName(gameVersion, GroupedDrop, GroupedOld)
+                If _versionFilter IsNot Nothing AndAlso currentGroupedName <> _versionFilter Then Continue For
+
                 Dim verName As String = GetGroupedVersionName(gameVersion, False, False)
-                '遍历加入的加载器列表
                 Dim loaders As New List(Of String)
-                If _project.ModLoaders.Count > 1 AndAlso '工程至少有两个加载器
-                    version.Type = CompType.Mod AndAlso '是 Mod
-                    McInstanceInfo.IsFormatFit(verName) Then '不是 “快照版本” 之类的
+
+                ' 判定 Loader 逻辑
+                If hasMultipleLoaders AndAlso version.Type = CompType.Mod AndAlso McInstanceInfo.IsFormatFit(verName) Then
                     For Each loader In version.ModLoaders
-                        If loader = CompLoaderType.Quilt AndAlso Setup.Get("ToolDownloadIgnoreQuilt") Then Continue For
-                        If supportedLoaders.Contains(loader) Then loaders.Add(Loader.ToString & " ")
+                        If loader = CompLoaderType.Quilt AndAlso ignoreQuilt Then Continue For
+                        If supportedLoaders.Contains(loader) Then loaders.Add(loader.ToString() & " ")
                     Next
                 End If
-                If Not loaders.Any() Then loaders.Add("") '保底加一个空的，确保它在一张卡片里
-                '实际添加
-                For Each Loader In loaders
-                    Dim TargetCard As String = Loader & verName
-                    If Not dict.ContainsKey(TargetCard) Then dict.Add(TargetCard, New List(Of CompFile))
-                    If Not dict(TargetCard).Contains(version) Then dict(TargetCard).Add(version)
+
+                If loaders.Count = 0 Then loaders.Add("")
+
+                ' 填充数据
+                For Each loaderPrefix In loaders
+                    Dim targetKey As String = loaderPrefix & verName
+                    AddVersionToDict(dict, versionDuplicateChecker, targetKey, version)
                 Next
             Next
-        Next
-        '添加筛选的版本的卡片
-        If targetCardName <> "" AndAlso (_versionFilter Is Nothing OrElse GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld).StartsWithF(_versionFilter)) Then
-            dict.Add(targetCardName, New List(Of CompFile))
-            For Each version As CompFile In results
-                If version.GameVersions.Contains(_targetInstance) AndAlso
-                   (_targetLoader = CompLoaderType.Any OrElse version.ModLoaders.Contains(_targetLoader)) Then
-                    '检查是否符合版本筛选器
-                    If _versionFilter IsNot Nothing AndAlso
-                        Not version.GameVersions.Any(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld) = _versionFilter) Then Continue For
-                    If Not dict(targetCardName).Contains(version) Then dict(targetCardName).Add(version)
+
+            ' 处理“所选版本”卡片 (逻辑合并，减少二次循环)
+            If targetCardName <> "" Then
+                Dim isMatchFilter As Boolean = (_versionFilter Is Nothing OrElse
+                                           GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld).StartsWithF(_versionFilter))
+
+                If isMatchFilter AndAlso version.GameVersions.Contains(_targetInstance) Then
+                    If _targetLoader = CompLoaderType.Any OrElse version.ModLoaders.Contains(_targetLoader) Then
+                        ' 再次检查 version 是否符合筛选器（针对该文件的所有游戏版本）
+                        If _versionFilter Is Nothing OrElse version.GameVersions.Any(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld) = _versionFilter) Then
+                            AddVersionToDict(dict, versionDuplicateChecker, targetCardName, version)
+                        End If
+                    End If
                 End If
-            Next
-        End If
-        '转化为 UI
+            End If
+        Next
+
+        ' 3. 渲染 UI
         Try
             PanResults.Children.Clear()
-            For Each pair As KeyValuePair(Of String, List(Of CompFile)) In dict
-                If Not pair.Value.Any() Then Continue For
-                If Pair.Key = TargetCardName.Replace("（所选版本）", "") Then Continue For
-                '增加卡片
-                Dim newCard As New MyCard With {.Title = pair.Key, .Margin = New Thickness(0, 0, 0, 15)} '9 是安装，8 是另存为
-                Dim newStack As New StackPanel With {.Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0), .VerticalAlignment = VerticalAlignment.Top, .RenderTransform = New TranslateTransform(0, 0), .Tag = pair.Value}
-                newCard.Children.Add(newStack)
-                newCard.InstallMethod = Sub(stack As StackPanel)
-                                            stack.Tag = Sort(CType(stack.Tag, List(Of CompFile)), Function(a, b) a.ReleaseDate > b.ReleaseDate)
-                                            Dim badDisplayName = CType(stack.Tag, List(Of CompFile)).Distinct(Function(a, b) a.DisplayName = b.DisplayName).Count <> CType(stack.Tag, List(Of CompFile)).Count
-                                            If _project.Type = CompType.ModPack Then
-                                                For Each item In stack.Tag
-                                                    stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Install_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
-                                                Next
-                                            ElseIf _project.Type = CompType.World Then
-                                                For Each item In stack.Tag
-                                                    stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.InstallWorld_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
-                                                Next
-                                            Else
-                                                CompFilesCardPreload(stack, stack.Tag)
+            Dim additionalTitles As List(Of String) = If(FrmMain.PageCurrent.Additional IsNot Nothing,
+                                                   CType(FrmMain.PageCurrent.Additional(1), List(Of String)),
+                                                   New List(Of String))
 
-                                                For Each item In stack.Tag
-                                                    stack.Children.Add(CType(item, CompFile).ToListItem(AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
-                                                Next
-                                            End If
-                                        End Sub
+            For Each pair In dict
+                If pair.Value.Count = 0 Then Continue For
+
+                ' 创建卡片组件
+                Dim newCard As New MyCard With {
+                    .Title = pair.Key,
+                    .Margin = New Thickness(0, 0, 0, 15)
+                }
+
+                ' 闭包引用：避免在 Sub 内做高耗时操作
+                Dim files = pair.Value
+                Dim currentKey = pair.Key
+
+                Dim newStack As New StackPanel With {
+                    .Margin = New Thickness(20, MyCard.SwapedHeight, 18, 0),
+                    .VerticalAlignment = VerticalAlignment.Top,
+                    .Tag = files
+                }
+
+                newCard.Children.Add(newStack)
                 newCard.SwapControl = newStack
+
+                ' 延迟加载安装项的逻辑
+                newCard.InstallMethod = Sub(stack)
+                                            Dim list = CType(stack.Tag, List(Of CompFile))
+                                            ' 排序和去重检查
+                                            list.Sort(Function(a, b) b.ReleaseDate.CompareTo(a.ReleaseDate))
+                                            Dim distinctCount = list.Select(Function(f) f.DisplayName).Distinct().Count()
+                                            Dim badDisplayName = distinctCount <> list.Count
+
+                                            ' 批量添加子项
+                                            Select Case _project.Type
+                                                Case CompType.ModPack
+                                                    For Each item In list
+                                                        stack.Children.Add(item.ToListItem(AddressOf FrmDownloadCompDetail.Install_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
+                                                    Next
+                                                Case CompType.World
+                                                    For Each item In list
+                                                        stack.Children.Add(item.ToListItem(AddressOf FrmDownloadCompDetail.InstallWorld_Click, AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
+                                                    Next
+                                                Case Else
+                                                    CompFilesCardPreload(stack, list)
+                                                    For Each item In list
+                                                        stack.Children.Add(item.ToListItem(AddressOf FrmDownloadCompDetail.Save_Click, BadDisplayName:=badDisplayName))
+                                                    Next
+                                            End Select
+                                        End Sub
+
                 PanResults.Children.Add(newCard)
-                '确定卡片是否展开
-                If pair.Key = targetCardName OrElse
-                   (FrmMain.PageCurrent.Additional IsNot Nothing AndAlso '#2761
-                   CType(FrmMain.PageCurrent.Additional(1), List(Of String)).Contains(newCard.Title)) Then
-                    newCard.StackInstall() '9 是安装，8 是另存为
+
+                ' 展开逻辑
+                If currentKey = targetCardName OrElse additionalTitles.Contains(newCard.Title) Then
+                    newCard.StackInstall()
                 Else
                     newCard.IsSwapped = True
                 End If
-                '增加提示
-                If pair.Key = "其他" Then
-                    newStack.Children.Add(New MyHint With {.Text = "由于版本信息更新缓慢，可能无法识别刚更新的 MC 版本。几天后即可正常识别。", .Theme = MyHint.Themes.Yellow, .Margin = New Thickness(5, 0, 0, 8)})
+
+                ' 特殊提示
+                If currentKey = "其他" Then
+                    newStack.Children.Add(New MyHint With {
+                        .Text = "由于版本信息更新缓慢，可能无法识别刚更新的 MC 版本。几天后即可正常识别。",
+                        .Theme = MyHint.Themes.Yellow,
+                        .Margin = New Thickness(5, 0, 0, 8)
+                    })
                 End If
             Next
-            '如果只有一张卡片，展开第一张卡片
+
+            ' 单卡片自动展开
             If PanResults.Children.Count = 1 Then
-                CType(PanResults.Children(0), MyCard).IsSwapped = False
+                DirectCast(PanResults.Children(0), MyCard).IsSwapped = False
             End If
+
         Catch ex As Exception
             Log(ex, "可视化工程下载列表出错", LogLevel.Feedback)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' 辅助方法：向字典添加数据并处理去重
+    ''' </summary>
+    Private Sub AddVersionToDict(dict As SortedDictionary(Of String, List(Of CompFile)),
+                             checker As Dictionary(Of String, HashSet(Of CompFile)),
+                             key As String, version As CompFile)
+        If Not dict.ContainsKey(key) Then
+            dict.Add(key, New List(Of CompFile))
+            checker.Add(key, New HashSet(Of CompFile))
+        End If
+
+        ' 使用 HashSet.Add 判断是否重复，比 List.Contains 快得多
+        If checker(key).Add(version) Then
+            dict(key).Add(version)
+        End If
     End Sub
     Private Function GetGroupedVersionName(name As String, groupedByDrop As Boolean, foldOld As Boolean) As String
         If name Is Nothing Then
@@ -365,7 +428,7 @@ GroupDone:
                         If Version Is Nothing Then Return False
                         If Not Version.IsLoaded Then Version.Load()
                         If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
-                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.VanillaName) Then Return False
+                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Info.VanillaName) Then Return False
                         '加载器
                         If Not AllowedLoaders.Any() Then Return True '无要求
                         Return False
@@ -471,14 +534,14 @@ GroupDone:
                         '只对 Mod 和数据包进行版本检测
                         If File.Type = CompType.Mod OrElse File.Type = CompType.DataPack Then
                             If File.GameVersions.Any(Function(v) v.Contains(".")) AndAlso
-                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Version.VanillaName) Then Return False
+                               Not File.GameVersions.Any(Function(v) v.Contains(".") AndAlso v = Version.Info.VanillaName) Then Return False
                         End If
                         '加载器
                         If Not AllowedLoaders.Any() Then Return True '无要求
-                        If AllowedLoaders.Contains(CompLoaderType.Forge) AndAlso Version.Version.HasForge Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Version.HasFabric OrElse Version.Version.HasLegacyFabric Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.NeoForge) AndAlso Version.Version.HasNeoForge Then Return True
-                        If AllowedLoaders.Contains(CompLoaderType.LiteLoader) AndAlso Version.Version.HasLiteLoader Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.Forge) AndAlso Version.Info.HasForge Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.Fabric) AndAlso Version.Info.HasFabric OrElse Version.Info.HasLegacyFabric Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.NeoForge) AndAlso Version.Info.HasNeoForge Then Return True
+                        If AllowedLoaders.Contains(CompLoaderType.LiteLoader) AndAlso Version.Info.HasLiteLoader Then Return True
                         Return False
                     End Function
                     '获取常规资源默认下载位置
@@ -517,26 +580,7 @@ GroupDone:
                     End If
                 End If
                 '获取基本信息
-                Dim FileName As String
-                If _project.TranslatedName = _project.RawName Then
-                    FileName = File.FileName
-                Else
-                    Dim ChineseName As String = _project.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").
-                        Replace("\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("""", "").Replace("： ", "：")
-                    Select Case Setup.Get("ToolDownloadTranslateV2")
-                        Case 0
-                            FileName = $"【{ChineseName}】{File.FileName}"
-                        Case 1
-                            FileName = $"[{ChineseName}] {File.FileName}"
-                        Case 2
-                            FileName = $"{ChineseName}-{File.FileName}"
-                        Case 3
-                            FileName = $"{File.FileName}-{ChineseName}"
-                        Case Else
-                            FileName = File.FileName
-                    End Select
-                End If
-                If File.Type = CompType.Mod Then FileName = FileName.Replace("~", "-") '~ 会导致 Mixin 加载失败
+                Dim FileName = CompFileNameGet(_project, File)
                 RunInUi(
                 Sub()
                     '弹窗要求选择保存位置

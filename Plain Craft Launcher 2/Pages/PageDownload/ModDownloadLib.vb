@@ -1337,7 +1337,7 @@ Retry:
                 Task.Progress = 0.8
                 '查找对应版本
                 For Each ForgeVersion In ForgeLoader.Output
-                    If CompareVersionGe(ForgeVersion.Version.ToString, LoaderVersion) = 0 Then
+                    If CompareVersion(ForgeVersion.Version.ToString, LoaderVersion) = 0 Then
                         Info = ForgeVersion
                         Return
                     End If
