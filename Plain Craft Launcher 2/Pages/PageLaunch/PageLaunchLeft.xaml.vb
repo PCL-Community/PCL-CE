@@ -164,13 +164,13 @@ Public Class PageLaunchLeft
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Run
         PanLaunching.Visibility = Visibility.Visible
         AniStart({
-            AaOpacity(PanInput, 0, 50), '略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
-            AaOpacity(PanInput, -PanInput.Opacity, 110, , New AniEaseInFluent, True),
-            AaScaleTransform(PanInput, 1.2 - CType(PanInput.RenderTransform, ScaleTransform).ScaleX, 160),
-            AaOpacity(PanLaunching, 1 - PanLaunching.Opacity, 150, 100),
-            AaScaleTransform(PanLaunching, 1 - CType(PanLaunching.RenderTransform, ScaleTransform).ScaleX, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
-            AaCode(Sub() PanLaunching.IsHitTestVisible = True, 150)
-        }, "Launch State Page")
+                AaOpacity(PanInput, 0, 50), '略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
+                AaOpacity(PanInput, -PanInput.Opacity, 110, , New AniEaseInFluent, True),
+                AaScaleTransform(PanInput, 1.2 - CType(PanInput.RenderTransform, ScaleTransform).ScaleX, 160),
+                AaOpacity(PanLaunching, 1 - PanLaunching.Opacity, 150, 100),
+                AaScaleTransform(PanLaunching, 1 - CType(PanLaunching.RenderTransform, ScaleTransform).ScaleX, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
+                AaCode(Sub() PanLaunching.IsHitTestVisible = True, 150)
+            }, "Launch State Page")
     End Sub
     ''' <summary>
     ''' 切换至登录页面。
@@ -576,65 +576,63 @@ ExitRefresh:
                 Return
             End Try
             If AniIsRun("Launch State Page") Then IsLaunched = False '等待页面切换动画完成
-                '计算应显示的进度
-                Dim ActualProgress = McLaunchLoaderReal.Progress
-                If ActualProgress >= ShowProgress Then ShowProgress += (ActualProgress - ShowProgress) * 0.2 + 0.005 '向实际进度靠一点
-                If ActualProgress <= ShowProgress Then ShowProgress = ActualProgress '原来或处理后变得比实际进度高，直接回退
-                If IsLaunched Then ShowProgress = 1 '如果已经完成了，就不卖关子了
-                '文本
-                LabLaunchingTitle.Text = If(IsLaunched, "已启动游戏", If(CurrentLaunchOptions.SaveBatch Is Nothing, "正在启动游戏", "正在导出启动脚本"))
-                LabLaunchingProgress.Text = StrFillNum(ShowProgress * 100, 2) & " %"
-                Dim HasLaunchDownloader As Boolean = False
-                Try
-                    For Each Loader In NetManager.Tasks
-                        If Loader.RealParent IsNot Nothing AndAlso Loader.RealParent.Name = "Minecraft 启动" AndAlso Loader.State = LoadState.Loading Then HasLaunchDownloader = True
-                    Next
-                Catch ex As Exception
-                    Log(ex, "获取 Minecraft 启动下载器失败，可能是因为启动被取消")
-                    HasLaunchDownloader = False
-                End Try
-                LabLaunchingDownload.Text = GetString(NetManager.Speed) & "/s"
-
+            '计算应显示的进度
+            Dim ActualProgress = McLaunchLoaderReal.Progress
+            If ActualProgress >= ShowProgress Then ShowProgress += (ActualProgress - ShowProgress) * 0.2 + 0.005 '向实际进度靠一点
+            If ActualProgress <= ShowProgress Then ShowProgress = ActualProgress '原来或处理后变得比实际进度高，直接回退
+            If IsLaunched Then ShowProgress = 1 '如果已经完成了，就不卖关子了
+            '文本
+            LabLaunchingTitle.Text = If(IsLaunched, "已启动游戏", If(CurrentLaunchOptions.SaveBatch Is Nothing, "正在启动游戏", "正在导出启动脚本"))
+            LabLaunchingProgress.Text = StrFillNum(ShowProgress * 100, 2) & " %"
+            Dim HasLaunchDownloader As Boolean = False
+            Try
+                For Each Loader In NetManager.Tasks
+                    If Loader.RealParent IsNot Nothing AndAlso Loader.RealParent.Name = "Minecraft 启动" AndAlso Loader.State = LoadState.Loading Then HasLaunchDownloader = True
+                Next
+            Catch ex As Exception
+                Log(ex, "获取 Minecraft 启动下载器失败，可能是因为启动被取消")
+                HasLaunchDownloader = False
+            End Try
+            LabLaunchingDownload.Text = GetString(NetManager.Speed) & "/s"
             Dim ShouldShowHint As Boolean = Setup.Get("UiShowLaunchingHint")
-
-                '进度改变动画
-                Dim AnimList As New List(Of AniData) From {
-             AaGridLengthWidth(ProgressLaunchingFinished, ShowProgress - ProgressLaunchingFinished.Width.Value, 260,, New AniEaseOutFluent),
-             AaGridLengthWidth(ProgressLaunchingUnfinished, 1 - ShowProgress - ProgressLaunchingUnfinished.Width.Value, 260,, New AniEaseOutFluent)
-        }
-                Dim IsDownloadStateChanged As Boolean = HasLaunchDownloader = (LabLaunchingDownload.Visibility = Visibility.Collapsed)
-                If IsDownloadStateChanged Then
-                    LabLaunchingDownload.Visibility = Visibility.Visible
-                    LabLaunchingDownloadLeft.Visibility = Visibility.Visible
-                    AnimList.AddRange({
-             AaOpacity(LabLaunchingDownload, If(HasLaunchDownloader, 1, 0) - LabLaunchingDownload.Opacity, 100),
-             AaOpacity(LabLaunchingDownloadLeft, If(HasLaunchDownloader, 0.5, 0) - LabLaunchingDownloadLeft.Opacity, 100),
-             AaCode(Sub()
-                        If Not HasLaunchDownloader Then
-                            LabLaunchingDownload.Visibility = Visibility.Collapsed
-                            LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed
-                        End If
-                    End Sub, 110)
-        })
-                End If
-                Dim IsProgressStateChanged As Boolean = (Not IsLaunched) = (LabLaunchingProgress.Visibility = Visibility.Collapsed)
-                If IsProgressStateChanged Then
-                    LabLaunchingProgress.Visibility = Visibility.Visible
+            '进度改变动画
+            Dim AnimList As New List(Of AniData) From {
+                 AaGridLengthWidth(ProgressLaunchingFinished, ShowProgress - ProgressLaunchingFinished.Width.Value, 260,, New AniEaseOutFluent),
+                 AaGridLengthWidth(ProgressLaunchingUnfinished, 1 - ShowProgress - ProgressLaunchingUnfinished.Width.Value, 260,, New AniEaseOutFluent)
+            }
+            Dim IsDownloadStateChanged As Boolean = HasLaunchDownloader = (LabLaunchingDownload.Visibility = Visibility.Collapsed)
+            If IsDownloadStateChanged Then
+                LabLaunchingDownload.Visibility = Visibility.Visible
+                LabLaunchingDownloadLeft.Visibility = Visibility.Visible
+                AnimList.AddRange({
+                 AaOpacity(LabLaunchingDownload, If(HasLaunchDownloader, 1, 0) - LabLaunchingDownload.Opacity, 100),
+                 AaOpacity(LabLaunchingDownloadLeft, If(HasLaunchDownloader, 0.5, 0) - LabLaunchingDownloadLeft.Opacity, 100),
+                 AaCode(Sub()
+                            If Not HasLaunchDownloader Then
+                                LabLaunchingDownload.Visibility = Visibility.Collapsed
+                                LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed
+                            End If
+                        End Sub, 110)
+            })
+            End If
+            Dim IsProgressStateChanged As Boolean = (Not IsLaunched) = (LabLaunchingProgress.Visibility = Visibility.Collapsed)
+            If IsProgressStateChanged Then
+                LabLaunchingProgress.Visibility = Visibility.Visible
                 LabLaunchingProgressLeft.Visibility = Visibility.Visible
                 If IsLaunched AndAlso ShouldShowHint Then
                     PanLaunchingHint.Visibility = Visibility.Visible
                 End If
                 AnimList.AddRange({
-             AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
-             AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
-             AaOpacity(PanLaunchingHint, If(IsLaunched AndAlso ShouldShowHint, 1, 0) - PanLaunchingHint.Opacity, 100)
-        })
-                End If
-                AniStart(AnimList, "Launching Progress")
-            Catch ex As Exception
-                Log(ex, "刷新启动信息失败", LogLevel.Feedback)
-            End Try
-End Sub
+                 AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
+                 AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
+                 AaOpacity(PanLaunchingHint, If(IsLaunched AndAlso ShouldShowHint, 1, 0) - PanLaunchingHint.Opacity, 100)
+            })
+            End If
+            AniStart(AnimList, "Launching Progress")
+        Catch ex As Exception
+            Log(ex, "刷新启动信息失败", LogLevel.Feedback)
+        End Try
+    End Sub
     Private ShowProgress As Double = 0
     '尺寸改变动画
     Private IsWidthAnimating As Boolean = False
