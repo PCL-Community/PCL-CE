@@ -1,5 +1,8 @@
 name: Mirror Chyan (Release Note)
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   release:

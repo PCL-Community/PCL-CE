@@ -23,7 +23,9 @@ Public Class MyMsgSelect
             ShapeLine.StrokeThickness = GetWPFSize(1)
             '添加选择控件
             Btn1.IsEnabled = False
-            For Each Selection As IMyRadio In Converter.Content
+            For Each Content In Converter.Content
+                Content = MyVirtualizingElement.TryInit(Content)
+                Dim Selection As IMyRadio = Content
                 PanSelection.Children.Add(Selection)
                 AddHandler Selection.Check, AddressOf OnChecked
                 If TypeOf Selection Is MyListItem Then

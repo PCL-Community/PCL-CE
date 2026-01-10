@@ -314,7 +314,7 @@ Public Class PageInstanceSetup
                 RamTarget1 = 1.5 + ModCount / 90
                 RamTarget2 = 2.7 + ModCount / 50
                 RamTarget3 = 4.5 + ModCount / 25
-            ElseIf Version IsNot Nothing AndAlso Version.Version.HasOptiFine Then
+            ElseIf Version IsNot Nothing AndAlso Version.Info.HasOptiFine Then
                 'OptiFine 实例
                 RamMininum = 0.5
                 RamTarget1 = 1.5
