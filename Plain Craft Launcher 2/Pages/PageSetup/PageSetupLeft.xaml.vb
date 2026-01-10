@@ -53,6 +53,7 @@ Public Class PageSetupLeft
         Else
             PageID = FormMain.PageSubType.SetupLaunch
         End If
+        AnimatedControl = Me.PanItem
     End Sub
 
     ''' <summary>

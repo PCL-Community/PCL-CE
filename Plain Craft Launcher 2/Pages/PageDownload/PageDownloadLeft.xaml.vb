@@ -8,6 +8,11 @@
     ''' </summary>
     Public PageID As FormMain.PageSubType = FormMain.PageSubType.DownloadInstall
 
+    Public Sub New()
+        InitializeComponent()
+        AnimatedControl = Me.PanItem
+    End Sub
+
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
