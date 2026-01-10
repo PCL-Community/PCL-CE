@@ -163,9 +163,9 @@ Public Class PageComp
                     Loader.Start()
                 End If
             End If
-            ' 恢复滚动位置（延迟执行确保数据已加载）
+            ' 恢复滚动位置（等待加载完成后执行）
             RunInThread(Sub()
-                Thread.Sleep(150) ' 等待页面内容加载完成
+                Loader.WaitForExit() ' 等待页面内容加载完成
                 RunInUi(Sub()
                     Dim RestoredScroll As Double = RestoreScrollPosition()
                     If RestoredScroll > 0 Then
@@ -219,12 +219,12 @@ Public Class PageComp
     ''' <summary>
     ''' 静态字典，用于保存每种页面类型的页码。
     ''' </summary>
-    Private Shared PageMemory As New Dictionary(Of CompType, Integer)
+    Private Shared PageMemory As New Concurrent.ConcurrentDictionary(Of CompType, Integer)
 
     ''' <summary>
     ''' 静态字典，用于保存每种页面类型的滚动位置。
     ''' </summary>
-    Private Shared ScrollMemory As New Dictionary(Of CompType, Double)
+    Private Shared ScrollMemory As New Concurrent.ConcurrentDictionary(Of CompType, Double)
 
     ''' <summary>
     ''' 保存当前页码到内存。
@@ -239,8 +239,9 @@ Public Class PageComp
     ''' 从内存恢复页码，如果没有保存则返回 0。
     ''' </summary>
     Private Function RestorePageProgress() As Integer
-        If PageType <> -1 AndAlso PageMemory.ContainsKey(PageType) Then
-            Return PageMemory(PageType)
+        Dim Value As Integer
+        If PageType <> -1 AndAlso PageMemory.TryGetValue(PageType, Value) Then
+            Return Value
         End If
         Return 0
     End Function
@@ -258,8 +259,9 @@ Public Class PageComp
     ''' 从内存恢复滚动位置，如果没有保存则返回 0。
     ''' </summary>
     Private Function RestoreScrollPosition() As Double
-        If PageType <> -1 AndAlso ScrollMemory.ContainsKey(PageType) Then
-            Return ScrollMemory(PageType)
+        Dim Value As Double
+        If PageType <> -1 AndAlso ScrollMemory.TryGetValue(PageType, Value) Then
+            Return Value
         End If
         Return 0
     End Function
