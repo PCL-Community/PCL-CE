@@ -189,7 +189,7 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub BtnChangelog_Click(sender As Object, e As EventArgs) Handles BtnChangelog.Click
-        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/" & VersionBaseName)
+        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" & VersionBaseName)
     End Sub
     
     Public Function VersionNameFormat(str As String) As String
