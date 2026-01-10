@@ -1337,7 +1337,7 @@ LoginFinish:
             McLaunchLog("无合适的 Java，需要确认是否自动下载")
             Dim javaCode As String
             If minVer >= New Version(1, 9) Then
-                javaCode = minVer.Minor
+                javaCode = minVer.Major
             ElseIf maxVer < New Version(1, 8) Then
                 If McInstanceSelected.Info.HasForge Then
                     MyMsgBox($"你需要先安装 LegacyJavaFixer Mod，或安装 Java 7 才能启动该版本。{vbCrLf}请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。", "未找到 Java")
