@@ -10,7 +10,7 @@
     AllowDrop="True" Topmost="True" Title="Plain Craft Launcher Community Edition " MinHeight="470" MinWidth="810" 
     ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico"
     ResizeMode="CanResize" Background="{x:Null}" d:DesignWidth="870" d:DesignHeight="520" Width="850" Height="500"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow" AllowsTransparency="False">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo ThumbnailClipMargin="{Binding Margin, ElementName=PanForm}" />
     </Window.TaskbarItemInfo>
@@ -22,22 +22,6 @@
             CornerRadius="12"
             GlassFrameThickness="0"/>
     </shell:WindowChrome.WindowChrome>
-    <Window.Template>
-        <ControlTemplate TargetType="{x:Type Window}">
-            <Border BorderBrush="{TemplateBinding BorderBrush}"
-            BorderThickness="{TemplateBinding BorderThickness}"
-            x:Name="WindowBorder">
-                <Grid x:Name="LayoutRoot"
-              Background="{TemplateBinding Background}">
-                    <AdornerDecorator>
-                        <ContentPresenter Content="{TemplateBinding Content}"
-                          x:Name="MainContentPresenter"
-                          KeyboardNavigation.TabNavigation="Cycle" />
-                    </AdornerDecorator>
-                </Grid>
-            </Border>
-        </ControlTemplate>
-    </Window.Template>
     <Grid x:Name="PanBack" SnapsToDevicePixels="True" UseLayoutRounding="True" Margin="0">
         <Border x:Name="BorderForm">
             <Border.Clip>

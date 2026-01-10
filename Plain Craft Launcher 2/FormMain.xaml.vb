@@ -355,7 +355,29 @@ Public Class FormMain
                 hwndSource.CompositionTarget.RenderMode = RenderMode.SoftwareOnly
             End If
         End If
+
         MyBase.OnSourceInitialized(e)
+
+        ' 获取当前窗口句柄
+        Dim hwnd As IntPtr = New WindowInteropHelper(Me).Handle
+        ' 渲染层允许 Alpha 通道通过
+        Dim source As HwndSource = HwndSource.FromHwnd(hwnd)
+        If source IsNot Nothing Then
+            source.CompositionTarget.BackgroundColor = Colors.Transparent
+        End If
+
+        Dim margins As New KernelInterop.MARGINS With {
+            .leftWidth = -1,
+            .rightWidth = -1,
+            .topHeight = -1,
+            .bottomHeight = -1
+        }
+
+        Try
+            KernelInterop.DwmExtendFrameIntoClientArea(hwnd, margins)
+        Catch ex As Exception
+            LogWrapper.Error("DWM 阴影应用失败: " & ex.Message)
+        End Try
     End Sub
 
     '关闭
