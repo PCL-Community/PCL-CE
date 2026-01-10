@@ -50,16 +50,16 @@ Public Class PageLaunchRight
             Case 1
                 '加载本地文件
                 Log("[Page] 主页自定义数据来源：本地文件")
-                Content = ReadFile(ExePath & "PCL\Custom.xaml") 'ReadFile 会进行存在检测
+                Content = ReadFile(ExePath & "PCL\Custom_CE.xaml") 'ReadFile 会进行存在检测
             Case 2
                 Url = Setup.Get("UiCustomNet")
 Download:
                 '加载联网文件
                 If String.IsNullOrWhiteSpace(Url) Then Exit Select
-                If Url = Setup.Get("CacheSavedPageUrl") AndAlso File.Exists(PathTemp & "Cache\Custom.xaml") Then
+                If Url = Setup.Get("CacheSavedPageUrl") AndAlso File.Exists(PathTemp & "Cache\Custom_CE.xaml") Then
                     '缓存可用
                     Log("[Page] 主页自定义数据来源：联网缓存文件")
-                    Content = ReadFile(PathTemp & "Cache\Custom.xaml")
+                    Content = ReadFile(PathTemp & "Cache\Custom_CE.xaml")
                     '后台更新缓存
                     OnlineLoader.Start(Url)
                 Else
@@ -93,7 +93,7 @@ Download:
                         GoTo Download
                     Case 3
                         Log("[Page] 主页预设：简单主页")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom_CE.xaml"
                         GoTo Download
                     Case 4
                         Log("[Page] 主页预设：每日整合包推荐")
@@ -109,7 +109,7 @@ Download:
                         GoTo Download
                     Case 7
                         Log("[Page] 主页预设：主页市场")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom_CE.xaml"
                         GoTo Download
                     Case 8
                         Log("[Page] 主页预设：更新日志")
@@ -117,7 +117,7 @@ Download:
                         GoTo Download
                     Case 9
                         Log("[Page] 主页预设：PCL 新功能说明书")
-                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"
+                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom_CE.xaml"
                         GoTo Download
                     Case 10
                         Log("[Page] 主页预设：OpenMCIM Dashboard")
@@ -125,15 +125,15 @@ Download:
                         GoTo Download
                     Case 11
                         Log("[Page] 主页预设：杂志主页")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom_CE.xaml"
                         GoTo Download
                     Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
-                        Url = "https://ddf.pcl-community.org/Custom.xaml"
+                        Url = "https://ddf.pcl-community.org/Custom_CE.xaml"
                         GoTo Download
                     Case 13
                         Log("[Page] 主页预设：Minecraft 更新摘要")
-                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
+                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom_CE.xaml"
                         GoTo Download
                     Case 14
                         Log("[Page] 主页预设：PCL CE 公告栏")
@@ -224,7 +224,7 @@ Download:
                 Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}")
                 Setup.Set("CacheSavedPageUrl", Address)
                 Setup.Set("CacheSavedPageVersion", Version)
-                WriteFile(PathTemp & "Cache\Custom.xaml", FileContent)
+                WriteFile(PathTemp & "Cache\Custom_CE.xaml", FileContent)
             End If
             '要求刷新
             RunInUi(AddressOf Refresh) '不直接调用 Refresh，以防止死循环（#6245）

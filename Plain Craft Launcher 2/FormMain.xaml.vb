@@ -736,12 +736,12 @@ Public Class FormMain
             Dim Extension As String = FilePath.AfterLast(".").ToLower
             If Extension = "xaml" Then
                 Log("[System] 文件后缀为 XAML，作为主页加载")
-                If File.Exists(ExePath & "PCL\Custom.xaml") Then
+                If File.Exists(ExePath & "PCL\Custom_CE.xaml") Then
                     If MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") = 2 Then
                         Return
                     End If
                 End If
-                CopyFile(FilePath, ExePath & "PCL\Custom.xaml")
+                CopyFile(FilePath, ExePath & "PCL\Custom_CE.xaml")
                 RunInUi(
                 Sub()
                     Setup.Set("UiCustomType", 1)

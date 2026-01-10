@@ -74,7 +74,7 @@
 
 
     Private Sub RefreshReal()
-        Dim url As String = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
+        Dim url As String = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom_CE.xaml"
 
         Try
             Dim content As String = NetGetCodeByRequestRetry(url)

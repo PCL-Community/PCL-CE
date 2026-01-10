@@ -264,7 +264,7 @@ Public Class ModSetup
                 FrmSetupUI.PanCustomNet.Visibility = Visibility.Collapsed
                 FrmSetupUI.HintCustom.Visibility = Visibility.Visible
                 FrmSetupUI.HintCustomWarn.Visibility = If(Setup.Get("HintCustomWarn"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupUI.HintCustom.Text = $"从 PCL 文件夹下的 Custom.xaml 读取主页内容。{vbCrLf}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。"
+                FrmSetupUI.HintCustom.Text = $"从 PCL 文件夹下的 Custom_CE.xaml 读取主页内容。{vbCrLf}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。"
                 FrmSetupUI.HintCustom.EventType = ""
                 FrmSetupUI.HintCustom.EventData = ""
             Case 2 '联网

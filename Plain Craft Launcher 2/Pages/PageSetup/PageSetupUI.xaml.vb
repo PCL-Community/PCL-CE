@@ -525,12 +525,12 @@ Refresh:
     '主页
     Private Sub BtnCustomFile_Click(sender As Object, e As EventArgs) Handles BtnCustomFile.Click
         Try
-            If File.Exists(ExePath & "PCL\Custom.xaml") Then
+            If File.Exists(ExePath & "PCL\Custom_CE.xaml") Then
                 If MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn:=True) = 2 Then Return
             End If
-            WriteFile(ExePath & "PCL\Custom.xaml", GetResourceStream("Resources/Custom.xml"))
+            WriteFile(ExePath & "PCL\Custom_CE.xaml", GetResourceStream("Resources/Custom.xml"))
             Hint("教学文件已生成！", HintType.Finish)
-            OpenExplorer(ExePath & "PCL\Custom.xaml")
+            OpenExplorer(ExePath & "PCL\Custom_CE.xaml")
         Catch ex As Exception
             Log(ex, "生成教学文件失败", LogLevel.Feedback)
         End Try
@@ -540,7 +540,7 @@ Refresh:
         Hint("已刷新主页！", HintType.Finish)
     End Sub
     Private Sub BtnCustomTutorial_Click(sender As Object, e As EventArgs) Handles BtnCustomTutorial.Click
-        MyMsgBox("1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。" & vbCrLf &
+        MyMsgBox("1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom_CE.xaml 布局文件。" & vbCrLf &
                  "2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。" & vbCrLf &
                  "3. 点击 刷新主页 按钮，查看主页现在长啥样了。" & vbCrLf &
                  vbCrLf &

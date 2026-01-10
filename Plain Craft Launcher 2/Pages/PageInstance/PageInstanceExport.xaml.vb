@@ -619,7 +619,7 @@ Public Class PageInstanceExport
                 If Directory.Exists(ExePath & "PCL\Pictures\") Then CopyDirectory(ExePath & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
                 If Directory.Exists(ExePath & "PCL\Musics\") Then CopyDirectory(ExePath & "PCL\Musics\", CacheFolder & "PCL\Musics\")
                 If Directory.Exists(ExePath & "PCL\Help\") Then CopyDirectory(ExePath & "PCL\Help\", CacheFolder & "PCL\Help\")
-                If File.Exists(ExePath & "PCL\Custom.xaml") Then CopyFile(ExePath & "PCL\Custom.xaml", CacheFolder & "PCL\Custom.xaml")
+                If File.Exists(ExePath & "PCL\Custom_CE.xaml") Then CopyFile(ExePath & "PCL\Custom_CE.xaml", CacheFolder & "PCL\Custom_CE.xaml")
                 If File.Exists(ExePath & "PCL\Setup.ini") Then CopyFile(ExePath & "PCL\Setup.ini", CacheFolder & "PCL\Setup.ini")
                 If File.Exists(ExePath & "PCL\hints.txt") Then CopyFile(ExePath & "PCL\hints.txt", CacheFolder & "PCL\hints.txt")
                 If File.Exists(ExePath & "PCL\Logo.png") Then CopyFile(ExePath & "PCL\Logo.png", CacheFolder & "PCL\Logo.png")
