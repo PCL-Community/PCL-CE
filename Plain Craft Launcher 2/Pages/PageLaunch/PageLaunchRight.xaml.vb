@@ -93,7 +93,7 @@ Download:
                         GoTo Download
                     Case 3
                         Log("[Page] 主页预设：简单主页")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom_CE.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
                         GoTo Download
                     Case 4
                         Log("[Page] 主页预设：每日整合包推荐")
@@ -109,7 +109,7 @@ Download:
                         GoTo Download
                     Case 7
                         Log("[Page] 主页预设：主页市场")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom_CE.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
                         GoTo Download
                     Case 8
                         Log("[Page] 主页预设：更新日志")
@@ -117,7 +117,7 @@ Download:
                         GoTo Download
                     Case 9
                         Log("[Page] 主页预设：PCL 新功能说明书")
-                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom_CE.xaml"
+                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"
                         GoTo Download
                     Case 10
                         Log("[Page] 主页预设：OpenMCIM Dashboard")
@@ -125,15 +125,15 @@ Download:
                         GoTo Download
                     Case 11
                         Log("[Page] 主页预设：杂志主页")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom_CE.xaml"
+                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"
                         GoTo Download
                     Case 12
                         Log("[Page] 主页预设：PCL GitHub 仪表盘")
-                        Url = "https://ddf.pcl-community.org/Custom_CE.xaml"
+                        Url = "https://ddf.pcl-community.org/Custom.xaml"
                         GoTo Download
                     Case 13
                         Log("[Page] 主页预设：Minecraft 更新摘要")
-                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom_CE.xaml"
+                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
                         GoTo Download
                     Case 14
                         Log("[Page] 主页预设：PCL CE 公告栏")
