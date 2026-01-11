@@ -117,8 +117,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadMod IsNot Nothing Then
                     FrmDownloadMod.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadMod.Content.Page = 0
+                    FrmDownloadMod.Content.Page = 0
                     FrmDownloadMod.PageLoaderRestart()
                 End If
                 ItemMod.Checked = True
@@ -127,8 +126,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadPack IsNot Nothing Then
                     FrmDownloadPack.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadPack.Content.Page = 0
+                    FrmDownloadPack.Content.Page = 0
                     FrmDownloadPack.PageLoaderRestart()
                 End If
                 ItemPack.Checked = True
@@ -137,8 +135,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadDataPack IsNot Nothing Then
                     FrmDownloadDataPack.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadDataPack.Content.Page = 0
+                    FrmDownloadDataPack.Content.Page = 0
                     FrmDownloadDataPack.PageLoaderRestart()
                 End If
                 ItemDataPack.Checked = True
@@ -147,8 +144,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadResourcePack IsNot Nothing Then
                     FrmDownloadResourcePack.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadResourcePack.Content.Page = 0
+                    FrmDownloadResourcePack.Content.Page = 0
                     FrmDownloadResourcePack.PageLoaderRestart()
                 End If
                 ItemResourcePack.Checked = True
@@ -157,8 +153,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadShader IsNot Nothing Then
                     FrmDownloadShader.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadShader.Content.Page = 0
+                    FrmDownloadShader.Content.Page = 0
                     FrmDownloadShader.PageLoaderRestart()
                 End If
                 ItemShader.Checked = True
@@ -167,8 +162,7 @@
                 CompFilesCache.Clear()
                 If FrmDownloadWorld IsNot Nothing Then
                     FrmDownloadWorld.Content.Storage = New CompProjectStorage
-                    ' 移除强制重置页码，让页面自己恢复保存的页码
-                    ' FrmDownloadWorld.Content.Page = 0
+                    FrmDownloadWorld.Content.Page = 0
                     FrmDownloadWorld.PageLoaderRestart()
                 End If
                 ItemWorld.Checked = True

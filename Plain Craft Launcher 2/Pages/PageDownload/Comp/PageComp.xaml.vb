@@ -151,32 +151,9 @@ Public Class PageComp
     End Sub
     
     Private Sub PageComp_IsVisibleChanged(sender As Object, e As DependencyPropertyChangedEventArgs) Handles Me.IsVisibleChanged
-        ' 当页面变为可见时刷新收藏按钮状态，恢复页码和滚动位置
+        ' 当页面变为可见时刷新收藏按钮状态
         If IsVisible Then
             RefreshAllFavoriteStatus()
-            ' 恢复之前保存的页码（如果有的话）
-            Dim RestoredPage As Integer = RestorePageProgress()
-            If RestoredPage <> Page AndAlso IsLoaderInited Then
-                Page = RestoredPage
-                ' 如果页码不是 0，需要重新加载数据以显示正确的页面
-                If Page > 0 Then
-                    Loader.Start()
-                End If
-            End If
-            ' 恢复滚动位置（等待加载完成后执行）
-            RunInThread(Sub()
-                Loader.WaitForExit() ' 等待页面内容加载完成
-                RunInUi(Sub()
-                    Dim RestoredScroll As Double = RestoreScrollPosition()
-                    If RestoredScroll > 0 Then
-                        Me.ScrollToVerticalOffset(RestoredScroll)
-                    End If
-                End Sub)
-            End Sub)
-        Else
-            ' 当页面变为不可见时保存当前页码和滚动位置
-            SavePageProgress()
-            SaveScrollPosition()
         End If
     End Sub
     
@@ -215,56 +192,6 @@ Public Class PageComp
     ''' </summary>
     Public Const PageSize = 40
     Public Page As Integer = 0
-
-    ''' <summary>
-    ''' 静态字典，用于保存每种页面类型的页码。
-    ''' </summary>
-    Private Shared PageMemory As New Concurrent.ConcurrentDictionary(Of CompType, Integer)
-
-    ''' <summary>
-    ''' 静态字典，用于保存每种页面类型的滚动位置。
-    ''' </summary>
-    Private Shared ScrollMemory As New Concurrent.ConcurrentDictionary(Of CompType, Double)
-
-    ''' <summary>
-    ''' 保存当前页码到内存。
-    ''' </summary>
-    Private Sub SavePageProgress()
-        If PageType <> -1 Then
-            PageMemory(PageType) = Page
-        End If
-    End Sub
-
-    ''' <summary>
-    ''' 从内存恢复页码，如果没有保存则返回 0。
-    ''' </summary>
-    Private Function RestorePageProgress() As Integer
-        Dim Value As Integer
-        If PageType <> -1 AndAlso PageMemory.TryGetValue(PageType, Value) Then
-            Return Value
-        End If
-        Return 0
-    End Function
-
-    ''' <summary>
-    ''' 保存当前滚动位置到内存。
-    ''' </summary>
-    Private Sub SaveScrollPosition()
-        If PageType <> -1 Then
-            ScrollMemory(PageType) = Me.VerticalOffset
-        End If
-    End Sub
-
-    ''' <summary>
-    ''' 从内存恢复滚动位置，如果没有保存则返回 0。
-    ''' </summary>
-    Private Function RestoreScrollPosition() As Double
-        Dim Value As Double
-        If PageType <> -1 AndAlso ScrollMemory.TryGetValue(PageType, Value) Then
-            Return Value
-        End If
-        Return 0
-    End Function
 
     '结果 UI 化
     Private Sub Load_OnFinish()
@@ -332,7 +259,6 @@ Public Class PageComp
     Private Sub ChangePage(NewPage As Integer)
         CardPages.IsEnabled = False
         Page = NewPage
-        SavePageProgress() ' 保存页码进度
         FrmMain.BackToTop()
         Log($"[Download] {TypeName}：切换到第 {Page + 1} 页")
         RunInThread(
@@ -348,10 +274,6 @@ Public Class PageComp
     '搜索按钮
     Private Sub StartNewSearch() Handles PanSearchBox.Search
         Page = 0
-        ' 重置保存的滚动位置，因为这是新的搜索
-        If PageType <> -1 AndAlso ScrollMemory.ContainsKey(PageType) Then
-            ScrollMemory(PageType) = 0
-        End If
         If Loader.ShouldStart(LoaderInput()) Then Storage = New CompProjectStorage '避免连续搜索两次使得 CompProjectStorage 引用丢失（#1311）
         Loader.Start()
     End Sub
