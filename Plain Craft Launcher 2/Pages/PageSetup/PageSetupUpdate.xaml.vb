@@ -96,7 +96,6 @@ Public Class PageSetupUpdate
                 BtnCheckAgain.IsEnabled = True
                 TextCurrentDesc.Text = "检查更新时出错"
         End Select
-        Log("[Update] 检查更新结束")
     End Sub
     
     Public Sub BtnUpdate_Timer()
