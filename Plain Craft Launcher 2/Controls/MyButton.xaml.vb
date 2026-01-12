@@ -78,8 +78,7 @@ Public Class MyButton
     Private Readonly _animationColorOut = TimeSpan.FromMilliseconds(200)
     Private Sub RefreshColor(Optional obj = Nothing, Optional e = Nothing) Handles Me.MouseEnter, Me.MouseLeave, Me.Loaded, Me.IsEnabledChanged
         Try
-            Dim animation = New NColorFromToAnimation
-            animation.ValueType = AnimationValueType.Absolute
+            Dim animation = New NColorFromToAnimation With {.Name = "MyButton Color " & Uuid}
             Dim animatable = New WpfAnimatable(PanFore, BorderBrushProperty)
             
             If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
@@ -138,7 +137,7 @@ Public Class MyButton
                 End If
             Else
                 'AniStop("MyButton Color " & Uuid)
-                animation.Cancel()
+                AnimationService.CancelAnimationByName("MyButton Color " & Uuid)
                 If IsEnabled Then
                     Select Case ColorType
                         Case ColorState.Normal
@@ -214,13 +213,13 @@ Public Class MyButton
                 With {.To = New NScaleTransform(0.954, 0.954),
                 .Duration = TimeSpan.FromMilliseconds(80),
                 .Easing = ExponentialEaseOut.Shared,
-                .ValueType = AnimationValueType.Absolute}
+                .Name = "MyButton Scale " & Uuid}
         animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
     Private Sub Button_MouseEnter() Handles Me.MouseEnter
 '        AniStart(AaColor(PanFore, BackgroundProperty, If(_ColorType = ColorState.Red, "ColorBrushRedBack", "ColorBrush7"), AnimationColorIn), "MyButton Background " & Uuid)
         Dim animation = New NColorFromToAnimation
-        animation.ValueType = AnimationValueType.Absolute
+        animation.Name = "MyButton Background " & Uuid
         animation.To = New NColor(If(_ColorType = ColorState.Red, "ColorBrushRedBack", "ColorBrush7"))
         animation.Duration = _animationColorIn
         animation.RunFireAndForget(New WpfAnimatable(PanFore, BackgroundProperty))
@@ -232,17 +231,17 @@ Public Class MyButton
 '               AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 300, 10, New AniEaseOutFluent(AniEasePower.Middle))
 '           }, "MyButton Scale " & Uuid)
         Dim animation = New NScaleTransformFromToAnimation()
+        animation.Name = "MyButton Scale " & Uuid
         animation.To = New NScaleTransform(1, 1)
         animation.Duration = TimeSpan.FromMilliseconds(300)
         animation.Delay = TimeSpan.FromMilliseconds(10)
-        animation.ValueType = AnimationValueType.Absolute
         animation.Easing = CubicEaseOut.Shared
         animation.RunFireAndForget(new WpfAnimatable(PanFore, RenderTransformProperty))
     End Sub
     Private Sub Button_MouseLeave() Handles Me.MouseLeave
 '        AniStart(AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", AnimationColorOut), "MyButton Background " & Uuid)
         Dim animation1 = New NColorFromToAnimation
-        animation1.ValueType = AnimationValueType.Absolute
+        animation1.Name = "MyButton Background " & Uuid
         animation1.To = New NColor("ColorBrushHalfWhite")
         animation1.Duration = _animationColorOut
         animation1.RunFireAndForget(New WpfAnimatable(PanFore, BackgroundProperty))
@@ -250,6 +249,7 @@ Public Class MyButton
         IsMouseDown = False
 '        AniStart(AaScaleTransform(PanFore, 1 - CType(PanFore.RenderTransform, ScaleTransform).ScaleX, 800,, New AniEaseOutFluent(AniEasePower.Strong)), "MyButton Scale " & Uuid)
         Dim animation2 = New NScaleTransformFromToAnimation()
+        animation2.Name = "MyButton Scale " & Uuid
         animation2.To = New NScaleTransform(1, 1, 0.5, 0.5)
         animation2.Duration = TimeSpan.FromMilliseconds(800)
         animation2.Easing = QuinticEaseOut.Shared

@@ -75,7 +75,7 @@ Public Class MyCard
         IsThemeChanging = True
 '        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
         Dim animation = New NColorFromToAnimation
-        animation.ValueType = AnimationValueType.Absolute
+        animation.Name = "MyCard Theme " & Uuid
         animation.To = New NColor("ColorBrushSemiWhite")
         animation.Duration = TimeSpan.FromMilliseconds(300)
         animation.RunFireAndForget(New WpfAnimatable(MainBorder, BackgroundProperty))
@@ -155,10 +155,11 @@ Public Class MyCard
         If Not HasMouseAnimation Then Return
 '        Dim AniList As New List(Of AniData)
         Dim animation = New ParallelAnimationGroup
+        animation.Name = "MyCard Mouse " & Uuid
+        
         If Not IsNothing(MainTextBlock) Then 
 '            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90))
             Dim aniTextColor = New NColorFromToAnimation
-            aniTextColor.ValueType = AnimationValueType.Absolute
             aniTextColor.To = New NColor("ColorBrush2")
             aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
             aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
@@ -168,7 +169,6 @@ Public Class MyCard
         If Not IsNothing(MainSwap) Then
 '            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush2", 90))
             Dim aniSwapColor = New NColorFromToAnimation
-            aniSwapColor.ValueType = AnimationValueType.Absolute
             aniSwapColor.To = New NColor("ColorBrush2")
             aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
             aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
@@ -180,12 +180,10 @@ Public Class MyCard
 '            AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
 '        })
         Dim aniChromeColor = New NColorFromToAnimation
-        aniChromeColor.ValueType = AnimationValueType.Absolute
         aniChromeColor.To = New NColor("ColorObject4")
         aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
         aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
         Dim aniChromeOpacity = New DoubleFromToAnimation
-        aniChromeOpacity.ValueType = AnimationValueType.Absolute
         aniChromeOpacity.To = DropShadowHoverOpacity
         aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
         animation.Children.Add(aniChromeColor)
@@ -201,10 +199,11 @@ Public Class MyCard
         If Not HasMouseAnimation Then Return
 '        Dim AniList As New List(Of AniData)
         Dim animation = New ParallelAnimationGroup
+        animation.Name = "MyCard Mouse " & Uuid
+        
         If Not IsNothing(MainTextBlock) Then
 '            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90))
             Dim aniTextColor = New NColorFromToAnimation
-            aniTextColor.ValueType = AnimationValueType.Absolute
             aniTextColor.To = New NColor("ColorBrush1")
             aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
             aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
@@ -214,7 +213,6 @@ Public Class MyCard
         If Not IsNothing(MainSwap) Then
 '            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush1", 90))
             Dim aniSwapColor = New NColorFromToAnimation
-            aniSwapColor.ValueType = AnimationValueType.Absolute
             aniSwapColor.To = New NColor("ColorBrush1")
             aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
             aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
@@ -226,12 +224,10 @@ Public Class MyCard
 '            AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
 '        })
         Dim aniChromeColor = New NColorFromToAnimation
-        aniChromeColor.ValueType = AnimationValueType.Absolute
         aniChromeColor.To = New NColor("ColorObject1")
         aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
         aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
         Dim aniChromeOpacity = New DoubleFromToAnimation
-        aniChromeOpacity.ValueType = AnimationValueType.Absolute
         aniChromeOpacity.To = DropShadowIdleOpacity
         aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
         animation.Children.Add(aniChromeColor)
@@ -365,7 +361,7 @@ Public Class MyCard
             ' 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
 '            AniStart(AaRotateTransform(MainSwap, If(_IsSwapped, If(SwapLogoRight, 270, 0), 180) - CType(MainSwap.RenderTransform, RotateTransform).Angle, 250,, New AniEaseOutFluent(AniEasePower.ExtraStrong)), "MyCard Swap " & Uuid, True)
             Dim aniRotate = New DoubleFromToAnimation
-            aniRotate.ValueType = AnimationValueType.Absolute
+            aniRotate.Name = "MyCard Swap " & Uuid
             aniRotate.To = If(_IsSwapped, If(SwapLogoRight, 270, 0), 180)
             aniRotate.Duration = TimeSpan.FromMilliseconds(250)
             aniRotate.Easing = new QuinticEaseOut()
@@ -454,3 +450,41 @@ Partial Public Module ModAnimation
         End If
     End Sub
 End Module
+
+''' <summary>
+''' 基于初始速度的流畅缓出动画。
+''' </summary>
+Public Class FluentEaseOutWithInitial
+    Inherits Easing
+
+    ' (初速度 / 平均速度) – 1
+    Private ReadOnly _alpha As Double
+
+    ''' <summary>
+    ''' 初始化缓动类。
+    ''' </summary>
+    ''' <param name="initialPixelPerSecond">初速度，px/s。</param>
+    ''' <param name="totalSecond">总时长，s。</param>
+    ''' <param name="totalDistance">总路程，px。</param>
+    Public Sub New(initialPixelPerSecond As Double, totalSecond As Double, totalDistance As Double)
+        ' 防止除以零
+        If Math.Abs(totalDistance - 0) < 1e-6 Then
+            _alpha = 0
+        Else
+            ' 归一化初速度
+            Dim v0Norm As Double = initialPixelPerSecond * totalSecond / totalDistance
+            _alpha = v0Norm - 1.0
+        End If
+
+        ' 初速度小于平均速度时，退化为线性
+        If _alpha < 0 Then _alpha = 0
+    End Sub
+
+    Protected Overrides Function EaseCore(progress As Double) As Double
+        ' 如果 alpha 为 0，退化为线性 (y = x)
+        If Math.Abs(_alpha - 0) < 1e-6 Then Return progress
+        
+        Return (_alpha + 1) * progress / (1 + _alpha * progress)
+    End Function
+
+End Class
