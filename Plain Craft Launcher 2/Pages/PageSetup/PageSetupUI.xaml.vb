@@ -84,7 +84,8 @@ Public Class PageSetupUI
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            
+            CheckShowLaunchingHint.Checked = Setup.Get("UiShowLaunchingHint")
+
             '字体设置
             ComboUiFont.SelectedFontTag = Setup.Get("UiFont")
             ComboUiMotdFont.SelectedFontTag = Setup.Get("UiMotdFont")
@@ -175,7 +176,6 @@ Public Class PageSetupUI
             CheckHiddenFunctionSelect.Checked = uiHidden.FunctionSelect
             CheckHiddenFunctionModUpdate.Checked = uiHidden.FunctionModUpdate
             CheckHiddenFunctionHidden.Checked = uiHidden.FunctionHidden
-
         Catch ex As NullReferenceException
             Log(ex, "个性化设置项存在异常，已被自动重置", LogLevel.Msgbox)
             Reset()
@@ -217,6 +217,7 @@ Public Class PageSetupUI
             Setup.Reset("UiCustomType")
             Setup.Reset("UiCustomPreset")
             Setup.Reset("UiCustomNet")
+            Setup.Reset("UiShowLaunchingHint")
             Config.UI.Hide.Reset()
             Setup.Reset("UiAutoPauseVideo")
 
@@ -247,7 +248,7 @@ Public Class PageSetupUI
     CheckHiddenToolsGameLink.Change, CheckHiddenToolsHelp.Change, CheckHiddenToolsTest.Change,
     CheckHiddenVersionEdit.Change, CheckHiddenVersionExport.Change, CheckHiddenVersionSave.Change,
     CheckHiddenVersionScreenshot.Change, CheckHiddenVersionMod.Change, CheckHiddenVersionResourcePack.Change,
-    CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change
+    CheckHiddenVersionShader.Change, CheckHiddenVersionSchematic.Change, CheckHiddenVersionServer.Change, CheckShowLaunchingHint.Change
 
         ' 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
         If AniControlEnabled = 0 Then
