@@ -36,7 +36,7 @@ Public Class UpdatesMinioModel '社区自己的更新系统格式
     Public Function IsLatest(channel As UpdateChannel, arch As UpdateArch, currentVersion As SemVer, currentVersionCode As Integer) As Boolean Implements IUpdateSource.IsLatest
         If _remoteCache Is Nothing Then RefreshCache()
         Dim latestVersion = GetChannelInfo(channel, arch)
-        Return currentVersionCode >= latestVersion.VersionCode
+        Return currentVersion >= SemVer.Parse(latestVersion.VersionName)
     End Function
 
     Public Function GetAnnouncementList() As VersionAnnouncementDataModel Implements IUpdateSource.GetAnnouncementList

@@ -627,8 +627,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
                                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
                                WriteFile($"{PathTemp}CEUpdateLog.md", version.Changelog)
-                               Log($"[Update] 远程最新版本: {version.VersionCode}, 当前版本: {VersionCode}")
-                               If Not version.VersionCode > VersionCode Then Return
+                               Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {VersionBaseName}")
+                               If Not SemVer.Parse(version.VersionName) > SemVer.Parse(VersionBaseName) Then Return
                                If type = UpdateType.PromptOnly Then
                                    Log("[Test]")
                                    RunInUi(Sub()
