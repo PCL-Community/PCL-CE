@@ -1,9 +1,10 @@
+Imports System.Windows.Threading
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.UI
 
 Public Class PageInstanceCompResource
     Implements IRefreshable
-    
+
 #Region "模组信息缓存"
     ' 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
     Private ReadOnly ModFileInfoCache As New Dictionary(Of String, (CreationTime As DateTime, Length As Long))
@@ -37,7 +38,7 @@ Public Class PageInstanceCompResource
         ModFileInfoCache.Clear()
     End Sub
 #End Region
-    
+
 #Region "初始化"
 
     Private CurrentCompType As CompType = CompType.Mod
@@ -58,13 +59,13 @@ Public Class PageInstanceCompResource
             BtnSelectEnable.Visibility = Visibility.Collapsed
             BtnSelectDisable.Visibility = Visibility.Collapsed
         End If
-        
+
         '投影文件管理页隐藏下载按钮
         If CurrentCompType = CompType.Schematic Then
             BtnManageDownload.Visibility = Visibility.Collapsed
             BtnHintDownload.Visibility = Visibility.Collapsed
         End If
-        
+
     End Sub
 
     Private Function GetRequireLoaderData() As CompLocalLoaderData
@@ -103,7 +104,7 @@ Public Class PageInstanceCompResource
         '非重复加载部分
         If IsLoad Then Return
         IsLoad = True
-        
+
         '检查是否为原理图管理界面且首次打开
         If CurrentCompType = CompType.Schematic AndAlso Not Setup.Get("UiSchematicFirstTimeHintShown") Then
             '显示首次打开提示
@@ -127,7 +128,7 @@ Public Class PageInstanceCompResource
         If LoaderRun(If(ForceReload, LoaderFolderRunType.ForceRun, LoaderFolderRunType.RunOnUpdated)) Then
             Log($"[System] 已刷新 {CurrentCompType} 列表")
             ModFileInfoCache.Clear()
-            
+
             RunInUi(Sub()
                         Filter = FilterType.All
                         PanBack.ScrollToHome()
@@ -194,7 +195,7 @@ Public Class PageInstanceCompResource
     ''' 当前显示的文件夹路径。空字符串表示根目录。
     ''' </summary>
     Public Property CurrentFolderPath As String = ""
-    
+
     ''' <summary>
     ''' 进入指定的文件夹。
     ''' </summary>
@@ -204,16 +205,16 @@ Public Class PageInstanceCompResource
                 Hint("文件夹不存在或已被删除", HintType.Critical)
                 Return
             End If
-            
+
             CurrentFolderPath = folderPath
             Log($"[原理图] 进入文件夹：{folderPath}")
-            
+
             LoaderFolderRun(CompResourceListLoader, folderPath, LoaderFolderRunType.ForceRun, LoaderInput:=GetRequireLoaderData())
         Catch ex As Exception
             Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
-    
+
     ''' <summary>
     ''' 进入指定文件夹。
     ''' </summary>
@@ -224,21 +225,21 @@ Public Class PageInstanceCompResource
             Log(ex, $"进入文件夹失败", LogLevel.Msgbox)
         End Try
     End Sub
-    
+
     ''' <summary>
     ''' 返回上级文件夹。
     ''' </summary>
     Private Sub GoBackToParentFolder()
         If String.IsNullOrEmpty(CurrentFolderPath) Then Return
-        
+
         Try
             '获取根路径
             Dim rootPath = PageInstanceLeft.Instance.PathIndie & If(PageInstanceLeft.Instance.Info.HasLabyMod, "labymod-neo\fabric\" & PageInstanceLeft.Instance.Info.VanillaName & "\", "") & GetPathNameByCompType(CurrentCompType) & "\"
             rootPath = System.IO.Path.GetFullPath(rootPath.TrimEnd("\"))
-            
+
             '获取父级路径
             Dim parentPath = Directory.GetParent(CurrentFolderPath)?.FullName
-            
+
             '如果父级路径就是根路径或者父级路径不在根路径范围内，则返回根目录
             If parentPath Is Nothing OrElse parentPath.Equals(rootPath, StringComparison.OrdinalIgnoreCase) OrElse Not parentPath.StartsWith(rootPath & "\", StringComparison.OrdinalIgnoreCase) Then
                 CurrentFolderPath = ""
@@ -250,9 +251,9 @@ Public Class PageInstanceCompResource
             '发生错误时直接返回根目录
             CurrentFolderPath = ""
         End Try
-        
+
         Log($"[原理图] 返回上级文件夹：{If(String.IsNullOrEmpty(CurrentFolderPath), "根目录", CurrentFolderPath)}")
-        
+
         '重新加载当前文件夹的内容
         Dim LoadPath As String
         If String.IsNullOrEmpty(CurrentFolderPath) Then
@@ -262,17 +263,17 @@ Public Class PageInstanceCompResource
             '加载当前文件夹
             LoadPath = CurrentFolderPath
         End If
-        
+
         '强制刷新UI状态
         RunInUi(Sub()
-                   '确保按钮状态正确
-                   BtnManageBack.Visibility = If(Not String.IsNullOrEmpty(CurrentFolderPath), Visibility.Visible, Visibility.Collapsed)
-               End Sub)
-        
+                    '确保按钮状态正确
+                    BtnManageBack.Visibility = If(Not String.IsNullOrEmpty(CurrentFolderPath), Visibility.Visible, Visibility.Collapsed)
+                End Sub)
+
         '延迟一帧后再加载，确保UI状态已更新
         RunInUi(Sub()
-                   LoaderFolderRun(CompResourceListLoader, LoadPath, LoaderFolderRunType.ForceRun, LoaderInput:=GetRequireLoaderData())
-               End Sub, True)
+                    LoaderFolderRun(CompResourceListLoader, LoadPath, LoaderFolderRunType.ForceRun, LoaderInput:=GetRequireLoaderData())
+                End Sub, True)
     End Sub
 
 #End Region
@@ -315,7 +316,7 @@ Public Class PageInstanceCompResource
                     Else
                         '根目录为空的提示
                         TxtEmptyTitle.Text = "尚未安装资源"
-                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf &  "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
+                        TxtEmptyDescription.Text = "你可以从已经下载好的文件安装资源。" & vbCrLf & "如果你已经安装了资源，可能是版本隔离设置有误，请在设置中调整版本隔离选项。"
                     End If
                 Else
                     TxtEmptyTitle.Text = "尚未安装资源"
@@ -367,7 +368,7 @@ Public Class PageInstanceCompResource
         Try
             AniControlEnabled += 1
             Dim NewItem As New MyLocalCompItem With {.SnapsToDevicePixels = True, .Entry = Entry,
-                .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
+            .ButtonHandler = AddressOf BuildLocalCompItemBtnHandler, .Checked = SelectedMods.Contains(Entry.RawPath)}
             NewItem.CurrentSwipe = CurrentSwipSelect
             NewItem.Tags = Entry.Tags
             AddHandler Entry.OnCompUpdate, AddressOf NewItem.Refresh
@@ -460,7 +461,7 @@ Public Class PageInstanceCompResource
                 If Not ModItems.ContainsKey(TargetMod.RawPath) Then Continue For
                 Dim Item As MyLocalCompItem = ModItems(TargetMod.RawPath)
 
-                  ' 确保元素没有父容器，避免重复添加异常
+                ' 确保元素没有父容器，避免重复添加异常
                 If Item.Parent IsNot Nothing Then
                     CType(Item.Parent, Panel).Children.Remove(Item)
                 End If
@@ -483,152 +484,152 @@ Public Class PageInstanceCompResource
     ''' </summary>
     Public Sub RefreshBars()
         Dispatcher.BeginInvoke(Async Function() As Task
-            '-----------------
-            ' 顶部栏
-            '-----------------
+                                   '-----------------
+                                   ' 顶部栏
+                                   '-----------------
 
-            '计数
-            Dim AnyCount As Integer = 0
-            Dim EnabledCount As Integer = 0
-            Dim DisabledCount As Integer = 0
-            Dim UpdateCount As Integer = 0
-            Dim UnavalialeCount As Integer = 0
-            Dim ItemSource = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry)).ToArray()
-            Await Task.Run(Sub()
-                For Each item In ItemSource
-                    AnyCount += 1
-                    If item.CanUpdate Then UpdateCount += 1
-                    If item.State = LocalCompFile.LocalFileStatus.Fine Then EnabledCount += 1
-                    If item.State = LocalCompFile.LocalFileStatus.Disabled Then DisabledCount += 1
-                    If item.State = LocalCompFile.LocalFileStatus.Unavailable Then UnavalialeCount += 1
-                Next
-            End Sub)
-            '显示
-            BtnFilterAll.Text = If(IsSearching, "搜索结果", "全部") & $" ({AnyCount})"
-            BtnFilterCanUpdate.Text = $"可更新 ({UpdateCount})"
-            BtnFilterCanUpdate.Visibility = If(Filter = FilterType.CanUpdate OrElse UpdateCount > 0, Visibility.Visible, Visibility.Collapsed)
-            BtnFilterEnabled.Text = $"启用 ({EnabledCount})"
-            BtnFilterEnabled.Visibility = If(Filter = FilterType.Enabled OrElse (EnabledCount > 0 AndAlso EnabledCount < AnyCount), Visibility.Visible, Visibility.Collapsed)
-            BtnFilterDisabled.Text = $"禁用 ({DisabledCount})"
-            BtnFilterDisabled.Visibility = If(Filter = FilterType.Disabled OrElse DisabledCount > 0, Visibility.Visible, Visibility.Collapsed)
-            BtnFilterError.Text = $"错误 ({UnavalialeCount})"
-            BtnFilterError.Visibility = If(Filter = FilterType.Unavailable OrElse UnavalialeCount > 0, Visibility.Visible, Visibility.Collapsed)
-            '查找重复项目
-            Dim DuplicateItems = Await Task.Run(Function()
-                Return ItemSource.GroupBy(Function(m)
-                    If m.Comp Is Nothing Then
-                        Return ":Nothing:"
-                    Else
-                        Return m.Comp.Id
-                    End If
-                End Function).Where(Function(g) g.Count > 1 AndAlso g.First.Comp IsNot Nothing).SelectMany(Function(g) g).ToList()
-            End Function)
-            BtnFilterDuplicate.Text = $"重复 ({DuplicateItems.Count})"
-            BtnFilterDuplicate.Visibility = If(Filter = FilterType.Duplicate OrElse DuplicateItems.Any, Visibility.Visible, Visibility.Collapsed)
-    
-            '返回按钮显示控制（在子文件夹中时显示）
-            If Not String.IsNullOrEmpty(CurrentFolderPath) Then
-                BtnManageBack.Visibility = Visibility.Visible
-            Else
-                BtnManageBack.Visibility = Visibility.Collapsed
-            End If
+                                   '计数
+                                   Dim AnyCount As Integer = 0
+                                   Dim EnabledCount As Integer = 0
+                                   Dim DisabledCount As Integer = 0
+                                   Dim UpdateCount As Integer = 0
+                                   Dim UnavalialeCount As Integer = 0
+                                   Dim ItemSource = If(IsSearching, SearchResult, ModItems.Values.Select(Function(i) i.Entry)).ToArray()
+                                   Await Task.Run(Sub()
+                                                      For Each item In ItemSource
+                                                          AnyCount += 1
+                                                          If item.CanUpdate Then UpdateCount += 1
+                                                          If item.State = LocalCompFile.LocalFileStatus.Fine Then EnabledCount += 1
+                                                          If item.State = LocalCompFile.LocalFileStatus.Disabled Then DisabledCount += 1
+                                                          If item.State = LocalCompFile.LocalFileStatus.Unavailable Then UnavalialeCount += 1
+                                                      Next
+                                                  End Sub)
+                                   '显示
+                                   BtnFilterAll.Text = If(IsSearching, "搜索结果", "全部") & $" ({AnyCount})"
+                                   BtnFilterCanUpdate.Text = $"可更新 ({UpdateCount})"
+                                   BtnFilterCanUpdate.Visibility = If(Filter = FilterType.CanUpdate OrElse UpdateCount > 0, Visibility.Visible, Visibility.Collapsed)
+                                   BtnFilterEnabled.Text = $"启用 ({EnabledCount})"
+                                   BtnFilterEnabled.Visibility = If(Filter = FilterType.Enabled OrElse (EnabledCount > 0 AndAlso EnabledCount < AnyCount), Visibility.Visible, Visibility.Collapsed)
+                                   BtnFilterDisabled.Text = $"禁用 ({DisabledCount})"
+                                   BtnFilterDisabled.Visibility = If(Filter = FilterType.Disabled OrElse DisabledCount > 0, Visibility.Visible, Visibility.Collapsed)
+                                   BtnFilterError.Text = $"错误 ({UnavalialeCount})"
+                                   BtnFilterError.Visibility = If(Filter = FilterType.Unavailable OrElse UnavalialeCount > 0, Visibility.Visible, Visibility.Collapsed)
+                                   '查找重复项目
+                                   Dim DuplicateItems = Await Task.Run(Function()
+                                                                           Return ItemSource.GroupBy(Function(m)
+                                                                                                         If m.Comp Is Nothing Then
+                                                                                                             Return ":Nothing:"
+                                                                                                         Else
+                                                                                                             Return m.Comp.Id
+                                                                                                         End If
+                                                                                                     End Function).Where(Function(g) g.Count > 1 AndAlso g.First.Comp IsNot Nothing).SelectMany(Function(g) g).ToList()
+                                                                       End Function)
+                                   BtnFilterDuplicate.Text = $"重复 ({DuplicateItems.Count})"
+                                   BtnFilterDuplicate.Visibility = If(Filter = FilterType.Duplicate OrElse DuplicateItems.Any, Visibility.Visible, Visibility.Collapsed)
 
-            '-----------------
-            ' 底部栏
-            '-----------------
+                                   '返回按钮显示控制（在子文件夹中时显示）
+                                   If Not String.IsNullOrEmpty(CurrentFolderPath) Then
+                                       BtnManageBack.Visibility = Visibility.Visible
+                                   Else
+                                       BtnManageBack.Visibility = Visibility.Collapsed
+                                   End If
 
-            '计数
-            Dim NewCount As Integer = SelectedMods.Count
-            Dim Selected = NewCount > 0
-            If Selected Then LabSelect.Text = $"已选择 {NewCount} 个文件" '取消所有选择时不更新数字
-            '按钮可用性
-            If Selected Then
-                Dim HasUpdate As Boolean = False
-                Dim HasEnabled As Boolean = False
-                Dim HasDisabled As Boolean = False
-                Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
-                
-                Await Task.Run(Sub()
-                    For Each ModEntity In CompResourceListLoader.Output
-                        If SelectedMods.Contains(ModEntity.RawPath) Then
-                            If ModEntity.CanUpdate Then HasUpdate = True
-                            If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
-                                HasEnabled = True
-                            ElseIf ModEntity.State = LocalCompFile.LocalFileStatus.Disabled Then
-                                HasDisabled = True
-                            End If
-                            
-                            ' 检查是否所有选中的资源都有有效的项目信息（即已完成联网更新）
-                            If ModEntity.Comp Is Nothing OrElse String.IsNullOrEmpty(ModEntity.Comp.Id) Then
-                                CanFavoriteAndShare = False
-                            End If
-                        End If
-                    Next
-                End Sub)
+                                   '-----------------
+                                   ' 底部栏
+                                   '-----------------
 
-                BtnSelectDisable.IsEnabled = HasEnabled
-                BtnSelectEnable.IsEnabled = HasDisabled
-                BtnSelectUpdate.IsEnabled = HasUpdate
+                                   '计数
+                                   Dim NewCount As Integer = SelectedMods.Count
+                                   Dim Selected = NewCount > 0
+                                   If Selected Then LabSelect.Text = $"已选择 {NewCount} 个文件" '取消所有选择时不更新数字
+                                   '按钮可用性
+                                   If Selected Then
+                                       Dim HasUpdate As Boolean = False
+                                       Dim HasEnabled As Boolean = False
+                                       Dim HasDisabled As Boolean = False
+                                       Dim CanFavoriteAndShare As Boolean = True ' 是否可以收藏和分享
 
-                '针对投影原理图隐藏分享 更新 收藏按钮
-                If CurrentCompType = CompType.Schematic Then
-                    BtnSelectUpdate.Visibility = Visibility.Collapsed
-                    BtnSelectFavorites.Visibility = Visibility.Collapsed
-                    BtnSelectShare.Visibility = Visibility.Collapsed
-                Else
-                    BtnSelectUpdate.Visibility = Visibility.Visible
-                    BtnSelectFavorites.Visibility = Visibility.Visible
-                    BtnSelectShare.Visibility = Visibility.Visible
-                    
-                    ' 根据是否已加载项目信息来启用/禁用收藏和分享按钮
-                    BtnSelectFavorites.IsEnabled = CanFavoriteAndShare
-                    BtnSelectShare.IsEnabled = CanFavoriteAndShare
-                End If
-            End If
-            '更新显示状态
-            If AniControlEnabled = 0 Then
-                PanListBack.Margin = New Thickness(0, 0, 0, If(Selected, 95, 15))
-                If Selected Then
-                    '仅在数量增加时播放出现/跳跃动画
-                    If BottomBarShownCount >= NewCount Then
-                        BottomBarShownCount = NewCount
-                        Return
-                    Else
-                        BottomBarShownCount = NewCount
-                    End If
-                    '出现/跳跃动画
-                    CardSelect.Visibility = Visibility.Visible
-                    AniStart({
+                                       Await Task.Run(Sub()
+                                                          For Each ModEntity In CompResourceListLoader.Output
+                                                              If SelectedMods.Contains(ModEntity.RawPath) Then
+                                                                  If ModEntity.CanUpdate Then HasUpdate = True
+                                                                  If ModEntity.State = LocalCompFile.LocalFileStatus.Fine Then
+                                                                      HasEnabled = True
+                                                                  ElseIf ModEntity.State = LocalCompFile.LocalFileStatus.Disabled Then
+                                                                      HasDisabled = True
+                                                                  End If
+
+                                                                  ' 检查是否所有选中的资源都有有效的项目信息（即已完成联网更新）
+                                                                  If ModEntity.Comp Is Nothing OrElse String.IsNullOrEmpty(ModEntity.Comp.Id) Then
+                                                                      CanFavoriteAndShare = False
+                                                                  End If
+                                                              End If
+                                                          Next
+                                                      End Sub)
+
+                                       BtnSelectDisable.IsEnabled = HasEnabled
+                                       BtnSelectEnable.IsEnabled = HasDisabled
+                                       BtnSelectUpdate.IsEnabled = HasUpdate
+
+                                       '针对投影原理图隐藏分享 更新 收藏按钮
+                                       If CurrentCompType = CompType.Schematic Then
+                                           BtnSelectUpdate.Visibility = Visibility.Collapsed
+                                           BtnSelectFavorites.Visibility = Visibility.Collapsed
+                                           BtnSelectShare.Visibility = Visibility.Collapsed
+                                       Else
+                                           BtnSelectUpdate.Visibility = Visibility.Visible
+                                           BtnSelectFavorites.Visibility = Visibility.Visible
+                                           BtnSelectShare.Visibility = Visibility.Visible
+
+                                           ' 根据是否已加载项目信息来启用/禁用收藏和分享按钮
+                                           BtnSelectFavorites.IsEnabled = CanFavoriteAndShare
+                                           BtnSelectShare.IsEnabled = CanFavoriteAndShare
+                                       End If
+                                   End If
+                                   '更新显示状态
+                                   If AniControlEnabled = 0 Then
+                                       PanListBack.Margin = New Thickness(0, 0, 0, If(Selected, 95, 15))
+                                       If Selected Then
+                                           '仅在数量增加时播放出现/跳跃动画
+                                           If BottomBarShownCount >= NewCount Then
+                                               BottomBarShownCount = NewCount
+                                               Return
+                                           Else
+                                               BottomBarShownCount = NewCount
+                                           End If
+                                           '出现/跳跃动画
+                                           CardSelect.Visibility = Visibility.Visible
+                                           AniStart({
                         AaOpacity(CardSelect, 1 - CardSelect.Opacity, 60),
                         AaTranslateY(CardSelect, -27 - TransSelect.Y, 120, Ease:=New AniEaseOutFluent(AniEasePower.Weak)),
                         AaTranslateY(CardSelect, 3, 150, 120, Ease:=New AniEaseInoutFluent(AniEasePower.Weak)),
                         AaTranslateY(CardSelect, -1, 90, 270, Ease:=New AniEaseInoutFluent(AniEasePower.Weak))
                     }, "Mod Sidebar")
-                Else
-                    '不重复播放隐藏动画
-                    If BottomBarShownCount = 0 Then Return
-                    BottomBarShownCount = 0
-                    '隐藏动画
-                    AniStart({
+                                       Else
+                                           '不重复播放隐藏动画
+                                           If BottomBarShownCount = 0 Then Return
+                                           BottomBarShownCount = 0
+                                           '隐藏动画
+                                           AniStart({
                         AaOpacity(CardSelect, -CardSelect.Opacity, 90),
                         AaTranslateY(CardSelect, -10 - TransSelect.Y, 90, Ease:=New AniEaseInFluent(AniEasePower.Weak)),
                         AaCode(Sub() CardSelect.Visibility = Visibility.Collapsed, After:=True)
                     }, "Mod Sidebar")
-                End If
-            Else
-                AniStop("Mod Sidebar")
-                BottomBarShownCount = NewCount
-                If Selected Then
-                    CardSelect.Visibility = Visibility.Visible
-                    CardSelect.Opacity = 1
-                    TransSelect.Y = -25
-                Else
-                    CardSelect.Visibility = Visibility.Collapsed
-                    CardSelect.Opacity = 0
-                    TransSelect.Y = -10
-                End If
-            End If
-        End Function)
+                                       End If
+                                   Else
+                                       AniStop("Mod Sidebar")
+                                       BottomBarShownCount = NewCount
+                                       If Selected Then
+                                           CardSelect.Visibility = Visibility.Visible
+                                           CardSelect.Opacity = 1
+                                           TransSelect.Y = -25
+                                       Else
+                                           CardSelect.Visibility = Visibility.Collapsed
+                                           CardSelect.Opacity = 0
+                                           TransSelect.Y = -10
+                                       End If
+                                   End If
+                               End Function)
     End Sub
     Private BottomBarShownCount As Integer = 0
 
@@ -1310,6 +1311,9 @@ Install:
                 Continue For
             End Try
         Next
+        Dispatcher.Invoke(Sub()
+                              PanList.UpdateLayout()
+                          End Sub, DispatcherPriority.Background)
         If IsSuccessful Then
             RefreshBars()
         Else
