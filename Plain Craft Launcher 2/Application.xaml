@@ -85,7 +85,6 @@
 
             <!-- Window -->
             <Style TargetType="{x:Type Window}" x:Key="MyWindow">
-                <Setter Property="OverridesDefaultStyle" Value="False"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Window}">
