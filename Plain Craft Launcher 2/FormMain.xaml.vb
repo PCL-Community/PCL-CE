@@ -368,7 +368,7 @@ Public Class FormMain
             source.CompositionTarget.BackgroundColor = Colors.Transparent
         End If
 
-        Dim margins As New KernelInterop.MARGINS With {
+        Dim margins As New WindowManagerInterop.MARGINS With {
             .leftWidth = -1,
             .rightWidth = -1,
             .topHeight = -1,
@@ -376,7 +376,7 @@ Public Class FormMain
         }
 
         Try
-            KernelInterop.DwmExtendFrameIntoClientArea(hwnd, margins)
+            WindowManagerInterop.DwmExtendFrameIntoClientArea(hwnd, margins)
         Catch ex As Exception
             LogWrapper.Error("DWM 阴影应用失败: " & ex.Message)
         End Try
