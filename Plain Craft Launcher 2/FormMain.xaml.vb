@@ -418,6 +418,8 @@ Public Class FormMain
                 Dim TransformPos As New TranslateTransform(0, 0)
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
+                TransformScale.CenterX = Width / 2
+                TransformScale.CenterY = Height / 2
                 RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
                 AniStart({
                     AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
@@ -431,7 +433,7 @@ Public Class FormMain
                     AaCode(
                     Sub()
                         IsHitTestVisible = False
-                        Top = -10000
+                        Visibility = Visibility.Collapsed
                         ShowInTaskbar = False
                     End Sub, 210),
                     AaCode(Sub() EndProgramForce(force:=False), 230)
