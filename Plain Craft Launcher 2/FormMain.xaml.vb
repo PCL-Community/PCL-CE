@@ -171,6 +171,8 @@ Public Class FormMain
         AniStart({
             AaCode(Sub() AniControlEnabled -= 1, 50),
             AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
+            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
+            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
             AaCode(
             Sub()
                 RenderTransform = Nothing
@@ -348,7 +350,9 @@ Public Class FormMain
 #End Region
 
 #Region "自定义窗口"
+
     Protected Overrides Sub OnSourceInitialized(e As EventArgs)
+        '硬件加速
         If Setup.Get("SystemDisableHardwareAcceleration") Then
             Dim hwndSource As HwndSource = TryCast(PresentationSource.FromVisual(Me), HwndSource)
             If hwndSource IsNot Nothing Then
@@ -410,11 +414,11 @@ Public Class FormMain
             VideoBack.Source = Nothing
             VideoBack.Close()
             IsHitTestVisible = False
-            If Me.RenderTransform Is Nothing Then
+            If RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
-                Me.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
+                RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
                 AniStart({
                     AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
                     AaDouble(
