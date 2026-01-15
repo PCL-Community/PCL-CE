@@ -2250,7 +2250,7 @@ NextElement:
         If RunInUi() Then
             Action()
         Else
-            Application.Current?.Dispatcher.Invoke(Action)
+            Application.Current.Dispatcher.Invoke(Action)
         End If
     End Sub
     ''' <summary>
