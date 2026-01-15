@@ -1,9 +1,11 @@
-﻿Public Class PageHomepageMarket
+﻿Imports System.Net.Http
+Imports PCL.Core.Net.Http.Client
+
+Public Class PageHomepageMarket
     Implements IRefreshable
 
     Private Sub Page_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         InitLoading()
-        Refresh()
     End Sub
 
     Private Sub InitLoading()
@@ -11,34 +13,30 @@
         Load.TextError = "加载失败，点击重试"
         Load.State.LoadingState = MyLoading.MyLoadingState.Run
         AddHandler Load.Click, AddressOf OnRetryClick
+        Refresh()
     End Sub
 
     Private Sub OnRetryClick(sender As Object, e As MouseButtonEventArgs)
         If Load.State.LoadingState = MyLoading.MyLoadingState.Error Then
             InitLoading()
-            Refresh()
         End If
     End Sub
 
-    Private Async Sub Refresh()
+    Public Sub Refresh() Implements IRefreshable.Refresh
+        Dispatcher.BeginInvoke(Function() RefreshAsync())
+    End Sub
+    Private Async Function RefreshAsync() As Task
         Try
-            Dim content = Await Task.Run(Function() NetGetCodeByRequestRetry("https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"))
-            Dispatcher.Invoke(Sub()
-                                  PanCustom.Children.Clear()
-                                  PanCustom.Children.Add(GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>"))
-                                  Load.State.LoadingState = MyLoading.MyLoadingState.Stop
-                                  PanMain.Visibility = Visibility.Visible
-                              End Sub)
+            Const HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
+            Dim content = Await (Await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(True)).AsStringAsync()
+            PanCustom.Children.Clear()
+            PanCustom.Children.Add(GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>"))
+            Load.State.LoadingState = MyLoading.MyLoadingState.Stop
+            PanMain.Visibility = Visibility.Visible
         Catch
-            Dispatcher.Invoke(Sub()
-                                  Load.Text = "加载失败，点击重试"
-                                  Load.State.LoadingState = MyLoading.MyLoadingState.Error
-                                  PanMain.Visibility = Visibility.Visible
-                              End Sub)
+            Load.Text = "加载失败，点击重试"
+            Load.State.LoadingState = MyLoading.MyLoadingState.Error
+            PanMain.Visibility = Visibility.Visible
         End Try
-    End Sub
-
-    Public Sub ForceRefresh() Implements IRefreshable.Refresh
-        Refresh()
-    End Sub
+    End Function
 End Class
