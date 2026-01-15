@@ -368,15 +368,8 @@ Public Class FormMain
             source.CompositionTarget.BackgroundColor = Colors.Transparent
         End If
 
-        Dim margins As New WindowManagerInterop.MARGINS With {
-            .leftWidth = -1,
-            .rightWidth = -1,
-            .topHeight = -1,
-            .bottomHeight = -1
-        }
-
         Try
-            WindowManagerInterop.DwmExtendFrameIntoClientArea(hwnd, margins)
+            WindowManagerInterop.ExtendFrameIntoClientArea(hwnd, -1)
         Catch ex As Exception
             LogWrapper.Error("DWM 阴影应用失败: " & ex.Message)
         End Try
