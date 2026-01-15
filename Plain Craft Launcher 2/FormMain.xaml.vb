@@ -193,7 +193,7 @@ Public Class FormMain
         
         Dim aniGroup2 = New ParallelAnimationGroup
         
-        Dim aniEnabled = New ActionAnimation(Sub() RunInUi(Sub () AniControlEnabled -= 1))
+        Dim aniEnabled = New ActionAnimation(Sub() AniControlEnabled -= 1)
         aniEnabled.Delay = TimeSpan.FromMilliseconds(50)
         aniGroup2.Children.Add(aniEnabled)
         
@@ -235,11 +235,9 @@ Public Class FormMain
 '        End Sub
         
         Dim aniCompleted = New ActionAnimation(Sub()
-            RunInUi(Sub()
-                PanBack.RenderTransform = Nothing
-                IsWindowLoadFinished = True
-                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
-            End Sub)
+            PanBack.RenderTransform = Nothing
+            IsWindowLoadFinished = True
+            Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
         End Sub)
         aniGroup1.Children.Add(aniCompleted)
         
@@ -1389,7 +1387,7 @@ Public Class FormMain
                     
                     Dim aniOut2 = New ParallelAnimationGroup
                     
-                    Dim aniChangeText = New ActionAnimation(Sub() RunInUi(Sub () LabTitleInner.Text = PageName))
+                    Dim aniChangeText = New ActionAnimation(Sub() LabTitleInner.Text = PageName)
                     aniOut2.Children.Add(aniChangeText)
                     
                     Dim aniOpacityIn = New DoubleFromToAnimation
@@ -1469,7 +1467,7 @@ Public Class FormMain
                     aniIn2.Children.Add(aniTitleInnerMove)
 
                     Dim aniVisibilityChange =
-                            New ActionAnimation(Sub() RunInUi(Sub () PanTitleMain.Visibility = Visibility.Collapsed))
+                            New ActionAnimation(Sub() PanTitleMain.Visibility = Visibility.Collapsed)
                     aniIn1.Children.Add(aniVisibilityChange)
                     
                     aniIn1.RunFireAndForget(EmptyAnimatable.Instance)
@@ -1584,7 +1582,7 @@ Public Class FormMain
         _aniFrmMainLeftChange = New SequentialAnimationGroup
         _aniFrmMainLeftChange.Name = "FrmMain PageChangeLeft"
         
-        Dim aniLeft1 = New ActionAnimation(Sub() RunInUi(Sub()
+        Dim aniLeft1 = New ActionAnimation(Sub()
             AniControlEnabled += 1
             '把新页面添加进容器
             PanMainLeft.Child = PageLeft
@@ -1592,15 +1590,15 @@ Public Class FormMain
             PanMainLeft.Background = Nothing
             AniControlEnabled -= 1
             PanMainLeft_Resize(PanMainLeft.ActualWidth)
-        End Sub))
+        End Sub)
         aniLeft1.Delay = TimeSpan.FromMilliseconds(110)
         _aniFrmMainLeftChange.Children.Add(aniLeft1)
         
-        Dim aniLeft2 = New ActionAnimation(Sub() RunInUi(Sub()
+        Dim aniLeft2 = New ActionAnimation(Sub()
             '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
             PageLeft.Opacity = 1
             PageLeft.TriggerShowAnimation()            
-        End Sub))
+        End Sub)
         aniLeft2.Delay = TimeSpan.FromMilliseconds(30)
         _aniFrmMainLeftChange.Children.Add(aniLeft2)
         
@@ -1629,7 +1627,7 @@ Public Class FormMain
         _aniPageLeftPageChange = New SequentialAnimationGroup()
         _aniFrmMainLeftChange.Name = "FrmMain PageChangeRight"
         
-        Dim aniRight1 = New ActionAnimation(Sub() RunInUi(Sub()
+        Dim aniRight1 = New ActionAnimation(Sub()
             AniControlEnabled += 1
             CType(PanMainRight.Child, MyPageRight).PageOnForceExit()
             '把新页面添加进容器
@@ -1638,15 +1636,15 @@ Public Class FormMain
             PanMainRight.Background = Nothing
             AniControlEnabled -= 1
             BtnExtraBack.ShowRefresh()
-        End Sub))
+        End Sub)
         aniRight1.Delay = TimeSpan.FromMilliseconds(110)
         _aniPageLeftPageChange.Children.Add(aniRight1)
         
-        Dim aniRight2 = New ActionAnimation(Sub() RunInUi(Sub()
+        Dim aniRight2 = New ActionAnimation(Sub()
             '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
             PageRight.Opacity = 1
             PageRight.PageOnEnter()
-        End Sub))
+        End Sub)
         aniRight2.Delay = TimeSpan.FromMilliseconds(30)
         _aniPageLeftPageChange.Children.Add(aniRight2)
         
@@ -1711,7 +1709,7 @@ Public Class FormMain
             ani1.Children.Add(ani2)
             
             Dim aniVisibilityChange =
-                    New ActionAnimation(Sub() RunInUi(Sub () PanTitleInner.Visibility = Visibility.Collapsed))
+                    New ActionAnimation(Sub() PanTitleInner.Visibility = Visibility.Collapsed)
             ani1.Children.Add(aniVisibilityChange)
             
             ani1.RunFireAndForget(EmptyAnimatable.Instance)
@@ -1756,7 +1754,7 @@ Public Class FormMain
                 aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
                 aniLeftChange.Children.Add(aniOpacity)
                 
-                Dim aniHitTest = New ActionAnimation(Sub() RunInUi(Sub () PanMainLeft.IsHitTestVisible = True))
+                Dim aniHitTest = New ActionAnimation(Sub() PanMainLeft.IsHitTestVisible = True)
                 aniHitTest.Delay = TimeSpan.FromMilliseconds(150)
                 aniLeftChange.Children.Add(aniHitTest)
                 
@@ -1784,7 +1782,7 @@ Public Class FormMain
                 aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
                 aniLeftChange.Children.Add(aniOpacity)
                 
-                Dim aniHitTest = New ActionAnimation(Sub() RunInUi(Sub () PanMainLeft.IsHitTestVisible = True))
+                Dim aniHitTest = New ActionAnimation(Sub() PanMainLeft.IsHitTestVisible = True)
                 aniHitTest.Delay = TimeSpan.FromMilliseconds(150)
                 aniLeftChange.Children.Add(aniHitTest)
                 
