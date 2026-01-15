@@ -131,7 +131,7 @@ Public Class MyButton
                 Else
                     '不可用（Gray 4）
                     'AniStart({AaColor(PanFore, Border.BorderBrushProperty, ColorGray4 - PanFore.BorderBrush, AnimationColorOut)}, "MyButton Color " & Uuid)
-                    animation.To = New NColor("ColorGray4")
+                    animation.To = New NColor("ColorBrushGray4")
                     animation.Duration = _animationColorOut
                     animation.RunFireAndForget(animatable)
                 End If
