@@ -348,8 +348,6 @@ Public Class FormMain
 #End Region
 
 #Region "自定义窗口"
-
-    '硬件加速
     Protected Overrides Sub OnSourceInitialized(e As EventArgs)
         If Setup.Get("SystemDisableHardwareAcceleration") Then
             Dim hwndSource As HwndSource = TryCast(PresentationSource.FromVisual(Me), HwndSource)
