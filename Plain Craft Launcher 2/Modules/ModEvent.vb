@@ -76,6 +76,10 @@
                     FrmLaunchRight.ForceRefresh()
                     If Data(0) = "" Then Hint("已刷新主页！", HintType.Finish)
 
+                Case "刷新主页市场"
+                    FrmHomePageMarket.Refresh()
+                    If Data(0) = "" Then Hint("已刷新主页市场！", HintType.Finish)
+
                 Case "刷新帮助"
                     PageToolsLeft.RefreshHelp()
 

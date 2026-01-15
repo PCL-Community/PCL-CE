@@ -28,6 +28,7 @@ Public Class PageHomepageMarket
         Try
             Const HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
             Dim content = Await (Await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(True)).AsStringAsync()
+            content = content.Replace("EventType=""刷新主页""", "EventType=""刷新主页市场""")
             PanCustom.Children.Clear()
             PanCustom.Children.Add(GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>"))
             Load.State.LoadingState = MyLoading.MyLoadingState.Stop
