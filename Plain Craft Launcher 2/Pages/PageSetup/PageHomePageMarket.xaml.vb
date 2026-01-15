@@ -26,7 +26,7 @@ Public Class PageHomepageMarket
     End Sub
     Private Async Function RefreshAsync() As Task
         Try
-            Const HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml"
+            Const HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Homepage.Market/Custom.xaml"
             Dim content = Await (Await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(True)).AsStringAsync()
             content = content.Replace("EventType=""刷新主页""", "EventType=""刷新主页市场""")
             PanCustom.Children.Clear()
