@@ -18,6 +18,7 @@
         <shell:WindowChrome
             CaptionHeight="0"
             UseAeroCaptionButtons="False"
+            ResizeBorderThickness="0"
             CornerRadius="12"
             GlassFrameThickness="0"/>
     </shell:WindowChrome.WindowChrome>
