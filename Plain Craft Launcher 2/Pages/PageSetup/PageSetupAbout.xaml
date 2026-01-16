@@ -150,11 +150,13 @@
                                             <EllipseGeometry Center="18,18" RadiusX="18" RadiusY="18" />
                                         </local:MyImage.Clip>
                                     </local:MyImage>
-                                    <TextBlock Text="{Binding Login}"
+                                    <local:MyTextButton Text="{Binding Login}"
                                         FontSize="14"
-                                        TextAlignment="Center"
                                         Margin="0,8,0,0"
+                                        HorizontalAlignment="Center"
                                         MaxWidth="90"
+                                        EventType="打开网页"
+                                        EventData="{Binding HtmlUrl}"
                                         ToolTip="{Binding Login}" />
                                 </StackPanel>
                             </DataTemplate>
