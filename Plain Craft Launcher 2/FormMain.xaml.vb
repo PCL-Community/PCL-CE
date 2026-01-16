@@ -380,9 +380,9 @@ Public Class FormMain
         
         If msg = WM_NCHITTEST Then
             ' 1. 获取物理屏幕坐标 (必须处理负数)
-            ' 使用逻辑与和位移后，强制转为 Int16 以保留符号
-            Dim screenX As Int16 = CType(lParam.ToInt32() And &HFFFF, Int16)
-            Dim screenY As Int16 = CType((lParam.ToInt32() >> 16) And &HFFFF, Int16)
+            ' 使用逻辑与和位移后，强制转为 Int64 以保留符号
+            Dim screenX = CType(lParam.ToInt32() And &HFFFF, Int64)
+            Dim screenY = CType((lParam.ToInt32() >> 16) And &HFFFF, Int64)
 
             ' 2. 获取窗口在屏幕上的物理矩形 (RECTANGLE 始终是物理像素)
             Dim rect As New RECTANGLE()
