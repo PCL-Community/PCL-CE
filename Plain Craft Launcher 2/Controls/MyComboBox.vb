@@ -1,4 +1,9 @@
-﻿Public Class MyComboBox
+﻿Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+
+Public Class MyComboBox
     Inherits ComboBox
     Public Event TextChanged(sender As Object, e As TextChangedEventArgs)
 
@@ -88,13 +93,32 @@
         '触发颜色动画
         If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
             '有动画
-            AniStart({
-                     AaColor(Me, ForegroundProperty, ForeColorName, Time),
-                     AaColor(Me, BackgroundProperty, BackColorName, Time)
-                 }, "MyComboBox Color " & Uuid)
+'            AniStart({
+'                     AaColor(Me, ForegroundProperty, ForeColorName, Time),
+'                     AaColor(Me, BackgroundProperty, BackColorName, Time)
+'                 }, "MyComboBox Color " & Uuid)
+            Dim animation = New ParallelAnimationGroup
+            animation.Name = "MyComboBox Color " & Uuid
+            
+            Dim aniColorFore As New NColorFromToAnimation
+            aniColorFore.To = New NColor(ForeColorName)
+            aniColorFore.Duration = TimeSpan.FromMilliseconds(Time)
+            aniColorFore.SetValue(AnimationExtensions.TargetProperty, Me)
+            aniColorFore.SetValue(AnimationExtensions.TargetPropertyProperty, ForegroundProperty)
+            animation.Children.Add(aniColorFore)
+            
+            Dim aniColorBack As New NColorFromToAnimation
+            aniColorBack.To = New NColor(BackColorName)
+            aniColorBack.Duration = TimeSpan.FromMilliseconds(Time)
+            aniColorBack.SetValue(AnimationExtensions.TargetProperty, Me)
+            aniColorBack.SetValue(AnimationExtensions.TargetPropertyProperty, BackgroundProperty)
+            animation.Children.Add(aniColorBack)
+            
+            animation.RunFireAndForget(EmptyAnimatable.Instance)
         Else
             '无动画
-            AniStop("MyComboBox Color " & Uuid)
+'            AniStop("MyComboBox Color " & Uuid)
+            AnimationService.CancelAnimationByName("MyComboBox Color " & Uuid)
             SetResourceReference(ForegroundProperty, ForeColorName)
             SetResourceReference(BackgroundProperty, BackColorName)
         End If

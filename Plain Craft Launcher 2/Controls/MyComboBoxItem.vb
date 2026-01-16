@@ -1,4 +1,9 @@
-﻿Public Class MyComboBoxItem
+﻿Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+
+Public Class MyComboBoxItem
     Inherits ComboBoxItem
 
     '基础
@@ -41,13 +46,32 @@
         '触发颜色动画
         If IsLoaded AndAlso AniControlEnabled = 0 Then '防止默认属性变更触发动画
             '有动画
-            AniStart({
-                AaColor(Me, BackgroundProperty, BackColorName, Time),
-                AaOpacity(Me, FontOpacity - Opacity, Time)
-            }, "ComboBoxItem Color " & Uuid)
+'            AniStart({
+'                AaColor(Me, BackgroundProperty, BackColorName, Time),
+'                AaOpacity(Me, FontOpacity - Opacity, Time)
+'            }, "ComboBoxItem Color " & Uuid)
+            Dim animation = New ParallelAnimationGroup
+            animation.Name = "ComboBoxItem Color " & Uuid
+            
+            Dim aniColor = New NColorFromToAnimation
+            aniColor.To = New NColor(BackColorName)
+            aniColor.Duration = TimeSpan.FromMilliseconds(Time)
+            aniColor.SetValue(AnimationExtensions.TargetProperty, Me)
+            aniColor.SetValue(AnimationExtensions.TargetPropertyProperty, BackgroundProperty)
+            animation.Children.Add(aniColor)
+            
+            Dim aniOpacity = New DoubleFromToAnimation
+            aniOpacity.To = FontOpacity
+            aniOpacity.Duration = TimeSpan.FromMilliseconds(Time)
+            aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
+            aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
+            animation.Children.Add(aniOpacity)
+            
+            animation.RunFireAndForget(EmptyAnimatable.Instance)
         Else
             '无动画
-            AniStop("ComboBoxItem Color " & Uuid)
+'            AniStop("ComboBoxItem Color " & Uuid)
+            AnimationService.CancelAnimationByName("ComboBoxItem Color " & Uuid)
             SetResourceReference(BackgroundProperty, BackColorName)
             Opacity = FontOpacity
         End If
