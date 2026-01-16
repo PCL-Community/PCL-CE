@@ -5,5 +5,133 @@
     "upstream": "2.12.1",
     "suffix": "beta.4",
     "code": 502
-  }
+  },
+  "licenses": [
+    {
+      "name": "PCL.Core",
+      "info": "Copyright © PCL Community",
+      "website": "https://github.com/PCL-Community/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL.Core/blob/main/LICENCE"
+    },
+    {
+      "name": "Java Launch Wrapper",
+      "info": "Copyright © 2022 00ll00\nLicensed under the MIT License.",
+      "website": "https://github.com/00ll00/java_launch_wrapper",
+      "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
+    },
+    {
+      "name": "Newtonsoft.Json",
+      "info": "Copyright © 2007 James Newton-King\nLicensed under the MIT License.",
+      "website": "https://www.newtonsoft.com/json",
+      "license": "https://opensource.org/licenses/MIT"
+    },
+    {
+      "name": "NAudio",
+      "info": "Copyright © 2015 Mark Heath (mark.heath@gmail.com)\nLicensed under the MIT License.",
+      "website": "https://github.com/naudio/NAudio",
+      "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
+    },
+    {
+      "name": "Ookii.Dialogs",
+      "info": "Copyright © 2009 Sven Groot (Ookii.org)",
+      "website": "https://www.ookii.org/Software/Dialogs/",
+      "license": "https://github.com/caioproiete/ookii-dialogs-wpf/blob/master/LICENSE"
+    },
+    {
+      "name": "Iconmonstr",
+      "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
+      "website": "https://iconmonstr.com/",
+      "license": "https://iconmonstr.com/license/"
+    },
+    {
+      "name": "Iconfont",
+      "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
+      "website": "https://www.iconfont.cn/",
+      "license": null
+    },
+    {
+      "name": "Fody",
+      "info": "Copyright © Simon Cropp",
+      "website": "https://github.com/Fody/Fody",
+      "license": "https://github.com/Fody/Fody/blob/master/License.txt"
+    },
+    {
+      "name": "Stun.Net",
+      "info": "Copyright © Bruce Wayne",
+      "website": "https://github.com/HMBSbige/NatTypeTester",
+      "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
+    },
+    {
+      "name": "IPNetwork",
+      "info": "Copyright © 2015, lduchosal",
+      "website": "https://github.com/lduchosal/ipnetwork",
+      "license": "https://github.com/lduchosal/ipnetwork/blob/master/LICENSE"
+    },
+    {
+      "name": "TagLibSharp",
+      "info": "Copyright © 2006-2007 Brian Nickel.\nCopyright © 2009-2020 Other contributors",
+      "website": "https://github.com/mono/taglib-sharp",
+      "license": "https://github.com/mono/taglib-sharp/blob/main/COPYING"
+    },
+    {
+      "name": "Microsoft.Identity.Client",
+      "info": "Copyright © Microsoft Corporation",
+      "website": "https://go.microsoft.com/fwlink/?linkid=844761",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Microsoft.Identity.Client.Broker",
+      "info": "Copyright © Microsoft Corporation",
+      "website": "https://go.microsoft.com/fwlink/?linkid=844761",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "EntityFramework",
+      "info": "Copyright © Microsoft Corporation",
+      "website": "https://github.com/dotnet/efcore",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "EleCho.WpfSuite",
+      "info": "Copyright © EleCho",
+      "website": "https://github.com/OrgEleCho/EleCho.WpfSuite",
+      "license": "https://github.com/OrgEleCho/EleCho.WpfSuite/blob/master/LICENSE.txt"
+    },
+    {
+      "name": "LiteDB",
+      "info": "Copyright © 2014-2022 Mauricio David",
+      "website": "https://github.com/litedb-org/LiteDB",
+      "license": "https://github.com/litedb-org/LiteDB/blob/master/LICENSE"
+    },
+    {
+      "name": "Markdig.Wpf",
+      "info": "Copyright © 2016-2021 Nicolas Musset",
+      "website": "https://github.com/Kryptos-FR/markdig.wpf",
+      "license": "https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md"
+    },
+    {
+      "name": "CacheCow",
+      "info": "Copyright © 2013 Ali Kheyrollahi",
+      "website": "https://github.com/aliostad/CacheCow",
+      "license": "https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt"
+    },
+    {
+      "name": "Mesa Loader Windows",
+      "info": "Copyright © 2024 Glavo\nLicensed under the Apache 2 License.",
+      "website": "https://github.com/HMCL-dev/mesa-loader-windows",
+      "license": "https://github.com/HMCL-dev/mesa-loader-windows/blob/main/LICENSE"
+    },
+    {
+      "name": "Ae.Dns.Client",
+      "info": "Copyright © alanedwardes\nLicensed under the MIT License.",
+      "website": "https://github.com/alanedwardes/Ae.Dns",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Lucide",
+      "info": "Copyright © Lucide Contributors\nLicensed under the ISC License (includes portions under MIT).",
+      "website": "https://github.com/lucide-icons/lucide",
+      "license": "https://lucide.dev/license"
+    }
+  ]
 }

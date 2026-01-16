@@ -5,6 +5,7 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
+    xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
     ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
@@ -21,6 +22,7 @@
             <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
             <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
 
             <!--字体-->
             <FontFamily x:Key="LaunchFontFamily">Resources/#PCL English, Microsoft YaHei UI</FontFamily>
