@@ -352,7 +352,7 @@ Public Class FormMain
 #Region "自定义窗口"
     
     ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
-    Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+    Private Shared Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
         Const WM_NCHITTEST = &H84
         Const HTCLIENT = 1
         Const HTLEFT = 10
