@@ -377,8 +377,9 @@ Public Class FormMain
         
         ' 提取鼠标坐标
         Dim xMouse = CShort(lParam.ToInt64() And &HFFFF)
-        Dim yMouse = CShort(lParam.ToInt64() >> 16)
+        Dim yMouse = CShort(lParam.ToInt64() >> 16 And &HFFFF)
         
+        ' 获取窗口参数
         Dim windowRect = WindowInterop.GetWindowRectangle(hWnd)
         Dim windowBounds = windowRect.ToWindowBounds()
 
