@@ -719,24 +719,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public ServerLoader As New LoaderTask(Of Integer, Integer)("PCL CE 服务", AddressOf LoadOnlineInfo, Priority:=ThreadPriority.BelowNormal)
 
     Private Sub LoadOnlineInfo()
-        Dim updateDesire = Setup.Get("SystemSystemUpdate")
         Dim AnnouncementDesire = Setup.Get("SystemSystemActivity")
-        Select Case updateDesire
-            Case 0 '静默更新
-                Log("[Update] 更新设置: 自动下载并安装更新")
-                If GetVersionStatus() <> VersionStatus.Latest Then
-                    UpdateStart(UpdateType.Silent)
-                End If
-            Case 1 '自动下载，提示更新
-                Log("[Update] 更新设置: 自动下载并提示更新")
-                UpdateStart(UpdateType.DownloadAndPrompt)
-            Case 2 '提示更新
-                Log("[Update] 更新设置: 提示更新")
-                UpdateStart(UpdateType.PromptOnly)
-            Case Else
-                Log("[Update] 更新设置: 不自动检查更新")
-                Exit Sub
-        End Select
         If AnnouncementDesire <= 1 Then
             Dim ShowedAnnounced = Setup.Get("SystemSystemAnnouncement").ToString().Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList()
             Dim ShowAnnounce = RemoteServer.GetAnnouncementList().content.Where(Function(x) Not ShowedAnnounced.Contains(x.id)).ToList()
