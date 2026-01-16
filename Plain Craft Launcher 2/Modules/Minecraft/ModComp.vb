@@ -144,7 +144,7 @@ Public Module ModComp
     End Property
 
     Private Function _InitializeAndGetConnectionString() As String
-        Dim dbPath = $"{PathTemp}Cache\ModData.sqlite"
+        Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, "Cache\ModData.sqlite"))
         If Not File.Exists(dbPath) Then
             Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
             Log($"[DB] 解压 ModData (SQLite) 中")
@@ -156,23 +156,27 @@ Public Module ModComp
                 End Using
             End Using
         End If
-        Return $"Data Source={dbPath};Cache=Shared"
+        Return $"Data Source=""{dbPath}"""
     End Function
 
     Private ReadOnly Property CompDB As SqliteConnection
         Get
-            Dim conn = New SqliteConnection(_dbInitializer.Value)
+            Dim conn = New SqliteConnection(CompDBConnectionString)
             conn.Open()
             Return conn
         End Get
     End Property
 
     Private Function GetCompWikiEntryBySlug(slug As String) As CompDatabaseEntry
-        Using conn = CompDB
-            Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
-            "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
-            New With {Key .s = slug})
-        End Using
+        Try
+            Using conn = CompDB
+                Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
+                    "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
+                    New With {Key .s = slug})
+            End Using
+        Catch ex as Exception
+            Log(ex, "ModComp", "获取模组翻译信息失败")
+        End Try
     End Function
 
     Private Class CompDatabaseEntry

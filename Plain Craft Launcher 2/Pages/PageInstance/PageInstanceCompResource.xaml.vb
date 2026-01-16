@@ -1,3 +1,4 @@
+Imports System.Windows.Threading
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.UI
 
@@ -1310,6 +1311,9 @@ Install:
                 Continue For
             End Try
         Next
+        Dispatcher.Invoke(Sub()
+                              PanList.UpdateLayout()
+                          End Sub, DispatcherPriority.Background)
         If IsSuccessful Then
             RefreshBars()
         Else
