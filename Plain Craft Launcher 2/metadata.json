@@ -32,12 +32,6 @@
       "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
     },
     {
-      "name": "Ookii.Dialogs",
-      "info": "Copyright © 2009 Sven Groot (Ookii.org)",
-      "website": "https://www.ookii.org/Software/Dialogs/",
-      "license": "https://github.com/caioproiete/ookii-dialogs-wpf/blob/master/LICENSE"
-    },
-    {
       "name": "Iconmonstr",
       "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
       "website": "https://iconmonstr.com/",
@@ -48,12 +42,6 @@
       "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
       "website": "https://www.iconfont.cn/",
       "license": null
-    },
-    {
-      "name": "Fody",
-      "info": "Copyright © Simon Cropp",
-      "website": "https://github.com/Fody/Fody",
-      "license": "https://github.com/Fody/Fody/blob/master/License.txt"
     },
     {
       "name": "Stun.Net",
@@ -72,30 +60,6 @@
       "info": "Copyright © 2006-2007 Brian Nickel.\nCopyright © 2009-2020 Other contributors",
       "website": "https://github.com/mono/taglib-sharp",
       "license": "https://github.com/mono/taglib-sharp/blob/main/COPYING"
-    },
-    {
-      "name": "Microsoft.Identity.Client",
-      "info": "Copyright © Microsoft Corporation",
-      "website": "https://go.microsoft.com/fwlink/?linkid=844761",
-      "license": "https://licenses.nuget.org/MIT"
-    },
-    {
-      "name": "Microsoft.Identity.Client.Broker",
-      "info": "Copyright © Microsoft Corporation",
-      "website": "https://go.microsoft.com/fwlink/?linkid=844761",
-      "license": "https://licenses.nuget.org/MIT"
-    },
-    {
-      "name": "EntityFramework",
-      "info": "Copyright © Microsoft Corporation",
-      "website": "https://github.com/dotnet/efcore",
-      "license": "https://licenses.nuget.org/Apache-2.0"
-    },
-    {
-      "name": "EleCho.WpfSuite",
-      "info": "Copyright © EleCho",
-      "website": "https://github.com/OrgEleCho/EleCho.WpfSuite",
-      "license": "https://github.com/OrgEleCho/EleCho.WpfSuite/blob/master/LICENSE.txt"
     },
     {
       "name": "LiteDB",
@@ -132,6 +96,18 @@
       "info": "Copyright © Lucide Contributors\nLicensed under the ISC License (includes portions under MIT).",
       "website": "https://github.com/lucide-icons/lucide",
       "license": "https://lucide.dev/license"
+    },
+    {
+      "name": "Dapper",
+      "info": "Copyright © DapperLib\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/DapperLib/Dapper",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "Microsoft.Data.Sqlite",
+      "info": "Copyright © Microsoft\nLicensed under the MIT license.",
+      "website": "https://github.com/dotnet/dotnet",
+      "license": "https://licenses.nuget.org/MIT"
     }
   ]
 }
