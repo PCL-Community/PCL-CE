@@ -376,8 +376,10 @@ Public Class FormMain
         If msg <> WM_NCHITTEST Then Return IntPtr.Zero
         
         ' 提取鼠标坐标
-        Dim xMouse = CShort(lParam.ToInt64() And &HFFFF)
-        Dim yMouse = CShort(lParam.ToInt64() >> 16 And &HFFFF)
+        ' 没妈的 VB 强转还得检查一下幻想的妈是不是还活着
+        Dim mouseBytes As Byte() = BitConverter.GetBytes(lParam.ToInt64())
+        Dim xMouse As Short = BitConverter.ToInt16(mouseBytes, 0)
+        Dim yMouse As Short = BitConverter.ToInt16(mouseBytes, 2)
         
         ' 获取窗口参数
         Dim windowRect = WindowInterop.GetWindowRectangle(hWnd)
