@@ -562,7 +562,7 @@ Public Class PageToolsGameLink
                     If res IsNot Nothing AndAlso res.Version.Protocol <> 0 Then
                         Await CreateLobby(port)
                     Else
-                        Hint("无法确定端口所提供的服务", HintType.Critical)
+                        Hint("这似乎不是个 MC 服务端口...", HintType.Critical)
                     End If
                 End Using
             End If
