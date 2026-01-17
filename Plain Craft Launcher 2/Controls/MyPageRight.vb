@@ -141,7 +141,7 @@
                     TriggerEnterAnimation(PanAlways, If(PanContent, Child))
                 ElseIf PageLoader.State = LoadState.Loading Then
                     PageState = PageStates.LoaderWait
-                    AniStart(AaCode(AddressOf PageOnLoaderWaitFinished, 200), "PageRight PageChange " & PageUuid)
+                    AniStart(AaCode(AddressOf PageOnLoaderWaitFinished, 400), "PageRight PageChange " & PageUuid)
                 Else 'PageLoader.State = LoadState.Failed
                     PageState = PageStates.LoaderEnter
                     TriggerEnterAnimation(PanAlways, PanLoader)
@@ -153,7 +153,7 @@
                     TriggerEnterAnimation(If(PanContent, Child))
                 ElseIf PageLoader.State = LoadState.Loading Then
                     PageState = PageStates.LoaderWait
-                    AniStart(AaCode(AddressOf PageOnLoaderWaitFinished, 200), "PageRight PageChange " & PageUuid)
+                    AniStart(AaCode(AddressOf PageOnLoaderWaitFinished, 400), "PageRight PageChange " & PageUuid)
                 Else 'PageLoader.State = LoadState.Failed
                     PageState = PageStates.LoaderEnter
                     TriggerEnterAnimation(PanLoader)
@@ -379,7 +379,7 @@
         End If
         '结束
         AniList.Add(AaCode(Sub() PageOnEnterAnimationFinished(),, True))
-        AniStart(AniList, "PageRight PageChange " & PageUuid)
+        AniStart(AniList, "PageRight PageChange " & PageUuid, True)
     End Sub
 
     '逐个退出动画

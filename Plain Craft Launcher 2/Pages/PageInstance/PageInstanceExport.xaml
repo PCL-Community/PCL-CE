@@ -5,7 +5,7 @@
     xmlns:System="clr-namespace:System;assembly=mscorlib" 
     mc:Ignorable="d" x:Class="PageInstanceExport"
     PanScroll="{Binding ElementName=PanBack}">
-    <Grid x:Name="PanAllBack">
+    <Grid x:Name="PanAllBack" AllowDrop="True" DragEnter="PanAllBack_DragEnter" Drop="PanAllBack_Drop">
         <Grid.Resources>
             <Style TargetType="local:MyCheckBox">
                 <Setter Property="Height" Value="26" />

@@ -1,5 +1,8 @@
 name: Build (Reusable)
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:
@@ -29,9 +32,9 @@ jobs:
           echo "describe=$describe" >> $GITHUB_ENV
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: 10.0.x
 
       - name: Update Help
         continue-on-error: true
@@ -60,7 +63,7 @@ jobs:
         run: |
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
           -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-          -p:DeleteExistingFiles=true -o ./artifact --self-contained false
+          -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4

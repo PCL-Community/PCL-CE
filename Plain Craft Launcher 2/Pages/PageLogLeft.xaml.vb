@@ -30,7 +30,7 @@
                 Dim Uuid As Integer = item.Key
                 Dim Version As McInstance = item.Value.Version
                 Dim Proc As Process = item.Value.GameProcess
-                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Version.Name, .Info = $"{Version.Version} - {Proc.StartTime:HH:mm:ss}", .Height = 40, .Tag = Uuid}
+                Dim NewItem As New MyListItem With {.IsScaleAnimationEnabled = False, .Type = MyListItem.CheckType.RadioBox, .MinPaddingRight = 30, .Title = Version.Name, .Info = $"{Version.Info} - {Proc.StartTime:HH:mm:ss}", .Height = 40, .Tag = Uuid}
                 AddHandler NewItem.Changed, AddressOf FrmLogLeft.Version_Change
                 'Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 Dim RemoveButton As New MyIconButton With {.Logo = Logo.IconButtonDelete, .LogoScale = 1.1}

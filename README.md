@@ -8,6 +8,8 @@
 ![GitHub Release](https://img.shields.io/github/v/release/PCL-Community/PCL2-CE?label=Release&logo=github)
 [![Issues](https://img.shields.io/github/issues/PCL-Community/PCL2-CE?style=flat&label=Issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/issues)
 [![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL2-CE?style=flat&label=Pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/pulls)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL2-CE/build-test.yml)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
 [![哔哩哔哩](https://img.shields.io/badge/动态-BiliBili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
 [社区版下载](https://github.com/PCL-Community/PCL2-CE/releases) |
@@ -31,18 +33,14 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 **用户 2 群：** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
 
-### ✨ 隐藏提示
-
-在全局配置项中添加 `UiLauncherCEHint` 字段，字段值为 `False`。
-
 ## 💻 支持平台
 
 | 操作系统 | 支持的启动器版本 | 环境要求 | 社区技术支持 |
 |---|---|---|---|
-| Windows 10 1809 (17763) 或更高 | [2.13.0](https://github.com/PCL-Community/PCL2-CE/releases) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ 完整支持 |
-| Windows 8 - Windows 10 1809- (17763-) | [2.13.0](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.13.0) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ 理论能跑，但不提供社区支持 |
+| Windows 10 1809 (17763) 或更高 | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ 完整支持 |
+| Windows 8 - Windows 10 1809- (17763-) | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ 理论能跑，但不提供社区支持 |
 | Windows 7 或更低版本 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社区支持 |
-| macOS / Linux / 其他操作系统 | 暂不支持 | [.NET 9 SDK](http://get.dot.net/9) | ⚠️ 仅跨平台开发支持（交叉编译） |
+| macOS / Linux / 其他操作系统 | 暂不支持 | [.NET 10 SDK](http://get.dot.net/10) | ⚠️ 仅跨平台开发支持（交叉编译） |
 
 **✅ 完整支持**：尽可能提供一切相关支持，但必须确保启动器为最新版本。
 
@@ -56,6 +54,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 社区仅对最新版本的启动器提供支持。    
 取决于部分问题的特殊性（如系统不完整），有时你仍然必须升级操作系统以继续获得支持。    
 PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。
+Windows 7 仍然可以尝试使用最新版本的启动器，但可能会遇到很多额外问题。
 
 ## 🔒 许可证
 

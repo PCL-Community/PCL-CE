@@ -14,7 +14,7 @@
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
-        <RowDefinition Height="17" />
+        <RowDefinition Height="20" />
         <RowDefinition Height="18" />
         <RowDefinition Height="1*" />
     </Grid.RowDefinitions>
@@ -27,7 +27,7 @@
         <local:MyImage x:Name="PathLogo" RenderOptions.BitmapScalingMode="HighQuality" FallbackSource="pack://application:,,,/images/Icons/NoIcon.png" />
     </Border>
     <!-- 标题 -->
-    <Grid Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Bottom" Margin="0,1,0,0"
+    <Grid Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center" Margin="0,1,0,0"
                 SnapsToDevicePixels="False" UseLayoutRounding="False" x:Name="PanTitle">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" x:Name="ColumnTitle" />
@@ -38,7 +38,7 @@
         <TextBlock x:Name="LabTitle" TextTrimming="CharacterEllipsis" FontSize="14" IsHitTestVisible="False" />
         <TextBlock x:Name="LabSubtitle" Grid.Column="1" HorizontalAlignment="Left"
             TextTrimming="CharacterEllipsis" FontSize="12" IsHitTestVisible="False" 
-            Foreground="{DynamicResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Bottom" Visibility="Collapsed" />
+            Foreground="{DynamicResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center" Visibility="Collapsed" />
         <!-- 更新按钮 -->
         <local:MyIconButton Grid.Column="2"
             Width="21" Height="21" Margin="-2,-1.6,0,0" x:Name="BtnUpdate" Theme="Black" Opacity="0.4" Visibility="Collapsed"
@@ -46,12 +46,12 @@
             Logo="M640 768H384l-32-32V509H213L190 454l298-298h45l298 298L810 509h-138v226z m-224-64h192V477l32-32h93L512 223 290 445H384l32 32zM352 831h320v64h-320z" />
     </Grid>
     <!-- Tag 与 详情 -->
-    <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="-1,0,1,0" Visibility="Collapsed" IsHitTestVisible="False">
+    <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="-1,0,1,0" Visibility="Collapsed" IsHitTestVisible="False">
         <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
             <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
     </StackPanel>
-    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,3,1"
+    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,1"
                TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource ColorBrushGray4}"
                IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False" />
 </Grid>

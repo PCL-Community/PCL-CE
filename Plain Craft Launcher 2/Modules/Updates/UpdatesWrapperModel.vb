@@ -78,6 +78,10 @@ Public Class UpdatesWrapperModel
         Log("[Update] 错误！所有的版本源都无法使用！")
         Throw New Exception("获取版本信息失败")
     End Function
+    
+    Public Async Function IsLatestAsync(channel As UpdateChannel, arch As UpdateArch, currentVersion As SemVer, currentVersionCode As Integer) As Task(Of Boolean)
+        Return Await Task.Run(Function() IsLatest(channel, arch, currentVersion, currentVersionCode))
+    End Function
 
     Public Function GetAnnouncementList() As VersionAnnouncementDataModel Implements IUpdateSource.GetAnnouncementList
         For Each item In _sources

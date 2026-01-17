@@ -23,7 +23,9 @@ Public Class MyMsgSelect
             ShapeLine.StrokeThickness = GetWPFSize(1)
             '添加选择控件
             Btn1.IsEnabled = False
-            For Each Selection As IMyRadio In Converter.Content
+            For Each Content In Converter.Content
+                Content = MyVirtualizingElement.TryInit(Content)
+                Dim Selection As IMyRadio = Content
                 PanSelection.Children.Add(Selection)
                 AddHandler Selection.Check, AddressOf OnChecked
                 If TypeOf Selection Is MyListItem Then
@@ -97,8 +99,15 @@ Public Class MyMsgSelect
         SelectedIndex = PanSelection.Children.IndexOf(sender)
     End Sub
     Private Sub Drag(sender As Object, e As MouseButtonEventArgs) Handles PanBorder.MouseLeftButtonDown, LabTitle.MouseLeftButtonDown
-        'On Error Resume Next
-        If e.GetPosition(ShapeLine).Y <= 2 Then FrmMain.DragMove()
+        Try
+            If e.LeftButton = MouseButtonState.Pressed Then
+                If e.GetPosition(ShapeLine).Y <= 2 Then
+                    FrmMain.DragMove()
+                End If
+            End If
+        Catch ex As Exception
+            Log(ex, "拖拽移动失败", LogLevel.Hint)
+        End Try
     End Sub
 
 End Class

@@ -174,8 +174,8 @@ Public Class CustomEvent
                             Dim location = actualPaths(0), workingDir = actualPaths(1)
                             Log($"[Control] 打开类自定义事件实际路径：{location}，工作目录：{workingDir}")
                             '执行
-                            If type = EventType.打开帮助 Then
-                                PageOtherHelp.EnterHelpPage(location)
+                            If Type = EventType.打开帮助 Then
+                                PageToolsHelp.EnterHelpPage(Location)
                             Else
                                 If Not EventSafetyConfirm("即将执行：" & location & If(args.Length >= 2, " " & args(1), "")) Then Return
                                 ProcessInterop.Start(location, If(args.Length >= 2, args(1), ""))
@@ -187,17 +187,17 @@ Public Class CustomEvent
 
                 Case EventType.启动游戏
                     If args(0) = "\current" Then
-                        If McInstanceCurrent Is Nothing Then
+                        If McInstanceSelected Is Nothing Then
                             Hint("请先选择一个 Minecraft 版本！", HintType.Critical)
                             Return
                         Else
-                            args(0) = McInstanceCurrent.Name
+                            args(0) = McInstanceSelected.Name
                         End If
                     End If
                     RunInUi(
                     Sub()
                         If McLaunchStart(New McLaunchOptions With
-                                {.ServerIp = If(args.Length >= 2, args(1), Nothing), .Version = New McInstance(args(0))}) Then
+                                {.ServerIp = If(args.Length >= 2, args(1), Nothing), .Instance = New McInstance(args(0))}) Then
                             Hint($"正在启动 {args(0)}……")
                         End If
                     End Sub)
@@ -213,18 +213,24 @@ Public Class CustomEvent
                         Hint("当前页面不支持刷新操作！", HintType.Critical)
                     End If
 
+                Case EventType.刷新主页市场
+                    FrmHomePageMarket.Refresh()
+                    If Data(0) = "" Then Hint("已刷新主页市场！", HintType.Finish)
+
                 Case EventType.刷新帮助
-                    RunInUiWait(Sub() PageOtherLeft.RefreshHelp())
+                    PageToolsLeft.RefreshHelp()
+                Case EventType.刷新帮助
+                    RunInUiWait(Sub() PageToolsLeft.RefreshHelp())
                     If String.IsNullOrEmpty(arg) Then Hint("已刷新！", HintType.Finish)
 
                 Case EventType.今日人品
-                    PageOtherTest.Jrrp()
+                    PageToolsTest.Jrrp()
 
                 Case EventType.内存优化
-                    RunInThread(Sub() PageOtherTest.MemoryOptimize(True))
+                    RunInThread(Sub() PageToolsTest.MemoryOptimize(True))
 
                 Case EventType.清理垃圾
-                    RunInThread(Sub() PageOtherTest.RubbishClear())
+                    RunInThread(Sub() PageToolsTest.RubbishClear())
 
                 Case EventType.弹出窗口
                     If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 弹窗标题|弹窗内容")
@@ -251,14 +257,14 @@ Public Class CustomEvent
                     Try
                         Select Case args.Length
                             Case 1
-                                PageOtherTest.StartCustomDownload(args(0), GetFileNameFromPath(args(0)))
+                                PageToolsTest.StartCustomDownload(args(0), GetFileNameFromPath(args(0)))
                             Case 2
-                                PageOtherTest.StartCustomDownload(args(0), args(1))
+                                PageToolsTest.StartCustomDownload(args(0), args(1))
                             Case Else
-                                PageOtherTest.StartCustomDownload(args(0), args(1), args(2))
+                                PageToolsTest.StartCustomDownload(args(0), args(1), args(2))
                         End Select
                     Catch
-                        PageOtherTest.StartCustomDownload(args(0), "未知")
+                        PageToolsTest.StartCustomDownload(args(0), "未知")
                     End Try
 
                 Case EventType.修改设置, EventType.写入设置

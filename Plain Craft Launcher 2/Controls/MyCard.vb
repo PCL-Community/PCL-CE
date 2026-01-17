@@ -109,6 +109,7 @@ Public Class MyCard
         '改变默认的折叠
         If IsSwapped AndAlso SwapControl IsNot Nothing Then
             MainSwap.RenderTransform = New RotateTransform(If(SwapLogoRight, 270, 0))
+            SwapControl.Visibility = Visibility.Collapsed
             '取消由于高度变化被迫触发的高度动画
             Dim RawUseAnimation As Boolean = UseAnimation
             UseAnimation = False
@@ -127,15 +128,15 @@ Public Class MyCard
         StackInstall(SwapControl, InstallMethod)
         TriggerForceResize()
     End Sub
-    Public Shared Sub StackInstall(ByRef Stack As StackPanel, InstallMethod As Action(Of StackPanel))
-        If Stack.Tag Is Nothing Then Exit Sub
+    Public Shared Sub StackInstall(ByRef stack As StackPanel, installMethod As Action(Of StackPanel))
+        If stack.Tag Is Nothing Then Exit Sub
         Try
-            InstallMethod(Stack)
+            installMethod(stack)
         Catch ex As Exception
             Log(ex, "[MyCard] InstallMethod 调用失败")
         End Try
-        Stack.Children.Add(New FrameworkElement With {.Height = 18}) '下边距，同时适应折叠
-        Stack.Tag = Nothing
+        stack.Children.Add(New FrameworkElement With {.Height = 18}) '下边距，同时适应折叠
+        stack.Tag = Nothing
     End Sub
 
     '动画
@@ -236,7 +237,7 @@ Public Class MyCard
         Height = PreviousHeight
     End Sub
     ''' <summary>
-    ''' 通知 MyCard，控件内容已改变，需要中断动画并更新高度。
+    ''' 通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。
     ''' </summary>
     Public Sub TriggerForceResize()
         Height = If(IsSwapped, SwapedHeight, Double.NaN)

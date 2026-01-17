@@ -4,7 +4,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
-Imports PCL.Core.Link.Lobby
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -75,6 +75,10 @@ Public Class FormMain
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
+        '注册 MsgBox 事件
+        AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
+        '注册 Hint 事件
+        AddHandler HintWrapper.OnShow, AddressOf HintWrapper_OnShow
         '加载 UI
         InitializeComponent()
         Opacity = 0
@@ -123,6 +127,7 @@ Public Class FormMain
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
+        BtnExtraUpdateRestart.ShowCheck = AddressOf BtnExtraUpdateRestart_ShowCheck
         BtnExtraDownload.ShowCheck = AddressOf BtnExtraDownload_ShowCheck
         BtnExtraBack.ShowCheck = AddressOf BtnExtraBack_ShowCheck
         BtnExtraApril.ShowCheck = AddressOf BtnExtraApril_ShowCheck
@@ -248,7 +253,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "清理自动更新文件失败")
             End Try
-            GetCoR() '获取区域限制状态
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
@@ -331,8 +335,8 @@ Public Class FormMain
             Setup.Set("ToolDownloadTranslateV2", Setup.Get("ToolDownloadTranslate") + 1)
             Log("[Start] 已从老版本迁移 Mod 命名设置")
         End If
-        '社区版提示
-        If Not Setup.Get("UiLauncherCEHint") Then ShowCEAnnounce(True)
+        '更新后展示社区版提示
+        ShowCEAnnounce()
         '输出更新日志
         If LastVersionCode <= 0 Then Return
         If LowerVersionCode >= VersionCode Then Return
@@ -367,7 +371,7 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Sub EndProgram(SendWarning As Boolean)
+    Public Async Sub EndProgram(SendWarning As Boolean)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -384,7 +388,7 @@ Public Class FormMain
             End If
         End If
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         '存储上次使用的档案编号
         SaveProfile()
         '关闭
@@ -424,13 +428,13 @@ Public Class FormMain
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+    Public Shared Async Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
         'On Error Resume Next
         '关闭联机大厅
-        LobbyController.Close()
+        'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False)
+        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -545,7 +549,7 @@ Public Class FormMain
         '更改隐藏实例可见性
         If e.Key = Key.F11 AndAlso PageCurrent = FormMain.PageType.InstanceSelect Then
             FrmSelectRight.ShowHidden = Not FrmSelectRight.ShowHidden
-            LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
+            LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Return
         End If
         '更改功能隐藏可见性
@@ -609,7 +613,7 @@ Public Class FormMain
                 If FrmInstanceSchematic IsNot Nothing Then FrmInstanceSchematic.ReloadCompFileList()
             ElseIf PageCurrent = PageType.InstanceSelect Then
                 '实例选择自动刷新
-                LoaderFolderRun(McInstanceListLoader, PathMcFolder, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+                LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
             End If
         Catch ex As Exception
             Log(ex, "切回窗口时出错", LogLevel.Feedback)
@@ -964,15 +968,11 @@ Public Class FormMain
         ''' <summary>
         ''' 联机。
         ''' </summary>
-        Link = 2
+        Tools = 3
         ''' <summary>
         ''' 设置。
         ''' </summary>
-        Setup = 3
-        ''' <summary>
-        ''' 更多。
-        ''' </summary>
-        Other = 4
+        Setup = 2
         ''' <summary>
         ''' 实例选择。这是一个副页面。
         ''' </summary>
@@ -1023,20 +1023,21 @@ Public Class FormMain
         DownloadShader = 6
         DownloadWorld = 7
         DownloadCompFavorites = 8
+
         SetupLaunch = 0
         SetupUI = 1
         SetupSystem = 2
         SetupLink = 3
-        LinkLobby = 1
-        LinkSetup = 4
-        LinkHelp = 5
-        LinkFeedback = 6
-        OtherHelp = 0
-        OtherAbout = 1
-        OtherTest = 2
-        OtherFeedback = 3
-        OtherVote = 4
-        OtherLog = 5
+        SetupAbout = 4
+        SetupLog = 5
+        SetupFeedback = 6
+        SetupGameLink = 7
+        SetupUpdate = 8
+
+        ToolsGameLink = 1
+        ToolsLauncherHelp = 2
+        ToolsTest = 3
+
         VersionOverall = 0
         VersionSetup = 1
         VersionExport = 2
@@ -1113,9 +1114,6 @@ Public Class FormMain
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     Return FrmSetupLeft.PageID
-                Case PageType.Other
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    Return FrmOtherLeft.PageID
                 Case PageType.InstanceSetup
                     If FrmInstanceLeft Is Nothing Then FrmInstanceLeft = New PageInstanceLeft
                     Return FrmInstanceLeft.PageID
@@ -1188,10 +1186,7 @@ Public Class FormMain
                     Next
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
-                    CType(FrmSetupLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
-                Case PageType.Other
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    CType(FrmOtherLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
+                    If TypeOf FrmSetupLeft.PanItem.Children(SubType) Is MyListItem Then CType(FrmSetupLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
             End Select
             PageChangeActual(Stack, SubType)
         Else
@@ -1220,7 +1215,7 @@ Public Class FormMain
     ''' <summary>
     ''' 通过点击导航栏改变页面。
     ''' </summary>
-    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check, BtnTitleSelect4.Check
+    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check
         If IsChangingPage Then Return
         PageChangeActual(Val(sender.Tag))
     End Sub
@@ -1295,18 +1290,15 @@ Public Class FormMain
                     If FrmDownloadLeft Is Nothing Then FrmDownloadLeft = New PageDownloadLeft
                     'PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                     PageChangeAnim(FrmDownloadLeft, FrmDownloadLeft.PageGet(SubType))
-                Case PageType.Link '联机
-                    If FrmLinkLeft Is Nothing Then FrmLinkLeft = New PageLinkLeft
-                    PageChangeAnim(FrmLinkLeft, FrmLinkLeft.PageGet(SubType))
+                Case PageType.Tools '联机
+                    If FrmToolsLeft Is Nothing Then FrmToolsLeft = New PageToolsLeft
+                    PageChangeAnim(FrmToolsLeft, FrmToolsLeft.PageGet(SubType))
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
                 Case PageType.SetupJava 'Java 设置
                     FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
                     PageChangeAnim(New MyPageLeft, FrmSetupJava)
-                Case PageType.Other '更多
-                    If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
-                    PageChangeAnim(FrmOtherLeft, FrmOtherLeft.PageGet(SubType))
                 Case PageType.GameLog '实时日志
                     If FrmLogLeft Is Nothing Then FrmLogLeft = New PageLogLeft
                     If FrmLogLeft Is Nothing Then FrmLogRight = New PageLogRight
@@ -1488,6 +1480,14 @@ Public Class FormMain
 
 #Region "附加按钮"
 
+    '更新重启
+    Private Sub BtnExtraUpdateRestart_Click() Handles BtnExtraUpdateRestart.Click
+        UpdateRestart(True, True)
+    End Sub
+    Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
+        Return IsUpdateWaitingRestart
+    End Function
+    
     '音乐
     Private Sub BtnExtraMusic_Click(sender As Object, e As EventArgs) Handles BtnExtraMusic.Click
         MusicControlPause()

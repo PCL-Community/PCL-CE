@@ -46,6 +46,10 @@ Public Module ModMain
         If HintWaiting Is Nothing Then HintWaiting = New SafeList(Of HintMessage)
         HintWaiting.Add(New HintMessage With {.Text = If(Text, ""), .Type = Type, .Log = Log})
     End Sub
+    
+    Public Sub HintWrapper_OnShow(message As String, messageTheme As Core.UI.HintTheme)
+        Hint(message, messageTheme)
+    End Sub
 
     Private Sub HintTick()
         Try
@@ -438,6 +442,30 @@ EndHint:
             Log(ex, "处理等待中的弹窗失败", LogLevel.Feedback)
         End Try
     End Sub
+    
+    Public Sub MsgBoxWrapper_OnShow(message As String, caption As String,
+                                     buttons As ICollection(Of Core.UI.MsgBoxButtonInfo),
+                                     theme As Core.UI.MsgBoxTheme,
+                                     block As Boolean,
+                                     ByRef result As Integer)
+        Dim btnText1 = If(buttons.Count < 1, "确定", buttons.ElementAt(0).Context)
+        Dim btnAct1 As Action = If(buttons.Count < 1, Nothing, buttons.ElementAt(0).OnClick)
+        Dim btnText2 = If(buttons.Count < 2, "取消", buttons.ElementAt(1).Context)
+        Dim btnAct2 As Action = If(buttons.Count < 2, Nothing, buttons.ElementAt(1).OnClick)
+        Dim btnText3 = If(buttons.Count < 3, "", buttons.ElementAt(2).Context)
+        Dim btnAct3 As Action = If(buttons.Count < 3, Nothing, buttons.ElementAt(2).OnClick)
+
+        Dim isWarn = (theme = Core.UI.MsgBoxTheme.Warning) OrElse (theme = Core.UI.MsgBoxTheme.Error)
+
+        result = MyMsgBox(message, caption,
+                          btnText1, btnText2, btnText3,
+                          IsWarn:=isWarn,
+                          ForceWait:=block,
+                          Button1Action:=btnAct1,
+                          Button2Action:=btnAct2,
+                          Button3Action:=btnAct3)
+    End Sub
+
 
 #End Region
 
@@ -458,12 +486,11 @@ EndHint:
     Public FrmSpeedLeft As PageSpeedLeft
     Public FrmSpeedRight As PageSpeedRight
 
-    '联机页面声明
-    Public FrmLinkLeft As PageLinkLeft
-    Public FrmLinkLobby As PageLinkLobby
-    Public FrmSetupLink As PageLinkSetup
-    Public FrmLinkHelp As PageLinkQA
-    Public FrmLinkFeedback As PageLinkFeedback
+    '工具页面声明
+    Public FrmToolsLeft As PageToolsLeft
+    Public FrmToolsGameLink As PageToolsGameLink
+    Public FrmToolsHelp As PageToolsHelp
+    Public FrmToolsTest As PageToolsTest
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft
@@ -491,17 +518,13 @@ EndHint:
     Public FrmSetupLaunch As PageSetupLaunch
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
+    Public FrmSetupUpdate As PageSetupUpdate
     Public FrmSetupJava As PageSetupJava
-    Public FrmHomePageMarket As PageHomePageMarket
-
-    '其他页面声明
-    Public FrmOtherLeft As PageOtherLeft
-    Public FrmOtherHelp As PageOtherHelp
-    Public FrmOtherAbout As PageOtherAbout
-    Public FrmOtherTest As PageOtherTest
-    Public FrmOtherFeedback As PageOtherFeedback
-    Public FrmOtherVote As PageOtherVote
-    Public FrmOtherLog As PageOtherLog
+    Public FrmHomePageMarket As PageHomepageMarket
+    Public FrmSetupAbout As PageSetupAbout
+    Public FrmSetupLog As PageSetupLog
+    Public FrmSetupFeedback As PageSetupFeedback
+    Public FrmSetupGameLink As PageSetupGameLink
 
     '登录页面声明
     Public FrmLoginAuth As PageLoginAuth
@@ -666,7 +689,7 @@ EndHint:
             CustomEventService.SetEventType(Item, CustomEvent.EventType.None) '清空自定义事件属性，它们会被下面的点击事件处理
             CustomEventService.SetEventData(Item, Nothing)
             '项目的点击事件
-            AddHandler Item.Click, Sub(sender, e) PageOtherHelp.OnItemClick(sender.Tag)
+            AddHandler Item.Click, Sub(sender, e) PageToolsHelp.OnItemClick(sender.Tag)
             Return Item
         End Function
 
@@ -761,6 +784,15 @@ NextFile:
         ExtractFile(PathTemp & "CE\Cache\Help.zip", PathTemp & "CE\Help", Encoding.UTF8)
         Log("[Help] 已解压内置帮助文件，目前状态：" & File.Exists(PathTemp & "CE\Help\启动器\备份设置.xaml"), LogLevel.Debug)
     End Sub
+    ''' <summary>
+    ''' 对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
+    ''' </summary>
+    Public Function HelpArgumentReplace(Xaml As String) As String
+        Dim Result = Xaml.Replace("{path}", EscapeXML(ExePath))
+        Result = Result.RegexReplaceEach("\{hint\}", Function() EscapeXML(PageToolsTest.GetRandomHint()))
+        Result = Result.RegexReplaceEach("\{cave\}", Function() EscapeXML(PageToolsTest.GetRandomCave()))
+        Return Result
+    End Function
 
 #End Region
 
