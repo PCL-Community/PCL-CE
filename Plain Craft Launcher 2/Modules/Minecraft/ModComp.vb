@@ -5,6 +5,7 @@ Imports Dapper
 Imports LiteDB
 Imports Microsoft.Data.Sqlite
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
 
 Public Module ModComp
 
@@ -174,7 +175,7 @@ Public Module ModComp
                     "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
                     New With {Key .s = slug})
             End Using
-        Catch ex as Exception
+        Catch ex As Exception
             Log(ex, "ModComp", "获取模组翻译信息失败")
         End Try
     End Function
@@ -1021,41 +1022,43 @@ NoSubtitle:
             If Tag.StartsWithF("/") Then Storage.CurseForgeTotal = 0
             If Storage.CurseForgeTotal > -1 AndAlso Storage.CurseForgeTotal <= Storage.CurseForgeOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}"
+            Dim Address As New StringBuilder($"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}")
             Select Case Type
                 Case CompType.Mod
-                    Address += "&classId=6"
+                    Address.Append("&classId=6")
                 Case CompType.ModPack
-                    Address += "&classId=4471"
+                    Address.Append("&classId=4471")
                 Case CompType.DataPack
-                    Address += "&classId=6945"
+                    Address.Append("&classId=6945")
                 Case CompType.Shader
-                    Address += "&classId=6552"
+                    Address.Append("&classId=6552")
                 Case CompType.ResourcePack
-                    Address += "&classId=12"
+                    Address.Append("&classId=12")
                 Case CompType.World
-                    Address += "&classId=17"
+                    Address.Append("&classId=17")
             End Select
-            Address += "&categoryId=" & If(Tag = "", "0", Tag.BeforeFirst("/"))
-            If ModLoader <> CompLoaderType.Any Then Address += "&modLoaderType=" & CType(ModLoader, Integer)
-            If Not String.IsNullOrEmpty(GameVersion) Then Address += "&gameVersion=" & GameVersion
-            If Not String.IsNullOrEmpty(SearchText) Then Address += "&searchFilter=" & Net.WebUtility.UrlEncode(SearchText)
-            If Storage.CurseForgeOffset > 0 Then Address += "&index=" & Storage.CurseForgeOffset
+            If Not Tag.IsNullOrEmpty() Then
+                Address.Append($"&categoryId={Tag.BeforeFirst("/")}")
+            End If
+            If ModLoader <> CompLoaderType.Any Then Address.Append("&modLoaderType=").Append(CType(ModLoader, Integer).ToString())
+            If Not String.IsNullOrEmpty(GameVersion) Then Address.Append("&gameVersion=").Append(GameVersion)
+            If Not String.IsNullOrEmpty(SearchText) Then Address.Append("&searchFilter=").Append(Net.WebUtility.UrlEncode(SearchText))
+            If Storage.CurseForgeOffset > 0 Then Address.Append("&index=").Append(Storage.CurseForgeOffset)
             Select Case Sort
                 Case CompSortType.Relevance
-                    Address += "&sortField=4"
+                    Address.Append("&sortField=4")
                 Case CompSortType.Downloads
-                    Address += "&sortField=6"
+                    Address.Append("&sortField=6")
                 Case CompSortType.Follows
-                    Address += "&sortField=2"
+                    Address.Append("&sortField=2")
                 Case CompSortType.Newest
-                    Address += "&sortField=11"
+                    Address.Append("&sortField=11")
                 Case CompSortType.Updated
-                    Address += "&sortField=3"
+                    Address.Append("&sortField=3")
                 Case Else
-                    Address += "&sortField=2"
+                    Address.Append("&sortField=2")
             End Select
-            Return Address
+            Return Address.ToString()
         End Function
         ''' <summary>
         ''' 获取对应的 Modrinth API 请求链接。若返回 Nothing 则为不进行 Modrinth 请求。
