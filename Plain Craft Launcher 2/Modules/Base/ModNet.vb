@@ -1391,6 +1391,7 @@ Retry:
                     End If
                     '后处理
                     If IsNoSplit Then
+                        SmallFileCache?.Dispose()
                         SmallFileCache = Nothing
                     Else
                         For Each Thread As NetThread In Threads
