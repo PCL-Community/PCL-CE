@@ -592,26 +592,22 @@ Public Class PageToolsTest
                     bitmapImage.EndInit()
                     bitmapImage.Freeze()
 
-                    Dispatcher.Invoke(Sub()
-                                          AchievementImage.Source = bitmapImage
-                                          AchievementImage.Visibility = Visibility.Visible
-                                      End Sub)
+                    Dispatcher.Invoke(
+                        Sub()
+                            AchievementImage.Source = bitmapImage
+                            AchievementImage.Visibility = Visibility.Visible
+                      End Sub)
                 End Using
             ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
-                Dispatcher.Invoke(Sub()
-                                      Log("获取成就图片失败（404）")
-                                      Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
-                                  End Sub)
+                Log("获取成就图片失败（404）")
+                Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
             Else
-                Dispatcher.Invoke(Sub()
-                                      Log("获取成就图片失败（" & response.StatusCode & "）")
-                                  End Sub)
+                Log("获取成就图片失败（" & response.StatusCode & "）")
+                    
             End If
 
         Catch ex As Exception
-            Dispatcher.Invoke(Sub()
-                                  Log(ex, "获取成就图片失败")
-                              End Sub)
+            Log(ex, "获取成就图片失败")
         End Try
     End Function
 
