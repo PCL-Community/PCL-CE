@@ -36,8 +36,8 @@ Public Class PageSetupAbout
     Private Async Sub LoadContributersAsync()
         Try
             Using response = Await HttpRequestBuilder.
-            Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").
-            SendAsync(True)
+                Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").
+                SendAsync(True)
                 Dim cos = Await response.AsJsonAsync(Of List(Of GitHubContributor))
                 Contributors.Clear()
                 For Each item In cos
