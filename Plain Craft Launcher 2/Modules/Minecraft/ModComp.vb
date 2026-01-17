@@ -2,10 +2,12 @@
 Imports System.Net.Http
 Imports System.Threading.Tasks
 Imports Dapper
-Imports LiteDB
 Imports Microsoft.Data.Sqlite
+Imports System.Text.Json.Serialization
+Imports System.Text.Json
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.App
 
 Public Module ModComp
 
@@ -1977,7 +1979,7 @@ Retry:
 
         Public Shared Function GetShareCode(Data As HashSet(Of String)) As String
             Try
-                Return New JArray(Data).ToString(Newtonsoft.Json.Formatting.None)
+                Return JsonSerializer.Serialize(Data)
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 生成分享出错")
             End Try
@@ -1986,7 +1988,7 @@ Retry:
 
         Public Shared Function GetIdsByShareCode(Code As String) As HashSet(Of String)
             Try
-                Return JArray.Parse(Code).ToObject(Of HashSet(Of String))()
+                Return JsonSerializer.Deserialize(Of HashSet(Of String))(Code)
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 通过分享获取 ID 出错")
             End Try
@@ -2071,21 +2073,25 @@ Retry:
             ''' 收藏夹名称
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Name")>
             Property Name As String
             ''' <summary>
             ''' Guid
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Id")>
             Property Id As String
             ''' <summary>
             ''' 收藏的工程 ID 列表
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Favs")>
             Property Favs As New HashSet(Of String)
             ''' <summary>
             ''' 备注
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Notes")>
             Property Notes As New Dictionary(Of String, String)
         End Class
 
@@ -2096,21 +2102,25 @@ Retry:
         Public Shared Property FavoritesList As List(Of FavData)
             Get
                 If _FavoritesList Is Nothing Then
-                    Dim RawData As String = Setup.Get("CompFavorites")
+                    Dim RawData As String = Config.Tool.CompFavorites
                     Dim RawList As List(Of FavData) = Nothing
-                    Dim Migrate As HashSet(Of String) = Nothing
+                    ' 尝试作为新格式解析
                     Try
-                        Migrate = JArray.Parse(RawData).ToObject(Of HashSet(Of String)) ' 从旧版本迁移
-                    Catch ex As Exception
+                        RawList = JsonSerializer.Deserialize(Of List(Of FavData))(RawData)
+                    Catch ex1 As Exception
+                        ' 尝试作为旧格式（HashSet）迁移
+                        Try
+                            Dim Migrate = JsonSerializer.Deserialize(Of HashSet(Of String))(RawData)
+                            If Migrate IsNot Nothing Then
+                                RawList = New List(Of FavData) From {GetNewFav("默认", Migrate)}
+                            End If
+                        Catch ex2 As Exception
+                            ' 两种都失败，使用默认
+                        End Try
                     End Try
-                    If Migrate IsNot Nothing Then
-                        RawList = New List(Of FavData)
-                        RawList.Add(GetNewFav("默认", Migrate))
-                    Else
-                        RawList = JArray.Parse(RawData).ToObject(Of List(Of FavData))
-                        If RawList.Count = 0 Then
-                            RawList.Add(GetNewFav("默认", Nothing)) ' 确保无论如何都要至少有一个
-                        End If
+                    ' 最终兜底：确保至少有一个收藏夹
+                    If RawList Is Nothing OrElse RawList.Count = 0 Then
+                        RawList = New List(Of FavData) From {GetNewFav("默认", Nothing)}
                     End If
                     _FavoritesList = RawList
                     Save()
@@ -2120,10 +2130,12 @@ Retry:
             Set
                 _FavoritesList = Value
                 For Each item In _FavoritesList
-                    item.Notes = item.Notes.Where(Function(n) Not String.IsNullOrWhiteSpace(n.Value)).ToDictionary(Function(n) n.Key, Function(n) n.Value)
+                    item.Notes = item.Notes.
+                        Where(Function(n) Not String.IsNullOrWhiteSpace(n.Value)).
+                        ToDictionary()
                 Next
                 Dim RawList = JArray.FromObject(_FavoritesList)
-                Setup.Set("CompFavorites", RawList.ToString(Newtonsoft.Json.Formatting.None))
+                Config.Tool.CompFavorites = JsonSerializer.Serialize(_FavoritesList)
             End Set
         End Property
 
