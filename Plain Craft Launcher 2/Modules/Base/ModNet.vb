@@ -741,7 +741,7 @@ Public Module ModNet
         ''' <summary>
         ''' 为不需要分割的小文件进行临时存储。
         ''' </summary>
-        Private SmallFileCache As Queue(Of Byte)
+        Private SmallFileCache As MemoryStream
 
         ''' <summary>
         ''' 文件的已下载大小。
@@ -914,6 +914,7 @@ Capture:
                             '已有缓存且线程未完成，不清空，直接返回
                             Return Nothing
                         End If
+                        SmallFileCache?.Dispose()
                         SmallFileCache = Nothing
                         Threads = Nothing
                         NetManager.DownloadDone -= DownloadDone
@@ -1112,7 +1113,7 @@ NotSupportRange:
                         '创建缓存文件
                         If IsNoSplit Then
                             th.Temp = Nothing
-                            SmallFileCache = New Queue(Of Byte)
+                            SmallFileCache = New MemoryStream()
                         Else
                             th.Temp = $"{PathTemp}Download\{Uuid}_{th.Uuid}_{RandomUtils.NextInt(0, 999999)}.tmp"
                             resultStream = New FileStream(th.Temp, FileMode.Create, FileAccess.Write, FileShare.Read)
@@ -1169,20 +1170,11 @@ NotSupportRange:
                                             DownloadDone += realDataCount
                                         End SyncLock
                                         th.DownloadDone += realDataCount
+                                        Dim pendingBuffer = dataBuffer.Slice(0, realDataCount)
                                         If IsNoSplit Then
-                                            If dataBuffer.Length = realDataCount Then
-                                                'SmallFileCache.AddRange(HttpDataBuffer)
-                                                For Each B In dataBuffer
-                                                    SmallFileCache.Enqueue(B)
-                                                Next
-                                            Else
-                                                'SmallFileCache.AddRange(HttpDataBuffer.ToList.GetRange(0, RealDataCount))
-                                                For i = 0 To realDataCount - 1
-                                                    SmallFileCache.Enqueue(dataBuffer(i))
-                                                Next
-                                            End If
+                                            SmallFileCache.Write(pendingBuffer)
                                         Else
-                                            resultStream.Write(dataBuffer.Slice(0, realDataCount))
+                                            resultStream.Write(pendingBuffer)
                                         End If
                                         '检查速度是否过慢
                                         If deltaTime > 1500 AndAlso deltaTime > realDataCount Then '数据包间隔大于 1.5s，且速度小于 1.5K/s
@@ -1356,13 +1348,13 @@ Retry:
                         If SmallFileCache Is Nothing Then
                             Throw New Exception($"小文件缓存为空，无法合并文件（{LocalName}）。可能原因：缓存被意外清空或下载未完成。")
                         End If
-                        Dim CacheArray = SmallFileCache.ToArray
-                        If ModeDebug Then Log($"[Download] {LocalName}：下载结束，从缓存输出文件，长度：" & CacheArray.Length)
-                        If CacheArray.Length = 0 Then
+                        If ModeDebug Then Log($"[Download] {LocalName}：下载结束，从缓存输出文件，长度：" & SmallFileCache.Length)
+                        If SmallFileCache.Length = 0 Then
                             Throw New Exception($"小文件缓存长度为0，无法合并文件（{LocalName}）。")
                         End If
                         MergeFile = New FileStream(LocalPath, FileMode.Create)
-                        MergeFile.Write(CacheArray)
+                        SmallFileCache.Seek(0, SeekOrigin.Begin)
+                        SmallFileCache.CopyTo(MergeFile)
                         MergeFile.Dispose() : MergeFile = Nothing
                     ElseIf Threads.DownloadDone = DownloadDone AndAlso Threads.Temp IsNot Nothing Then
                         '仅有一个文件，直接复制
