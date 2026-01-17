@@ -620,11 +620,12 @@ PreFin:
             If MyMsgBox("本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！" & vbCrLf & "你确定要继续修改吗？", "警告", "我知道我在做什么", "取消", IsWarn:=True) = 2 Then
                 sender.Checked = False
             Else
+                Config.Instance.UseDebugLof4j2Config.Item(PageInstanceLeft.Instance) = sender.Checked
                 Setup.Set(sender.Tag, sender.Checked, instance:=PageInstanceLeft.Instance)
-                Setup.Set("HintDebugLog4j2Config", True)
+                Config.Hint.DebugLog4j2Config = True
             End If
         Else
-            Setup.Set(sender.Tag, sender.Checked, instance:=PageInstanceLeft.Instance)
+            Config.Instance.UseDebugLof4j2Config.Item(PageInstanceLeft.Instance) = sender.Checked
         End If
     End Sub
 
