@@ -81,7 +81,7 @@ Public Class ModSetup
     ''' </summary>
     Public Function GetSafe(key As String, Optional instance As McInstance = Nothing)
         Dim item As ConfigItem(Of Object) = Nothing
-        If Not ConfigService.TryGetConfigItem(key, item) Then Return
+        If Not ConfigService.TryGetConfigItem(key, item) Then Return Nothing
         If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止读取加密设置项：" & key)
         Return [Get](key, instance)
     End Function

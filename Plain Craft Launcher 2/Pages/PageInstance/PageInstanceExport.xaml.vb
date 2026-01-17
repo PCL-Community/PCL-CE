@@ -22,7 +22,7 @@ Public Class PageInstanceExport
     Private CurrentVersion As String = ""
     Private Sub PageInstanceExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
-        If CurrentVersion <> PageInstanceLeft.Instance.Path Then RefreshAll() '切换到了另一个实例，重置页面
+        If CurrentVersion <> PageInstanceLeft.Instance.PathInstance Then RefreshAll() '切换到了另一个实例，重置页面
         CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json")
         AniControlEnabled -= 1
     End Sub

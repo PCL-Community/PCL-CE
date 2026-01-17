@@ -987,15 +987,15 @@ NextFile:
         End If
         'Minecraft
         Text = Text.Replace("{java}", Replacer(McLaunchJavaSelected?.JavaFolder))
-        Text = Text.Replace("{minecraft}", Replacer(PathMcFolder))
-        If McInstanceCurrent IsNot Nothing Then
-            Text = Text.Replace("{version_path}", Replacer(McInstanceCurrent.Path)) : Text = Text.Replace("{verpath}", Replacer(McInstanceCurrent.Path))
-            Text = Text.Replace("{version_indie}", Replacer(McInstanceCurrent.PathIndie)) : Text = Text.Replace("{verindie}", Replacer(McInstanceCurrent.PathIndie))
-            Text = Text.Replace("{name}", Replacer(McInstanceCurrent.Name))
-            If {"unknown", "old", "pending"}.Contains(McInstanceCurrent.Version.McName.ToLower) Then
-                Text = Text.Replace("{version}", Replacer(McInstanceCurrent.Name))
+        Text = Text.Replace("{minecraft}", Replacer(McFolderSelected))
+        If McInstanceSelected IsNot Nothing Then
+            Text = Text.Replace("{version_path}", Replacer(McInstanceSelected.PathInstance)) : Text = Text.Replace("{verpath}", Replacer(McInstanceSelected.PathInstance))
+            Text = Text.Replace("{version_indie}", Replacer(McInstanceSelected.PathIndie)) : Text = Text.Replace("{verindie}", Replacer(McInstanceSelected.PathIndie))
+            Text = Text.Replace("{name}", Replacer(McInstanceSelected.Name))
+            If {"unknown", "old", "pending"}.Contains(McInstanceSelected.Info.VanillaName) Then
+                Text = Text.Replace("{version}", Replacer(McInstanceSelected.Name))
             Else
-                Text = Text.Replace("{version}", Replacer(McInstanceCurrent.Version.McName))
+                Text = Text.Replace("{version}", Replacer(McInstanceSelected.Info.VanillaName))
             End If
         Else
             Text = Text.Replace("{version_path}", Replacer(Nothing)) : Text = Text.Replace("{verpath}", Replacer(Nothing))
@@ -1021,9 +1021,9 @@ NextFile:
             Text = Text.Replace("{login}", Replacer(Nothing))
         End If
         '高级
-        Text = Text.RegexReplaceEach("\{hint\}", Function() Replacer(PageOtherTest.GetRandomHint()))
-        Text = Text.RegexReplaceEach("\{cave\}", Function() Replacer(PageOtherTest.GetRandomCave()))
-        Text = Text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) Replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceCurrent)))
+        Text = Text.RegexReplaceEach("\{hint\}", Function() Replacer(PageToolsTest.GetRandomHint()))
+        Text = Text.RegexReplaceEach("\{cave\}", Function() Replacer(PageToolsTest.GetRandomCave()))
+        Text = Text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) Replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceSelected)))
         Text = Text.RegexReplaceEach("\{varible:([^\}]+)\}", Function(m) Replacer(ReadReg("CustomEvent" & m.Groups(1).Value, Nothing)))
         Return Text
     End Function

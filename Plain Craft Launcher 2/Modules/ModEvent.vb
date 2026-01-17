@@ -129,6 +129,7 @@ Public Class CustomEvent
         启动游戏
         复制文本
         刷新主页
+        刷新主页市场
         刷新页面
         刷新帮助
         今日人品
@@ -215,7 +216,7 @@ Public Class CustomEvent
 
                 Case EventType.刷新主页市场
                     FrmHomePageMarket.Refresh()
-                    If Data(0) = "" Then Hint("已刷新主页市场！", HintType.Finish)
+                    If args(0) = "" Then Hint("已刷新主页市场！", HintType.Finish)
 
                 Case EventType.刷新帮助
                     PageToolsLeft.RefreshHelp()
@@ -269,7 +270,7 @@ Public Class CustomEvent
 
                 Case EventType.修改设置, EventType.写入设置
                     If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400")
-                    Setup.SetSafe(args(0), args(1), instance:=McInstanceCurrent)
+                    Setup.SetSafe(args(0), args(1), instance:=McInstanceSelected)
                     If args.Length = 2 Then Hint($"已写入设置：{args(0)} → {args(1)}", HintType.Finish)
 
                 Case EventType.修改变量, EventType.写入变量
