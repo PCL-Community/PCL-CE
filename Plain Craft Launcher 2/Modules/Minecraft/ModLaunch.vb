@@ -1611,7 +1611,7 @@ LoginFinish:
             End Try
         End If
         
-        If Setup.Get("HintDebugLog4j2Config", instance:=McInstanceSelected) <> 0 Then
+        If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
             If McInstanceSelected.ReleaseTime.Year >= 2017 Then
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
             Else 
@@ -1708,7 +1708,7 @@ NextInstance:
             End Try
         End If
 
-        If Setup.Get("HintDebugLog4j2Config", instance:=McInstanceSelected) <> 0 Then
+        If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
             If McInstanceSelected.ReleaseTime.Year >= 2017 Then
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
             Else 
