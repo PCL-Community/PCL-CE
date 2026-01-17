@@ -5,6 +5,11 @@ Public Class PageDownloadInstall
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
     End Sub
 
+    Public Sub New()
+        InitializeComponent()
+        PanScroll = Me.PanBack
+    End Sub
+
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()

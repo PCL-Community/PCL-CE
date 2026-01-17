@@ -1,4 +1,7 @@
-﻿Public Class PageSetupAbout
+﻿Imports System.Collections.ObjectModel
+Imports System.Text.Json.Serialization
+Imports PCL.Core.Net.Http.Client
+Public Class PageSetupAbout
 
     Private Shadows IsLoaded As Boolean = False
     Private Sub PageOtherAbout_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -11,7 +14,39 @@
         IsLoaded = True
 
         ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", VersionBaseName).Replace("%VERSIONCODE%", VersionCode).Replace("%BRANCH%", VersionBranchName).Replace("%COMMIT_HASH%", CommitHashShort)
+        LoadContributersAsync()
+    End Sub
 
+    Public Property Contributors As new ObservableCollection(Of GitHubContributor)
+
+    Public Class GitHubContributor
+        <JsonPropertyName("login")>
+        Public Property Login As String
+
+        <JsonPropertyName("avatar_url")>
+        Public Property AvatarUrl As String
+
+        <JsonPropertyName("html_url")>
+        Public Property HtmlUrl As String
+
+        <JsonPropertyName("contributions")>
+        Public Property Contributions As Integer
+    End Class
+
+    Private Async Sub LoadContributersAsync()
+        Try
+            Using response = Await HttpRequestBuilder.
+                Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").
+                SendAsync(True)
+                Dim cos = Await response.AsJsonAsync(Of List(Of GitHubContributor))
+                Contributors.Clear()
+                For Each item In cos
+                    Contributors.Add(item)
+                Next
+            End Using
+        Catch ex As Exception
+            Log(ex, "加载贡献者信息失败")
+        End Try
     End Sub
 
     Private Sub BtnAboutBmclapi_Click(sender As Object, e As EventArgs) Handles BtnAboutBmclapi.Click

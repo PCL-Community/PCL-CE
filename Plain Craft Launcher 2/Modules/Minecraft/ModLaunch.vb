@@ -5,6 +5,7 @@ Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.App
+Imports PCL.Core.Minecraft.Launch.Utils
 Imports PCL.Core.Utils.Secret
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils.Exts
@@ -1609,7 +1610,15 @@ LoginFinish:
                 Throw New Exception($"无法连接到第三方登录服务器（{If(Server, Nothing)}）", ex)
             End Try
         End If
-
+        
+        If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
+            If McInstanceSelected.ReleaseTime.Year >= 2017 Then
+                DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
+            Else 
+                DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() & """")
+            End If
+        End If
+        
         '渲染器
         Dim Renderer = 0
         If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) <> 0 Then
@@ -1699,6 +1708,14 @@ NextInstance:
             End Try
         End If
 
+        If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
+            If McInstanceSelected.ReleaseTime.Year >= 2017 Then
+                DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
+            Else 
+                DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() & """")
+            End If
+        End If
+        
         '渲染器
         Dim Renderer = 0
         If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) <> 0 Then
