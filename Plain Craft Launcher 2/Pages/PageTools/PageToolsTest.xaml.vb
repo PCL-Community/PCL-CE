@@ -570,11 +570,11 @@ Public Class PageToolsTest
         End If
     End Sub
 
-    Private Async Sub BtnAchievementPreview_Click(sender As Object, e As MouseButtonEventArgs)
+    Private Async Function BtnAchievementPreview_Click(sender As Object, e As MouseButtonEventArgs) As Task
         Dim url = GetAchievementUrl()
         Log("[Net] 获取网络结果" & url)
         Await LoadImageAsync(url)
-    End Sub
+    End Function
 
     Private Async Function LoadImageAsync(imageUrl As String) As Task
         Dim client = NetworkService.GetClient()
@@ -596,14 +596,14 @@ Public Class PageToolsTest
                         Sub()
                             AchievementImage.Source = bitmapImage
                             AchievementImage.Visibility = Visibility.Visible
-                      End Sub)
+                        End Sub)
                 End Using
             ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
                 Log("获取成就图片失败（404）")
                 Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
             Else
                 Log("获取成就图片失败（" & response.StatusCode & "）")
-                    
+
             End If
 
         Catch ex As Exception
@@ -611,10 +611,10 @@ Public Class PageToolsTest
         End Try
     End Function
 
-    Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
+    Private Async Function BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs) As Task
         Dim url = GetAchievementUrl()
         Await DownloadImageToLocalAsync(url)
-    End Sub
+    End Function
 
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
