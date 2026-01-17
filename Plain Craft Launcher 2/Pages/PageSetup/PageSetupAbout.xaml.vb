@@ -17,7 +17,7 @@ Public Class PageSetupAbout
         LoadContributersAsync()
     End Sub
 
-    Public Property Contributors As New ObservableCollection(Of GitHubContributor)
+    Public Property Contributors As new ObservableCollection(Of GitHubContributor)
 
     Public Class GitHubContributor
         <JsonPropertyName("login")>
