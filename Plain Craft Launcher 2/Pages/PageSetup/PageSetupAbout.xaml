@@ -126,6 +126,7 @@
                 </Grid>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="贡献者们" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}">
+                <local:MyIconButton Height="22" Width="22" Margin="10,10,10,10" VerticalAlignment="Top" HorizontalAlignment="Right" Logo="M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z" x:Name="BtnRefreshContributors"/>
                 <Grid Margin="17,42,15,20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -194,22 +195,22 @@
             <local:MyCard Margin="0,0,0,15" Title="许可与版权声明" IsSwapped="True" CanSwap="True">
                 <ItemsControl Margin="25,42,23,4" ItemsSource="{Binding Licenses}">
                     <ItemsControl.ItemTemplate><DataTemplate><Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="LicenseName" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="60"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}" TextWrapping="Wrap" FontWeight="Bold" />
-                        <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding Information}" TextWrapping="Wrap" />
-                        <local:MyButton Grid.Row="1" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LicenseName" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="60"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}" TextWrapping="Wrap" FontWeight="Bold" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding Information}" TextWrapping="Wrap" />
+                                <local:MyButton Grid.Row="1" Grid.Column="2" MinWidth="140" Text="查看来源网站" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                         EventType="打开网页" EventData="{Binding WebsiteUri}"
                                         Visibility="{Binding WebsiteUri, Converter={StaticResource NullToVisibilityConverter}}" />
-                        <local:MyButton Grid.Row="1" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
+                                <local:MyButton Grid.Row="1" Grid.Column="3" MinWidth="140" Text="查看许可文档" Padding="13,0" Margin="0,7,20,18" HorizontalAlignment="Left"
                                         EventType="打开网页" EventData="{Binding LicenseUri}"
                                         Visibility="{Binding LicenseUri, Converter={StaticResource NullToVisibilityConverter}}" />
                     </Grid></DataTemplate></ItemsControl.ItemTemplate>

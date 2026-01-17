@@ -17,7 +17,7 @@ Public Class PageSetupAbout
         LoadContributersAsync()
     End Sub
 
-    Public Property Contributors As new ObservableCollection(Of GitHubContributor)
+    Public Property Contributors As New ObservableCollection(Of GitHubContributor)
 
     Public Class GitHubContributor
         <JsonPropertyName("login")>
@@ -36,8 +36,8 @@ Public Class PageSetupAbout
     Private Async Sub LoadContributersAsync()
         Try
             Using response = Await HttpRequestBuilder.
-                Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").
-                SendAsync(True)
+            Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").
+            SendAsync(True)
                 Dim cos = Await response.AsJsonAsync(Of List(Of GitHubContributor))
                 Contributors.Clear()
                 For Each item In cos
@@ -49,6 +49,9 @@ Public Class PageSetupAbout
         End Try
     End Sub
 
+    Private Sub RefreshContributors_Click(sender As Object, e As EventArgs) Handles BtnRefreshContributors.Click
+        LoadContributersAsync()
+    End Sub
     Private Sub BtnAboutBmclapi_Click(sender As Object, e As EventArgs) Handles BtnAboutBmclapi.Click
         OpenWebsite("https://afdian.com/a/bangbang93")
     End Sub
