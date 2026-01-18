@@ -1102,6 +1102,16 @@ Public Class FormMain
         DownloadShader = 6
         DownloadWorld = 7
         DownloadCompFavorites = 8
+        DownloadClient = 9
+        DownloadOptiFine = 10
+        DownloadForge = 11
+        DownloadNeoForge = 12
+        DownloadCleanroom = 13
+        DownloadFabric = 14
+        DownloadQuilt = 15
+        DownloadLiteLoader = 16
+        DownloadLabyMod = 17
+        DownloadLegacyFabric = 18
 
         SetupLaunch = 0
         SetupUI = 1
