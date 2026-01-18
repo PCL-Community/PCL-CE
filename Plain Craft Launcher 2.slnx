@@ -9,8 +9,8 @@
     <Platform Name="x64" />
   </Configurations>
   <Project Path="PCL.Core\PCL.Core.csproj" Type="C#" />
-  <Project Path="PCL.Core\SourceGenerators\PCL.Core.SourceGenerators.csproj" Type="C#" />
-  <Project Path="PCL.Test\PCL.Test.csproj" Type="C#">
+  <Project Path="PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" Type="C#" />
+  <Project Path="PCL.Core.Test\PCL.Core.Test.csproj" Type="C#">
     <Build Solution="*|*" Project="false" />
   </Project>
   <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.vbproj" Type="VB" />

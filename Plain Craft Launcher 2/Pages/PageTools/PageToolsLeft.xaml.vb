@@ -9,6 +9,11 @@
         If IsPageSwitched Then Exit Sub
         ItemGameLink.SetChecked(True, False, False)
     End Sub
+    Public Sub New()
+        InitializeComponent()
+        AnimatedControl = Me.PanItem
+    End Sub
+
     Private Sub PageOtherLeft_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
         IsPageSwitched = False
     End Sub

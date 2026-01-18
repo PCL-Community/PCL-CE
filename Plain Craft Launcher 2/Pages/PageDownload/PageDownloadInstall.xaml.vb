@@ -5,6 +5,11 @@ Public Class PageDownloadInstall
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
     End Sub
 
+    Public Sub New()
+        InitializeComponent()
+        PanScroll = Me.PanBack
+    End Sub
+
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()
@@ -341,7 +346,7 @@ Public Class PageDownloadInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If _vanillaData("releaseTime").ToObject(Of Date) < New Date(2023, 6, 11) Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
@@ -1312,10 +1317,10 @@ Public Class PageDownloadInstall
     Private Function LoadFabricApiGetError() As String
         '检查 Loader
         If GetLoaderError(LoadFabricApi) IsNot Nothing Then Return GetLoaderError(LoadFabricApi)
-        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing, "需要安装 Fabric", "获取中……")
+        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", "获取中……")
         '检查版本
         If DlFabricApiLoader.Output.Any(Function(f) IsFabricApiCompatible(f)) Then
-            Return If(SelectedFabric Is Nothing, "需要安装 Fabric", Nothing)
+            Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", Nothing)
         Else
             Return "无可用版本"
         End If
@@ -1552,7 +1557,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadQuilt) IsNot Nothing Then Return GetLoaderError(LoadQuilt)
         '检查版本
-        For Each version As JObject In DlFabricListLoader.Output.Value("game")
+        For Each version As JObject In DlQuiltListLoader.Output.Value("game")
             If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing

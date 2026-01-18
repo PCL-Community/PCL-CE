@@ -150,7 +150,14 @@ Public Class PageLaunchLeft
         PanLaunchingInfo.Width = Double.NaN '重置宽度改变动画
         McLaunchProcess = Nothing
         McLaunchWatcher = Nothing
-        LabLaunchingHint.Text = GetRandomHint()
+
+        Dim ShouldShowHint As Boolean = Setup.Get("UiShowLaunchingHint")
+        If ShouldShowHint Then
+            LabLaunchingHint.Text = GetRandomHint()
+        Else
+            LabLaunchingHint.Text = ""
+        End If
+
         '初始化其他页面
         PanInput.IsHitTestVisible = False
         PanLaunching.IsHitTestVisible = False
@@ -587,6 +594,7 @@ ExitRefresh:
                 HasLaunchDownloader = False
             End Try
             LabLaunchingDownload.Text = GetString(NetManager.Speed) & "/s"
+            Dim ShouldShowHint As Boolean = Setup.Get("UiShowLaunchingHint")
             '进度改变动画
             Dim AnimList As New List(Of AniData) From {
                  AaGridLengthWidth(ProgressLaunchingFinished, ShowProgress - ProgressLaunchingFinished.Width.Value, 260,, New AniEaseOutFluent),
@@ -611,13 +619,13 @@ ExitRefresh:
             If IsProgressStateChanged Then
                 LabLaunchingProgress.Visibility = Visibility.Visible
                 LabLaunchingProgressLeft.Visibility = Visibility.Visible
-                If IsLaunched Then
+                If IsLaunched AndAlso ShouldShowHint Then
                     PanLaunchingHint.Visibility = Visibility.Visible
                 End If
                 AnimList.AddRange({
                  AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 100),
                  AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 100),
-                 AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 100)
+                 AaOpacity(PanLaunchingHint, If(IsLaunched AndAlso ShouldShowHint, 1, 0) - PanLaunchingHint.Opacity, 100)
             })
             End If
             AniStart(AnimList, "Launching Progress")

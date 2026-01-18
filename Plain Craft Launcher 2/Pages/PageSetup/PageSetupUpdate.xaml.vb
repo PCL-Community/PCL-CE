@@ -96,7 +96,6 @@ Public Class PageSetupUpdate
                 BtnCheckAgain.IsEnabled = True
                 TextCurrentDesc.Text = "检查更新时出错"
         End Select
-        Log("[Update] 检查更新结束")
     End Sub
     
     Public Sub BtnUpdate_Timer()
@@ -189,10 +188,11 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub BtnChangelog_Click(sender As Object, e As EventArgs) Handles BtnChangelog.Click
-        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/" & VersionBaseName)
+        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" & VersionBaseName)
     End Sub
     
     Public Function VersionNameFormat(str As String) As String
+        str = str.Replace("v", "")
         If Not str.Contains("-") Then Return str
         Dim add = str.AfterLast("-")
         str = str.BeforeLast("-")

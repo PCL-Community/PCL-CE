@@ -2,9 +2,12 @@
 Imports System.Net.Http
 Imports System.Threading.Tasks
 Imports Dapper
-Imports LiteDB
 Imports Microsoft.Data.Sqlite
+Imports System.Text.Json.Serialization
+Imports System.Text.Json
 Imports PCL.Core.Utils
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.App
 
 Public Module ModComp
 
@@ -144,7 +147,7 @@ Public Module ModComp
     End Property
 
     Private Function _InitializeAndGetConnectionString() As String
-        Dim dbPath = $"{PathTemp}Cache\ModData.sqlite"
+        Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, "Cache\ModData.sqlite"))
         If Not File.Exists(dbPath) Then
             Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
             Log($"[DB] 解压 ModData (SQLite) 中")
@@ -156,23 +159,27 @@ Public Module ModComp
                 End Using
             End Using
         End If
-        Return $"Data Source={dbPath};Cache=Shared"
+        Return $"Data Source=""{dbPath}"""
     End Function
 
     Private ReadOnly Property CompDB As SqliteConnection
         Get
-            Dim conn = New SqliteConnection(_dbInitializer.Value)
+            Dim conn = New SqliteConnection(CompDBConnectionString)
             conn.Open()
             Return conn
         End Get
     End Property
 
     Private Function GetCompWikiEntryBySlug(slug As String) As CompDatabaseEntry
-        Using conn = CompDB
-            Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
-            "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
-            New With {Key .s = slug})
-        End Using
+        Try
+            Using conn = CompDB
+                Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
+                    "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
+                    New With {Key .s = slug})
+            End Using
+        Catch ex As Exception
+            Log(ex, "获取模组翻译信息失败", LogLevel.Hint)
+        End Try
     End Function
 
     Private Class CompDatabaseEntry
@@ -1017,41 +1024,43 @@ NoSubtitle:
             If Tag.StartsWithF("/") Then Storage.CurseForgeTotal = 0
             If Storage.CurseForgeTotal > -1 AndAlso Storage.CurseForgeTotal <= Storage.CurseForgeOffset Then Return Nothing
             '应用筛选参数
-            Dim Address As String = $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}"
+            Dim Address As New StringBuilder($"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}")
             Select Case Type
                 Case CompType.Mod
-                    Address += "&classId=6"
+                    Address.Append("&classId=6")
                 Case CompType.ModPack
-                    Address += "&classId=4471"
+                    Address.Append("&classId=4471")
                 Case CompType.DataPack
-                    Address += "&classId=6945"
+                    Address.Append("&classId=6945")
                 Case CompType.Shader
-                    Address += "&classId=6552"
+                    Address.Append("&classId=6552")
                 Case CompType.ResourcePack
-                    Address += "&classId=12"
+                    Address.Append("&classId=12")
                 Case CompType.World
-                    Address += "&classId=17"
+                    Address.Append("&classId=17")
             End Select
-            Address += "&categoryId=" & If(Tag = "", "0", Tag.BeforeFirst("/"))
-            If ModLoader <> CompLoaderType.Any Then Address += "&modLoaderType=" & CType(ModLoader, Integer)
-            If Not String.IsNullOrEmpty(GameVersion) Then Address += "&gameVersion=" & GameVersion
-            If Not String.IsNullOrEmpty(SearchText) Then Address += "&searchFilter=" & Net.WebUtility.UrlEncode(SearchText)
-            If Storage.CurseForgeOffset > 0 Then Address += "&index=" & Storage.CurseForgeOffset
+            If Not Tag.IsNullOrEmpty() Then
+                Address.Append($"&categoryId={Tag.BeforeFirst("/")}")
+            End If
+            If ModLoader <> CompLoaderType.Any Then Address.Append("&modLoaderType=").Append(CType(ModLoader, Integer).ToString())
+            If Not String.IsNullOrEmpty(GameVersion) Then Address.Append("&gameVersion=").Append(GameVersion)
+            If Not String.IsNullOrEmpty(SearchText) Then Address.Append("&searchFilter=").Append(Net.WebUtility.UrlEncode(SearchText))
+            If Storage.CurseForgeOffset > 0 Then Address.Append("&index=").Append(Storage.CurseForgeOffset)
             Select Case Sort
                 Case CompSortType.Relevance
-                    Address += "&sortField=4"
+                    Address.Append("&sortField=4")
                 Case CompSortType.Downloads
-                    Address += "&sortField=6"
+                    Address.Append("&sortField=6")
                 Case CompSortType.Follows
-                    Address += "&sortField=2"
+                    Address.Append("&sortField=2")
                 Case CompSortType.Newest
-                    Address += "&sortField=11"
+                    Address.Append("&sortField=11")
                 Case CompSortType.Updated
-                    Address += "&sortField=3"
+                    Address.Append("&sortField=3")
                 Case Else
-                    Address += "&sortField=2"
+                    Address.Append("&sortField=2")
             End Select
-            Return Address
+            Return Address.ToString()
         End Function
         ''' <summary>
         ''' 获取对应的 Modrinth API 请求链接。若返回 Nothing 则为不进行 Modrinth 请求。
@@ -1970,7 +1979,7 @@ Retry:
 
         Public Shared Function GetShareCode(Data As HashSet(Of String)) As String
             Try
-                Return New JArray(Data).ToString(Newtonsoft.Json.Formatting.None)
+                Return JsonSerializer.Serialize(Data)
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 生成分享出错")
             End Try
@@ -1979,7 +1988,7 @@ Retry:
 
         Public Shared Function GetIdsByShareCode(Code As String) As HashSet(Of String)
             Try
-                Return JArray.Parse(Code).ToObject(Of HashSet(Of String))()
+                Return JsonSerializer.Deserialize(Of HashSet(Of String))(Code)
             Catch ex As Exception
                 Log(ex, "[CompFavorites] 通过分享获取 ID 出错")
             End Try
@@ -2064,21 +2073,25 @@ Retry:
             ''' 收藏夹名称
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Name")>
             Property Name As String
             ''' <summary>
             ''' Guid
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Id")>
             Property Id As String
             ''' <summary>
             ''' 收藏的工程 ID 列表
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Favs")>
             Property Favs As New HashSet(Of String)
             ''' <summary>
             ''' 备注
             ''' </summary>
             ''' <returns></returns>
+            <JsonPropertyName("Notes")>
             Property Notes As New Dictionary(Of String, String)
         End Class
 
@@ -2089,21 +2102,25 @@ Retry:
         Public Shared Property FavoritesList As List(Of FavData)
             Get
                 If _FavoritesList Is Nothing Then
-                    Dim RawData As String = Setup.Get("CompFavorites")
+                    Dim RawData As String = Config.Tool.CompFavorites
                     Dim RawList As List(Of FavData) = Nothing
-                    Dim Migrate As HashSet(Of String) = Nothing
+                    ' 尝试作为新格式解析
                     Try
-                        Migrate = JArray.Parse(RawData).ToObject(Of HashSet(Of String)) ' 从旧版本迁移
-                    Catch ex As Exception
+                        RawList = JsonSerializer.Deserialize(Of List(Of FavData))(RawData)
+                    Catch ex1 As Exception
+                        ' 尝试作为旧格式（HashSet）迁移
+                        Try
+                            Dim Migrate = JsonSerializer.Deserialize(Of HashSet(Of String))(RawData)
+                            If Migrate IsNot Nothing Then
+                                RawList = New List(Of FavData) From {GetNewFav("默认", Migrate)}
+                            End If
+                        Catch ex2 As Exception
+                            ' 两种都失败，使用默认
+                        End Try
                     End Try
-                    If Migrate IsNot Nothing Then
-                        RawList = New List(Of FavData)
-                        RawList.Add(GetNewFav("默认", Migrate))
-                    Else
-                        RawList = JArray.Parse(RawData).ToObject(Of List(Of FavData))
-                        If RawList.Count = 0 Then
-                            RawList.Add(GetNewFav("默认", Nothing)) ' 确保无论如何都要至少有一个
-                        End If
+                    ' 最终兜底：确保至少有一个收藏夹
+                    If RawList Is Nothing OrElse RawList.Count = 0 Then
+                        RawList = New List(Of FavData) From {GetNewFav("默认", Nothing)}
                     End If
                     _FavoritesList = RawList
                     Save()
@@ -2113,10 +2130,12 @@ Retry:
             Set
                 _FavoritesList = Value
                 For Each item In _FavoritesList
-                    item.Notes = item.Notes.Where(Function(n) Not String.IsNullOrWhiteSpace(n.Value)).ToDictionary(Function(n) n.Key, Function(n) n.Value)
+                    item.Notes = item.Notes.
+                        Where(Function(n) Not String.IsNullOrWhiteSpace(n.Value)).
+                        ToDictionary()
                 Next
                 Dim RawList = JArray.FromObject(_FavoritesList)
-                Setup.Set("CompFavorites", RawList.ToString(Newtonsoft.Json.Formatting.None))
+                Config.Tool.CompFavorites = JsonSerializer.Serialize(_FavoritesList)
             End Set
         End Property
 
@@ -2172,12 +2191,19 @@ Retry:
         ''' </summary>
         ''' <param name="Ids"></param>
         ''' <returns></returns>
-        Public Shared Function GetListByIdsFromModrinth(Ids As List(Of String)) As List(Of CompProject)
+        Public Shared Async Function GetListByIdsFromModrinthAsync(Ids As List(Of String)) As Task(Of List(Of CompProject))
             Dim Res As New List(Of CompProject)
-            Dim RawProjectsData = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Ids.Join(""",""")}""]", IsJson:=True)
-            For Each RawData In RawProjectsData
-                Res.Add(New CompProject(RawData))
-            Next
+            Try
+                Await Task.Run(
+                Sub()
+                    Dim RawProjectsData = DlModRequest($"https://api.modrinth.com/v2/projects?ids=[""{Ids.Join(""",""")}""]", IsJson:=True)
+                    For Each RawData In RawProjectsData
+                        Res.Add(New CompProject(RawData))
+                    Next
+                End Sub)
+            Catch ex As Exception
+                Log(ex, "从 Modrinth 获取数据失败")
+            End Try
             Return Res
         End Function
 
@@ -2186,60 +2212,56 @@ Retry:
         ''' </summary>
         ''' <param name="Ids"></param>
         ''' <returns></returns>
-        Public Shared Function GetListByIdsFromCurseforge(Ids As List(Of String)) As List(Of CompProject)
+        Public Shared Async Function GetListByIdsFromCurseforgeAsync(Ids As List(Of String)) As Task(Of List(Of CompProject))
             Dim Res As New List(Of CompProject)
-            Dim RawProjectsData = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
+            Try
+                Await Task.Run(
+                Sub()
+                    Dim RawProjectsData = GetJson(DlModRequest("https://api.curseforge.com/v1/mods",
                                        "POST", "{""modIds"": [" & Ids.Join(",") & "]}", "application/json"))("data")
-            For Each RawData In RawProjectsData
-                Res.Add(New CompProject(RawData))
-            Next
+
+                    For Each RawData In RawProjectsData
+                        Res.Add(New CompProject(RawData))
+                    Next
+                End Sub)
+            Catch ex As Exception
+                Log(ex, "从 CurseForge 获取数据失败")
+            End Try
             Return Res
         End Function
 
         Public Shared Function GetCompProjectsByIds(Input As List(Of String)) As List(Of CompProject)
-            If Not Input.Any() Then Return New List(Of CompProject)
-            Dim RawList As List(Of String) = Input
-            Dim ModrinthProjectIds As New List(Of String)
-            Dim CurseForgeProjectIds As New List(Of String)
-            Dim Res As List(Of CompProject) = New List(Of CompProject)
-            For Each Id In RawList
-                If IsFromCurseForge(Id) Then
-                    CurseForgeProjectIds.Add(Id)
+            Return GetCompProjectsByIdsAsync(Input).GetAwaiter().GetResult()
+        End Function
+
+        Public Shared Async Function GetCompProjectsByIdsAsync(Input As List(Of String)) As Task(Of List(Of CompProject))
+            If Not Input?.Any() Then Return New List(Of CompProject)
+
+            Dim modrinthIds As New List(Of String)
+            Dim curseForgeIds As New List(Of String)
+            For Each id In Input
+                If IsFromCurseForge(id) Then
+                    curseForgeIds.Add(id)
                 Else
-                    ModrinthProjectIds.Add(Id)
+                    modrinthIds.Add(id)
                 End If
             Next
-            '在线信息获取
-            Dim FinishedTask = 0
-            Dim NeedCompleteTask = 0
-            If CurseForgeProjectIds.Any() Then
-                NeedCompleteTask += 1
-                RunInNewThread(Sub()
-                                   Try
-                                       Res.AddRange(CompRequest.GetListByIdsFromCurseforge(CurseForgeProjectIds))
-                                   Catch ex As Exception
-                                       Log(ex, "[Favorites] 获取 CurseForge 数据失败", LogLevel.Hint)
-                                   Finally
-                                       FinishedTask += 1
-                                   End Try
-                               End Sub, "Favorites CurseForge")
+
+            Dim tasks As New List(Of Task(Of List(Of CompProject)))
+            If curseForgeIds.Any() Then
+                tasks.Add(CompRequest.GetListByIdsFromCurseforgeAsync(curseForgeIds))
             End If
-            If ModrinthProjectIds.Any() Then
-                NeedCompleteTask += 1
-                RunInNewThread(Sub()
-                                   Try
-                                       Res.AddRange(CompRequest.GetListByIdsFromModrinth(ModrinthProjectIds))
-                                   Catch ex As Exception
-                                       Log(ex, "[Favorites] 获取 Modrinth 数据失败", LogLevel.Hint)
-                                   Finally
-                                       FinishedTask += 1
-                                   End Try
-                               End Sub, "Favorites Modrinth")
+            If modrinthIds.Any() Then
+                tasks.Add(CompRequest.GetListByIdsFromModrinthAsync(modrinthIds))
             End If
-            Do Until FinishedTask = NeedCompleteTask
-                Thread.Sleep(50)
-            Loop
-            Return Res
+
+            Await Task.WhenAll(tasks.ToArray())
+            Dim result As New List(Of CompProject)
+            For Each task In tasks
+                result.AddRange(task.Result)
+            Next
+
+            Return result
         End Function
     End Class
 #End Region
@@ -2256,77 +2278,82 @@ Retry:
             End Sub)
             If Text = CurrentText Then Exit Sub
             CurrentText = Text
-            
+
             '在新线程中处理网络请求，避免在UI线程执行网络操作
-            RunInNewThread(Sub()
-                Try
-                    Dim Slug As String = Nothing
-                    Dim ProjectId As String = Nothing
-                    Dim CategoryURL As String = Nothing
-                    Dim ReturnData = Nothing
-                    Dim ProcessedText As String = Text.Replace("https://", "").Replace("http://", "")
+            RunInNewThread(
+                Sub()
+                    Try
+                        Dim Slug As String = Nothing
+                        Dim ProjectId As String = Nothing
+                        Dim CategoryURL As String = Nothing
+                        Dim ReturnData = Nothing
+                        Dim ProcessedText As String = Text.Replace("https://", "").Replace("http://", "")
 
-                    If ProcessedText.Contains("curseforge.com/minecraft/") Then 'e.g. www.curseforge.com/minecraft/mc-mods/jei
-                        Dim ClassIds As List(Of String) = New List(Of String) From {"6", "4471", "12", "6552"}
-                        Try
-                            CategoryURL = ProcessedText.Split("/")(2)
-                            Slug = ProcessedText.Split("/")(3)
-                            ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug, IsJson:=True) '获取资源信息
-                            Dim ReceivedClassId As String = ReturnData("data")(0)("categories")(0)("classId") '获取资源的 ClassId
+                        If ProcessedText.Contains("curseforge.com/minecraft/") Then 'e.g. www.curseforge.com/minecraft/mc-mods/jei
+                            Dim ClassIds As List(Of String) = New List(Of String) From {"6", "4471", "12", "6552"}
+                            Try
+                                CategoryURL = ProcessedText.Split("/")(2)
+                                Slug = ProcessedText.Split("/")(3)
+                                ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug, IsJson:=True) '获取资源信息
+                                Dim ReceivedClassId As String = ReturnData("data")(0)("categories")(0)("classId") '获取资源的 ClassId
 
-                            '判断资源的分类是否匹配，不在支持的资源类型中的就直接显示
-                            Dim IsCategoryMatched As Boolean = True
-                            Dim ResClassId As String = Nothing
-                            If CategoryURL = "mc-mods" AndAlso Not ReceivedClassId = "6" Then
-                                IsCategoryMatched = False
-                                ResClassId = "6"
-                            ElseIf CategoryURL = "modpacks" AndAlso Not ReceivedClassId = "4471" Then
-                                IsCategoryMatched = False
-                                ResClassId = "4471"
-                            ElseIf CategoryURL = "texture-packs" AndAlso Not ReceivedClassId = "12" Then
-                                IsCategoryMatched = False
-                                ResClassId = "12"
-                            ElseIf CategoryURL = "shaders" AndAlso Not ReceivedClassId = "6552" Then
-                                IsCategoryMatched = False
-                                ResClassId = "6552"
-                            End If
+                                '判断资源的分类是否匹配，不在支持的资源类型中的就直接显示
+                                Dim IsCategoryMatched As Boolean = True
+                                Dim ResClassId As String = Nothing
+                                If CategoryURL = "mc-mods" AndAlso Not ReceivedClassId = "6" Then
+                                    IsCategoryMatched = False
+                                    ResClassId = "6"
+                                ElseIf CategoryURL = "modpacks" AndAlso Not ReceivedClassId = "4471" Then
+                                    IsCategoryMatched = False
+                                    ResClassId = "4471"
+                                ElseIf CategoryURL = "texture-packs" AndAlso Not ReceivedClassId = "12" Then
+                                    IsCategoryMatched = False
+                                    ResClassId = "12"
+                                ElseIf CategoryURL = "shaders" AndAlso Not ReceivedClassId = "6552" Then
+                                    IsCategoryMatched = False
+                                    ResClassId = "6552"
+                                End If
 
-                            If Not IsCategoryMatched Then
-                                ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug + "&classId=" + ResClassId, IsJson:=True)
-                            End If
+                                If Not IsCategoryMatched Then
+                                    ReturnData = DlModRequest("https://api.curseforge.com/v1/mods/search?gameId=432&slug=" + Slug + "&classId=" + ResClassId, IsJson:=True)
+                                End If
 
-                            ProjectId = ReturnData("data")(0)("id")
-                        Catch ex As Exception
-                            Log("[Clipboard] 获取剪贴板 CurseForge 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
+                                ProjectId = ReturnData("data")(0)("id")
+                            Catch ex As Exception
+                                Log("[Clipboard] 获取剪贴板 CurseForge 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
+                                Exit Sub
+                            End Try
+                        ElseIf ProcessedText.Contains("modrinth.com/") Then 'e.g. modrinth.com/mod/fabric-api
+                            Try
+                                Slug = ProcessedText.Split("/")(2)
+                                ProjectId = DlModRequest("https://api.modrinth.com/v2/project/" + Slug, IsJson:=True)("id")
+                            Catch ex As Exception
+                                Log("[Clipboard] 获取剪贴板 Modrinth 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
+                                Exit Sub
+                            End Try
+                        Else
                             Exit Sub
-                        End Try
-                    ElseIf ProcessedText.Contains("modrinth.com/") Then 'e.g. modrinth.com/mod/fabric-api
-                        Try
-                            Slug = ProcessedText.Split("/")(2)
-                            ProjectId = DlModRequest("https://api.modrinth.com/v2/project/" + Slug, IsJson:=True)("id")
-                        Catch ex As Exception
-                            Log("[Clipboard] 获取剪贴板 Modrinth 资源链接 ID 失败: " + ex.ToString(), LogLevel.Normal)
-                            Exit Sub
-                        End Try
-                    Else
-                        Exit Sub
-                    End If
-
-                    Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
-
-                    RunInUi(Sub()
-                        If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
-                            Hint("正在获取资源信息，请稍等...")
-                            Dim Ids As New List(Of String)({ProjectId})
-                            Dim CompProjects = CompRequest.GetCompProjectsByIds(Ids)
-                            FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
-                                           .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
                         End If
-                    End Sub)
-                Catch ex As Exception
-                    Log("[Clipboard] 处理剪贴板资源时发生错误: " + ex.ToString(), LogLevel.Normal)
-                End Try
-            End Sub, "Clipboard Resource Processing")
+
+                        Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
+
+                        Application.Current.Dispatcher.BeginInvoke(Async Function() As Task
+                            If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
+                                Hint("正在获取资源信息，请稍等...")
+                                Dim Ids As New List(Of String)({ProjectId})
+                                Dim CompProjects = Await CompRequest.GetCompProjectsByIdsAsync(Ids)
+                                If CompProjects.Count = 0 Then
+                                    Hint("剪贴板中的资源内容无效", HintType.Critical)
+                                    Return
+                                End If
+                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
+                                .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
+                            End If
+                        End Function)
+                    Catch ex As Exception
+                        Log("[Clipboard] 处理剪贴板资源时发生错误: " + ex.ToString(), LogLevel.Normal)
+                    End Try
+                End Sub, "Clipboard Resource Processing")
 
         End Sub
     End Class
