@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="PageSetupLeft"
              d:DesignWidth="152">
-    <StackPanel Margin="0,12,0,0" x:Name="PanItem">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,12,0,0" x:Name="PanItem">
         <TextBlock Text="游戏" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
         
         <local:MyListItem x:Name="ItemLaunch" IsScaleAnimationEnabled="False" Checked="True" Tag="0" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="启动" Type="RadioBox"
@@ -66,4 +67,5 @@
         <local:MyListItem x:Name="ItemLog" IsScaleAnimationEnabled="False" Tag="5" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="查看日志" Type="RadioBox" LogoScale="0.9"
                   Logo="M 4 2 C 3.27778 2 2.54212 2.23535 1.96094 2.75195 C 1.37976 3.26856 1 4.08333 1 5 v 2 c 0 1.09272 0.907275 2 2 2 h 2 v 10 c 0 0.916666 0.379756 1.73144 0.960938 2.24805 C 6.54212 21.7647 7.27778 22 8 22 h 12 c 1.64501 0 3 -1.35499 3 -3 v -1 c 0 -1.09272 -0.907275 -2 -2 -2 H 20 V 5 C 20 3.35499 18.645 2 17 2 Z M 4 4 C 4.27778 4 4.54212 4.09799 4.71094 4.24805 C 4.87976 4.39811 5 4.58333 5 5 V 7 H 3 V 5 C 3 4.58333 3.12024 4.39811 3.28906 4.24805 C 3.45788 4.09799 3.72222 4 4 4 Z M 6.79492 4 H 17 c 0.564129 0 1 0.435871 1 1 v 11 h -7 c -1.09272 0 -2 0.907275 -2 2 v 1 C 9 19.4167 8.87976 19.6019 8.71094 19.752 C 8.54212 19.902 8.27778 20 8 20 C 7.72222 20 7.45788 19.902 7.28906 19.752 C 7.12024 19.6019 7 19.4167 7 19 V 8 V 5 C 7 4.64011 6.90114 4.31648 6.79492 4 Z M 10 7 a 1 1 0 0 0 -1 1 a 1 1 0 0 0 1 1 h 5 A 1 1 0 0 0 16 8 A 1 1 0 0 0 15 7 Z m 0 4 a 1 1 0 0 0 -1 1 a 1 1 0 0 0 1 1 h 5 a 1 1 0 0 0 1 -1 a 1 1 0 0 0 -1 -1 z m 1 7 h 8 h 2 v 1 c 0 0.564129 -0.435871 1 -1 1 H 10.7949 C 10.9011 19.6835 11 19.3599 11 19 Z"/>
     </StackPanel>
+        </local:MyScrollViewer>
 </local:MyPageLeft>
