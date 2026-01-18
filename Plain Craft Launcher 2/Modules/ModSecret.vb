@@ -658,7 +658,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                    loaders.Add(New LoaderTask(Of Integer, Integer)("显示按钮", Sub()
                                        IsUpdateWaitingRestart = True
                                        RunInUi(Sub()
-                                           FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} -> {version.VersionName})"
+                                           FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} → {version.VersionName})"
                                            FrmMain.BtnExtraUpdateRestart.ShowRefresh()
                                            FrmMain.BtnExtraUpdateRestart.Ribble()
                                        End Sub)

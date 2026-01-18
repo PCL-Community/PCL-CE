@@ -548,6 +548,29 @@ Public Class PageToolsGameLink
         Dim lobby = LobbyService.DiscoverWorldAsync()
     End Sub
 
+    Private Async Sub BtnInputPort_Click(sender As Object, e As EventArgs) Handles BtnInputPort.Click
+        Try
+            BtnInputPort.IsEnabled = False
+            If Not LobbyPrecheck() Then
+                Return
+            End If
+            Dim input = MyMsgBoxInput("请输入端口", ValidateRules:=New Collection(Of Validate) From {New ValidateInteger(1024, 65535)})
+            Dim port As Integer
+            If Integer.TryParse(input, port) Then
+                Using ping As New McPing("127.0.0.1", port, 5000)
+                    Dim res = Await ping.PingAsync()
+                    If res IsNot Nothing AndAlso res.Version.Protocol <> 0 Then
+                        Await CreateLobby(port)
+                    Else
+                        Hint("这似乎不是个 MC 服务端口...", HintType.Critical)
+                    End If
+                End Using
+            End If
+        Finally
+            BtnInputPort.IsEnabled = True
+        End Try
+    End Sub
+
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then
@@ -563,6 +586,10 @@ Public Class PageToolsGameLink
         End If
 
         Dim port = CType(ComboWorldList.SelectedItem.Tag, Integer)
+        Await CreateLobby(port)
+    End Sub
+
+    Private Async Function CreateLobby(port As Integer) As Task
         Log("[Link] 创建大厅，端口：" & port)
 
 
@@ -592,10 +619,8 @@ Public Class PageToolsGameLink
                         StackPlayerList.Children.Clear()
                         CurrentSubpage = Subpages.PanSelect
                     End Sub)
-        Else
-
         End If
-    End Sub
+    End Function
 
     '加入大厅
     Private Async Sub BtnJoin_Click(sender As Object, e As EventArgs) Handles BtnJoin.Click

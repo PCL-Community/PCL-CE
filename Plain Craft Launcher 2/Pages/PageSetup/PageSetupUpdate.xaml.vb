@@ -192,6 +192,7 @@ Public Class PageSetupUpdate
     End Sub
     
     Public Function VersionNameFormat(str As String) As String
+        str = str.Replace("v", "")
         If Not str.Contains("-") Then Return str
         Dim add = str.AfterLast("-")
         str = str.BeforeLast("-")
