@@ -1557,7 +1557,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadQuilt) IsNot Nothing Then Return GetLoaderError(LoadQuilt)
         '检查版本
-        For Each version As JObject In DlFabricListLoader.Output.Value("game")
+        For Each version As JObject In DlQuiltListLoader.Output.Value("game")
             If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing
