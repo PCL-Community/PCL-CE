@@ -138,6 +138,8 @@ Public Class FormMain
         '初始化尺寸改变
         If Not Setup.Get("UiLockWindowSize") Then
             AddResizer()
+        Else
+            RemoveResizer()
         End If
         'PLC 彩蛋
         If RandomUtils.NextInt(1, 1000) = 233 Then
