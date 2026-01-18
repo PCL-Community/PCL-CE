@@ -1,7 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Markup;
 using Microsoft.Xaml.Behaviors;
 using PCL.Core.UI.Animation.Animatable;
@@ -10,12 +8,12 @@ using PCL.Core.Utils;
 namespace PCL.Core.UI.Animation.Core;
 
 [ContentProperty(nameof(Animation))]
-public class RunAnimation : TriggerAction<DependencyObject>
+public class RunAnimationAction : TriggerAction<DependencyObject>
 {
     public static readonly DependencyProperty AnimationProperty = DependencyProperty.Register(
         nameof(Animation),
         typeof(IAnimation),
-        typeof(RunAnimation),
+        typeof(RunAnimationAction),
         new PropertyMetadata(default(IAnimation)));
 
     public IAnimation Animation
@@ -27,7 +25,7 @@ public class RunAnimation : TriggerAction<DependencyObject>
     public static readonly DependencyProperty TargetPropertyProperty = DependencyProperty.Register(
         nameof(TargetProperty),
         typeof(DependencyProperty),
-        typeof(RunAnimation),
+        typeof(RunAnimationAction),
         new PropertyMetadata(default(DependencyProperty)));
 
     public DependencyProperty TargetProperty

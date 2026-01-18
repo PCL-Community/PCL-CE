@@ -4,6 +4,8 @@ namespace PCL.Core.UI.Animation.Easings;
 
 public class CircularEaseInOut : Easing
 {
+    public static CircularEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5)

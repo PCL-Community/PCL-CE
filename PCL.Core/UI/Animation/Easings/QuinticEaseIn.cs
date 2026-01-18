@@ -2,6 +2,8 @@
 
 public class QuinticEaseIn : Easing
 {
+    public static QuinticEaseIn Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         var p2 = progress * progress;

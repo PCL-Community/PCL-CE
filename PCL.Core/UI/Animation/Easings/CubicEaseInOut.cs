@@ -2,6 +2,8 @@
 
 public class CubicEaseInOut : Easing
 {
+    public static CubicEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Numerics;
+using System.Windows;
 using System.Windows.Media;
+using PCL.Core.App;
 
 namespace PCL.Core.UI;
 
@@ -49,11 +51,10 @@ public struct NColor :
 
     public NColor(float r, float g, float b, float a = 255f)
     {
-        _color = new Vector4(Math.Clamp(r, 0, 255), Math.Clamp(g, 0, 255), Math.Clamp(b, 0, 255),
-            Math.Clamp(a, 0, 255));
+        _color = new Vector4(r, g, b, a);
     }
 
-    public NColor(Color color) : this(color.R, color.G, color.B, a: color.A)
+    public NColor(Color color) : this(color.R, color.G, color.B, color.A)
     {
     }
 
@@ -61,14 +62,34 @@ public struct NColor :
     {
     }
 
-    public NColor(string hex)
+    public NColor(string str)
     {
-        if (string.IsNullOrWhiteSpace(hex))
-            throw new ArgumentException("颜色字符串不能为空。", nameof(hex));
+        try
+        {
+            var resource = Lifecycle.CurrentApplication.FindResource(str);
+            switch (resource)
+            {
+                case Color color:
+                    _color = new Vector4(color.R, color.G, color.B, color.A);
+                    return;
+                case SolidColorBrush brush:
+                    var brushColor = brush.Color;
+                    _color = new Vector4(brushColor.R, brushColor.G, brushColor.B, brushColor.A);
+                    return;
+            }
+        }
+        catch
+        {
+            // 忽略
+        }
+      
+        
+        if (string.IsNullOrWhiteSpace(str))
+            throw new ArgumentException("颜色字符串不能为空。", nameof(str));
 
-        var trimmedString = hex.Trim();
+        var trimmedString = str.Trim();
         if (!trimmedString.StartsWith('#'))
-            throw new ArgumentException("颜色字符串必须以 '#' 开头。", nameof(hex));
+            throw new ArgumentException("颜色字符串必须以 '#' 开头。", nameof(str));
 
         trimmedString = trimmedString[1..];
 
@@ -104,7 +125,7 @@ public struct NColor :
                 break;
 
             default:
-                throw new ArgumentException($"无效的颜色字符串长度：{trimmedString.Length}。", nameof(hex));
+                throw new ArgumentException($"无效的颜色字符串长度：{trimmedString.Length}。", nameof(str));
         }
 
         _color = new Vector4(r, g, b, a);
@@ -126,40 +147,21 @@ public struct NColor :
     {
     }
 
+    private NColor(Vector4 v) => _color = v;
+
     #endregion
 
     #region 运算符重载
 
-    public static NColor operator +(NColor a, NColor b)
-    {
-        return new NColor(a.R + b.R, a.G + b.G, a.B + b.B, a.A + b.A);
-    }
+    public static NColor operator +(NColor a, NColor b) => new(a._color + b._color);
+    public static NColor operator -(NColor a, NColor b) => new(a._color - b._color);
+    public static NColor operator *(NColor a, float b) => new(a._color * b);
 
-    public static NColor operator -(NColor a, NColor b)
-    {
-        return new NColor(a.R - b.R, a.G - b.G, a.B - b.B, a.A - b.A);
-    }
+    public static NColor operator /(NColor a, float b) =>
+        b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NColor(a._color / b);
 
-    public static NColor operator *(NColor a, float b)
-    {
-        return new NColor(a.R * b, a.G * b, a.B * b, a.A * b);
-    }
-
-    public static NColor operator /(NColor a, float b)
-    {
-        if (b == 0) throw new DivideByZeroException("除数不能为零。");
-        return new NColor(a.R / b, a.G / b, a.B / b, a.A / b);
-    }
-
-    public static bool operator ==(NColor a, NColor b)
-    {
-        return a._color == b._color;
-    }
-
-    public static bool operator !=(NColor a, NColor b)
-    {
-        return a._color != b._color;
-    }
+    public static bool operator ==(NColor a, NColor b) => a._color == b._color;
+    public static bool operator !=(NColor a, NColor b) => a._color != b._color;
 
     #endregion
 
@@ -229,6 +231,23 @@ public struct NColor :
             _ => v1
         };
     }
+
+    #endregion
+    
+    #region 隐式转换
+
+    public static implicit operator Color(NColor color) =>
+        Color.FromArgb(
+            (byte)Math.Clamp(color.A, 0, 255),
+            (byte)Math.Clamp(color.R, 0, 255),
+            (byte)Math.Clamp(color.G, 0, 255),
+            (byte)Math.Clamp(color.B, 0, 255));
+    public static implicit operator Brush(NColor color) => new SolidColorBrush(color);
+    public static implicit operator SolidColorBrush(NColor color) => new(color);
+
+    public static implicit operator NColor(Color color) => new(color);
+    public static implicit operator NColor(Brush brush) => new(brush);
+    public static implicit operator NColor(SolidColorBrush brush) => new(brush);
 
     #endregion
 }

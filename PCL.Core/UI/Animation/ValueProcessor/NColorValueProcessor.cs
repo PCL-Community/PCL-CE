@@ -11,9 +11,14 @@ public class NColorValueProcessor : IValueProcessor<NColor>
         
         return value;
     }
-
+    
     public NColor Add(NColor value1, NColor value2) => value1 + value2;
-
+    
     public NColor Subtract(NColor value1, NColor value2) => value1 - value2;
+    
     public NColor Scale(NColor value, double factor) => value * (float)factor;
+    
+    public NColor DefaultValue() => new();
+    
+    public bool Equal(NColor value1, NColor value2) => value1 == value2;
 }

@@ -100,7 +100,7 @@ Public Class MyExtraTextButton
                     Dim aniScale = New NScaleTransformFromToAnimation
                     aniScale.To = New NScaleTransform(1, 1, 0.5, 0.5)
                     aniScale.Easing = New CompositeEasing((New BackEaseWithPowerOut(), TimeSpan.FromMilliseconds(400), 0.15),
-                                                          (CubicEaseOut.Shared, TimeSpan.FromMilliseconds(160), 85))
+                                                          (CubicEaseOut.Shared, TimeSpan.FromMilliseconds(160), 0.85))
                     aniScale.Duration = TimeSpan.FromMilliseconds(400)
                     aniScale.Delay = TimeSpan.FromMilliseconds(60)
                     aniScale.SetValue(AnimationExtensions.TargetProperty, Me)

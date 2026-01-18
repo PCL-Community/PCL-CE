@@ -119,7 +119,8 @@ Public Class FormMain
         Lifecycle.When(LifecycleState.WindowCreated, AddressOf FormMain_Loaded)
     End Sub
 
-    Private Async Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+    Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        FormMain_SizeChanged()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -236,7 +237,7 @@ Public Class FormMain
 '        End Sub
         
         Dim aniCompleted = New ActionAnimation(Sub()
-            PanBack.RenderTransform = Nothing
+            RenderTransform = Nothing
             IsWindowLoadFinished = True
             Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
         End Sub)
@@ -522,7 +523,7 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Async Sub EndProgram(SendWarning As Boolean)
+    Public Sub EndProgram(SendWarning As Boolean)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -554,6 +555,8 @@ Public Class FormMain
                 Dim TransformPos As New TranslateTransform(0, 0)
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
+                TransformScale.CenterX = Width / 2
+                TransformScale.CenterY = Height / 2
                 PanBack.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
 '                AniStart({
 '                    AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),

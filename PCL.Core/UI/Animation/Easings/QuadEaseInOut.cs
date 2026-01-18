@@ -2,6 +2,8 @@
 
 public class QuadEaseInOut : Easing
 {
+    public static QuadEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5)

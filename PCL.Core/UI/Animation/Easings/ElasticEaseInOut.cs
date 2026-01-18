@@ -5,6 +5,8 @@ namespace PCL.Core.UI.Animation.Easings;
 
 public class ElasticEaseInOut : Easing
 {
+    public static ElasticEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5d)
