@@ -847,6 +847,7 @@ ExitDataLoad:
                     Config.Instance.NeoForgeVersion(PathInstance) = Info.NeoForge
                     Config.Instance.CleanroomVersion(PathInstance) = Info.Cleanroom
                     Config.Instance.VanillaVersionName(PathInstance) = Info.VanillaName
+                    Config.Instance.VanillaVersion(PathInstance) = Info.Vanilla.ToString()
                 End If
             Catch ex As Exception
                 Desc = "未知错误：" & ex.ToString()
@@ -1396,7 +1397,8 @@ OnLoaded:
                         instance.IsStar = instanceCfg.Starred(instance.PathInstance)
                         instance.DisplayType = instanceCfg.CardType(instance.PathInstance)
                         If instance.State <> McInstanceState.Error AndAlso
-                           Not instanceCfg.VanillaVersionNameConfig.IsDefault(instance.PathInstance) Then '旧版本可能没有这一项，导致 Instance 不加载（#643）
+                           Not instanceCfg.VanillaVersionNameConfig.IsDefault(instance.PathInstance) AndAlso '旧版本可能没有这一项，导致 Instance 不加载（#643）
+                           Not instanceCfg.VanillaVersionConfig.IsDefault(instance.PathInstance) Then
                             Dim instanceInfo As New McInstanceInfo With {
                                     .Fabric = instanceCfg.FabricVersion(instance.PathInstance),
                                     .LegacyFabric = instanceCfg.LegacyFabricVersion(instance.PathInstance),

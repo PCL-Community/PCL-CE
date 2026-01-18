@@ -120,7 +120,9 @@ Public Class MyCard
         End If
     End Sub
     Private Sub Dispose() Handles Me.Unloaded
-        RemoveHandler ThemeChanged, AddressOf _ThemeChanged
+        If Parent Is Nothing Then
+            RemoveHandler ThemeChanged, AddressOf _ThemeChanged
+        End If
     End Sub
     Public Sub StackInstall()
         StackInstall(SwapControl, InstallMethod)

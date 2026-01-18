@@ -1,0 +1,177 @@
+﻿# PCL.Core 项目级别的编辑器规则
+
+[*.cs]
+
+# 定义符号
+
+# 常量
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+
+# 局部变量 & 方法/构造函数参数
+dotnet_naming_symbols.local_and_parameter.applicable_kinds = local, parameter
+dotnet_naming_symbols.local_and_parameter.applicable_accessibilities = *
+dotnet_naming_symbols.local_and_parameter.required_modifiers =
+
+# 私有实例只读字段
+dotnet_naming_symbols.private_instance_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.private_instance_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_instance_readonly_fields.required_modifiers = readonly
+
+# 私有静态只读字段
+dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
+
+# 私有实例字段（非只读）
+dotnet_naming_symbols.private_instance_fields.applicable_kinds = field
+dotnet_naming_symbols.private_instance_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_instance_fields.required_modifiers =
+
+# 私有静态字段（非只读）
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+# 私有实例属性
+dotnet_naming_symbols.private_instance_properties.applicable_kinds = property
+dotnet_naming_symbols.private_instance_properties.applicable_accessibilities = private
+dotnet_naming_symbols.private_instance_properties.required_modifiers =
+
+# 私有静态属性
+dotnet_naming_symbols.private_static_properties.applicable_kinds = property
+dotnet_naming_symbols.private_static_properties.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_properties.required_modifiers = static
+
+# 其它实例变量（public/internal/protected 的字段、属性、事件）
+dotnet_naming_symbols.variables_instance_others.applicable_kinds = field, property, event
+dotnet_naming_symbols.variables_instance_others.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.variables_instance_others.required_modifiers =
+
+# 其它静态变量（public/internal/protected 的字段、属性、事件）
+dotnet_naming_symbols.variables_static_others.applicable_kinds = field, property, event
+dotnet_naming_symbols.variables_static_others.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.variables_static_others.required_modifiers = static
+
+# 私有方法（静态+实例）
+dotnet_naming_symbols.private_methods.applicable_kinds = method
+dotnet_naming_symbols.private_methods.applicable_accessibilities = private
+dotnet_naming_symbols.private_methods.required_modifiers =
+
+# 非私有方法（静态+实例）
+dotnet_naming_symbols.non_private_methods.applicable_kinds = method
+dotnet_naming_symbols.non_private_methods.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_private_methods.required_modifiers =
+
+# 局部方法（local function）
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+dotnet_naming_symbols.local_functions.applicable_accessibilities = *
+dotnet_naming_symbols.local_functions.required_modifiers =
+
+# 接口
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_symbols.interfaces.required_modifiers =
+
+# 其它类型（class, struct, enum, delegate）
+dotnet_naming_symbols.other_types.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.other_types.applicable_accessibilities = *
+dotnet_naming_symbols.other_types.required_modifiers =
+
+# 定义命名风格
+
+# camelCase
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# PascalCase
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# _PascalCase
+dotnet_naming_style.underscore_pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.underscore_pascal_case_style.required_prefix = _
+
+# _camelCase
+dotnet_naming_style.underscore_camel_case_style.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case_style.required_prefix = _
+
+# IPascalCase
+dotnet_naming_style.prefix_I_pascal_style.capitalization = pascal_case
+dotnet_naming_style.prefix_I_pascal_style.required_prefix = I
+
+# 绑定命名规则
+
+# 常量 应 PascalCase
+dotnet_naming_rule.const.symbols = constants
+dotnet_naming_rule.const.style = pascal_case_style
+dotnet_naming_rule.const.severity = warning
+
+# 局部变量 & 参数 应 camelCase
+dotnet_naming_rule.local_var.symbols = local_and_parameter
+dotnet_naming_rule.local_var.style = camel_case_style
+dotnet_naming_rule.local_var.severity = warning
+
+# 私有实例只读字段 应 _camelCase
+dotnet_naming_rule.private_readonly_field.symbols = private_instance_readonly_fields
+dotnet_naming_rule.private_readonly_field.style = underscore_camel_case_style
+dotnet_naming_rule.private_readonly_field.severity = warning
+
+# 私有静态只读字段 应 _PascalCase
+dotnet_naming_rule.private_static_readonly_field.symbols = private_static_readonly_fields
+dotnet_naming_rule.private_static_readonly_field.style = underscore_pascal_case_style
+dotnet_naming_rule.private_static_readonly_field.severity = warning
+
+# 私有实例字段 应 _camelCase
+dotnet_naming_rule.private_field.symbols = private_instance_fields
+dotnet_naming_rule.private_field.style = underscore_camel_case_style
+dotnet_naming_rule.private_field.severity = warning
+
+# 私有静态字段 应 _camelCase
+dotnet_naming_rule.private_static_field.symbols = private_static_fields
+dotnet_naming_rule.private_static_field.style = underscore_camel_case_style
+dotnet_naming_rule.private_static_field.severity = warning
+
+# 私有实例属性 应 _PascalCase
+dotnet_naming_rule.private_property.symbols = private_instance_properties
+dotnet_naming_rule.private_property.style = underscore_pascal_case_style
+dotnet_naming_rule.private_property.severity = warning
+
+# 私有静态属性 应 PascalCase
+dotnet_naming_rule.private_static_property.symbols = private_static_properties
+dotnet_naming_rule.private_static_property.style = pascal_case_style
+dotnet_naming_rule.private_static_property.severity = warning
+
+# 其它实例变量 应 PascalCase
+dotnet_naming_rule.field.symbols = variables_instance_others
+dotnet_naming_rule.field.style = pascal_case_style
+dotnet_naming_rule.field.severity = warning
+
+# 其它静态变量 应 PascalCase
+dotnet_naming_rule.static_field.symbols = variables_static_others
+dotnet_naming_rule.static_field.style = pascal_case_style
+dotnet_naming_rule.static_field.severity = warning
+
+# 私有方法 应 _PascalCase
+dotnet_naming_rule.private_method.symbols = private_methods
+dotnet_naming_rule.private_method.style = underscore_pascal_case_style
+dotnet_naming_rule.private_method.severity = warning
+
+# 非私有方法 应 PascalCase
+dotnet_naming_rule.method.symbols = non_private_methods
+dotnet_naming_rule.method.style = pascal_case_style
+dotnet_naming_rule.method.severity = warning
+
+# 局部方法 应 PascalCase
+dotnet_naming_rule.local_func.symbols = local_functions
+dotnet_naming_rule.local_func.style = pascal_case_style
+dotnet_naming_rule.local_func.severity = warning
+
+# 接口 应 IPascalCase
+dotnet_naming_rule.interface.symbols = interfaces
+dotnet_naming_rule.interface.style = prefix_I_pascal_style
+dotnet_naming_rule.interface.severity = warning
+
+# 其它类型 应 PascalCase
+dotnet_naming_rule.type.symbols = other_types
+dotnet_naming_rule.type.style = pascal_case_style
+dotnet_naming_rule.type.severity = warning

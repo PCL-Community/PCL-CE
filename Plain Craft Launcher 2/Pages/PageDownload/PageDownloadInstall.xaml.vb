@@ -5,6 +5,11 @@ Public Class PageDownloadInstall
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
     End Sub
 
+    Public Sub New()
+        InitializeComponent()
+        PanScroll = Me.PanBack
+    End Sub
+
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()
@@ -341,7 +346,7 @@ Public Class PageDownloadInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If _vanillaData("releaseTime").ToObject(Of Date) < New Date(2023, 6, 11) Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
