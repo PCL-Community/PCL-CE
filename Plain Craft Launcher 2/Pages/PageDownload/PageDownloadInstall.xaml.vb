@@ -1317,10 +1317,10 @@ Public Class PageDownloadInstall
     Private Function LoadFabricApiGetError() As String
         '检查 Loader
         If GetLoaderError(LoadFabricApi) IsNot Nothing Then Return GetLoaderError(LoadFabricApi)
-        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing, "需要安装 Fabric", "获取中……")
+        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", "获取中……")
         '检查版本
         If DlFabricApiLoader.Output.Any(Function(f) IsFabricApiCompatible(f)) Then
-            Return If(SelectedFabric Is Nothing, "需要安装 Fabric", Nothing)
+            Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", Nothing)
         Else
             Return "无可用版本"
         End If
