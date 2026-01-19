@@ -1,4 +1,9 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.UI
+Imports PCL.Core.UI.Animation
+Imports PCL.Core.UI.Animation.Animatable
+Imports PCL.Core.UI.Animation.Core
+Imports PCL.Core.UI.Animation.Easings
 
 <ContentProperty("Inlines")>
 Public Class MyHint
@@ -101,7 +106,46 @@ Public Class MyHint
     End Sub
     Private Sub BtnClose_Click(sender As Object, e As EventArgs) Handles BtnClose.Click
         Setup.Set(RelativeSetup, True)
-        AniDispose(Me, False)
+'        AniDispose(Me, False)
+        If Not IsHitTestVisible Then Return
+        IsHitTestVisible = False
+        Dim aniGroup1 = New SequentialAnimationGroup
+        aniGroup1.Name = "MyCard Dispose " & Uuid
+        
+        Dim aniGroup2 = New ParallelAnimationGroup
+        
+        Dim aniScale = New NScaleTransformFromToAnimation
+        aniScale.ValueType = AnimationValueType.Relative
+        aniScale.To = New NScaleTransform(-0.08, -0.08, 0.5, 0.5)
+        aniScale.Easing = QuadEaseIn.Shared
+        aniScale.Duration = TimeSpan.FromMilliseconds(200)
+        aniScale.SetValue(AnimationExtensions.TargetProperty, Me)
+        aniScale.SetValue(AnimationExtensions.TargetPropertyProperty, RenderTransformProperty)
+        aniGroup2.Children.Add(aniScale)
+        
+        Dim aniOpacity = New DoubleFromToAnimation
+        aniOpacity.To = 0
+        aniOpacity.Easing = QuadEaseOut.Shared
+        aniOpacity.Duration = TimeSpan.FromMilliseconds(200)
+        aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
+        aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
+        aniGroup2.Children.Add(aniOpacity)
+        
+        Dim aniHeight = New DoubleFromToAnimation
+        aniHeight.To = 0
+        aniHeight.Easing = QuadEaseOut.Shared
+        aniHeight.Duration = TimeSpan.FromMilliseconds(100)
+        aniHeight.Delay = TimeSpan.FromMilliseconds(150)
+        aniHeight.SetValue(AnimationExtensions.TargetProperty, Me)
+        aniHeight.SetValue(AnimationExtensions.TargetPropertyProperty, HeightProperty)
+        aniGroup2.Children.Add(aniHeight)
+        
+        aniGroup1.Children.Add(aniGroup1)
+        
+        Dim aniRemove = New ActionAnimation(Sub() Visibility = Visibility.Collapsed)
+        aniGroup1.Children.Add(aniRemove)
+        
+        aniGroup1.RunFireAndForget(EmptyAnimatable.Instance)
     End Sub
 
     '触发点击事件
@@ -205,23 +249,23 @@ Public Class MyHint
     '    End Select
     'End Sub
 End Class
-Partial Public Module ModAnimation
-    Public Sub AniDispose(Control As MyHint, RemoveFromChildren As Boolean, Optional CallBack As ParameterizedThreadStart = Nothing)
-        If Not Control.IsHitTestVisible Then Return
-        Control.IsHitTestVisible = False
-        AniStart({
-            AaScaleTransform(Control, -0.08, 200,, New AniEaseInFluent),
-            AaOpacity(Control, -1, 200,, New AniEaseOutFluent),
-            AaHeight(Control, -Control.ActualHeight, 150, 100, New AniEaseOutFluent),
-            AaCode(
-            Sub()
-                If RemoveFromChildren Then
-                    CType(Control.Parent, Object).Children.Remove(Control)
-                Else
-                    Control.Visibility = Visibility.Collapsed
-                End If
-                If CallBack IsNot Nothing Then CallBack(Control)
-            End Sub,, True)
-        }, "MyCard Dispose " & Control.Uuid)
-    End Sub
-End Module
+'Partial Public Module ModAnimation
+'    Public Sub AniDispose(Control As MyHint, RemoveFromChildren As Boolean, Optional CallBack As ParameterizedThreadStart = Nothing)
+'        If Not Control.IsHitTestVisible Then Return
+'        Control.IsHitTestVisible = False
+'        AniStart({
+'            AaScaleTransform(Control, -0.08, 200,, New AniEaseInFluent),
+'            AaOpacity(Control, -1, 200,, New AniEaseOutFluent),
+'            AaHeight(Control, -Control.ActualHeight, 150, 100, New AniEaseOutFluent),
+'            AaCode(
+'            Sub()
+'                If RemoveFromChildren Then
+'                    CType(Control.Parent, Object).Children.Remove(Control)
+'                Else
+'                    Control.Visibility = Visibility.Collapsed
+'                End If
+'                If CallBack IsNot Nothing Then CallBack(Control)
+'            End Sub,, True)
+'        }, "MyCard Dispose " & Control.Uuid)
+'    End Sub
+'End Module
