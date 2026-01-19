@@ -526,6 +526,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
             ' 通用ContextMenu主题刷新
             RefreshAllContextMenuThemes()
+            FrmMain.PanTitleSelect.Children.OfType(Of MyRadioButton)().ToList().ForEach(Sub(btn) btn.RefreshMyRadioButtonColor())
         End Sub)
     End Sub
     Friend Sub ThemeCheckAll(EffectSetup As Boolean)

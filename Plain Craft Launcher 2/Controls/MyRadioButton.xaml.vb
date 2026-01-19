@@ -170,7 +170,7 @@ Public Class MyRadioButton
     Private Const AnimationTimeOfMouseIn As Integer = 90 '鼠标指向动画长度
     Private Const AnimationTimeOfMouseOut As Integer = 150 '鼠标移出动画长度
     Private Const AnimationTimeOfCheck As Integer = 120 '勾选状态变更动画长度
-    Private Sub RefreshColor(Optional obj = Nothing, Optional e = Nothing) Handles Me.MouseEnter, Me.MouseLeave, Me.Loaded
+    Public Sub RefreshColor(Optional obj = Nothing, Optional e = Nothing) Handles Me.MouseEnter, Me.MouseLeave, Me.Loaded
         Try
             If IsLoaded AndAlso AniControlEnabled = 0 AndAlso Not False.Equals(e) Then '防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
 
@@ -262,5 +262,7 @@ Public Class MyRadioButton
             Log(ex, "刷新单选按钮颜色出错")
         End Try
     End Sub
-
+    Public Sub RefreshMyRadioButtonColor()
+        RefreshColor()
+    End Sub
 End Class
