@@ -354,7 +354,11 @@ Public Class FormMain
 #Region "自定义窗口"
     
     ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
-    Private Shared Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+    Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+        ' 如果不 resizable 直接退出
+        If ResizeMode = ResizeMode.NoResize Then Return IntPtr.Zero
+
+        ' 窗口活动常量
         Const WM_NCHITTEST = &H84
         Const HTCLIENT = 1
         Const HTLEFT = 10
@@ -366,16 +370,19 @@ Public Class FormMain
         Const HTBOTTOMLEFT = 16
         Const HTBOTTOMRIGHT = 17
         
-        ' offset in WPF pixel
+        ' WPF 尺寸的 offset
         Const offsetWpf = 6
         Const hitWidthWpf = 5
         
-        ' offset in real pixel TODO
-        Dim offsetPx = offsetWpf
-        Dim hitWidthPx = hitWidthWpf
-        
         ' 过滤非 WM_NCHITTEST 事件
         If msg <> WM_NCHITTEST Then Return IntPtr.Zero
+        
+        ' 真实像素尺寸的 offset
+        Dim dpi = VisualTreeHelper.GetDpi(Me)
+        Dim offsetPxX = offsetWpf * dpi.DpiScaleX
+        Dim offsetPxY = offsetWpf * dpi.DpiScaleY
+        Dim hitWidthPxX = hitWidthWpf * dpi.DpiScaleX
+        Dim hitWidthPxY = hitWidthWpf * dpi.DpiScaleY
         
         ' 提取鼠标坐标
         ' 没妈的 VB 强转还得检查一下幻想的妈是不是还活着
@@ -402,10 +409,10 @@ Public Class FormMain
         Dim h As Integer = windowBounds.Height
 
         ' 判定是否命中偏移后的热区
-        Dim inLeft As Boolean = (relX >= offsetPx AndAlso relX <= offsetPx + hitWidthPx)
-        Dim inRight As Boolean = (relX <= w - offsetPx AndAlso relX >= w - offsetPx - hitWidthPx)
-        Dim inTop As Boolean = (relY >= offsetPx AndAlso relY <= offsetPx + hitWidthPx)
-        Dim inBottom As Boolean = (relY <= h - offsetPx AndAlso relY >= h - offsetPx - hitWidthPx)
+        Dim inLeft As Boolean = (relX >= offsetPxX AndAlso relX <= offsetPxX + hitWidthPxX)
+        Dim inRight As Boolean = (relX <= w - offsetPxX AndAlso relX >= w - offsetPxX - hitWidthPxX)
+        Dim inTop As Boolean = (relY >= offsetPxY AndAlso relY <= offsetPxY + hitWidthPxY)
+        Dim inBottom As Boolean = (relY <= h - offsetPxY AndAlso relY >= h - offsetPxY - hitWidthPxY)
 
         handled = True ' 接管该区域的消息
 
