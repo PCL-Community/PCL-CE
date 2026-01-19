@@ -353,11 +353,10 @@ Public Class FormMain
 
 #Region "自定义窗口"
     
+    Private CanResize As Boolean = True
+    
     ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
     Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
-        ' 如果不 resizable 直接退出
-        If ResizeMode = ResizeMode.NoResize Then Return IntPtr.Zero
-
         ' 窗口活动常量
         Const WM_NCHITTEST = &H84
         Const HTCLIENT = 1
@@ -377,13 +376,6 @@ Public Class FormMain
         ' 过滤非 WM_NCHITTEST 事件
         If msg <> WM_NCHITTEST Then Return IntPtr.Zero
         
-        ' 真实像素尺寸的 offset
-        Dim dpi = VisualTreeHelper.GetDpi(Me)
-        Dim offsetPxX = offsetWpf * dpi.DpiScaleX
-        Dim offsetPxY = offsetWpf * dpi.DpiScaleY
-        Dim hitWidthPxX = hitWidthWpf * dpi.DpiScaleX
-        Dim hitWidthPxY = hitWidthWpf * dpi.DpiScaleY
-        
         ' 提取鼠标坐标
         ' 没妈的 VB 强转还得检查一下幻想的妈是不是还活着
         Dim mouseBytes As Byte() = BitConverter.GetBytes(lParam.ToInt64())
@@ -401,6 +393,16 @@ Public Class FormMain
 
         ' 过滤不在窗口内的请求
         If Not isInWindow Then Return IntPtr.Zero
+
+        ' 如果 CanResize 为 False，直接返回 HTCLIENT
+        If Not CanResize Then Return New IntPtr(HTCLIENT)
+
+        ' 真实像素尺寸的 offset
+        Dim dpi = VisualTreeHelper.GetDpi(Me)
+        Dim offsetPxX = offsetWpf * dpi.DpiScaleX
+        Dim offsetPxY = offsetWpf * dpi.DpiScaleY
+        Dim hitWidthPxX = hitWidthWpf * dpi.DpiScaleX
+        Dim hitWidthPxY = hitWidthWpf * dpi.DpiScaleY
 
         ' 计算鼠标相对于窗口左上角的物理像素位置
         Dim relX As Integer = xMouse - windowRect.Left
@@ -606,10 +608,10 @@ Public Class FormMain
 
 #Region "窗体事件"
     Public Sub AddResizer()
-        Me.ResizeMode = ResizeMode.CanResize
+        CanResize = True
     End Sub
     Public Sub RemoveResizer()
-        Me.ResizeMode = ResizeMode.NoResize
+        CanResize = False
     End Sub
 
     '按键事件
