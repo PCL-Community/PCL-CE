@@ -635,7 +635,7 @@ public static partial class Config
             /// <summary>
             /// 预设选项。
             /// </summary>
-            [ConfigItem<int>("UiCustomPreset", 13, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
+            [ConfigItem<int>("UiCustomPreset", 14, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
 
             /// <summary>
             /// 自定义 URL。
