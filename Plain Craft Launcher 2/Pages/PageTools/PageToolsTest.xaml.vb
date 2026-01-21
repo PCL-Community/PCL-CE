@@ -156,8 +156,6 @@ Public Class PageToolsTest
                                 End If
                                 Setup.Set("HintClearRubbish", Setup.Get("HintClearRubbish") + 1)
                             End If
-                        ElseIf MyMsgBox("即将清理游戏日志、错误报告、缓存等文件。" & vbCrLf & vbCrLf & "你已将缓存文件夹手动修改为：" + PathTemp + vbCrLf & "清理过程中，将删除该文件夹中的所有内容，且无法恢复。请确认其中没有除了 PCL 缓存以外的重要文件！" & vbCrLf & vbCrLf & "在完成清理后，PCL 将自动重启。", "清理确认", "确定", "取消") = 2 Then
-                            Return
                         End If
 
                         '清理的文件数量
