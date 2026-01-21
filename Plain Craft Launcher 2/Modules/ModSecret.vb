@@ -699,7 +699,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If triggerRestartAndByEnd Then
-                FrmMain.EndProgram(False)
+                FrmMain.EndProgram(False, isUpdating:=True)
                 Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
             End If
         Catch ex As Win32Exception
