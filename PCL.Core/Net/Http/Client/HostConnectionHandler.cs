@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
 using PCL.Core.Net.Dns;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Net.Http.Client;
 
@@ -20,7 +21,7 @@ public class HostConnectionHandler
 
     private readonly DnsQuery _dnsQuery = DnsQuery.Instance;
     private static readonly TimeSpan _CacheDuration = TimeSpan.FromMinutes(10); // 10 分钟缓存(RFC 建议值)
-    private const int SecondConnectionDelay = 50;
+    private const int WaitTasks = 4;
 
     // 缓存结构: (host, port) -> (IPAddress -> LastSuccessUtc)
     private readonly ConcurrentDictionary<(string host, int port), ConcurrentDictionary<IPAddress, DateTime>>
@@ -48,25 +49,25 @@ public class HostConnectionHandler
         var sortedAddresses = _SortAddresses(host, port, addresses, now);
 
         // Happy Eyeballs 连接逻辑，优先 IPv6 稍后
-        var connectionTasks = new List<Task<NetworkStream>>(2);
+        var connectionTasks = new List<Task<NetworkStream>>(WaitTasks);
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var connectCancellationToken = cancellationSource.Token;
 
         try
         {
-            // 依次启用两个连接
-            if (sortedAddresses.Length > 0)
+            for (int i = 0; i < sortedAddresses.Length; i++)
             {
-                connectionTasks.Add(_ConnectToAddressAsync(sortedAddresses[0], port, connectCancellationToken));
-            }
+                var address = sortedAddresses[i];
+                var delayMs = i * (address.AddressFamily.Equals(AddressFamily.InterNetwork) ? 150 : 80); // 偏向使用 v6
 
-            if (sortedAddresses.Length > 1)
-            {
-                connectionTasks.Add(_DelayedConnectAsync(sortedAddresses[1], port, connectCancellationToken));
+                connectionTasks.Add(_DelayedConnectAsync(address, port, delayMs, connectCancellationToken));
             }
 
             // 等待首个成功连接
-            var winner = await Task.WhenAny(connectionTasks).ConfigureAwait(false);
+            var winner = await connectionTasks
+                .ToArray()
+                .WhenAnySuccess()
+                .ConfigureAwait(false);
             var stream = await winner.ConfigureAwait(false);
 
             // 更新缓存 + 记录成功
@@ -128,14 +129,30 @@ public class HostConnectionHandler
             addressCache![b].CompareTo(addressCache[a]));
 
         // 非缓存地址: IPv6 优先 + 保持原始顺序
-        var sortedUncached = uncachedAddresses
-            .OrderBy(ip => ip.AddressFamily == AddressFamily.InterNetwork ? 1 : 0) // IPv6(0) before IPv4(1)
-            .ThenBy(ip => Array.IndexOf(addresses, ip)) // 保持 DNS 结果的相对顺序
+        var ipv6List = uncachedAddresses
+            .Where(ip => ip.AddressFamily == AddressFamily.InterNetworkV6)
+            .OrderBy(ip => Array.IndexOf(addresses, ip))
             .ToList();
+
+        var ipv4List = uncachedAddresses
+            .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+            .OrderBy(ip => Array.IndexOf(addresses, ip))
+            .ToList();
+
+        // 交错合并，确保有一个 v6 和一个 v4
+        var sortedUncached = new List<IPAddress>();
+        int i = 0, j = 0;
+        while (i < ipv6List.Count || j < ipv4List.Count)
+        {
+            if (i < ipv6List.Count)
+                sortedUncached.Add(ipv6List[i++]);
+            if (j < ipv4List.Count)
+                sortedUncached.Add(ipv4List[j++]);
+        }
 
         return cachedAddresses
             .Concat(sortedUncached)
-            .Take(2) // Happy Eyeballs 通常只尝试前两个地址
+            .Take(WaitTasks)
             .ToArray();
     }
 
@@ -158,9 +175,9 @@ public class HostConnectionHandler
         addressCache[ip] = now;
     }
 
-    private static async Task<NetworkStream> _DelayedConnectAsync(IPAddress ip, int port, CancellationToken cancellationToken)
+    private static async Task<NetworkStream> _DelayedConnectAsync(IPAddress ip, int port, int delay, CancellationToken cancellationToken)
     {
-        await Task.Delay(SecondConnectionDelay, cancellationToken).ConfigureAwait(false);
+        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
         return await _ConnectToAddressAsync(ip, port, cancellationToken).ConfigureAwait(false);
     }
 
