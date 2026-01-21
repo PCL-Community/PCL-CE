@@ -128,13 +128,13 @@ Public Class MySkin
             Using g As Graphics = Graphics.FromImage(CompleteHead)
                 g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
                 g.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
-                Dim FaceBitmap As Bitmap = Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8)
-                Dim ScaledFace As Bitmap = ScaleToSize(FaceBitmap, 48, 48)
-                g.DrawImage(ScaledFace, 4, 4, 48, 48)
+                Using FaceBitmap As Bitmap = Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8)
+                    g.DrawImage(FaceBitmap, New Rectangle(4, 4, 48, 48))
+                End Using
                 If ImgFore.Source IsNot Nothing Then
-                    Dim HairBitmap As Bitmap = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8)
-                    Dim ScaledHair As Bitmap = ScaleToSize(HairBitmap, 56, 56)
-                    g.DrawImage(ScaledHair, 0, 0, 56, 56)
+                    Using HairBitmap As Bitmap = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8)
+                        g.DrawImage(HairBitmap, New Rectangle(0, 0, 56, 56))
+                    End Using
                 End If
             End Using
             If Not Directory.Exists(PathTemp & "Cache\Skin\Head") Then Directory.CreateDirectory(PathTemp & "Cache\Skin\Head")
