@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.App
-Imports PCL.Core.Utils
+Imports PCL.Core.App.RemoteInfo
+Imports PCL.Core.App.Updates
 
 Public Class PageSetupUpdate
     Private Sub Init() Handles Me.Loaded
@@ -9,121 +10,78 @@ Public Class PageSetupUpdate
         ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
         TextCurrentVersion.Text = "PCL CE " & VersionNameFormat(VersionBaseName)
         AniControlEnabled -= 1
-        CheckUpdate()
+        If RemoteInfoService.LatestVersion IsNot Nothing Then
+            RefreshUpdateStatus()
+        Else
+            CheckUpdate()
+        End If
     End Sub
-    
-    Public UpdateInfo As VersionDataModel = Nothing
-    
-    Private Enum UpdateStatus
-        Checking = 0
-        Available = 1
-        [Error] = 2
-        Latest = 3
-    End Enum
-    
-    Private Async Function IsLatestAsync() As Task(Of UpdateStatus)
-        Try
-            If Await RemoteServer.IsLatestAsync(
-                If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                If(IsArm64System, UpdateArch.arm64, UpdateArch.x64),
-                SemVer.Parse(VersionBaseName),
-                VersionCode) Then
-                Log("[Update] 已是最新版本")
-                Return UpdateStatus.Latest
-            Else 
-                Log("[Update] 有可用的新版本")
-                Return UpdateStatus.Available
-            End If
-        Catch ex As Exception
-            Log(ex, "无法获取最新版本信息，请检查网络连接", LogLevel.Hint)
-            Return UpdateStatus.Error
-        End Try
-    End Function
-    
+
     Public Async Sub CheckUpdate() Handles BtnCheckAgain.Click
         Log("[Update] 开始检查更新")
         CardUpdate.Visibility = Visibility.Collapsed
         CardCheck.Visibility = Visibility.Visible
         TextCurrentDesc.Text = "正在检查更新..."
         BtnCheckAgain.IsEnabled = False
-        Select Case Await IsLatestAsync()
-            Case UpdateStatus.Available
-                Dim checkUpdateEx As Exception = Nothing
-                Try
-                    UpdateInfo = RemoteServer.GetLatestVersion(
-                        If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                        If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                    TextUpdateName.Text = "PCL CE " & VersionNameFormat(UpdateInfo.VersionName)
-                    Dim summary = UpdateInfo.Changelog.Between("<summary>", "</summary>")
-                    If Not UpdateInfo.Changelog.Contains("<summary>") OrElse String.IsNullOrWhiteSpace(summary.Trim()) Then
-                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？"
-                    Else
-                        TextChangelog.Text = summary
-                    End If
-                Catch ex As Exception
-                    checkUpdateEx = ex
-                End Try
-                BtnCheckAgain.IsEnabled = True
-                If UpdateInfo Is Nothing Then
-                    TextCurrentDesc.Text = "检查更新时出错"
-                    If checkUpdateEx IsNot Nothing Then
-                        Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Msgbox)
-                    Else 
-                        Log("[Update] 检查更新失败", LogLevel.Msgbox)
-                    End If
-                    Exit Sub
-                End If
-                If UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading Then
-                    BtnUpdate_Timer()
-                    BtnUpdate.IsEnabled = False
-                ElseIf IsUpdateWaitingRestart Then
-                    BtnUpdate.Text = "重启安装"
-                    BtnUpdate.IsEnabled = True
+        Dim ret = Await RemoteInfoService.TryGetLatestVersionAsync()
+        If ret Then
+            RefreshUpdateStatus()
+        Else 
+            CardUpdate.Visibility = Visibility.Collapsed
+            CardCheck.Visibility = Visibility.Visible
+            BtnCheckAgain.IsEnabled = True
+            TextCurrentDesc.Text = "检查更新时出错"
+        End If
+    End Sub
+    
+    Private Sub RefreshUpdateStatus() 
+        If RemoteInfoService.LatestVersion Is Nothing Then Exit Sub
+        If RemoteInfoService.LatestVersion.IsAvailable Then
+            Try
+                TextUpdateName.Text = "PCL CE " & VersionNameFormat(RemoteInfoService.LatestVersion.Name)
+                Dim summary = RemoteInfoService.LatestVersion.Changelog.Between("<summary>", "</summary>")
+                If Not RemoteInfoService.LatestVersion.Changelog.Contains("<summary>") OrElse String.IsNullOrWhiteSpace(summary.Trim()) Then
+                    TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？"
                 Else
-                    BtnUpdate.Text = "下载并安装"
-                    BtnUpdate.IsEnabled = True
+                    TextChangelog.Text = summary
                 End If
-                CardUpdate.Visibility = Visibility.Visible
-                CardCheck.Visibility = Visibility.Collapsed
-            Case UpdateStatus.Latest
-                CardUpdate.Visibility = Visibility.Collapsed
-                CardCheck.Visibility = Visibility.Visible
-                BtnCheckAgain.IsEnabled = True
-                TextCurrentDesc.Text = "已是最新版本"
-            Case UpdateStatus.Error
-                CardUpdate.Visibility = Visibility.Collapsed
-                CardCheck.Visibility = Visibility.Visible
-                BtnCheckAgain.IsEnabled = True
-                TextCurrentDesc.Text = "检查更新时出错"
-        End Select
+            Catch ex As Exception
+                Log(ex, "[Update] 检查更新失败", LogLevel.Msgbox)
+            End Try
+            BtnUpdate.IsEnabled = True
+            If RemoteInfoService.IsUpdateWaitingInstall Then
+                BtnUpdate.Text = "重启安装"
+            Else
+                BtnUpdate.Text = "下载并安装"
+            End If
+            CardUpdate.Visibility = Visibility.Visible
+            CardCheck.Visibility = Visibility.Collapsed
+        Else
+            CardUpdate.Visibility = Visibility.Collapsed
+            CardCheck.Visibility = Visibility.Visible
+            BtnCheckAgain.IsEnabled = True
+            TextCurrentDesc.Text = "已是最新版本"
+        End If
     End Sub
     
-    Public Sub BtnUpdate_Timer()
-        While UpdateLoader IsNot Nothing AndAlso UpdateLoader.State = LoadState.Loading
-            RunInUi(Sub() BtnUpdate.Text = $"{Math.Round(UpdateLoader.Progress, 2)}%")
-            Thread.Sleep(200)
-        End While
-    End Sub
-    
-    Private Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
+    Private Async Sub BtnUpdate_Click(sender As Object, e As EventArgs) Handles BtnUpdate.Click
         '检查 .NET 版本
-        If Not UpdateInfo.VersionName.StartsWithF("2.13.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 10.0.", True) Then
-            MyMsgBox($"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 10 才可以运行。{vbCrLf}你需要先安装 .NET 10 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
+        If Not RemoteInfoService.LatestVersion.Name.StartsWithF("2.13.") AndAlso Not ShellAndGetOutput("cmd", "/c dotnet --list-runtimes").ContainsF("Microsoft.WindowsDesktop.App 10.0.", True) Then
+            MyMsgBox($"发现了启动器更新（版本 {RemoteInfoService.LatestVersion.Name}），但是新版本要求你的电脑安装 .NET 10 才可以运行。{vbCrLf}你需要先安装 .NET 10 才可以继续更新。{vbCrLf}{vbCrLf}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {If(IsArm64System, "Arm64", "x64")} 选项下载。", "启动器更新 - 缺少运行环境",
                      "下载 .NET 10 运行时", "取消", Button1Action:=Sub() OpenWebsite($"https://get.dot.net/10"), ForceWait:=True)
             Return
         End If
-        If IsUpdateWaitingRestart Then
-            UpdateRestart(True, True)
+        If Not RemoteInfoService.IsUpdateWaitingInstall Then
+            Await RemoteInfoService.TryDownloadAsync()
         End If
-        '开始更新流程
-        UpdateStart(UpdateType.UpdateNow)
+        RemoteInfoService.InstallUpdate(True, True)
     End Sub
     
     Private Sub BtnChangelogDetail_Click(sender As Object, e As EventArgs) Handles BtnChangelogDetail.Click
-        If UpdateInfo Is Nothing Then
+        If RemoteInfoService.LatestVersion Is Nothing Then
             MyMsgBox("没有可用的更新日志...", "关于此更新")
         Else
-            MyMsgBoxMarkdown(UpdateInfo.Changelog, "关于此更新")
+            MyMsgBoxMarkdown(RemoteInfoService.LatestVersion.Changelog, "关于此更新")
         End If
     End Sub
     
@@ -134,7 +92,7 @@ Public Class PageSetupUpdate
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
         
-        Dim IsCancelled As Boolean = False
+        Dim IsCancelled = False
         Select Case ComboSystemUpdateChannel.SelectedIndex
             Case 0
             Case 1

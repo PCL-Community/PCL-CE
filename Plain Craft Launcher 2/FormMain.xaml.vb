@@ -3,6 +3,8 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
+Imports PCL.Core.App.RemoteInfo
+Imports PCL.Core.App.Updates
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -79,6 +81,9 @@ Public Class FormMain
         AddHandler MsgBoxWrapper.OnShow, AddressOf MsgBoxWrapper_OnShow
         '注册 Hint 事件
         AddHandler HintWrapper.OnShow, AddressOf HintWrapper_OnShow
+        '注册更新检查事件
+        AddHandler RemoteInfoService.PromptInstall, AddressOf PromptInstall
+        AddHandler RemoteInfoService.ShowAnnouncement, AddressOf ShowAnnouncement
         '加载 UI
         InitializeComponent()
         Opacity = 0
@@ -244,16 +249,9 @@ Public Class FormMain
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
-                ServerLoader.Start(1)
                 RunInNewThread(AddressOf TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal)
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
-            End Try
-            '清理自动更新文件
-            Try
-                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
-            Catch ex As Exception
-                Log(ex, "清理自动更新文件失败")
             End Try
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
@@ -469,8 +467,7 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    ''' <param name="isUpdating">是否正在更新重启</param>
-    Public Async Sub EndProgram(SendWarning As Boolean, Optional isUpdating As Boolean = False)
+    Public Async Sub EndProgram(SendWarning As Boolean)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -520,10 +517,10 @@ Public Class FormMain
                         Visibility = Visibility.Collapsed
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(Sub() EndProgramForce(force:=False, isUpdating:=isUpdating), 230)
+                    AaCode(Sub() EndProgramForce(force:=False), 230)
                 }, "Form Close")
             Else
-                EndProgramForce(force:=False, isUpdating:=isUpdating)
+                EndProgramForce(force:=False)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
@@ -531,14 +528,12 @@ Public Class FormMain
     Private Shared IsLogShown As Boolean = False
     Public Shared Async Sub EndProgramForce(
                                             Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, 
-                                            Optional force As Boolean = True,
-                                            Optional isUpdating As Boolean = False)
+                                            Optional force As Boolean = True)
         'On Error Resume Next
         '关闭联机大厅
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart AndAlso Not isUpdating Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -1586,10 +1581,11 @@ Public Class FormMain
 
     '更新重启
     Private Sub BtnExtraUpdateRestart_Click() Handles BtnExtraUpdateRestart.Click
-        UpdateRestart(True, True)
+        RemoteInfoService.InstallUpdate(True, True)
     End Sub
+    
     Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
-        Return IsUpdateWaitingRestart
+        Return RemoteInfoService.IsUpdateWaitingInstall
     End Function
     
     '音乐
