@@ -76,11 +76,8 @@ public sealed class SourceController
     /// <summary>
     /// 使用可用源下载到指定路径。
     /// </summary>
-    public async Task<bool> DownloadAsync(string outputPath)
-    {
-        var result = await _TryFindSourceAsync(s => s.DownloadAsync(outputPath)).ConfigureAwait(false);
-        return result ?? false;
-    }
+    public async Task<bool> DownloadAsync(string outputPath) => 
+        await _TryFindSourceAsync(s => s.DownloadAsync(outputPath)).ConfigureAwait(false);
 
     #region Logger Wrapper
 
