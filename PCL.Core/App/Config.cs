@@ -241,6 +241,11 @@ public static partial class Config
         /// 启动器公告。
         /// </summary>
         [ConfigItem<int>("SystemSystemActivity", 0, ConfigSource.Local)] public partial int AnnounceSolution { get; set; }
+        
+        /// <summary>
+        /// 已显示的启动器公告。
+        /// </summary>
+        [ConfigItem<string>("SystemSystemAnnouncement", "", ConfigSource.Local)] public partial string ShowedAnnouncement { get; set; }
 
         /// <summary>
         /// 禁用硬件加速。
