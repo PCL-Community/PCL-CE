@@ -35,7 +35,6 @@ public sealed class SourceController
     /// <returns>操作返回值；若所有更新源均不可用，则返回 <c>default(T)</c>。</returns>
     private async Task<T?> _TryFindSourceAsync<T>(Func<IUpdateSource, Task<T>> action)
     {
-    {
         await _semaphore.WaitAsync().ConfigureAwait(false);
         try
         {
