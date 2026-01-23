@@ -58,15 +58,7 @@ Class PageSetupGameLink
     '初始化
     Public Sub Reset()
         Try
-            Config.Link.UsernameConfig.Reset()
-            Config.Link.CustomRelayServerConfig.Reset()
-            Config.Link.RelayTypeConfig.Reset()
-            Config.Link.ServerTypeConfig.Reset()
-            Config.Link.UseLatencyFirstModeConfig.Reset()
-            Config.Link.ProtocolPreferenceConfig.Reset()
-            Config.Link.TryPunchSymConfig.Reset()
-            Config.Link.EnableIPv6Config.Reset()
-
+            Config.Link.Reset()
             Log("[Setup] 已初始化联机页设置")
             Hint("已初始化联机页设置！", HintType.Finish, False)
             Reload()

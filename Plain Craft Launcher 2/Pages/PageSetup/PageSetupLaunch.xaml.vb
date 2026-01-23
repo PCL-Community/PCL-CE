@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.Utils.OS
+﻿Imports PCL.Core.App
+Imports PCL.Core.Utils.OS
 
 Public Class PageSetupLaunch
 
@@ -77,30 +78,7 @@ Public Class PageSetupLaunch
     '初始化
     Public Sub Reset()
         Try
-            Setup.Reset("LaunchArgumentTitle")
-            Setup.Reset("LaunchArgumentInfo")
-            Setup.Reset("LaunchArgumentIndieV2")
-            Setup.Reset("LaunchArgumentVisible")
-            Setup.Reset("LaunchArgumentWindowType")
-            Setup.Reset("LaunchArgumentWindowWidth")
-            Setup.Reset("LaunchArgumentWindowHeight")
-            Setup.Reset("LaunchArgumentPriority")
-            Setup.Reset("LaunchPreferredIpStack")
-            Setup.Reset("LaunchArgumentRam")
-            Setup.Reset("LaunchRamType")
-            Setup.Reset("LaunchRamCustom")
-            Setup.Reset("LaunchAdvanceJvm")
-            Setup.Reset("LaunchAdvanceGame")
-            Setup.Reset("LaunchAdvanceRun")
-            Setup.Reset("LaunchAdvanceRunWait")
-            Setup.Reset("LaunchAdvanceDisableJLW")
-            Setup.Reset("LaunchAdvanceGraphicCard")
-            Setup.Reset("LaunchAdvanceNoJavaw")
-            Setup.Reset("LoginMsAuthType")
-            Setup.Reset("LaunchArgumentJavaUser")
-            Setup.Reset("LaunchArgumentJavaSelect")
-            Setup.Reset("LaunchAdvanceRenderer")
-
+            Config.Launch.Reset()
             Log("[Setup] 已初始化启动设置")
             Hint("已初始化启动设置！", HintType.Finish, False)
         Catch ex As Exception
