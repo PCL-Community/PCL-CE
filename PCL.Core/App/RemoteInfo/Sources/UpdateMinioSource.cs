@@ -120,7 +120,7 @@ public class UpdateMinioSource(string baseUrl, string name = "Minio") : IUpdateS
             tempDownloadDir).ConfigureAwait(false);
 
         _LogInfo("开始下载更新文件");
-        var manager = new DownloadManager(new FastMirrorSelector(new HttpClient()));
+        var manager = new DownloadManager(new FastMirrorSelector(NetworkService.GetClient()));
         await manager.DownloadAsync(task, CancellationToken.None).ConfigureAwait(false);
 
         _LogInfo("下载完成，准备使用更新文件");

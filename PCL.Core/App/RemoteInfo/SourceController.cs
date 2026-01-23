@@ -32,9 +32,9 @@ public sealed class SourceController
     /// </summary>
     /// <param name="action">指定操作</param>
     /// <typeparam name="T">返回类型</typeparam>
-    /// <returns>操作返回值</returns>
-    /// <exception cref="InvalidOperationException">所有更新源均不可用时抛出</exception>
+    /// <returns>操作返回值；若所有更新源均不可用，则返回 <c>default(T)</c>。</returns>
     private async Task<T?> _TryFindSourceAsync<T>(Func<IUpdateSource, Task<T>> action)
+    {
     {
         await _semaphore.WaitAsync().ConfigureAwait(false);
         try
@@ -77,8 +77,11 @@ public sealed class SourceController
     /// <summary>
     /// 使用可用源下载到指定路径。
     /// </summary>
-    public Task<bool> DownloadAsync(string outputPath) =>
-        _TryFindSourceAsync(s => s.DownloadAsync(outputPath));
+    public async Task<bool> DownloadAsync(string outputPath)
+    {
+        var result = await _TryFindSourceAsync(s => s.DownloadAsync(outputPath)).ConfigureAwait(false);
+        return result ?? false;
+    }
 
     #region Logger Wrapper
 

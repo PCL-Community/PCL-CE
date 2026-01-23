@@ -48,10 +48,7 @@ public class UpdateMirrorChyanSource : IUpdateSource
             throw new HttpRequestException("获取版本信息失败，响应数据无效");
         }
         var data = jsonData.Data;
-        if (data is null)
-        {
-            throw new HttpRequestException("获取版本信息失败，响应数据无效");
-        }
+
         return new VersionData(
             data.VersionNumber,
             data.VersionName,
@@ -70,12 +67,12 @@ public class UpdateMirrorChyanSource : IUpdateSource
         var jsonData = await response.AsJsonAsync<VersionResponseModel>();
         if (jsonData is null || jsonData.Code != 0 || jsonData.Data is null)
         {
-            throw new HttpRequestException("获取公告信息失败，响应数据无效");
+            throw new HttpRequestException("获取版本信息失败，响应数据无效");
         }
         var url = jsonData.Data.Url;
         if (string.IsNullOrWhiteSpace(url))
         {
-            throw new HttpRequestException("获取公告信息失败，响应数据无效");
+            throw new HttpRequestException("获取下载链接失败，响应数据无效");
         }
 
         var downloadTask = new DownloadTask(new Uri(url), outputPath);
