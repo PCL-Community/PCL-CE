@@ -1,6 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Utils;
+using PCL.Core.Minecraft;
 
 [TestClass]
 public class MavenTest

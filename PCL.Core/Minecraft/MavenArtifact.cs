@@ -1,6 +1,6 @@
 using System;
 
-namespace PCL.Core.Utils;
+namespace PCL.Core.Minecraft;
 
 /// <summary>
 /// 用于解析 Maven 包 ID 为 Uri 或 Path
