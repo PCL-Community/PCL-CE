@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO;
 using PCL.Core.Logging;
+using PCL.Core.Net;
 using PCL.Core.Net.Downloader;
 using PCL.Core.Net.Http.Client;
 using PCL.Core.Utils.Diff;

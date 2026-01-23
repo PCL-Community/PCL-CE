@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.Net;
 using PCL.Core.Net.Downloader;
 using PCL.Core.Net.Http.Client;
 
@@ -76,7 +77,7 @@ public class UpdateMirrorChyanSource : IUpdateSource
         }
 
         var downloadTask = new DownloadTask(new Uri(url), outputPath);
-        var downloadManager = new DownloadManager(new FastMirrorSelector(new HttpClient()));
+        var downloadManager = new DownloadManager(new FastMirrorSelector(NetworkService.GetClient()));
         await downloadManager.DownloadAsync(downloadTask, CancellationToken.None);
         return true;
     }
