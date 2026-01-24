@@ -249,12 +249,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
-            '清理自动更新文件
-            Try
-                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
-            Catch ex As Exception
-                Log(ex, "清理自动更新文件失败")
-            End Try
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 

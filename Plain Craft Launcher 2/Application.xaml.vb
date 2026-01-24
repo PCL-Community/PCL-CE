@@ -34,11 +34,7 @@ Public Class Application
             '检查参数调用
             Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
             If args.Length > 0 Then
-                If args(0) = "--update" Then
-                    '自动更新
-                    UpdateReplace(args(1), args(2).Trim(""""), args(3).Trim(""""), args(4))
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf args(0) = "--gpu" Then
+                If args(0) = "--gpu" Then
                     '调整显卡设置
                     Try
                         SetGPUPreference(args(1).Trim(""""))
