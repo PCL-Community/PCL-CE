@@ -74,14 +74,14 @@ Public Class PageToolsGameLink
     End Sub
 
     Private Sub BtnAgreeEula_Click(sender As Object, e As EventArgs) Handles BtnEulaAgree.Click
-        Config.Link.LinkEula = True
+        States.Link.LinkEula = True
         CurrentSubpage = Subpages.PanSelect
     End Sub
 
     Private Sub BtnEulaStop_Click(sender As Object, e As EventArgs) Handles BtnEulaStop.Click
         If MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn:=True) = 1 Then
-            Config.Link.NaidRefreshTokenConfig.Reset()
-            Config.Link.LinkEulaConfig.Reset()
+            States.Link.NaidRefreshTokenConfig.Reset()
+            States.Link.LinkEulaConfig.Reset()
             Hint("联机功能已停用！")
             CurrentSubpage = Subpages.PanEula
         End If
@@ -293,22 +293,22 @@ Public Class PageToolsGameLink
                         Try
                             cache = Integer.Parse(NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/cache.ini", "GET", Nothing, "application/json", Timeout:=7000).Trim())
 
-                            If cache = Config.Link.AnnounceCacheVer Then
+                            If cache = States.Link.AnnounceCacheVer Then
                                 Log("[Link] 使用缓存的公告数据")
-                                jObj = GetJson(Config.Link.AnnounceCache)
+                                jObj = GetJson(States.Link.AnnounceCache)
                             Else
                                 Log("[Link] 尝试拉取公告数据")
                                 Dim received As String = NetRequestOnce($"{LinkServers(serverNumber)}/api/link/v2/announce.json", "GET", Nothing, "application/json", Timeout:=7000)
                                 jObj = GetJson(received)
-                                Config.Link.AnnounceCache = received
-                                Config.Link.AnnounceCacheVer = cache
+                                States.Link.AnnounceCache = received
+                                States.Link.AnnounceCacheVer = cache
                             End If
 
                             Exit While
                         Catch ex As Exception
                             Log(ex, $"[Link] 从服务器 {serverNumber} 获取公告缓存失败")
-                            Config.Link.AnnounceCacheConfig.Reset()
-                            Config.Link.AnnounceCacheVerConfig.Reset()
+                            States.Link.AnnounceCacheConfig.Reset()
+                            States.Link.AnnounceCacheVerConfig.Reset()
                             serverNumber += 1
                         End Try
                     End While
@@ -365,7 +365,7 @@ Public Class PageToolsGameLink
                         })
                     Next
 
-                    If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
+                    If String.IsNullOrWhiteSpace(States.Link.NaidRefreshToken) Then
                         RunInUi(Sub()
                                     LabNatayarkUserName.Text = "点击登录 Natayark 账户"
                                 End Sub)
@@ -442,12 +442,12 @@ Public Class PageToolsGameLink
     Private Sub ReloadNaidData()
         RunInNewThread(Sub()
                            Try
-                               If Convert.ToDateTime(Config.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
+                               If Convert.ToDateTime(States.Link.NaidRefreshExpireTime).CompareTo(DateTime.Now) < 0 Then
                                    Setup.Set("LinkNaidRefreshToken", "")
                                    Hint("Natayark ID 令牌已过期，请重新登录", HintType.Critical)
                                    Exit Sub
                                Else
-                                   GetNaidDataAsync(Config.Link.NaidRefreshToken, True).GetAwaiter().GetResult()
+                                   GetNaidDataAsync(States.Link.NaidRefreshToken, True).GetAwaiter().GetResult()
                                End If
                                While String.IsNullOrWhiteSpace(NaidProfile.Username)
                                    Thread.Sleep(1000)
@@ -476,7 +476,7 @@ Public Class PageToolsGameLink
         '    Exit Sub
         'End If
 
-        If String.IsNullOrWhiteSpace(Config.Link.NaidRefreshToken) Then
+        If String.IsNullOrWhiteSpace(States.Link.NaidRefreshToken) Then
             ' 当前未登录，显示登录选项
             If MyMsgBox($"PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。",
                         "登录至 Natayark Network", "继续", "取消") = 1 Then
@@ -494,7 +494,7 @@ Public Class PageToolsGameLink
         Else
             ' 当前已登录，显示登出选项
             If MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") = 1 Then
-                Config.Link.NaidRefreshTokenConfig.Reset()
+                States.Link.NaidRefreshTokenConfig.Reset()
                 LabNatayarkUserName.Text = "点击登录 Natayark 账户"
                 Log("[Link] 已退出登录 Natayark Network")
                 Hint("已退出登录！", HintType.Finish, False)
@@ -548,6 +548,29 @@ Public Class PageToolsGameLink
         Dim lobby = LobbyService.DiscoverWorldAsync()
     End Sub
 
+    Private Async Sub BtnInputPort_Click(sender As Object, e As EventArgs) Handles BtnInputPort.Click
+        Try
+            BtnInputPort.IsEnabled = False
+            If Not LobbyPrecheck() Then
+                Return
+            End If
+            Dim input = MyMsgBoxInput("请输入端口", ValidateRules:=New Collection(Of Validate) From {New ValidateInteger(1024, 65535)})
+            Dim port As Integer
+            If Integer.TryParse(input, port) Then
+                Using ping As New McPing("127.0.0.1", port, 5000)
+                    Dim res = Await ping.PingAsync()
+                    If res IsNot Nothing AndAlso res.Version.Protocol <> 0 Then
+                        Await CreateLobby(port)
+                    Else
+                        Hint("这似乎不是个 MC 服务端口...", HintType.Critical)
+                    End If
+                End Using
+            End If
+        Finally
+            BtnInputPort.IsEnabled = True
+        End Try
+    End Sub
+
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then
@@ -563,6 +586,10 @@ Public Class PageToolsGameLink
         End If
 
         Dim port = CType(ComboWorldList.SelectedItem.Tag, Integer)
+        Await CreateLobby(port)
+    End Sub
+
+    Private Async Function CreateLobby(port As Integer) As Task
         Log("[Link] 创建大厅，端口：" & port)
 
 
@@ -592,10 +619,8 @@ Public Class PageToolsGameLink
                         StackPlayerList.Children.Clear()
                         CurrentSubpage = Subpages.PanSelect
                     End Sub)
-        Else
-
         End If
-    End Sub
+    End Function
 
     '加入大厅
     Private Async Sub BtnJoin_Click(sender As Object, e As EventArgs) Handles BtnJoin.Click
@@ -723,7 +748,7 @@ Public Class PageToolsGameLink
         PanSelect
         PanFinish
     End Enum
-    Private _CurrentSubpage As Subpages = If(Config.Link.LinkEula, Subpages.PanSelect, Subpages.PanEula)
+    Private _CurrentSubpage As Subpages = If(States.Link.LinkEula, Subpages.PanSelect, Subpages.PanEula)
     Public Property CurrentSubpage As Subpages
         Get
             Return _CurrentSubpage

@@ -5,6 +5,11 @@ Public Class PageDownloadInstall
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
     End Sub
 
+    Public Sub New()
+        InitializeComponent()
+        PanScroll = Me.PanBack
+    End Sub
+
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()
@@ -1011,6 +1016,7 @@ Public Class PageDownloadInstall
             If Version.Category = "universal" OrElse Version.Category = "client" Then Continue For '跳过无法自动安装的版本
             If SelectedNeoForge IsNot Nothing Then Return "与 NeoForge 不兼容"
             If SelectedFabric IsNot Nothing Then Return "与 Fabric 不兼容"
+            If SelectedQuilt IsNot Nothing Then Return "与 Quilt 不兼容"
             If SelectedOptiFine IsNot Nothing AndAlso
                CompareVersionGE(_vanillaName, "1.13") AndAlso CompareVersionGE("1.14.3", _vanillaName) Then
                 Return "与 OptiFine 不兼容" '1.13 ~ 1.14.3 OptiFine 检查
@@ -1312,10 +1318,10 @@ Public Class PageDownloadInstall
     Private Function LoadFabricApiGetError() As String
         '检查 Loader
         If GetLoaderError(LoadFabricApi) IsNot Nothing Then Return GetLoaderError(LoadFabricApi)
-        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing, "需要安装 Fabric", "获取中……")
+        If DlFabricApiLoader.Output Is Nothing Then Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", "获取中……")
         '检查版本
         If DlFabricApiLoader.Output.Any(Function(f) IsFabricApiCompatible(f)) Then
-            Return If(SelectedFabric Is Nothing, "需要安装 Fabric", Nothing)
+            Return If(SelectedFabric Is Nothing AndAlso SelectedQuilt Is Nothing, "需要安装 Fabric", Nothing)
         Else
             Return "无可用版本"
         End If
@@ -1552,7 +1558,7 @@ Public Class PageDownloadInstall
         '检查 Loader
         If GetLoaderError(LoadQuilt) IsNot Nothing Then Return GetLoaderError(LoadQuilt)
         '检查版本
-        For Each version As JObject In DlFabricListLoader.Output.Value("game")
+        For Each version As JObject In DlQuiltListLoader.Output.Value("game")
             If version("version").ToString = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") Then
                 If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Fabric" Then Return $"与 {SelectedLoaderName} 不兼容"
                 Return Nothing

@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- 项目属性 -->
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Core</AssemblyTitle>
+        <AssemblyName>PCL.Core</AssemblyName>
+        <Description>PCL Community 为 PCL 开发的启动器核心库</Description>
+        <Company>PCL Community</Company>
+        <Product>PCL.Core</Product>
+        <Copyright>Copyright © PCL Community</Copyright>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+        <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+        <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <ProjectGuid>{A0C2209D-64FB-4C11-9459-8E86304B6F94}</ProjectGuid>
+        <RootNamespace>PCL.Core</RootNamespace>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>14.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <OutputPath>bin\$(Configuration)-$(Platform)\</OutputPath>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+    </PropertyGroup>
+    <!-- 构建配置 -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants Condition="'$(Configuration)' == 'Debug'">DEBUG;TRACE</DefineConstants>
+        <DefineConstants Condition="'$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">CI;TRACE</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Beta' Or '$(Configuration)' == 'Release' Or '$(Configuration)' == 'Publish'">
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+        <DefineConstants Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'Publish'">RELEASE;PUBLISH</DefineConstants>
+        <DefineConstants Condition="'$(Configuration)' == 'Beta'">BETA;PUBLISH</DefineConstants>
+    </PropertyGroup>
+    <!-- NuGet 引用 -->
+    <ItemGroup>
+        <!-- WPF Behaviors -->
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+        <!-- 语言和系统特性 -->
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+        <PackageReference Include="System.Management" Version="10.0.1" />
+        <!-- 归档文件 -->
+        <PackageReference Include="SharpZipLib" Version="1.4.2" />
+        <!-- 配置文件和数据库 -->
+        <PackageReference Include="System.Text.Json" Version="10.0.1" />
+        <PackageReference Include="YamlDotNet" Version="16.3.0" />
+        <PackageReference Include="fNbt" Version="1.0.0" />
+        <PackageReference Include="LiteDB" Version="5.0.21" />
+        <!-- 网络 -->
+        <PackageReference Include="Ae.Dns.Client" Version="3.1.0" />
+        <PackageReference Include="Stun.Net" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+        <PackageReference Include="Polly" Version="8.6.5" />
+        <!-- 本地化 -->
+        <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
+    </ItemGroup>
+    <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
+    <PropertyGroup>
+        <EnableDefaultItems>false</EnableDefaultItems>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+        <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+        <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+        <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
+        <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
+        <Resource Include="UI\Assets\*" />
+        <Resource Include="UI\Assets\Shaders\*.ps" />
+    </ItemGroup>
+    <!-- 项目自定义源生成器 -->
+    <ItemGroup>
+        <AdditionalFiles Include="App\LifecycleState.cs" />
+        <ProjectReference Include="..\PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+</Project>

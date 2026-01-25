@@ -139,7 +139,7 @@ Public Class PageSetupUI
 
             '功能隐藏
             ' 获取配置组引用
-            Dim uiHidden = Config.UI.Hide
+            Dim uiHidden = Config.Preference.Hide
 
             ' 主页面
             CheckHiddenPageDownload.Checked = uiHidden.PageDownload
@@ -187,40 +187,7 @@ Public Class PageSetupUI
     '初始化
     Public Sub Reset()
         Try
-            Setup.Reset("UiLauncherTransparent")
-            Setup.Reset("UiLauncherTheme")
-            Setup.Reset("UiLauncherLogo")
-            Setup.Reset("UiLauncherHue")
-            Setup.Reset("UiLauncherSat")
-            Setup.Reset("UiLauncherDelta")
-            Setup.Reset("UiLauncherLight")
-            Setup.Reset("UiLockWindowSize")
-            Setup.Reset("UiBlur")
-            Setup.Reset("UiBlurValue")
-            Setup.Reset("UiBlurSamplingRate")
-            Setup.Reset("UiBlurType")
-            Setup.Reset("UiBackgroundColorful")
-            Setup.Reset("UiBackgroundOpacity")
-            Setup.Reset("UiBackgroundBlur")
-            Setup.Reset("UiBackgroundSuit")
-            Setup.Reset("UiDarkMode")
-            Setup.Reset("UiFont")
-            Setup.Reset("UiLogoType")
-            Setup.Reset("UiLogoText")
-            Setup.Reset("UiLogoLeft")
-            Setup.Reset("UiMusicVolume")
-            Setup.Reset("UiMusicStop")
-            Setup.Reset("UiMusicStart")
-            Setup.Reset("UiMusicRandom")
-            Setup.Reset("UiMusicSMTC")
-            Setup.Reset("UiMusicAuto")
-            Setup.Reset("UiCustomType")
-            Setup.Reset("UiCustomPreset")
-            Setup.Reset("UiCustomNet")
-            Setup.Reset("UiShowLaunchingHint")
-            Config.UI.Hide.Reset()
-            Setup.Reset("UiAutoPauseVideo")
-
+            Config.Preference.Reset()
             Log("[Setup] 已初始化个性化设置！")
             Hint("已初始化个性化设置", HintType.Finish, False)
         Catch ex As Exception
@@ -613,7 +580,7 @@ Refresh:
         If FrmMain.PanTitleSelect Is Nothing OrElse Not FrmMain.PanTitleSelect.IsLoaded Then Return
         Try
             ' 获取配置组引用以缩短代码
-            Dim conf = Config.UI.Hide
+            Dim conf = Config.Preference.Hide
 
             ' 顶部栏：下载、设置、工具
             Dim IsAllTitleHidden As Boolean = Not HiddenForceShow AndAlso
@@ -713,7 +680,7 @@ Refresh:
     CheckHiddenSetupAbout.Change, CheckHiddenSetupFeedback.Change, CheckHiddenSetupLog.Change
 
         If Not user Then Return
-        Dim conf = Config.UI.Hide
+        Dim conf = Config.Preference.Hide
         ' 判断是否全部勾选
         Dim AllChecked As Boolean = conf.SetupLaunch AndAlso conf.SetupUi AndAlso conf.SetupSystem AndAlso
                                conf.SetupUpdate AndAlso conf.SetupGameLink AndAlso conf.SetupAbout AndAlso
@@ -734,7 +701,7 @@ Refresh:
     CheckHiddenToolsHelp.Change, CheckHiddenToolsTest.Change
 
         If Not user Then Return
-        Dim conf = Config.UI.Hide
+        Dim conf = Config.Preference.Hide
         Dim AllChecked As Boolean = conf.ToolsGameLink AndAlso conf.ToolsHelp AndAlso conf.ToolsTest
         CheckHiddenPageTools.Checked = AllChecked
     End Sub

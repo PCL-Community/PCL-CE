@@ -116,6 +116,7 @@ Public Class FormMain
     End Sub
 
     Private Sub FormMain_Loaded() '(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+        FormMain_SizeChanged()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         FrmHandle = New WindowInteropHelper(Me).Handle
         '读取设置
@@ -135,9 +136,10 @@ Public Class FormMain
         BtnExtraLog.ShowCheck = AddressOf BtnExtraLog_ShowCheck
         BtnExtraApril.ShowRefresh()
         '初始化尺寸改变
-        Resizer = New MyResizer(Me)
         If Not Setup.Get("UiLockWindowSize") Then
             AddResizer()
+        Else
+            RemoveResizer()
         End If
         'PLC 彩蛋
         If RandomUtils.NextInt(1, 1000) = 233 Then
@@ -175,7 +177,7 @@ Public Class FormMain
             AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
             AaCode(
             Sub()
-                PanBack.RenderTransform = Nothing
+                RenderTransform = Nothing
                 IsWindowLoadFinished = True
                 Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
             End Sub, , True)
@@ -247,12 +249,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
-            '清理自动更新文件
-            Try
-                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
-            Catch ex As Exception
-                Log(ex, "清理自动更新文件失败")
-            End Try
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
@@ -323,7 +319,7 @@ Public Class FormMain
         End If
         '解除帮助页面的隐藏
         If LastVersionCode <= 205 Then
-            Setup.Set("UiHiddenOtherHelp", False)
+            Config.Preference.Hide.SetupAbout = False
             Log("[Start] 已解除帮助页面的隐藏")
         End If
         '迁移旧版用户档案
@@ -350,16 +346,112 @@ Public Class FormMain
 #End Region
 
 #Region "自定义窗口"
+    
+    Private CanResize As Boolean = True
+    
+    ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
+    Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+        ' 窗口活动常量
+        Const WM_NCHITTEST = &H84
+        Const HTCLIENT = 1
+        Const HTLEFT = 10
+        Const HTRIGHT = 11
+        Const HTTOP = 12
+        Const HTTOPLEFT = 13
+        Const HTTOPRIGHT = 14
+        Const HTBOTTOM = 15
+        Const HTBOTTOMLEFT = 16
+        Const HTBOTTOMRIGHT = 17
+        
+        ' WPF 尺寸的 offset
+        Const offsetWpf = 6
+        Const hitWidthWpf = 5
+        
+        ' 过滤非 WM_NCHITTEST 事件
+        If msg <> WM_NCHITTEST Then Return IntPtr.Zero
+        
+        ' 提取鼠标坐标
+        ' 没妈的 VB 强转还得检查一下幻想的妈是不是还活着
+        Dim mouseBytes As Byte() = BitConverter.GetBytes(lParam.ToInt64())
+        Dim xMouse As Short = BitConverter.ToInt16(mouseBytes, 0)
+        Dim yMouse As Short = BitConverter.ToInt16(mouseBytes, 2)
+        
+        ' 获取窗口参数
+        Dim windowRect = WindowInterop.GetWindowRectangle(hWnd)
+        Dim windowBounds = windowRect.ToWindowBounds()
 
-    '硬件加速
+        ' 判断鼠标是否在窗口范围内
+        Dim isInWindow As Boolean = _
+                (xMouse >= windowRect.Left AndAlso xMouse <= windowRect.Right) AndAlso
+                (yMouse >= windowRect.Top AndAlso yMouse <= windowRect.Bottom)
+
+        ' 过滤不在窗口内的请求
+        If Not isInWindow Then Return IntPtr.Zero
+
+        ' 如果 CanResize 为 False，直接返回 HTCLIENT
+        If Not CanResize Then Return New IntPtr(HTCLIENT)
+
+        ' 真实像素尺寸的 offset
+        Dim dpi = VisualTreeHelper.GetDpi(Me)
+        Dim offsetPxX = offsetWpf * dpi.DpiScaleX
+        Dim offsetPxY = offsetWpf * dpi.DpiScaleY
+        Dim hitWidthPxX = hitWidthWpf * dpi.DpiScaleX
+        Dim hitWidthPxY = hitWidthWpf * dpi.DpiScaleY
+
+        ' 计算鼠标相对于窗口左上角的物理像素位置
+        Dim relX As Integer = xMouse - windowRect.Left
+        Dim relY As Integer = yMouse - windowRect.Top
+        Dim w As Integer = windowBounds.Width
+        Dim h As Integer = windowBounds.Height
+
+        ' 判定是否命中偏移后的热区
+        Dim inLeft As Boolean = (relX >= offsetPxX AndAlso relX <= offsetPxX + hitWidthPxX)
+        Dim inRight As Boolean = (relX <= w - offsetPxX AndAlso relX >= w - offsetPxX - hitWidthPxX)
+        Dim inTop As Boolean = (relY >= offsetPxY AndAlso relY <= offsetPxY + hitWidthPxY)
+        Dim inBottom As Boolean = (relY <= h - offsetPxY AndAlso relY >= h - offsetPxY - hitWidthPxY)
+
+        handled = True ' 接管该区域的消息
+
+        ' 返回结果
+        If inTop AndAlso inLeft Then Return New IntPtr(HTTOPLEFT)
+        If inTop AndAlso inRight Then Return New IntPtr(HTTOPRIGHT)
+        If inBottom AndAlso inLeft Then Return New IntPtr(HTBOTTOMLEFT)
+        If inBottom AndAlso inRight Then Return New IntPtr(HTBOTTOMRIGHT)
+        If inLeft Then Return New IntPtr(HTLEFT)
+        If inRight Then Return New IntPtr(HTRIGHT)
+        If inTop Then Return New IntPtr(HTTOP)
+        If inBottom Then Return New IntPtr(HTBOTTOM)
+
+        ' 如果在 0-offset 范围内，返回 HTCLIENT 杀掉默认缩放
+        Return New IntPtr(HTCLIENT)
+    End Function
+
     Protected Overrides Sub OnSourceInitialized(e As EventArgs)
+        '硬件加速
         If Setup.Get("SystemDisableHardwareAcceleration") Then
             Dim hwndSource As HwndSource = TryCast(PresentationSource.FromVisual(Me), HwndSource)
             If hwndSource IsNot Nothing Then
                 hwndSource.CompositionTarget.RenderMode = RenderMode.SoftwareOnly
             End If
         End If
+
         MyBase.OnSourceInitialized(e)
+
+        ' 获取当前窗口句柄
+        Dim hwnd As IntPtr = New WindowInteropHelper(Me).Handle
+        Dim source As HwndSource = HwndSource.FromHwnd(hwnd)
+        If source IsNot Nothing Then
+            ' 渲染层允许 Alpha 通道通过
+            source.CompositionTarget.BackgroundColor = Colors.Transparent
+            ' 魔改窗口边缘判定
+            source.AddHook(AddressOf _SizeWndProc)
+        End If
+        ' 设置 DWM 窗口框架
+        Try
+            WindowInterop.ExtendFrameIntoClientArea(hwnd, -1)
+        Catch ex As Exception
+            LogWrapper.Error("DWM 窗口框架应用失败: " & ex.Message)
+        End Try
     End Sub
 
     '关闭
@@ -371,7 +463,8 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Async Sub EndProgram(SendWarning As Boolean)
+    ''' <param name="isUpdating">是否正在更新重启</param>
+    Public Async Sub EndProgram(SendWarning As Boolean, Optional isUpdating As Boolean = False)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -399,11 +492,13 @@ Public Class FormMain
             VideoBack.Source = Nothing
             VideoBack.Close()
             IsHitTestVisible = False
-            If PanBack.RenderTransform Is Nothing Then
+            If RenderTransform Is Nothing Then
                 Dim TransformPos As New TranslateTransform(0, 0)
                 Dim TransformRotate As New RotateTransform(0)
                 Dim TransformScale As New ScaleTransform(1, 1)
-                PanBack.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
+                TransformScale.CenterX = Width / 2
+                TransformScale.CenterY = Height / 2
+                RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
                 AniStart({
                     AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
                     AaDouble(
@@ -416,25 +511,28 @@ Public Class FormMain
                     AaCode(
                     Sub()
                         IsHitTestVisible = False
-                        Top = -10000
+                        Visibility = Visibility.Collapsed
                         ShowInTaskbar = False
                     End Sub, 210),
-                    AaCode(Sub() EndProgramForce(force:=False), 230)
+                    AaCode(Sub() EndProgramForce(force:=False, isUpdating:=isUpdating), 230)
                 }, "Form Close")
             Else
-                EndProgramForce(force:=False)
+                EndProgramForce(force:=False, isUpdating:=isUpdating)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Async Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+    Public Shared Async Sub EndProgramForce(
+                                            Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, 
+                                            Optional force As Boolean = True,
+                                            Optional isUpdating As Boolean = False)
         'On Error Resume Next
         '关闭联机大厅
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
+        If IsUpdateWaitingRestart AndAlso Not isUpdating Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -466,14 +564,14 @@ Public Class FormMain
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
-            Config.UI.WindowHeight = Height
-            Config.UI.WindowWidth = Width
+            States.UI.WindowHeight = Height
+            States.UI.WindowWidth = Width
         End If
-        If BorderForm IsNot Nothing Then
-            RectForm.Rect = New Rect(0, 0, BorderForm.ActualWidth, BorderForm.ActualHeight)
+        If PanBack IsNot Nothing Then
+            RectForm.Rect = New Rect(0, 0, PanBack.ActualWidth, PanBack.ActualHeight)
 
-            Dim formWidth As Double = BorderForm.ActualWidth + 0.001
-            Dim formHeight As Double = BorderForm.ActualHeight + 0.001
+            Dim formWidth As Double = PanBack.ActualWidth + 0.001
+            Dim formHeight As Double = PanBack.ActualHeight + 0.001
 
             PanForm.Width = formWidth
             PanForm.Height = formHeight
@@ -507,21 +605,11 @@ Public Class FormMain
 #End Region
 
 #Region "窗体事件"
-    Private Resizer
     Public Sub AddResizer()
-        Me.ResizeMode = ResizeMode.CanResize
-        Resizer.addResizerDown(ResizerB)
-        Resizer.addResizerLeft(ResizerL)
-        Resizer.addResizerLeftDown(ResizerLB)
-        Resizer.addResizerLeftUp(ResizerLT)
-        Resizer.addResizerRight(ResizerR)
-        Resizer.addResizerRightDown(ResizerRB)
-        Resizer.addResizerRightUp(ResizerRT)
-        Resizer.addResizerUp(ResizerT)
+        CanResize = True
     End Sub
     Public Sub RemoveResizer()
-        Me.ResizeMode = ResizeMode.NoResize
-        Resizer.removeAllResizers()
+        CanResize = False
     End Sub
 
     '按键事件
@@ -1023,6 +1111,16 @@ Public Class FormMain
         DownloadShader = 6
         DownloadWorld = 7
         DownloadCompFavorites = 8
+        DownloadClient = 9
+        DownloadOptiFine = 10
+        DownloadForge = 11
+        DownloadNeoForge = 12
+        DownloadCleanroom = 13
+        DownloadFabric = 14
+        DownloadQuilt = 15
+        DownloadLiteLoader = 16
+        DownloadLabyMod = 17
+        DownloadLegacyFabric = 18
 
         SetupLaunch = 0
         SetupUI = 1

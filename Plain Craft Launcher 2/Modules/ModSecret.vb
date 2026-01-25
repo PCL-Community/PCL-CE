@@ -526,6 +526,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
             ' 通用ContextMenu主题刷新
             RefreshAllContextMenuThemes()
+            FrmMain.PanTitleSelect.Children.OfType(Of MyRadioButton)().ToList().ForEach(Sub(btn) btn.RefreshMyRadioButtonColor())
         End Sub)
     End Sub
     Friend Sub ThemeCheckAll(EffectSetup As Boolean)
@@ -560,7 +561,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public ReadOnly Property IsCurrentVersionBeta
         Get
             If VersionBaseName.Contains("beta") Then Return True
-            Return Config.System.Update.UpdateChannel = 1
+            Return Config.Update.UpdateChannel = 1
         End Get
     End Property
 
@@ -571,7 +572,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Enum
     Public Function GetVersionStatus() As VersionStatus
         Try
-            If IsCurrentVersionBeta AndAlso Not Config.System.Update.UpdateChannel = 1 Then
+            If IsCurrentVersionBeta AndAlso Not Config.Update.UpdateChannel = 1 Then
                 Dim isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
                 Dim isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
                 Return isNewerThanStable AndAlso isBetaLatest
@@ -658,7 +659,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                    loaders.Add(New LoaderTask(Of Integer, Integer)("显示按钮", Sub()
                                        IsUpdateWaitingRestart = True
                                        RunInUi(Sub()
-                                           FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} -> {version.VersionName})"
+                                           FrmMain.BtnExtraUpdateRestart.ToolTip = $"重启 PCL CE 以应用软件更新 ({VersionBaseName} → {version.VersionName})"
                                            FrmMain.BtnExtraUpdateRestart.ShowRefresh()
                                            FrmMain.BtnExtraUpdateRestart.Ribble()
                                        End Sub)
@@ -698,7 +699,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If triggerRestartAndByEnd Then
-                FrmMain.EndProgram(False)
+                FrmMain.EndProgram(False, isUpdating:=True)
                 Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
             End If
         Catch ex As Win32Exception

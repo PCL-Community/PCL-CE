@@ -409,9 +409,9 @@ Write:
         ' 2. 用户交互
         RunInUiWait(Sub()
                         If hasProfiles Then
-                            opType = MyMsgBox($"PCL CE 支持与 HMCL 相互同步全局账户列表。{vbCrLf}请选择操作：", "账户迁移", "导入", "导出", "取消", ForceWait:=True)
+                            opType = MyMsgBox($"PCL CE 支持与 HMCL 相互同步全局档案列表。{vbCrLf}请选择操作：", "档案迁移", "导入", "导出", "取消", ForceWait:=True)
                         Else
-                            opType = MyMsgBox($"由于当前档案列表为空，仅支持从 HMCL 导入账户。", "账户迁移", "导入", "取消", ForceWait:=True)
+                            opType = MyMsgBox($"由于当前档案列表为空，仅支持从 HMCL 导入档案。", "档案迁移", "导入", "取消", ForceWait:=True)
                             If opType = 2 Then opType = 3
                         End If
                     End Sub)
@@ -441,20 +441,29 @@ Write:
                                Dim jsonBytes As Byte() = File.ReadAllBytes(path)
                                Using doc As JsonDocument = JsonDocument.Parse(jsonBytes)
                                    Dim importCount As Integer = 0
-
+                                   Dim importProfiles As New List(Of McProfile)
+                                   Dim hasMsProfile As Boolean = ProfileList.Any(Function(p) p.Type = McLoginType.Ms)
+                                   
                                    For Each element As JsonElement In doc.RootElement.EnumerateArray()
                                        Dim profile = ConvertToPclProfile(element)
                                        If profile Is Nothing Then Continue For
 
                                        ' 查重逻辑
                                        If profile.Type = McLoginType.Ms Then
+                                           hasMsProfile = True
                                            If ProfileList.Any(Function(p) p.Type = McLoginType.Ms AndAlso p.Uuid = profile.Uuid) Then Continue For
                                        End If
 
-                                       ProfileList.Add(profile)
+                                       importProfiles.Add(profile)
                                        importCount += 1
                                    Next
 
+                                   If Not hasMsProfile Then
+                                       Hint("你必须先进行一次正版验证才能导入这些档案！", HintType.Critical)
+                                       Return
+                                   End If
+                                   
+                                   ProfileList.AddRange(importProfiles)
                                    SaveProfile()
 
                                    If importCount = 0 Then

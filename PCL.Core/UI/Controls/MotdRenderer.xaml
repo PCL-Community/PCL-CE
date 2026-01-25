@@ -1,0 +1,8 @@
+﻿<UserControl x:Class="PCL.Core.UI.Controls.MotdRenderer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d">
+    <Canvas x:Name="MotdCanvas" IsHitTestVisible="False" HorizontalAlignment="Center" Width="350" Height="34"/>
+</UserControl>
