@@ -4,91 +4,35 @@
     xmlns:local="clr-namespace:PCL"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
+    xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     mc:Ignorable="d"
     x:Name="WindMain" x:Class="FormMain" Style="{StaticResource MyWindow}"
-    AllowDrop="True" Topmost="True" Title="Plain Craft Launcher Community Edition " AllowsTransparency="True" MinHeight="470" MinWidth="810" 
-    ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico" WindowStyle="None" 
-    ResizeMode="CanResize" Background="{x:Null}" d:DesignWidth="870" d:DesignHeight="520" Width="850" Height="500" WindowStartupLocation="CenterScreen"
-    RenderTransformOrigin="0.5,0.5">
+    AllowDrop="True" Topmost="True" Title="Plain Craft Launcher Community Edition " MinHeight="470" MinWidth="810" 
+    ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico"
+    ResizeMode="CanResize" Background="{x:Null}" d:DesignWidth="870" d:DesignHeight="520" Width="850" Height="500"
+    WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow" AllowsTransparency="False">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo ThumbnailClipMargin="{Binding Margin, ElementName=PanForm}" />
     </Window.TaskbarItemInfo>
-    <Grid x:Name="PanBack" SnapsToDevicePixels="True" UseLayoutRounding="True" Margin="10" RenderTransformOrigin="0.5,0.5">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome
+            CaptionHeight="0"
+            UseAeroCaptionButtons="False"
+            ResizeBorderThickness="0"
+            CornerRadius="12"
+            GlassFrameThickness="0"/>
+    </shell:WindowChrome.WindowChrome>
+    <Grid x:Name="PanBack" SnapsToDevicePixels="True" UseLayoutRounding="True" Margin="10">
         <Grid.RenderTransform>
             <TransformGroup>
                 <RotateTransform x:Name="TransformRotate" Angle="-4" />
                 <TranslateTransform x:Name="TransformPos" X="0" Y="60" />
             </TransformGroup>
         </Grid.RenderTransform>
-        <Rectangle x:Name="ResizerT" Stroke="{x:Null}" StrokeThickness="0.0001" Height="8" VerticalAlignment="Top" Margin="13,0" Cursor="SizeNS">
-            <Rectangle.Fill>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#21000000" Offset="1" />
-                    <GradientStop Color="#11000000" Offset="0.7" />
-                    <GradientStop Color="#00000000" Offset="0" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerB" Stroke="{x:Null}" StrokeThickness="0.0001" Height="8" VerticalAlignment="Bottom" Margin="13,0" Cursor="SizeNS">
-            <Rectangle.Fill>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#21000000" Offset="0" />
-                    <GradientStop Color="#11000000" Offset="0.3" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerR" HorizontalAlignment="Right" Margin="0,13" Stroke="{x:Null}" StrokeThickness="0.0001" Width="8" Cursor="SizeWE">
-            <Rectangle.Fill>
-                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
-                    <GradientStop Color="#21000000" Offset="0" />
-                    <GradientStop Color="#11000000" Offset="0.3" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerL" HorizontalAlignment="Left" Stroke="{x:Null}" Width="8" Margin="0,13" StrokeThickness="0.0001" Cursor="SizeWE">
-            <Rectangle.Fill>
-                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
-                    <GradientStop Color="#21000000" Offset="1" />
-                    <GradientStop Color="#11000000" Offset="0.7" />
-                    <GradientStop Color="#00000000" Offset="0" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerLT" HorizontalAlignment="Left" Stroke="{x:Null}" Width="13" StrokeThickness="0.0001" VerticalAlignment="Top" Height="13" Cursor="SizeNWSE">
-            <Rectangle.Fill>
-                <RadialGradientBrush Center="1,1" GradientOrigin="1,1" RadiusX="1" RadiusY="1">
-                    <GradientStop Color="#21000000" Offset="0.2" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </RadialGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerLB" HorizontalAlignment="Left" Stroke="{x:Null}" Width="13" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="13" Cursor="SizeNESW">
-            <Rectangle.Fill>
-                <RadialGradientBrush Center="1,0" GradientOrigin="1,0" RadiusX="1" RadiusY="1">
-                    <GradientStop Color="#21000000" Offset="0.2" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </RadialGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerRB" HorizontalAlignment="Right" Stroke="{x:Null}" Width="13" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="13" Cursor="SizeNWSE">
-            <Rectangle.Fill>
-                <RadialGradientBrush Center="0,0" GradientOrigin="0,0" RadiusX="1" RadiusY="1">
-                    <GradientStop Color="#21000000" Offset="0.2" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </RadialGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ResizerRT" HorizontalAlignment="Right" Stroke="{x:Null}" Width="13" StrokeThickness="0.0001" VerticalAlignment="Top" Height="13" Cursor="SizeNESW">
-            <Rectangle.Fill>
-                <RadialGradientBrush Center="0,1" GradientOrigin="0,1" RadiusX="1" RadiusY="1">
-                    <GradientStop Color="#21000000" Offset="0.2" />
-                    <GradientStop Color="#00000000" Offset="1" />
-                </RadialGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Border Margin="8" x:Name="BorderForm">
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="20" Opacity=".2" ShadowDepth="0" RenderingBias="Performance"/>
+        </Grid.Effect>
+        <Border x:Name="BorderForm">
             <Border.Clip>
                 <RectangleGeometry x:Name="RectForm" RadiusX="6" RadiusY="6" />
             </Border.Clip>
@@ -100,7 +44,7 @@
                 <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" RenderOptions.BitmapScalingMode="LowQuality">
                     <MediaElement x:Name="VideoBack" Grid.Row="0" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible" MediaEnded="VideoEnded" Volume="0"/>
                 </Canvas>
-                <Grid x:Name="PanTitle" Height="48">
+                <Grid x:Name="PanTitle" Height="48" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <Grid.Background>
                         <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
                             <GradientStop Color="{StaticResource ColorObject4}" Offset="0"/>
@@ -178,7 +122,7 @@
                 </Grid>
                 <StackPanel x:Name="PanHint" IsHitTestVisible="False" UseLayoutRounding="True" SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,20" Grid.RowSpan="2" />
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Margin="15">
-                    <local:MyExtraButton x:Name="BtnExtraUpdateRestart" HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip="重启 PCL CE 以应用软件更新&#xa;2.13.4 -> 2.14.0" Visibility="Collapsed"
+                    <local:MyExtraButton x:Name="BtnExtraUpdateRestart" HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip="重启 PCL CE 以应用软件更新&#xa;2.13.4 → 2.14.0" Visibility="Collapsed"
                                          Logo="M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z" />
                     <local:MyExtraButton x:Name="BtnExtraBack" HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip="返回顶部" Visibility="Collapsed"
                                          Logo="M858.496 188.9024 173.1072 188.9024c-30.2848 0-54.8352-24.5504-54.8352-54.8352L118.272 106.6496c0-30.2848 24.5504-54.8352 54.8352-54.8352l685.3888 0c30.2848 0 54.8352 24.5504 54.8352 54.8352l0 27.4176C913.3312 164.352 888.7808 188.9024 858.496 188.9024L858.496 188.9024zM150.6048 550.8608c0 0 300.0064-240.3584 303.0272-243.328 13.9776-13.5936 31.1808-21.8624 48.8192-24.7552 1.7152-0.3072 3.4304-0.5888 5.1456-0.768 2.7392-0.3072 5.4528-0.3584 8.192-0.3328 2.7392-0.0256 5.4272 0.0256 8.1664 0.3328 1.7408 0.1792 3.4304 0.4864 5.1456 0.768 17.664 2.8928 34.8672 11.1616 48.8192 24.7552 3.0464 2.944 303.0016 243.328 303.0016 243.328 32.384 31.5136 29.6192 63.9744-2.7392 95.5136-32.3328 31.5392-75.648 2.9696-108.0064-28.544l-185.8816-147.1232 0 485.8368c0 30.3104-24.5248 54.8608-54.8352 54.8608l-27.392 0c-30.2848 0-54.8352-24.5504-54.8352-54.8608L447.232 470.7072l-185.8304 147.0976c-32.3584 31.5392-75.6992 60.1344-108.032 28.5696C121.0368 614.8352 118.272 582.3744 150.6048 550.8608L150.6048 550.8608zM150.6048 550.8608" />

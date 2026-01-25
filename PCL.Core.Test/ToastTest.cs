@@ -1,0 +1,15 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using static PCL.Core.UI.ToastNotification;
+
+namespace PCL.Core.Test;
+
+[TestClass]
+public class ToastTest
+{
+    [TestMethod]
+    public void TestToast()
+    {
+        SendToast("A toast notice from PCL.Core!", "Test Toast");
+    }
+}

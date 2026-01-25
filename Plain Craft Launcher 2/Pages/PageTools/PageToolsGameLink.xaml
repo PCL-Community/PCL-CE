@@ -112,6 +112,7 @@
                             <DockPanel Margin="10" Height="28">
                                 <local:MyButton x:Name="BtnCreate" DockPanel.Dock="Right" Text="创建" ColorType="Highlight" Width="50" Margin="10,0,0,0"/>
                                 <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right" Text="刷新" ColorType="Normal" Width="50" Margin="10,0,0,0"/>
+                                <local:MyButton x:Name="BtnInputPort" DockPanel.Dock="Right" Text="手动输入" ColorType="Normal" Width="80" Margin="10,0,0,0"/>
                                 <local:MyComboBox x:Name="ComboWorldList" DropDownWidthSync="False"/>
                             </DockPanel>
                         </StackPanel>

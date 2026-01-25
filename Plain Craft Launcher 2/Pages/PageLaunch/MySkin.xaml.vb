@@ -124,28 +124,21 @@ Public Class MySkin
             Dim CachePath As String = PathTemp & $"Cache\Skin\Head\{SkinHeadId}.png"
             SelectedProfile.SkinHeadId = SkinHeadId
             SaveProfile()
-            If SkinHead Is Nothing Then
-                SkinHead.Pic = ScaleToSize(Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8), 48, 48)
-            Else
-                SkinHead = New MyBitmap With {.Pic = New Bitmap(56, 56)}
-                Dim SkinHair As New MyBitmap With {.Pic = ScaleToSize(Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8), 56, 56)}
-                Dim SkinFace As New MyBitmap With {.Pic = ScaleToSize(Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8), 48, 48)}
-                For i = 0 To 47
-                    For j = 0 To 47
-                        SkinHead.Pic.SetPixel(i + 4, j + 4, SkinFace.Pic.GetPixel(i, j))
-
-                    Next
-                Next
-                For i = 0 To 55
-                    For j = 0 To 55
-                        If SkinHair.Pic.GetPixel(i, j).A = 0 Then Continue For
-                        SkinHead.Pic.SetPixel(i, j, SkinHair.Pic.GetPixel(i, j))
-                    Next
-                Next
-            End If
+            Dim CompleteHead As New Bitmap(56, 56)
+            Using g As Graphics = Graphics.FromImage(CompleteHead)
+                g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                g.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
+                Using FaceBitmap As Bitmap = Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8)
+                    g.DrawImage(FaceBitmap, New Rectangle(4, 4, 48, 48))
+                End Using
+                If ImgFore.Source IsNot Nothing Then
+                    Using HairBitmap As Bitmap = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8)
+                        g.DrawImage(HairBitmap, New Rectangle(0, 0, 56, 56))
+                    End Using
+                End If
+            End Using
             If Not Directory.Exists(PathTemp & "Cache\Skin\Head") Then Directory.CreateDirectory(PathTemp & "Cache\Skin\Head")
-            If Not File.Exists(CachePath) Then File.Create(CachePath).Close()
-            SkinHead.Save(CachePath)
+            CompleteHead.Save(CachePath, Imaging.ImageFormat.Png)
             Log("[Skin] 载入头像成功：" & Loader.Name)
         Catch ex As Exception
             Log(ex, "载入头像失败（" & If(Address, "null") & "," & Loader.Name & "）", LogLevel.Hint)

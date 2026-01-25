@@ -250,6 +250,8 @@
                         <local:MyCheckBox Height="28" Text="禁用 RetroWrapper" x:Name="CheckAdvanceDisableRW" Tag="VersionAdvanceDisableRW"
                               ToolTipService.Placement="Right"
                               ToolTip="PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。" />
+                        <local:MyCheckBox Height="28" Text="使用调试级别 log4j 配置文件" x:Name="CheckUseDebugLog4j2Config" Tag="VersionUseDebugLog4j2Config"
+                                          ToolTipService.Placement="Right" />
                     </StackPanel>
                 </Grid>
             </local:MyCard>

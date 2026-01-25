@@ -37,7 +37,7 @@ Public Module ModMusic
             End If
 
             ' 根据设置决定是否随机
-            If Config.UI.Music.ShufflePlayback Then
+            If Config.Preference.Music.ShufflePlayback Then
                 MusicWaitingList = RandomUtils.Shuffle(New List(Of String)(MusicAllList))
             Else
                 MusicWaitingList = New List(Of String)(MusicAllList)
@@ -276,13 +276,13 @@ Public Module ModMusic
             currentWave.Play()
 
             ' 首次加载且用户未启用自动播放，则暂停
-            If IsFirstLoad AndAlso Not Config.UI.Music.StartOnStartup Then
+            If IsFirstLoad AndAlso Not Config.Preference.Music.StartOnStartup Then
                 currentWave.Pause()
             End If
 
             MusicRefreshUI()
 
-            Dim lastVolume = Config.UI.Music.Volume
+            Dim lastVolume = Config.Preference.Music.Volume
             currentWave.Volume = lastVolume / 1000.0F
 
             ' 播放主循环
@@ -290,7 +290,7 @@ Public Module ModMusic
                   currentWave.PlaybackState <> NAudio.Wave.PlaybackState.Stopped
 
                 ' 音量动态更新
-                Dim currentVolume = Config.UI.Music.Volume
+                Dim currentVolume = Config.Preference.Music.Volume
                 If currentVolume <> lastVolume Then
                     lastVolume = currentVolume
                     currentWave.Volume = currentVolume / 1000.0F
