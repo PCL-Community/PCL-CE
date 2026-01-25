@@ -8,11 +8,14 @@ on:
     branches: [dev]
     paths-ignore: &ignored
       - '**/.editorconfig'
-      - '**/.git*'
+      - '**/.gitignore'
+      - '**/.gitattributes'
       - '**/*.md'
       - '**/LICENSE'
       - '**/LICENCE'
       - 'PCL.Core.Test/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/FUNDING.yml'
   pull_request:
     paths-ignore: *ignored
   workflow_dispatch:
