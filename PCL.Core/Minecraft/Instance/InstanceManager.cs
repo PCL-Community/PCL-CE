@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.App;
-using PCL.Core.App.Tasks;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Folder;
