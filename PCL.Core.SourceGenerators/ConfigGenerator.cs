@@ -554,8 +554,6 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             .Append(typeName)
           .Append(">(")
             .Append(item.Key.ToLiteral())
-          .Append(", ")
-            .Append(sourceCode)
           .AppendLine(");");
 
         return accessorInitializer;
@@ -576,6 +574,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         // 组实例字段（在其父作用域中）
         sb.AppendLine();
         sb.Append(indentStr).Append("// Group: ").AppendLine(node.Model.GroupName);
+        sb.Append(indentStr).Append("/// <inheritdoc cref=\"").Append(typeName).AppendLine("\" />");
         sb.Append(indentStr)
           .Append("public ")
           .Append(staticKeyword)

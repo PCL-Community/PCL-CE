@@ -39,8 +39,10 @@ public static partial class Config
         [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
     }
 
-    [ConfigGroup("Network")]
-    partial class NetworkConfigGroup
+    /// <summary>
+    /// 网络配置。
+    /// </summary>
+    [ConfigGroup("Network")] partial class NetworkConfigGroup
     {
         [ConfigItem<bool>("SystemNetEnableDoH", true)] public partial bool EnableDoH { get; set; }
 
@@ -53,6 +55,9 @@ public static partial class Config
         }
     }
 
+    /// <summary>
+    /// 调试配置
+    /// </summary>
     [ConfigGroup("Debug")] partial class DebugConfigGroup
     {
         [ConfigItem<bool>("SystemDebugMode", false)] public partial bool Enabled { get; set; }
@@ -62,6 +67,9 @@ public static partial class Config
         [ConfigItem<bool>("SystemDebugAllowRestrictedFeature", false)] public partial bool AllowRestrictedFeature { get; set; }
     }
 
+    /// <summary>
+    /// 下载配置。
+    /// </summary>
     [ConfigGroup("Download")] partial class DownloadConfigGroup
     {
         [ConfigItem<int>("ToolDownloadThread", 63)] public partial int ThreadLimit { get; set; }
@@ -71,6 +79,9 @@ public static partial class Config
         [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
         [ConfigItem<bool>("ToolFixAuthlib", true)] public partial bool FixAuthLib { get; set; }
 
+        /// <summary>
+        /// 第三方资源配置。
+        /// </summary>
         [ConfigGroup("Comp")] partial class CompConfigGroup
         {
             [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
@@ -82,6 +93,9 @@ public static partial class Config
         }
     }
 
+    /// <summary>
+    /// 工具配置。
+    /// </summary>
     [ConfigGroup("Tool")] partial class ToolConfigGroup
     {
         [ConfigItem<bool>("ToolHelpChinese", true)] public partial bool AutoChangeLanguage { get; set; }
@@ -90,6 +104,9 @@ public static partial class Config
         [ConfigItem<bool>("ToolUpdateSnapshot", false)] public partial bool SnapshotNotification { get; set; }
     }
 
+    /// <summary>
+    /// 更新配置。
+    /// </summary>
     [ConfigGroup("Update")] partial class UpdateConfigGroup
     {
         /// <summary>
@@ -109,7 +126,7 @@ public static partial class Config
     }
 
     /// <summary>
-    /// 联机大厅配置/状态。
+    /// 联机大厅配置。
     /// </summary>
     [ConfigGroup("Link")] partial class LinkConfigGroup
     {
@@ -160,7 +177,7 @@ public static partial class Config
     }
 
     /// <summary>
-    /// 用户界面配置。
+    /// 个性化配置。
     /// </summary>
     [ConfigGroup("Preference")] partial class PreferenceConfigGroup
     {
