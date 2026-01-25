@@ -155,14 +155,14 @@
                                         Margin="0,8,0,0"
                                         HorizontalAlignment="Center"
                                         MaxWidth="90"
-                                        EventType="打开网页"
-                                        EventData="{Binding HtmlUrl}"
+                                        local:CustomEventService.EventType="打开网页"
+                                        local:CustomEventService.EventData="{Binding HtmlUrl}"
                                         ToolTip="{Binding Login}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <local:MyTextButton Text="查看更多" EventType="打开网页" EventData="https://github.com/PCL-Community/PCL2-CE/graphs/contributors" Grid.Row="2" HorizontalAlignment="Center"/>
+                    <local:MyTextButton Text="查看更多" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE/graphs/contributors" Grid.Row="2" HorizontalAlignment="Center"/>
                 </Grid>
             </local:MyCard>
 
