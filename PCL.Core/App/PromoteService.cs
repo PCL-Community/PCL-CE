@@ -288,7 +288,7 @@ public sealed class PromoteService : GeneralService
     
     public override void Start()
     {
-        var args = Environment.GetCommandLineArgs();
+        var args = Basics.CommandLineArguments;
         if (args is [_, "promote", _])
         {
             Context.Info("当前进程为提权进程");

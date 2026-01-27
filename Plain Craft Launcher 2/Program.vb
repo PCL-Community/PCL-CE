@@ -8,7 +8,7 @@ Module Program
     <STAThread>
     Public Sub Main()
 #If DEBUG
-        If Environment.GetCommandLineArgs().Contains("--debug") Then
+        If Basics.CommandLineArguments.Contains("--debug") Then
             While Not Debugger.IsAttached
                 Thread.Sleep(50)
             End While
