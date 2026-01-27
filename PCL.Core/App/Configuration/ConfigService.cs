@@ -52,7 +52,7 @@ public sealed partial class ConfigService
     #region Getters & Setters
 
     /// <summary>
-    /// 尝试获取配置项的可观察对象。
+    /// 尝试获取无泛型的配置项。
     /// </summary>
     /// <param name="key">配置键</param>
     /// <param name="item">返回可观察对象</param>

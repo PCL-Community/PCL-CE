@@ -17,7 +17,7 @@ public class ConfigItem<TValue>(
 {
     public string Key { get; } = key;
 
-    public ConfigSource Source { get; set; } = source;
+    public ConfigSource Source { get; } = source;
 
     Type ConfigItem.Type => typeof(TValue);
 
@@ -235,7 +235,7 @@ public interface ConfigItem
     /// <summary>
     /// 配置来源。
     /// </summary>
-    public ConfigSource Source { get; set; }
+    public ConfigSource Source { get; }
 
     /// <summary>
     /// 配置的 CLR 类型。
