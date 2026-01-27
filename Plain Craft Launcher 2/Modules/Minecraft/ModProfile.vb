@@ -237,9 +237,9 @@ Public Module ModProfile
         RunInUiWait(Sub()
                         Dim authTypeList As List(Of IMyRadio)
                         Dim HasMinecraftAccount = ProfileList.Any(Function(x) x.Type = McLoginType.Ms)
-                        Dim Restricted = RegionUtils.IsRestrictedFeatAllowed AndAlso ProfileList.Count > 0
+                        '修改：移除了新建档案时的地理位置限制
+                        '所有用户都可以自由选择创建离线、正版或第三方验证档案
                         Dim HasNetwork = NetworkHelper.IsNetworkAvailable()
-                        If HasMinecraftAccount OrElse Restricted OrElse Not HasNetwork Then
                             authTypeList = New List(Of IMyRadio) From
                             {
                                 New MyListItem With {
@@ -257,16 +257,6 @@ Public Module ModProfile
                                     .Logo = Logo.IconButtonOffline
                                 }
                             }
-                        Else
-                            authTypeList = New List(Of IMyRadio) From
-                            {
-                                New MyListItem With {
-                                    .Title = "正版验证",
-                                    .Type = MyListItem.CheckType.RadioBox,
-                                    .Logo = Logo.IconButtonAuth
-                                }
-                            }
-                        End If
                         selectedAuthTypeNum = MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消")
                     End Sub)
         If selectedAuthTypeNum Is Nothing Then Exit Sub
