@@ -550,11 +550,11 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         sb.Append(indentStr)
           .Append("public ").Append(staticKeyword)
           .Append("ConfigItem<").Append(typeName).Append("> ")
-          .Append(configItemName).Append(" { get => field ?? (field = ConfigService.GetConfigItem<")
+          .Append(configItemName).Append(" { get => field ??= ConfigService.GetConfigItem<")
             .Append(typeName)
           .Append(">(")
             .Append(item.Key.ToLiteral())
-          .AppendLine(")); } = null!;");
+          .AppendLine("); } = null!;");
 
         return accessorInitializer;
     }

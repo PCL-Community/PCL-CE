@@ -21,8 +21,8 @@ public static class JsonToYamlConverter
     /// <param name="leaveOpen">是否在返回时保留输出流打开</param>
     public static void Convert(Stream jsonInput, Stream yamlOutput, bool leaveOpen = false)
     {
-        if (jsonInput is null) throw new ArgumentNullException(nameof(jsonInput));
-        if (yamlOutput is null) throw new ArgumentNullException(nameof(yamlOutput));
+        ArgumentNullException.ThrowIfNull(jsonInput);
+        ArgumentNullException.ThrowIfNull(yamlOutput);
         if (!jsonInput.CanRead) throw new ArgumentException("must be readable", nameof(jsonInput));
         if (!yamlOutput.CanWrite) throw new ArgumentException("must be writable", nameof(yamlOutput));
 
@@ -43,8 +43,8 @@ public static class JsonToYamlConverter
     /// <param name="leaveOpen">是否在返回时保留输出流打开</param>
     public static async Task ConvertAsync(Stream jsonInput, Stream yamlOutput, bool leaveOpen = false)
     {
-        if (jsonInput is null) throw new ArgumentNullException(nameof(jsonInput));
-        if (yamlOutput is null) throw new ArgumentNullException(nameof(yamlOutput));
+        ArgumentNullException.ThrowIfNull(jsonInput);
+        ArgumentNullException.ThrowIfNull(yamlOutput);
         if (!jsonInput.CanRead) throw new ArgumentException("jsonInput must be readable", nameof(jsonInput));
         if (!yamlOutput.CanWrite) throw new ArgumentException("yamlOutput must be writable", nameof(yamlOutput));
 
