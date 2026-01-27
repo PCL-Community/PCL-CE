@@ -7,6 +7,11 @@
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
     xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
     ShutdownMode="OnExplicitShutdown">
+    <JumpList.JumpList>
+        <JumpList>
+            <JumpTask Title="启动" Arguments="--launch" />
+        </JumpList>
+    </JumpList.JumpList>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

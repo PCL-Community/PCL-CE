@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.Utils
 Imports System.Windows
+Imports PCL.Core.App
 
 Public Class PageLaunchLeft
 
@@ -99,6 +100,11 @@ Public Class PageLaunchLeft
                 RefreshButtonsUI()
                 RefreshPage(False) '有可能选择的版本变化了，需要重新刷新
                 'If IsProfileVaild() = "" Then McLoginLoader.Start() '自动登录
+                Dim args = Basics.CommandLineArguments
+                If args.Length > 0 AndAlso args(0) = "--launch" Then
+                    Log("[Launch] 收到命令行启动参数，启动游戏")
+                    LaunchButtonClick()
+                End If
             End Sub)
         End Sub, "Instance Check", ThreadPriority.AboveNormal)
 
