@@ -255,13 +255,13 @@ public sealed partial class ConfigService
         Context.Info("Config initialization started");
         try
         {
-            Context.Trace("Initializing providers...");
-            _InitializeProviders();
-            _isProvidersInitialized = true;
             Context.Trace("Initializing config items...");
             _InitializeConfigItems();
             Context.Debug($"Finished initialize {_Items.Count} item(s)");
             _isConfigItemsInitialized = true;
+            Context.Trace("Initializing providers...");
+            _InitializeProviders();
+            _isProvidersInitialized = true;
             Context.Trace("Initializing observers...");
             _InitializeObservers();
             Context.Info("Invoking init events...");

@@ -1,6 +1,8 @@
 ﻿namespace PCL.Core.App.Configuration.Impl;
 
-// ReSharper disable once InconsistentNaming
+/// <summary>
+/// 键值文件模型。
+/// </summary>
 public interface IKeyValueFileProvider
 {
     /// <summary>

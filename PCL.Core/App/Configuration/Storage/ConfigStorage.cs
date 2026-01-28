@@ -16,13 +16,23 @@ public enum StorageAction
     Delete
 }
 
+/// <summary>
+/// 存取仓库模型实现与底层抽象。
+/// </summary>
 public abstract class ConfigStorage : IConfigProvider
 {
-    protected abstract bool OnAccess<TInput, TOutput>(
+    protected abstract bool OnAccess<TKey, TValue>(
         StorageAction action,
-        ref TInput? input,
-        [NotNullWhen(true)] ref TOutput? output,
+        ref TKey key,
+        [NotNullWhen(true)] ref TValue value,
         object? argument);
+
+    protected virtual void OnStop() { }
+
+    /// <summary>
+    /// 停止存取工作，保存并释放资源。
+    /// </summary>
+    public void Stop() => OnStop();
 
 #if DEBUG
     private static readonly bool _EnableTrace = Basics.CommandLineArguments.Contains("--trace-traffic");
@@ -32,29 +42,29 @@ public abstract class ConfigStorage : IConfigProvider
     /// 执行存取操作。
     /// </summary>
     /// <param name="action">操作类型</param>
-    /// <param name="input">输入值</param>
-    /// <param name="output">输出值，若无输出值则为该类型默认值</param>
+    /// <param name="key">键</param>
+    /// <param name="value">值，若无值则为该类型默认值</param>
     /// <param name="argument">上下文参数</param>
-    /// <typeparam name="TInput">输入值类型</typeparam>
-    /// <typeparam name="TOutput">输出值类型</typeparam>
+    /// <typeparam name="TKey">键的类型</typeparam>
+    /// <typeparam name="TValue">值的类型</typeparam>
     /// <returns>是否有输出值</returns>
-    public bool Access<TInput, TOutput>(
+    public bool Access<TKey, TValue>(
         StorageAction action,
-        ref TInput? input,
-        [NotNullWhen(true)] ref TOutput? output,
+        ref TKey key,
+        [NotNullWhen(true)] ref TValue value,
         object? argument)
     {
         const string logModule = "Config";
         var hasOutput = false;
         try
         {
-            hasOutput = OnAccess(action, ref input, ref output, argument);
+            hasOutput = OnAccess(action, ref key, ref value, argument);
         }
         catch (Exception ex)
         {
             var msg = $"Config Storage Error Report\n" +
                 $"A exception was thrown while processing an access.\n\n" +
-                $"[Diagnostics Info]\n{_GenerateDiagnosticsInfo(action, input, output, hasOutput, argument, true)}\n\n" +
+                $"[Diagnostics Info]\n{_GenerateDiagnosticsInfo(action, key, value, hasOutput, argument, true)}\n\n" +
                 $"[Exception Details]\n{ex}";
             LogWrapper.Fatal(logModule, msg);
             Lifecycle.ForceShutdown(-2);
@@ -62,7 +72,7 @@ public abstract class ConfigStorage : IConfigProvider
 #if DEBUG
         if (_EnableTrace)
         {
-            LogWrapper.Trace(logModule, _GenerateDiagnosticsInfo(action, input, output, hasOutput, argument));
+            LogWrapper.Trace(logModule, _GenerateDiagnosticsInfo(action, key, value, hasOutput, argument));
         }
 #endif
         return hasOutput;
@@ -92,7 +102,7 @@ public abstract class ConfigStorage : IConfigProvider
         var caller = appendCallStack
             ? "Stack:\n|=> " + string.Join("\n|=> ", StackHelper.GetStack(includeParameters: true, needFileInfo: needFileInfo).Skip(1))
             : "Caller: " + StackHelper.GetDirectCallerName(includeParameters: true, skipAppFrames: 1);
-        var msg = $"Access: {accessAction} {GetType().Name}@{GetHashCode()}\n" +
+        var msg = $"Access: {accessAction} {ToString()}\n" +
             $"|- Context: {context}\n" +
             $"|- Input: {input}\n" +
             $"|- Output: {output} (HasOutput: {accessHasOutput})\n" +
@@ -129,4 +139,6 @@ public abstract class ConfigStorage : IConfigProvider
         var resultRef = false;
         return Access(StorageAction.Exists, ref keyRef, ref resultRef, argument) && resultRef;
     }
+
+    public override string ToString() => $"{GetType().Name}@{GetHashCode()}";
 }
