@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using PCL.Core.App.Configuration.Impl;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 
@@ -43,21 +42,22 @@ public class FileConfigStorage : ConfigStorage
                 while (!cancelToken.IsCancellationRequested)
                 {
                     // 读入并合并暂存操作
-                    await foreach (var (key, action) in reader.ReadAllAsync(cancelToken)) writeActionMap[key] = action;
-                    if (Environment.TickCount64 - lastSyncTick < syncInterval) continue;
+                    var (key, action) = await reader.ReadAsync(cancelToken);
+                    writeActionMap[key] = action;
+                    if (Environment.TickCount64 - lastSyncTick < syncInterval || cancelToken.IsCancellationRequested) continue;
                     // 同步文件
                     Sync();
                     lastSyncTick = Environment.TickCount64;
+                    writeActionMap.Clear();
                 }
             }
-            catch (TaskCanceledException) { /* ignoring*/ }
+            catch (OperationCanceledException) { /* ignoring*/ }
             finally
             {
                 // 结束时执行一次同步
                 Sync();
             }
             _writeStopEvent.Set();
-            _writeStopEvent.Dispose();
             return;
             void Sync()
             {
@@ -81,6 +81,8 @@ public class FileConfigStorage : ConfigStorage
     protected override void OnStop()
     {
         _writeActionCts.Cancel();
+        _writeStopEvent.Wait();
+        _writeStopEvent.Dispose();
     }
 
     protected override bool OnAccess<TKey, TValue>(

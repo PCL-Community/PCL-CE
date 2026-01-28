@@ -5,8 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using PCL.Core.App.Configuration.Impl;
-using PCL.Core.App.Configuration.NTraffic;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
@@ -111,10 +110,10 @@ public sealed partial class ConfigService
 
     #region Providers
 
-    private static TrafficCenter? _sharedConfigProvider;
-    private static TrafficCenter? _sharedEncryptedConfigProvider;
-    private static TrafficCenter? _localConfigProvider;
-    private static TrafficCenter? _instanceConfigProvider;
+    private static ConfigStorage? _sharedConfigProvider;
+    private static ConfigStorage? _sharedEncryptedConfigProvider;
+    private static ConfigStorage? _localConfigProvider;
+    private static ConfigStorage? _instanceConfigProvider;
 
     /// <summary>
     /// 获取配置提供方。
@@ -153,9 +152,9 @@ public sealed partial class ConfigService
                 }
                 // load
                 var fileProvider = new JsonFileProvider(SharedConfigPath);
-                var trafficCenter = new FileTrafficCenter(fileProvider);
-                _sharedConfigProvider = trafficCenter;
-                _sharedEncryptedConfigProvider = new EncryptedFileTrafficCenter(trafficCenter);
+                var storage = new FileConfigStorage(fileProvider);
+                _sharedConfigProvider = storage;
+                _sharedEncryptedConfigProvider = new EncryptedFileConfigStorage(storage);
             },
             () => // local config file
             {
@@ -170,14 +169,15 @@ public sealed partial class ConfigService
                 ]);
                 // load
                 var fileProvider = new YamlFileProvider(LocalConfigPath);
-                _localConfigProvider = new FileTrafficCenter(fileProvider);
+                _localConfigProvider = new FileConfigStorage(fileProvider);
             },
             () => // instance config file(s)
             {
-                _instanceConfigProvider = new DynamicCacheTrafficCenter
+                _instanceConfigProvider = new DynamicCacheConfigStorage
                 {
-                    TrafficCenterFactory = argument =>
+                    StorageFactory = argument =>
                     {
+                        ArgumentNullException.ThrowIfNull(argument);
                         var dir = Path.GetFullPath(argument.ToString()!);
                         var configPath = Path.Combine(dir, "PCL", "config.v1.yml");
                         if (!File.Exists(dir)) _TryMigrate(dir, [
@@ -189,8 +189,8 @@ public sealed partial class ConfigService
                             }
                         ]);
                         var fileProvider = new YamlFileProvider(configPath);
-                        var trafficCenter = new FileTrafficCenter(fileProvider);
-                        return trafficCenter;
+                        var storage = new FileConfigStorage(fileProvider);
+                        return storage;
                     }
                 };
             }

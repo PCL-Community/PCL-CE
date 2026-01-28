@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using PCL.Core.App.Configuration.NTraffic;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.Threading;
