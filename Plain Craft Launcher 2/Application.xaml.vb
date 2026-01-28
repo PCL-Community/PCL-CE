@@ -1,4 +1,5 @@
 Imports System.IO
+Imports System.Windows.Shell
 Imports PCL.Core.App
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
@@ -144,6 +145,13 @@ WaitRetry:
             Next
             'Pipe RPC 初始化
             StartEchoPipe()
+            '跳转列表
+            Dim JumpList As New JumpList()
+            JumpList.JumpItems.Add(New JumpTask() With {
+                                      .Title = States.Game.SelectedInstance,
+                                      .CustomCategory = "最近实例",
+                                      .Arguments = "--launch"})
+            JumpList.SetJumpList(Me, JumpList)
             '计时
             Log("[Start] 第一阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
             ApplicationStartTick = TimeUtils.GetTimeTick()

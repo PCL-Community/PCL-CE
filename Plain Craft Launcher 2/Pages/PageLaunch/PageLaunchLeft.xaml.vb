@@ -1,5 +1,6 @@
 ﻿Imports PCL.Core.Utils
 Imports System.Windows
+Imports System.Windows.Shell
 Imports PCL.Core.App
 
 Public Class PageLaunchLeft
@@ -103,7 +104,11 @@ Public Class PageLaunchLeft
                 Dim args = Basics.CommandLineArguments
                 If args.Length > 0 AndAlso args(0) = "--launch" Then
                     Log("[Launch] 收到命令行启动参数，启动游戏")
-                    LaunchButtonClick()
+                    Dim Options As McLaunchOptions = Nothing
+                    If args.Length > 1 Then
+                        Options = New McLaunchOptions() With{ .Instance = New McInstance(args(1)) }
+                    End If
+                    McLaunchStart(Options)
                 End If
             End Sub)
         End Sub, "Instance Check", ThreadPriority.AboveNormal)
