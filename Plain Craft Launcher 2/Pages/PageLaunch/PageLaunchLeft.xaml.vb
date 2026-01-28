@@ -106,7 +106,13 @@ Public Class PageLaunchLeft
                     Log("[Launch] 收到命令行启动参数，启动游戏")
                     Dim Options As McLaunchOptions = Nothing
                     If args.Length > 1 Then
-                        Options = New McLaunchOptions() With{ .Instance = New McInstance(args(1)) }
+                        Log($"[Launch] 命令行启动参数指定了实例：{args(1)}")
+                        Dim LaunchInstance = New McInstance(args(1))
+                        If LaunchInstance.Check() Then 
+                            Options = New McLaunchOptions With { .Instance = LaunchInstance }
+                        Else    
+                            Log("[Launch] 命令行启动参数指定的实例无效，使用当前实例启动", LogLevel.Critical)
+                        End If
                     End If
                     McLaunchStart(Options)
                 End If
