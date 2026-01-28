@@ -73,16 +73,25 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             }
         });
 
-        var serviceInputs = propertyCandidates.Collect().Combine(eventCandidates.Collect());
+        var serviceInputs = propertyCandidates.Collect()
+            .Combine(groupCandidates.Collect())
+            .Combine(eventCandidates.Collect());
         context.RegisterSourceOutput(serviceInputs, static (spc, tuple) =>
         {
-            var items  = tuple.Left.Cast<ItemModel>().OrderBy(i => i.DeclOrder).ToList();
+            var items = tuple.Left.Left.Cast<ItemModel>().OrderBy(i => i.DeclOrder).ToList();
+            var groups = tuple.Left.Right.Cast<GroupModel>().ToList();
             var events = tuple.Right.Cast<EventRegisterModel>().OrderBy(e => e.DeclOrder).ToList();
 
             // 两者都为空则不生成
             if (items.Count == 0 && events.Count == 0) return;
 
-            var src = _GenerateServiceInitSource(items, events);
+            var groupLookup = new Dictionary<INamedTypeSymbol, GroupModel>(SymbolEqualityComparer.Default);
+            foreach (var group in groups)
+            {
+                groupLookup[group.GroupType] = group;
+            }
+
+            var src = _GenerateServiceInitSource(items, events, groupLookup);
             spc.AddSource("ConfigService.g.cs", src);
         });
     }
@@ -92,15 +101,15 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         var propSyntax = (PropertyDeclarationSyntax)ctx.Node;
         var symbol = ctx.SemanticModel.GetDeclaredSymbol(propSyntax);
         if (symbol == null) return null;
-    
+
         var compilation = ctx.SemanticModel.Compilation;
         var attrDefItem = compilation.GetTypeByMetadataName("PCL.Core.App.Configuration.ConfigItemAttribute`1");
         var attrDefAny  = compilation.GetTypeByMetadataName("PCL.Core.App.Configuration.AnyConfigItemAttribute`1");
         if (attrDefItem == null && attrDefAny == null) return null;
-    
+
         AttributeData? picked = null;
         var isAny = false;
-    
+
         foreach (var a in symbol.GetAttributes())
         {
             var ac = a.AttributeClass;
@@ -115,30 +124,30 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             }
         }
         if (picked == null) return null;
-    
+
         if (picked.ConstructorArguments.Length < 1) return null;
         var key = picked.ConstructorArguments[0].Value as string;
         if (string.IsNullOrEmpty(key)) return null;
-    
+
         // 默认值与来源解析
         var defaultCode = "default";
-        var sourceCode = "ConfigSource.Shared";
-    
+        string? sourceCode = null;
+
         var attrSyntax = (AttributeSyntax?)picked.ApplicationSyntaxReference?.GetSyntax();
         if (attrSyntax != null)
         {
             var args = attrSyntax.ArgumentList?.Arguments;
-    
+
             if (isAny)
             {
                 // AnyConfigItem：没有“默认值”参数: 替换为无参构造函数
-                var tQualified = _BuildQualifiedTypeName(symbol.Type);
+                var tQualified = symbol.Type.GetFullyQualifiedName();
                 defaultCode = "() => new " + tQualified + "()";
-    
+
                 // 来源参数若存在，是第 2 个实参
                 if (args is { Count: >= 2 })
                 {
-                    sourceCode = _RenderSourceCode(ctx.SemanticModel, args.Value[1].Expression);
+                    sourceCode = ctx.SemanticModel.RenderSourceCode(args.Value[1].Expression);
                 }
             }
             else
@@ -146,22 +155,22 @@ public sealed class ConfigGenerator : IIncrementalGenerator
                 // ConfigItem：参数2为默认值，参数3为来源（可省略）
                 if (args is { Count: >= 2 })
                 {
-                    defaultCode = _RenderDefaultValueCode(ctx.SemanticModel, args.Value[1].Expression);
+                    defaultCode = ctx.SemanticModel.RenderDefaultValueCode(args.Value[1].Expression);
                 }
                 if (args is { Count: >= 3 })
                 {
-                    sourceCode = _RenderSourceCode(ctx.SemanticModel, args.Value[2].Expression);
+                    sourceCode = ctx.SemanticModel.RenderSourceCode(args.Value[2].Expression);
                 }
             }
         }
-    
+
         return new ItemModel
         {
             Property = symbol,
             Key = key!,
             Type = symbol.Type,
             IsStatic = symbol.IsStatic,
-            DeclOrder = _GetDeclarationOrder(symbol),
+            DeclOrder = symbol.GetDeclarationOrder(),
             DefaultValueCode = defaultCode,
             SourceCode = sourceCode
         };
@@ -187,14 +196,25 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         var name = attr.ConstructorArguments[0].Value as string;
         if (string.IsNullOrEmpty(name)) return null;
 
+        var hasDeclaredSource = false;
+        string? declaredSourceCode = null;
+        var attrSyntax = (AttributeSyntax?)attr.ApplicationSyntaxReference?.GetSyntax();
+        if (attrSyntax?.ArgumentList?.Arguments is { Count: >= 2 } arguments)
+        {
+            hasDeclaredSource = true;
+            declaredSourceCode = ctx.SemanticModel.RenderSourceCode(arguments[1].Expression);
+        }
+
         return new GroupModel
         {
             GroupType = symbol,
             GroupName = name!,
-            DeclOrder = _GetDeclarationOrder(symbol)
+            DeclOrder = symbol.GetDeclarationOrder(),
+            HasDeclaredSource = hasDeclaredSource,
+            DeclaredSourceCode = declaredSourceCode
         };
     }
-    
+
     private static object? _GetRegisterConfigEventCandidate(GeneratorSyntaxContext ctx)
     {
         var propSyntax = (PropertyDeclarationSyntax)ctx.Node;
@@ -215,7 +235,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         return new EventRegisterModel
         {
             Property = symbol,
-            DeclOrder = _GetDeclarationOrder(symbol)
+            DeclOrder = symbol.GetDeclarationOrder()
         };
     }
 
@@ -225,7 +245,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         if (ModelExtensions.GetDeclaredSymbol(ctx.SemanticModel, classSyntax) is not INamedTypeSymbol symbol) return null;
 
         // 限定为 partial
-        if (!_IsPartial(symbol)) return null;
+        if (!symbol.IsPartial()) return null;
 
         // 绕过 [ConfigGroup]
         var compilation = ctx.SemanticModel.Compilation;
@@ -241,26 +261,8 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         return new ConfigModel
         {
             ConfigType = symbol,
-            DeclOrder = _GetDeclarationOrder(symbol)
+            DeclOrder = symbol.GetDeclarationOrder()
         };
-    }
-
-    private static int _GetDeclarationOrder(ISymbol symbol)
-    {
-        var loc = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation();
-        return loc?.SourceSpan.Start ?? int.MaxValue;
-    }
-
-    private static bool _IsPartial(INamedTypeSymbol type)
-    {
-        foreach (var decl in type.DeclaringSyntaxReferences)
-        {
-            var syn = decl.GetSyntax() as ClassDeclarationSyntax;
-            if (syn == null) continue;
-            if (syn.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
-                return true;
-        }
-        return false;
     }
 
     private static ConfigTree _BuildConfigTree(ConfigModel config,
@@ -275,12 +277,18 @@ public sealed class ConfigGenerator : IIncrementalGenerator
                             .ToList();
 
         var allGroupsForConfig = groups
-            .Where(g => _IsUnderConfig(g.GroupType, configType))
+            .Where(g => g.GroupType.IsNestedWithin(configType))
             .OrderBy(g => g.DeclOrder)
             .ToList();
 
         // 构建组索引
         var groupMap = allGroupsForConfig.ToDictionary(g => g.GroupType, g => new GroupNode(g), SymbolEqualityComparer.Default);
+
+        GroupModel? GroupLookup(INamedTypeSymbol type) =>
+            groupMap.TryGetValue(type, out var node) ? node.Model : null;
+
+        string ResolveItemSource(ItemModel item) =>
+            _ResolveItemSourceCode(item, GroupLookup);
 
         // 组装层级
         foreach (var node in groupMap.Values)
@@ -317,20 +325,9 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             Namespace = configType.ContainingNamespace?.ToDisplayString() ?? "",
             ConfigType = configType,
             TopItems = topItems,
-            TopGroups = topGroups
+            TopGroups = topGroups,
+            ResolveSourceCode = ResolveItemSource
         };
-    }
-
-    private static bool _IsUnderConfig(INamedTypeSymbol group, INamedTypeSymbol configType)
-    {
-        var t = group.ContainingType;
-        while (t != null)
-        {
-            if (SymbolEqualityComparer.Default.Equals(t, configType))
-                return true;
-            t = t.ContainingType;
-        }
-        return false;
     }
 
     private static string _MakeHintName(ConfigModel config)
@@ -346,6 +343,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         var ns = string.IsNullOrEmpty(tree.Namespace) ? null : tree.Namespace;
         var configType = tree.ConfigType;
         var configName = configType.Name;
+        var resolveSource = tree.ResolveSourceCode;
 
         sb.AppendLine("// <auto-generated />");
         sb.AppendLine("// 此文件由 Source Generator 自动生成，请勿手动修改");
@@ -377,7 +375,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         {
             foreach (var item in tree.TopItems)
             {
-                _EmitItem(sb, item, indent: 1, isTopLevel: true);
+                _EmitItem(sb, item, indent: 1, isTopLevel: true, resolveSource);
                 sb.AppendLine();
             }
         }
@@ -388,7 +386,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         {
             foreach (var grp in tree.TopGroups)
             {
-                _EmitGroupInto(sb, grp, indent: 1, isTopLevel: true);
+                _EmitGroupInto(sb, grp, indent: 1, isTopLevel: true, resolveSource);
             }
         }
 
@@ -396,8 +394,17 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static string _GenerateServiceInitSource(IReadOnlyList<ItemModel> items, IReadOnlyList<EventRegisterModel> events)
+    private static string _GenerateServiceInitSource(
+        IReadOnlyList<ItemModel> items,
+        IReadOnlyList<EventRegisterModel> events,
+        IReadOnlyDictionary<INamedTypeSymbol, GroupModel> groupLookup)
     {
+        GroupModel? Lookup(INamedTypeSymbol type) =>
+            groupLookup.TryGetValue(type, out var model) ? model : null;
+
+        string ResolveSource(ItemModel item) =>
+            _ResolveItemSourceCode(item, Lookup);
+
         var sb = new StringBuilder(1024);
         sb.AppendLine("// <auto-generated />");
         sb.AppendLine("// 此文件由 Source Generator 自动生成，请勿手动修改");
@@ -418,12 +425,13 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             var it = items[i];
             if (!keysAdded.Add(it.Key)) continue;
             var keyLiteral = it.Key.ToLiteral();
-            var typeName = _CorrectTypeName(_BuildQualifiedTypeName(it.Type), out _);
+            var typeName = it.Type.GetFullyQualifiedName().CorrectConfigTypeName(out _);
+            var sourceCode = ResolveSource(it);
             sb.Append("            (")
                 .Append(keyLiteral)
                 .Append(", new ConfigItem<").Append(typeName).Append(">(")
                 .Append(keyLiteral).Append(", ")
-                .Append(it.DefaultValueCode).Append(", ").Append(it.SourceCode)
+                .Append(it.DefaultValueCode).Append(", ").Append(sourceCode)
               .Append("))");
             if (i != items.Count - 1) sb.Append(',');
             sb.AppendLine();
@@ -446,7 +454,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         {
             var ev = events[i];
             sb.Append("            ")
-              .Append(_BuildQualifiedPropertyAccess(ev.Property));
+              .Append(ev.Property.GetQualifiedPropertyAccess());
             if (i != events.Count - 1) sb.Append(',');
             sb.AppendLine();
         }
@@ -461,14 +469,41 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static Action<StringBuilder>? _EmitItem(StringBuilder sb, ItemModel item, int indent, bool isTopLevel)
+    private static string _ResolveItemSourceCode(ItemModel item, Func<INamedTypeSymbol, GroupModel?> groupLookup)
+    {
+        if (item.SourceCode is { } explicitSource)
+        {
+            return explicitSource;
+        }
+
+        var container = item.Property.ContainingType;
+        while (container != null)
+        {
+            var group = groupLookup(container);
+            if (group is { HasDeclaredSource: true, DeclaredSourceCode: { } declared })
+            {
+                return declared;
+            }
+            container = container.ContainingType;
+        }
+
+        return "ConfigSource.Shared";
+    }
+
+    private static Action<StringBuilder>? _EmitItem(
+        StringBuilder sb,
+        ItemModel item,
+        int indent,
+        bool isTopLevel,
+        Func<ItemModel, string> resolveSource)
     {
         Action<StringBuilder>? accessorInitializer = null;
-        var typeName = _CorrectTypeName(_BuildQualifiedTypeName(item.Type), out var fullTypeName);
+        var typeName = item.Type.GetFullyQualifiedName().CorrectConfigTypeName(out var fullTypeName);
         var propName = item.Property.Name;
         var configItemName = propName + "Config";
         var staticKeyword = item.IsStatic || isTopLevel ? "static " : string.Empty;
         var indentStr = new string(' ', indent * 4);
+        var sourceCode = resolveSource(item);
 
         // 注释
         sb.Append(indentStr).Append("// Item: ").Append(propName).Append(" [").Append(item.Key).AppendLine("]");
@@ -489,8 +524,6 @@ public sealed class ConfigGenerator : IIncrementalGenerator
             // ReSharper disable once VariableHidesOuterVariable
             void AccessorInitializer(StringBuilder sb)
             {
-                // 向构造函数传递生成访问器初始化代码的 StringBuilder 链式调用，以解决巨硬 2025 年
-                // 仍然没支持隔壁 JVM 在 1.0 就支持的极其先进的 非静态字段初始化访问非静态上下文 的问题
                 sb.Append(accessorName)
                   .Append(" = new((arg) => ")
                   .Append(configItemName)
@@ -522,11 +555,16 @@ public sealed class ConfigGenerator : IIncrementalGenerator
           .Append(">(")
             .Append(item.Key.ToLiteral())
           .AppendLine(");");
-        
+
         return accessorInitializer;
     }
 
-    private static void _EmitGroupInto(StringBuilder sb, GroupNode node, int indent, bool isTopLevel = false)
+    private static void _EmitGroupInto(
+        StringBuilder sb,
+        GroupNode node,
+        int indent,
+        bool isTopLevel,
+        Func<ItemModel, string> resolveSource)
     {
         var indentStr = new string(' ', indent * 4);
         var type = node.Model.GroupType;
@@ -536,6 +574,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         // 组实例字段（在其父作用域中）
         sb.AppendLine();
         sb.Append(indentStr).Append("// Group: ").AppendLine(node.Model.GroupName);
+        sb.Append(indentStr).Append("/// <inheritdoc cref=\"").Append(typeName).AppendLine("\" />");
         sb.Append(indentStr)
           .Append("public ")
           .Append(staticKeyword)
@@ -560,7 +599,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         List<Action<StringBuilder>> accessorInitializers = [];
         foreach (var item in node.Items.OrderBy(i => i.DeclOrder))
         {
-            var result = _EmitItem(sb, item, indent + 1, isTopLevel: false);
+            var result = _EmitItem(sb, item, indent + 1, isTopLevel: false, resolveSource);
             if (result != null) accessorInitializers.Add(result);
             sb.AppendLine();
         }
@@ -569,7 +608,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         sb.Append(indentStr).AppendLine("    // === Config Groups ===");
         foreach (var child in node.Children.OrderBy(c => c.Model.DeclOrder))
         {
-            _EmitGroupInto(sb, child, indent + 1);
+            _EmitGroupInto(sb, child, indent + 1, isTopLevel: false, resolveSource);
         }
 
         // === Group Scope Implementation ===
@@ -654,7 +693,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         public bool IsStatic { get; set; }
         public int DeclOrder { get; set; }
         public string DefaultValueCode { get; set; } = "";
-        public string SourceCode { get; set; } = "ConfigSource.Shared";
+        public string? SourceCode { get; set; }
     }
 
     private sealed class GroupModel
@@ -662,6 +701,8 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         public INamedTypeSymbol GroupType { get; set; } = null!;
         public string GroupName { get; set; } = "";
         public int DeclOrder { get; set; }
+        public bool HasDeclaredSource { get; set; }
+        public string? DeclaredSourceCode { get; set; }
     }
 
     private sealed class GroupNode(GroupModel model)
@@ -684,173 +725,12 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         public INamedTypeSymbol ConfigType { get; set; } = null!;
         public List<ItemModel> TopItems { get; set; } = [];
         public List<GroupNode> TopGroups { get; set; } = [];
+        public Func<ItemModel, string> ResolveSourceCode { get; set; } = static _ => "ConfigSource.Shared";
     }
 
     private sealed class EventRegisterModel
     {
         public IPropertySymbol Property { get; set; } = null!;
         public int DeclOrder { get; set; }
-    }
-
-    private static string _RenderDefaultValueCode(SemanticModel sm, ExpressionSyntax expr)
-    {
-        if (expr is LiteralExpressionSyntax || _IsNegativeNumeric(expr))
-            return expr.ToString();
-
-        if (expr is TypeOfExpressionSyntax toe)
-        {
-            var type = sm.GetTypeInfo(toe.Type).Type;
-            if (type != null)
-                return "typeof(" + _BuildQualifiedTypeName(type) + ")";
-            return expr.ToString();
-        }
-
-        if (expr is InvocationExpressionSyntax
-            {
-                Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" },
-                ArgumentList.Arguments.Count: 1
-            } inv)
-        {
-            var targetExpr = inv.ArgumentList.Arguments[0].Expression;
-            var sym = sm.GetSymbolInfo(targetExpr).Symbol;
-            if (sym != null)
-            {
-                var qualified = _BuildQualifiedSymbolName(sym);
-                return "nameof(" + qualified + ")";
-            }
-            return expr.ToString();
-        }
-
-        // 其它常见引用：枚举成员/const 字段/静态字段等
-        var s = sm.GetSymbolInfo(expr).Symbol;
-        if (s is IFieldSymbol fs)
-        {
-            var qualified = _BuildQualifiedSymbolName(fs);
-            return qualified;
-        }
-     
-        // 兜底：保留源码（如数组/集合等复杂表达式）
-        return expr.ToString();
-    }
-
-    private static bool _IsNegativeNumeric(ExpressionSyntax expr)
-    {
-        return expr is PrefixUnaryExpressionSyntax p
-               && p.IsKind(SyntaxKind.UnaryMinusExpression)
-               && p.Operand is LiteralExpressionSyntax l
-               && l.IsKind(SyntaxKind.NumericLiteralExpression);
-    }
-
-    // 来源渲染（缺省为 ConfigSource.Shared）
-    private static string _RenderSourceCode(SemanticModel sm, ExpressionSyntax expr)
-    {
-        // 允许直接写枚举成员或带限定名
-        var sym = sm.GetSymbolInfo(expr).Symbol;
-        if (sym is IFieldSymbol fs && fs.ContainingType?.ToDisplayString() == "PCL.Core.App.Configuration.ConfigSource")
-        {
-            // 输出 ConfigSource.Xxx 形式（与示例一致）
-            return "ConfigSource." + fs.Name;
-        }
-        // 兜底：使用源码文本
-        return expr.ToString();
-    }
-
-    // 构建“命名空间.类型链.成员”形式完整名称
-    private static string _BuildQualifiedSymbolName(ISymbol symbol)
-    {
-        // 枚举成员/const 字段
-        var parts = new Stack<string>();
-        if (symbol is IFieldSymbol { ContainingType: not null } f)
-        {
-            parts.Push(f.Name);
-            var t = f.ContainingType;
-            while (t != null)
-            {
-                parts.Push(t.Name);
-                t = t.ContainingType;
-            }
-            var ns = f.ContainingNamespace?.ToDisplayString();
-            if (!string.IsNullOrEmpty(ns)) parts.Push(ns!);
-            return string.Join(".", parts);
-        }
-     
-        // 其它符号（如类型）回退到类型名
-        if (symbol is ITypeSymbol ts) return _BuildQualifiedTypeName(ts);
-        var n = symbol.ContainingNamespace?.ToDisplayString();
-        return string.IsNullOrEmpty(n) ? symbol.ToDisplayString() : n + "." + symbol.ToDisplayString();
-    }
-    
-    private static bool _TryGetSpecialTypeKeyword(ITypeSymbol t, out string keyword)
-    {
-        switch (t.SpecialType)
-        {
-            case SpecialType.System_Boolean: keyword = "bool"; return true;
-            case SpecialType.System_Byte: keyword = "byte"; return true;
-            case SpecialType.System_SByte: keyword = "sbyte"; return true;
-            case SpecialType.System_Int16: keyword = "short"; return true;
-            case SpecialType.System_UInt16: keyword = "ushort"; return true;
-            case SpecialType.System_Int32: keyword = "int"; return true;
-            case SpecialType.System_UInt32: keyword = "uint"; return true;
-            case SpecialType.System_Int64: keyword = "long"; return true;
-            case SpecialType.System_UInt64: keyword = "ulong"; return true;
-            case SpecialType.System_IntPtr: keyword = "nint"; return true;
-            case SpecialType.System_UIntPtr: keyword = "nuint"; return true;
-            case SpecialType.System_Char: keyword = "char"; return true;
-            case SpecialType.System_String: keyword = "string"; return true;
-            case SpecialType.System_Object: keyword = "object"; return true;
-            case SpecialType.System_Single: keyword = "float"; return true;
-            case SpecialType.System_Double: keyword = "double"; return true;
-            case SpecialType.System_Decimal: keyword = "decimal"; return true;
-            default: keyword = ""; return false;
-        }
-    }
-
-    // 类型完整名（命名空间 + 外层类型 + 内层类型）
-    private static string _BuildQualifiedTypeName(ITypeSymbol type)
-    {
-        // Nullable<T> 处理：T? / 呈现内层类型后加 ?
-        if (type is INamedTypeSymbol
-            {
-                OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
-                TypeArguments.Length: 1
-            } nt)
-        {
-            var inner = nt.TypeArguments[0];
-            return _BuildQualifiedTypeName(inner) + "?";
-        }
- 
-        // 基本类型关键字
-        if (_TryGetSpecialTypeKeyword(type, out var keyword))
-            return keyword;
- 
-        // 非基本类型：完整命名空间 + 外层类型 + 内层类型 + 泛型参数
-        var format = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-            SymbolDisplayMiscellaneousOptions.UseSpecialTypes
-        );
-        return type.ToDisplayString(format);
-    }
-
-    private static string _BuildQualifiedPropertyAccess(IPropertySymbol prop)
-    {
-        var owner = _BuildQualifiedTypeName(prop.ContainingType);
-        return owner + "." + prop.Name;
-    }
-
-    // 传入 qualified name，返回真实的 type name
-    // 若传入不是真实 type name，则 fullTypeName 将被赋予传入值，否则为 null
-    private static string _CorrectTypeName(string typeName, out string? fullTypeName)
-    {
-        var isArgConfig = typeName.StartsWith("PCL.Core.App.Configuration.ArgConfig<");
-        if (isArgConfig)
-        {
-            fullTypeName = typeName;
-            typeName = typeName.Substring(37, typeName.Length - 38);
-        }
-        else fullTypeName = null;
-        return typeName;
     }
 }
