@@ -1,7 +1,7 @@
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
-Imports PCL.Core.App.Configuration.Impl
+Imports PCL.Core.App.Configuration.Storage
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
@@ -440,7 +440,7 @@ Public Class PageInstanceOverall
                     Dim instancePath = PageInstanceLeft.Instance.PathInstance
                     Dim instanceName = PageInstanceLeft.Instance.Name
                     IniClearCache(PageInstanceLeft.Instance.PathIndie & "options.txt")
-                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instancePath)
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheConfigStorage).InvalidateCache(instancePath)
                     If IsShiftPressed Then
                         DeleteDirectory(instancePath)
                         Hint("实例 " & instanceName & " 已永久删除！", HintType.Finish)
