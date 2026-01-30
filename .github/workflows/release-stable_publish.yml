@@ -1,5 +1,8 @@
 name: Publish (Release)
 
+permissions:
+  contents: read
+
 on:
   release:
     types: [published]
@@ -23,6 +26,8 @@ jobs:
     secrets: inherit
 
   changelog:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ !github.event.release.prerelease }}
@@ -31,12 +36,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Install git-cliff
         uses: taiki-e/install-action@git-cliff
 
       - name: Generate changelog
-        run: git-cliff
+        run: git-cliff --latest -o CHANGELOG.md
 
       - name: Add changelog to release
         uses: softprops/action-gh-release@v2.2.2
@@ -47,6 +52,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rename_and_release:
+    permissions:
+      contents: write
+      actions: write
     needs: [build, changelog]
     runs-on: ubuntu-latest
     strategy:
@@ -67,11 +75,22 @@ jobs:
         run: |
           mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
-      - name: Upload binary to Release
-        uses: softprops/action-gh-release@v2.2.2
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign the binary
+        run: |
+          gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+
+      - name: Upload binary and signature to Release
+        uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
+            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

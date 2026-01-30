@@ -119,23 +119,25 @@ Public Class PageSetupJava
         JavaPageLoader.Start(True, True)
     End Sub
 
-    Private Async Function BtnAdd_Click(sender As Object, e As RouteEventArgs) As Task Handles BtnAdd.Click
+    Private Sub BtnAdd_Click(sender As Object, e As RouteEventArgs) Handles BtnAdd.Click
         Dim ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
         If String.IsNullOrEmpty(ret) OrElse Not File.Exists(ret) Then Return
         If JavaService.JavaManager.HasJava(ret) Then
             Hint("Java 已经存在，不用再次添加……")
         Else
-            Await Task.Run(Sub()
-                               JavaService.JavaManager.Add(ret)
-                               JavaService.SaveToConfig()
-                           End Sub)
-            If JavaService.JavaManager.HasJava(ret) Then
-                Hint("已添加 Java！", HintType.Finish)
-                JavaPageLoader.Start(True, True)
-            Else
-                Hint("未能成功将 Java 加入列表中", HintType.Critical)
-            End If
+            Dispatcher.BeginInvoke(Async Function() As Task
+                Await Task.Run(Sub()
+                    JavaService.JavaManager.Add(ret)
+                    JavaService.SaveToConfig()
+                End Sub)
+                If JavaService.JavaManager.HasJava(ret) Then
+                    Hint("已添加 Java！", HintType.Finish)
+                    JavaPageLoader.Start(True, True)
+                Else
+                    Hint("未能成功将 Java 加入列表中", HintType.Critical)
+                End If
+            End Function)
         End If
-    End Function
+    End Sub
 
 End Class

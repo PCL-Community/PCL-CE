@@ -1,5 +1,6 @@
 Imports System.Net.Http
 Imports PCL.Core.Net
+Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 
@@ -91,7 +92,7 @@ Public Class MyImage
             _ActualSource = value
             Dispatcher.BeginInvoke(Async Function() As Task
                 Try
-                    Dim bitmap As MyBitmap = If(value Is Nothing, Nothing, Await Task.Run(Function() New MyBitmap(value))) '在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
+                    Dim bitmap As ImageSource = If(value Is Nothing, Nothing, Await Task.Run(Function() New MyBitmap(value))) '在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
                     MyBase.Source = bitmap
                 Catch ex As Exception
                     Log(ex, $"加载图片失败（{value}）")
@@ -118,7 +119,6 @@ Public Class MyImage
         End If
         '从缓存加载网络图片
         Dim Url As String = Source
-        Dim Retried As Boolean = False
         Dim TempPath As String = GetTempPath(Url)
         Dim TempFile As New FileInfo(TempPath)
         Dim EnableCache As Boolean = Me.EnableCache
@@ -127,15 +127,16 @@ Public Class MyImage
             If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
         End If
 
-        Dim TempDownloadingPath As String
+        Dim TempDownloadingPath As String = Nothing
         Try
             '下载
             ActualSource = LoadingSource '显示加载中图片
             TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
             Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
-            Using fs As New FileStream(TempDownloadingPath, FileMode.Create)
+            Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
                 Using response = Await HttpRequestBuilder.Create(Url, HttpMethod.Get).
                         WithHttpVersionOption(HttpVersion.Version30).
+                        WithDefaultHeaderOption(False).
                         SendAsync()
                     If response.IsSuccess Then
                         Using nfs = Await response.AsStreamAsync()
@@ -145,11 +146,14 @@ Public Class MyImage
                         Using fallbackResponse = Await HttpRequestBuilder.
                             Create(FallbackSource, HttpMethod.Get).
                             WithHttpVersionOption(HttpVersion.Version30).
+                            WithDefaultHeaderOption(False).
                             SendAsync(True)
-                            fs.SetLength(0)
-                            Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
-                                Await fallbackNfs.CopyToAsync(fs)
-                            End Using
+                            If fallbackResponse.IsSuccess Then
+                                fs.SetLength(0)
+                                Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
+                                    Await fallbackNfs.CopyToAsync(fs)
+                                End Using
+                            End If
                         End Using
                     End If
                 End Using
@@ -160,7 +164,7 @@ Public Class MyImage
             ElseIf EnableCache Then
                 '保存缓存并显示
                 If File.Exists(TempPath) Then File.Delete(TempPath)
-                FileSystem.Rename(TempDownloadingPath, TempPath)
+                File.Move(TempDownloadingPath, TempPath, True)
                 ActualSource = TempPath
             Else
                 '直接显示

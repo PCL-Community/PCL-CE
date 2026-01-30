@@ -316,8 +316,8 @@ Class PageInstanceSavesInfo
             Dim BtnChunkbase As New MyIconButton With {
             .Logo = Logo.IconButtonlink,
             .ToolTip = "跳转到 Chunkbase",
-            .Width = 24,
-            .Height = 24
+            .Width = 22,
+            .Height = 22
         }
             contentStack.Children.Add(BtnChunkbase)
 

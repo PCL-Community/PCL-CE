@@ -19,8 +19,6 @@ Public Class Application
 #End If
 
     Public Sub New()
-        Basics.VersionName = VersionBaseName
-        Basics.VersionNumber = VersionCode
         '注册生命周期事件
         Lifecycle.When(LifecycleState.Loaded, AddressOf Application_Startup)
     End Sub
@@ -34,13 +32,9 @@ Public Class Application
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
             SecretOnApplicationStart()
             '检查参数调用
-            Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
+            Dim args = Basics.CommandLineArguments
             If args.Length > 0 Then
-                If args(0) = "--update" Then
-                    '自动更新
-                    UpdateReplace(args(1), args(2).Trim(""""), args(3).Trim(""""), args(4))
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf args(0) = "--gpu" Then
+                If args(0) = "--gpu" Then
                     '调整显卡设置
                     Try
                         SetGPUPreference(args(1).Trim(""""))
@@ -52,7 +46,7 @@ Public Class Application
                     '内存优化
                     Dim Ram = KernelInterop.GetAvailablePhysicalMemoryBytes()
                     Try
-                        PageOtherTest.MemoryOptimizeInternal(False)
+                        PageToolsTest.MemoryOptimizeInternal(False)
                     Catch ex As Exception
                         MsgBox(ex.Message, MsgBoxStyle.Critical, "内存优化失败")
                         Environment.Exit(-1)
@@ -76,18 +70,6 @@ Public Class Application
             '初始化文件结构
             Directory.CreateDirectory(ExePath & "PCL\Pictures")
             Directory.CreateDirectory(ExePath & "PCL\Musics")
-            Try
-                Directory.CreateDirectory(PathTemp)
-                If Not CheckPermission(PathTemp) Then Throw New Exception("PCL 没有对 " & PathTemp & " 的访问权限")
-            Catch ex As Exception
-                If PathTemp = IO.Path.GetTempPath() & "PCL\" Then
-                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
-                Else
-                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & "错误原因：" & ex.ToString(), "缓存文件夹不可用")
-                    Setup.Set("SystemSystemCache", "")
-                    PathTemp = IO.Path.GetTempPath() & "PCL\"
-                End If
-            End Try
             Directory.CreateDirectory(PathTemp & "Cache")
             Directory.CreateDirectory(PathTemp & "Download")
             Directory.CreateDirectory(PathAppdata)
@@ -151,7 +133,7 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
-            Dim updateBranchCfg = Config.System.UpdateBranchConfig
+            Dim updateBranchCfg = Config.Update.UpdateChannelConfig
             If updateBranchCfg.IsDefault() Then
                 updateBranchCfg.SetValue(If(VersionBaseName.Contains("beta"), 1, 0))
             End If

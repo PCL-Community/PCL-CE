@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.App.Configuration
+﻿Imports PCL.Core.App
+Imports PCL.Core.App.Configuration
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts
 
@@ -46,12 +47,7 @@ Class PageSetupSystem
         CheckHelpChinese.Checked = Setup.Get("ToolHelpChinese")
 
         '系统设置
-        ComboSystemUpdate.SelectedIndex = Setup.Get("SystemSystemUpdate")
-        Dim branch As Integer = Setup.Get("SystemSystemUpdateBranch")
-        ComboSystemUpdateBranch.SelectedIndex = branch
-        ComboSystemUpdateBranch.IsEnabled = (branch = 0)
         ComboSystemActivity.SelectedIndex = Setup.Get("SystemSystemActivity")
-        TextSystemCache.Text = Setup.Get("SystemSystemCache")
         CheckSystemDisableHardwareAcceleration.Checked = Setup.Get("SystemDisableHardwareAcceleration")
         SliderAniFPS.Value = Setup.Get("UiAniFPS")
         SliderMaxLog.Value = Setup.Get("SystemMaxLog")
@@ -62,6 +58,7 @@ Class PageSetupSystem
         TextSystemHttpProxyCustomUsername.Text = Setup.Get("SystemHttpProxyCustomUsername")
         TextSystemHttpProxyCustomPassword.Text = Setup.Get("SystemHttpProxyCustomPassword")
         CType(FindName($"RadioHttpProxyType{Setup.Get("SystemHttpProxyType")}"), MyRadioBox).SetChecked(True, False)
+        CheckNetDohEnable.Checked = Config.Network.EnableDoH
 
         '调试选项
         CheckDebugMode.Checked = Setup.Get("SystemDebugMode")
@@ -74,56 +71,29 @@ Class PageSetupSystem
     '初始化
     Public Sub Reset()
         Try
-            Setup.Reset("ToolDownloadThread")
-            Setup.Reset("ToolDownloadSpeed")
-            Setup.Reset("ToolDownloadSource")
-            Setup.Reset("ToolDownloadVersion")
-            Setup.Reset("ToolDownloadTranslateV2")
-            Setup.Reset("ToolDownloadIgnoreQuilt")
-            Setup.Reset("ToolDownloadClipboard")
-            Setup.Reset("ToolDownloadMod")
-            Setup.Reset("ToolDownloadAutoSelectVersion")
-            Setup.Reset("ToolFixAuthlib")
-            Setup.Reset("ToolModLocalNameStyle")
-            Setup.Reset("ToolUpdateRelease")
-            Setup.Reset("ToolUpdateSnapshot")
-            Setup.Reset("ToolHelpChinese")
-            Setup.Reset("SystemDebugMode")
-            Setup.Reset("SystemDebugAnim")
-            Setup.Reset("SystemDebugDelay")
-            Setup.Reset("SystemDebugSkipCopy")
-            Setup.Reset("SystemSystemCache")
-            Setup.Reset("SystemSystemUpdate")
-            Setup.Reset("SystemSystemActivity")
-            Setup.Reset("SystemDisableHardwareAcceleration")
-            Setup.Reset("SystemHttpProxy")
-            Setup.Reset("SystemHttpProxyType")
-            Setup.Reset("SystemHttpProxyCustomUsername")
-            Setup.Reset("SystemHttpProxyCustomPassword")
-            Setup.Reset("SystemUseDefaultProxy")
-            Setup.Reset("UiAniFPS")
-
-            Log("[Setup] 已初始化启动器页设置")
-            Hint("已初始化启动器页设置！", HintType.Finish, False)
+            Config.Network.Reset()
+            Config.System.Reset()
+            Config.Debug.Reset()
+            Config.Download.Reset()
+            Config.Tool.Reset()
+            Log("[Setup] 已初始化其他页设置")
+            Hint("已初始化其他页设置！", HintType.Finish, False)
         Catch ex As Exception
-            Log(ex, "初始化启动器页设置失败", LogLevel.Msgbox)
+            Log(ex, "初始化其他页设置失败", LogLevel.Msgbox)
         End Try
 
         Reload()
     End Sub
 
     '将控件改变路由到设置改变
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckDebugMode.Change, CheckDebugDelay.Change, CheckDebugSkipCopy.Change, CheckUpdateRelease.Change, CheckUpdateSnapshot.Change, CheckHelpChinese.Change, CheckDownloadIgnoreQuilt.Change, CheckDownloadClipboard.Change, CheckSystemDisableHardwareAcceleration.Change, CheckDownloadAutoSelectVersion.Change, CheckSystemTelemetry.Change, CheckFixAuthlib.Change, CheckNetDohEnable.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderDebugAnim.Change, SliderDownloadThread.Change, SliderDownloadSpeed.Change, SliderAniFPS.Change, SliderMaxLog.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Value)
     End Sub
-    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemUpdate.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboSystemUpdateBranch.SelectionChanged, ComboDownloadMod.SelectionChanged
+    Private Shared Sub ComboChange(sender As MyComboBox, e As Object) Handles ComboDownloadVersion.SelectionChanged, ComboModLocalNameStyle.SelectionChanged, ComboDownloadTranslateV2.SelectionChanged, ComboSystemActivity.SelectionChanged, ComboDownloadSource.SelectionChanged, ComboDownloadMod.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex)
-    End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextSystemCache.ValidatedTextChanged
-        If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioHttpProxyType0.Check, RadioHttpProxyType1.Check, RadioHttpProxyType2.Check
         Dim gotCfg = sender.Tag.ToString.Split("/")
@@ -205,82 +175,6 @@ Class PageSetupSystem
             ComboSystemActivity.SelectedItem = e.RemovedItems(0)
         End If
     End Sub
-    Private Sub ComboSystemUpdate_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdate.SelectionChanged
-        If AniControlEnabled <> 0 Then Return
-        If ComboSystemUpdate.SelectedIndex <> 3 Then Return
-        If MyMsgBox("若选择此项，即使在启动器将来出现严重问题时，你也无法获取更新并获得修复。" & vbCrLf &
-                    "例如，如果官方修改了登录方式，从而导致现有启动器无法登录，你可能就会因为无法更新而无法开始游戏。" & vbCrLf & vbCrLf &
-                    "一般选择 仅在有重大漏洞更新时显示提示 就可以让你尽量不受打扰了。" & vbCrLf &
-                    "除非你在制作服务器整合包，或时常手动更新启动器，否则极度不推荐选择此项！", "警告", "我知道我在做什么", "取消", IsWarn:=True) = 2 Then
-            ComboSystemUpdate.SelectedItem = e.RemovedItems(0)
-        End If
-    End Sub
-    Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateBranch.SelectionChanged
-        If AniControlEnabled <> 0 Then Exit Sub
-        Select Case ComboSystemUpdateBranch.SelectedIndex
-            Case 1
-                If MyMsgBox("你正在切换启动器更新通道到 Fast Ring。" & vbCrLf &
-                            "Fast Ring 可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。" & vbCrLf & vbCrLf &
-                            "在升级到 Fast Ring 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
-                            "该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
-                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
-                Else
-                    UpdateCheckByButton()
-                End If
-            Case 2
-                If MyMsgBox("你正在切换启动器更新通道到 Nightly。" & vbCrLf &
-                            "该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。" & vbCrLf & vbCrLf &
-                            "在升级到 Nightly 版本后，只能手动重新下载启动器来切换回 Slow Ring。" & vbCrLf &
-                            "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用 Slow Ring！", "继续之前...", "我已知晓", "取消", IsWarn:=True) = 2 Then
-                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
-                    Return
-                End If
-                Dim ret = MyMsgBoxInput("最终确认", "你确定要切换到 Nightly 通道吗？" & vbCrLf &
-                                        "Nightly 版本可能存在严重问题，甚至无法启动！" & vbCrLf &
-                                        "在升级到 Nightly 版本后，将无法切换回其他任何更新通道，只能手动重新下载启动器来切换回 Slow Ring 或 Fast Ring。" & vbCrLf & vbCrLf &
-                                        "该选项仅推荐高级用户选择。如果你正在制作整合包，请使用 Slow Ring！" & vbCrLf &
-                                        "请输入 '我确认切换到此分支并已知晓风险' 以确认切换到 Nightly 通道。", Button1 := "提交", Button2 := "取消", IsWarn:=True)
-                If ret Is Nothing Then 
-                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
-                    Return
-                End If
-                If ret = "我确认切换到此分支并已知晓风险" Then
-                    UpdateCheckByButton()
-                Else
-                    Hint("你输入了错误的内容...")
-                    ComboSystemUpdateBranch.SelectedItem = e.RemovedItems(0)
-                End If
-        End Select
-    End Sub
-    Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
-        UpdateCheckByButton()
-    End Sub
-    Private Sub BtnSystemMirrorChyanKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanKey.Click
-        Dim ret = MyMsgBoxInput("设置 Mirror 酱 CDK", $"Mirror 酱(https://mirrorchyan.com/)是一个付费的第三方应用分发平台，用于提供国内有偿高速下载源{vbCrLf}这是一项可选服务，不填入 CDK 不影响软件的正常使用。你如果拥有 Mirror 酱的 CDK，可以提供给 PCL-CE，启动器会优先使用他们的高速下载源下载版本更新，同时也能缓解社区公益更新服务器的一些压力……")
-        If ret Is Nothing Then Return
-        If String.IsNullOrWhiteSpace(ret) Then
-            Setup.Reset("SystemMirrorChyanKey")
-            Hint("已移除 Mirror 酱 CDK！", HintType.Finish)
-        Else
-            Setup.Set("SystemMirrorChyanKey", ret)
-            Hint("设置 Mirror 酱 CDK 成功！", HintType.Finish)
-        End If
-    End Sub
-    Private Sub BtnSystemMirrorChyanGetKey_Click(sender As Object, e As EventArgs) Handles BtnSystemMirrorChyanGetKey.Click
-        OpenWebsite("https://mirrorchyan.com/zh/projects?rid=PCL2-CE&source=pcl2ce-app")
-    End Sub
-    ''' <summary>
-    ''' 启动器是否已经是最新版？
-    ''' 若返回 Nothing，则代表无更新缓存文件或出错。
-    ''' </summary>
-    Public Shared Function IsLauncherNewest() As Boolean?
-        Try
-            Return IsVerisonLatest()
-        Catch ex As Exception
-            Log(ex, "确认启动器更新失败", LogLevel.Feedback)
-            Return Nothing
-        End Try
-    End Function
 
 #Region "导出 / 导入设置"
 

@@ -262,5 +262,7 @@ Public Class MyRadioButton
             Log(ex, "刷新单选按钮颜色出错")
         End Try
     End Sub
-
+    Public Sub RefreshMyRadioButtonColor()
+        RefreshColor()
+    End Sub
 End Class

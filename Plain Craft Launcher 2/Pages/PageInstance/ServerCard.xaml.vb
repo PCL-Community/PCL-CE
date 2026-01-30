@@ -99,7 +99,7 @@ Public Class ServerCard
             Hint($"正在刷新服务器 {Server.Name} 的状态...", HintType.Info)
         End If
         Server.Status = ServerStatus.Pinging
-        RunInUi(Sub() UpdateServerUi())
+        Await Dispatcher.InvokeAsync(Sub() UpdateServerUi())
         Dim serverInfo = Await PageInstanceServer.PingServer(Server, token)
         UpdateServerInfo(serverInfo)
     End Function
