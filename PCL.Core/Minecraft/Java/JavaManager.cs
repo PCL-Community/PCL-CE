@@ -219,9 +219,7 @@ public class JavaManager
     {
         try
         {
-            if (javaExePath.IsNullOrWhiteSpace()) return null;
-            if (!File.Exists(javaExePath))
-                throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
+            if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
             var installation = _parser.Parse(javaExePath);
             if (installation == null) return null;
@@ -256,9 +254,7 @@ public class JavaManager
     {
         try
         {
-            if (javaExePath.IsNullOrWhiteSpace()) return null;
-            if (!File.Exists(javaExePath))
-                throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
+            if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
             var installation = _parser.Parse(javaExePath);
             if (installation == null) return null;

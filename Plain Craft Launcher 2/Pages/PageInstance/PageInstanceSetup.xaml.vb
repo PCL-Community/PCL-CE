@@ -1,6 +1,10 @@
 Imports PCL.Core.App
 Imports PCL.Core.Minecraft
+Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Minecraft.Java.UserPreference
+Imports System.Text.Json
 
 Public Class PageInstanceSetup
 
@@ -499,69 +503,197 @@ PreFin:
     '刷新 Java 下拉框显示
     Public Sub RefreshJavaComboBox()
         If ComboArgumentJava Is Nothing Then Return
-        '初始化列表
+
+        ' 获取实例的 Java 偏好（已兼容新旧格式）
+        Dim preference = GetInstanceJavaPreference(PageInstanceLeft.Instance)
+
+        ' === 1. 初始化固定选项（使用类型安全的 Tag） ===
         ComboArgumentJava.Items.Clear()
-        ComboArgumentJava.Items.Add(New MyComboBoxItem With {.Content = "跟随全局设置", .Tag = "使用全局设置"})
-        ComboArgumentJava.Items.Add(New MyComboBoxItem With {.Content = "自动选择合适的 Java", .Tag = "自动选择"})
-        '更新列表
-        Dim SelectedItem As MyComboBoxItem = Nothing
-        Dim SelectedBySetup As String = Setup.Get("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
+
+        ' 选项 0: 跟随全局设置
+        ComboArgumentJava.Items.Add(New MyComboBoxItem With {
+            .Content = "跟随全局设置",
+            .Tag = New UseGlobalPreference()
+        })
+
+        ' 选项 1: 自动选择
+        ComboArgumentJava.Items.Add(New MyComboBoxItem With {
+            .Content = "自动选择合适的 Java",
+            .Tag = New AutoSelect()  ' Nothing 表示自动选择
+        })
+
+        ' 选项 2: 相对路径选项
+        Dim relativePathItem As MyComboBoxItem
+        If TypeOf preference Is UseRelativePath Then
+            Dim relPref = DirectCast(preference, UseRelativePath)
+            Dim absPath = IO.Path.GetFullPath(IO.Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath))
+            Dim javaEntry = Javas.Get(absPath)
+
+            If Basics.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) AndAlso
+                javaEntry IsNot Nothing AndAlso
+                javaEntry.IsEnabled Then
+                ' 有效路径：显示具体 Java 信息
+                relativePathItem = New MyComboBoxItem With {
+                    .Content = $"启动器目录下的 Java | {javaEntry}",
+                    .Tag = New UseRelativePath(relPref.RelativePath),
+                    .ToolTip = $"相对路径: {relPref.RelativePath}{vbCrLf}解析路径: {absPath}"
+                }
+            Else
+                ' 无效路径：提示用户重新选择
+                relativePathItem = New MyComboBoxItem With {
+                    .Content = "选择启动器目录下的 Java（当前路径无效）",
+                    .Tag = New UseRelativePath(relPref.RelativePath),
+                    .ToolTip = $"无效路径: {absPath}{vbCrLf}点击此项重新选择有效 Java"
+                }
+            End If
+        Else
+            ' 未配置相对路径：使用默认模板
+            relativePathItem = New MyComboBoxItem With {
+                .Content = "选择启动器目录下的 Java",
+                .Tag = New UseRelativePath("jre\bin\java.exe"),
+                .ToolTip = "将选择相对于实例目录的 Java 路径"
+            }
+        End If
+        ComboArgumentJava.Items.Add(relativePathItem)
+
+        ' === 2. 添加所有可用 Java 运行时 ===
+        Dim selectedItem As MyComboBoxItem = Nothing
         Try
-            For Each CurJava In Javas.GetSortedJavaList()
-                Dim ListItem = New MyComboBoxItem With {.Content = CurJava.ToString, .ToolTip = CurJava.Installation.JavaFolder, .Tag = CurJava}
-                ToolTipService.SetHorizontalOffset(ListItem, 400)
-                ComboArgumentJava.Items.Add(ListItem)
-                '判断人为选中
-                If SelectedBySetup = "" OrElse SelectedBySetup = "使用全局设置" Then Continue For
-                If SelectedBySetup = CurJava.Installation.JavaExePath Then SelectedItem = ListItem
+            For Each curJava In Javas.GetSortedJavaList()
+                Dim item = New MyComboBoxItem With {
+                .Content = curJava.ToString(),
+                .ToolTip = $"路径: {curJava.Installation.JavaExePath}{vbCrLf}版本: {curJava.Installation.Version}{vbCrLf}来源: {curJava.Source}",
+                .Tag = curJava
+            }
+                ToolTipService.SetInitialShowDelay(item, 300)
+                ToolTipService.SetBetweenShowDelay(item, 100)
+                ComboArgumentJava.Items.Add(item)
             Next
         Catch ex As Exception
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance:=PageInstanceLeft.Instance)
             Log(ex, "更新实例设置 Java 下拉框失败", LogLevel.Feedback)
-        End Try
-        '更新选择项
-        If SelectedItem Is Nothing AndAlso Javas.ExistAnyJava() Then
-            If SelectedBySetup = "" Then
-                SelectedItem = ComboArgumentJava.Items(1) '选中 “自动选择”
-            Else
-                SelectedItem = ComboArgumentJava.Items(0) '选中 “跟随全局设置”
-            End If
-        End If
-        ComboArgumentJava.SelectedItem = SelectedItem
-        '结束处理
-        If SelectedItem Is Nothing Then
             ComboArgumentJava.Items.Clear()
-            ComboArgumentJava.Items.Add(New ComboBoxItem With {.Content = "未找到可用的 Java", .IsSelected = True})
+            ComboArgumentJava.Items.Add(New MyComboBoxItem With {
+                .Content = "列表加载失败，请重试",
+                .IsEnabled = False
+            })
+            ComboArgumentJava.SelectedIndex = 0
+            RefreshRam(True)
+            Return
+        End Try
+
+        ' === 3. 根据当前偏好设置选中项（优先使用新格式 preference） ===
+        If preference Is Nothing Then
+            ' 自动选择
+            selectedItem = TryCast(ComboArgumentJava.Items(1), MyComboBoxItem)
+        ElseIf TypeOf preference Is UseGlobalPreference Then
+            selectedItem = TryCast(ComboArgumentJava.Items(0), MyComboBoxItem)
+        ElseIf TypeOf preference Is UseRelativePath Then
+            selectedItem = TryCast(ComboArgumentJava.Items(2), MyComboBoxItem)
+        ElseIf TypeOf preference Is ExistingJava Then
+            Dim existPref = DirectCast(preference, ExistingJava)
+            ' 在 Java 列表中查找匹配项（从索引 3 开始）
+            For i As Integer = 3 To ComboArgumentJava.Items.Count - 1
+                Dim item = TryCast(ComboArgumentJava.Items(i), MyComboBoxItem)
+                If item IsNot Nothing AndAlso TypeOf item.Tag Is JavaEntry Then
+                    Dim javaEntry = DirectCast(item.Tag, JavaEntry)
+                    If String.Equals(javaEntry.Installation.JavaExePath, existPref.JavaExePath, StringComparison.OrdinalIgnoreCase) Then
+                        selectedItem = item
+                        Exit For
+                    End If
+                End If
+            Next
         End If
+
+        ' 降级处理：无匹配项时回退到自动选择
+        If selectedItem Is Nothing AndAlso ComboArgumentJava.Items.Count > 1 Then
+            selectedItem = TryCast(ComboArgumentJava.Items(1), MyComboBoxItem)
+        End If
+
+        ' 设置选中项
+        If selectedItem IsNot Nothing Then
+            ComboArgumentJava.SelectedItem = selectedItem
+        End If
+
+        ' === 4. 无可用 Java 时的降级处理 ===
+        If Not Javas.ExistAnyJava() AndAlso ComboArgumentJava.Items.Count <= 3 Then
+            ComboArgumentJava.Items.Clear()
+            Dim noJavaItem = New MyComboBoxItem With {
+                .Content = "未检测到可用的 Java 运行时",
+                .ToolTip = "请在设置中手动指定 Java 路径，或点击'扫描'按钮重新检测",
+                .IsEnabled = False
+            }
+            ComboArgumentJava.Items.Add(noJavaItem)
+            ComboArgumentJava.SelectedItem = noJavaItem
+        End If
+
+        ' === 5. 刷新关联控件 ===
         RefreshRam(True)
     End Sub
-    '阻止在特定情况下展开下拉框
+
+    ' 阻止在无效状态下展开下拉框
     Private Sub ComboArgumentJava_DropDownOpened(sender As Object, e As EventArgs) Handles ComboArgumentJava.DropDownOpened
-        If ComboArgumentJava.SelectedItem Is Nothing OrElse ComboArgumentJava.Items(0).Content = "未找到可用的 Java" OrElse ComboArgumentJava.Items(0).Content = "加载中……" Then
+        If ComboArgumentJava.SelectedItem Is Nothing Then
+            ComboArgumentJava.IsDropDownOpen = False
+            Return
+        End If
+
+        Dim firstItem = TryCast(ComboArgumentJava.Items(0), MyComboBoxItem)
+        If firstItem IsNot Nothing AndAlso (firstItem.Content = "未检测到可用的 Java 运行时" OrElse firstItem.Content = "列表加载失败，请重试") Then
             ComboArgumentJava.IsDropDownOpen = False
         End If
     End Sub
 
-    '下拉框选择更改
-    Private Sub JavaSelectionUpdate() Handles ComboArgumentJava.SelectionChanged
+    ' 下拉框选择更改处理（保存新格式配置）
+    Private Sub JavaSelectionUpdate(sender As Object, e As SelectionChangedEventArgs) Handles ComboArgumentJava.SelectionChanged
         If AniControlEnabled <> 0 Then Return
-        'Java 不可用时也不清空，会导致刷新时找不到对象
-        If ComboArgumentJava.SelectedItem Is Nothing OrElse ComboArgumentJava.SelectedItem.Tag Is Nothing Then Return
-        '设置新的 Java
-        Dim SelectedJava = ComboArgumentJava.SelectedItem.Tag
-        If "使用全局设置".Equals(SelectedJava) Then
-            '选择 “自动”
-            Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance:=PageInstanceLeft.Instance)
-            Log("[Java] 修改实例 Java 选择设置：跟随全局设置")
-        ElseIf "自动选择".Equals(SelectedJava) Then
-            '选择 “自动”
-            Setup.Set("VersionArgumentJavaSelect", "", instance:=PageInstanceLeft.Instance)
-            Log("[Java] 修改实例 Java 选择设置：自动选择")
-        Else
-            '选择指定项
-            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, JavaEntry).Installation.JavaExePath, instance:=PageInstanceLeft.Instance)
-            Log("[Java] 修改实例 Java 选择设置：" & SelectedJava.ToString)
+        If ComboArgumentJava.SelectedItem Is Nothing Then Return
+
+        Dim selectedItem = TryCast(ComboArgumentJava.SelectedItem, MyComboBoxItem)
+        If selectedItem Is Nothing OrElse selectedItem.Tag Is Nothing AndAlso selectedItem.Content <> "自动选择合适的 Java" Then Return
+
+        Dim preference As JavaPreference = Nothing
+        Dim logMessage As String = ""
+
+        ' 根据 Tag 类型生成偏好对象
+        If selectedItem.Tag Is Nothing Then
+            ' 自动选择：存储空字符串
+            preference = New AutoSelect()
+            logMessage = "[Java] 修改实例 Java 选择设置：自动选择"
+        ElseIf TypeOf selectedItem.Tag Is UseGlobalPreference Then
+            preference = New UseGlobalPreference()
+            logMessage = "[Java] 修改实例 Java 选择设置：跟随全局设置"
+        ElseIf TypeOf selectedItem.Tag Is UseRelativePath Then
+            ' 相对路径：需要用户选择实际文件
+            Dim ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序", Basics.ExecutableDirectory)
+            If String.IsNullOrWhiteSpace(ret) Then
+                ' 用户取消，不保存配置，保持原选择
+                Return
+            End If
+
+            ret = IO.Path.GetFullPath(ret)
+            Dim relativePath = IO.Path.GetRelativePath(Basics.ExecutableDirectory, ret)
+
+            ' 验证路径是否在启动器目录内
+            If Not Basics.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory) Then
+                Hint("超出路径允许范围，请选择启动器文件夹或其子文件夹下的文件", HintType.Critical)
+                Return
+            End If
+
+            preference = New UseRelativePath(relativePath)
+            logMessage = $"[Java] 修改实例 Java 选择设置：相对路径 | {relativePath}"
+        ElseIf TypeOf selectedItem.Tag Is JavaEntry Then
+            Dim javaEntry = DirectCast(selectedItem.Tag, JavaEntry)
+            preference = New ExistingJava(javaEntry.Installation.JavaExePath)
+            logMessage = $"[Java] 修改实例 Java 选择设置：{javaEntry}"
         End If
+
+        ' 保存配置
+        Dim json = JsonSerializer.Serialize(preference)
+        Config.Instance.SelectedJava(PageInstanceLeft.Instance.PathInstance) = json
+
+
+        Log(logMessage)
         RefreshRam(True)
     End Sub
 

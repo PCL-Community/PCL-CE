@@ -1,13 +1,14 @@
-﻿using System;
+﻿using PCL.Core.Logging;
+using PCL.Core.Utils;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Windows;
-using PCL.Core.Logging;
-using PCL.Core.Utils;
 
 namespace PCL.Core.App;
 
@@ -148,6 +149,25 @@ public static class Basics
             CreateNoWindow = true
         };
         Process.Start(psi);
+    }
+
+    /// <summary>
+    /// 检查指定路径是否在指定文件夹中
+    /// </summary>
+    /// <param name="childPath">预检查路径</param>
+    /// <param name="baseDirectory">应存在文件夹</param>
+    /// <returns></returns>
+    public static bool IsPathWithinDirectory(string childPath, string baseDirectory)
+    {
+        var baseDir = Path.GetFullPath(baseDirectory);
+        var child = Path.GetFullPath(childPath);
+
+        return child.StartsWith(
+            baseDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal
+        );
     }
     #endregion
 
