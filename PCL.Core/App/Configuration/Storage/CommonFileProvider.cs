@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using PCL.Core.Utils;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 public abstract class CommonFileProvider(string path) : IKeyValueFileProvider
 {

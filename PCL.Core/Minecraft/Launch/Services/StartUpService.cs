@@ -45,7 +45,7 @@ public class StartUpService(IMcInstance? instance) {
         }
 
         // UTF-8 代码页下的路径检查
-        if (EncodingUtils.IsDefaultEncodingUtf8() && !Config.Hint.NonAsciiGamePath && !instance.Path.IsASCII()) {
+        if (EncodingUtils.IsDefaultEncodingUtf8() && !States.Hint.NonAsciiGamePath && !instance.Path.IsASCII()) {
             var userChoice = MsgBoxWrapper.Show(
                 $"欲启动实例 \"{instance.Name}\" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？\n\n如果不清楚具体作用，你可以先选择 \"继续\"，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
                 "游戏路径检查",
@@ -63,7 +63,7 @@ public class StartUpService(IMcInstance? instance) {
                     break;
                 case 3:
                     // 不再提示
-                    Config.Hint.NonAsciiGamePath = true;
+                    States.Hint.NonAsciiGamePath = true;
                     break;
             }
         }

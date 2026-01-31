@@ -294,10 +294,10 @@ public class PreLaunchService(IMcInstance instance, JavaInfo selectedJava) {
 
     private static async Task UpdateWindowSettingsAsync(string filePath, CancellationToken cancellationToken) {
         switch (Config.Launch.GameWindowMode) {
-            case 0: // Fullscreen
+            case GameWindowSizeMode.Fullscreen: // Fullscreen
                 await UpdateFullscreenSettingAsync(filePath, true, cancellationToken);
                 break;
-            case 1: // Default - no changes needed
+            case GameWindowSizeMode.Default: // Default - no changes needed
                 break;
             default: // Windowed
                 await UpdateFullscreenSettingAsync(filePath, false, cancellationToken);

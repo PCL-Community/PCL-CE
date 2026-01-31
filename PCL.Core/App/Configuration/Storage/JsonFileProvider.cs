@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using PCL.Core.IO;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 /// <summary>
 /// 提供 JSON 格式的键值文件读写。

@@ -32,13 +32,9 @@ Public Class Application
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
             SecretOnApplicationStart()
             '检查参数调用
-            Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
+            Dim args = Basics.CommandLineArguments
             If args.Length > 0 Then
-                If args(0) = "--update" Then
-                    '自动更新
-                    UpdateReplace(args(1), args(2).Trim(""""), args(3).Trim(""""), args(4))
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf args(0) = "--gpu" Then
+                If args(0) = "--gpu" Then
                     '调整显卡设置
                     Try
                         SetGPUPreference(args(1).Trim(""""))
@@ -137,7 +133,7 @@ WaitRetry:
             Setup.Load("ToolDownloadThread")
             Setup.Load("ToolDownloadSpeed")
             Setup.Load("UiFont")
-            Dim updateBranchCfg = Config.System.Update.UpdateChannelConfig
+            Dim updateBranchCfg = Config.Update.UpdateChannelConfig
             If updateBranchCfg.IsDefault() Then
                 updateBranchCfg.SetValue(If(VersionBaseName.Contains("beta"), 1, 0))
             End If

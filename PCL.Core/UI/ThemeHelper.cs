@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
@@ -32,10 +33,10 @@ public static class ThemeHelper {
     }
 
     public static bool IsDarkMode() =>
-        Config.UI.Theme.ColorMode switch {
-            0 => false,
-            1 => true,
-            2 => IsSystemInDarkMode(),
+        Config.Preference.Theme.ColorMode switch {
+            ColorMode.Light => false,
+            ColorMode.Dark => true,
+            ColorMode.System => IsSystemInDarkMode(),
             _ => false
         };
 }

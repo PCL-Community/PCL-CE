@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using PCL.Core.Utils.Exts;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 /// <summary>
 /// 提供 LTCat-style ini 格式的键值文件读写。

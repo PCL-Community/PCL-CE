@@ -330,7 +330,7 @@
                             <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
                             <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
                             <local:MyComboBoxItem Content="Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）" />
-                            <local:MyComboBoxItem Content="PCL CE 公告栏" IsSelected="True"/>
+                            <local:MyComboBoxItem Content="PCL CE 公告栏"/>
                         </local:MyComboBox>
                     </Grid>
                     <Grid Grid.Row="14">

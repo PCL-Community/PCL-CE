@@ -160,7 +160,7 @@ public class JvmArgBuilder(IMcInstance instance) {
         if (!_ShouldUseProxy()) return;
 
         try {
-            var proxyUri = new Uri(Config.System.HttpProxy.CustomAddress);
+            var proxyUri = new Uri(Config.Network.HttpProxy.CustomAddress);
             var scheme = _GetProxyScheme(proxyUri);
 
             arguments.Add($"-D{scheme}.proxyHost={proxyUri.Host}");
@@ -175,8 +175,8 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// </summary>
     private bool _ShouldUseProxy() {
         return Config.Instance.UseProxy[instance.Path] &&
-               Config.System.HttpProxy.Type == 2 &&
-               !string.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress);
+               Config.Network.HttpProxy.Type == 2 &&
+               !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress);
     }
     
     /// <summary>
@@ -367,11 +367,11 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// </summary>
     private static void _AddIpStackPreference(List<string> arguments) {
         switch (Config.Launch.PreferredIpStack) {
-            case 0:
+            case JvmPreferredIpStack.PreferV4:
                 arguments.Add("-Djava.net.preferIPv4Stack=true");
                 arguments.Add("-Djava.net.preferIPv4Addresses=true");
                 break;
-            case 2:
+            case JvmPreferredIpStack.PreferV6:
                 arguments.Add("-Djava.net.preferIPv6Stack=true");
                 arguments.Add("-Djava.net.preferIPv6Addresses=true");
                 break;

@@ -194,7 +194,7 @@ public sealed class LobbyController
     private static async Task<bool> _SendTelemetryAsync(bool isHost)
     {
         LogWrapper.Info("Link", "开始发送联机数据");
-        var servers = Config.Link.RelayServer;
+        var servers = Config.Link.CustomRelayServer;
         var serverType = Config.Link.ServerType;
 
         if (Config.Link.ServerType != 2)

@@ -8,7 +8,7 @@ using PCL.Core.Logging;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 /// <summary>
 /// 提供 YAML 格式的键值文件读写。当提供的文件找不到时，将尝试读取其它同名文件并将其转换到 YAML。

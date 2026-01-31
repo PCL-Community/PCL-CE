@@ -50,10 +50,10 @@ public class MinecraftLaunchService(IMcInstance instance, JavaInfo selectedJava,
         try {
             gameProcess.PriorityBoostEnabled = true;
             switch (Config.Launch.ProcessPriority) {
-                case 0: // 高
+                case GameProcessPriority.AboveNormal: // 高
                     gameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
                     break;
-                case 2: // 低
+                case GameProcessPriority.BelowNormal: // 低
                     gameProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
                     break;
             }

@@ -113,7 +113,7 @@ public static class ETController
 
             // 节点设置
             var relays = ETRelay.RelayList;
-            var customNodes = Config.Link.RelayServer;
+            var customNodes = Config.Link.CustomRelayServer;
             foreach (var node in customNodes.Split([';'], StringSplitOptions.RemoveEmptyEntries))
             {
                 if (node.Contains("tcp://") || node.Contains("udp://"))
@@ -142,7 +142,7 @@ public static class ETController
             }
 
             // 中继行为设置
-            if (Config.Link.RelayType == 1)
+            if (Config.Link.RelayType == LinkRelayBehavior.ForceRelay)
             {
                 arguments.AddFlag("disable-p2p");
             }
@@ -157,7 +157,7 @@ public static class ETController
             arguments.AddFlagIf(!Config.Link.EnableIPv6, "disable-ipv6");
 
             // 用户名与其他参数
-            arguments.AddFlagIf(Config.Link.LatencyFirstMode, "latency-first");
+            arguments.AddFlagIf(Config.Link.UseLatencyFirstMode, "latency-first");
             arguments.Add("compression", "zstd");
             arguments.AddFlag("multi-thread");
             arguments.Add("machine-id", Identify.LauncherId);

@@ -288,8 +288,8 @@ public sealed class PromoteService : GeneralService
     
     public override void Start()
     {
-        var args = Environment.GetCommandLineArgs();
-        if (args is [_, "promote", _])
+        var args = Basics.CommandLineArguments;
+        if (args is ["promote", _])
         {
             Context.Info("当前进程为提权进程");
             IsCurrentProcessPromoted = true;

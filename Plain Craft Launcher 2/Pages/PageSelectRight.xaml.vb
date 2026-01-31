@@ -1,7 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
-Imports PCL.Core.App.Configuration.Impl
+Imports PCL.Core.App.Configuration.Storage
 
 Public Class PageSelectRight
 
@@ -391,7 +391,7 @@ Public Class PageSelectRight
                         "实例删除确认", , "取消",, True)
                 Case 1
                     IniClearCache(instance.PathIndie & "options.txt")
-                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instance.PathInstance)
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheConfigStorage).InvalidateCache(instance.PathInstance)
                     If IsShiftPressed Then
                         DeleteDirectory(instance.PathInstance)
                         Hint("实例 " & instance.Name & " 已永久删除！", HintType.Finish)

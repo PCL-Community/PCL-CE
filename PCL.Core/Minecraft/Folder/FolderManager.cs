@@ -37,7 +37,7 @@ public class FolderManager {
 
             #region Load Custom Folders
 
-            foreach (var folder in Config.Launch.Folders.Split('|', StringSplitOptions.RemoveEmptyEntries)) {
+            foreach (var folder in States.Game.Folders.Split('|', StringSplitOptions.RemoveEmptyEntries)) {
                 if (!folder.Contains('>') || !folder.EndsWith('\\')) {
                     HintWrapper.Show($"无效的 Minecraft 文件夹：{folder}", HintTheme.Error);
                     continue;
@@ -112,7 +112,7 @@ public class FolderManager {
                 newSetup.Add("");
             }
 
-            Config.Launch.Folders = string.Join("|", newSetup);
+            States.Game.Folders = string.Join("|", newSetup);
 
             #endregion
 
@@ -134,7 +134,7 @@ public class FolderManager {
 
             // TODO: 未来去除这个 $ 符号
             CurrentFolder = cacheMcFolderList.Find(mcFolder => Files.ArePathsEqual(mcFolder.Path,
-                Path.Combine(Basics.ExecutablePath, Config.Launch.SelectedFolder.TrimStart('$'))));
+                Path.Combine(Basics.ExecutablePath, States.Game.SelectedFolder.TrimStart('$'))));
             if (CurrentFolder == null || !Directory.Exists(CurrentFolder.Path)) {
                 // Invalid folder
                 if (CurrentFolder == null) {
@@ -143,11 +143,11 @@ public class FolderManager {
                     LogWrapper.Info($"Minecraft 文件夹非法或不存在: {CurrentFolder}");
                 }
                 // TODO: 这边也是
-                Config.Launch.SelectedFolder = McFolderList[0].Path.Replace(Basics.ExecutablePath, "$");
+                States.Game.SelectedFolder = McFolderList[0].Path.Replace(Basics.ExecutablePath, "$");
             }
 
             // 随机延迟
-            if (Config.System.Debug.AddRandomDelay) {
+            if (Config.Debug.AddRandomDelay) {
                 await Task.Delay(RandomUtils.NextInt(200, 2000));
             }
 

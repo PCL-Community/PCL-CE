@@ -526,6 +526,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
             ' 通用ContextMenu主题刷新
             RefreshAllContextMenuThemes()
+            FrmMain.PanTitleSelect.Children.OfType(Of MyRadioButton)().ToList().ForEach(Sub(btn) btn.RefreshMyRadioButtonColor())
         End Sub)
     End Sub
     Friend Sub ThemeCheckAll(EffectSetup As Boolean)
@@ -560,7 +561,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public ReadOnly Property IsCurrentVersionBeta
         Get
             If VersionBaseName.Contains("beta") Then Return True
-            Return Config.System.Update.UpdateChannel = 1
+            Return Config.Update.UpdateChannel = 1
         End Get
     End Property
 
@@ -571,7 +572,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     End Enum
     Public Function GetVersionStatus() As VersionStatus
         Try
-            If IsCurrentVersionBeta AndAlso Not Config.System.Update.UpdateChannel = 1 Then
+            If IsCurrentVersionBeta AndAlso Not Config.Update.UpdateChannel = 1 Then
                 Dim isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
                 Dim isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta, If(IsArm64System, UpdateArch.arm64, UpdateArch.x64), SemVer.Parse(VersionBaseName), VersionCode)
                 Return isNewerThanStable AndAlso isBetaLatest
@@ -586,30 +587,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Return VersionStatus.Unknown
         End Try
     End Function
-    Public Sub NoticeUserUpdate()
-        If GetVersionStatus() <> VersionStatus.Latest Then
-            Dim latest As VersionDataModel = Nothing
-            Dim checkUpdateEx As Exception = Nothing
-            RunInNewThread(
-                Sub()
-                    Try
-                        latest = RemoteServer.GetLatestVersion(
-                            If(IsCurrentVersionBeta, UpdateChannel.beta, UpdateChannel.stable),
-                            If(IsArm64System, UpdateArch.arm64, UpdateArch.x64))
-                    Catch ex As Exception
-                        checkUpdateEx = ex
-                    End Try
-                End Sub
-            ).Join()
-            If latest Is Nothing Then
-                Log(checkUpdateEx, "[Update] 检查更新失败", LogLevel.Hint)
-                Exit Sub
-            End If
-            If MyMsgBox($"启动器有新版本可用（｛VersionBaseName｝ -> {latest.VersionName}){vbCrLf}是否立即更新？", "启动器更新", "更新", "取消") = 1 Then
-                FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate)
-            End If
-        End If
-    End Sub
 
     Public Enum UpdateType
         Silent = 0
@@ -698,7 +675,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Log("[System] 更新程序启动，参数：" + text, LogLevel.Normal, "出现错误")
             Process.Start(New ProcessStartInfo(fileName) With {.WindowStyle = ProcessWindowStyle.Hidden, .CreateNoWindow = True, .Arguments = text})
             If triggerRestartAndByEnd Then
-                FrmMain.EndProgram(False)
+                FrmMain.EndProgram(False, isUpdating:=True)
                 Log("[System] 已由于更新强制结束程序", LogLevel.Normal, "出现错误")
             End If
         Catch ex As Win32Exception
@@ -707,61 +684,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 TryStartEvent("打开帮助", "启动器/Microsoft Defender 添加排除项.json")
             End If
         End Try
-    End Sub
-    Public Sub UpdateReplace(processId As Integer, oldFileName As String, newFileName As String, triggerRestart As Boolean)
-        Try
-            Dim ps = Process.GetProcessById(processId)
-            If Not ps.HasExited Then
-                ps.Kill()
-            End If
-        Catch ex As Exception
-        End Try
-        Dim ex2 As Exception = Nothing
-        Dim num As Integer = 0
-        Do
-            Try
-                If File.Exists(oldFileName) Then
-                    File.Delete(oldFileName)
-                End If
-                If Not File.Exists(oldFileName) Then
-                    Exit Try
-                End If
-            Catch ex3 As Exception
-                ex2 = ex3
-            Finally
-                Thread.Sleep(500)
-            End Try
-            num += 1
-        Loop While num <= 4
-        If (Not File.Exists(oldFileName)) AndAlso File.Exists(newFileName) Then
-            Try
-                CopyFile(newFileName, oldFileName)
-            Catch ex4 As UnauthorizedAccessException
-                MsgBox("PCL 更新失败：权限不足。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf & "若 PCL 位于桌面或 C 盘，你可以尝试将其挪到其他文件夹，这可能可以解决权限问题。" & vbCrLf + ex4.Message, MsgBoxStyle.Critical, "更新失败")
-            Catch ex5 As Exception
-                MsgBox("PCL 更新失败：无法复制新文件。请手动复制 PCL 文件夹下的新版本程序。" & vbCrLf + ex5.Message, MsgBoxStyle.Critical, "更新失败")
-                Return
-            End Try
-            If triggerRestart Then
-                Try
-                    Process.Start(oldFileName)
-                Catch ex6 As Exception
-                    MsgBox("PCL 更新失败：无法重新启动。" & vbCrLf + ex6.Message, MsgBoxStyle.Critical, "更新失败")
-                End Try
-            End If
-            Return
-        End If
-        If TypeOf ex2 Is UnauthorizedAccessException Then
-            MsgBox(String.Concat(New String() {"由于权限不足，PCL 无法完成更新。请尝试：" & vbCrLf,
-                                 If((ExePath.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), False) OrElse ExePath.StartsWithF(Environment.GetFolderPath(Environment.SpecialFolder.Personal), False)),
-                                 " - 将 PCL 文件移动到桌面、文档以外的文件夹（这或许可以一劳永逸地解决权限问题）" & vbCrLf, ""),
-                                 If(ExePath.StartsWithF("C", True),
-                                 " - 将 PCL 文件移动到 C 盘以外的文件夹（这或许可以一劳永逸地解决权限问题）" & vbCrLf, ""),
-                                 " - 右键以管理员身份运行 PCL" & vbCrLf & " - 手动复制已下载到 PCL 文件夹下的新版本程序，覆盖原程序" & vbCrLf & vbCrLf,
-                                 ex2.Message}), MsgBoxStyle.Critical, "更新失败")
-            Return
-        End If
-        MsgBox("PCL 更新失败：无法删除原文件。请手动复制已下载到 PCL 文件夹下的新版本程序覆盖原程序。" & vbCrLf + ex2.Message, MsgBoxStyle.Critical, "更新失败")
     End Sub
     ''' <summary>
     ''' 确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。

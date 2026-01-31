@@ -4,7 +4,7 @@ using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.RepresentationModel;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 // 修改自: https://dotnetfiddle.net/jaG1i1
 // 来源: https://stackoverflow.com/a/40727087
@@ -30,7 +30,7 @@ public static class YamlNodeConverter
 		yield return new StreamStart();
 		foreach (var document in stream.Documents)
 		{
-			foreach (var evt in ConvertToEventStream(document))
+			foreach (var evt in document.ConvertToEventStream())
 			{
 				yield return evt;
 			}
@@ -41,7 +41,7 @@ public static class YamlNodeConverter
 	public static IEnumerable<ParsingEvent> ConvertToEventStream(this YamlDocument document)
 	{
 		yield return new DocumentStart();
-		foreach (var evt in ConvertToEventStream(document.RootNode))
+		foreach (var evt in document.RootNode.ConvertToEventStream())
 		{
 			yield return evt;
 		}
@@ -78,7 +78,7 @@ public static class YamlNodeConverter
 		yield return new SequenceStart(sequence.Anchor, sequence.Tag, false, sequence.Style);
 		foreach (var node in sequence.Children)
 		{
-			foreach (var evt in ConvertToEventStream(node))
+			foreach (var evt in node.ConvertToEventStream())
 			{
 				yield return evt;
 			}
@@ -91,11 +91,11 @@ public static class YamlNodeConverter
 		yield return new MappingStart(mapping.Anchor, mapping.Tag, false, mapping.Style);
 		foreach (var pair in mapping.Children)
 		{
-			foreach (var evt in ConvertToEventStream(pair.Key))
+			foreach (var evt in pair.Key.ConvertToEventStream())
 			{
 				yield return evt;
 			}
-			foreach (var evt in ConvertToEventStream(pair.Value))
+			foreach (var evt in pair.Value.ConvertToEventStream())
 			{
 				yield return evt;
 			}

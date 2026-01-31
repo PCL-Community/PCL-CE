@@ -151,14 +151,14 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             }
 
             // refresh naid token
-            var naidRefreshToken = Config.Link.NaidRefreshToken;
+            var naidRefreshToken = States.Link.NaidRefreshToken;
             if (!string.IsNullOrWhiteSpace(naidRefreshToken))
             {
-                var expTime = Config.Link.NaidRefreshExpireTime;
+                var expTime = States.Link.NaidRefreshExpireTime;
                 if (!string.IsNullOrWhiteSpace(expTime) &&
                     Convert.ToDateTime(expTime).CompareTo(DateTime.Now) < 0)
                 {
-                    Config.Link.NaidRefreshToken = string.Empty;
+                    States.Link.NaidRefreshToken = string.Empty;
                     OnHint?.Invoke("Natayark ID 令牌已过期，请重新登录", CoreHintType.Critical);
                 }
                 else
@@ -203,7 +203,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             var recordedPorts = new ConcurrentSet<int>();
             using var listener = new BroadcastListener();
 
-            var handler = new Action<BroadcastRecord, IPEndPoint>(async (info, _) =>
+            var handler = new Action<BroadcastRecord, IPEndPoint>((info, _) => Task.Run(async () =>
             {
                 if (!recordedPorts.TryAdd(info.Address.Port)) return;
 
@@ -227,7 +227,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
                 {
                     LogWrapper.Error(ex, "LobbyService", $"Pinging port {info.Address.Port} failed.");
                 }
-            });
+            }));
 
             listener.OnReceive += handler;
             listener.Start();

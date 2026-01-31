@@ -1,5 +1,4 @@
 ﻿using PCL.Core.App.Configuration;
-using PCL.Core.Link;
 
 namespace PCL.Core.App;
 
@@ -10,237 +9,14 @@ namespace PCL.Core.App;
 public static partial class Config
 {
     /// <summary>
-    /// 唯一标识符。
-    /// </summary>
-    [ConfigItem<string>("Identify", "")] public static partial string Identifier { get; set; }
-
-    /// <summary>
-    /// 提示状态。
-    /// </summary>
-    [ConfigGroup("Hint")] partial class HintConfigGroup
-    {
-        /// <summary>
-        /// 过大下载线程警告。
-        /// </summary>
-        [ConfigItem<bool>("HintDownloadThread", false)] public partial bool LargeDownloadThread { get; set; }
-
-        // [ConfigItem<int>("HintNotice", 0)] public partial int Notice { get; set; }
-
-        /// <summary>
-        /// 渲染器选择提示。
-        /// </summary>
-        [ConfigItem<bool>("HintRenderer", false)] public partial bool Renderer { get; set; }
-
-        /// <summary>
-        /// 使用调试级别 Log4j2 配置提示。
-        /// </summary>
-        [ConfigItem<bool>("HintDebugLog4j2Config", false)] public partial bool DebugLog4j2Config { get; set; }
-        
-        // [ConfigItem<int>("HintDownload", 0)] public partial int Download { get; set; }
-
-        /// <summary>
-        /// 单击 Minecraft 返回游戏版本选择提示。
-        /// </summary>
-        [ConfigItem<bool>("HintInstallBack", false)] public partial bool InstallPageBack { get; set; }
-
-        /// <summary>
-        /// 隐藏实例提示。
-        /// </summary>
-        [ConfigItem<bool>("HintHide", false)] public partial bool HideGameInstance { get; set; }
-
-        /// <summary>
-        /// 手动安装版本提示。
-        /// </summary>
-        [ConfigItem<bool>("HintHandInstall", false)] public partial bool ManualInstall { get; set; }
-
-        /// <summary>
-        /// 清理垃圾提示。
-        /// </summary>
-        [ConfigItem<int>("HintClearRubbish", 0)] public partial int CleanJunkFile { get; set; }
-
-        /// <summary>
-        /// Mod 更新提示。
-        /// </summary>
-        [ConfigItem<bool>("HintUpdateMod", false)] public partial bool UpdateMod { get; set; }
-
-        /// <summary>
-        /// 执行自定义主页内含命令提示。
-        /// </summary>
-        [ConfigItem<bool>("HintCustomCommand", false)] public partial bool HomepageCommand { get; set; }
-
-        /// <summary>
-        /// 非信任主页警告。
-        /// </summary>
-        [ConfigItem<bool>("HintCustomWarn", false)] public partial bool UntrustedHomepage { get; set; }
-
-        /// <summary>
-        /// 全局设置中在实例独立设置中寻找更多高级启动选项的提示。
-        /// </summary>
-        [ConfigItem<bool>("HintMoreAdvancedSetup", false)] public partial bool MoreInstanceSetup { get; set; }
-
-        /// <summary>
-        /// 进入实例独立设置提示。
-        /// </summary>
-        [ConfigItem<bool>("HintIndieSetup", false)] public partial bool IndieSetup { get; set; }
-
-        /// <summary>
-        /// 选择档案以启动游戏提示。
-        /// </summary>
-        [ConfigItem<bool>("HintProfileSelect", false)] public partial bool LaunchWithProfile { get; set; }
-
-        /// <summary>
-        /// 导出配置提示。
-        /// </summary>
-        [ConfigItem<bool>("HintExportConfig", false)] public partial bool ExportConfig { get; set; }
-
-        /// <summary>
-        /// 实时日志最大行数提示。
-        /// </summary>
-        [ConfigItem<bool>("HintMaxLog", false)] public partial bool MaxGameLog { get; set; }
-
-        /// <summary>
-        /// 非 ASCII 路径警告。 
-        /// </summary>
-        [ConfigItem<bool>("HintDisableGamePathCheckTip", false)] public partial bool NonAsciiGamePath { get; set; }
-
-        /// <summary>
-        /// 启动时的社区版提示。
-        /// </summary>
-        [ConfigItem<bool>("UiLauncherCEHint", true)] public partial bool CEMessage { get; set; }
-
-        /// <summary>
-        /// 投影管理首次使用提示。
-        /// </summary>
-        [ConfigItem<bool>("UiSchematicFirstTimeHintShown", false)] public partial bool SchematicFirstTime { get; set; }
-
-        /// <summary>
-        /// 已显示的公告。
-        /// </summary>
-        [ConfigItem<string>("SystemSystemAnnouncement", "")] public partial string ShowedAnnouncements { get; set; }
-    }
-
-    /// <summary>
-    /// 缓存路径。
-    /// </summary>
-    [ConfigGroup("Cache")] partial class CacheConfigGroup
-    {
-        /// <summary>
-        /// 上次导出配置路径。
-        /// </summary>
-        [ConfigItem<string>("CacheExportConfig", "")] public partial string ExportConfigPath { get; set; }
-
-        /// <summary>
-        /// 当前自定义主页 URL。
-        /// </summary>
-        [ConfigItem<string>("CacheSavedPageUrl", "")] public partial string SavedHomepageUrl { get; set; }
-
-        /// <summary>
-        /// 当前自定义主页版本。
-        /// </summary>
-        [ConfigItem<string>("CacheSavedPageVersion", "")] public partial string SavedHomepageVersion { get; set; }
-
-        /// <summary>
-        /// 自定义下载目录。
-        /// </summary>
-        [ConfigItem<string>("CacheDownloadFolder", "")] public partial string DownloadFolder { get; set; }
-
-        /// <summary>
-        /// 自定义下载用户代理。
-        /// </summary>
-        [ConfigItem<string>("ToolDownloadCustomUserAgent", "")] public partial string DownloadUserAgent { get; set; }
-
-        /// <summary>
-        /// Java 列表版本。
-        /// </summary>
-        [ConfigItem<int>("CacheJavaListVersion", 0)] public partial int JavaListVersion { get; set; }
-
-        /// <summary>
-        /// 第三方认证 UUID。
-        /// </summary>
-        [ConfigItem<string>("CacheAuthUuid", "", ConfigSource.SharedEncrypt)] public partial string AuthUuid { get; set; }
-
-        /// <summary>
-        /// 第三方认证用户名。
-        /// </summary>
-        [ConfigItem<string>("CacheAuthName", "", ConfigSource.SharedEncrypt)] public partial string AuthUserName { get; set; }
-
-        /// <summary>
-        /// 第三方认证档案名。
-        /// </summary>
-        [ConfigItem<string>("CacheAuthUsername", "", ConfigSource.SharedEncrypt)] public partial string AuthThirdPartyUserName { get; set; }
-
-        /// <summary>
-        /// 第三方认证用户密码。
-        /// </summary>
-        [ConfigItem<string>("CacheAuthPass", "", ConfigSource.SharedEncrypt)] public partial string AuthPassword { get; set; }
-
-        /// <summary>
-        /// 第三方认证服务器。
-        /// </summary>
-        [ConfigItem<string>("CacheAuthServerServer", "", ConfigSource.SharedEncrypt)] public partial string AuthServerAddress { get; set; }
-        
-        /// <summary>
-        /// MC 版本 Drops。
-        /// </summary>
-        [ConfigItem<string>("CacheDrops", "")] public partial string Drops { get; set; }
-    }
-
-    /// <summary>
     /// 系统配置。
     /// </summary>
     [ConfigGroup("System")] partial class SystemConfigGroup
     {
-        /// <summary>
-        /// 最终用户许可协议。
-        /// </summary>
-        [ConfigItem<bool>("SystemEula", false)] public partial bool LauncherEula { get; set; }
-
-        /// <summary>
-        /// 启动器打开次数。
-        /// </summary>
-        [ConfigItem<int>("SystemCount", 0, ConfigSource.SharedEncrypt)] public partial int StartupCount { get; set; }
-
-        /// <summary>
-        /// 游戏启动次数。
-        /// </summary>
-        [ConfigItem<int>("SystemLaunchCount", 0, ConfigSource.SharedEncrypt)] public partial int LaunchCount { get; set; }
-
-        /// <summary>
-        /// 上个版本。
-        /// </summary>
-        [ConfigItem<int>("SystemLastVersionReg", 0, ConfigSource.SharedEncrypt)] public partial int LastVersion { get; set; }
-
-        // [ConfigItem<int>("SystemHighestSavedBetaVersionReg", 0, ConfigSource.SharedEncrypt)] public partial int LastSavedBetaVersion { get; set; }
-
-        /// <summary>
-        /// 上个最高 Beta 版本。
-        /// </summary>
-        [ConfigItem<int>("SystemHighestBetaVersionReg", 0, ConfigSource.SharedEncrypt)] public partial int LastBetaVersion { get; set; }
-
-        /// <summary>
-        /// 上个最高 Alpha 版本。
-        /// </summary>
-        [ConfigItem<int>("SystemHighestAlphaVersionReg", 0, ConfigSource.SharedEncrypt)] public partial int LastAlphaVersion { get; set; }
-
-        /// <summary>
-        /// 全局配置版本。
-        /// </summary>
-        [ConfigItem<int>("SystemSetupVersionReg", 1)] public partial int SetupVersionGlobal { get; set; }
-
-        /// <summary>
-        /// 本地配置版本。
-        /// </summary>
-        [ConfigItem<int>("SystemSetupVersionIni", 1, ConfigSource.Local)] public partial int SetupVersionLocal { get; set; }
-
-        /// <summary>
-        /// 系统缓存目录。
-        /// </summary>
-        [ConfigItem<string>("SystemSystemCache", "")] public partial string CacheDirectory { get; set; }
-
-        /// <summary>
-        /// 启动器公告。
-        /// </summary>
-        [ConfigItem<int>("SystemSystemActivity", 0, ConfigSource.Local)] public partial int AnnounceSolution { get; set; }
+        // /// <summary>
+        // /// 系统缓存目录。
+        // /// </summary>
+        // [ConfigItem<string>("SystemSystemCache", "")] public partial string CacheDirectory { get; set; }
 
         /// <summary>
         /// 禁用硬件加速。
@@ -253,32 +29,22 @@ public static partial class Config
         [ConfigItem<bool>("SystemTelemetry", false)] public partial bool Telemetry { get; set; }
 
         /// <summary>
-        /// Mirror 酱 CDK。
-        /// </summary>
-        [ConfigItem<string>("SystemMirrorChyanKey", "", ConfigSource.SharedEncrypt)] public partial string MirrorChyanKey { get; set; }
-
-        /// <summary>
         /// 实时日志最大行数。
         /// </summary>
         [ConfigItem<int>("SystemMaxLog", 13)] public partial int MaxGameLog { get; set; }
 
         /// <summary>
-        /// 识别码。
+        /// 动画帧率上限。
         /// </summary>
-        [ConfigItem<string>("LaunchUuid", "")] public partial string LaunchUuid { get; set; }
+        [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
+    }
 
-        [ConfigGroup("Update")] partial class UpdateConfigGroup
-        {
-            /// <summary>
-            /// 检查更新。
-            /// </summary>
-            [ConfigItem<int>("SystemSystemUpdate", 1, ConfigSource.Local)] public partial int UpdateMode { get; set; }
-
-            /// <summary>
-            /// 更新分支。
-            /// </summary>
-            [ConfigItem<int>("SystemUpdateChannel", 0, ConfigSource.Local)] public partial int UpdateChannel { get; set; }
-        }
+    /// <summary>
+    /// 网络配置。
+    /// </summary>
+    [ConfigGroup("Network")] partial class NetworkConfigGroup
+    {
+        [ConfigItem<bool>("SystemNetEnableDoH", true)] public partial bool EnableDoH { get; set; }
 
         [ConfigGroup("HttpProxy")] partial class HttpProxyConfigGroup
         {
@@ -287,96 +53,92 @@ public static partial class Config
             [ConfigItem<string>("SystemHttpProxyCustomUsername", "")] public partial string CustomUsername { get; set; }
             [ConfigItem<string>("SystemHttpProxyCustomPassword", "")] public partial string CustomPassword { get; set; }
         }
-
-        [ConfigGroup("NetworkConfig")]
-        partial class NetworkConfigGroup
-        {
-            [ConfigItem<bool>("SystemNetEnableDoH", true)] public partial bool EnableDoH { get; set; }
-        }
-
-        [ConfigGroup("Debug")] partial class DebugConfigGroup
-        {
-            [ConfigItem<bool>("SystemDebugMode", false)] public partial bool Enabled { get; set; }
-            [ConfigItem<int>("SystemDebugAnim", 9)] public partial int AnimationSpeed { get; set; }
-            [ConfigItem<bool>("SystemDebugDelay", false)] public partial bool AddRandomDelay { get; set; }
-            [ConfigItem<bool>("SystemDebugSkipCopy", false)] public partial bool DontCopy { get; set; }
-            [ConfigItem<bool>("SystemDebugAllowRestrictedFeature", false)] public partial bool AllowRestrictedFeature { get; set; }
-        }
-    }
-
-    [ConfigGroup("Tool")] partial class ToolConfigGroup
-    {
-        [ConfigItem<string>("CompFavorites", "[]")] public partial string CompFavorites { get; set; }
-        [ConfigItem<bool>("ToolFixAuthlib", true)] public partial bool FixAuthLib { get; set; }
-        [ConfigItem<bool>("ToolHelpChinese", true)] public partial bool AutoChangeLanguage { get; set; }
-
-        [ConfigGroup("Download")] partial class DownloadConfigGroup
-        {
-            [ConfigItem<int>("ToolDownloadThread", 63)] public partial int ThreadLimit { get; set; }
-            [ConfigItem<int>("ToolDownloadSpeed", 42)] public partial int SpeedLimit { get; set; }
-            [ConfigItem<int>("ToolDownloadSource", 1)] public partial int FileSourceSolution { get; set; }
-            [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionSourceSolution { get; set; }
-            [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
-            [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
-            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool UiIgnoreQuilt { get; set; }
-            [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ListenClipboard { get; set; }
-            [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
-            [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
-            [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
-        }
-
-        [ConfigGroup("Update")] partial class UpdateConfigGroup
-        {
-            [ConfigItem<int>("ToolUpdateAlpha", 0, ConfigSource.SharedEncrypt)] public partial int Alpha { get; set; }
-            [ConfigItem<bool>("ToolUpdateRelease", false)] public partial bool Release { get; set; }
-            [ConfigItem<bool>("ToolUpdateSnapshot", false)] public partial bool Snapshot { get; set; }
-            [ConfigItem<string>("ToolUpdateReleaseLast", "")] public partial string LastRelease { get; set; }
-            [ConfigItem<string>("ToolUpdateSnapshotLast", "")] public partial string LastSnapshot { get; set; }
-        }
-    }
-
-    [ConfigGroup("LegacyProfile")] partial class LegacyProfileConfigGroup
-    {
-        /// <summary>
-        /// 原版离线档案名。
-        /// </summary>
-        [ConfigItem<string>("LoginLegacyName", "", ConfigSource.SharedEncrypt)] public partial string LoginLegacyName { get; set; }
-
-        /// <summary>
-        /// 原版微软登录 JSON。
-        /// </summary>
-        [ConfigItem<string>("LoginMsJson", "{}", ConfigSource.SharedEncrypt)] public partial string LoginMsJson { get; set; }
     }
 
     /// <summary>
-    /// 联机大厅配置/状态。
+    /// 调试配置
+    /// </summary>
+    [ConfigGroup("Debug")] partial class DebugConfigGroup
+    {
+        [ConfigItem<bool>("SystemDebugMode", false)] public partial bool Enabled { get; set; }
+        [ConfigItem<int>("SystemDebugAnim", 9)] public partial int AnimationSpeed { get; set; }
+        [ConfigItem<bool>("SystemDebugDelay", false)] public partial bool AddRandomDelay { get; set; }
+        [ConfigItem<bool>("SystemDebugSkipCopy", false)] public partial bool DontCopy { get; set; }
+        [ConfigItem<bool>("SystemDebugAllowRestrictedFeature", false)] public partial bool AllowRestrictedFeature { get; set; }
+    }
+
+    /// <summary>
+    /// 下载配置。
+    /// </summary>
+    [ConfigGroup("Download")] partial class DownloadConfigGroup
+    {
+        [ConfigItem<int>("ToolDownloadThread", 63)] public partial int ThreadLimit { get; set; }
+        [ConfigItem<int>("ToolDownloadSpeed", 42)] public partial int SpeedLimit { get; set; }
+        [ConfigItem<int>("ToolDownloadSource", 1)] public partial int FileSource { get; set; }
+        [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionListSource { get; set; }
+        [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
+        [ConfigItem<bool>("ToolFixAuthlib", true)] public partial bool FixAuthLib { get; set; }
+
+        /// <summary>
+        /// 第三方资源配置。
+        /// </summary>
+        [ConfigGroup("Comp")] partial class CompConfigGroup
+        {
+            [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
+            [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
+            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
+            [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
+            [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+        }
+    }
+
+    /// <summary>
+    /// 工具配置。
+    /// </summary>
+    [ConfigGroup("Tool")] partial class ToolConfigGroup
+    {
+        [ConfigItem<bool>("ToolHelpChinese", true)] public partial bool AutoChangeLanguage { get; set; }
+        // [ConfigItem<int>("ToolUpdateAlpha", 0, ConfigSource.SharedEncrypt)] public partial int Alpha { get; set; }
+        [ConfigItem<bool>("ToolUpdateRelease", false)] public partial bool ReleaseNotification { get; set; }
+        [ConfigItem<bool>("ToolUpdateSnapshot", false)] public partial bool SnapshotNotification { get; set; }
+    }
+
+    /// <summary>
+    /// 更新配置。
+    /// </summary>
+    [ConfigGroup("Update")] partial class UpdateConfigGroup
+    {
+        /// <summary>
+        /// 自动更新行为。
+        /// </summary>
+        [ConfigItem<LauncherAutoUpdateBehavior>("SystemSystemUpdate", LauncherAutoUpdateBehavior.DownloadAndAnnounce, ConfigSource.Local)] public partial LauncherAutoUpdateBehavior UpdateMode { get; set; }
+
+        /// <summary>
+        /// 更新分支。
+        /// </summary>
+        [ConfigItem<UpdateChannel>("SystemUpdateChannel", UpdateChannel.Release, ConfigSource.Local)] public partial UpdateChannel UpdateChannel { get; set; }
+            
+        /// <summary>
+        /// Mirror 酱 CDK。
+        /// </summary>
+        [ConfigItem<string>("SystemMirrorChyanKey", "", ConfigSource.SharedEncrypt)] public partial string MirrorChyanKey { get; set; }
+    }
+
+    /// <summary>
+    /// 联机大厅配置。
     /// </summary>
     [ConfigGroup("Link")] partial class LinkConfigGroup
     {
-        /// <summary>
-        /// 大厅最终用户许可协议。
-        /// </summary>
-        [ConfigItem<bool>("LinkEula", false)] public partial bool LinkEula { get; set; }
-
         /// <summary>
         /// 大厅用户名。
         /// </summary>
         [ConfigItem<string>("LinkUsername", "")] public partial string Username { get; set; }
 
         /// <summary>
-        /// 公告缓存。
-        /// </summary>
-        [ConfigItem<string>("LinkAnnounceCache", "", ConfigSource.SharedEncrypt)] public partial string AnnounceCache { get; set; }
-
-        /// <summary>
-        /// 公告缓存版本。
-        /// </summary>
-        [ConfigItem<int>("LinkAnnounceCacheVer", 0)] public partial int AnnounceCacheVer { get; set; }
-
-        /// <summary>
         /// 中继方式。
         /// </summary>
-        [ConfigItem<int>("LinkRelayType", 0)] public partial int RelayType { get; set; }
+        [ConfigItem<LinkRelayBehavior>("LinkRelayType", LinkRelayBehavior.Default)] public partial LinkRelayBehavior RelayType { get; set; }
 
         /// <summary>
         /// 中继服务器类型 (社区/自有)。
@@ -386,27 +148,12 @@ public static partial class Config
         /// <summary>
         /// 延迟优先模式。
         /// </summary>
-        [ConfigItem<bool>("LinkLatencyFirstMode", true)] public partial bool LatencyFirstMode { get; set; }
+        [ConfigItem<bool>("LinkLatencyFirstMode", true)] public partial bool UseLatencyFirstMode { get; set; }
 
         /// <summary>
         /// 自定义中继服务器。
         /// </summary>
-        [ConfigItem<string>("LinkRelayServer", "")] public partial string RelayServer { get; set; }
-
-        /// <summary>
-        /// Natayark ID 刷新令牌。
-        /// </summary>
-        [ConfigItem<string>("LinkNaidRefreshToken", "", ConfigSource.SharedEncrypt)] public partial string NaidRefreshToken { get; set; }
-
-        /// <summary>
-        /// Natayark ID 令牌过期时间。
-        /// </summary>
-        [ConfigItem<string>("LinkNaidRefreshExpiresAt", "", ConfigSource.SharedEncrypt)] public partial string NaidRefreshExpireTime { get; set; }
-
-        /// <summary>
-        /// 首次网络测试状态。
-        /// </summary>
-        [ConfigItem<bool>("LinkFirstTimeNetTest", true, ConfigSource.SharedEncrypt)] public partial bool DoFirstTimeNetTest { get; set; }
+        [ConfigItem<string>("LinkRelayServer", "")] public partial string CustomRelayServer { get; set; }
 
         /// <summary>
         /// 传输协议优先策略。
@@ -430,20 +177,10 @@ public static partial class Config
     }
 
     /// <summary>
-    /// 用户界面配置。
+    /// 个性化配置。
     /// </summary>
-    [ConfigGroup("UI")] partial class UiConfigGroup
+    [ConfigGroup("Preference")] partial class PreferenceConfigGroup
     {
-        /// <summary>
-        /// 窗口高度。
-        /// </summary>
-        [ConfigItem<double>("WindowHeight", 550, ConfigSource.Local)] public partial double WindowHeight { get; set; }
-
-        /// <summary>
-        /// 窗口宽度。
-        /// </summary>
-        [ConfigItem<double>("WindowWidth", 900, ConfigSource.Local)] public partial double WindowWidth { get; set; }
-
         /// <summary>
         /// 启动时显示 Logo。
         /// </summary>
@@ -460,9 +197,9 @@ public static partial class Config
         [ConfigItem<bool>("UiShowLaunchingHint", true, ConfigSource.Local)] public partial bool ShowLaunchingHint { get; set; }
 
         /// <summary>
-        /// 窗口标题类型。
+        /// 标题内容类型。
         /// </summary>
-        [ConfigItem<int>("UiLogoType", 1, ConfigSource.Local)] public partial int WindowTitleType { get; set; }
+        [ConfigItem<LauncherTitleType>("UiLogoType", LauncherTitleType.Default, ConfigSource.Local)] public partial LauncherTitleType WindowTitleType { get; set; }
 
         /// <summary>
         /// 窗口标题文本。
@@ -470,14 +207,9 @@ public static partial class Config
         [ConfigItem<string>("UiLogoText", "", ConfigSource.Local)] public partial string LogoCustomText { get; set; }
 
         /// <summary>
-        /// 工具栏居左。
+        /// 导航栏居左。
         /// </summary>
         [ConfigItem<bool>("UiLogoLeft", false, ConfigSource.Local)] public partial bool TopBarLeftAlign { get; set; }
-
-        /// <summary>
-        /// 动画帧率上限。
-        /// </summary>
-        [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
 
         /// <summary>
         /// 全局字体。
@@ -502,17 +234,17 @@ public static partial class Config
             /// <summary>
             /// 配色主题模式。
             /// </summary>
-            [ConfigItem<int>("UiDarkMode", 2)] public partial int ColorMode { get; set; }
+            [ConfigItem<ColorMode>("UiDarkMode", ColorMode.System)] public partial ColorMode ColorMode { get; set; }
 
             /// <summary>
             /// 暗色配色主题。
             /// </summary>
-            [ConfigItem<int>("UiDarkColor", 1)] public partial int DarkColor { get; set; }
+            [ConfigItem<ColorTheme>("UiDarkColor", ColorTheme.CatBlue)] public partial ColorTheme DarkColor { get; set; }
 
             /// <summary>
             /// 亮色配色主题。
             /// </summary>
-            [ConfigItem<int>("UiLightColor", 1)] public partial int LightColor { get; set; }
+            [ConfigItem<ColorTheme>("UiLightColor", ColorTheme.CatBlue)] public partial ColorTheme LightColor { get; set; }
 
             /// <summary>
             /// 窗口透明度。
@@ -543,21 +275,6 @@ public static partial class Config
             /// 传说中的主题选择，但是没卵用。
             /// </summary>
             [ConfigItem<int>("UiLauncherTheme", 0, ConfigSource.Local)] public partial int ThemeSelected { get; set; }
-
-            /// <summary>
-            /// 传说中的秋仪金代码，但是没卵用。
-            /// </summary>
-            [ConfigItem<string>("UiLauncherThemeGold", "")] public partial string ThemeGoldCode { get; set; }
-
-            /// <summary>
-            /// 传说中的隐藏主题1，但是没卵用
-            /// </summary>
-            [ConfigItem<string>("UiLauncherThemeHide", "0|1|2|3|4")] public partial string ThemeHiddenV1 { get; set; }
-
-            /// <summary>
-            /// 传说中的隐藏主题2，但是没卵用。
-            /// </summary>
-            [ConfigItem<string>("UiLauncherThemeHide2", "0|1|2|3|4")] public partial string ThemeHiddenV2 { get; set; }
         }
 
         /// <summary>
@@ -635,7 +352,7 @@ public static partial class Config
             /// <summary>
             /// 预设选项。
             /// </summary>
-            [ConfigItem<int>("UiCustomPreset", 13, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
+            [ConfigItem<int>("UiCustomPreset", 14, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
 
             /// <summary>
             /// 自定义 URL。
@@ -729,21 +446,6 @@ public static partial class Config
     [ConfigGroup("Launch")] partial class LaunchConfigGroup
     {
         /// <summary>
-        /// 当前实例。
-        /// </summary>
-        [ConfigItem<string>("LaunchInstanceSelect", "", ConfigSource.Local)] public partial string SelectedInstance { get; set; }
-
-        /// <summary>
-        /// 当前文件夹。
-        /// </summary>
-        [ConfigItem<string>("LaunchFolderSelect", "", ConfigSource.Local)] public partial string SelectedFolder { get; set; }
-
-        /// <summary>
-        /// 所有文件夹。
-        /// </summary>
-        [ConfigItem<string>("LaunchFolders", "")] public partial string Folders { get; set; }
-
-        /// <summary>
         /// 内存分配模式。
         /// </summary>
         [ConfigItem<int>("LaunchRamType", 0, ConfigSource.Local)] public partial int MemoryAllocationMode { get; set; }
@@ -756,7 +458,7 @@ public static partial class Config
         /// <summary>
         /// 优先 IP 协议栈。
         /// </summary>
-        [ConfigItem<int>("LaunchPreferredIpStack", 1)] public partial int PreferredIpStack { get; set; }
+        [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
 
         /// <summary>
         /// 启动前优化内存。
@@ -824,11 +526,6 @@ public static partial class Config
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
 
         /// <summary>
-        /// 已知所有 Java 实例。
-        /// </summary>
-        [ConfigItem<string>("LaunchArgumentJavaUser", "[]")] public partial string JavaList { get; set; }
-
-        /// <summary>
         /// 版本隔离 V1。
         /// </summary>
         [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
@@ -841,12 +538,12 @@ public static partial class Config
         /// <summary>
         /// 游戏启动后启动器可见性。
         /// </summary>
-        [ConfigItem<int>("LaunchArgumentVisible", 5)] public partial int LauncherVisibility { get; set; }
+        [ConfigItem<LauncherVisibility>("LaunchArgumentVisible", LauncherVisibility.DoNothing)] public partial LauncherVisibility LauncherVisibility { get; set; }
 
         /// <summary>
         /// 游戏进程优先级。
         /// </summary>
-        [ConfigItem<int>("LaunchArgumentPriority", 1)] public partial int ProcessPriority { get; set; }
+        [ConfigItem<GameProcessPriority>("LaunchArgumentPriority", GameProcessPriority.Normal)] public partial GameProcessPriority ProcessPriority { get; set; }
 
         /// <summary>
         /// 游戏窗口宽度。
@@ -861,7 +558,7 @@ public static partial class Config
         /// <summary>
         /// 游戏窗口模式 (正常/最大化/全屏)。
         /// </summary>
-        [ConfigItem<int>("LaunchArgumentWindowType", 1, ConfigSource.Local)] public partial int GameWindowMode { get; set; }
+        [ConfigItem<GameWindowSizeMode>("LaunchArgumentWindowType", GameWindowSizeMode.Default, ConfigSource.Local)] public partial GameWindowSizeMode GameWindowMode { get; set; }
 
         /// <summary>
         /// 正版登录方式。

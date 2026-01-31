@@ -88,8 +88,8 @@ public class GameEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
     /// </summary>
     private Size CalculateGameWindowSize() {
         var gameSize = Config.Launch.GameWindowMode switch {
-            2 => CalculateMainWindowSize(),
-            3 => new Size(Math.Max(100, Config.Launch.GameWindowWidth),
+            GameWindowSizeMode.Launcher => CalculateMainWindowSize(),
+            GameWindowSizeMode.Custom => new Size(Math.Max(100, Config.Launch.GameWindowWidth),
                 Math.Max(100, Config.Launch.GameWindowHeight)),
             _ => new Size(854, 480)
         };

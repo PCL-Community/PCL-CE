@@ -10,7 +10,7 @@ Public Class PageSetupLeft
         If ItemLaunch.Checked AndAlso Setup.Get("UiHiddenSetupLaunch") Then IsHiddenPage = True
         If ItemUI.Checked AndAlso Setup.Get("UiHiddenSetupUi") Then IsHiddenPage = True
         If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
-        If ItemAbout.Checked AndAlso Config.UI.Hide.SetupAbout Then IsHiddenPage = True
+        If ItemAbout.Checked AndAlso Config.Preference.Hide.SetupAbout Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
         If IsLoad AndAlso Not IsHiddenPage Then Return
@@ -25,7 +25,7 @@ Public Class PageSetupLeft
             ItemUI.SetChecked(True, False, False)
         ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
             ItemSystem.SetChecked(True, False, False)
-        ElseIf Not Config.UI.Hide.SetupAbout Then
+        ElseIf Not Config.Preference.Hide.SetupAbout Then
             ItemAbout.SetChecked(True, False, False)
         Else
             ItemLaunch.SetChecked(True, False, False)

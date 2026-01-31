@@ -185,7 +185,7 @@ public partial class MotdRenderer {
         _obfuscatedTextBlocks.Clear();
 
         var colorMap = isDarkMode ? ColorMapWithBlackBackground : ColorMapWithWhiteBackground;
-        var font = Config.UI.MotdFont;
+        var font = Config.Preference.MotdFont;
         var fontFamily = new FontFamily(string.IsNullOrWhiteSpace(font)
             ? "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"
             : font);

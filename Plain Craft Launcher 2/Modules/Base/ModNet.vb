@@ -1120,7 +1120,7 @@ NotSupportRange:
                         End If
                         '开始下载
                         Using httpStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
-                            If Config.System.Debug.AddRandomDelay Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
+                            If Config.Debug.AddRandomDelay Then Threading.Thread.Sleep(RandomUtils.NextInt(50, 3000))
                             Const bufferSize As Integer = 16384
                             Using httpDataBufferOwner = MemoryPool(Of Byte).Shared.Rent(bufferSize)
                                 Dim dataBuffer = httpDataBufferOwner.Memory.Span
@@ -1710,7 +1710,7 @@ Retry:
                     Return Nothing
                 End If
             End If
-            Dim Type = TypeIndexes.MaxOf(Function(kv) kv.Item2).FolderName.TrimStart("\"c)
+            Dim Type = TypeIndexes.MaxOrDefault(Function(kv) kv.Item2).FolderName.TrimStart("\"c)
             '根据类别进行查找
             Select Case Type
                 Case "assets\", "libraries\"

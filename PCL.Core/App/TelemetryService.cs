@@ -60,11 +60,11 @@ public class TelemetryService : GeneralService
             Is64Bit = Environment.Is64BitOperatingSystem,
             IsArm64 = RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64),
             Launcher = Basics.VersionName,
-            LauncherBranch = Config.System.Update.UpdateChannel switch
+            LauncherBranch = Config.Update.UpdateChannel switch
             {
-                0 => "Release",
-                1 => "Beta",
-                2 => "Dev",
+                UpdateChannel.Release => "Release",
+                UpdateChannel.Beta => "Beta",
+                UpdateChannel.Dev => "Dev",
                 _ => "Unknown"
             },
             UsedOfficialPcl =

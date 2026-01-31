@@ -179,6 +179,7 @@ Public Module ModComp
             End Using
         Catch ex As Exception
             Log(ex, "获取模组翻译信息失败", LogLevel.Hint)
+            Return Nothing
         End Try
     End Function
 
@@ -2102,7 +2103,7 @@ Retry:
         Public Shared Property FavoritesList As List(Of FavData)
             Get
                 If _FavoritesList Is Nothing Then
-                    Dim RawData As String = Config.Tool.CompFavorites
+                    Dim RawData As String = States.Game.CompFavorites
                     Dim RawList As List(Of FavData) = Nothing
                     ' 尝试作为新格式解析
                     Try
@@ -2135,7 +2136,7 @@ Retry:
                         ToDictionary()
                 Next
                 Dim RawList = JArray.FromObject(_FavoritesList)
-                Config.Tool.CompFavorites = JsonSerializer.Serialize(_FavoritesList)
+                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList)
             End Set
         End Property
 
