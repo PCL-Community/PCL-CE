@@ -10,8 +10,8 @@
     {
       "name": "PCL.Core",
       "info": "Copyright © PCL Community",
-      "website": "https://github.com/PCL-Community/PCL.Core",
-      "license": "https://github.com/PCL-Community/PCL.Core/blob/main/LICENCE"
+      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
     },
     {
       "name": "Java Launch Wrapper",

@@ -3,11 +3,11 @@ Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 
 Public Class FontSelector
-    Public Shared ReadOnly TooltipProperty As DependencyProperty = 
+    Public Shared Shadows ReadOnly TooltipProperty As DependencyProperty = 
         DependencyProperty.Register("Tooltip", GetType(String), GetType(FontSelector), 
                                    New PropertyMetadata(Nothing, AddressOf OnTooltipChanged))
 
-    Public Property Tooltip As String
+    Public Shadows Property Tooltip As String
         Get
             Return CStr(GetValue(TooltipProperty))
         End Get
@@ -130,7 +130,7 @@ Public Class FontSelector
         End Set
     End Property
 
-    Public Property IsEnabled As Boolean
+    Public Shadows Property IsEnabled As Boolean
         Get
             Return ComboFont.IsEnabled
         End Get

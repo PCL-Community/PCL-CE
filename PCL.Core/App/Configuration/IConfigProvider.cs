@@ -8,7 +8,7 @@ public interface IConfigProvider
     /// 获取一个值。
     /// </summary>
     /// <param name="key">键</param>
-    /// <param name="value">返回值，若不存在则返回默认值</param>
+    /// <param name="value">返回值，若不存在则为该类型默认值</param>
     /// <param name="argument">上下文参数</param>
     /// <typeparam name="T">值的类型</typeparam>
     /// <returns>值是否存在，若存在则为 <c>true</c></returns>

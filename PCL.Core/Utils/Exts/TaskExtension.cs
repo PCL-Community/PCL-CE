@@ -17,7 +17,8 @@ public static class TaskExtensions
     /// <exception cref="AggregateException">所有任务均未成功完成</exception>
     public static async Task<Task<T>> WhenAnySuccess<T>(this IEnumerable<Task<T>> tasks)
     {
-        var taskList = tasks?.ToList() ?? throw new ArgumentNullException(nameof(tasks));
+        ArgumentNullException.ThrowIfNull(tasks, nameof(tasks));
+        var taskList = tasks.ToList();
         if (taskList.Count == 0)
             throw new ArgumentException("Task collection is empty.", nameof(tasks));
 
@@ -27,31 +28,30 @@ public static class TaskExtensions
         {
             var completed = await Task.WhenAny(remaining);
             remaining.Remove(completed);
-            if (completed.IsFaulted || completed.IsCanceled) continue;
-
-            try
+            if (completed.IsCompletedSuccessfully)
             {
-                _ = await completed;
                 return completed;
-            }
-            catch
-            {
-                // 忽略异常，继续尝试其他任务
             }
         }
 
         // 所有任务都失败或被取消
-        var exceptions = taskList
+        var faultedExceptions = taskList
             .Where(t => t.IsFaulted)
-            .SelectMany(t => t.Exception?.InnerExceptions ?? Enumerable.Empty<Exception>())
+            .SelectMany(t => t.Exception?.Flatten().InnerExceptions ?? Enumerable.Empty<Exception>())
             .ToList();
 
-        if (exceptions.Count == 0)
+        if (faultedExceptions.Count > 0)
         {
-            // 所有任务都被取消
-            exceptions.Add(new TaskCanceledException("All tasks were canceled."));
+            throw new AggregateException("All connection attempts failed.", faultedExceptions);
         }
 
-        throw new AggregateException("All tasks failed or were canceled.", exceptions);
+        // 如果没有失败任务，但还有任务，为 canceled
+        if (taskList.Any(t => t.IsCanceled))
+        {
+            throw new OperationCanceledException("All connection attempts were canceled.");
+        }
+
+        // Task 要么成功，要么 Faulted，要么 Canceled，大概率走不到这
+        throw new InvalidOperationException("All tasks completed but none succeeded, failed, or canceled.");
     }
 }

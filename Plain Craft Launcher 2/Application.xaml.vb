@@ -32,7 +32,7 @@ Public Class Application
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
             SecretOnApplicationStart()
             '检查参数调用
-            Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
+            Dim args = Basics.CommandLineArguments
             If args.Length > 0 Then
                 If args(0) = "--gpu" Then
                     '调整显卡设置

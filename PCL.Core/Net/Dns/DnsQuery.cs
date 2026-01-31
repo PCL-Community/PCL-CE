@@ -55,7 +55,7 @@ public class DnsQuery : IDisposable
         {
             return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
         }
-        catch (OperationCanceledException)
+        catch (TaskCanceledException)
         {
             throw;
         }

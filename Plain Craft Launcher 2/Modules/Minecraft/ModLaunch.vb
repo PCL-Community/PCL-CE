@@ -641,7 +641,7 @@ Retry:
     Private Function MsLoginStep1Refresh(Code As String) As String()
         McLaunchLog("开始正版验证 Step 1/6（刷新登录）")
         If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
-        Dim Result As String
+        Dim Result As String = Nothing
         Try
             Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
                 WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
@@ -663,7 +663,6 @@ Retry:
                             End Sub)
                 If IsIgnore Then
                     Return {"Ignore", ""}
-                    Exit Function
                 End If
             End If
         End Try
@@ -703,7 +702,7 @@ Retry:
             .RelyingParty = "http://auth.xboxlive.com",
             .TokenType = "JWT"
         }
-        Dim Result As String
+        Dim Result As String = Nothing
         Try
             Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
                 WithJsonContent(requestData).
@@ -2153,68 +2152,73 @@ NextInstance:
 
         '更新 options.txt
         Dim SetupFileAddress As String = McInstanceSelected.PathIndie & "options.txt"
-        If Not File.Exists(SetupFileAddress) Then
-            'Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
-            Dim YosbrFileAddress As String = McInstanceSelected.PathIndie & "config\yosbr\options.txt"
-            If File.Exists(YosbrFileAddress) Then
-                McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
-                SetupFileAddress = YosbrFileAddress
-                WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
-            End If
-        End If
-        Try
-            '语言
-            '1.0-     ：没有语言选项
-            '1.1 ~ 5  ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
-            '1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
-            '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
-            '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-            Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
-            Dim RequiredLang As String '需要的语言
-            Dim hasExistingSaves As Boolean = Directory.Exists(McInstanceSelected.PathIndie & "saves")
-            Dim shouldUseDefault As Boolean = CurrentLang = "none" OrElse Not hasExistingSaves
-            
-            '获取 Minecraft 版本信息
-            Dim mcReleaseTime As Date? = McInstanceSelected.ReleaseTime
-            Dim isUnder11 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
-            
-            '对于 1.0 及以下版本，没有语言选项，返回 "none"
-            If isUnder11 Then
-                RequiredLang = "none"
-            Else
-                '根据配置确定默认语言
-                Dim defaultLang As String = If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us")
-                RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
-                
-                '应用版本特定的语言格式规则
-                If RequiredLang.StartsWith("zh_") AndAlso mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
-                    '1.1~1.10：最后两位字母必须大写（zh_CN）
-                    RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
+
+        '辅助切换游戏语言
+        If Config.Tool.AutoChangeLanguage Then
+            If Not File.Exists(SetupFileAddress) Then
+                'Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
+                Dim YosbrFileAddress As String = McInstanceSelected.PathIndie & "config\yosbr\options.txt"
+                If File.Exists(YosbrFileAddress) Then
+                    McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
+                    SetupFileAddress = YosbrFileAddress
+                    WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
                 End If
             End If
-            If CurrentLang = RequiredLang Then
-                McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
-            Else
-                WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
-                WriteIni(SetupFileAddress, "lang", RequiredLang)
-                McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
-            End If
-            '如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
-            If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceSelected.PathIndie & "saves")) Then
-                WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
-                McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示")
-            End If
-            '窗口
-            Select Case Setup.Get("LaunchArgumentWindowType")
-                Case 0 '全屏
-                    WriteIni(SetupFileAddress, "fullscreen", "true")
-                Case 1 '默认
-                Case Else '其他
-                    WriteIni(SetupFileAddress, "fullscreen", "false")
-            End Select
-        Catch ex As Exception
-            Log(ex, "更新 options.txt 失败", LogLevel.Hint)
-        End Try
+            Try
+                '语言
+                '1.0-     ：没有语言选项
+                '1.1 ~ 5  ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
+                '1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
+                '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
+                '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
+                Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
+                Dim RequiredLang As String '需要的语言
+                Dim hasExistingSaves As Boolean = Directory.Exists(McInstanceSelected.PathIndie & "saves")
+                Dim shouldUseDefault As Boolean = CurrentLang = "none" OrElse Not hasExistingSaves
+
+                '获取 Minecraft 版本信息
+                Dim mcReleaseTime As Date? = McInstanceSelected.ReleaseTime
+                Dim isUnder1dot1 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
+
+                '对于 1.0 及以下版本，没有语言选项，返回 "none"
+                If isUnder1dot1 Then
+                    RequiredLang = "none"
+                Else
+                    '根据配置确定默认语言
+                    Dim defaultLang As String = "zh_cn"
+                    RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
+
+                    '应用版本特定的语言格式规则
+                    If mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
+                        '1.1~1.10：最后两位字母必须大写（zh_CN）
+                        RequiredLang = "zh_CN"
+                    End If
+                End If
+                If CurrentLang = RequiredLang Then
+                    McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
+                Else
+                    WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
+                    WriteIni(SetupFileAddress, "lang", RequiredLang)
+                    McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
+                End If
+                '如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
+                If CurrentLang = "none" OrElse Not Directory.Exists(McInstanceSelected.PathIndie & "saves") Then
+                    WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
+                    McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示")
+                End If
+            Catch ex As Exception
+                Log(ex, "更新 options.txt 失败", LogLevel.Hint)
+            End Try
+        End If
+
+        '窗口
+        Select Case Setup.Get("LaunchArgumentWindowType")
+            Case 0 '全屏
+                WriteIni(SetupFileAddress, "fullscreen", "true")
+            Case 1 '默认
+            Case Else '其他
+                WriteIni(SetupFileAddress, "fullscreen", "false")
+        End Select
 
     End Sub
     Private Sub McLaunchCustom(Loader As LoaderTask(Of Integer, Integer))

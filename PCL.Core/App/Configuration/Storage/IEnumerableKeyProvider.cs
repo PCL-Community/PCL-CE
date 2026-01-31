@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PCL.Core.App.Configuration.Impl;
+namespace PCL.Core.App.Configuration.Storage;
 
 public interface IEnumerableKeyProvider
 {

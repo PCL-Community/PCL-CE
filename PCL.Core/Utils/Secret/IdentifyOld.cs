@@ -6,6 +6,7 @@ using PCL.Core.Utils.Hash;
 
 namespace PCL.Core.Utils.Secret;
 
+[Obsolete("Use PCL.Core.Utils.Secret.Identify instead")]
 public static class IdentifyOld
 {
     private const string DefaultRawCode = "B09675A9351CBD1FD568056781FE3966DD936CC9B94E51AB5CF67EEB7E74C075";

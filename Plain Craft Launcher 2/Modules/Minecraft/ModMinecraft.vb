@@ -1522,7 +1522,7 @@ OnLoaded:
             '确认最新实例，若为快照则加入常用列表
             Dim latestInstance As McInstance = instanceList.
                     Where(Function(v) v.State = McInstanceState.Original OrElse v.State = McInstanceState.Snapshot).
-                    MaxOf(Function(v) v.ReleaseTime)
+                    MaxOrDefault(Function(v) v.ReleaseTime)
             If latestInstance IsNot Nothing AndAlso latestInstance.State = McInstanceState.Snapshot Then
                 instanceUseful.Add(latestInstance)
                 instanceList.Remove(latestInstance)

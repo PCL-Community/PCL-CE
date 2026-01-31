@@ -179,6 +179,7 @@ Public Module ModComp
             End Using
         Catch ex As Exception
             Log(ex, "获取模组翻译信息失败", LogLevel.Hint)
+            Return Nothing
         End Try
     End Function
 

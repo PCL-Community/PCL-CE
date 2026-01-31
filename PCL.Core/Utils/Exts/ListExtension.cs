@@ -5,42 +5,41 @@ namespace PCL.Core.Utils.Exts;
 
 public static class ListUtils
 {
-    /// <summary>
-    /// 选择最大值对应的对象。
-    /// 若没有元素则返回 default(T)。
-    /// </summary>
-    public static T MaxOf<T, C>(this IEnumerable<T> source, Func<T, C> selector) where C : IComparable<C>
+    extension<T>(IEnumerable<T> source)
     {
-        using (var enumerator = source.GetEnumerator())
+        /// <summary>
+        /// 选择最大值对应的对象。
+        /// 若没有元素则返回 default(T)。
+        /// </summary>
+        public T? MaxOrDefault<C>(Func<T, C> selector) where C : IComparable<C>
         {
-            if (!enumerator.MoveNext()) return default(T);
-            T maxItem = enumerator.Current;
-            C maxValue = selector(maxItem);
+            using var enumerator = source.GetEnumerator();
+            if (!enumerator.MoveNext()) return default;
+            var maxItem = enumerator.Current;
+            var maxValue = selector(maxItem);
             while (enumerator.MoveNext())
             {
-                C Value = selector(enumerator.Current);
-                if (Value.CompareTo(maxValue) <= 0) continue;
+                var value = selector(enumerator.Current);
+                if (value.CompareTo(maxValue) <= 0) continue;
                 maxItem = enumerator.Current;
-                maxValue = Value;
+                maxValue = value;
             }
             return maxItem;
         }
-    }
 
-    /// <summary>
-    /// 选择最小值对应的对象。
-    /// 若没有元素则返回 default(T)。
-    /// </summary>
-    public static T MinOf<T, C>(this IEnumerable<T> list, Func<T, C> selector) where C : IComparable<C>
-    {
-        using (var enumerator = list.GetEnumerator())
+        /// <summary>
+        /// 选择最小值对应的对象。
+        /// 若没有元素则返回 default(T)。
+        /// </summary>
+        public T? MinOrDefault<C>(Func<T, C> selector) where C : IComparable<C>
         {
-            if (!enumerator.MoveNext()) return default(T);
-            T minItem = enumerator.Current;
-            C minValue = selector(minItem);
+            using var enumerator = source.GetEnumerator();
+            if (!enumerator.MoveNext()) return default;
+            var minItem = enumerator.Current;
+            var minValue = selector(minItem);
             while (enumerator.MoveNext())
             {
-                C value = selector(enumerator.Current);
+                var value = selector(enumerator.Current);
                 if (value.CompareTo(minValue) >= 0) continue;
                 minItem = enumerator.Current;
                 minValue = value;

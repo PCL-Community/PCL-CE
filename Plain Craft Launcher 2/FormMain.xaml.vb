@@ -464,7 +464,7 @@ Public Class FormMain
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
     ''' <param name="isUpdating">是否正在更新重启</param>
-    Public Async Sub EndProgram(SendWarning As Boolean, Optional isUpdating As Boolean = False)
+    Public Sub EndProgram(SendWarning As Boolean, Optional isUpdating As Boolean = False)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -523,7 +523,7 @@ Public Class FormMain
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Async Sub EndProgramForce(
+    Public Shared Sub EndProgramForce(
                                             Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, 
                                             Optional force As Boolean = True,
                                             Optional isUpdating As Boolean = False)
