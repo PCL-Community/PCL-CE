@@ -1,6 +1,6 @@
-﻿Imports Newtonsoft.Json
+Imports Newtonsoft.Json
 Imports PCL.Core.App
-Imports PCL.Core.IO
+Imports PCL.Core.IO.Pipes
 Imports PCL.Core.Utils
 
 Public Module ModNativeInterop
@@ -9,12 +9,12 @@ Public Module ModNativeInterop
 
     Private Const LogPipePrefix As String = "PCLCE_LOG@"
 
-    Private ReadOnly PredefinedProperties As RPCProperty() = {
-        New RPCProperty("version",
+    Private ReadOnly PredefinedProperties As RpcProperty() = {
+        New RpcProperty("version",
             Function()
                 Return VersionBaseName
             End Function),
-        New RPCProperty("branch",
+        New RpcProperty("branch",
             Function()
                 Return VersionBranchName
             End Function)
@@ -39,9 +39,9 @@ Public Module ModNativeInterop
         End Class
     End Class
 
-    Private Function _InfoCallback(argument As String, content As String, indent As Boolean) As RPCResponse
+    Private Function _InfoCallback(argument As String, content As String, indent As Boolean) As RpcResponse
         Dim json = JsonConvert.SerializeObject(New RPCLauncherInfo(), JsonIndent(indent))
-        Return RPCResponse.Success(RPCResponseType.JSON, json)
+        Return RpcResponse.Success(RpcResponseType.Json, json)
     End Function
 
     Private ReadOnly PendingLauncherLogs As New List(Of String)
@@ -100,13 +100,13 @@ Public Module ModNativeInterop
         Return False
     End Function
 
-    Private Function _LogCallback(argument As String, content As String, indent As Boolean) As RPCResponse
-        If argument Is Nothing Then Return RPCResponse.Err("请求参数过少")
+    Private Function _LogCallback(argument As String, content As String, indent As Boolean) As RpcResponse
+        If argument Is Nothing Then Return RpcResponse.Err("请求参数过少")
         argument = argument.ToLowerInvariant()
 
         If argument = "info" Then
             Dim json = JsonConvert.SerializeObject(New RPCLogInfoResponse(), JsonIndent(indent))
-            Return RPCResponse.Success(RPCResponseType.JSON, json)
+            Return RpcResponse.Success(RpcResponseType.Json, json)
         End If
 
         If argument = "open" Then
@@ -119,28 +119,28 @@ Public Module ModNativeInterop
             Catch ex As Exception
                 Dim r = If(TypeOf ex Is ArgumentException AndAlso TypeOf ex IsNot ArgumentNullException, "进程 ID 不存在", "JSON 解析出错")
                 Log(ex, $"[PipeRPC] log: 日志管道请求错误")
-                Return RPCResponse.Err(r)
+                Return RpcResponse.Err(r)
             End Try
             Dim id = request.id
-            If Not id = "launcher" AndAlso Not LastUpdatedWatchers.ContainsKey(id) Then Return RPCResponse.Err("日志 ID 不存在")
-            If OpenLogPipes.Contains(id) Then Return RPCResponse.Err("日志 ID 正在使用")
+            If Not id = "launcher" AndAlso Not LastUpdatedWatchers.ContainsKey(id) Then Return RpcResponse.Err("日志 ID 不存在")
+            If OpenLogPipes.Contains(id) Then Return RpcResponse.Err("日志 ID 正在使用")
             Dim pipeName = LogPipePrefix & RandomUtils.NextInt(10000, 99999)
             OpenLogPipes.Add(id)
             PipeComm.StartPipeServer($"Log({id})", pipeName,
                 Function(r, w, c) LogPipeCallback(r, w, request),
                 Sub() OpenLogPipes.Remove(id),
                 True, {clientProcess.Id})
-            Return RPCResponse.Success(RPCResponseType.TEXT, pipeName, "pipe_name")
+            Return RpcResponse.Success(RpcResponseType.Text, pipeName, "pipe_name")
         End If
 
-        Return RPCResponse.Err("请求参数只能是 info 或 open")
+        Return RpcResponse.Err("请求参数只能是 info 或 open")
     End Function
 
     Private Sub AddPredefinedFunctions()
         RpcService.AddFunction("info", AddressOf _InfoCallback)
         RpcService.AddFunction("log", AddressOf _LogCallback)
     End Sub
-    
+
     Private Sub Start()
         Log("[RPC] 正在加载预设 RPC 属性")
         For Each prop In PredefinedProperties
