@@ -217,28 +217,36 @@ public class JavaManager
     /// <exception cref="ArgumentException"></exception>
     public JavaEntry? AddOrGet(string javaExePath)
     {
-        ArgumentNullException.ThrowIfNull(javaExePath);
-        if (!File.Exists(javaExePath))
-            throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
-
-        var installation = _parser.Parse(javaExePath);
-        if (installation == null) return null;
-
-        var exePath = _NormalizePath(installation.JavaExePath);
-        lock (_javaEntrys)
+        try
         {
-            if (_javaEntrys.TryGetValue(exePath, out var ret))
-                return ret;
+            if (javaExePath.IsNullOrWhiteSpace()) return null;
+            if (!File.Exists(javaExePath))
+                throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
 
-            var entry = new JavaEntry
+            var installation = _parser.Parse(javaExePath);
+            if (installation == null) return null;
+
+            var exePath = _NormalizePath(installation.JavaExePath);
+            lock (_javaEntrys)
             {
-                Installation = installation,
-                IsEnabled = _ShouldEnableByDefault(installation),
-                Source = JavaSource.ManualAdded
-            };
+                if (_javaEntrys.TryGetValue(exePath, out var ret))
+                    return ret;
 
-            _javaEntrys.Add(exePath, entry);
-            return entry;
+                var entry = new JavaEntry
+                {
+                    Installation = installation,
+                    IsEnabled = _ShouldEnableByDefault(installation),
+                    Source = JavaSource.ManualAdded
+                };
+
+                _javaEntrys.Add(exePath, entry);
+                return entry;
+            }
+        }
+        catch(Exception ex)
+        {
+            LogWrapper.Error(ex, ModuleName, $"Failed to add or get {javaExePath}");
+            return null;
         }
     }
     /// <summary>
@@ -246,27 +254,35 @@ public class JavaManager
     /// </summary>
     public JavaEntry? Get(string javaExePath)
     {
-        ArgumentNullException.ThrowIfNull(javaExePath);
-        if (!File.Exists(javaExePath))
-            throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
-
-        var installation = _parser.Parse(javaExePath);
-        if (installation == null) return null;
-
-        var exePath = _NormalizePath(installation.JavaExePath);
-        lock (_javaEntrys)
+        try
         {
-            if (_javaEntrys.TryGetValue(exePath, out var ret))
-                return ret;
+            if (javaExePath.IsNullOrWhiteSpace()) return null;
+            if (!File.Exists(javaExePath))
+                throw new ArgumentException("Java 可执行文件不存在", nameof(javaExePath));
 
-            var entry = new JavaEntry
+            var installation = _parser.Parse(javaExePath);
+            if (installation == null) return null;
+
+            var exePath = _NormalizePath(installation.JavaExePath);
+            lock (_javaEntrys)
             {
-                Installation = installation,
-                IsEnabled = _ShouldEnableByDefault(installation),
-                Source = JavaSource.ManualAdded
-            };
+                if (_javaEntrys.TryGetValue(exePath, out var ret))
+                    return ret;
 
-            return entry;
+                var entry = new JavaEntry
+                {
+                    Installation = installation,
+                    IsEnabled = _ShouldEnableByDefault(installation),
+                    Source = JavaSource.ManualAdded
+                };
+
+                return entry;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, ModuleName, $"Failed to get {javaExePath}");
+            return null;
         }
     }
 
