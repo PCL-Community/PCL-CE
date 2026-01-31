@@ -132,6 +132,7 @@ Public Class PageSelectRight
                         Dim IsCleanroomExists As Boolean = False
                         Dim IsLabyModExists As Boolean = False
                         For Each instance As McInstance In Card.Value
+                            If Not instance.IsLoaded Then instance.Load()
                             If instance.Info.HasFabric Then IsFabricExists = True
                             If instance.Info.HasQuilt Then IsQuiltExists = True
                             If instance.Info.HasLiteLoader Then IsLiteExists = True
