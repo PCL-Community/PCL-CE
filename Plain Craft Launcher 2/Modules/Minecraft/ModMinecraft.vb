@@ -349,7 +349,7 @@ Public Module ModMinecraft
                         End If
                         If JsonObject("arguments")("jvm") IsNot Nothing Then
                             For Each Argument In JsonObject("arguments")("game")
-                                Dim regexArgument = RegexSeek(Argument.ToString, "(?<=-Dnet.labymod.running-version=)1.[0-9+.]+")
+                                Dim regexArgument = RegexSeek(Argument.ToString, RegexPatterns.LabyModVersion)
                                 If regexArgument IsNot Nothing Then
                                     _info.VanillaName = regexArgument
                                     GoTo VersionSearchFinish
@@ -364,26 +364,26 @@ Public Module ModMinecraft
                         GoTo VersionSearchFinish
                     End If
                     '从下载地址中获取版本号
-                    Dim regex As String = RegexSeek(If(JsonObject("downloads"), "").ToString, "(?<=launcher.mojang.com/mc/game/)[^/]*")
+                    Dim regex As String = RegexSeek(If(JsonObject("downloads"), "").ToString, RegexPatterns.MinecraftDownloadUrlVersion)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 Forge 版本中获取版本号
                     Dim librariesString As String = JsonObject("libraries").ToString
-                    regex = If(RegexSeek(librariesString, "(?<=net.minecraftforge:forge:)[0-9]{1,2}.[0-9+.]+"), RegexSeek(librariesString, "(?<=net.minecraftforge:fmlloader:)[0-9]{1,2}.[0-9+.]+"))
+                    regex = RegexSeek(librariesString, RegexPatterns.ForgeLibVersion)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 OptiFine 版本中获取版本号
-                    regex = RegexSeek(librariesString, "(?<=optifine:OptiFine:)[0-9]{1,2}.[0-9+.]+")
+                    regex = RegexSeek(librariesString, RegexPatterns.OptiFineLibVersion)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
                     End If
                     '从 Fabric / Quilt / Legacy Fabric 版本中获取版本号
-                    regex = RegexSeek(librariesString, "(?<=((fabricmc)|(quiltmc)|(legacyfabric)):intermediary:)[^""]*")
+                    regex = RegexSeek(librariesString, RegexPatterns.FabricLikeLibVersion)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
@@ -403,8 +403,7 @@ Public Module ModMinecraft
                         End If
                     End If
                     '从 JSON 的 ID 中获取
-                    Static pattern = "(([1-9][0-9]w[0-9]{2}[a-g])|((1|[2-9][0-9])\.[0-9]+(\.[0-9]+)?(-(pre|rc|snapshot-?)[1-9]*| Pre-Release( [1-9])?)?))(_unobfuscated)?"
-                    regex = RegexSeek(JsonObject("id"), pattern, RegularExpressions.RegexOptions.IgnoreCase)
+                    regex = RegexSeek(JsonObject("id"), RegexPatterns.MinecraftJsonVersion, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
@@ -413,7 +412,7 @@ Public Module ModMinecraft
                     Log("[Minecraft] 无法完全确认 MC 版本号的版本：" & Name)
                     _info.Reliable = False
                     '从文件夹名中获取
-                    regex = RegexSeek(Name, pattern, RegularExpressions.RegexOptions.IgnoreCase)
+                    regex = RegexSeek(Name, RegexPatterns.MinecraftJsonVersion, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
@@ -422,7 +421,7 @@ Public Module ModMinecraft
                     Dim JsonRaw As JObject = JsonObject.DeepClone()
                     JsonRaw.Remove("libraries")
                     Dim JsonRawText As String = JsonRaw.ToString
-                    regex = RegexSeek(JsonRawText, pattern, RegularExpressions.RegexOptions.IgnoreCase)
+                    regex = RegexSeek(JsonRawText, RegexPatterns.MinecraftJsonVersion, RegularExpressions.RegexOptions.IgnoreCase)
                     If regex IsNot Nothing Then
                         _info.VanillaName = regex
                         GoTo VersionSearchFinish
@@ -740,7 +739,7 @@ Recheck:
                         If realJson.Contains("optifine") Then
                             State = McInstanceState.OptiFine
                             Info.HasOptiFine = True
-                            Info.OptiFine = If(RegexSeek(realJson, "(?<=HD_U_)[^"":/]+"), "未知版本")
+                            Info.OptiFine = If(RegexSeek(realJson, RegexPatterns.OptiFineVersion), "未知版本")
                         End If
                         'LiteLoader
                         If realJson.Contains("liteloader") Then
@@ -755,31 +754,30 @@ Recheck:
                         ElseIf realJson.Contains("net.legacyfabric:intermediary") Then
                             State = McInstanceState.LegacyFabric
                             Info.HasLegacyFabric = True
-                            Info.LegacyFabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
+                            Info.LegacyFabric = If(RegexSeek(realJson, RegexPatterns.LegacyFabricVersion), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("net.fabricmc:fabric-loader") Then
                             State = McInstanceState.Fabric
                             Info.HasFabric = True
-                            Info.Fabric = If(RegexSeek(realJson, "(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?"), "未知版本").Replace("+build", "")
+                            Info.Fabric = If(RegexSeek(realJson, RegexPatterns.FabricVersion), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("org.quiltmc:quilt-loader") Then
                             State = McInstanceState.Quilt
                             Info.HasQuilt = True
-                            Info.Quilt = If(RegexSeek(realJson, "(?<=(org.quiltmc:quilt-loader:))[0-9\.]+(\+build.[0-9]+)?((-beta.)[0-9]([0-9]?))"), "未知版本").Replace("+build", "")
+                            Info.Quilt = If(RegexSeek(realJson, RegexPatterns.QuiltVersion), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("com.cleanroommc:cleanroom:") Then
                             State = McInstanceState.Cleanroom
                             Info.HasCleanroom = True
-                            Info.Cleanroom = If(RegexSeek(realJson, "(?<=(com.cleanroommc:cleanroom:))[0-9\.]+(\+build.[0-9]+)?(-alpha)?"), "未知版本").Replace("+build", "")
+                            Info.Cleanroom = If(RegexSeek(realJson, RegexPatterns.CleanroomVersion), "未知版本").Replace("+build", "")
                         ElseIf realJson.Contains("minecraftforge") AndAlso Not realJson.Contains("net.neoforge") Then
                             State = McInstanceState.Forge
                             Info.HasForge = True
-                            Info.Forge = RegexSeek(realJson, "(?<=forge:[0-9\.]+(_pre[0-9]*)?\-)[0-9\.]+")
-                            If Info.Forge Is Nothing Then Info.Forge = RegexSeek(realJson, "(?<=net\.minecraftforge:minecraftforge:)[0-9\.]+")
-                            If Info.Forge Is Nothing Then Info.Forge = If(RegexSeek(realJson, "(?<=net\.minecraftforge:fmlloader:[0-9\.]+-)[0-9\.]+"), "未知版本")
+                            Info.Forge = RegexSeek(realJson, RegexPatterns.ForgeMainVersion)
+                            If Info.Forge Is Nothing Then Info.Forge = If(RegexSeek(realJson, RegexPatterns.ForgeLibVersion), "未知版本")
                         ElseIf realJson.Contains("net.neoforge") Then
                             '1.20.1 JSON 范例："--fml.forgeVersion", "47.1.99"
                             '1.20.2+ JSON 范例："--fml.neoForgeVersion", "20.6.119-beta"
                             State = McInstanceState.NeoForge
                             Info.HasNeoForge = True
-                            Info.NeoForge = If(RegexSeek(realJson, "(?<=orgeVersion"",[^""]*?"")[^""]+(?="",)"), "未知版本")
+                            Info.NeoForge = If(RegexSeek(realJson, RegexPatterns.NeoForgeVersion), "未知版本")
                         End If
                 End Select
 #End Region

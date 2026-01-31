@@ -1,9 +1,10 @@
 Imports System.IO.Compression
+Imports System.Net.Http
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Net
-Imports System.Net.Http
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.UI
+Imports PCL.Core.Utils
 
 Public Module ModDownloadLib
 
@@ -3141,7 +3142,7 @@ LabyModSkip:
                 End If
             Next
             For Each Library In LabyModJson("libraries")
-                Dim RegexMatchResult = RegexSeek(Library("name").ToString, "(?<=org.lwjgl:)lwjgl(-[a-z._.\-.0-9]*)(?=(:[0-9].[0-9].[0-9](-[a-z.0-9._.\-]*)?:([a-z._.\-.0-9]*)?))")
+                Dim RegexMatchResult = RegexSeek(Library("name").ToString, RegexPatterns.CatchLwjglInLib)
                 If RegexMatchResult Is Nothing OrElse Not IsolatedLibraries.Contains(New KeyValuePair(Of String, Boolean)(RegexMatchResult, True)) Then
                     OutputLibraries.Add(Library)
                 End If

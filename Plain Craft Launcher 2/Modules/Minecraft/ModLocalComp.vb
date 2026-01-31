@@ -1,5 +1,6 @@
 Imports System.IO.Compression
 Imports System.Text.RegularExpressions
+Imports PCL.Core.Utils
 
 Imports fNbt
 
@@ -198,7 +199,7 @@ Public Module ModLocalComp
             End Get
             Set(value As String)
                 If value Is Nothing Then Return
-                value = RegexSeek(value, "[0-9a-zA-Z_-]+")
+                value = RegexSeek(value, RegexPatterns.ModIdMatch)
                 If value Is Nothing OrElse value.Count <= 1 OrElse Val(value).ToString = value Then Return
                 If value.ContainsF("name", True) OrElse value.ContainsF("modid", True) Then Return
                 If Not PossibleModId.Contains(value) Then PossibleModId.Add(value)
@@ -943,7 +944,7 @@ Got:
                     '要求使用 mcmod.info 中的信息
                     Dim value As String = FmlObject("modid")("value")
                     If value Is Nothing Then Exit Try
-                    value = RegexSeek(value.ToLower, "[0-9a-z_]+")
+                    value = RegexSeek(value.ToLower, RegexPatterns.ModIdMatch)
                     If value IsNot Nothing AndAlso value.ToLower <> "name" AndAlso value.Count > 1 AndAlso Val(value).ToString <> value Then
                         If Not PossibleModId.Contains(value) Then PossibleModId.Add(value)
                     End If
