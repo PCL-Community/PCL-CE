@@ -1,5 +1,6 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 
 Public Class ServerCard
     Public Dim Server As MinecraftServerInfo
@@ -59,7 +60,7 @@ Public Class ServerCard
             End If
             
             ServerMotD.Visibility = Visibility.Collapsed
-            MotdRenderer.RenderMotd(Server.Description, ThemeHelper.IsDarkMode(), 2)
+            MotdRenderer.RenderMotd(Server.Description, ThemeService.IsDarkMode, 2)
             MotdRenderer.RenderCanvas()
         Else If Server.Status = ServerStatus.Pinging
             _manager.SetSelectedIconByName("loading")

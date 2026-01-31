@@ -68,12 +68,12 @@ Public Class PageSetupJava
                               Dim UpdateEnableStyle = Sub(IsCurEnable As Boolean)
                                                           If IsCurEnable Then
                                                               Item.LabTitle.TextDecorations = Nothing
-                                                              Item.LabTitle.Foreground = DynamicColors.Color1Brush
+                                                              Item.LabTitle.Foreground = AppResources("ColorBrush1")
                                                               BtnEnableSwitch.Logo = Logo.IconButtonDisable
                                                               BtnEnableSwitch.ToolTip = "禁用此 Java"
                                                           Else
                                                               Item.LabTitle.TextDecorations = TextDecorations.Strikethrough
-                                                              Item.LabTitle.Foreground = ColorGray4
+                                                              Item.LabTitle.Foreground = AppResources("ColorBrushGray4")
                                                               BtnEnableSwitch.Logo = Logo.IconButtonEnable
                                                               BtnEnableSwitch.ToolTip = "启用此 Java"
                                                           End If

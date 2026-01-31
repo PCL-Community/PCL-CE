@@ -285,6 +285,7 @@ Public Class ModSetup
         End Select
         FrmSetupUI.CardCustom.TriggerForceResize()
     End Sub
+#If False
     '颜色模式
     Public Sub UiDarkMode(Value As Integer)
         If Value = 0 Then
@@ -296,6 +297,7 @@ Public Class ModSetup
         End If
         ThemeRefresh()
     End Sub
+#End If
     '高级材质
     Public Sub UiBlur(Value As Boolean)
         FrmSetupUI.PanBlurValue.Visibility = If(Value, Visibility.Visible, Visibility.Collapsed)

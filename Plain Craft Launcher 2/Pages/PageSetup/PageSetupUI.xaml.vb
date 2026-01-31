@@ -548,7 +548,7 @@ Refresh:
     End Sub
     Private Sub HSL_Change() Handles SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
         If AniControlEnabled <> 0 OrElse SliderLauncherSat Is Nothing OrElse Not SliderLauncherSat.IsLoaded Then Return
-#If DEBUG Then
+#If False
         If EnableCustomTheme Then
             ColorHueTopbarDelta = SliderLauncherDelta.Value - 90
             ColorLightAdjust = SliderLauncherLight.Value - 20

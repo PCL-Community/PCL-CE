@@ -65,15 +65,28 @@ Public Class MyCard
     End Property
     Public Shared ReadOnly TitleProperty As DependencyProperty = DependencyProperty.Register("Title", GetType(String), GetType(MyCard), New PropertyMetadata(""))
 
-    Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
-        Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
-        IsThemeChanging = True
-        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
-        Await Task.Delay(300)
-        MainBorder.Background = bgBrush
-        IsThemeChanging = False
+    Private Shared Sub _BackgroundBrushChanged(d As DependencyObject, e As DependencyPropertyChangedEventArgs)
+        Dim card = CType(d, MyCard)
+        Dim brush = CType(e.NewValue, SolidColorBrush)
+        If Not card.IsLoad Then Return
+        card.Dispatcher.BeginInvoke(Async Function() As Task
+            card.IsThemeChanging = True
+            AniStart({AaColor(card.MainBorder, BlurBorder.BackgroundProperty, New MyColor(brush) - card.MainBorder.Background, 300)}, "MyCard Theme " & card.Uuid)
+            Await Task.Delay(300)
+            card.MainBorder.Background = brush
+            card.IsThemeChanging = False
+        End Function)
     End Sub
 
+    Public Shared ReadOnly BackgroundBrushProperty As DependencyProperty = DependencyProperty.Register("BackgroundBrush", GetType(SolidColorBrush), GetType(MyCard), New PropertyMetadata(New SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), AddressOf _BackgroundBrushChanged))
+    Public Property BackgroundBrush As SolidColorBrush
+        Get
+            Return GetValue(BackgroundBrushProperty)
+        End Get
+        Set
+            SetValue(BackgroundBrushProperty, Value)
+        End Set
+    End Property
 
     'UI 建立
     Public Sub New()
@@ -90,7 +103,7 @@ Public Class MyCard
     Private Sub Init() Handles Me.Loaded
         If IsLoad Then Return
         IsLoad = True
-        AddHandler ThemeChanged, AddressOf _ThemeChanged
+        'AddHandler ThemeChanged, AddressOf _BackgroundBrushChanged '已在依赖属性中实现
         '初次加载限定
         If MainTextBlock Is Nothing Then
             MainTextBlock = New TextBlock With {.HorizontalAlignment = HorizontalAlignment.Left, .VerticalAlignment = VerticalAlignment.Top, .Margin = New Thickness(15, 12, 0, 0), .FontWeight = FontWeights.Bold, .FontSize = 13, .IsHitTestVisible = False}
@@ -105,7 +118,7 @@ Public Class MyCard
             MainGrid.Children.Add(MainSwap)
         End If
         '更新背景色
-        MainBorder.Background = Application.Current.Resources("ColorBrushSemiWhite")
+        MainBorder.Background = BackgroundBrush
         '改变默认的折叠
         If IsSwapped AndAlso SwapControl IsNot Nothing Then
             MainSwap.RenderTransform = New RotateTransform(If(SwapLogoRight, 270, 0))
@@ -119,11 +132,12 @@ Public Class MyCard
             RunInUi(Sub() UseAnimation = RawUseAnimation, True)
         End If
     End Sub
-    Private Sub Dispose() Handles Me.Unloaded
-        If Parent Is Nothing Then
-            RemoveHandler ThemeChanged, AddressOf _ThemeChanged
-        End If
-    End Sub
+    '已在依赖属性中实现
+    'Private Sub Dispose() Handles Me.Unloaded
+    '    If Parent Is Nothing Then
+    '        RemoveHandler ThemeChanged, AddressOf _BackgroundBrushChanged 
+    '    End If
+    'End Sub
     Public Sub StackInstall()
         StackInstall(SwapControl, InstallMethod)
         TriggerForceResize()
