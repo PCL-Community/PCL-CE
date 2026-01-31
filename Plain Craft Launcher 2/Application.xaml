@@ -581,10 +581,6 @@
                 <Setter Property="BlurSamplingRate" Value="{DynamicResource BlurSamplingRate}" />
                 <Setter Property="BlurKernelType" Value="{DynamicResource BlurType}" />
             </Style>
-            <!-- MyCard -->
-            <Style TargetType="local:MyCard">
-                <Setter Property="BackgroundBrush" Value="{DynamicResource ColorBrushTransparentBackground}" />
-            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

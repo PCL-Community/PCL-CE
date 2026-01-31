@@ -135,8 +135,8 @@ public sealed partial class ThemeService
         var theme = CurrentTheme;
         return theme switch
         {
-            ColorTheme.SkyBlue => (235, 0.36, 0.24),
-            ColorTheme.CatBlue => (255, 0, -0.04),
+            ColorTheme.SkyBlue => (235, 0.36, 0.2),
+            ColorTheme.CatBlue => (255, 0, -0.2),
             ColorTheme.DeathBlue => (273, 0, -0.1),
 #if DEBUG
             _ => ((int)theme, 1, 1)

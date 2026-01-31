@@ -1,14 +1,12 @@
-Imports System.Threading.Tasks
 Imports PCL.Core.UI.Controls
 
 Public Class MyCard
+    Inherits AnimatedBackgroundGrid
 
     '控件
-    Inherits Grid
     Private ReadOnly MainGrid As Grid
     Public ReadOnly Property MainChrome As MyDropShadow
     Private ReadOnly MainBorder As BlurBorder
-    Private IsThemeChanging As Boolean = False
     Public Property BorderChild As UIElement
         Get
             Return MainBorder.Child
@@ -39,7 +37,6 @@ Public Class MyCard
     End Property
 
     '属性
-    Public Uuid As Integer = GetUuid()
     Public ReadOnly Property Inlines As InlineCollection
         Get
             Return MainTextBlock.Inlines
@@ -65,31 +62,24 @@ Public Class MyCard
     End Property
     Public Shared ReadOnly TitleProperty As DependencyProperty = DependencyProperty.Register("Title", GetType(String), GetType(MyCard), New PropertyMetadata(""))
 
-    Private Shared Sub _BackgroundBrushChanged(d As DependencyObject, e As DependencyPropertyChangedEventArgs)
-        Dim card = CType(d, MyCard)
-        Dim brush = CType(e.NewValue, SolidColorBrush)
-        If Not card.IsLoad Then Return
-        card.Dispatcher.BeginInvoke(Async Function() As Task
-            card.IsThemeChanging = True
-            AniStart({AaColor(card.MainBorder, BlurBorder.BackgroundProperty, New MyColor(brush) - card.MainBorder.Background, 300)}, "MyCard Theme " & card.Uuid)
-            Await Task.Delay(300)
-            card.MainBorder.Background = brush
-            card.IsThemeChanging = False
-        End Function)
-    End Sub
-
-    Public Shared ReadOnly BackgroundBrushProperty As DependencyProperty = DependencyProperty.Register("BackgroundBrush", GetType(SolidColorBrush), GetType(MyCard), New PropertyMetadata(New SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), AddressOf _BackgroundBrushChanged))
-    Public Property BackgroundBrush As SolidColorBrush
+    Protected Overrides Property AnimatableBrush As SolidColorBrush
         Get
-            Return GetValue(BackgroundBrushProperty)
+            Return MainBorder.Background
         End Get
         Set
-            SetValue(BackgroundBrushProperty, Value)
+            MainBorder.Background = Value
         End Set
+    End Property
+
+    Protected Overrides ReadOnly Property AnimatableElement As FrameworkElement
+        Get
+            Return MainBorder
+        End Get
     End Property
 
     'UI 建立
     Public Sub New()
+        MyBase.New(BlurBorder.BackgroundProperty)
         MainChrome = New MyDropShadow With {
             .Margin = New Thickness(-3, -3, -3, -3 - GetWPFSize(1)), .ShadowRadius = 3, .Opacity = DropShadowIdleOpacity, .CornerRadius = New CornerRadius(5)}
         MainChrome.SetResourceReference(MyDropShadow.ColorProperty, "ColorObject1")
@@ -98,6 +88,8 @@ Public Class MyCard
         Children.Insert(1, MainBorder)
         MainGrid = New Grid
         Children.Add(MainGrid)
+        '设置背景色
+        SetResourceReference(BackgroundBrushProperty, "ColorBrushTransparentBackground")
     End Sub
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
@@ -117,8 +109,6 @@ Public Class MyCard
             MainSwap.SetResourceReference(Shapes.Path.FillProperty, "ColorBrush1")
             MainGrid.Children.Add(MainSwap)
         End If
-        '更新背景色
-        MainBorder.Background = BackgroundBrush
         '改变默认的折叠
         If IsSwapped AndAlso SwapControl IsNot Nothing Then
             MainSwap.RenderTransform = New RotateTransform(If(SwapLogoRight, 270, 0))
@@ -166,7 +156,7 @@ Public Class MyCard
             AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
             AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
         })
-        If Not IsThemeChanging Then AniStart(AniList, "MyCard Mouse " & Uuid)
+        If Not IsAnimating Then AniStart(AniList, "MyCard Mouse " & Uuid)
     End Sub
     Private Sub MyCard_MouseLeave(sender As Object, e As MouseEventArgs) Handles Me.MouseLeave
         If Not HasMouseAnimation Then Return
@@ -177,7 +167,7 @@ Public Class MyCard
             AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
             AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
         })
-        If Not IsThemeChanging Then AniStart(AniList, "MyCard Mouse " & Uuid)
+        If Not IsAnimating Then AniStart(AniList, "MyCard Mouse " & Uuid)
     End Sub
 
 #Region "高度改变动画"
