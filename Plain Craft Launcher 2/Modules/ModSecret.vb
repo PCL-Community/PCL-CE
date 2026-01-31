@@ -193,7 +193,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     Public Function GetDarkThemeLight(OriginalLight As Double) As Double
         If IsDarkMode Then
-            Return OriginalLight * 0.1
+            Return OriginalLight * 0.2
         Else
             Return OriginalLight
         End If

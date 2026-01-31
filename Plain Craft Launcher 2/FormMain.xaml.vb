@@ -37,9 +37,8 @@ Public Class FormMain
         '刷新主题
         'ThemeCheckAll(False)
         'ThemeRefreshColor()
-        AddHandler ThemeService.ColorModeChanged, Sub(mode, theme)
-            ThemeRefresh()
-        End Sub
+        AddHandler ThemeService.ColorModeChanged, Sub(mode, theme) ThemeRefresh()
+        AddHandler ThemeService.ColorThemeChanged, AddressOf ThemeRefresh
         '窗体参数初始化
         FrmMain = Me
         FrmLaunchLeft = New PageLaunchLeft

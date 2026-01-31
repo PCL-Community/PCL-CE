@@ -102,8 +102,8 @@ public sealed partial class ThemeService
         var isDarkMode = _IsDarkMode();
         if (IsDarkMode == isDarkMode) return;
         Context.Info("正在更改配色模式");
-        _LogStatus();
         IsDarkMode = isDarkMode;
+        _LogStatus();
         if (Lifecycle.CurrentState > LifecycleState.Loading)
         {
             Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(_RefreshAll);
