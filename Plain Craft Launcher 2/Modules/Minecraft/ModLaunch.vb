@@ -2066,15 +2066,16 @@ NextInstance:
     Private Sub McLaunchPrerun()
 
         '要求 Java 使用高性能显卡
+        Dim javaExePath = If(McLaunchJavaSelected.Installation.JavawExePath, McLaunchJavaSelected.Installation.JavaExePath)
         Try
-            SetGPUPreference(McLaunchJavaSelected.Installation.JavawExePath, Config.Launch.SetGpuPreference)
+            SetGPUPreference(javaExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
             If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
                 Try
-                    If ProcessInterop.StartAsAdmin($"--gpu ""{McLaunchJavaSelected.Installation.JavawExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
+                    If ProcessInterop.StartAsAdmin($"--gpu ""{javaExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功")
                     Else
                         Throw New Exception("调整过程中出现异常")
@@ -2308,7 +2309,7 @@ NextInstance:
 
     End Sub
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
-        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw")
+        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
         '启动信息
         Dim GameProcess = New Process()
@@ -2331,7 +2332,7 @@ NextInstance:
 
         '开始进程
         GameProcess.Start()
-        McLaunchLog("已启动游戏进程：" & McLaunchJavaSelected.Installation.JavawExePath)
+        McLaunchLog("已启动游戏进程：" & StartInfo.FileName)
         If Loader.IsAborted Then
             McLaunchLog("由于取消启动，已强制结束游戏进程") '#1631
             GameProcess.Kill()

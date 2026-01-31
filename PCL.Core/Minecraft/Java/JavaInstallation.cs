@@ -17,7 +17,14 @@ public sealed record JavaInstallation(
     bool IsJre)
 {
     public string JavaExePath => Path.Combine(JavaFolder, "java.exe");
-    public string JavawExePath => Path.Combine(JavaFolder, "javaw.exe");
+    public string? JavawExePath
+    {
+        get
+        {
+            var javaw = Path.Combine(JavaFolder, "javaw.exe");
+            return File.Exists(javaw) ? javaw : null;
+        }
+    }
 
     /// <summary>
     /// Java 主版本号（处理 1.8 → 8 的映射）

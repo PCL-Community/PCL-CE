@@ -491,7 +491,7 @@ pause"
         '开始启动
         SyncLock InstallSyncLock
             Dim Info = New ProcessStartInfo With {
-                .FileName = Java.Installation.JavawExePath,
+                .FileName = Java.Installation.JavaExePath,
                 .Arguments = Arguments,
                 .UseShellExecute = False,
                 .CreateNoWindow = True,
@@ -1172,7 +1172,7 @@ Retry:
         '开始启动
         SyncLock InstallSyncLock
             Dim Info = New ProcessStartInfo With {
-                .FileName = Java.Installation.JavawExePath,
+                .FileName = Java.Installation.JavaExePath,
                 .Arguments = Arguments,
                 .UseShellExecute = False,
                 .CreateNoWindow = True,
