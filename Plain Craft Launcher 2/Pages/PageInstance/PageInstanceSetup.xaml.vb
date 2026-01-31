@@ -4,6 +4,7 @@ Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Minecraft.Java.UserPreference
+Imports PCL.Core.IO
 Imports System.Text.Json
 
 Public Class PageInstanceSetup
@@ -529,7 +530,7 @@ PreFin:
             Dim absPath = IO.Path.GetFullPath(IO.Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath))
             Dim javaEntry = Javas.Get(absPath)
 
-            If Basics.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) AndAlso
+            If Files.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) AndAlso
                 javaEntry IsNot Nothing AndAlso
                 javaEntry.IsEnabled Then
                 ' 有效路径：显示具体 Java 信息
@@ -675,7 +676,7 @@ PreFin:
             Dim relativePath = IO.Path.GetRelativePath(Basics.ExecutableDirectory, ret)
 
             ' 验证路径是否在启动器目录内
-            If Not Basics.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory) Then
+            If Not Files.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory) Then
                 Hint("超出路径允许范围，请选择启动器文件夹或其子文件夹下的文件", HintType.Critical)
                 Return
             End If

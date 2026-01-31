@@ -150,25 +150,6 @@ public static class Basics
         };
         Process.Start(psi);
     }
-
-    /// <summary>
-    /// 检查指定路径是否在指定文件夹中
-    /// </summary>
-    /// <param name="childPath">预检查路径</param>
-    /// <param name="baseDirectory">应存在文件夹</param>
-    /// <returns></returns>
-    public static bool IsPathWithinDirectory(string childPath, string baseDirectory)
-    {
-        var baseDir = Path.GetFullPath(baseDirectory);
-        var child = Path.GetFullPath(childPath);
-
-        return child.StartsWith(
-            baseDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal
-        );
-    }
     #endregion
 
     #region 应用程序操作

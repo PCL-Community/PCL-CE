@@ -3,6 +3,7 @@ Imports PCL.Core.App
 Imports System.Text.Json
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Minecraft.Java.UserPreference
+Imports PCL.Core.IO
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
@@ -65,7 +66,7 @@ Public Module ModJava
                             Dim relPref = DirectCast(preference, UseRelativePath)
                             Dim absPath = IO.Path.GetFullPath(IO.Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath))
 
-                            If Basics.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) Then
+                            If Files.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) Then
                                 Dim candidate = Javas.Get(absPath)
                                 If candidate IsNot Nothing AndAlso candidate.IsEnabled Then
                                     If Not IsVersionSuitable(candidate.Installation.Version) Then
@@ -183,7 +184,7 @@ Public Module ModJava
                     Case TypeOf instancePreference Is UseRelativePath
                         Dim m = DirectCast(instancePreference, UseRelativePath)
                         Dim javaExePath = IO.Path.GetFullPath(m.RelativePath)
-                        If Basics.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory) Then
+                        If Files.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory) Then
                             Dim java = Javas.Get(javaExePath)
                             Return java IsNot Nothing AndAlso java.Installation.Is64Bit
                         End If
