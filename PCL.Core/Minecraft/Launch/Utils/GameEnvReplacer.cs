@@ -13,7 +13,7 @@ using PCL.Core.Utils.OS;
 
 namespace PCL.Core.Minecraft.Launch.Utils;
 
-public class GameEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
+public class GameEnvReplacer(IMcInstance instance, JavaEntry selectedJava) {
     private readonly IJsonBasedInstance _jsonBasedInstance = (IJsonBasedInstance)instance;
     
     // ReSharper disable InconsistentNaming
@@ -112,7 +112,7 @@ public class GameEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
     /// </summary>
     private Size ApplyDpiFixIfNeeded(Size gameSize) {
         if (NeedsDpiFix()) {
-            McLaunchUtils.Log($"应用窗口大小 DPI 修复（Java 版本：{selectedJava.Version.Revision}）");
+            McLaunchUtils.Log($"应用窗口大小 DPI 修复（Java 版本：{selectedJava.Installation.Version.Revision}）");
             var dpiScale = WindowInterop.GetSystemDpi() / 96.0;
             gameSize.Width /= dpiScale;
             gameSize.Height /= dpiScale;
@@ -126,8 +126,8 @@ public class GameEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
     /// </summary>
     private bool NeedsDpiFix() {
         return instance.InstanceInfo.McVersionBuild <= MINECRAFT_LEGACY_VERSION_BUILD &&
-               selectedJava.JavaMajorVersion <= JAVA_VERSION_8 &&
-               selectedJava.Version.Revision is >= 200 and <= 321 &&
+               selectedJava.Installation.MajorVersion <= JAVA_VERSION_8 &&
+               selectedJava.Installation.Version.Revision is >= 200 and <= 321 &&
                !instance.InstanceInfo.HasPatch("optifine") &&
                !instance.InstanceInfo.HasPatch("forge");
     }

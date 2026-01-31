@@ -61,7 +61,9 @@ Public Class PageSetupLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check, ItemSystem.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check, ItemGameLink.Check, ItemUpdate.Check
+    Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check,
+        ItemSystem.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check,
+        ItemGameLink.Check, ItemUpdate.Check, ItemJava.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -97,6 +99,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupGameLink
                 If FrmSetupGameLink Is Nothing Then FrmSetupGameLink = New PageSetupGameLink
                 Return FrmSetupGameLink
+            Case FormMain.PageSubType.SetupJava
+                If FrmSetupJava Is Nothing Then FrmSetupJava = New PageSetupJava
+                Return FrmSetupJava
             Case Else
                 Throw New Exception("未知的设置子页面种类：" & ID)
         End Select
@@ -188,6 +193,11 @@ Public Class PageSetupLeft
                     FrmSetupFeedback.Loader.Start(IsForceRestart:=True)
                 End If
                 ItemFeedback.Checked = True
+            Case FormMain.PageSubType.SetupJava
+                If FrmSetupJava IsNot Nothing Then
+                    FrmSetupJava.Loader.Start(IsForceRestart:=True)
+                End If
+                ItemJava.Checked = True
         End Select
         Hint("正在刷新……", Log:=False)
     End Sub

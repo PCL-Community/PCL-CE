@@ -181,7 +181,7 @@ Public Class PageInstanceSetup
                           If(RamGame <> RamGameActual, " (可用 " & If(RamGameActual = Math.Floor(RamGameActual), RamGameActual & ".0", RamGameActual) & " GB)", "")
         LabRamUsed.Text = If(RamUsed = Math.Floor(RamUsed), RamUsed & ".0", RamUsed) & " GB"
         LabRamTotal.Text = " / " & If(RamTotal = Math.Floor(RamTotal), RamTotal & ".0", RamTotal) & " GB"
-        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava(PageInstanceLeft.Instance) AndAlso Not Is32BitSystem AndAlso Javas.JavaList.Any, Visibility.Visible, Visibility.Collapsed)
+        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava(PageInstanceLeft.Instance) AndAlso Not Is32BitSystem AndAlso Javas.ExistAnyJava(), Visibility.Visible, Visibility.Collapsed)
         HintRamTooHigh.Visibility = If(RamGame / RamTotal > 0.75, Visibility.Visible, Visibility.Collapsed)
         If ShowAnim Then
             '宽度动画
@@ -507,20 +507,20 @@ PreFin:
         Dim SelectedItem As MyComboBoxItem = Nothing
         Dim SelectedBySetup As String = Setup.Get("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
         Try
-            For Each CurJava In Javas.JavaList
-                Dim ListItem = New MyComboBoxItem With {.Content = CurJava.ToString, .ToolTip = CurJava.JavaFolder, .Tag = CurJava}
+            For Each CurJava In Javas.GetSortedJavaList()
+                Dim ListItem = New MyComboBoxItem With {.Content = CurJava.ToString, .ToolTip = CurJava.Installation.JavaFolder, .Tag = CurJava}
                 ToolTipService.SetHorizontalOffset(ListItem, 400)
                 ComboArgumentJava.Items.Add(ListItem)
                 '判断人为选中
                 If SelectedBySetup = "" OrElse SelectedBySetup = "使用全局设置" Then Continue For
-                If SelectedBySetup = CurJava.JavaExePath Then SelectedItem = ListItem
+                If SelectedBySetup = CurJava.Installation.JavaExePath Then SelectedItem = ListItem
             Next
         Catch ex As Exception
             Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance:=PageInstanceLeft.Instance)
             Log(ex, "更新实例设置 Java 下拉框失败", LogLevel.Feedback)
         End Try
         '更新选择项
-        If SelectedItem Is Nothing AndAlso Javas.JavaList.Any Then
+        If SelectedItem Is Nothing AndAlso Javas.ExistAnyJava() Then
             If SelectedBySetup = "" Then
                 SelectedItem = ComboArgumentJava.Items(1) '选中 “自动选择”
             Else
@@ -559,7 +559,7 @@ PreFin:
             Log("[Java] 修改实例 Java 选择设置：自动选择")
         Else
             '选择指定项
-            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, JavaInfo).JavaExePath, instance:=PageInstanceLeft.Instance)
+            Setup.Set("VersionArgumentJavaSelect", CType(SelectedJava, JavaEntry).Installation.JavaExePath, instance:=PageInstanceLeft.Instance)
             Log("[Java] 修改实例 Java 选择设置：" & SelectedJava.ToString)
         End If
         RefreshRam(True)

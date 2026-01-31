@@ -21,7 +21,7 @@ namespace PCL.Core.Minecraft.Launch.Services.Argument;
 /// <summary>
 /// Minecraft 启动参数构建器
 /// </summary>
-public class LaunchArgBuilder(IMcInstance instance, JavaInfo selectedJava, bool isDemo) {
+public class LaunchArgBuilder(IMcInstance instance, JavaEntry selectedJava, bool isDemo) {
     private readonly List<string> _arguments = [];
     private readonly IJsonBasedInstance _jsonBasedInstance = (IJsonBasedInstance) instance;
 
@@ -198,12 +198,12 @@ public class LaunchArgBuilder(IMcInstance instance, JavaInfo selectedJava, bool 
     /// 添加编码相关参数
     /// </summary>
     private void AddEncodingArguments() {
-        if (selectedJava.JavaMajorVersion > JAVA_VERSION_8) {
+        if (selectedJava.Installation.MajorVersion > JAVA_VERSION_8) {
             AddArgumentIfNotExists("-Dstdout.encoding=UTF-8");
             AddArgumentIfNotExists("-Dstderr.encoding=UTF-8");
         }
 
-        if (selectedJava.JavaMajorVersion >= JAVA_VERSION_18) {
+        if (selectedJava.Installation.MajorVersion >= JAVA_VERSION_18) {
             AddArgumentIfNotExists("-Dfile.encoding=COMPAT");
         }
     }

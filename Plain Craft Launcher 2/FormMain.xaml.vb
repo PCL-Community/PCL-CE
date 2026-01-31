@@ -1086,10 +1086,6 @@ Public Class FormMain
         ''' </summary>
         GameLog = 10
         ''' <summary>
-        ''' Java 管理，这是一个副页面。
-        ''' </summary>
-        SetupJava = 11
-        ''' <summary>
         ''' 存档详细管理，这是一个副页面。
         ''' </summary>
         VersionSaves = 12
@@ -1131,6 +1127,7 @@ Public Class FormMain
         SetupFeedback = 6
         SetupGameLink = 7
         SetupUpdate = 8
+        SetupJava = 9
 
         ToolsGameLink = 1
         ToolsLauncherHelp = 2
@@ -1168,8 +1165,6 @@ Public Class FormMain
                 Return "资源下载 - " & CType(Stack.Additional(0), CompProject).TranslatedName
             Case PageType.HelpDetail
                 Return CType(Stack.Additional(0), HelpEntry).Title
-            Case PageType.SetupJava
-                Return "Java 管理"
             Case PageType.VersionSaves
                 Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case PageType.HomePageMarket
@@ -1394,9 +1389,6 @@ Public Class FormMain
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
-                Case PageType.SetupJava 'Java 设置
-                    FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
-                    PageChangeAnim(New MyPageLeft, FrmSetupJava)
                 Case PageType.GameLog '实时日志
                     If FrmLogLeft Is Nothing Then FrmLogLeft = New PageLogLeft
                     If FrmLogLeft Is Nothing Then FrmLogRight = New PageLogRight

@@ -141,7 +141,7 @@ Public Class PageSetupLaunch
                           If(RamGame <> RamGameActual, " (可用 " & If(RamGameActual = Math.Floor(RamGameActual), RamGameActual & ".0", RamGameActual) & " GB)", "")
         LabRamUsed.Text = If(RamUsed = Math.Floor(RamUsed), RamUsed & ".0", RamUsed) & " GB"
         LabRamTotal.Text = " / " & If(RamTotal = Math.Floor(RamTotal), RamTotal & ".0", RamTotal) & " GB"
-        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava() AndAlso Not Is32BitSystem AndAlso Javas.JavaList.Any, Visibility.Visible, Visibility.Collapsed)
+        LabRamWarn.Visibility = If(RamGame = 1 AndAlso Not IsGameSet64BitJava() AndAlso Not Is32BitSystem AndAlso Javas.ExistAnyJava(), Visibility.Visible, Visibility.Collapsed)
         HintRamTooHigh.Visibility = If(RamGame / RamTotal > 0.75, Visibility.Visible, Visibility.Collapsed)
         If ShowAnim Then
             '宽度动画
@@ -371,11 +371,6 @@ PreFin:
     Private Sub ComboArgumentIndie_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboArgumentIndieV2.SelectionChanged
         If AniControlEnabled <> 0 Then Exit Sub
         MyMsgBox("默认策略只会对今后新安装的实例生效。" & vbCrLf & "已有实例的隔离策略需要在它的设置中调整。")
-    End Sub
-
-    'Java 管理跳转
-    Private Sub BtnJavaManage_Click(sender As Object, e As RouteEventArgs) Handles BtnGotoJavaManage.Click
-        FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.SetupJava})
     End Sub
 
 #End Region

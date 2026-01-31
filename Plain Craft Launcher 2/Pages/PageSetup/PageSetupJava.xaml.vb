@@ -5,40 +5,40 @@ Public Class PageSetupJava
 
     Private IsLoad As Boolean = False
 
-    Private JavaPageLoader As New LoaderTask(Of Boolean, List(Of JavaInfo))("JavaPageLoader", AddressOf Load_GetJavaList)
+    Public Loader As New LoaderTask(Of Boolean, List(Of JavaEntry))("JavaPageLoader", AddressOf Load_GetJavaList)
     Private Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, JavaPageLoader, AddressOf OnLoadFinished, AddressOf Load_Input)
+        PageLoaderInit(PanLoad, CardLoad, PanMain, Nothing, Loader, AddressOf OnLoadFinished, AddressOf Load_Input)
     End Sub
 
     Private Function Load_Input()
         Return False
     End Function
-    Private Sub Load_GetJavaList(loader As LoaderTask(Of Boolean, List(Of JavaInfo)))
+    Private Sub Load_GetJavaList(loader As LoaderTask(Of Boolean, List(Of JavaEntry)))
         If loader.Input Then
             JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult()
         End If
-        loader.Output = Javas.JavaList
+        loader.Output = Javas.GetSortedJavaList()
     End Sub
 
     Private Sub OnLoadFinished()
-        Dim ItemBuilder = Function(J As JavaInfo) As MyListItem
+        Dim ItemBuilder = Function(J As JavaEntry) As MyListItem
                               Dim Item As New MyListItem
-                              Dim VersionTypeDesc = If(J.IsJre, "JRE", "JDK")
-                              Dim VersionNameDesc = J.JavaMajorVersion.ToString()
+                              Dim VersionTypeDesc = If(J.Installation.IsJre, "JRE", "JDK")
+                              Dim VersionNameDesc = J.Installation.MajorVersion.ToString()
                               Item.Title = $"{VersionTypeDesc} {VersionNameDesc}"
 
-                              Item.Info = J.JavaFolder
+                              Item.Info = J.Installation.JavaFolder
                               Dim displayTags As New List(Of String)
-                              Dim DisplayBits = If(J.Is64Bit, "64 Bit", "32 Bit")
+                              Dim DisplayBits = If(J.Installation.Is64Bit, "64 Bit", "32 Bit")
                               displayTags.Add(DisplayBits)
-                              Dim DisplayBrand = J.Brand.ToString()
+                              Dim DisplayBrand = J.Installation.Brand.ToString()
                               displayTags.Add(DisplayBrand)
                               Item.Tags = displayTags
 
                               Item.Type = MyListItem.CheckType.RadioBox
                               AddHandler Item.Check, Sub(sender As Object, e As RouteEventArgs)
                                                          If J.IsEnabled Then
-                                                             Setup.Set("LaunchArgumentJavaSelect", J.JavaExePath)
+                                                             Setup.Set("LaunchArgumentJavaSelect", J.Installation.JavaExePath)
                                                          Else
                                                              Hint("请先启用此 Java 后再选择其作为默认 Java")
                                                              e.Handled = True
@@ -48,17 +48,17 @@ Public Class PageSetupJava
                               BtnOpenFolder.Logo = Logo.IconButtonOpen
                               BtnOpenFolder.ToolTip = "打开"
                               AddHandler BtnOpenFolder.Click, Sub()
-                                                                  OpenExplorer(J.JavaFolder)
+                                                                  OpenExplorer(J.Installation.JavaFolder)
                                                               End Sub
                               Dim BtnInfo As New MyIconButton
                               BtnInfo.Logo = Logo.IconButtonInfo
                               BtnInfo.ToolTip = "详细信息"
                               AddHandler BtnInfo.Click, Sub()
                                                             MyMsgBox($"类型: {VersionTypeDesc}" & vbCrLf &
-                                                                     $"版本: {J.Version.ToString()}" & vbCrLf &
-                                                                     $"架构: {J.JavaArch.ToString()} ({DisplayBits})" & vbCrLf &
+                                                                     $"版本: {J.Installation.Version.ToString()}" & vbCrLf &
+                                                                     $"架构: {J.Installation.Architecture.ToString()} ({DisplayBits})" & vbCrLf &
                                                                      $"品牌: {DisplayBrand}" & vbCrLf &
-                                                                     $"位置: {J.JavaFolder}", "Java 信息")
+                                                                     $"位置: {J.Installation.JavaFolder}", "Java 信息")
                                                         End Sub
                               Dim BtnEnableSwitch As New MyIconButton
 
@@ -80,14 +80,14 @@ Public Class PageSetupJava
                                                       End Sub
                               AddHandler BtnEnableSwitch.Click, Sub()
                                                                     Try
-                                                                        Dim target = Javas.JavaList.Where(Function(x) x.JavaExePath = J.JavaExePath).First()
-                                                                        If target.IsEnabled AndAlso Setup.Get("LaunchArgumentJavaSelect") = target.JavaExePath Then
+                                                                        Dim target = Javas.AddOrGet(J.Installation.JavaExePath)
+                                                                        If target.IsEnabled AndAlso Setup.Get("LaunchArgumentJavaSelect") = target.Installation.JavaExePath Then
                                                                             Hint("请先取消选择此 Java 作为默认 Java 后再禁用")
                                                                             Return
                                                                         End If
                                                                         target.IsEnabled = Not target.IsEnabled
                                                                         UpdateEnableStyle(target.IsEnabled)
-                                                                        JavaService.SaveToConfig()
+                                                                        Javas.SaveConfig()
                                                                     Catch ex As Exception
                                                                         Log(ex, "调整 Java 启用状态失败", LogLevel.Hint)
                                                                     End Try
@@ -107,36 +107,33 @@ Public Class PageSetupJava
                                    End Sub
         PanContent.Children.Add(ItemAuto)
         Dim CurrentSetJava = Setup.Get("LaunchArgumentJavaSelect")
-        For Each J In Javas.JavaList
+        For Each J In Javas.GetSortedJavaList()
             Dim item = ItemBuilder(J)
             PanContent.Children.Add(item)
-            If J.JavaExePath = CurrentSetJava Then item.SetChecked(True, False, False)
+            If J.Installation.JavaExePath = CurrentSetJava Then item.SetChecked(True, False, False)
         Next
         If String.IsNullOrEmpty(CurrentSetJava) Then ItemAuto.SetChecked(True, False, False)
-    End Sub
-
-    Private Sub BtnRefresh_Click(sender As Object, e As RouteEventArgs) Handles BtnRefresh.Click
-        JavaPageLoader.Start(True, True)
     End Sub
 
     Private Sub BtnAdd_Click(sender As Object, e As RouteEventArgs) Handles BtnAdd.Click
         Dim ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序")
         If String.IsNullOrEmpty(ret) OrElse Not File.Exists(ret) Then Return
-        If JavaService.JavaManager.HasJava(ret) Then
+        If Javas.Exist(ret) Then
             Hint("Java 已经存在，不用再次添加……")
         Else
-            Dispatcher.BeginInvoke(Async Function() As Task
-                Await Task.Run(Sub()
-                    JavaService.JavaManager.Add(ret)
-                    JavaService.SaveToConfig()
-                End Sub)
-                If JavaService.JavaManager.HasJava(ret) Then
-                    Hint("已添加 Java！", HintType.Finish)
-                    JavaPageLoader.Start(True, True)
-                Else
-                    Hint("未能成功将 Java 加入列表中", HintType.Critical)
-                End If
-            End Function)
+            Dispatcher.BeginInvoke(
+                Async Function() As Task
+                    Await Task.Run(Sub()
+                                       Dim ignore = Javas.AddOrGet(ret)
+                                       Javas.SaveConfig()
+                                   End Sub)
+                    If Javas.Exist(ret) Then
+                        Hint("已添加 Java！", HintType.Finish)
+                        Loader.Start(True, True)
+                    Else
+                        Hint("未能成功将 Java 加入列表中", HintType.Critical)
+                    End If
+                End Function)
         End If
     End Sub
 

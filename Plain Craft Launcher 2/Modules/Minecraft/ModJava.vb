@@ -24,7 +24,7 @@ Public Module ModJava
     Public Function JavaSelect(CancelException As String,
                                Optional MinVersion As Version = Nothing,
                                Optional MaxVersion As Version = Nothing,
-                               Optional RelatedVersion As McInstance = Nothing) As JavaInfo
+                               Optional RelatedVersion As McInstance = Nothing) As JavaEntry
         Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedVersion IsNot Nothing, RelatedVersion.Name, "未指定")}")
         Dim IsVersionSuit = Function(ver As Version)
                                 Return ver >= MinVersion AndAlso ver <= MaxVersion
@@ -32,7 +32,7 @@ Public Module ModJava
         If RelatedVersion IsNot Nothing Then '考虑选择的实例指定的 Java
             Dim userVersionJava = GetVersionUserSetJava(RelatedVersion)
             If userVersionJava IsNot Nothing Then
-                If Not IsVersionSuit(userVersionJava.Version) Then
+                If Not IsVersionSuit(userVersionJava.Installation.Version) Then
                     Hint("当前实例所指定的 Java 可能不合适，容易导致游戏崩溃")
                 End If
                 Log($"[Java] 返回实例 {RelatedVersion.Name} 指定的 Java {userVersionJava.ToString()}")
@@ -41,20 +41,20 @@ Public Module ModJava
         End If
         '考虑用户全局指定的 Java
         Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
-        Dim userGlobalJavaSet = JavaInfo.Parse(userGlobalJava)
+        Dim userGlobalJavaSet = Javas.AddOrGet(userGlobalJava)
         If userGlobalJavaSet IsNot Nothing Then
             Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet}")
             Return userGlobalJavaSet
         End If
         '寻找合适 Java
-        Javas.CheckJavaAvailability()
+        Javas.CheckAllAvailability()
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
+        Dim ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         If ret Is Nothing Then
             Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
             Javas.ScanJavaAsync().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
+            ret = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
         End If
         Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
         Return ret
@@ -65,13 +65,13 @@ Public Module ModJava
     ''' </summary>
     ''' <param name="Mc">实例</param>
     ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
-    Public Function GetVersionUserSetJava(Mc As McInstance) As JavaInfo
+    Public Function GetVersionUserSetJava(Mc As McInstance) As JavaEntry
         If Mc Is Nothing Then Return Nothing
         Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=Mc)
         If UserSetupVersion = "使用全局设置" Then
             Return Nothing
         Else
-            Return JavaInfo.Parse(UserSetupVersion)
+            Return Javas.Get(UserSetupVersion)
         End If
     End Function
 
@@ -91,8 +91,8 @@ Public Module ModJava
                 Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=RelatedVersion)
                 If UserSetupVersion <> "使用全局设置" Then
                     If File.Exists(UserSetupVersion) Then
-                        Dim k = JavaInfo.Parse(UserSetupVersion)
-                        Return k IsNot Nothing AndAlso k.Is64Bit
+                        Dim k = Javas.Get(UserSetupVersion)
+                        Return k IsNot Nothing AndAlso k.Installation.Is64Bit
                     Else
                         Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
                     End If
@@ -103,10 +103,10 @@ Public Module ModJava
                 UserSetup = String.Empty
             End If
             If String.IsNullOrEmpty(UserSetup) Then
-                Return Javas.JavaList.Any(Function(x) x.Is64Bit)
+                Return Javas.Existing64BitJava()
             End If
-            Dim j = JavaInfo.Parse(UserSetup)
-            Return j IsNot Nothing AndAlso j.Is64Bit
+            Dim j = Javas.AddOrGet(UserSetup)
+            Return j IsNot Nothing AndAlso j.Installation.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
             If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
