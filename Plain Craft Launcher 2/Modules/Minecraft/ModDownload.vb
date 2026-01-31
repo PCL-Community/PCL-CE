@@ -909,7 +909,7 @@ Public Module ModDownload
         Public Sub New(ApiName As String)
             ForgeType = ForgelikeType.NeoForge
             Me.ApiName = ApiName
-            IsBeta = ApiName.Contains("beta")
+            IsBeta = ApiName.Contains("beta") OrElse ApiName.Contains("alpha")
             If ApiName.Contains("1.20.1") Then '1.20.1-47.1.99
                 VersionName = ApiName.Replace("1.20.1-", "")
                 Version = New Version("19." & VersionName)
