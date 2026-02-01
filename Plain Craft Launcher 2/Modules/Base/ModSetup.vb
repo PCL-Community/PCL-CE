@@ -29,7 +29,7 @@ Public Class ModSetup
 
     Private _methodCache As New Concurrent.ConcurrentDictionary(Of String, MethodInfo)
     Public Sub OnConfigChanged(e As ConfigEventArgs)
-        If e.Key.Trim().StartsWithF("UiHidden") Then '页面隐藏
+        If e.Key.StartsWithF("UiHidden") Then '页面隐藏
             PageSetupUI.HiddenRefresh()
             Return
         End If
@@ -56,7 +56,11 @@ Public Class ModSetup
     ''' </summary>
     Public Function Load(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing) As Object
         Dim value = [Get](key, instance)
-        Dim method As MethodInfo = GetType(ModSetup).GetMethod(key)
+        If key.StartsWithF("UiHidden") Then '页面隐藏
+            PageSetupUI.HiddenRefresh()
+            Return value
+        End If
+        Dim method As MethodInfo = _methodCache.GetOrAdd(key, Function() GetType(ModSetup).GetMethod(key))
         If method IsNot Nothing Then method.Invoke(Me, {value})
         Return value
     End Function
