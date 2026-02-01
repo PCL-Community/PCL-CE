@@ -1,7 +1,7 @@
 ﻿Public Enum UpdateChannel
     stable
     beta
-    nightly
+    dev
 End Enum
 
 Public Enum UpdateArch
