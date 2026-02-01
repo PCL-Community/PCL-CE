@@ -1,4 +1,3 @@
-using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 using System;
@@ -9,20 +8,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PCL.Core.IO.Pipe;
+namespace PCL.Core.IO.Pipes;
 
-public class PipeServer
+public class PipeServer(
+    string pipeName,
+    string identifier,
+    bool stopWhenException,
+    Func<StreamReader, StreamWriter, Process?, bool> loopCallback,
+    Action<PipeServer>? stopCallback = null,
+    int[]? allowedProcessId = null)
 {
-    public string PipeName { get; init; }
-    public string Identifier { get; init; }
-    public NamedPipeServerStream PipeServerStream { get; private set; }
+    public string PipeName { get; } = pipeName;
+    public string Identifier { get; } = identifier;
 
-    private Func<StreamReader, StreamWriter, Process?, bool> _LoopCallback { get; init; }
-    private Action<PipeServer>? _StopCallback { get; init; }
-    private int[] _AllowedProcessId { get; init; }
+    public NamedPipeServerStream PipeServerStream { get; } = new(pipeName,
+        PipeDirection.InOut,
+        1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.None,
+        1024,
+        1024);
+
+    private Func<StreamReader, StreamWriter, Process?, bool> _LoopCallback { get; } = loopCallback;
+    private Action<PipeServer>? _StopCallback { get; } = stopCallback;
+    private int[] _AllowedProcessId { get; } = allowedProcessId ?? [];
 
     private string _ThreadName => $"PipeServer/{Identifier}";
-    private readonly bool _stopWhenException = false;
     private bool _isConnected = false;
 
     #region Constant
@@ -32,32 +43,9 @@ public class PipeServer
 
     #endregion
 
-    public PipeServer(string pipeName,
-        string identifier,
-        bool stopWhenException,
-        Func<StreamReader, StreamWriter, Process?, bool> loopCallback,
-        Action<PipeServer>? stopCallback = null,
-        int[]? allowedProcessId = null)
-    {
-        _stopWhenException = stopWhenException;
-        PipeName = pipeName;
-        Identifier = identifier;
-        _LoopCallback = loopCallback;
-        _StopCallback = stopCallback;
-        _AllowedProcessId = allowedProcessId ?? [];
-
-        PipeServerStream = new NamedPipeServerStream(pipeName,
-            PipeDirection.InOut,
-            1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.None,
-            1024,
-            1024);
-    }
-
     public void Start()
     {
-        Basics.RunInNewThread(async () => await _WorkflowAsync().ConfigureAwait(true));
+        Task.Run(_WorkflowAsync);
     }
 
     private async Task _WorkflowAsync()
@@ -171,13 +159,13 @@ public class PipeServer
             else
             {
                 _LogWarn($"Server IO warning", ioEx);
-                doNextLoop = !_stopWhenException;
+                doNextLoop = !stopWhenException;
             }
         }
         catch (Exception ex)
         {
             _LogWarn($"Server error", ex);
-            doNextLoop = !_stopWhenException;
+            doNextLoop = !stopWhenException;
         }
         finally
         {

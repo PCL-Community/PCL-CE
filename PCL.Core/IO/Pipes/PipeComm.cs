@@ -1,5 +1,5 @@
-using PCL.Core.IO.Pipe;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -26,6 +26,50 @@ public static class PipeComm
 
     #endregion
 
+    #region Factory
+
+    // 存储活跃的 PipeServer 实例，防止被 GC 回收
+    private static readonly List<PipeServer> _ActiveServers = [];
+    private static readonly object _Lock = new();
+
+    /// <summary>
+    /// 添加服务器到活跃列表
+    /// </summary>
+    /// <param name="server">要添加的服务器实例</param>
+    private static void _AddServer(PipeServer server)
+    {
+        lock (_Lock)
+        {
+            _ActiveServers.Add(server);
+        }
+    }
+
+    /// <summary>
+    /// 从活跃列表中移除服务器
+    /// </summary>
+    /// <param name="server">要移除的服务器实例</param>
+    private static void _RemoveServer(PipeServer server)
+    {
+        lock (_Lock)
+        {
+            _ActiveServers.Remove(server);
+        }
+    }
+
+    /// <summary>
+    /// 获取当前活跃的服务器数量
+    /// </summary>
+    /// <returns>活跃服务器数量</returns>
+    public static int GetActiveServerCount()
+    {
+        lock (_Lock)
+        {
+            return _ActiveServers.Count;
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// 在新的工作线程启动命名管道服务端
     /// </summary>
@@ -43,11 +87,21 @@ public static class PipeComm
         bool stopWhenException = false,
         int[]? allowedProcessId = null)
     {
-        // 使用工厂创建并启动服务器
-        var server = PipeServerFactory.CreateAndStartServer(
-            pipeName, identifier, stopWhenException, loopCallback, stopCallback, allowedProcessId);
+        var server =
+            new PipeServer(
+                pipeName, identifier, stopWhenException, loopCallback,
+                (myself) =>
+                {
+                    _RemoveServer(myself);
 
-        // 返回服务器的流
+                    stopCallback?.Invoke();
+                },
+                allowedProcessId);
+
+        _AddServer(server);
+
+        server.Start();
+
         return server.PipeServerStream;
     }
 }
