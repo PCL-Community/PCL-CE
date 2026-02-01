@@ -62,7 +62,7 @@ Public Module ModBase
     ''' <summary>
     ''' 设置对象。
     ''' </summary>
-    Public Setup As New ModSetup
+    Public Setup As New ModSetup()
     ''' <summary>
     ''' 程序的打开计时。
     ''' </summary>

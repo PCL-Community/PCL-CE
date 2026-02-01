@@ -1,7 +1,6 @@
 Imports System.Reflection
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App.Configuration
-Imports PCL.Core.Net
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils.OS
 
@@ -28,12 +27,13 @@ Public Class ModSetup
         ))
     End Sub
 
+    Private _methodCache As New Concurrent.ConcurrentDictionary(Of String, MethodInfo)
     Public Sub OnConfigChanged(e As ConfigEventArgs)
-        If e.Key.StartsWith("UiHidden") Then
+        If e.Key.Trim().StartsWithF("UiHidden") Then '页面隐藏
             PageSetupUI.HiddenRefresh()
             Return
         End If
-        Dim method As MethodInfo = GetType(ModSetup).GetMethod(e.Key)
+        Dim method As MethodInfo = _methodCache.GetOrAdd(e.Key, Function() GetType(ModSetup).GetMethod(e.Key))
         If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(e.Key).DefaultValueNoType)})
     End Sub
 
