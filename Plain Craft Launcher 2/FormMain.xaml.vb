@@ -50,7 +50,7 @@ Public Class FormMain
         FrmLaunchLeft = New PageLaunchLeft
         FrmLaunchRight = New PageLaunchRight
         '版本号改变
-        Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
+        Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
             '触发升级
             UpgradeSub(LastVersion)
@@ -1120,7 +1120,7 @@ Public Class FormMain
 
         SetupLaunch = 0
         SetupUI = 1
-        SetupSystem = 2
+        SetupGameManage = 2
         SetupLink = 3
         SetupAbout = 4
         SetupLog = 5
@@ -1128,6 +1128,7 @@ Public Class FormMain
         SetupGameLink = 7
         SetupUpdate = 8
         SetupJava = 9
+        SetupLauncherMisc = 10
 
         ToolsGameLink = 1
         ToolsLauncherHelp = 2

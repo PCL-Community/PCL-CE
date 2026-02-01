@@ -1,6 +1,7 @@
 Imports System.IO.Compression
 Imports System.Text.RegularExpressions
 Imports PCL.Core.Utils
+Imports PCL.Core.App
 
 Imports fNbt
 
@@ -1097,7 +1098,7 @@ Finished:
         ''' </summary>
         Public ReadOnly Property CanUpdate As Boolean
             Get
-                Return Not Setup.Get("UiHiddenFunctionModUpdate") AndAlso ChangelogUrls.Any()
+                Return Not Config.Preference.Hide.FunctionModUpdate AndAlso ChangelogUrls.Any()
             End Get
         End Property
 

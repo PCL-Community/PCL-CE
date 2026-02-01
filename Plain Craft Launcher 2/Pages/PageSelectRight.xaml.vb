@@ -213,7 +213,7 @@ Public Class PageSelectRight
                     Else
                         LabEmptyTitle.Text = "无可用实例"
                         LabEmptyContent.Text = "未找到任何游戏实例，请先下载一个游戏实例。" & vbCrLf & "若有已存在的实例，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
-                        BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                        BtnEmptyDownload.Visibility = If(Config.Preference.Hide.PageDownload AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
                     End If
                 Else
                     '有实例但搜索无结果的情况
@@ -433,7 +433,7 @@ Public Class PageSelectRight
     End Sub
 
     Public Sub BtnEmptyDownload_Loaded() Handles BtnEmptyDownload.Loaded
-        Dim NewVisibility = If((Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow) OrElse ShowHidden, Visibility.Collapsed, Visibility.Visible)
+        Dim NewVisibility = If((Config.Preference.Hide.PageDownload AndAlso Not PageSetupUI.HiddenForceShow) OrElse ShowHidden, Visibility.Collapsed, Visibility.Visible)
         If BtnEmptyDownload.Visibility <> NewVisibility Then
             BtnEmptyDownload.Visibility = NewVisibility
             PanLoad.TriggerForceResize()

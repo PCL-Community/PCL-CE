@@ -7,9 +7,11 @@ Public Class PageSetupLeft
     Private Sub PageSetupLeft_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         '是否处于隐藏的子页面
         Dim IsHiddenPage As Boolean = False
-        If ItemLaunch.Checked AndAlso Setup.Get("UiHiddenSetupLaunch") Then IsHiddenPage = True
-        If ItemUI.Checked AndAlso Setup.Get("UiHiddenSetupUi") Then IsHiddenPage = True
-        If ItemSystem.Checked AndAlso Setup.Get("UiHiddenSetupSystem") Then IsHiddenPage = True
+        Dim hide = Config.Preference.Hide
+
+        If ItemLaunch.Checked AndAlso hide.SetupLaunch Then IsHiddenPage = True
+        If ItemUI.Checked AndAlso hide.SetupUi Then IsHiddenPage = True
+        If ItemGameManage.Checked AndAlso hide.SetupGameManage Then IsHiddenPage = True
         If ItemAbout.Checked AndAlso Config.Preference.Hide.SetupAbout Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
@@ -19,14 +21,27 @@ Public Class PageSetupLeft
         PageSetupUI.HiddenRefresh()
         '选择第一个未被禁用的子页面
         If IsPageSwitched Then Return
-        If Not Setup.Get("UiHiddenSetupLaunch") Then
+        Dim hideCfg = Config.Preference.Hide
+        If Not hideCfg.SetupLaunch Then
             ItemLaunch.SetChecked(True, False, False)
-        ElseIf Not Setup.Get("UiHiddenSetupUi") Then
+        ElseIf Not hideCfg.SetupUi Then
             ItemUI.SetChecked(True, False, False)
-        ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
-            ItemSystem.SetChecked(True, False, False)
-        ElseIf Not Config.Preference.Hide.SetupAbout Then
+        ElseIf Not hideCfg.SetupGameManage Then
+            ItemGameManage.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupLauncherMisc Then
+            ItemLauncherMisc.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupUpdate Then
+            ItemUpdate.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupAbout Then
             ItemAbout.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupFeedback Then
+            ItemFeedback.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupGameLink Then
+            ItemGameLink.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupJava Then
+            ItemJava.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupLog Then
+            ItemLog.SetChecked(True, False, False)
         Else
             ItemLaunch.SetChecked(True, False, False)
         End If
@@ -44,14 +59,27 @@ Public Class PageSetupLeft
     Public Sub New()
         InitializeComponent()
         '选择第一个未被禁用的子页面
-        If Not Setup.Get("UiHiddenSetupLaunch") Then
+        Dim hideCfg = Config.Preference.Hide
+        If Not hideCfg.SetupLaunch Then
             PageID = FormMain.PageSubType.SetupLaunch
-        ElseIf Not Setup.Get("UiHiddenSetupUi") Then
+        ElseIf Not hideCfg.SetupUi Then
             PageID = FormMain.PageSubType.SetupUI
-        ElseIf Not Setup.Get("UiHiddenSetupSystem") Then
-            PageID = FormMain.PageSubType.SetupSystem
-        ElseIf Not Setup.Get("UiHiddenSetupUpdate") Then
+        ElseIf Not hideCfg.SetupGameManage Then
+            PageID = FormMain.PageSubType.SetupGameManage
+        ElseIf Not hideCfg.SetupLauncherMisc Then
+            PageID = FormMain.PageSubType.SetupLauncherMisc
+        ElseIf Not hideCfg.SetupUpdate Then
             PageID = FormMain.PageSubType.SetupUpdate
+        ElseIf Not hideCfg.SetupAbout Then
+            PageID = FormMain.PageSubType.SetupAbout
+        ElseIf Not hideCfg.SetupFeedback Then
+            PageID = FormMain.PageSubType.SetupFeedback
+        ElseIf Not hideCfg.SetupGameLink Then
+            PageID = FormMain.PageSubType.SetupGameLink
+        ElseIf Not hideCfg.SetupJava Then
+            PageID = FormMain.PageSubType.SetupJava
+        ElseIf Not hideCfg.SetupLog Then
+            PageID = FormMain.PageSubType.SetupLog
         Else
             PageID = FormMain.PageSubType.SetupLaunch
         End If
@@ -62,8 +90,8 @@ Public Class PageSetupLeft
     ''' 勾选事件改变页面。
     ''' </summary>
     Private Sub PageCheck(sender As MyListItem, e As EventArgs) Handles ItemLaunch.Check,
-        ItemSystem.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check,
-        ItemGameLink.Check, ItemUpdate.Check, ItemJava.Check
+        ItemGameManage.Check, ItemUI.Check, ItemAbout.Check, ItemFeedback.Check, ItemLog.Check,
+        ItemGameLink.Check, ItemUpdate.Check, ItemJava.Check, ItemLauncherMisc.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
@@ -81,9 +109,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupUI
                 If FrmSetupUI Is Nothing Then FrmSetupUI = New PageSetupUI
                 Return FrmSetupUI
-            Case FormMain.PageSubType.SetupSystem
-                If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
-                Return FrmSetupSystem
+            Case FormMain.PageSubType.SetupGameManage
+                If FrmSetupGameManage Is Nothing Then FrmSetupGameManage = New PageSetupGameManage
+                Return FrmSetupGameManage
             Case FormMain.PageSubType.SetupUpdate
                 If FrmSetupUpdate Is Nothing Then FrmSetupUpdate = New PageSetupUpdate
                 Return FrmSetupUpdate
@@ -99,6 +127,9 @@ Public Class PageSetupLeft
             Case FormMain.PageSubType.SetupGameLink
                 If FrmSetupGameLink Is Nothing Then FrmSetupGameLink = New PageSetupGameLink
                 Return FrmSetupGameLink
+            Case FormMain.PageSubType.SetupLauncherMisc
+                If FrmSetupLauncherMisc Is Nothing Then FrmSetupLauncherMisc = New PageSetupLauncherMisc
+                Return FrmSetupLauncherMisc
             Case FormMain.PageSubType.SetupJava
                 If FrmSetupJava Is Nothing Then FrmSetupJava = New PageSetupJava
                 Return FrmSetupJava
@@ -147,28 +178,34 @@ Public Class PageSetupLeft
     Public Sub Reset(sender As Object, e As EventArgs)
         Select Case Val(sender.Tag)
             Case FormMain.PageSubType.SetupLaunch
-                If MyMsgBox("是否要初始化 启动 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If FrmSetupLaunch Is Nothing Then FrmSetupLaunch = New PageSetupLaunch
                     FrmSetupLaunch.Reset()
                     ItemLaunch.Checked = True
                 End If
             Case FormMain.PageSubType.SetupUI
-                If MyMsgBox("是否要初始化 个性化 页面的所有设置？该操作不可撤销。" & vbCrLf & "（背景图片与音乐、主页等外部文件不会被删除）", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。" & vbCrLf & "（背景图片与音乐、主页等外部文件不会被删除）", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If FrmSetupUI Is Nothing Then FrmSetupUI = New PageSetupUI
                     FrmSetupUI.Reset()
                     ItemUI.Checked = True
                 End If
-            Case FormMain.PageSubType.SetupSystem
-                If MyMsgBox("是否要初始化 其他 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
-                    If FrmSetupSystem Is Nothing Then FrmSetupSystem = New PageSetupSystem
-                    FrmSetupSystem.Reset()
-                    ItemSystem.Checked = True
+            Case FormMain.PageSubType.SetupGameManage
+                If MyMsgBox("是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                    If FrmSetupGameManage Is Nothing Then FrmSetupGameManage = New PageSetupGameManage
+                    FrmSetupGameManage.Reset()
+                    ItemGameManage.Checked = True
                 End If
             Case FormMain.PageSubType.SetupGameLink
-                If MyMsgBox("是否要初始化 联机 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                If MyMsgBox("是否要初始化 工具-联机 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
                     If FrmSetupGameLink Is Nothing Then FrmSetupGameLink = New PageSetupGameLink
                     FrmSetupGameLink.Reset()
                     ItemGameLink.Checked = True
+                End If
+            Case FormMain.PageSubType.SetupLauncherMisc
+                If MyMsgBox("是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。", "初始化确认",, "取消", IsWarn:=True) = 1 Then
+                    If FrmSetupLauncherMisc Is Nothing Then FrmSetupLauncherMisc = New PageSetupLauncherMisc
+                    FrmSetupLauncherMisc.Reset()
+                    ItemLauncherMisc.Checked = True
                 End If
         End Select
     End Sub

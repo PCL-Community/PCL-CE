@@ -21,14 +21,18 @@ Public Class ModSetup
         Throw New NotSupportedException
     End Function
 
-    Public Sub New
+    Public Sub New()
         ConfigService.RegisterObserver(Me, New ConfigObserver(
-            Event := ConfigEvent.Changed,
-            Handler := AddressOf OnConfigChanged
+            Event:=ConfigEvent.Changed,
+            Handler:=AddressOf OnConfigChanged
         ))
     End Sub
 
     Public Sub OnConfigChanged(e As ConfigEventArgs)
+        If e.Key.StartsWith("UiHidden") Then
+            PageSetupUI.HiddenRefresh()
+            Return
+        End If
         Dim method As MethodInfo = GetType(ModSetup).GetMethod(e.Key)
         If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(e.Key).DefaultValueNoType)})
     End Sub
@@ -374,96 +378,6 @@ Public Class ModSetup
     Public Sub UiLogoLeft(Value As Boolean)
         FrmMain.PanTitleMain.ColumnDefinitions(0).Width = New GridLength(If(Value AndAlso (Setup.Get("UiLogoType") = 0), 0, 1), GridUnitType.Star)
     End Sub
-
-    '功能隐藏
-    ' 主页面
-    Public Sub UiHiddenPageDownload(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenPageSetup(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenPageTools(Value As Boolean) ' 更名：Other -> Tools
-        PageSetupUI.HiddenRefresh()
-    End Sub
-
-    ' 子页面 设置
-    Public Sub UiHiddenSetupLaunch(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupUi(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupSystem(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupUpdate(Value As Boolean) ' 新增
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupGameLink(Value As Boolean) ' 新增
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupAbout(Value As Boolean) ' 新增/同步
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupFeedback(Value As Boolean) ' 新增/同步
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenSetupLog(Value As Boolean) ' 新增/同步
-        PageSetupUI.HiddenRefresh()
-    End Sub
-
-    ' 子页面 工具
-    Public Sub UiHiddenToolsGameLink(Value As Boolean) ' 新增
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenToolsHelp(Value As Boolean) ' 新增
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenToolsTest(Value As Boolean) ' 新增
-        PageSetupUI.HiddenRefresh()
-    End Sub
-
-    ' 子页面 实例设置
-    Public Sub UiHiddenVersionEdit(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionExport(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionSave(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionScreenshot(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionMod(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionResourcePack(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionShader(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionSchematic(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenVersionServer(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-
-    ' 特定功能
-    Public Sub UiHiddenFunctionSelect(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenFunctionModUpdate(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-    Public Sub UiHiddenFunctionHidden(Value As Boolean)
-        PageSetupUI.HiddenRefresh()
-    End Sub
-
 
 #End Region
 
