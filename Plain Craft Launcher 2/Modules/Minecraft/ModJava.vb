@@ -157,6 +157,19 @@ Public Module ModJava
             End If
         End Try
 
+        Select Case True
+            Case TypeOf preference Is ExistingJava
+                Dim m = DirectCast(preference, ExistingJava)
+                If Not IO.Path.IsPathRooted(m.JavaExePath) Then
+                    preference = New UseGlobalPreference()
+                End If
+            Case TypeOf preference Is UseRelativePath
+                Dim m = DirectCast(preference, UseRelativePath)
+                If Not Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory) Then
+                    preference = New UseGlobalPreference()
+                End If
+        End Select
+
         Return preference
     End Function
 
