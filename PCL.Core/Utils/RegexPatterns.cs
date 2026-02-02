@@ -103,6 +103,13 @@ public static partial class RegexPatterns
     public static readonly Regex McSnapshotVersion = _McSnapshotVersion();
     [GeneratedRegex(@"(\d+)w(\d+)([a-z]?)")]
     private static partial Regex _McSnapshotVersion();
+    
+    /// <summary>
+    /// 匹配 Minecraft 新快照版本号，如 26.1-snapshot-1、26.1.1-snapshot-3 等。
+    /// </summary>
+    public static readonly Regex McNewSnapshotVersion = _McNewSnapshotVersion();
+    [GeneratedRegex(@"^(\d+(?:\.\d+){1,2})-snapshot-(\d+)$")]
+    private static partial Regex _McNewSnapshotVersion();
 
     /// <summary>
     /// 匹配 Minecraft Indev 版本号，如 in-20091231-2、in-20100130 等。

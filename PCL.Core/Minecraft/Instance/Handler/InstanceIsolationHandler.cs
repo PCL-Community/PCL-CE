@@ -38,7 +38,7 @@ public static class InstanceIsolationHandler {
 
         var isModded = instance.InstanceInfo.IsModded;
         var isRelease = instance.InstanceInfo.VersionType == McVersionType.Release;
-        LogWrapper.Info("Isolation", $"版本隔离初始化({instance.Name}): 全局设置({Config.Launch.IndieSolutionV2})");
+        LogWrapper.Info("Isolation", $"版本隔离初始化 ({instance.Name}): 全局设置 ({Config.Launch.IndieSolutionV2})");
         
         return Config.Launch.IndieSolutionV2 switch {
             0 => false,

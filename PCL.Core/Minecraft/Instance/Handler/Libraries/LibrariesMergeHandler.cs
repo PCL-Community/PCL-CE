@@ -9,14 +9,14 @@ namespace PCL.Core.Minecraft.Instance.Handler.Libraries;
 
 public static class LibrariesMergeHandler {
     /// <summary>
-    /// 从 Merge 类型 JSON 中提取并反序列化libraries字段
+    /// 从 Merge 类型 JSON 中提取并反序列化 libraries 字段
     /// </summary>
     public static List<Library>? ParseLibrariesFromJson(IMcInstance instance, JsonObject versionJson) {
         try {
-            // 获取libraries字段
+            // 获取 libraries 字段
             var librariesNode = versionJson["libraries"];
 
-            // 反序列化libraries字段
+            // 反序列化 libraries 字段
             return librariesNode.Deserialize<List<Library>>(Files.PrettierJsonOptions);
         } catch (JsonException) {
             throw new JsonException("JSON 解析或反序列化错误");

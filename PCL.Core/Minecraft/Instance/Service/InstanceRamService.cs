@@ -19,7 +19,7 @@ public static class InstanceRamService {
     private const int MEMORY_STRATEGY_MANUAL = 1;
     private const int MEMORY_STRATEGY_GLOBAL = 2;
 
-    // 32位Java内存限制
+    // 32 位 Java 内存限制
     private const double JAVA_32BIT_MAX_MEMORY_GB = 1.0;
 
     // 手动内存配置的分段阈值
@@ -137,7 +137,7 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 计算带Mod实例的内存需求
+    /// 计算带 Mod 实例的内存需求
     /// </summary>
     private static MemoryRequirements CalculateModdedInstanceRequirements(IMcInstance instance) {
         var modCount = GetModCount(instance);
@@ -151,7 +151,7 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 获取Mod数量
+    /// 获取 Mod 数量
     /// </summary>
     private static int GetModCount(IMcInstance instance) {
         var modDirectory = new DirectoryInfo(Path.Combine(instance.IsolatedPath, "mods"));
@@ -184,7 +184,7 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 应用Java架构限制
+    /// 应用 Java 架构限制
     /// </summary>
     private static double ApplyJavaArchitectureLimit(double memoryAllocation, IMcInstance instance, bool? is32BitJava) {
         var is32Bit = is32BitJava ?? !IsUsing64BitJava(instance);
@@ -195,16 +195,16 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 检查是否使用64位Java
+    /// 检查是否使用 64 位 Java
     /// </summary>
     private static bool IsUsing64BitJava(IMcInstance instance) {
         try {
-            // 检查实例特定的Java设置
+            // 检查实例特定的 Java 设置
             if (TryGetInstanceJavaInfo(instance, out var instanceJavaInfo)) {
                 return instanceJavaInfo!.Installation.Is64Bit;
             }
 
-            // 检查全局Java设置
+            // 检查全局 Java 设置
             if (TryGetGlobalJavaInfo(out var globalJavaInfo)) {
                 return globalJavaInfo!.Installation.Is64Bit;
             }
@@ -213,12 +213,12 @@ public static class InstanceRamService {
         } catch (Exception ex) {
             LogWrapper.Warn(ex, "检查 Java 架构时出错，重置为默认设置");
             ResetJavaSettings(instance);
-            return true; // 默认假设为64位
+            return true; // 默认假设为 64 位
         }
     }
 
     /// <summary>
-    /// 尝试获取实例特定的Java信息
+    /// 尝试获取实例特定的 Java 信息
     /// </summary>
     private static bool TryGetInstanceJavaInfo(IMcInstance instance, out JavaEntry? javaInfo) {
         javaInfo = null;
@@ -238,7 +238,7 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 尝试获取全局Java信息
+    /// 尝试获取全局 Java 信息
     /// </summary>
     private static bool TryGetGlobalJavaInfo(out JavaEntry? javaInfo) {
         javaInfo = null;
@@ -258,7 +258,7 @@ public static class InstanceRamService {
     }
 
     /// <summary>
-    /// 重置Java设置为默认值
+    /// 重置 Java 设置为默认值
     /// </summary>
     private static void ResetJavaSettings(IMcInstance instance) {
         Config.Instance.SelectedJava[instance.Path] = "使用全局设置";

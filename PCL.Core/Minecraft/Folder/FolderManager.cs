@@ -140,7 +140,7 @@ public class FolderManager {
                 if (CurrentFolder == null) {
                     LogWrapper.Info("没有选择 Minecraft 文件夹，使用第一个");
                 } else {
-                    LogWrapper.Info($"Minecraft 文件夹非法或不存在: {CurrentFolder}");
+                    LogWrapper.Info($"Minecraft 文件夹非法或不存在：{CurrentFolder}");
                 }
                 // TODO: 这边也是
                 States.Game.SelectedFolder = McFolderList[0].Path.Replace(Basics.ExecutablePath, "$");

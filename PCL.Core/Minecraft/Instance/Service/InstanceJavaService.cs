@@ -29,7 +29,7 @@ public static class InstanceJavaService {
                 javaVersionNodeInJar?.GetValueKind() == JsonValueKind.Number) {
                 var recommendedJava = javaVersionNodeInJar.GetValue<int>();
                 McLaunchUtils.Log($"Mojang (in JAR) recommends Java {recommendedJava}");
-                if (recommendedJava >= 22) {
+                if (recommendedJava >= 26) {
                     minVer = UpdateMin(minVer, new Version(recommendedJava, 0, 0, 0));
                 }
             }
@@ -97,7 +97,7 @@ public static class InstanceJavaService {
         // Fabric adjustments
         if (instance.InstanceInfo.HasPatch("fabric")) {
             var mcMinor = instance.InstanceInfo.McVersionMinor;
-            // 根据 mcMinor 版本号，使用 switch 表达式确定最低 Java 版本
+            // 根据 mcMinor 版本号，确定最低 Java 版本
             minVer = mcMinor switch {
                 >= 15 and <= 16 => UpdateMinAndLog(minVer, new Version(1, 8, 0, 0),
                     "1.15 - 1.16 Fabric requires min Java 8"),
@@ -152,6 +152,13 @@ public static class InstanceJavaService {
 
     // 定义 Java 版本要求规则
     private static readonly List<(Func<PatchInstanceInfo, bool> Condition, Version MinVer, Version? MaxVer, string LogMessage)> VanillaJavaVersionRules = [
+        (
+            info => !info.IsNormalVersion && info.ReleaseTime >= new DateTime(2024, 4, 2) ||
+                 info.IsNormalVersion && info.McVersion >= new Version(1, 20, 5),
+            new Version(25, 0, 0, 0),
+            null,
+            "MC 26.1-snapshot.1+ 要求至少 Java 25"
+        ),
         // 1.20.5+ (24w14a+)：至少 Java 21
         (
             info => !info.IsNormalVersion && info.ReleaseTime >= new DateTime(2024, 4, 2) ||
