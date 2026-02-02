@@ -48,7 +48,7 @@
             <Color x:Key="ColorObject8">#eaf2fe</Color>
             <Color x:Key="ColorObjectBg0">#96c0f9</Color>
             <Color x:Key="ColorObjectBg1">#bee0eafd</Color>
-            <Color x:Key="ColorObjectMsgBoxShadow">#343d4a</Color>
+            <Color x:Key="ColorObjectMsgBoxShadow">#3c3c3c</Color>
             <SolidColorBrush x:Key="ColorBrushGray1">#404040</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray2">#737373</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray3">#8c8c8c</SolidColorBrush>
@@ -73,10 +73,9 @@
             <SolidColorBrush x:Key="ColorBrushWhite" Color="#ffffff" />
             <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
             <SolidColorBrush x:Key="ColorBrushSemiTransparent">#01eaf2fe</SolidColorBrush>
-            <SolidColorBrush x:Key="ColorBrushBackgroundTransparentSidebar" Color="#D2FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#d2fbfbfb" />
+            <SolidColorBrush x:Key="ColorBrushBackground">#fbfbfb</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushToolTip">#e5ffffff</SolidColorBrush>
-            <SolidColorBrush x:Key="ColorBrushMsgBox">#fbfbfb</SolidColorBrush>
-            <SolidColorBrush x:Key="ColorBrushMsgBoxText">#5c5c5c</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushMemory">#000000</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushFatal">#c23616</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushError">#e74c3c</SolidColorBrush>
@@ -582,7 +581,6 @@
                 <Setter Property="BlurSamplingRate" Value="{DynamicResource BlurSamplingRate}" />
                 <Setter Property="BlurKernelType" Value="{DynamicResource BlurType}" />
             </Style>
-            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

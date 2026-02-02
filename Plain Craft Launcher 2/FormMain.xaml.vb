@@ -5,6 +5,7 @@ Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -34,17 +35,10 @@ Public Class FormMain
     Public Sub New()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         '刷新主题
-        ThemeCheckAll(False)
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = SystemTheme.IsSystemInDarkMode()
-        End Select
-        ThemeRefreshColor()
+        'ThemeCheckAll(False)
+        'ThemeRefreshColor()
+        AddHandler ThemeService.ColorModeChanged, Sub(mode, theme) ThemeRefresh()
+        AddHandler ThemeService.ColorThemeChanged, AddressOf ThemeRefresh
         '窗体参数初始化
         FrmMain = Me
         FrmLaunchLeft = New PageLaunchLeft
@@ -965,8 +959,7 @@ Public Class FormMain
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
                 Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
                 If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
-                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
-                    ThemeRefresh()
+                    ThemeService.RefreshColorMode()
                 End If
             End If
         End If

@@ -108,6 +108,12 @@
       "info": "Copyright © Microsoft\nLicensed under the MIT license.",
       "website": "https://github.com/dotnet/dotnet",
       "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Unicolour",
+      "info": "Copyright © 2022-2025 William Acton\nLicensed under the MIT license.",
+      "website": "https://github.com/waacton/Unicolour",
+      "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
     }
   ]
 }

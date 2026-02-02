@@ -44,12 +44,12 @@
                 <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" RenderOptions.BitmapScalingMode="LowQuality">
                     <MediaElement x:Name="VideoBack" Grid.Row="0" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible" MediaEnded="VideoEnded" Volume="0"/>
                 </Canvas>
-                <Grid x:Name="PanTitle" Height="48" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Grid.Background>
-                        <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
-                            <GradientStop Color="{StaticResource ColorObject4}" Offset="0"/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
+                <local:AnimatedBackgroundGrid Grid.Row="0" x:Name="PanTitle" Height="48" shell:WindowChrome.IsHitTestVisibleInChrome="True" BackgroundBrush="{DynamicResource ColorBrush3}">
+                    <!-- <Grid.Background> -->
+                    <!--     <LinearGradientBrush EndPoint="1,0" StartPoint="0,0"> -->
+                    <!--         <GradientStop Color="{StaticResource ColorObject4}" Offset="0"/> -->
+                    <!--     </LinearGradientBrush> -->
+                    <!-- </Grid.Background> -->
                     <local:MyImage x:Name="ImgTitle" IsHitTestVisible="False" Stretch="UniformToFill" IsEnabled="False" RenderOptions.BitmapScalingMode="LowQuality" />
                     <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,12,0" Theme="White" 
                                        LogoScale="0.72" Logo="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
@@ -90,13 +90,15 @@
                                              LogoScale="0.87" Logo="M1097 584 250 584 562 896C591 925 591 972 562 1001 533 1030 487 1030 458 1001L21 565C6 550-0 531 0 511L0 511 0 511C-0 492 6 472 21 457L458 21C487-7 533-7 562 21 591 50 591 97 562 126L250 438 1097 438C1137 438 1170 471 1170 511 1170 551 1137 584 1097 584L1097 584Z" />
                         <TextBlock SnapsToDevicePixels="False" IsHitTestVisible="False" Name="LabTitleInner" VerticalAlignment="Center" Margin="47,1,60,0" HorizontalAlignment="Left" Foreground="White" FontSize="15" />
                     </Grid>
-                </Grid>
+                </local:AnimatedBackgroundGrid>
                 <Grid x:Name="PanLeft" Grid.Row="1" HorizontalAlignment="Left" SnapsToDevicePixels="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-                    <controls:BlurBorder x:Name="RectLeftBackground" Width="0" Background="{DynamicResource ColorBrushBackgroundTransparentSidebar}" IsHitTestVisible="False" />
+                    <controls:BlurBorder IsHitTestVisible="False">
+                        <local:AnimatedBackgroundGrid x:Name="RectLeftBackground" Width="0" BackgroundBrush="{DynamicResource ColorBrushTransparentBackground}" />
+                    </controls:BlurBorder>
                     <Rectangle x:Name="RectLeftShadow" Width="4" HorizontalAlignment="Left" IsHitTestVisible="False" Grid.Column="1" >
                         <Rectangle.Fill>
                             <LinearGradientBrush EndPoint="1,0" StartPoint="0,0" Opacity="0.04">

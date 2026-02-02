@@ -6,6 +6,7 @@ Imports System.Security.Cryptography
 Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.OS
@@ -149,206 +150,29 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Private ReadOnly CustomThemeHueDelta = If(EnvThemeHueDelta Is Nothing, Nothing, CType(Integer.Parse(EnvThemeHueDelta), Integer?))
 #End If
 
-    Public IsDarkMode As Boolean = False
-
-    Public ReadOnly Property ColorGray1 As MyColor
+    Public ReadOnly Property IsDarkMode As Boolean
         Get
-            Return If(StaticColors?.Gray1, LightStaticColors.Gray1)
+            Return ThemeService.IsDarkMode
         End Get
     End Property
 
-    Public ReadOnly Property ColorGray4 As MyColor
+    Public ReadOnly Property AppResources As ResourceDictionary
         Get
-            Return If(StaticColors?.Gray4, LightStaticColors.Gray4)
+            Return Application.Current.Resources
         End Get
     End Property
 
-    Public ReadOnly Property ColorGray5 As MyColor
-        Get
-            Return If(StaticColors?.Gray5, LightStaticColors.Gray5)
-        End Get
-    End Property
-
-    Public ReadOnly Property ColorSemiTransparent As MyColor
-        Get
-            Return DynamicColors.SemiTransparent
-        End Get
-    End Property
-
-    Private ReadOnly Property NewColor As MyColor
-        Get
-            Return New MyColor()
-        End Get
-    End Property
-
-    Public Class ThemeStyleStaticColors
-        Public ReadOnly Gray1 As Color
-        Public ReadOnly Gray2 As Color
-        Public ReadOnly Gray3 As Color
-        Public ReadOnly Gray4 As Color
-        Public ReadOnly Gray5 As Color
-        Public ReadOnly Gray6 As Color
-        Public ReadOnly Gray7 As Color
-        Public ReadOnly Gray8 As Color
-        Public ReadOnly White As Color
-        Public ReadOnly HalfWhite As Color
-        Public ReadOnly SemiWhite As Color
-        Public ReadOnly Transparent As Color
-        Public ReadOnly Memory As Color
-        Public ReadOnly Tooltip As Color
-        Public ReadOnly BackgroundTransparentSidebar As Color
-        Public ReadOnly RedBack As Color
-
-        Public ReadOnly Gray1Brush As SolidColorBrush
-        Public ReadOnly Gray2Brush As SolidColorBrush
-        Public ReadOnly Gray3Brush As SolidColorBrush
-        Public ReadOnly Gray4Brush As SolidColorBrush
-        Public ReadOnly Gray5Brush As SolidColorBrush
-        Public ReadOnly Gray6Brush As SolidColorBrush
-        Public ReadOnly Gray7Brush As SolidColorBrush
-        Public ReadOnly Gray8Brush As SolidColorBrush
-        Public ReadOnly WhiteBrush As SolidColorBrush
-        Public ReadOnly HalfWhiteBrush As SolidColorBrush
-        Public ReadOnly SemiWhiteBrush As SolidColorBrush
-        Public ReadOnly TransparentBrush As SolidColorBrush
-        Public ReadOnly MemoryBrush As SolidColorBrush
-        Public ReadOnly TooltipBrush As SolidColorBrush
-        Public ReadOnly BackgroundTransparentSidebarBrush As SolidColorBrush
-        Public ReadOnly RedBackBrush As SolidColorBrush
-
-        Public Sub New(style As GrayProfile)
-            Gray1 = NewColor.FromHSL2(0, 0, style.L1)
-            Gray2 = NewColor.FromHSL2(0, 0, style.L2)
-            Gray3 = NewColor.FromHSL2(0, 0, style.L3)
-            Gray4 = NewColor.FromHSL2(0, 0, style.L4)
-            Gray5 = NewColor.FromHSL2(0, 0, style.L5)
-            Gray6 = NewColor.FromHSL2(0, 0, style.L6)
-            Gray7 = NewColor.FromHSL2(0, 0, style.L7)
-            Gray8 = NewColor.FromHSL2(0, 0, style.L8)
-            White = NewColor.FromHSL2(0, 0, style.G2)
-            HalfWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Ahw)
-            SemiWhite = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Asw)
-            Transparent = NewColor.FromHSL2(0, 0, style.L8).Alpha(style.At)
-            Memory = NewColor.FromHSL2(0, 0, style.G3)
-            Tooltip = NewColor.FromHSL2(0, 0, style.G2).Alpha(style.Atb)
-            BackgroundTransparentSidebar = NewColor.FromHSL2(0, 0, style.G1).Alpha(style.Asb)
-            RedBack = NewColor.FromHSL(0, 1, style.L7)
-
-            Gray1Brush = New SolidColorBrush(Gray1)
-            Gray2Brush = New SolidColorBrush(Gray2)
-            Gray3Brush = New SolidColorBrush(Gray3)
-            Gray4Brush = New SolidColorBrush(Gray4)
-            Gray5Brush = New SolidColorBrush(Gray5)
-            Gray6Brush = New SolidColorBrush(Gray6)
-            Gray7Brush = New SolidColorBrush(Gray7)
-            Gray8Brush = New SolidColorBrush(Gray8)
-            WhiteBrush = New SolidColorBrush(White)
-            HalfWhiteBrush = New SolidColorBrush(HalfWhite)
-            SemiWhiteBrush = New SolidColorBrush(SemiWhite)
-            TransparentBrush = New SolidColorBrush(Transparent)
-            MemoryBrush = New SolidColorBrush(Memory)
-            TooltipBrush = New SolidColorBrush(Tooltip)
-            BackgroundTransparentSidebarBrush = New SolidColorBrush(BackgroundTransparentSidebar)
-            RedBackBrush = New SolidColorBrush(RedBack)
-        End Sub
-    End Class
-
-    '基于对数分布的亮度调整（看起来很高级，实际上对比线性分布性能稀烂）
-    Private Const HighestLight = 95
-    Private Const LowestLight = 10
-    Private Const LogLightBase = 1 - LowestLight
-    Private ReadOnly LogLightBaseRate = Math.Log(HighestLight + 1)
-    Public Function AdjustLight(origin As Integer, adjust As Integer, Optional style As GrayProfile = Nothing) As Integer
-        If origin < 0 Then Return 0 '保证不炸定义域（虽然不会有人传个负的亮度过来吧，应该...不会吧）
-        If adjust = 0 Then Return origin '节省性能
-        If origin > HighestLight Or origin < LowestLight Then Return origin '亮度阈值
-        If style Is Nothing Then style = CurrentProfile()
-        adjust *= If(adjust > 0, style.LaP, style.LaN) '根据当前 style 调整 adjust 值
-        '对数分布 -> 线性分布
-        Dim originF = Math.Log(origin + LogLightBase) / LogLightBaseRate '源 [0,1]
-        Dim adjustF = adjust / 20.0 '参数 [-1,1]
-        Dim resultF = originF + adjustF * If(adjustF > 0, 1 - originF, originF) '线性插值
-        '线性分布 -> 对数分布
-        Dim result As Integer = Math.Exp(resultF * LogLightBaseRate) - LogLightBase
-        Return result
-    End Function
-
-    Public Class ThemeStyleDynamicColors
-        Public ReadOnly Color1 As Color
-        Public ReadOnly Color2 As Color
-        Public ReadOnly Color3 As Color
-        Public ReadOnly Color4 As Color
-        Public ReadOnly Color5 As Color
-        Public ReadOnly Color6 As Color
-        Public ReadOnly Color7 As Color
-        Public ReadOnly Color8 As Color
-        Public ReadOnly ColorBg0 As Color
-        Public ReadOnly ColorBg1 As Color
-        Public ReadOnly SemiTransparent As Color
-
-        Public ReadOnly Color1Brush As SolidColorBrush
-        Public ReadOnly Color2Brush As SolidColorBrush
-        Public ReadOnly Color3Brush As SolidColorBrush
-        Public ReadOnly Color4Brush As SolidColorBrush
-        Public ReadOnly Color5Brush As SolidColorBrush
-        Public ReadOnly Color6Brush As SolidColorBrush
-        Public ReadOnly Color7Brush As SolidColorBrush
-        Public ReadOnly Color8Brush As SolidColorBrush
-        Public ReadOnly ColorBg0Brush As SolidColorBrush
-        Public ReadOnly ColorBg1Brush As SolidColorBrush
-        Public ReadOnly SemiTransparentBrush As SolidColorBrush
-
-        Public Sub New(style As GrayProfile, hue As Integer, sat As Integer, lightAdjust As Integer)
-            Dim sat0 = sat * style.Sa0
-            Dim sat1 = sat * style.Sa1
-
-            Color1 = NewColor.FromHSL2(hue, sat0 * 0.2, style.L1)
-            Color2 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L2, lightAdjust, style))
-            Color3 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L3, lightAdjust, style))
-            Color4 = NewColor.FromHSL2(hue, sat0, AdjustLight(style.L4, lightAdjust, style))
-            Color5 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L5, lightAdjust, style))
-            Color6 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L6, lightAdjust, style))
-            Color7 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L7, lightAdjust, style))
-            Color8 = NewColor.FromHSL2(hue, sat1, AdjustLight(style.L8, lightAdjust, style))
-            ColorBg0 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb0, lightAdjust, style))
-            ColorBg1 = NewColor.FromHSL2(hue, sat, AdjustLight(style.Lb1, lightAdjust, style)).Alpha(style.Ab)
-            SemiTransparent = NewColor.FromHSL2(hue, sat, AdjustLight(style.L8, lightAdjust, style)).Alpha(style.Ast)
-
-            Color1Brush = New SolidColorBrush(Color1)
-            Color2Brush = New SolidColorBrush(Color2)
-            Color3Brush = New SolidColorBrush(Color3)
-            Color4Brush = New SolidColorBrush(Color4)
-            Color5Brush = New SolidColorBrush(Color5)
-            Color6Brush = New SolidColorBrush(Color6)
-            Color7Brush = New SolidColorBrush(Color7)
-            Color8Brush = New SolidColorBrush(Color8)
-            ColorBg0Brush = New SolidColorBrush(ColorBg0)
-            ColorBg1Brush = New SolidColorBrush(ColorBg1)
-            SemiTransparentBrush = New SolidColorBrush(SemiTransparent)
-        End Sub
-    End Class
-
-    Public Property GrayProfile As GrayProfileConfig = Nothing
-
-    Public Property LightStaticColors As ThemeStyleStaticColors = Nothing
-
-    Public Property DarkStaticColors As ThemeStyleStaticColors = Nothing
-
-    Public Function CurrentProfile() As GrayProfile
-        Return GrayProfile.CurrentProfile(IsDarkMode)
-    End Function
-
-    Public Property StaticColors As ThemeStyleStaticColors = Nothing
-
-    Public Property DynamicColors As ThemeStyleDynamicColors = Nothing
+    Public ColorGray1 As New MyColor(AppResources("ColorObjectGray1"))
+    Public ColorGray4 As New MyColor(AppResources("ColorObjectGray4"))
+    Public ColorGray5 As New MyColor(AppResources("ColorObjectGray5"))
+    Public ColorSemiTransparent As New MyColor(AppResources("ColorBrushSemiTransparent"))
 
     Public ThemeNow As Integer = -1
     'Public ColorHue As Integer = If(IsDarkMode, 200, 210), ColorSat As Integer = If(IsDarkMode, 100, 85), ColorLightAdjust As Integer = If(IsDarkMode, 15, 0), ColorHueTopbarDelta As Object = 0
-    Public ColorHue As Integer = 210, ColorSat As Integer = 85, ColorLightAdjust As Integer = 0, ColorHueTopbarDelta As Object = 0
     Public ThemeDontClick As Integer = 0
 
     '深色模式事件
-
+#If False
     ' 定义自定义事件
     Public Event ThemeChanged As EventHandler(Of Boolean)
 
@@ -356,21 +180,26 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     Public Sub RaiseThemeChanged(isDarkMode As Boolean)
         RaiseEvent ThemeChanged("", isDarkMode)
     End Sub
-
+#End If
     Public Sub ThemeRefresh(Optional NewTheme As Integer = -1)
-        ThemeRefreshColor()
-        RaiseThemeChanged(IsDarkMode)
+        'ThemeRefreshColor()
+        'RaiseThemeChanged(IsDarkMode)
+        ColorGray1 = New MyColor(AppResources("ColorObjectGray1"))
+        ColorGray4 = New MyColor(AppResources("ColorObjectGray4"))
+        ColorGray5 = New MyColor(AppResources("ColorObjectGray5"))
+        ColorSemiTransparent = New MyColor(AppResources("ColorBrushSemiTransparent"))
         ThemeRefreshMain()
     End Sub
 
     Public Function GetDarkThemeLight(OriginalLight As Double) As Double
         If IsDarkMode Then
-            Return OriginalLight * 0.1
+            Return OriginalLight * 0.2
         Else
             Return OriginalLight
         End If
     End Function
 
+#If False
     Private ReadOnly HueList As Integer() = {200, 210, 225}
     Private ReadOnly SatList As Integer() = {100, 85, 70}
     Private ReadOnly LightList As Integer() = {7, 0, -2}
@@ -392,82 +221,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 #If DEBUG Then
         End If
 #End If
-
-        If GrayProfile Is Nothing Then
-            Dim result As AnyType = FileService.WaitForResult(PredefinedFileItems.GrayProfile)
-            If result Is Nothing Then
-                Log("[Theme] 无法获取灰阶配置", LogLevel.Debug)
-            ElseIf result.Type.IsSubclassOf(GetType(Exception)) Then
-                Log(result.Value(Of Exception), "[Theme] 获取灰阶配置时出错", LogLevel.Hint)
-            Else
-                GrayProfile = result.Value(Of GrayProfileConfig)
-            End If
-            If GrayProfile Is Nothing OrElse Not GrayProfile.IsEnabled Then
-                Log("[Theme] 正在使用默认灰阶配置")
-                GrayProfile = New GrayProfileConfig With {.IsEnabled = True}
-            Else
-                Log("[Theme] 生效灰阶配置: " & PredefinedFileItems.GrayProfile.TargetPath)
-            End If
-            LightStaticColors = New ThemeStyleStaticColors(GrayProfile.Light)
-            DarkStaticColors = New ThemeStyleStaticColors(GrayProfile.Dark)
-        End If
-
-        Dim res = Application.Current.Resources
-        StaticColors = If(IsDarkMode, DarkStaticColors, LightStaticColors)
-        DynamicColors = New ThemeStyleDynamicColors(CurrentProfile, ColorHue, ColorSat, ColorLightAdjust)
-
-        res("ColorObjectGray1") = StaticColors.Gray1
-        res("ColorObjectGray2") = StaticColors.Gray2
-        res("ColorObjectGray3") = StaticColors.Gray3
-        res("ColorObjectGray4") = StaticColors.Gray4
-        res("ColorObjectGray5") = StaticColors.Gray5
-        res("ColorObjectGray6") = StaticColors.Gray6
-        res("ColorObjectGray7") = StaticColors.Gray7
-        res("ColorObjectGray8") = StaticColors.Gray8
-
-        res("ColorBrushGray1") = StaticColors.Gray1Brush
-        res("ColorBrushGray2") = StaticColors.Gray2Brush
-        res("ColorBrushGray3") = StaticColors.Gray3Brush
-        res("ColorBrushGray4") = StaticColors.Gray4Brush
-        res("ColorBrushGray5") = StaticColors.Gray5Brush
-        res("ColorBrushGray6") = StaticColors.Gray6Brush
-        res("ColorBrushGray7") = StaticColors.Gray7Brush
-        res("ColorBrushGray8") = StaticColors.Gray8Brush
-
-        res("ColorObject1") = DynamicColors.Color1
-        res("ColorObject2") = DynamicColors.Color2
-        res("ColorObject3") = DynamicColors.Color3
-        res("ColorObject4") = DynamicColors.Color4
-        res("ColorObject5") = DynamicColors.Color5
-        res("ColorObject6") = DynamicColors.Color6
-        res("ColorObject7") = DynamicColors.Color7
-        res("ColorObject8") = DynamicColors.Color8
-        res("ColorObjectBg0") = DynamicColors.ColorBg0
-        res("ColorObjectBg1") = DynamicColors.ColorBg1
-
-        res("ColorBrush1") = DynamicColors.Color1Brush
-        res("ColorBrush2") = DynamicColors.Color2Brush
-        res("ColorBrush3") = DynamicColors.Color3Brush
-        res("ColorBrush4") = DynamicColors.Color4Brush
-        res("ColorBrush5") = DynamicColors.Color5Brush
-        res("ColorBrush6") = DynamicColors.Color6Brush
-        res("ColorBrush7") = DynamicColors.Color7Brush
-        res("ColorBrush8") = DynamicColors.Color8Brush
-        res("ColorBrushBg0") = DynamicColors.ColorBg0Brush
-        res("ColorBrushBg1") = DynamicColors.ColorBg1Brush
-
-        res("ColorBrushWhite") = StaticColors.WhiteBrush
-        res("ColorBrushHalfWhite") = StaticColors.HalfWhiteBrush
-        res("ColorBrushSemiWhite") = StaticColors.SemiWhiteBrush
-        res("ColorBrushBackgroundTransparentSidebar") = StaticColors.BackgroundTransparentSidebarBrush
-        res("ColorBrushTransparent") = StaticColors.TransparentBrush
-        res("ColorBrushSemiTransparent") = DynamicColors.SemiTransparentBrush
-        res("ColorBrushToolTip") = StaticColors.TooltipBrush
-        res("ColorBrushMemory") = StaticColors.MemoryBrush
-        res("ColorBrushMsgBox") = StaticColors.WhiteBrush
-        res("ColorBrushRedBack") = StaticColors.RedBackBrush
-        res("ColorBrushMsgBoxText") = res("ColorBrush1")
     End Sub
+#End If
 
     Public Sub ThemeRefreshMain()
 #If DEBUG Then
@@ -476,6 +231,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         RunInUi(
         Sub()
             If Not FrmMain.IsLoaded Then Return
+#If False
             '顶部条背景
             Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(1, 0), .StartPoint = New Point(0, 0)}
             Dim lightAdjust = ColorLightAdjust * 1.2
@@ -504,23 +260,20 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + 21, ColorSat, AdjustLight(53, lightAdjust))})
                 FrmMain.PanTitle.Background = Brush
             End If
+#End If
             '主页面背景
             If Setup.Get("UiBackgroundColorful") Then
-                Brush = New LinearGradientBrush With {.EndPoint = New Point(0.1, 1), .StartPoint = New Point(0.9, 0)}
-                Dim hue1, hue2 As Integer
-                If ThemeNow = 14 AndAlso TypeOf ColorHueTopbarDelta Is Integer Then
-                    hue1 = ColorHue + ColorHueTopbarDelta
-                    hue2 = ColorHue - ColorHueTopbarDelta
-                Else
-                    hue1 = ColorHue - 15
-                    hue2 = ColorHue + 15
-                End If
-                Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = New MyColor().FromHSL2(hue1, ColorSat * 0.8, GetDarkThemeLight(80))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = New MyColor().FromHSL2(ColorHue, ColorSat * 0.8, GetDarkThemeLight(90))})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = New MyColor().FromHSL2(hue2, ColorSat * 0.8, GetDarkThemeLight(80))})
+                Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(0.1, 1), .StartPoint = New Point(0.9, 0)}
+                Dim hue = ThemeService.GetCurrentThemeArgs().Hue
+                Dim hue1 = hue - 15
+                Dim hue2 = hue + 15
+                Dim tone = ThemeService.CurrentTone
+                Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = LabColor.FromLch(GetDarkThemeLight(0.84), tone.C5, hue1)})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = LabColor.FromLch(GetDarkThemeLight(0.96), tone.C7, hue)})
+                Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = LabColor.FromLch(GetDarkThemeLight(0.84), tone.C5, hue2)})
                 FrmMain.PanForm.Background = Brush
             Else
-                FrmMain.PanForm.Background = New MyColor(If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245), If(IsDarkMode, 20, 245))
+                FrmMain.PanForm.Background = Application.Current.Resources("ColorBrushBackground")
             End If
             FrmMain.PanForm.Background.Freeze()
 

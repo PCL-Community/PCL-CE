@@ -1,4 +1,6 @@
 ﻿Imports System.Windows.Markup
+Imports PCL.Core.App
+Imports PCL.Core.UI.Theme
 
 <ContentProperty("Inlines")>
 Public Class MyHint
@@ -44,11 +46,11 @@ Public Class MyHint
             Case Themes.Yellow
                 hue = 40
         End Select
-        Dim s = CurrentProfile
-        Background = New MyColor().FromHSL2(hue, 90, s.L7)
-        BorderBrush = New MyColor().FromHSL2(hue, 90, s.L2)
-        LabText.Foreground = New MyColor().FromHSL2(hue, 90, s.L2)
-        BtnClose.Foreground = New MyColor().FromHSL2(hue, 90, s.L2)
+        Dim s = ThemeService.CurrentTone
+        Background = New MyColor().FromHSL2(hue, 90, s.L7 * 100)
+        BorderBrush = New MyColor().FromHSL2(hue, 90, s.L2 * 100)
+        LabText.Foreground = New MyColor().FromHSL2(hue, 90, s.L2 * 100)
+        BtnClose.Foreground = New MyColor().FromHSL2(hue, 90, s.L2 * 100)
     End Sub
     <Obsolete("IsWarn 已过时。请换用 Theme 属性。")>
     Public Property IsWarn As Boolean
@@ -96,7 +98,7 @@ Public Class MyHint
     End Property
     Public Property RelativeSetup As String = ""
     Private Sub MyHint_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        AddHandler ThemeChanged, AddressOf _ThemeChanged
+        AddHandler ThemeService.ColorModeChanged, AddressOf _ThemeChanged
         If CanClose AndAlso Setup.Get(RelativeSetup) Then Visibility = Visibility.Collapsed
     End Sub
     Private Sub BtnClose_Click(sender As Object, e As EventArgs) Handles BtnClose.Click
@@ -138,7 +140,7 @@ Public Class MyHint
     End Property
     Public Shared ReadOnly EventDataProperty As DependencyProperty = DependencyProperty.Register("EventData", GetType(String), GetType(MyHint), New PropertyMetadata(Nothing))
 
-    Private Sub _ThemeChanged(sender As Object, e As Boolean)
+    Private Sub _ThemeChanged(isDarkMode As Boolean, theme As ColorTheme)
         UpdateUI()
     End Sub
 
@@ -148,7 +150,7 @@ Public Class MyHint
     End Sub
 
     Private Sub Dispose() Handles Me.Unloaded
-        RemoveHandler ModSecret.ThemeChanged, AddressOf _ThemeChanged
+        RemoveHandler ThemeService.ColorModeChanged, AddressOf _ThemeChanged
     End Sub
 
     'Private Sub SetStyle()
