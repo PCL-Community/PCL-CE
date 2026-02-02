@@ -9,6 +9,9 @@ Public Class ModSetup
 #Region "基础"
     Public Function CheckScope(keys As IReadOnlySet(Of String)) As IEnumerable(Of String) Implements IConfigScope.CheckScope
         Dim methods = GetType(ModSetup).GetMethods()
+        For Each method In methods
+            _methodCache.TryAdd(method.Name, method)
+        Next
         Return methods.Where(Function(method) keys.Contains(method.Name)).Select(Function(method) method.Name)
     End Function
 
@@ -29,10 +32,6 @@ Public Class ModSetup
 
     Private _methodCache As New Concurrent.ConcurrentDictionary(Of String, MethodInfo)
     Public Sub OnConfigChanged(e As ConfigEventArgs)
-        If e.Key.StartsWithF("UiHidden") Then '页面隐藏
-            PageSetupUI.HiddenRefresh()
-            Return
-        End If
         Dim method As MethodInfo = _methodCache.GetOrAdd(e.Key, Function() GetType(ModSetup).GetMethod(e.Key))
         If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(e.Key).DefaultValueNoType)})
     End Sub
@@ -56,10 +55,6 @@ Public Class ModSetup
     ''' </summary>
     Public Function Load(key As String, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing) As Object
         Dim value = [Get](key, instance)
-        If key.StartsWithF("UiHidden") Then '页面隐藏
-            PageSetupUI.HiddenRefresh()
-            Return value
-        End If
         Dim method As MethodInfo = _methodCache.GetOrAdd(key, Function() GetType(ModSetup).GetMethod(key))
         If method IsNot Nothing Then method.Invoke(Me, {value})
         Return value
@@ -293,7 +288,7 @@ Public Class ModSetup
         End Select
         FrmSetupUI.CardCustom.TriggerForceResize()
     End Sub
-#If False
+#If False Then
     '颜色模式
     Public Sub UiDarkMode(Value As Integer)
         If Value = 0 Then
@@ -383,6 +378,118 @@ Public Class ModSetup
     End Sub
     Public Sub UiLogoLeft(Value As Boolean)
         FrmMain.PanTitleMain.ColumnDefinitions(0).Width = New GridLength(If(Value AndAlso (Setup.Get("UiLogoType") = 0), 0, 1), GridUnitType.Star)
+    End Sub
+
+    Public Sub UiHiddenPageDownload(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenPageSetup(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenPageTools(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupLaunch(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupUi(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupLauncherMisc(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupGameManage(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupJava(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupUpdate(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupGameLink(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupAbout(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupFeedback(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenSetupLog(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenToolsGameLink(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenToolsHelp(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenToolsTest(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionEdit(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionExport(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionSave(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionScreenshot(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionMod(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionResourcePack(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionShader(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionSchematic(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenVersionServer(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenFunctionSelect(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenFunctionModUpdate(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
+    End Sub
+
+    Public Sub UiHiddenFunctionHidden(Value As Boolean)
+        PageSetupUI.HiddenRefresh()
     End Sub
 
 #End Region

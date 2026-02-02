@@ -119,9 +119,4 @@
   <ItemGroup>
     <Content Include="LICENCE" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Pages\PageSetup\PageSetupLauncherMisc.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
 </Project>

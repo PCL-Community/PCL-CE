@@ -623,8 +623,13 @@ Refresh:
                 If Not conf.SetupLaunch Then SetupCount += 1
                 If Not conf.SetupUi Then SetupCount += 1
                 If Not conf.SetupGameManage Then SetupCount += 1
+                If Not conf.SetupLauncherMisc Then SetupCount += 1
+                If Not conf.SetupJava Then SetupCount += 1
                 If Not conf.SetupUpdate Then SetupCount += 1
                 If Not conf.SetupGameLink Then SetupCount += 1
+                If Not conf.SetupAbout Then SetupCount += 1
+                If Not conf.SetupFeedback Then SetupCount += 1
+                If Not conf.SetupLog Then SetupCount += 1
                 FrmSetupLeft.PanItem.Visibility = If(SetupCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
 
