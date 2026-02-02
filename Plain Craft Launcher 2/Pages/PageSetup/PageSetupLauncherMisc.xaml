@@ -5,8 +5,8 @@
     mc:Ignorable="d" x:Class="PageSetupLauncherMisc"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
-        <StackPanel x:Name="PanMain" Margin="15,10">
-            <local:MyCard Margin="0,0,0,15" Title="系统">
+        <StackPanel x:Name="PanMain" Margin="25,10">
+            <local:MyCard Margin="0,15" Title="系统">
                 <Grid Margin="25,40,25,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
