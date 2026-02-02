@@ -21,7 +21,8 @@ namespace PCL.Core.Link.Lobby;
 /// Lobby server. For auto-management
 /// </summary>
 [LifecycleService(LifecycleState.Loaded)]
-public class LobbyService() : GeneralService("lobby", "LobbyService")
+[LifecycleScope("lobby", "大厅服务")]
+public partial class LobbyService
 {
     private static readonly LobbyController _LobbyController = new();
     private static CancellationTokenSource _lobbyCts = new();
@@ -107,8 +108,8 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     #endregion
 
-    /// <inheritdoc />
-    public override void Stop()
+    [LifecycleStop]
+    private static void _Stop()
     {
         _ = _LobbyController.CloseAsync();
         _ServerGameWatcher.Dispose();

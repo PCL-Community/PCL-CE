@@ -12,12 +12,9 @@ using PCL.Core.Utils.OS;
 namespace PCL.Core.App;
 
 [LifecycleService(LifecycleState.BeforeLoading, Priority = -10)]
-public sealed class PromoteService : GeneralService
+[LifecycleScope("promote", "提权服务", false)]
+public sealed partial class PromoteService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private PromoteService() : base("promote", "提权服务", false) { _context = ServiceContext; }
-    
     private static Process? _promoteProcess;
     private static NamedPipeServerStream? _promotePipeServer;
     
@@ -286,7 +283,8 @@ public sealed class PromoteService : GeneralService
         return id;
     }
     
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         var args = Basics.CommandLineArguments;
         if (args is ["promote", _])
@@ -311,7 +309,8 @@ public sealed class PromoteService : GeneralService
         }
     }
 
-    public override void Stop()
+    [LifecycleStop]
+    private static void _Stop()
     {
         if (_promotePipeServer != null)
         {

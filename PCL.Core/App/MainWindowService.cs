@@ -4,15 +4,13 @@ using System.Windows;
 namespace PCL.Core.App;
 
 [LifecycleService(LifecycleState.WindowCreating, Priority = int.MaxValue)]
-public sealed class MainWindowService : GeneralService
+[LifecycleScope("window", "主窗体", false)]
+public sealed partial class MainWindowService
 {
     public static Func<Window>? Loading { private get; set; }
-
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private MainWindowService() : base("window", "主窗体", false) { _context = ServiceContext; }
     
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         Context.Debug("正在初始化 WPF 窗体");
         var window = Loading!.Invoke();

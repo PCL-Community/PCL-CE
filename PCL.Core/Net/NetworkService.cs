@@ -3,8 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Net.Security;
-using System.Security.Authentication;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Net.Http.Client;
@@ -13,14 +11,14 @@ using Polly;
 namespace PCL.Core.Net;
 
 [LifecycleService(LifecycleState.Loading)]
-public sealed class NetworkService : GeneralService {
+[LifecycleScope("network", "网络服务")]
+public sealed partial class NetworkService {
 
     private static ServiceProvider? _provider;
     private static IHttpClientFactory? _factory;
 
-    private NetworkService() : base("network", "网络服务") {}
-
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         var services = new ServiceCollection();
         services.AddHttpClient("default").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
@@ -41,7 +39,8 @@ public sealed class NetworkService : GeneralService {
         
     }
 
-    public override void Stop() {
+    [LifecycleStop]
+    private static void _Stop() {
         _provider?.Dispose();
     }
 

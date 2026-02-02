@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Win32;
 using PCL.Core.Net;
@@ -15,12 +14,9 @@ using STUN.Client;
 namespace PCL.Core.App;
 
 [LifecycleService(LifecycleState.Running)]
-public class TelemetryService : GeneralService
+[LifecycleScope("telemetry", "遥测")]
+public partial class TelemetryService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private TelemetryService() : base("Telemetry", "遥测") { _context = Lifecycle.GetContext(this); }
-
     // ReSharper disable UnusedAutoPropertyAccessor.Local
 
     private class TelemetryDeviceEnvironment
@@ -43,7 +39,8 @@ public class TelemetryService : GeneralService
 
     // ReSharper restore UnusedAutoPropertyAccessor.Local
 
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         if (!Config.System.Telemetry) return;
         var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");

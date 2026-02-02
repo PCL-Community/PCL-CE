@@ -4,18 +4,14 @@ namespace PCL.Core.Minecraft.Folder;
 
 
 [LifecycleService(LifecycleState.Running)]
-public sealed class FolderService : GeneralService {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    
-    public FolderService() : base("folder", "实例目录管理") {
-        _context = Lifecycle.GetContext(this);
-    }
-
+[LifecycleScope("folder", "实例目录管理")]
+public sealed partial class FolderService 
+{
     private static FolderManager? _folderManager;
     public static FolderManager FolderManager => _folderManager!;
     
-    public override void Start() {
+    [LifecycleStart]
+    private static void _Start() {
         if (_folderManager == null) {
             Context.Info("Start to initialize folder manager.");
 

@@ -13,27 +13,20 @@ using PCL.Core.Utils.Threading;
 namespace PCL.Core.UI.Animation.Core;
 
 [LifecycleService(LifecycleState.WindowCreating)]
-public sealed class AnimationService : GeneralService
+[LifecycleScope("animation", "动画计算以及赋值")]
+public sealed partial class AnimationService
 {
-    #region Lifecycle
-    
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    
-    private AnimationService() : base("animation", "动画计算以及赋值") { _context = ServiceContext; }
-    
-    
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         _Initialize();
     }
 
-    public override void Stop()
+    [LifecycleStop]
+    private static void _Stop()
     {
         _Uninitialize();
     }
-
-    #endregion
     
     private static void _RegisterValueProcessors()
     {

@@ -6,14 +6,11 @@ using PCL.Core.Utils.Exts;
 namespace PCL.Core.App;
 
 [LifecycleService(LifecycleState.BeforeLoading)]
-public sealed class UpdateService : GeneralService
+[LifecycleScope("update", "更新", false)]
+public sealed partial class UpdateService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-
-    private UpdateService() : base("update", "更新", false) { _context = ServiceContext; }
-
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         var args = Basics.CommandLineArguments;
         

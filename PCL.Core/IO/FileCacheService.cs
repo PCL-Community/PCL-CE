@@ -4,13 +4,11 @@ using PCL.Core.App;
 namespace PCL.Core.IO;
 
 [LifecycleService(LifecycleState.Loaded, Priority = 1919820)]
-public class FileCacheService : GeneralService
+[LifecycleScope("cache", "文件缓存")]
+public partial class FileCacheService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private FileCacheService() : base("cache", "文件缓存") { _context = ServiceContext; }
-
-    public override void Start()
+    [LifecycleStart]
+    private static void _Start()
     {
         _InitializeCache();
     }
