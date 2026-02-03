@@ -20,7 +20,6 @@ Public Class PageToolsGameLink
         AddHandler InitLoader.OnStateChangedUi, AddressOf OnLoadStateChanged
 
         AddHandler LobbyService.OnNeedDownloadEasyTier, AddressOf DownloadEasyTier
-        AddHandler LobbyService.OnHint, AddressOf ShowHintFromService
         AddHandler LobbyService.DiscoveredWorlds.CollectionChanged, AddressOf OnDiscoveredWorldsChanged
         AddHandler LobbyService.Players.CollectionChanged, AddressOf OnPlayersChanged
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
