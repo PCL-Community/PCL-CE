@@ -20,6 +20,10 @@ Public Class PageSetupLaunch
         If IsLoad Then Return
         IsLoad = True
 
+        For Each titleName In PredefinedWindowTitles.Keys
+            ComboArgumentTitle.Items.Add(New MyComboBoxItem() With {.Content = titleName})
+        Next
+
         AniControlEnabled += 1
         Reload()
         AniControlEnabled -= 1
@@ -33,7 +37,7 @@ Public Class PageSetupLaunch
     Public Sub Reload()
         Try
             '启动参数
-            TextArgumentTitle.Text = Setup.Get("LaunchArgumentTitle")
+            ComboArgumentTitle.Text = Setup.Get("LaunchArgumentTitle")
             TextArgumentInfo.Text = Setup.Get("LaunchArgumentInfo")
             ComboArgumentIndieV2.SelectedIndex = Setup.Get("LaunchArgumentIndieV2")
             ComboArgumentVisibie.SelectedIndex = Setup.Get("LaunchArgumentVisible")
@@ -93,7 +97,7 @@ Public Class PageSetupLaunch
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextArgumentWindowHeight.ValidatedTextChanged, TextArgumentWindowWidth.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextArgumentTitle.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextArgumentWindowHeight.ValidatedTextChanged, TextArgumentWindowWidth.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
@@ -104,6 +108,22 @@ Public Class PageSetupLaunch
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change, CheckAdvanceNoJavaw.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
+    End Sub
+
+    Private Shared ReadOnly PredefinedWindowTitles As New Dictionary(Of String, String) From {
+    {"预设 - {name} | 玩家 : {user} | 使用 {login} 登录", "{name} | 玩家 : {user} | 使用 {login} 登录"},
+    {"自定义", ""}
+}
+    Private Sub ComboArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles ComboArgumentTitle.TextChanged
+        If AniControlEnabled > 0 Then Return
+
+        Dim targetValue As String = Nothing
+        If PredefinedWindowTitles.TryGetValue(ComboArgumentTitle.Text, targetValue) Then
+            ComboArgumentTitle.Text = targetValue
+            Exit Sub
+        End If
+
+        Setup.Set("LaunchArgumentTitle", ComboArgumentTitle.Text)
     End Sub
 
 #Region "游戏内存"

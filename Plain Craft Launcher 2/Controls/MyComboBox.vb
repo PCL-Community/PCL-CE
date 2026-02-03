@@ -25,6 +25,10 @@
             Log(ex, "初始化可编辑文本框失败（" & If(Name, "") & "）", LogLevel.Feedback)
         End Try
     End Sub
+    Public Sub SetHintText(text As String)
+        HintText = text
+        If TextBox IsNot Nothing Then TextBox.HintText = text
+    End Sub
     Private _Text As String = SelectedItem
     Public Shadows Property Text As String
         Get
