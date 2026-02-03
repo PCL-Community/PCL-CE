@@ -102,7 +102,8 @@ public static class Basics
             try { action(); }
             catch (ThreadInterruptedException) { LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止"); }
             catch (Exception ex) { LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常"); }
-        }) { Priority = priority };
+        })
+        { Priority = priority };
         threadName.Value ??= $"Worker#{thread.ManagedThreadId}";
         thread.Name = threadName.Value;
         thread.Start();
@@ -159,7 +160,8 @@ public static class Basics
     /// </summary>
     /// <param name="path">资源路径，例如 "Resources/java-wrapper.jar"</param>
     /// <returns>资源输入流，若资源不存在则为 <c>null</c></returns>
-    public static Stream? GetResourceStream(string path) {
+    public static Stream? GetResourceStream(string path)
+    {
         var resourceInfo = Application.GetResourceStream(new Uri($"pack://application:,,,/{path}", UriKind.Absolute));
         return resourceInfo?.Stream;
     }

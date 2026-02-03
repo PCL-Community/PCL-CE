@@ -49,18 +49,6 @@ Public Class PageSetupAbout
         End Try
     End Sub
 
-    Private Sub BtnAboutBmclapi_Click(sender As Object, e As EventArgs) Handles BtnAboutBmclapi.Click
-        OpenWebsite("https://afdian.com/a/bangbang93")
-    End Sub
-    Private Sub BtnAboutWiki_Click(sender As Object, e As EventArgs) Handles BtnAboutWiki.Click
-        OpenWebsite("https://www.mcmod.cn")
-    End Sub
-    Private Sub BtnAboutPysio_Click(sender As Object, e As EventArgs) Handles BtnAboutPysio.Click
-        OpenWebsite("https://www.pysio.online")
-    End Sub
-    Private Sub BtnAboutEasyTier_Click(sender As Object, e As EventArgs) Handles BtnAboutEasyTier.Click
-        OpenWebsite("https://easytier.cn/")
-    End Sub
     Private Sub ImgPCLCommunity_Click(sender As Object, e As MouseButtonEventArgs) Handles ImgPCLCommunity.MouseLeftButtonDown
         AniStart({
                  AaRotateTransform(sender, 360)})

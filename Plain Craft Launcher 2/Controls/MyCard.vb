@@ -7,13 +7,12 @@ Imports PCL.Core.UI.Animation.Easings
 Imports PCL.Core.UI.Controls
 
 Public Class MyCard
+    Inherits AnimatedBackgroundGrid
 
     '控件
-    Inherits Grid
     Private ReadOnly MainGrid As Grid
     Public ReadOnly Property MainChrome As MyDropShadow
     Private ReadOnly MainBorder As BlurBorder
-    Private IsThemeChanging As Boolean = False
     Public Property BorderChild As UIElement
         Get
             Return MainBorder.Child
@@ -44,7 +43,6 @@ Public Class MyCard
     End Property
 
     '属性
-    Public Uuid As Integer = GetUuid()
     Public ReadOnly Property Inlines As InlineCollection
         Get
             Return MainTextBlock.Inlines
@@ -70,23 +68,24 @@ Public Class MyCard
     End Property
     Public Shared ReadOnly TitleProperty As DependencyProperty = DependencyProperty.Register("Title", GetType(String), GetType(MyCard), New PropertyMetadata(""))
 
-    Private Async Sub _ThemeChanged(sender As Object, e As Boolean)
-        Dim bgBrush As SolidColorBrush = Application.Current.Resources("ColorBrushSemiWhite")
-        IsThemeChanging = True
-'        AniStart({AaColor(MainBorder, BlurBorder.BackgroundProperty, New MyColor(bgBrush) - MainBorder.Background, 300)}, "MyCard Theme " & Uuid)
-        Dim animation = New NColorFromToAnimation
-        animation.Name = "MyCard Theme " & Uuid
-        animation.To = New NColor("ColorBrushSemiWhite")
-        animation.Duration = TimeSpan.FromMilliseconds(300)
-        animation.RunFireAndForget(New WpfAnimatable(MainBorder, BackgroundProperty))
-        Await Task.Delay(300)
-        MainBorder.Background = bgBrush
-        IsThemeChanging = False
-    End Sub
+    Protected Overrides Property AnimatableBrush As SolidColorBrush
+        Get
+            Return MainBorder.Background
+        End Get
+        Set
+            MainBorder.Background = Value
+        End Set
+    End Property
 
+    Protected Overrides ReadOnly Property AnimatableElement As FrameworkElement
+        Get
+            Return MainBorder
+        End Get
+    End Property
 
     'UI 建立
     Public Sub New()
+        MyBase.New(BlurBorder.BackgroundProperty)
         MainChrome = New MyDropShadow With {
             .Margin = New Thickness(-3, -3, -3, -3 - GetWPFSize(1)), .ShadowRadius = 3, .Opacity = DropShadowIdleOpacity, .CornerRadius = New CornerRadius(5)}
         MainChrome.SetResourceReference(MyDropShadow.ColorProperty, "ColorObject1")
@@ -95,12 +94,14 @@ Public Class MyCard
         Children.Insert(1, MainBorder)
         MainGrid = New Grid
         Children.Add(MainGrid)
+        '设置背景色
+        SetResourceReference(BackgroundBrushProperty, "ColorBrushTransparentBackground")
     End Sub
     Private IsLoad As Boolean = False
     Private Sub Init() Handles Me.Loaded
         If IsLoad Then Return
         IsLoad = True
-        AddHandler ThemeChanged, AddressOf _ThemeChanged
+        'AddHandler ThemeChanged, AddressOf _BackgroundBrushChanged '已在依赖属性中实现
         '初次加载限定
         If MainTextBlock Is Nothing Then
             MainTextBlock = New TextBlock With {.HorizontalAlignment = HorizontalAlignment.Left, .VerticalAlignment = VerticalAlignment.Top, .Margin = New Thickness(15, 12, 0, 0), .FontWeight = FontWeights.Bold, .FontSize = 13, .IsHitTestVisible = False}
@@ -114,8 +115,6 @@ Public Class MyCard
             MainSwap.SetResourceReference(Shapes.Path.FillProperty, "ColorBrush1")
             MainGrid.Children.Add(MainSwap)
         End If
-        '更新背景色
-        MainBorder.Background = Application.Current.Resources("ColorBrushSemiWhite")
         '改变默认的折叠
         If IsSwapped AndAlso SwapControl IsNot Nothing Then
             MainSwap.RenderTransform = New RotateTransform(If(SwapLogoRight, 270, 0))
@@ -129,11 +128,12 @@ Public Class MyCard
             RunInUi(Sub() UseAnimation = RawUseAnimation, True)
         End If
     End Sub
-    Private Sub Dispose() Handles Me.Unloaded
-        If Parent Is Nothing Then
-            RemoveHandler ThemeChanged, AddressOf _ThemeChanged
-        End If
-    End Sub
+    '已在依赖属性中实现
+    'Private Sub Dispose() Handles Me.Unloaded
+    '    If Parent Is Nothing Then
+    '        RemoveHandler ThemeChanged, AddressOf _BackgroundBrushChanged 
+    '    End If
+    'End Sub
     Public Sub StackInstall()
         StackInstall(SwapControl, InstallMethod)
         TriggerForceResize()
@@ -192,7 +192,7 @@ Public Class MyCard
         animation.Children.Add(aniChromeOpacity)
         
         
-        If Not IsThemeChanging Then 
+        If Not IsAnimating Then 
 '            AniStart(AniList, "MyCard Mouse " & Uuid)
             animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
         End If
@@ -234,7 +234,7 @@ Public Class MyCard
         aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
         animation.Children.Add(aniChromeColor)
         animation.Children.Add(aniChromeOpacity)
-        If Not IsThemeChanging Then 
+        If Not IsAnimating Then 
 '            AniStart(AniList, "MyCard Mouse " & Uuid)
             animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
         End If

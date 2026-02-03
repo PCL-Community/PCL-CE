@@ -17,11 +17,11 @@ public class ConfigItem<TValue>(
 {
     public string Key { get; } = key;
 
-    public ConfigSource Source { get; set; } = source;
+    public ConfigSource Source { get; } = source;
 
-    Type ConfigItem.Type => typeof(TValue);
+    public Type Type => typeof(TValue);
 
-    private Func<TValue>? _defaultValueGetter = defaultValue;
+    private Func<TValue>? _defaultValueConstructor = defaultValue;
     private TValue? _defaultValue;
     private bool _defaultValueHasSet = false;
 
@@ -30,9 +30,9 @@ public class ConfigItem<TValue>(
     private TValue _GetDefaultValue()
     {
         if (_defaultValueHasSet) return _defaultValue!;
-        _defaultValue = _defaultValueGetter!();
+        _defaultValue = _defaultValueConstructor!();
         _defaultValueHasSet = true;
-        _defaultValueGetter = null;
+        _defaultValueConstructor = null;
         return _defaultValue;
     }
 
@@ -52,20 +52,19 @@ public class ConfigItem<TValue>(
 
     #region 值获取和修改
 
-    private readonly IConfigProvider _provider = ConfigService.GetProvider(source);
+    private IConfigProvider _Provider { get => field ??= ConfigService.GetProvider(Source); } = null!;
 
-    private bool _enableCache = true;
     private ConfigValueCache<TValue> _valueCache = new();
 
     public bool EnableCache
     {
-        get => _enableCache;
+        get;
         set
         {
-            if (!_enableCache) _valueCache.InvalidateAll();
-            _enableCache = value;
+            if (!field) _valueCache.InvalidateAll();
+            field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// 获取配置值。
@@ -75,11 +74,11 @@ public class ConfigItem<TValue>(
     public TValue GetValue(object? argument = null)
     {
         TValue? value = default; // 这个初始化是多余的，但是煞笔巨硬不初始化会报错
-        var exists = _enableCache && _valueCache.TryRead(out value, argument);
+        var exists = EnableCache && _valueCache.TryRead(out value, argument);
         if (!exists)
         {
-            exists = _provider.GetValue(Key, out value, argument);
-            if (exists && _enableCache) _valueCache.Write(value!, argument);
+            exists = _Provider.GetValue(Key, out value, argument);
+            if (exists && EnableCache) _valueCache.Write(value!, argument);
         }
         var e = _TriggerEvent(ConfigEvent.Get, argument, value, true);
         if (e != null)
@@ -109,8 +108,8 @@ public class ConfigItem<TValue>(
             if (e.Cancelled) return false;
             if (e.NewValueReplacement != null) value = (TValue)e.NewValueReplacement;
         }
-        _provider.SetValue(Key, value, argument);
-        if (_enableCache) _valueCache.Write(value, argument);
+        _Provider.SetValue(Key, value, argument);
+        if (EnableCache) _valueCache.Write(value, argument);
         _TriggerEvent(ConfigEvent.Set, argument, value, e: e, isPreview: false);
         return true;
     }
@@ -125,7 +124,7 @@ public class ConfigItem<TValue>(
         {
             // 兼容龙猫妙妙小代码直接传入 string 值的行为
             if (value is string v) return SetValue(v.Convert<TValue>()!, argument);
-            var msg = $"Value convert failed (required: {typeof(TValue).FullName}, provided: {value.GetType().FullName})";
+            var msg = $"Value convert failed (required: {Type.FullName}, provided: {value.GetType().FullName})";
             throw new InvalidCastException(msg);
         }
     }
@@ -139,15 +138,15 @@ public class ConfigItem<TValue>(
     {
         var e = _TriggerEvent(ConfigEvent.Reset, argument, null, isPreview: true);
         if (e is { Cancelled: true }) return false;
-        _provider.Delete(Key, argument);
-        if (_enableCache) _valueCache.Invalidate(argument);
+        _Provider.Delete(Key, argument);
+        if (EnableCache) _valueCache.Invalidate(argument);
         _TriggerEvent(ConfigEvent.Reset, argument, null, isPreview: false);
         return true;
     }
 
     public bool IsDefault(object? argument = null)
     {
-        var result = !_provider.Exists(Key, argument);
+        var result = !_Provider.Exists(Key, argument);
         var e = _TriggerEvent(ConfigEvent.CheckDefault, argument, result);
         if (e is { NewValueReplacement: not null }) result = (bool)e.NewValueReplacement;
         return result;
@@ -172,7 +171,7 @@ public class ConfigItem<TValue>(
     // 获取值，若未设置则返回 null
     private object? _GetValueOrNull(object? argument)
     {
-        var exists = _provider.GetValue<TValue>(Key, out var value, argument);
+        var exists = _Provider.GetValue<TValue>(Key, out var value, argument);
         return exists ? value : null;
     }
 
@@ -235,7 +234,7 @@ public interface ConfigItem
     /// <summary>
     /// 配置来源。
     /// </summary>
-    public ConfigSource Source { get; set; }
+    public ConfigSource Source { get; }
 
     /// <summary>
     /// 配置的 CLR 类型。

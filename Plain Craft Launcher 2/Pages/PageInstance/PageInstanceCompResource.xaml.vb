@@ -1,6 +1,7 @@
 Imports System.Windows.Threading
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 
 Public Class PageInstanceCompResource
     Implements IRefreshable
@@ -466,8 +467,8 @@ Public Class PageInstanceCompResource
                     CType(Item.Parent, Panel).Children.Remove(Item)
                 End If
 
-                MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle, ThemeHelper.IsDarkMode())
-                MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo, ThemeHelper.IsDarkMode())
+                MinecraftFormatter.SetColorfulTextLab(Item.LabTitle.Text, Item.LabTitle, ThemeService.IsDarkMode)
+                MinecraftFormatter.SetColorfulTextLab(Item.LabInfo.Text, Item.LabInfo, ThemeService.IsDarkMode)
                 Item.Checked = SelectedMods.Contains(TargetMod.RawPath) '更新选中状态
                 PanList.Children.Add(Item)
             Next

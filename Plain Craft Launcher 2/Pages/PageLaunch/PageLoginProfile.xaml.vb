@@ -74,13 +74,13 @@ Class PageLoginProfile
     End Sub
     Private Sub ProfileContMenuBuild(sender As MyListItem, e As EventArgs)
         '更改 UUID
-        Dim btnEditUuid As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "更改 UUID", .Tag = sender.Tag}
+        Dim btnEditUuid As New MyIconButton With {.Logo = Logo.IconButtonEdit, .ToolTip = "更改 UUID", .Tag = sender.Tag}
         ToolTipService.SetPlacement(btnEditUuid, Primitives.PlacementMode.Center)
         ToolTipService.SetVerticalOffset(btnEditUuid, 30)
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2)
         AddHandler btnEditUuid.Click, AddressOf EditProfileUuid
         '复制 UUID
-        Dim btnCopyUuid As New MyIconButton With {.Logo = Logo.IconButtonInfo, .ToolTip = "复制 UUID", .Tag = sender.Tag}
+        Dim btnCopyUuid As New MyIconButton With {.Logo = Logo.IconButtonCopy, .ToolTip = "复制 UUID", .Tag = sender.Tag}
         ToolTipService.SetPlacement(btnCopyUuid, Primitives.PlacementMode.Center)
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30)
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2)

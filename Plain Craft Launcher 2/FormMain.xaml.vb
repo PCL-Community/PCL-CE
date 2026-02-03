@@ -9,6 +9,7 @@ Imports PCL.Core.UI.Animation
 Imports PCL.Core.UI.Animation.Animatable
 Imports PCL.Core.UI.Animation.Core
 Imports PCL.Core.UI.Animation.Easings
+Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -38,23 +39,16 @@ Public Class FormMain
     Public Sub New()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         '刷新主题
-        ThemeCheckAll(False)
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = SystemTheme.IsSystemInDarkMode()
-        End Select
-        ThemeRefreshColor()
+        'ThemeCheckAll(False)
+        'ThemeRefreshColor()
+        AddHandler ThemeService.ColorModeChanged, Sub(mode, theme) ThemeRefresh()
+        AddHandler ThemeService.ColorThemeChanged, AddressOf ThemeRefresh
         '窗体参数初始化
         FrmMain = Me
         FrmLaunchLeft = New PageLaunchLeft
         FrmLaunchRight = New PageLaunchRight
         '版本号改变
-        Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
+        Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
             '触发升级
             UpgradeSub(LastVersion)
@@ -129,6 +123,7 @@ Public Class FormMain
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
         Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
+        PageSetupUI.HiddenRefresh()
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
@@ -312,12 +307,6 @@ Public Class FormMain
             Catch ex As Exception
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
-            '清理自动更新文件
-            Try
-                If File.Exists(ExePath & "PCL\Plain Craft Launcher Community Edition.exe") Then File.Delete(ExePath & "PCL\Plain Craft Launcher Community Edition.exe")
-            Catch ex As Exception
-                Log(ex, "清理自动更新文件失败")
-            End Try
             GetSystemInfo()
         End Sub, "Start Loader", ThreadPriority.Lowest)
 
@@ -388,7 +377,7 @@ Public Class FormMain
         End If
         '解除帮助页面的隐藏
         If LastVersionCode <= 205 Then
-            Config.UI.Hide.SetupAbout = False
+            Config.Preference.Hide.SetupAbout = False
             Log("[Start] 已解除帮助页面的隐藏")
         End If
         '迁移旧版用户档案
@@ -416,8 +405,11 @@ Public Class FormMain
 
 #Region "自定义窗口"
     
+    Private CanResize As Boolean = True
+    
     ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
-    Private Shared Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+    Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
+        ' 窗口活动常量
         Const WM_NCHITTEST = &H84
         Const HTCLIENT = 1
         Const HTLEFT = 10
@@ -429,13 +421,9 @@ Public Class FormMain
         Const HTBOTTOMLEFT = 16
         Const HTBOTTOMRIGHT = 17
         
-        ' offset in WPF pixel
+        ' WPF 尺寸的 offset
         Const offsetWpf = 6
         Const hitWidthWpf = 5
-        
-        ' offset in real pixel TODO
-        Dim offsetPx = offsetWpf
-        Dim hitWidthPx = hitWidthWpf
         
         ' 过滤非 WM_NCHITTEST 事件
         If msg <> WM_NCHITTEST Then Return IntPtr.Zero
@@ -458,6 +446,16 @@ Public Class FormMain
         ' 过滤不在窗口内的请求
         If Not isInWindow Then Return IntPtr.Zero
 
+        ' 如果 CanResize 为 False，直接返回 HTCLIENT
+        If Not CanResize Then Return New IntPtr(HTCLIENT)
+
+        ' 真实像素尺寸的 offset
+        Dim dpi = VisualTreeHelper.GetDpi(Me)
+        Dim offsetPxX = offsetWpf * dpi.DpiScaleX
+        Dim offsetPxY = offsetWpf * dpi.DpiScaleY
+        Dim hitWidthPxX = hitWidthWpf * dpi.DpiScaleX
+        Dim hitWidthPxY = hitWidthWpf * dpi.DpiScaleY
+
         ' 计算鼠标相对于窗口左上角的物理像素位置
         Dim relX As Integer = xMouse - windowRect.Left
         Dim relY As Integer = yMouse - windowRect.Top
@@ -465,10 +463,10 @@ Public Class FormMain
         Dim h As Integer = windowBounds.Height
 
         ' 判定是否命中偏移后的热区
-        Dim inLeft As Boolean = (relX >= offsetPx AndAlso relX <= offsetPx + hitWidthPx)
-        Dim inRight As Boolean = (relX <= w - offsetPx AndAlso relX >= w - offsetPx - hitWidthPx)
-        Dim inTop As Boolean = (relY >= offsetPx AndAlso relY <= offsetPx + hitWidthPx)
-        Dim inBottom As Boolean = (relY <= h - offsetPx AndAlso relY >= h - offsetPx - hitWidthPx)
+        Dim inLeft As Boolean = (relX >= offsetPxX AndAlso relX <= offsetPxX + hitWidthPxX)
+        Dim inRight As Boolean = (relX <= w - offsetPxX AndAlso relX >= w - offsetPxX - hitWidthPxX)
+        Dim inTop As Boolean = (relY >= offsetPxY AndAlso relY <= offsetPxY + hitWidthPxY)
+        Dim inBottom As Boolean = (relY <= h - offsetPxY AndAlso relY >= h - offsetPxY - hitWidthPxY)
 
         handled = True ' 接管该区域的消息
 
@@ -523,7 +521,8 @@ Public Class FormMain
     ''' 正常关闭程序。程序将在执行此方法后约 0.3s 退出。
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
-    Public Sub EndProgram(SendWarning As Boolean)
+    ''' <param name="isUpdating">是否正在更新重启</param>
+    Public Sub EndProgram(SendWarning As Boolean, Optional isUpdating As Boolean = False)
         '发出警告
         If SendWarning AndAlso HasDownloadingTask() Then
             If MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 1 Then
@@ -628,25 +627,28 @@ Public Class FormMain
                     
                         Await Task.Delay(20)
                     
-                        EndProgramForce(force:=False)
+                        EndProgramForce(force:=False, isUpdating:=isUpdating)
                         End Sub)
                 End Sub
                 
                 animation.RunFireAndForget(EmptyAnimatable.Instance)
             Else
-                EndProgramForce(force:=False)
+                EndProgramForce(force:=False, isUpdating:=isUpdating)
             End If
             Log("[System] 收到关闭指令")
         End Sub)
     End Sub
     Private Shared IsLogShown As Boolean = False
-    Public Shared Async Sub EndProgramForce(Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, Optional force As Boolean = True)
+    Public Shared Sub EndProgramForce(
+                                            Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, 
+                                            Optional force As Boolean = True,
+                                            Optional isUpdating As Boolean = False)
         'On Error Resume Next
         '关闭联机大厅
         'Await LobbyController.CloseAsync().ConfigureAwait(False)
         IsProgramEnded = True
         AniControlEnabled += 1
-        If IsUpdateWaitingRestart Then UpdateRestart(False, triggerRestart := False)
+        If IsUpdateWaitingRestart AndAlso Not isUpdating Then UpdateRestart(False, triggerRestart := False)
         If ReturnCode = ProcessReturnValues.Exception Then
             If Not IsLogShown Then
                 FeedbackInfo()
@@ -678,8 +680,8 @@ Public Class FormMain
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged
         If IsSizeSaveable Then
-            Config.UI.WindowHeight = Height
-            Config.UI.WindowWidth = Width
+            States.UI.WindowHeight = Height
+            States.UI.WindowWidth = Width
         End If
         If PanBack IsNot Nothing Then
             RectForm.Rect = New Rect(0, 0, PanBack.ActualWidth, PanBack.ActualHeight)
@@ -720,10 +722,10 @@ Public Class FormMain
 
 #Region "窗体事件"
     Public Sub AddResizer()
-        Me.ResizeMode = ResizeMode.CanResize
+        CanResize = True
     End Sub
     Public Sub RemoveResizer()
-        Me.ResizeMode = ResizeMode.NoResize
+        CanResize = False
     End Sub
 
     '按键事件
@@ -1078,8 +1080,7 @@ Public Class FormMain
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
                 Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
                 If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
-                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
-                    ThemeRefresh()
+                    ThemeService.RefreshColorMode()
                 End If
             End If
         End If
@@ -1200,10 +1201,6 @@ Public Class FormMain
         ''' </summary>
         GameLog = 10
         ''' <summary>
-        ''' Java 管理，这是一个副页面。
-        ''' </summary>
-        SetupJava = 11
-        ''' <summary>
         ''' 存档详细管理，这是一个副页面。
         ''' </summary>
         VersionSaves = 12
@@ -1238,13 +1235,15 @@ Public Class FormMain
 
         SetupLaunch = 0
         SetupUI = 1
-        SetupSystem = 2
+        SetupGameManage = 2
         SetupLink = 3
         SetupAbout = 4
         SetupLog = 5
         SetupFeedback = 6
         SetupGameLink = 7
         SetupUpdate = 8
+        SetupJava = 9
+        SetupLauncherMisc = 10
 
         ToolsGameLink = 1
         ToolsLauncherHelp = 2
@@ -1282,8 +1281,6 @@ Public Class FormMain
                 Return "资源下载 - " & CType(Stack.Additional(0), CompProject).TranslatedName
             Case PageType.HelpDetail
                 Return CType(Stack.Additional(0), HelpEntry).Title
-            Case PageType.SetupJava
-                Return "Java 管理"
             Case PageType.VersionSaves
                 Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case PageType.HomePageMarket
@@ -1584,9 +1581,6 @@ Public Class FormMain
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
-                Case PageType.SetupJava 'Java 设置
-                    FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
-                    PageChangeAnim(New MyPageLeft, FrmSetupJava)
                 Case PageType.GameLog '实时日志
                     If FrmLogLeft Is Nothing Then FrmLogLeft = New PageLogLeft
                     If FrmLogLeft Is Nothing Then FrmLogRight = New PageLogRight

@@ -641,7 +641,7 @@ Retry:
     Private Function MsLoginStep1Refresh(Code As String) As String()
         McLaunchLog("开始正版验证 Step 1/6（刷新登录）")
         If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
-        Dim Result As String
+        Dim Result As String = Nothing
         Try
             Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
                 WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
@@ -663,7 +663,6 @@ Retry:
                             End Sub)
                 If IsIgnore Then
                     Return {"Ignore", ""}
-                    Exit Function
                 End If
             End If
         End Try
@@ -703,7 +702,7 @@ Retry:
             .RelyingParty = "http://auth.xboxlive.com",
             .TokenType = "JWT"
         }
-        Dim Result As String
+        Dim Result As String = Nothing
         Try
             Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
                 WithJsonContent(requestData).
@@ -1193,7 +1192,7 @@ LoginFinish:
 
 #Region "Java 处理"
 
-    Public McLaunchJavaSelected As JavaInfo = Nothing
+    Public McLaunchJavaSelected As JavaEntry = Nothing
     Private Sub McLaunchJava(task As LoaderTask(Of Integer, Integer))
         Dim minVer As New Version(0, 0, 0, 0), maxVer As New Version(999, 999, 999, 999)
 
@@ -1515,11 +1514,11 @@ LoginFinish:
             McLaunchLog("新版 Game 参数获取成功")
         End If
         '编码参数（#4700、#5892、#5909）
-        If McLaunchJavaSelected.JavaMajorVersion > 8 Then
+        If McLaunchJavaSelected.Installation.MajorVersion > 8 Then
             If Not Arguments.Contains("-Dstdout.encoding=") Then Arguments = "-Dstdout.encoding=UTF-8 " & Arguments
             If Not Arguments.Contains("-Dstderr.encoding=") Then Arguments = "-Dstderr.encoding=UTF-8 " & Arguments
         End If
-        If McLaunchJavaSelected.JavaMajorVersion >= 18 Then
+        If McLaunchJavaSelected.Installation.MajorVersion >= 18 Then
             If Not Arguments.Contains("-Dfile.encoding=") Then Arguments = "-Dfile.encoding=COMPAT " & Arguments
         End If
         'MJSB
@@ -1590,14 +1589,14 @@ LoginFinish:
         If Not ArgumentJvm.Contains("-Dlog4j2.formatMsgNoLookups=true") Then ArgumentJvm += " -Dlog4j2.formatMsgNoLookups=true"
         ArgumentJvm = ArgumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", "") '#3511 的清理
         DataList.Insert(0, ArgumentJvm) '可变 JVM 参数
-        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
-        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
+        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024 * 0.15) & "m")
+        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024) & "m")
         DataList.Add("""-Djava.library.path=" & GetNativesFolder() & """")
         DataList.Add("-cp ${classpath}") '把支持库添加进启动参数表
 
         'Authlib-Injector
         If McLoginLoader.Output.Type = "Auth" Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
+            If McLaunchJavaSelected.Installation.MajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
                 Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
@@ -1634,7 +1633,7 @@ LoginFinish:
         End If
 
         '设置代理
-        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.System.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress) Then
+        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.Network.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress) Then
             Try
                 Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
                 DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
@@ -1646,7 +1645,7 @@ LoginFinish:
         
         '添加 Java Wrapper 作为主 Jar
         If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceSelected) Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
+            If McLaunchJavaSelected.Installation.MajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
@@ -1696,7 +1695,7 @@ NextInstance:
 
         'Authlib-Injector
         If McLoginLoader.Output.Type = "Auth" Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
+            If McLaunchJavaSelected.Installation.MajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
                 Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
@@ -1711,11 +1710,11 @@ NextInstance:
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
             If McInstanceSelected.ReleaseTime.Year >= 2017 Then
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
-            Else 
+            Else
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() & """")
             End If
         End If
-        
+
         '渲染器
         Dim Renderer = 0
         If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) <> 0 Then
@@ -1731,7 +1730,7 @@ NextInstance:
         End If
 
         '设置代理
-        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.System.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress) Then
+        If Config.Instance.UseProxy.Item(instance.PathIndie) AndAlso Config.Network.HttpProxy.Type.Equals(2) AndAlso Not String.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress) Then
             Try
                 Dim ProxyAddress As New Uri(Setup.Get("SystemHttpProxy"))
                 DataList.Add($"-D{If(ProxyAddress.Scheme.ToString.StartsWithF("https:"), "https", "http")}.proxyHost={ProxyAddress.AbsoluteUri}")
@@ -1747,7 +1746,7 @@ NextInstance:
         End If
         '添加 Java Wrapper 作为主 Jar
         If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceSelected) Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
+            If McLaunchJavaSelected.Installation.MajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
@@ -1833,16 +1832,16 @@ NextInstance:
             For Each SubJson As JToken In currentInstance.JsonObject("arguments")("game")
                 If SubJson.Type = JTokenType.String Then
                     '字符串类型
-                    DataList.Add(SubJson.ToString)
+                    dataList.Add(SubJson.ToString)
                 Else
                     '非字符串类型
                     If McJsonRuleCheck(SubJson("rules")) Then
                         '满足准则
                         If SubJson("value").Type = JTokenType.String Then
-                            DataList.Add(SubJson("value").ToString)
+                            dataList.Add(SubJson("value").ToString)
                         Else
                             For Each value As JToken In SubJson("value")
-                                DataList.Add(value.ToString)
+                                dataList.Add(value.ToString)
                             Next
                         End If
                     End If
@@ -1857,15 +1856,15 @@ NextInstance:
         '将 "-XXX" 与后面 "XXX" 合并到一起
         '如果不进行合并 Impact 会启动无效，它有两个 --tweakclass
         Dim DeDuplicateDataList As New List(Of String)
-        For i = 0 To DataList.Count - 1
-            Dim CurrentEntry As String = DataList(i)
-            If DataList(i).StartsWithF("-") Then
-                Do While i < DataList.Count - 1
-                    If DataList(i + 1).StartsWithF("-") Then
+        For i = 0 To dataList.Count - 1
+            Dim CurrentEntry As String = dataList(i)
+            If dataList(i).StartsWithF("-") Then
+                Do While i < dataList.Count - 1
+                    If dataList(i + 1).StartsWithF("-") Then
                         Exit Do
                     Else
                         i += 1
-                        CurrentEntry += " " + DataList(i)
+                        CurrentEntry += " " + dataList(i)
                     End If
                 Loop
             End If
@@ -1931,10 +1930,10 @@ NextInstance:
                 GameSize = New Size(854, 480)
         End Select
         If McInstanceSelected.Info.Drop <= 120 AndAlso
-            McLaunchJavaSelected.JavaMajorVersion <= 8 AndAlso McLaunchJavaSelected.Version.Revision >= 200 AndAlso McLaunchJavaSelected.Version.Revision <= 321 AndAlso
+            McLaunchJavaSelected.Installation.MajorVersion <= 8 AndAlso McLaunchJavaSelected.Installation.Version.Revision >= 200 AndAlso McLaunchJavaSelected.Installation.Version.Revision <= 321 AndAlso
             Not McInstanceSelected.Info.HasOptiFine AndAlso Not McInstanceSelected.Info.HasForge Then
             '修复 #3463：1.12.2-，JRE 8u200~321 下窗口大小为设置大小的 DPI% 倍
-            McLaunchLog($"已应用窗口大小过大修复（{McLaunchJavaSelected.Version.Revision}）")
+            McLaunchLog($"已应用窗口大小过大修复（{McLaunchJavaSelected.Installation.Version.Revision}）")
             GameSize.Width /= DPI / 96
             GameSize.Height /= DPI / 96
         End If
@@ -2067,15 +2066,16 @@ NextInstance:
     Private Sub McLaunchPrerun()
 
         '要求 Java 使用高性能显卡
+        Dim javaExePath = If(McLaunchJavaSelected.Installation.JavawExePath, McLaunchJavaSelected.Installation.JavaExePath)
         Try
-            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Config.Launch.SetGpuPreference)
+            SetGPUPreference(javaExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
             If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
                 Try
-                    If ProcessInterop.StartAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
+                    If ProcessInterop.StartAsAdmin($"--gpu ""{javaExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功")
                     Else
                         Throw New Exception("调整过程中出现异常")
@@ -2153,68 +2153,73 @@ NextInstance:
 
         '更新 options.txt
         Dim SetupFileAddress As String = McInstanceSelected.PathIndie & "options.txt"
-        If Not File.Exists(SetupFileAddress) Then
-            'Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
-            Dim YosbrFileAddress As String = McInstanceSelected.PathIndie & "config\yosbr\options.txt"
-            If File.Exists(YosbrFileAddress) Then
-                McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
-                SetupFileAddress = YosbrFileAddress
-                WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
-            End If
-        End If
-        Try
-            '语言
-            '1.0-     ：没有语言选项
-            '1.1 ~ 5  ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
-            '1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
-            '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
-            '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-            Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
-            Dim RequiredLang As String '需要的语言
-            Dim hasExistingSaves As Boolean = Directory.Exists(McInstanceSelected.PathIndie & "saves")
-            Dim shouldUseDefault As Boolean = CurrentLang = "none" OrElse Not hasExistingSaves
-            
-            '获取 Minecraft 版本信息
-            Dim mcReleaseTime As Date? = McInstanceSelected.ReleaseTime
-            Dim isUnder11 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
-            
-            '对于 1.0 及以下版本，没有语言选项，返回 "none"
-            If isUnder11 Then
-                RequiredLang = "none"
-            Else
-                '根据配置确定默认语言
-                Dim defaultLang As String = If(Setup.Get("ToolHelpChinese"), "zh_cn", "en_us")
-                RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
-                
-                '应用版本特定的语言格式规则
-                If RequiredLang.StartsWith("zh_") AndAlso mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
-                    '1.1~1.10：最后两位字母必须大写（zh_CN）
-                    RequiredLang = RequiredLang.Substring(0, RequiredLang.Length - 2) & RequiredLang.Substring(RequiredLang.Length - 2).ToUpper
+
+        '辅助切换游戏语言
+        If Config.Tool.AutoChangeLanguage Then
+            If Not File.Exists(SetupFileAddress) Then
+                'Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
+                Dim YosbrFileAddress As String = McInstanceSelected.PathIndie & "config\yosbr\options.txt"
+                If File.Exists(YosbrFileAddress) Then
+                    McLaunchLog("将修改 Yosbr Mod 中的 options.txt")
+                    SetupFileAddress = YosbrFileAddress
+                    WriteIni(SetupFileAddress, "lang", "none") '忽略默认语言
                 End If
             End If
-            If CurrentLang = RequiredLang Then
-                McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
-            Else
-                WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
-                WriteIni(SetupFileAddress, "lang", RequiredLang)
-                McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
-            End If
-            '如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
-            If Setup.Get("ToolHelpChinese") AndAlso (CurrentLang = "none" OrElse Not Directory.Exists(McInstanceSelected.PathIndie & "saves")) Then
-                WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
-                McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示")
-            End If
-            '窗口
-            Select Case Setup.Get("LaunchArgumentWindowType")
-                Case 0 '全屏
-                    WriteIni(SetupFileAddress, "fullscreen", "true")
-                Case 1 '默认
-                Case Else '其他
-                    WriteIni(SetupFileAddress, "fullscreen", "false")
-            End Select
-        Catch ex As Exception
-            Log(ex, "更新 options.txt 失败", LogLevel.Hint)
-        End Try
+            Try
+                '语言
+                '1.0-     ：没有语言选项
+                '1.1 ~ 5  ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
+                '1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
+                '1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
+                '1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
+                Dim CurrentLang As String = ReadIni(SetupFileAddress, "lang", "none")
+                Dim RequiredLang As String '需要的语言
+                Dim hasExistingSaves As Boolean = Directory.Exists(McInstanceSelected.PathIndie & "saves")
+                Dim shouldUseDefault As Boolean = CurrentLang = "none" OrElse Not hasExistingSaves
+
+                '获取 Minecraft 版本信息
+                Dim mcReleaseTime As Date? = McInstanceSelected.ReleaseTime
+                Dim isUnder1dot1 As Boolean = mcReleaseTime > New DateTime(2000, 1, 1) AndAlso mcReleaseTime <= New DateTime(2011, 11, 18) '1.11 发布日期
+
+                '对于 1.0 及以下版本，没有语言选项，返回 "none"
+                If isUnder1dot1 Then
+                    RequiredLang = "none"
+                Else
+                    '根据配置确定默认语言
+                    Dim defaultLang As String = "zh_cn"
+                    RequiredLang = If(shouldUseDefault, defaultLang, CurrentLang.ToLower)
+
+                    '应用版本特定的语言格式规则
+                    If mcReleaseTime >= New DateTime(2012, 1, 12) AndAlso mcReleaseTime <= New DateTime(2016, 6, 8) Then
+                        '1.1~1.10：最后两位字母必须大写（zh_CN）
+                        RequiredLang = "zh_CN"
+                    End If
+                End If
+                If CurrentLang = RequiredLang Then
+                    McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改")
+                Else
+                    WriteIni(SetupFileAddress, "lang", "-") '触发缓存更改，避免删除后重新下载残留缓存
+                    WriteIni(SetupFileAddress, "lang", RequiredLang)
+                    McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}")
+                End If
+                '如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
+                If CurrentLang = "none" OrElse Not Directory.Exists(McInstanceSelected.PathIndie & "saves") Then
+                    WriteIni(SetupFileAddress, "forceUnicodeFont", "true")
+                    McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示")
+                End If
+            Catch ex As Exception
+                Log(ex, "更新 options.txt 失败", LogLevel.Hint)
+            End Try
+        End If
+
+        '窗口
+        Select Case Setup.Get("LaunchArgumentWindowType")
+            Case 0 '全屏
+                WriteIni(SetupFileAddress, "fullscreen", "true")
+            Case 1 '默认
+            Case Else '其他
+                WriteIni(SetupFileAddress, "fullscreen", "false")
+        End Select
 
     End Sub
     Private Sub McLaunchCustom(Loader As LoaderTask(Of Integer, Integer))
@@ -2228,18 +2233,18 @@ NextInstance:
         '输出 bat
         Try
             Dim CmdString As String =
-                $"{If(McLaunchJavaSelected.JavaMajorVersion > 8, "chcp 65001>nul" & vbCrLf, "")}" &
+                $"{If(McLaunchJavaSelected.Installation.MajorVersion > 8, "chcp 65001>nul" & vbCrLf, "")}" &
                 "@echo off" & vbCrLf &
                 $"title 启动 - {McInstanceSelected.Name}" & vbCrLf &
                 "echo 游戏正在启动，请稍候。" & vbCrLf &
                 $"cd /D ""{ShortenPath(McInstanceSelected.PathIndie)}""" & vbCrLf &
                 CustomCommandGlobal & vbCrLf &
                 CustomCommandVersion & vbCrLf &
-                $"""{McLaunchJavaSelected.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
+                $"""{McLaunchJavaSelected.Installation.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
                 "echo 游戏已退出。" & vbCrLf &
                 "pause"
             WriteFile(If(CurrentLaunchOptions.SaveBatch, ExePath & "PCL\LatestLaunch.bat"), FilterAccessToken(CmdString, "F"),
-                      Encoding:=If(McLaunchJavaSelected.JavaMajorVersion > 8, Encoding.UTF8, Encoding.Default))
+                      Encoding:=If(McLaunchJavaSelected.Installation.MajorVersion > 8, Encoding.UTF8, Encoding.Default))
             If CurrentLaunchOptions.SaveBatch IsNot Nothing Then
                 McLaunchLog("导出启动脚本完成，强制结束启动过程")
                 AbortHint = "导出启动脚本成功！"
@@ -2304,15 +2309,15 @@ NextInstance:
 
     End Sub
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
-        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw")
+        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
         '启动信息
         Dim GameProcess = New Process()
-        Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.JavaExePath, McLaunchJavaSelected.JavawExePath))
+        Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.Installation.JavaExePath, McLaunchJavaSelected.Installation.JavawExePath))
 
         '设置环境变量
         Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"))
-        Paths.Add(ShortenPath(McLaunchJavaSelected.JavaFolder))
+        Paths.Add(ShortenPath(McLaunchJavaSelected.Installation.JavaFolder))
         StartInfo.EnvironmentVariables("Path") = Join(Paths.Distinct.ToList, ";")
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
 
@@ -2327,7 +2332,7 @@ NextInstance:
 
         '开始进程
         GameProcess.Start()
-        McLaunchLog("已启动游戏进程：" & McLaunchJavaSelected.JavawExePath)
+        McLaunchLog("已启动游戏进程：" & StartInfo.FileName)
         If Loader.IsAborted Then
             McLaunchLog("由于取消启动，已强制结束游戏进程") '#1631
             GameProcess.Kill()
@@ -2359,7 +2364,7 @@ NextInstance:
         McLaunchLog($"游戏版本：{McInstanceSelected.Info.VanillaName}（{McInstanceSelected.Info.Vanilla}，Drop {McInstanceSelected.Info.Drop}{If(McInstanceSelected.Info.Reliable, "", "，无法完全确定")}）")
         McLaunchLog("资源版本：" & McAssetsGetIndexName(McInstanceSelected))
         McLaunchLog("实例继承：" & If(McInstanceSelected.InheritInstanceName = "", "无", McInstanceSelected.InheritInstanceName))
-        McLaunchLog("分配的内存：" & PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
+        McLaunchLog("分配的内存：" & PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) & " GB（" & Math.Round(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024) & " MB）")
         McLaunchLog("MC 文件夹：" & McFolderSelected)
         McLaunchLog("实例文件夹：" & McInstanceSelected.PathInstance)
         McLaunchLog("版本隔离：" & (McInstanceSelected.PathIndie = McInstanceSelected.PathInstance))
@@ -2382,7 +2387,7 @@ NextInstance:
         WindowTitle = ArgumentReplace(WindowTitle, False)
 
         'JStack 路径
-        Dim JStackPath As String = McLaunchJavaSelected.JavaFolder & "\jstack.exe"
+        Dim JStackPath As String = McLaunchJavaSelected.Installation.JavaFolder & "\jstack.exe"
 
         '初始化等待
         Dim Watcher As New Watcher(Loader, McInstanceSelected, WindowTitle, If(File.Exists(JStackPath), JStackPath, ""), CurrentLaunchOptions.IsTest)
@@ -2474,7 +2479,7 @@ NextInstance:
             text = text.Replace("{time}", replacer(Date.Now.ToString("HH':'mm':'ss")))
         End If
         'Minecraft
-        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.JavaFolder))
+        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.Installation.JavaFolder))
         text = text.Replace("{minecraft}", replacer(McFolderSelected))
         If McInstanceSelected?.IsLoaded Then
             text = text.Replace("{version_path}", replacer(McInstanceSelected.PathInstance)) : text = text.Replace("{verpath}", replacer(McInstanceSelected.PathInstance))

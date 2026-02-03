@@ -20,7 +20,7 @@ Public Class PageLaunchRight
         input = New String(input.Where(Function(x) Char.IsAsciiLetter(x)).ToArray()).ToLower()
         If input.Contains("pclcommunity") Then
             AniDispose(PanHint, True)
-            Config.Hint.CEMessage = False
+            States.Hint.CEMessage = False
         Else
             Hint("不太对哦……")
         End If

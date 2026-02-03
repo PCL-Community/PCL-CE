@@ -9,7 +9,7 @@ using PCL.Core.Minecraft.Launch.Utils;
 
 namespace PCL.Core.Minecraft.Launch.Services;
 
-public class LaunchMonitorService(IMcInstance instance, JavaInfo selectedJava) {
+public class LaunchMonitorService(IMcInstance instance, JavaEntry selectedJava) {
     private readonly IJsonBasedInstance _jsonBasedInstance = (IJsonBasedInstance)instance;
     
     public void MonitorLaunch() {
@@ -20,7 +20,7 @@ public class LaunchMonitorService(IMcInstance instance, JavaInfo selectedJava) {
         // McLaunchUtils.Log("PCL 版本：" + VersionBaseName + " (" + VersionCode + ")");
         McLaunchUtils.Log("游戏版本：" + instance.InstanceInfo.McVersion);
         McLaunchUtils.Log("资源版本：" + McLaunchUtils.GetAssetsIndexName(_jsonBasedInstance));
-        McLaunchUtils.Log("分配的内存：" + InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Is64Bit) + " GB (" + Math.Round(InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Is64Bit) * 1024) + " MB)");
+        McLaunchUtils.Log("分配的内存：" + InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Installation.Is64Bit) + " GB (" + Math.Round(InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Installation.Is64Bit) * 1024) + " MB)");
         McLaunchUtils.Log("MC 文件夹：" + instance.Folder.Path);
         McLaunchUtils.Log("实例文件夹：" + instance.Path);
         McLaunchUtils.Log("版本隔离：" + (instance.IsolatedPath == instance.Path));
@@ -47,7 +47,7 @@ public class LaunchMonitorService(IMcInstance instance, JavaInfo selectedJava) {
         windowTitle = customEnvReplacer.ArgumentReplace(windowTitle);
 
         // JStack 路径
-        var jStackPath = System.IO.Path.Combine(selectedJava.JavaFolder, "jstack.exe");
+        var jStackPath = System.IO.Path.Combine(selectedJava.Installation.JavaFolder, "jstack.exe");
 
         // 初始化等待
         // TODO: 等待实现

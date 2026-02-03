@@ -40,7 +40,7 @@ public class InstanceManager(McFolder folder) {
                 }
             }
 
-            if (Config.System.Debug.AddRandomDelay) {
+            if (Config.Debug.AddRandomDelay) {
                 await Task.Delay(Random.Shared.Next(200, 3000), cancelToken);
             }
         } catch (OperationCanceledException) {
@@ -57,7 +57,7 @@ public class InstanceManager(McFolder folder) {
     }
     
     private void SelectInstanceAsync() {
-        var savedSelection = Config.Launch.SelectedInstance;
+        var savedSelection = States.Game.SelectedInstance;
 
         if (McInstanceList.Any(instance => instance.CardType != McInstanceCardType.Error)) {
             var selectedInstance = McInstanceList
@@ -72,7 +72,7 @@ public class InstanceManager(McFolder folder) {
 
                 if (selectedInstance != null) {
                     FolderService.FolderManager.CurrentInst = selectedInstance;
-                    Config.Launch.SelectedInstance = FolderService.FolderManager.CurrentInst.Name;
+                    States.Game.SelectedInstance = FolderService.FolderManager.CurrentInst.Name;
                     LogWrapper.Warn($"自动选择 Minecraft 实例：{FolderService.FolderManager.CurrentInst.Path}");
                 } else {
                     FolderService.FolderManager.CurrentInst = null;
@@ -82,7 +82,7 @@ public class InstanceManager(McFolder folder) {
         } else {
             FolderService.FolderManager.CurrentInst = null;
             if (savedSelection.IsNullOrEmpty()) {
-                Config.Launch.SelectedInstance = string.Empty;
+                States.Game.SelectedInstance = string.Empty;
                 LogWrapper.Warn("清除失效的 Minecraft 实例选择");
             }
             LogWrapper.Warn("未找到可用的 Minecraft 实例");
@@ -90,7 +90,7 @@ public class InstanceManager(McFolder folder) {
     }
 
     private void SortInstance() {
-        var groupedInstances = Config.UI.DetailedInstanceClassification
+        var groupedInstances = Config.Preference.DetailedInstanceClassification
             ? GroupAndSortWithDetailedClassification()
             : GroupAndSortWithoutDetailedClassification();
 

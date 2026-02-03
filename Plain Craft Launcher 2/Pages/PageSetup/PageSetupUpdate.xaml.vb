@@ -4,9 +4,9 @@ Imports PCL.Core.Utils
 Public Class PageSetupUpdate
     Private Sub Init() Handles Me.Loaded
         AniControlEnabled += 1
-        TextMirrorCDK.Password = Config.System.MirrorChyanKey
-        ComboSystemUpdateChannel.SelectedIndex = Config.System.Update.UpdateChannel
-        ComboSystemUpdateMode.SelectedIndex = Config.System.Update.UpdateMode
+        TextMirrorCDK.Password = Config.Update.MirrorChyanKey
+        ComboSystemUpdateChannel.SelectedIndex = Config.Update.UpdateChannel
+        ComboSystemUpdateMode.SelectedIndex = Config.Update.UpdateMode
         TextCurrentVersion.Text = "PCL CE " & VersionNameFormat(VersionBaseName)
         AniControlEnabled -= 1
         CheckUpdate()
@@ -128,7 +128,7 @@ Public Class PageSetupUpdate
     End Sub
     
     Private Sub ComboSystemUpdateMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateMode.SelectionChanged
-        If AniControlEnabled = 0 Then Config.System.Update.UpdateMode = ComboSystemUpdateMode.SelectedIndex
+        If AniControlEnabled = 0 Then Config.Update.UpdateMode = ComboSystemUpdateMode.SelectedIndex
     End Sub
     
     Private Sub ComboSystemUpdateBranch_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ComboSystemUpdateChannel.SelectionChanged
@@ -175,12 +175,12 @@ Public Class PageSetupUpdate
             ComboSystemUpdateChannel.SelectedItem = e.RemovedItems(0)
             AniControlEnabled -= 1
         Else
-            Config.System.Update.UpdateChannel = ComboSystemUpdateChannel.SelectedIndex
+            Config.Update.UpdateChannel = ComboSystemUpdateChannel.SelectedIndex
         End If
     End Sub
     
     Private Sub TextMirrorCDK_PasswordChanged(sender As Object, e As EventArgs) Handles TextMirrorCDK.PasswordChanged
-        Config.System.MirrorChyanKey = TextMirrorCDK.Password
+        Config.Update.MirrorChyanKey = TextMirrorCDK.Password
     End Sub
     
     Private Sub BtnGetMirrorCDK_Click(sender As Object, e As EventArgs) Handles BtnGetMirrorCDK.Click

@@ -1,7 +1,7 @@
 ﻿Imports System.Windows.Threading
 Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
-Imports PCL.Core.App.Configuration.Impl
+Imports PCL.Core.App.Configuration.Storage
 
 Public Class PageSelectRight
 
@@ -132,6 +132,7 @@ Public Class PageSelectRight
                         Dim IsCleanroomExists As Boolean = False
                         Dim IsLabyModExists As Boolean = False
                         For Each instance As McInstance In Card.Value
+                            If Not instance.IsLoaded Then instance.Load()
                             If instance.Info.HasFabric Then IsFabricExists = True
                             If instance.Info.HasQuilt Then IsQuiltExists = True
                             If instance.Info.HasLiteLoader Then IsLiteExists = True
@@ -212,7 +213,7 @@ Public Class PageSelectRight
                     Else
                         LabEmptyTitle.Text = "无可用实例"
                         LabEmptyContent.Text = "未找到任何游戏实例，请先下载一个游戏实例。" & vbCrLf & "若有已存在的实例，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。"
-                        BtnEmptyDownload.Visibility = If(Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
+                        BtnEmptyDownload.Visibility = If(Config.Preference.Hide.PageDownload AndAlso Not PageSetupUI.HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
                     End If
                 Else
                     '有实例但搜索无结果的情况
@@ -391,7 +392,7 @@ Public Class PageSelectRight
                         "实例删除确认", , "取消",, True)
                 Case 1
                     IniClearCache(instance.PathIndie & "options.txt")
-                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheTrafficCenter).InvalidateCache(instance.PathInstance)
+                    CType(ConfigService.GetProvider(ConfigSource.GameInstance), DynamicCacheConfigStorage).InvalidateCache(instance.PathInstance)
                     If IsShiftPressed Then
                         DeleteDirectory(instance.PathInstance)
                         Hint("实例 " & instance.Name & " 已永久删除！", HintType.Finish)
@@ -432,7 +433,7 @@ Public Class PageSelectRight
     End Sub
 
     Public Sub BtnEmptyDownload_Loaded() Handles BtnEmptyDownload.Loaded
-        Dim NewVisibility = If((Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow) OrElse ShowHidden, Visibility.Collapsed, Visibility.Visible)
+        Dim NewVisibility = If((Config.Preference.Hide.PageDownload AndAlso Not PageSetupUI.HiddenForceShow) OrElse ShowHidden, Visibility.Collapsed, Visibility.Visible)
         If BtnEmptyDownload.Visibility <> NewVisibility Then
             BtnEmptyDownload.Visibility = NewVisibility
             PanLoad.TriggerForceResize()

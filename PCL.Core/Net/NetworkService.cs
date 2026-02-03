@@ -31,7 +31,7 @@ public sealed class NetworkService : GeneralService {
                 AllowAutoRedirect = true,
                 MaxAutomaticRedirections = 25,
                 UseCookies = false, //禁止自动 Cookie 管理
-                ConnectCallback = Config.System.NetworkConfig.EnableDoH
+                ConnectCallback = Config.Network.EnableDoH
                     ? HostConnectionHandler.Instance.GetConnectionAsync
                     : null
             }

@@ -10,6 +10,6 @@ public static class RegionUtils
     /// 获取区域限制状态
     /// </summary>
     public static bool IsRestrictedFeatAllowed =>
-        Config.System.Debug.AllowRestrictedFeature || (TimeZoneInfo.Local.Id == "China Standard Time" &&
+        Config.Debug.AllowRestrictedFeature || (TimeZoneInfo.Local.Id == "China Standard Time" &&
                                                        (CultureInfo.CurrentCulture.Name == "zh-CN" || CultureInfo.CurrentUICulture.Name == "zh-CN"));
 }

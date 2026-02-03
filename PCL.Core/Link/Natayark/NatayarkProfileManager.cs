@@ -98,15 +98,15 @@ public static class NatayarkProfileManager
                 NaidProfile.LastIp = userData["last_ip"]?.ToString() ?? string.Empty;
 
                 // 保存数据
-                Config.Link.NaidRefreshToken = NaidProfile.RefreshToken;
-                Config.Link.NaidRefreshExpireTime = expiresAt;
+                States.Link.NaidRefreshToken = NaidProfile.RefreshToken;
+                States.Link.NaidRefreshExpireTime = expiresAt;
             }
             catch (Exception ex)
             {
                 if (isRetry)
                 {
                     NaidProfile = new NaidUser();
-                    Config.Link.NaidRefreshToken = string.Empty;
+                    States.Link.NaidRefreshToken = string.Empty;
                     WarnLog("获取 Natayark 用户数据失败，请尝试前往设置重新登录");
                 }
                 else
@@ -115,7 +115,7 @@ public static class NatayarkProfileManager
                     {
                         WarnLog("Naid Access Token 无效，尝试刷新登录");
                         await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false); // 搁这让电脑休息半秒吗
-                        await GetNaidDataAsync(Config.Link.NaidRefreshToken, true, true).ConfigureAwait(false);
+                        await GetNaidDataAsync(States.Link.NaidRefreshToken, true, true).ConfigureAwait(false);
                     }
                     else if (ex.Message.Contains("invalid_grant"))
                     {
@@ -124,13 +124,13 @@ public static class NatayarkProfileManager
                     else if (ex is HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized })
                     {
                         NaidProfile = new NaidUser();
-                        Config.Link.NaidRefreshToken = string.Empty;
+                        States.Link.NaidRefreshToken = string.Empty;
                         WarnLog("Natayark 账号信息已过期，请前往设置重新登录！");
                     }
                     else
                     {
                         NaidProfile = new NaidUser();
-                        Config.Link.NaidRefreshToken = string.Empty;
+                        States.Link.NaidRefreshToken = string.Empty;
                         WarnLog("Naid 登录失败，请尝试前往设置重新登录");
                     }
                 }

@@ -1,21 +1,22 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip;
+using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Hash;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
-using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.BZip2;
-using PCL.Core.Logging;
-using PCL.Core.UI;
-using PCL.Core.Utils.Codecs;
-using PCL.Core.Utils.Exts;
-using PCL.Core.Utils.Hash;
 
 namespace PCL.Core.IO;
 
@@ -819,5 +820,24 @@ public static class Files {
             LogWrapper.Warn("Checker", $"检查文件出错: {ex}");
             return ex.ToString();
         }
+    }
+
+    /// <summary>
+    /// 检查指定路径是否在指定文件夹中
+    /// </summary>
+    /// <param name="childPath">预检查路径</param>
+    /// <param name="baseDirectory">应存在文件夹</param>
+    /// <returns></returns>
+    public static bool IsPathWithinDirectory(string childPath, string baseDirectory)
+    {
+        var baseDir = Path.GetFullPath(baseDirectory);
+        var child = Path.GetFullPath(childPath);
+
+        return child.StartsWith(
+            baseDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal
+        );
     }
 }

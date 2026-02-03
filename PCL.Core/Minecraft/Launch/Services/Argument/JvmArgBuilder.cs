@@ -30,7 +30,7 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// <param name="selectedJava">已选择的 Java 信息</param>
     /// <returns>JVM 参数字符串列表</returns>
     /// <exception cref="InvalidOperationException">当实例 JSON 缺少 mainClass 时抛出</exception>
-    public List<string> BuildLegacyJvmArguments(JavaInfo selectedJava) {
+    public List<string> BuildLegacyJvmArguments(JavaEntry selectedJava) {
         var arguments = new List<string> { HeapDumpParameter };
 
         _AddCustomJvmArguments(arguments);
@@ -53,7 +53,7 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// <param name="selectedJava">已选择的 Java 信息</param>
     /// <returns>JVM 参数字符串列表</returns>
     /// <exception cref="InvalidOperationException">当实例 JSON 缺少 mainClass 时抛出</exception>
-    public List<string> BuildModernJvmArguments(JavaInfo selectedJava) {
+    public List<string> BuildModernJvmArguments(JavaEntry selectedJava) {
         var arguments = new List<string>();
 
         _AddVersionJsonJvmArguments(arguments);
@@ -102,8 +102,8 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// <summary>
     /// 添加内存相关参数
     /// </summary>
-    private void _AddMemoryArguments(List<string> arguments, JavaInfo selectedJava) {
-        var ramInMb = InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Is64Bit) * 1024;
+    private void _AddMemoryArguments(List<string> arguments, JavaEntry selectedJava) {
+        var ramInMb = InstanceRamService.GetInstanceMemoryAllocation(instance, !selectedJava.Installation.Is64Bit) * 1024;
         var youngGenSize = (int)(ramInMb * 0.15);
 
         arguments.Add($"-Xmn{youngGenSize}m");
@@ -160,7 +160,7 @@ public class JvmArgBuilder(IMcInstance instance) {
         if (!_ShouldUseProxy()) return;
 
         try {
-            var proxyUri = new Uri(Config.System.HttpProxy.CustomAddress);
+            var proxyUri = new Uri(Config.Network.HttpProxy.CustomAddress);
             var scheme = _GetProxyScheme(proxyUri);
 
             arguments.Add($"-D{scheme}.proxyHost={proxyUri.Host}");
@@ -175,8 +175,8 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// </summary>
     private bool _ShouldUseProxy() {
         return Config.Instance.UseProxy[instance.Path] &&
-               Config.System.HttpProxy.Type == 2 &&
-               !string.IsNullOrWhiteSpace(Config.System.HttpProxy.CustomAddress);
+               Config.Network.HttpProxy.Type == 2 &&
+               !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress);
     }
     
     /// <summary>
@@ -188,7 +188,7 @@ public class JvmArgBuilder(IMcInstance instance) {
         // Authlib-Injector 配置
         if (McLoginLoader.Output.Type == "Auth")
         {
-            if (McLaunchJavaSelected.JavaMajorVersion >= 6)
+            if (McLaunchJavaSelected.Installation.MajorVersion >= 6)
             {
                 dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书 (Meloong-Git/#5252)
             }
@@ -221,7 +221,7 @@ public class JvmArgBuilder(IMcInstance instance) {
         /*
         // Authlib-Injector 配置
         if (McLoginLoader.Output.Type == "Auth") {
-            if (McLaunchJavaSelected.JavaMajorVersion >= 6) {
+            if (McLaunchJavaSelected.Installation.MajorVersion >= 6) {
                 dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书 (Meloong-Git/#5252)
             }
 
@@ -257,10 +257,10 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// <summary>
     /// 添加 Java Wrapper 配置
     /// </summary>
-    private void _AddJavaWrapperConfiguration(List<string> arguments, JavaInfo selectedJava) {
+    private void _AddJavaWrapperConfiguration(List<string> arguments, JavaEntry selectedJava) {
         if (!_ShouldUseJavaWrapper()) return;
 
-        if (selectedJava.JavaMajorVersion >= 9) {
+        if (selectedJava.Installation.MajorVersion >= 9) {
             arguments.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
         }
 
@@ -367,11 +367,11 @@ public class JvmArgBuilder(IMcInstance instance) {
     /// </summary>
     private static void _AddIpStackPreference(List<string> arguments) {
         switch (Config.Launch.PreferredIpStack) {
-            case 0:
+            case JvmPreferredIpStack.PreferV4:
                 arguments.Add("-Djava.net.preferIPv4Stack=true");
                 arguments.Add("-Djava.net.preferIPv4Addresses=true");
                 break;
-            case 2:
+            case JvmPreferredIpStack.PreferV6:
                 arguments.Add("-Djava.net.preferIPv6Stack=true");
                 arguments.Add("-Djava.net.preferIPv6Addresses=true");
                 break;

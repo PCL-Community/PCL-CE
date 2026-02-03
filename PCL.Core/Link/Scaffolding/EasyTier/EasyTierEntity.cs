@@ -172,7 +172,7 @@ public class EasyTierEntity
             .AddFlag("enable-quic-proxy")
             .AddFlagIf(!Config.Link.TryPunchSym, "disable-sys-hole-punching")
             .AddFlagIf(!Config.Link.EnableIPv6, "disable-ipv6")
-            .AddFlagIf(Config.Link.LatencyFirstMode, "latency-first")
+            .AddFlagIf(Config.Link.UseLatencyFirstMode, "latency-first")
             .Add("encryption-algorithm", "aes-gcm")
             .Add("compression", "zstd")
             .Add("default-protocol", Config.Link.ProtocolPreference.ToString().ToLowerInvariant())
@@ -231,7 +231,7 @@ public class EasyTierEntity
     private async Task<IReadOnlyList<string>> _GetEtRelayListAsync()
     {
         var relays = ETRelay.RelayList;
-        var customedNodes = Config.Link.RelayServer.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        var customedNodes = Config.Link.CustomRelayServer.Split(';', StringSplitOptions.RemoveEmptyEntries);
         foreach (var node in customedNodes)
         {
             if (node.Contains("tcp://", StringComparison.OrdinalIgnoreCase) ||

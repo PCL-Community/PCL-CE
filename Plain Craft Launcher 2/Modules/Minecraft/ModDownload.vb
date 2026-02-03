@@ -164,7 +164,7 @@ Public Module ModDownload
         Get
             SyncLock _allDropsLock
                 If _allDrops Is Nothing Then
-                    Dim rawData As String = Config.Cache.Drops
+                    Dim rawData As String = States.Game.Drops
                     If String.IsNullOrEmpty(rawData) Then
                         _allDrops = New List(Of Integer)()
                     Else
@@ -178,7 +178,7 @@ Public Module ModDownload
         Set(value As List(Of Integer))
             SyncLock _allDropsLock
                 _allDrops = value
-                Config.Cache.Drops = value.Join(",")
+                States.Game.Drops = value.Join(",")
             End SyncLock
         End Set
     End Property
@@ -909,7 +909,7 @@ Public Module ModDownload
         Public Sub New(ApiName As String)
             ForgeType = ForgelikeType.NeoForge
             Me.ApiName = ApiName
-            IsBeta = ApiName.Contains("beta")
+            IsBeta = ApiName.Contains("beta") OrElse ApiName.Contains("alpha")
             If ApiName.Contains("1.20.1") Then '1.20.1-47.1.99
                 VersionName = ApiName.Replace("1.20.1-", "")
                 Version = New Version("19." & VersionName)

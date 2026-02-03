@@ -201,16 +201,15 @@ public static class InstanceRamService {
         try {
             // 检查实例特定的Java设置
             if (TryGetInstanceJavaInfo(instance, out var instanceJavaInfo)) {
-                return instanceJavaInfo!.Is64Bit;
+                return instanceJavaInfo!.Installation.Is64Bit;
             }
 
             // 检查全局Java设置
             if (TryGetGlobalJavaInfo(out var globalJavaInfo)) {
-                return globalJavaInfo!.Is64Bit;
+                return globalJavaInfo!.Installation.Is64Bit;
             }
 
-            // 检查系统中是否有任何64位Java
-            return JavaService.JavaManager.JavaList.Any(java => java.Is64Bit);
+            return JavaService.JavaManager.Existing64BitJava();
         } catch (Exception ex) {
             LogWrapper.Warn(ex, "检查 Java 架构时出错，重置为默认设置");
             ResetJavaSettings(instance);
@@ -221,7 +220,7 @@ public static class InstanceRamService {
     /// <summary>
     /// 尝试获取实例特定的Java信息
     /// </summary>
-    private static bool TryGetInstanceJavaInfo(IMcInstance instance, out JavaInfo? javaInfo) {
+    private static bool TryGetInstanceJavaInfo(IMcInstance instance, out JavaEntry? javaInfo) {
         javaInfo = null;
         var instanceJavaPath = Config.Instance.SelectedJava[instance.Path];
 
@@ -234,14 +233,14 @@ public static class InstanceRamService {
             return false;
         }
 
-        javaInfo = JavaInfo.Parse(instanceJavaPath);
+        javaInfo = JavaService.JavaManager.Get(instanceJavaPath);
         return true;
     }
 
     /// <summary>
     /// 尝试获取全局Java信息
     /// </summary>
-    private static bool TryGetGlobalJavaInfo(out JavaInfo? javaInfo) {
+    private static bool TryGetGlobalJavaInfo(out JavaEntry? javaInfo) {
         javaInfo = null;
         var globalJavaPath = Config.Launch.SelectedJava;
 
@@ -254,7 +253,7 @@ public static class InstanceRamService {
             return false;
         }
 
-        javaInfo = JavaInfo.Parse(globalJavaPath);
+        javaInfo = JavaService.JavaManager.AddOrGet(globalJavaPath);
         return javaInfo != null;
     }
 

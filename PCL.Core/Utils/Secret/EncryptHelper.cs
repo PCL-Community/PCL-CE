@@ -59,7 +59,9 @@ public static class EncryptHelper
         {
             try
             {
+#pragma warning disable CS0612,CS0618 // Type or member is obsolete
                 var decryptedData = AesCbcProvider.Instance.Decrypt(rawData, Encoding.UTF8.GetBytes(IdentifyOld.EncryptKey));
+#pragma warning restore CS0612,CS0618 // Type or member is obsolete
                 return Encoding.UTF8.GetString(decryptedData);
             }
             catch (Exception ex) { decryptError = ex; }
