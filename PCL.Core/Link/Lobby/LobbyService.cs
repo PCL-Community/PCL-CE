@@ -545,27 +545,3 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 /// <param name="Name">World name.</param>
 /// <param name="Port">World share port.</param>
 public record FoundWorld(string Name, int Port);
-
-/// <summary>
-/// Hint type in PCL.Core (for UI display).
-/// </summary>
-public enum CoreHintType
-{
-    /// <summary>
-    /// 信息，通常是蓝色的“i”。
-    /// </summary>
-    /// <remarks></remarks>
-    Info,
-
-    /// <summary>
-    /// 已完成，通常是绿色的“√”。
-    /// </summary>
-    /// <remarks></remarks>
-    Finish,
-
-    /// <summary>
-    /// 错误，通常是红色的“×”。
-    /// </summary>
-    /// <remarks></remarks>
-    Critical
-}
