@@ -2,6 +2,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
 Imports PCL.Core.IO
+Imports PCL.Core.UI
 Imports PCL.Core.Utils
 
 Public Module ModMain
@@ -46,8 +47,15 @@ Public Module ModMain
         HintWaiting.Add(New HintMessage With {.Text = If(Text, ""), .Type = Type, .Log = Log})
     End Sub
     
-    Public Sub HintWrapper_OnShow(message As String, messageTheme As Core.UI.HintTheme)
-        Hint(message, messageTheme)
+    Public Sub HintWrapper_OnShow(message As String, messageTheme As HintTheme)
+        Select messageTheme
+            Case HintTheme.Info
+                Hint(message, HintType.Info)
+            Case HintTheme.Success
+                Hint(message, HintType.Finish)
+            Case HintTheme.Error
+                Hint(message, HintType.Critical)
+        End Select
     End Sub
 
     Private Sub HintTick()
