@@ -15,9 +15,9 @@ public class DecimalArgument : CommandArgument<decimal>
         init => base.Value = value;
     }
 
-    public override bool TryCaseValue<T>(out T value)
+    public override bool TryCastValue<T>(out T value)
     {
-        if (base.TryCaseValue(out value)) return true;
+        if (base.TryCastValue(out value)) return true;
         var type = typeof(T);
         try
         {

@@ -30,11 +30,11 @@ public abstract class CommandArgument
     /// <param name="value">参数值，若尝试失败则为该类型默认值</param>
     /// <typeparam name="T">参数值的类型</typeparam>
     /// <returns>是否成功，若类型不匹配则失败</returns>
-    public abstract bool TryCaseValue<T>(out T? value);
+    public abstract bool TryCastValue<T>(out T? value);
 
-    public T? CaseValue<T>()
+    public T? CastValue<T>()
     {
-        var result = TryCaseValue(out T? value);
+        var result = TryCastValue(out T? value);
         return result ? value : throw new InvalidCastException("Value type mismatch or cannot cast");
     }
 }
@@ -71,7 +71,7 @@ public abstract class CommandArgument<TValue> : CommandArgument
         }
     } = default!;
 
-    public override bool TryCaseValue<T>(out T value)
+    public override bool TryCastValue<T>(out T value)
     {
         if (Value is T v)
         {
@@ -79,6 +79,11 @@ public abstract class CommandArgument<TValue> : CommandArgument
             return true;
         }
         value = default!;
+        if (typeof(T) == typeof(string))
+        {
+            Unsafe.As<T, string>(ref value) = ValueText;
+            return true;
+        }
         return false;
     }
 }
