@@ -36,13 +36,13 @@ Public Class PageInstanceSetup
         Try
 
             '启动参数
-            ComboArgumentTitle.Text = Setup.Get("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
+            TextArgumentTitle.Text = Setup.Get("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
             CheckArgumentTitleEmpty.Checked = Setup.Get("VersionArgumentTitleEmpty", instance:=PageInstanceLeft.Instance)
             TextArgumentInfo.Text = Setup.Get("VersionArgumentInfo", instance:=PageInstanceLeft.Instance)
             Dim _unused = PageInstanceLeft.Instance.PathIndie '触发自动判定
             ComboArgumentIndieV2.SelectedIndex = If(Setup.Get("VersionArgumentIndieV2", instance:=PageInstanceLeft.Instance), 0, 1)
-            CheckArgumentTitleEmpty.Visibility = If(ComboArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
-            ComboArgumentTitle.SetHintText(If(CheckArgumentTitleEmpty.Checked, "默认", "跟随全局设置"))
+            CheckArgumentTitleEmpty.Visibility = If(TextArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
+            TextArgumentTitle.HintText = If(CheckArgumentTitleEmpty.Checked, "默认", "跟随全局设置")
             RefreshJavaComboBox()
 
             '游戏内存
@@ -130,7 +130,7 @@ Public Class PageInstanceSetup
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)), instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.TextChanged, TextArgumentInfo.TextChanged, TextAdvanceGame.TextChanged, TextAdvanceJvm.TextChanged, TextServerAuthName.TextChanged, TextServerAuthRegister.TextChanged, TextServerAuthServer.TextChanged, TextAdvanceRun.TextChanged
         If AniControlEnabled = 0 Then
             '#3194，不能删减 /
             'Dim HandledText As String = sender.Text
@@ -719,11 +719,11 @@ PreFin:
 
     '游戏窗口
     Private Sub CheckArgumentTitleEmpty_Change(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change
-        ComboArgumentTitle.SetHintText(If(CheckArgumentTitleEmpty.Checked, "默认", "跟随全局设置"))
+        TextArgumentTitle.HintText = If(CheckArgumentTitleEmpty.Checked, "默认", "跟随全局设置")
     End Sub
-    Private Sub ComboArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles ComboArgumentTitle.TextChanged
-        CheckArgumentTitleEmpty.Visibility = If(ComboArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
-        Setup.Set("VersionArgumentTitle", ComboArgumentTitle.Text, instance:=PageInstanceLeft.Instance)
+    Private Sub TextArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextArgumentTitle.TextChanged
+        CheckArgumentTitleEmpty.Visibility = If(TextArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
+        Config.Instance.Title(PageInstanceLeft.Instance.PathInstance) = TextArgumentTitle.Text
     End Sub
 
 #End Region

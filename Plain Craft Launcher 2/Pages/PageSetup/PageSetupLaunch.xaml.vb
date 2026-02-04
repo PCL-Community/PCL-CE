@@ -33,7 +33,7 @@ Public Class PageSetupLaunch
     Public Sub Reload()
         Try
             '启动参数
-            ComboArgumentTitle.Text = Setup.Get("LaunchArgumentTitle")
+            TextArgumentTitle.Text = Setup.Get("LaunchArgumentTitle")
             TextArgumentInfo.Text = Setup.Get("LaunchArgumentInfo")
             ComboArgumentIndieV2.SelectedIndex = Setup.Get("LaunchArgumentIndieV2")
             ComboArgumentVisibie.SelectedIndex = Setup.Get("LaunchArgumentVisible")
@@ -106,8 +106,8 @@ Public Class PageSetupLaunch
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
-    Private Sub ComboArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles ComboArgumentTitle.TextChanged
-        Setup.Set("LaunchArgumentTitle", ComboArgumentTitle.Text)
+    Private Sub TextArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextArgumentTitle.TextChanged
+        Config.Launch.Title = TextArgumentTitle.Text
     End Sub
 
 #Region "游戏内存"
