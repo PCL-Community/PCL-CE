@@ -44,7 +44,7 @@ public class DefaultPathsScanner : IJavaScanner
         {
             var keyFolders = new[] { "Program Files", "Program Files (x86)" };
             var drives = DriveInfo.GetDrives()
-                .Where(d => d.IsReady && d.DriveType == DriveType.Fixed)
+                .Where(d => d.DriveType.Equals(DriveType.Fixed) && d.IsReady)
                 .Select(d => d.Name);
 
             foreach (var drive in drives)
