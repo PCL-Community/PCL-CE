@@ -20,10 +20,6 @@ Public Class PageSetupLaunch
         If IsLoad Then Return
         IsLoad = True
 
-        For Each titleName In PredefinedWindowTitles.Keys
-            ComboArgumentTitle.Items.Add(New MyComboBoxItem() With {.Content = titleName})
-        Next
-
         AniControlEnabled += 1
         Reload()
         AniControlEnabled -= 1
@@ -110,19 +106,7 @@ Public Class PageSetupLaunch
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
     End Sub
 
-    Private Shared ReadOnly PredefinedWindowTitles As New Dictionary(Of String, String) From {
-    {"预设 - {name} | 玩家 : {user} | 使用 {login} 登录", "{name} | 玩家 : {user} | 使用 {login} 登录"},
-    {"自定义", ""}
-}
     Private Sub ComboArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles ComboArgumentTitle.TextChanged
-        If AniControlEnabled > 0 Then Return
-
-        Dim targetValue As String = Nothing
-        If PredefinedWindowTitles.TryGetValue(ComboArgumentTitle.Text, targetValue) Then
-            ComboArgumentTitle.Text = targetValue
-            Exit Sub
-        End If
-
         Setup.Set("LaunchArgumentTitle", ComboArgumentTitle.Text)
     End Sub
 
