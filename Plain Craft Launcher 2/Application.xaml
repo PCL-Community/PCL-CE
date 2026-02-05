@@ -498,7 +498,7 @@
                 <Setter Property="ToolTipService.InitialShowDelay" Value="150" />
                 <Setter Property="ToolTipService.BetweenShowDelay" Value="150" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparent}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">
