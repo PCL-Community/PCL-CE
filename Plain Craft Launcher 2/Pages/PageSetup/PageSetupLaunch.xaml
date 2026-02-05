@@ -43,7 +43,9 @@
                             <local:MyComboBoxItem Content="隔离所有实例" ToolTip="不同实例之间的存档、Mod、资源包等均不互通。&#xa;这会导致不同原版实例间的存档不能共用，所以一般不推荐。" />
                         </local:MyComboBox>
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏窗口标题" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2" Tag="LaunchArgumentTitle" Grid.Column="1" ToolTip="自定义游戏窗口的标题，若留空则不进行更改。&#xa;支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号" HintText="默认" MaxLength="100" />
+                        <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2" Tag="LaunchArgumentTitle" Grid.Column="1" IsEditable="True" IsTextSearchEnabled="False" ToolTip="自定义游戏窗口的标题，若留空则不进行更改。&#xa;支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号&#xa;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效" HintText="默认">
+                            <local:MyComboBoxItem Content="{}{name} | 玩家 : {user} | 使用 {login} 登录"/>
+                        </local:MyComboBox>
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义信息" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2" Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1" ToolTip="该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角">
                             <local:MyTextBox.ValidateRules>
