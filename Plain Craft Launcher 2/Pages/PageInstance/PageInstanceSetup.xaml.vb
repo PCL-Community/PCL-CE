@@ -723,7 +723,6 @@ PreFin:
     End Sub
     Private Sub TextArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextArgumentTitle.TextChanged
         CheckArgumentTitleEmpty.Visibility = If(TextArgumentTitle.Text.Length > 0, Visibility.Collapsed, Visibility.Visible)
-        Config.Instance.Title(PageInstanceLeft.Instance.PathInstance) = TextArgumentTitle.Text
     End Sub
 
 #End Region

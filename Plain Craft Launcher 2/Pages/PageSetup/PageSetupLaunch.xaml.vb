@@ -93,7 +93,7 @@ Public Class PageSetupLaunch
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextArgumentWindowHeight.ValidatedTextChanged, TextArgumentWindowWidth.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextAdvanceRun.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextArgumentWindowHeight.ValidatedTextChanged, TextArgumentWindowWidth.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextArgumentTitle.TextChanged, TextAdvanceRun.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
     Private Shared Sub SliderChange(sender As MySlider, e As Object) Handles SliderRamCustom.Change
@@ -104,10 +104,6 @@ Public Class PageSetupLaunch
     End Sub
     Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckAdvanceRunWait.Change, CheckArgumentRam.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceGraphicCard.Change, CheckAdvanceDisableRW.Change, CheckAdvanceNoJavaw.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked)
-    End Sub
-
-    Private Sub TextArgumentTitle_TextChanged(sender As Object, e As TextChangedEventArgs) Handles TextArgumentTitle.TextChanged
-        Config.Launch.Title = TextArgumentTitle.Text
     End Sub
 
 #Region "游戏内存"
