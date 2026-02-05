@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace PCL.Core.App.Cli;
 
@@ -30,7 +29,7 @@ public class SubcommandDefinition
         return new SubcommandDefinition
         {
             CommandText = tuple.commandText,
-            Subcommands = tuple.subcommands.ToImmutableHashSet()
+            Subcommands = tuple.subcommands
         };
     }
 
@@ -39,7 +38,7 @@ public class SubcommandDefinition
         return new SubcommandDefinition
         {
             CommandText = commandText,
-            Subcommands = ImmutableHashSet<SubcommandDefinition>.Empty
+            Subcommands = []
         };
     }
 }

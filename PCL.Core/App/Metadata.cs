@@ -56,6 +56,11 @@ public sealed record LauncherVersionModel(
     /// 代码提交版本 hash 的摘要 (取前 7 位), 若不存在 (非 CI 构建) 则为 <c>native</c>
     /// </summary>
     public string CommitDigest { get; } = _SecretCommitInfo?[..7] ?? "native";
+
+    public override string ToString()
+    {
+        return $"{BranchName} {BaseName} ({Code}, {CommitDigest})";
+    }
 }
 
 /// <summary>
