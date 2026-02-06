@@ -223,11 +223,11 @@ Public Class MyCheckBox
                 Case Checked Is Nothing
                     SetChecked(False, True)
             End Select
-            AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100), "MyCheckBox Background " & Uuid)
+            AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushTransparentBackground", 100), "MyCheckBox Background " & Uuid)
             Return
         End If
         SetChecked(Not Checked, True)
-        AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100), "MyCheckBox Background " & Uuid)
+        AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushTransparentBackground", 100), "MyCheckBox Background " & Uuid)
     End Sub
     Private Sub Checkbox_MouseDown() Handles Me.MouseLeftButtonDown
         If Not AllowMouseDown Then Return
@@ -246,7 +246,7 @@ Public Class MyCheckBox
     Private Sub Checkbox_MouseLeave() Handles Me.MouseLeave
         If Not MouseDowned Then Return
         MouseDowned = False
-        AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100), "MyCheckBox Background " & Uuid)
+        AniStart(AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushTransparentBackground", 100), "MyCheckBox Background " & Uuid)
         If Checked Then
             AniStart({
                      AaScale(ShapeBorder, 18 - ShapeBorder.Width, 400, , New AniEaseOutFluent(AniEasePower.Strong), Absolute:=True),

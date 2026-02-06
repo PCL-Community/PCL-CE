@@ -68,7 +68,7 @@
             <SolidColorBrush x:Key="ColorBrushRedBack">#80fbdddd</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedLight">#ff4c4c</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedDark">#ce2111</SolidColorBrush>
-            <SolidColorBrush x:Key="ColorBrushHalfWhite" Color="#55ffffff" />
+
             <SolidColorBrush x:Key="ColorBrushSemiWhite" Color="#bbffffff" />
             <SolidColorBrush x:Key="ColorBrushWhite" Color="#ffffff" />
             <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
@@ -287,7 +287,7 @@
             <!-- TextBox -->
             <Style TargetType="local:MyTextBox">
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
@@ -332,7 +332,7 @@
                 <Setter Property="VerticalContentAlignment" Value="Top" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushBg0}" />
                 <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -383,7 +383,7 @@
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrushBg0}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="MaxDropDownHeight" Value="160" />
