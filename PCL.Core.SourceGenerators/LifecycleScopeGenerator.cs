@@ -51,17 +51,6 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         public List<ScopeMethodModel> Methods { get; } = [];
     }
 
-    private static readonly SymbolDisplayFormat _QualifiedTypeNameFormat = new(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-            SymbolDisplayMiscellaneousOptions.CollapseTupleTypes |
-            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-            SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-        genericsOptions: SymbolDisplayGenericsOptions.None
-    );
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var candidates = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -103,12 +92,12 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 var attrTypeName = string.Empty;
                 var attr = method.GetAttributes().FirstOrDefault(data =>
                 {
-                    attrTypeName = data.AttributeClass?.ToDisplayString(_QualifiedTypeNameFormat);
+                    attrTypeName = data.AttributeClass?.GetSimplifiedTypeName();
                     return attrTypeName != null && _MethodAttributeTypes.Contains(attrTypeName);
                 });
                 if (attr == null) continue;
                 var methodName = method.Name;
-                var awaitable = method.ReturnType.ToDisplayString(_QualifiedTypeNameFormat) == "System.Threading.Tasks.Task";
+                var awaitable = method.ReturnType.GetSimplifiedTypeName() == "System.Threading.Tasks.Task";
                 model.Methods.Add(attrTypeName switch
                 {
                     StartMethodAttributeType => new StartMethodModel { MethodName = methodName, Awaitable = awaitable },
@@ -121,7 +110,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 {
                     var args = attr.ConstructorArguments;
                     var argumentName = args[0].Value!.ToString();
-                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().ToDisplayString(_QualifiedTypeNameFormat);
+                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().GetSimplifiedTypeName();
                     var argumentDefaultValue = args.Length > 1 ? args[1].ToCSharpString() : $"new {argumentTypeName}()";
                     return new ArgumentHandlerMethodModel
                     {
