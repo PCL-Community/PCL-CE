@@ -10,6 +10,7 @@ public record ToneProfile(
     double L7 = 0.94,
     double L8 = 0.96,
     double LWhite = 1,
+    double LPureWhite = 1,
     double LForeground = 0,
     double LBackground = 0.995,
     double C1 = 0.025,
