@@ -24,7 +24,7 @@
         Dim BackName As String, ForeName As String
         Dim Time As Integer
         If Not IsEnabled Then
-            BackName = "ColorBrushTransparent"
+            BackName = "ColorBrushBackground"
             ForeName = "ColorBrushGray5"
             Time = AnimationTimeOut
         ElseIf IsMouseOver Then
@@ -32,7 +32,7 @@
             ForeName = "ColorBrush2"
             Time = AnimationTimeIn
         Else
-            BackName = "ColorBrushTransparent"
+            BackName = "ColorBrushBackground"
             ForeName = "ColorBrush1"
             Time = AnimationTimeOut
         End If

@@ -68,10 +68,8 @@
             <SolidColorBrush x:Key="ColorBrushRedBack">#80fbdddd</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedLight">#ff4c4c</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedDark">#ce2111</SolidColorBrush>
-
             <SolidColorBrush x:Key="ColorBrushSemiWhite" Color="#bbffffff" />
             <SolidColorBrush x:Key="ColorBrushWhite" Color="#ffffff" />
-            <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
             <SolidColorBrush x:Key="ColorBrushSemiTransparent">#01eaf2fe</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#d2fbfbfb" />
             <SolidColorBrush x:Key="ColorBrushBackground">#fbfbfb</SolidColorBrush>
@@ -498,7 +496,7 @@
                 <Setter Property="ToolTipService.InitialShowDelay" Value="150" />
                 <Setter Property="ToolTipService.BetweenShowDelay" Value="150" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparent}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushBackground}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">

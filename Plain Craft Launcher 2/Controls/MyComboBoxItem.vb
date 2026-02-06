@@ -27,11 +27,11 @@
             NewFontOpacity = 1
             Time = AnimationTimeIn
         ElseIf IsEnabled Then
-            NewBackColorName = "ColorBrushTransparent"
+            NewBackColorName = "ColorBrushBackground"
             NewFontOpacity = 1
             Time = AnimationTimeOut
         Else
-            NewBackColorName = "ColorBrushTransparent"
+            NewBackColorName = "ColorBrushBackground"
             NewFontOpacity = 0.4
             Time = AnimationTimeOut
         End If
