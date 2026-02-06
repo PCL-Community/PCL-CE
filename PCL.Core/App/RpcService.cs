@@ -1,4 +1,5 @@
-﻿using System;
+using PCL.Core.IO.Pipes;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +7,6 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using PCL.Core.IO;
 
 namespace PCL.Core.App;
 
@@ -175,17 +175,17 @@ public sealed partial class RpcService
     [LifecycleStop]
     private async Task _Stop()
     {
-        if (_pipe != null) await _pipe.DisposeAsync();
+        if (_pipe != null) await _pipe.DisposeAsync().ConfigureAwait(false);
     }
 
     public const string PipePrefix = "PCLCE_RPC";
-    
+
     private static readonly string _EchoPipeName = $"{PipePrefix}@{Basics.CurrentProcess.Id}";
     private static readonly string[] _RequestTypeArray = ["GET", "SET", "REQ"];
-    private static readonly HashSet<string> _RequestType = [.._RequestTypeArray];
+    private static readonly HashSet<string> _RequestType = [.. _RequestTypeArray];
 
     #region Property
-    
+
     private static readonly Dictionary<string, RpcProperty> _PropertyMap = new();
 
     /// <summary>
@@ -223,7 +223,8 @@ public sealed partial class RpcService
 
     #region Function
 
-    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new() {
+    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new()
+    {
         ["ping"] = ((_, _, _) => RpcResponse.EmptySuccess),
         ["activate"] = ((_, _, _) =>
         {
@@ -243,6 +244,7 @@ public sealed partial class RpcService
                         window.Topmost = true;
                         window.Topmost = false;
                     }
+
                     window.Activate();
                 });
             }
@@ -266,7 +268,7 @@ public sealed partial class RpcService
     {
         return _FunctionMap.Remove(name);
     }
-    
+
     #endregion
 
     private static bool _EchoPipeCallback(StreamReader reader, StreamWriter writer, Process? client)
@@ -296,68 +298,73 @@ public sealed partial class RpcService
 
             switch (type)
             {
-                case "GET": case "SET": {
-                    target = target.ToLowerInvariant();
-                    var result = _PropertyMap.TryGetValue(target, out var prop);
-                    if (!result) throw new RpcException($"不存在属性 {target}");
-                    RpcResponse response;
-                    if (type == "GET")
+                case "GET":
+                case "SET":
                     {
-                        try
+                        target = target.ToLowerInvariant();
+                        var result = _PropertyMap.TryGetValue(target, out var prop);
+                        if (!result) throw new RpcException($"不存在属性 {target}");
+                        RpcResponse response;
+                        if (type == "GET")
                         {
-                            var value = prop!.Value;
-                            response = new RpcResponse(RpcResponseStatus.Success, RpcResponseType.Text, value, target);
-                            Context.Trace($"返回值: {value}");
+                            try
+                            {
+                                var value = prop!.Value;
+                                response = new RpcResponse(RpcResponseStatus.Success, RpcResponseType.Text, value, target);
+                                Context.Trace($"返回值: {value}");
+                            }
+                            catch (RpcPropertyOperationFailedException)
+                            {
+                                response = RpcResponse.EmptyFailure;
+                                Context.Debug("设置失败: 只写属性或请求被拒绝");
+                            }
                         }
-                        catch (RpcPropertyOperationFailedException)
+                        else if (prop!.Settable)
+                        {
+                            try
+                            {
+                                prop.Value = content;
+                                response = RpcResponse.EmptySuccess;
+                                Context.Trace($"设置成功: {content}");
+                            }
+                            catch (RpcPropertyOperationFailedException)
+                            {
+                                response = RpcResponse.EmptyFailure;
+                                Context.Debug("设置失败: 请求被拒绝");
+                            }
+                        }
+                        else
                         {
                             response = RpcResponse.EmptyFailure;
-                            Context.Debug("设置失败: 只写属性或请求被拒绝");
+                            Context.Debug("设置失败: 只读属性");
                         }
-                    }
-                    else if (prop!.Settable)
-                    {
-                        try
-                        {
-                            prop.Value = content;
-                            response = RpcResponse.EmptySuccess;
-                            Context.Trace($"设置成功: {content}");
-                        }
-                        catch (RpcPropertyOperationFailedException)
-                        {
-                            response = RpcResponse.EmptyFailure;
-                            Context.Debug("设置失败: 请求被拒绝");
-                        }
-                    }
-                    else
-                    {
-                        response = RpcResponse.EmptyFailure;
-                        Context.Debug("设置失败: 只读属性");
-                    }
-                    response.Response(writer);
-                    break;
-                }
 
-                case "REQ": {
-                    var targetArgs = target.Split([' '], 2); // 分离函数名和参数
-                    var name = targetArgs[0].ToLowerInvariant();
-                    var indent = false; // 检测缩进指示
-                    if (name.EndsWith("$"))
-                    {
-                        indent = true;
-                        name = name[..^1];
+                        response.Response(writer);
+                        break;
                     }
-                    var result = _FunctionMap.TryGetValue(name, out var func);
-                    if (!result) throw new RpcException($"不存在函数 {name}");
-                    string? argument = null;
-                    if (targetArgs.Length > 1)
-                        argument = targetArgs[1];
-                    Context.Trace($"正在调用函数 {name} {argument}");
-                    var response = func!(argument, content, indent);
-                    response.Response(writer);
-                    Context.Trace($"函数已退出，返回状态 {response.Status}");
-                    break;
-                }
+
+                case "REQ":
+                    {
+                        var targetArgs = target.Split([' '], 2); // 分离函数名和参数
+                        var name = targetArgs[0].ToLowerInvariant();
+                        var indent = false; // 检测缩进指示
+                        if (name.EndsWith("$"))
+                        {
+                            indent = true;
+                            name = name[..^1];
+                        }
+
+                        var result = _FunctionMap.TryGetValue(name, out var func);
+                        if (!result) throw new RpcException($"不存在函数 {name}");
+                        string? argument = null;
+                        if (targetArgs.Length > 1)
+                            argument = targetArgs[1];
+                        Context.Trace($"正在调用函数 {name} {argument}");
+                        var response = func!(argument, content, indent);
+                        response.Response(writer);
+                        Context.Trace($"函数已退出，返回状态 {response.Status}");
+                        break;
+                    }
             }
         }
         catch (Exception ex)

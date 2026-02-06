@@ -1014,7 +1014,9 @@ Public Class PageDownloadInstall
         '检查版本
         For Each Version In loader.Output
             If Version.Category = "universal" OrElse Version.Category = "client" Then Continue For '跳过无法自动安装的版本
-            If SelectedLoaderName IsNot Nothing Then Return $"与 {SelectedLoaderName} 不兼容"
+            If SelectedNeoForge IsNot Nothing OrElse
+                SelectedFabric IsNot Nothing OrElse
+                SelectedQuilt IsNot Nothing Then Return $"与 {SelectedLoaderName} 不兼容"
             If SelectedOptiFine IsNot Nothing AndAlso
                CompareVersionGE(_vanillaName, "1.13") AndAlso CompareVersionGE("1.14.3", _vanillaName) Then
                 Return "与 OptiFine 不兼容" '1.13 ~ 1.14.3 OptiFine 检查
