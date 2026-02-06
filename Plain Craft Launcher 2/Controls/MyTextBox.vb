@@ -246,7 +246,7 @@
                         AnimationTime = 100
                     Else '未选中
                         ForeColorName = "ColorBrushBg0"
-                        BackColorName = "ColorBrushTransparentBackground"
+                        BackColorName = "ColorBrushSemiTransparent"
                         AnimationTime = 100
                     End If
                 Else

@@ -283,7 +283,7 @@
             <!-- TextBox -->
             <Style TargetType="local:MyTextBox">
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushSemiTransparent}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
@@ -328,7 +328,7 @@
                 <Setter Property="VerticalContentAlignment" Value="Top" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushSemiTransparent}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushBg0}" />
                 <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -379,7 +379,7 @@
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrushBg0}" />
-                <Setter Property="Background" Value="{DynamicResource ColorBrushTransparentBackground}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushSemiTransparent}" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="MaxDropDownHeight" Value="160" />

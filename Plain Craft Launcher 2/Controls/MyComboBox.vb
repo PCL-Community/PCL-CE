@@ -89,7 +89,7 @@
                 Time = 100
             Else
                 ForeColorName = "ColorBrushBg0"
-                BackColorName = "ColorBrushTransparentBackground"
+                BackColorName = "ColorBrushSemiTransparent"
                 Time = 100
             End If
         Else
