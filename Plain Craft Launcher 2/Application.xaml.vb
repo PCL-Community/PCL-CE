@@ -104,13 +104,6 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '添加日志
-            Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
-            Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{ExePathWithName}")
-            Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
-            Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
-            Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
             '检测异常环境
             Dim problemList As New List(Of String)
             Dim currentOSVersion = KernelInterop.GetCurrentOSVersion()
