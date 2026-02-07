@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace PCL.Core.App.Tasks;
 
@@ -25,7 +26,17 @@ public partial class TaskModel : ObservableObject
     [ObservableProperty] private string _stateMessage = string.Empty;
 
     /// <summary>
-    /// 任务当前进度，<see cref="SupportProgress"/> 为 <c>true</c> 时生效
+    /// 任务当前进度，<see cref="SupportProgress"/> 为 <see langword="true"/> 时生效
     /// </summary>
     [ObservableProperty] private double _progress;
+
+    /// <summary>
+    /// Steps in this task
+    /// </summary>
+    public ObservableCollection<TaskModel> Steps { get; } = [];
+
+    /// <summary>
+    /// Is have steps
+    /// </summary>
+    public bool HasSteps => Steps.Count > 0;
 }

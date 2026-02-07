@@ -1,7 +1,7 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.App.Tasks;
+namespace PCL.Core.App.Tasks.Interfaces;
 
 /// <summary>
 /// 任务状态改变事件
