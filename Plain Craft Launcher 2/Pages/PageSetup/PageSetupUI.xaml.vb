@@ -586,9 +586,9 @@ Refresh:
 
             ' 顶部栏：下载、设置、工具
             Dim IsAllTitleHidden As Boolean = Not HiddenForceShow AndAlso
-                                        conf.PageDownload AndAlso
-                                        conf.PageSetup AndAlso
-                                        conf.PageTools
+                                    conf.PageDownload AndAlso
+                                    conf.PageSetup AndAlso
+                                    conf.PageTools
 
             If IsAllTitleHidden Then
                 FrmMain.PanTitleSelect.Visibility = Visibility.Collapsed
@@ -617,6 +617,21 @@ Refresh:
                 FrmSetupLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso conf.SetupAbout, Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso conf.SetupFeedback, Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso conf.SetupLog, Visibility.Collapsed, Visibility.Visible)
+
+                Dim visibilityMap As New Dictionary(Of String, Boolean) From {
+                {"游戏", (Not (conf.SetupLaunch And conf.SetupJava And conf.SetupGameManage)) OrElse HiddenForceShow},
+                {"工具", (Not conf.SetupGameLink) OrElse HiddenForceShow},
+                {"启动器", (Not (conf.SetupUi And conf.SetupLauncherMisc)) OrElse HiddenForceShow},
+                {"关于", (Not (conf.SetupAbout And conf.SetupUpdate And conf.SetupFeedback And conf.SetupLog)) OrElse HiddenForceShow}
+}
+
+                For Each tb In FrmSetupLeft.PanItem.Children.OfType(Of TextBlock)()
+                    Dim isVisible As Boolean = False
+                    If visibilityMap.TryGetValue(tb.Text, isVisible) Then
+                        tb.Visibility = If(isVisible, Visibility.Visible, Visibility.Collapsed)
+                        If isVisible Then tb.Opacity = 0.6
+                    End If
+                Next
 
                 ' 统计设置页可用项数量
                 Dim SetupCount As Integer = 0
