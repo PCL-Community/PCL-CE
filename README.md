@@ -33,8 +33,8 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 | 操作系统 | 支持的启动器版本 | 环境要求 | 社区技术支持 |
 |---|---|---|---|
-| Windows 10 1809 (17763) 或更高 | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ 完整支持 |
-| Windows 8 - Windows 10 1809- (17763-) | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ 理论能跑，但不提供社区支持 |
+| Windows 10 1809 (17763) 或更高 | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 10 Desktop Runtime](http://get.dot.net/10) | ✅ 完整支持 |
+| Windows 8 - Windows 10 1809- (17763-) | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 10 Desktop Runtime](http://get.dot.net/10) | ⚠️ 理论能跑，但不提供社区支持 |
 | Windows 7 或更低版本 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社区支持 |
 | macOS / Linux / 其他操作系统 | 暂不支持 | [.NET 10 SDK](http://get.dot.net/10) | ⚠️ 仅跨平台开发支持（交叉编译） |
 
