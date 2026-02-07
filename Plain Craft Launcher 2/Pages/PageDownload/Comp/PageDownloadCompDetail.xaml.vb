@@ -118,25 +118,29 @@ GroupDone:
         'UI 化筛选器
         PanInstanceFilter.Children.Clear()
         PanModLoaderFilter.Children.Clear()
+        
+        'Hill 做的动态 Margin
         If Not _pageType = CompType.Mod Then
             PanInstanceFilter.Margin = New Thickness(10, 10, 0, 10)
             PanModLoaderFilter.Margin = New Thickness(0)
+        Else
+            PanInstanceFilter.Margin = New Thickness(10, 10, 0, 10)
+            PanModLoaderFilter.Margin = New Thickness(10, 10, 0, 10)
         End If
+        
         If instanceFilters.Count < 2 Then
             CardFilter.Visibility = Visibility.Collapsed
             _instanceFilter = Nothing
         Else
             CardFilter.Visibility = Visibility.Visible
-            '插入标签
+            
+            '显示标签
             If _pageType = CompType.Mod Then
-                Dim instanceTextBlock As New TextBlock With {
-                        .Text = "实例筛选：", .VerticalAlignment = VerticalAlignment.Center,
-                        .Margin = New Thickness(2, 0, 0, 0)}
-                PanInstanceFilter.Children.Add(instanceTextBlock)
-                Dim modLoaderTextBlock As New TextBlock With {
-                        .Text = "模组加载器筛选：", .VerticalAlignment = VerticalAlignment.Center,
-                        .Margin = New Thickness(2, 0, 0, 0)}
-                PanModLoaderFilter.Children.Add(modLoaderTextBlock)
+                PanModLoaderFilter.Visibility = Visibility.Visible
+                PanModLoaderFilterTag.Visibility = Visibility.Visible
+            Else
+                PanModLoaderFilter.Visibility = Visibility.Collapsed
+                PanModLoaderFilterTag.Visibility = Visibility.Collapsed
             End If
             
             instanceFilters.Insert(0, "全部")
@@ -194,8 +198,7 @@ GroupDone:
                 End If
             End If
             
-            '注意：在 Mod 下 index 0 是 TextBlock
-            Dim index As Integer = If(_pageType = CompType.Mod, 1, 0) 
+            Dim index As Integer = If(_pageType = CompType.Mod, 0, 0) 
             If instanceToCheck Is Nothing Then instanceToCheck = PanInstanceFilter.Children(index)
             If modLoaderToCheck Is Nothing And _pageType = CompType.Mod Then modLoaderToCheck = PanModLoaderFilter.Children(index)
             instanceToCheck.Checked = True
