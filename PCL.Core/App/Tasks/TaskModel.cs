@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace PCL.Core.App.Tasks;
 
@@ -14,6 +15,11 @@ public partial class TaskModel : ObservableObject
     /// 任务是否支持进度
     /// </summary>
     public required bool SupportProgress { get; init; }
+
+    /// <summary>
+    /// 由于取消此Model所属的任务
+    /// </summary>
+    public CancellationTokenSource Token { get; init; }
 
     /// <summary>
     /// 任务当前状态

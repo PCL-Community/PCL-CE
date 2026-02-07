@@ -25,17 +25,17 @@ public static class TaskCenterService
     /// Add a task to <see cref="TaskCenterService"/>
     /// </summary>
     /// <param name="task"></param>
-    /// <param name="token"></param>
     /// <param name="showInList">Is visible in TaskCenter in UI</param>
     /// <returns></returns>
-    public static TaskModel Add(ITask task, CancellationToken token = default, bool showInList = true)
+    public static TaskModel Add(ITask task, bool showInList = true)
     {
         var model = new TaskModel
         {
             Title = task.Title,
             SupportProgress = task is IProgressiveTask,
             State = TaskState.Waiting,
-            StateMessage = "等待执行……"
+            StateMessage = "等待执行……",
+            Token = new CancellationTokenSource()
         };
 
         if (showInList)
@@ -43,7 +43,7 @@ public static class TaskCenterService
             Application.Current.Dispatcher.InvokeAsync(() => CurrentTasks.Add(model));
         }
 
-        _ = _ProgressTaskAsync(task, model, token);
+        _ = _ProgressTaskAsync(task, model, model.Token.Token);
 
         return model;
     }
