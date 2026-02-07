@@ -5,7 +5,19 @@
     '基础
     Public Uuid As Integer = GetUuid()
     Private TextBox As MyTextBox
-    Public Property HintText As String = ""
+    Public Property HintText As String
+        Get
+            Return GetValue(HintTextProperty)
+        End Get
+        Set(value As String)
+            SetValue(HintTextProperty, value)
+        End Set
+    End Property
+    Public Shared ReadOnly HintTextProperty As DependencyProperty = DependencyProperty.Register("HintText", GetType(String), GetType(MyComboBox),
+        New PropertyMetadata("", Sub(d, e)
+                                     Dim c = CType(d, MyComboBox)
+                                     If c.TextBox IsNot Nothing Then c.TextBox.HintText = e.NewValue
+                                 End Sub))
     Public Overrides Sub OnApplyTemplate()
         MyBase.OnApplyTemplate()
         If Not IsEditable Then Return

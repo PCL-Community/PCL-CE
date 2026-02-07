@@ -39,7 +39,8 @@ public class EncryptedFileConfigStorage(ConfigStorage source) : ConfigStorage
             {
                 // 获取加密值
                 string? raw = null;
-                var returnValue = Source.Access(StorageAction.Get, ref key, ref raw, argument);
+                var hasOutput = Source.Access(StorageAction.Get, ref key, ref raw, argument);
+                if (!hasOutput) return false;
                 // 解密
                 var decrypted = EncryptHelper.SecretDecrypt(raw);
                 // 反序列化
@@ -47,7 +48,7 @@ public class EncryptedFileConfigStorage(ConfigStorage source) : ConfigStorage
                 if (type == typeof(bool)) Unsafe.As<TValue, bool>(ref value) = decrypted.ToLowerInvariant() is "true" or "1";
                 else if (type == typeof(string)) Unsafe.As<TValue, string>(ref value) = decrypted;
                 else value = JsonSerializer.Deserialize<TValue>(decrypted, _SerializerOptions) ?? throw new NullReferenceException("Decryption produced a null reference");
-                return returnValue;
+                return hasOutput;
             }
             default: return Source.Access(action, ref key, ref value, argument);
         }

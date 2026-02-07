@@ -1,4 +1,3 @@
-Imports System.IO
 Imports PCL.Core.App
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
@@ -105,18 +104,11 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '添加日志
-            Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
-            Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{ExePathWithName}")
-            Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
-            Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
-            Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
             '检测异常环境
             Dim problemList As New List(Of String)
             Dim currentOSVersion = KernelInterop.GetCurrentOSVersion()
             If currentOSVersion.Build < 17763 Then problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统")
-            If Is32BitSystem then problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏")
+            If Is32BitSystem Then problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏")
             If ExePath.Contains(IO.Path.GetTempPath()) OrElse ExePath.Contains("AppData\Local\Temp\") Then problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失")
             If ExePath.ContainsF("wechat_files", True) OrElse ExePath.ContainsF("WeChat Files", True) OrElse ExePath.ContainsF("Tencent Files", True) Then problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失")
             If problemList.Count <> 0 Then
@@ -143,7 +135,7 @@ WaitRetry:
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
             'Pipe RPC 初始化
-            StartEchoPipe()
+            'StartEchoPipe()
             '计时
             Log("[Start] 第一阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
             ApplicationStartTick = TimeUtils.GetTimeTick()

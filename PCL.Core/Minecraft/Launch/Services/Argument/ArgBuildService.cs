@@ -4,7 +4,7 @@ using PCL.Core.Minecraft.Instance.Interface;
 
 namespace PCL.Core.Minecraft.Launch.Services.Argument;
 
-public class ArgBuildService(IMcInstance instance, bool isDemo, JavaInfo selectedJavaInfo /*, LoginResult loginResult*/) {
+public class ArgBuildService(IMcInstance instance, bool isDemo, JavaEntry selectedJavaInfo /*, LoginResult loginResult*/) {
     public async Task<string> BuildArgumentsAsync() {
         try {
             var builder = new LaunchArgBuilder(instance, selectedJavaInfo, isDemo /*, loginResult*/);
