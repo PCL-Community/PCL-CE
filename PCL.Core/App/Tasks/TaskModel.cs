@@ -1,11 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.ObjectModel;
-using System.Threading;
 
 namespace PCL.Core.App.Tasks;
 
-public partial class TaskModel : ObservableObject
+public partial class TaskModel : ObservableObject, IDisposable
 {
+    /// <summary>
+    /// 任务 ID
+    /// </summary>
+    public required Guid Id { get; init; }
+
     /// <summary>
     /// 任务标题
     /// </summary>
@@ -15,11 +20,6 @@ public partial class TaskModel : ObservableObject
     /// 任务是否支持进度
     /// </summary>
     public required bool SupportProgress { get; init; }
-
-    /// <summary>
-    /// 由于取消此 <see cref="TaskModel"/> 所属的任务
-    /// </summary>
-    public required CancellationTokenSource Token { get; init; }
 
     /// <summary>
     /// 任务当前状态
@@ -39,10 +39,32 @@ public partial class TaskModel : ObservableObject
     /// <summary>
     /// Steps in this task
     /// </summary>
-    public ObservableCollection<TaskModel>? Steps { get; internal set; }
+    public ObservableCollection<TaskStepModel>? Steps { get; internal init; }
 
     /// <summary>
     /// Is have steps
     /// </summary>
-    public required bool HasSteps { get; init; }
+    public bool HasSteps => Steps is not null && Steps.Count > 0;
+
+    private event Action? Cleanup;
+
+    internal void RegisterCleanup(Action cleanupAction)
+    {
+        Cleanup = cleanupAction;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Cleanup?.Invoke();
+        Cleanup = null;
+
+        if (Steps is not null)
+        {
+            foreach (var step in Steps)
+            {
+                (step as IDisposable)?.Dispose();
+            }
+        }
+    }
 }

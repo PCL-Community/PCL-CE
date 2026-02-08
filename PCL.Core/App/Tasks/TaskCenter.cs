@@ -1,11 +1,11 @@
 using PCL.Core.App.Tasks.Interfaces;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 
 namespace PCL.Core.App.Tasks;
 
@@ -19,8 +19,13 @@ public static class TaskCenter
     /// </summary>
     public static ObservableCollection<TaskModel> CurrentTasks { get; } = [];
 
-    private static readonly SemaphoreSlim _ExecuteLock = new(1, 1);
+    private static readonly ConcurrentDictionary<Guid, TaskModel> _RunningTasks = [];
+    private static readonly object _Lock = new();
 
+    static TaskCenter()
+    {
+        BindingOperations.EnableCollectionSynchronization(CurrentTasks, _Lock);
+    }
 
     /// <summary>
     /// Add a task to <see cref="TaskCenter"/>
@@ -30,127 +35,113 @@ public static class TaskCenter
     /// <returns></returns>
     public static TaskModel Add(ITask task, bool showInList = true)
     {
-        var model = new TaskModel
-        {
-            Title = task.Title,
-            SupportProgress = task is IProgressiveTask,
-            State = TaskState.Waiting,
-            StateMessage = "等待执行……",
-            Token = new CancellationTokenSource(),
-            HasSteps = false
-        };
+        var model = _CreateTaskModel(task);
+
+        _RunningTasks.TryAdd(model.Id, model);
 
         if (showInList)
         {
-            Application.Current.Dispatcher.InvokeAsync(() => CurrentTasks.Add(model));
+            lock (_Lock)
+            {
+                CurrentTasks.Add(model);
+            }
         }
 
-        _ = _ProgressTaskAsync(task, model, model.Token.Token);
-
         return model;
+    }
+
+    /// <summary>
+    /// 移除指定的 <see cref="TaskModel"/>
+    /// </summary>
+    public static void Remove(TaskModel task)
+    {
+        if (_RunningTasks.TryRemove(task.Id, out var model))
+        {
+            lock (_Lock)
+            {
+                CurrentTasks.Remove(model);
+                model.Dispose();
+            }
+        }
     }
 
     #region Helper Methods
 
-    /// <summary>
-    /// Create a model recuresively
-    /// </summary>
-    /// <returns>Created model</returns>
     private static TaskModel _CreateTaskModel(ITask task)
     {
-        List<TaskModel>? steps = null;
-        if (task is ISequentallyStepTask stepTask)
+        List<TaskStepModel>? steps = null;
+
+        if (task is IStepTask sTask)
         {
-            steps = stepTask.Steps.Select(_CreateTaskModel).ToList();
+            steps = sTask.Steps.Select(_CreateTaskStepModel).ToList();
         }
+
+        var pTask = task as IProgressiveTask;
 
         var model = new TaskModel
         {
+            Id = Guid.NewGuid(),
             Title = task.Title,
-            SupportProgress = task is IProgressiveTask,
             State = TaskState.Waiting,
-            StateMessage = "等待执行……",
-            Steps = steps,
-            HasSteps = steps is not null && steps.Count > 0,
-            Token = new CancellationTokenSource(),
+            Steps = steps is not null ? [.. steps] : null,
+            SupportProgress = pTask is not null
         };
-
-        task.StateChanged += (state, msg) =>
+        task.StateChanged += TaskOnStateChanged;
+        pTask?.ProgressChanged += OnPTaskOnProgressChanged;
+        model.RegisterCleanup(() =>
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                model.State = state;
-                model.StateMessage = msg;
-            });
-        };
-
-        if (task is IProgressiveTask pTask)
-        {
-            pTask.ProgressChanged += (progress) =>
-            {
-                Application.Current.Dispatcher.InvokeAsync(() => model.Progress = progress);
-            };
-        }
-
-
-        return model;
-    }
-
-    private static async Task _ProgressTaskAsync(ITask task, TaskModel rootModel, CancellationToken token)
-    {
-        try
-        {
-            await _ExecuteLock.WaitAsync(token).ConfigureAwait(false);
-
-            if (rootModel.State is TaskState.Waiting)
-            {
-                ChangeState(TaskState.Running, "开始执行");
-            }
-
-            await task.ExecuteAsync(token).ConfigureAwait(false);
-
-            // for some tasks that do not report state change
-            if (rootModel.State is TaskState.Running)
-            {
-                ChangeState(TaskState.Success, "任务完成");
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            ChangeState(TaskState.Canceled, "任务已取消");
-        }
-        catch (Exception ex)
-        {
-            ChangeState(TaskState.Failed, $"发生错误：{ex.Message}");
-        }
-        finally
-        {
-            task.StateChanged -= ChangeState;
-            if (task is IProgressiveTask proTask)
-            {
-                proTask.ProgressChanged -= ChangeProgress;
-            }
-
-            CurrentTasks.Remove(rootModel);
-
-            _ExecuteLock.Release();
-        }
-
-        return;
-
-        void ChangeState(TaskState state, string msg) => _UpdateModel(rootModel, m =>
-        {
-            m.State = state;
-            m.StateMessage = msg;
+            task.StateChanged -= TaskOnStateChanged;
+            pTask?.ProgressChanged -= OnPTaskOnProgressChanged;
         });
 
-        void ChangeProgress(double progress) => _UpdateModel(rootModel, m => { m.Progress = progress; });
+        return model;
+
+        void OnPTaskOnProgressChanged(double progress) => _RunInUi(() => model.Progress = progress);
+
+        void TaskOnStateChanged(TaskState state, string message)
+        {
+            _RunInUi(() =>
+            {
+                model.StateMessage = message;
+                model.State = state;
+            });
+
+            if (_IsTaskStopped(state))
+            {
+                model.Dispose();
+            }
+        }
     }
 
+    private static bool _IsTaskStopped(TaskState state) =>
+        state is TaskState.Success or TaskState.Canceled or TaskState.Failed;
 
-    private static void _UpdateModel(TaskModel model, Action<TaskModel> action)
+    private static TaskStepModel _CreateTaskStepModel(ITask step)
     {
-        Application.Current.Dispatcher.InvokeAsync(() => action(model));
+        var pTask = step as IProgressiveTask;
+        var supprotProgress = pTask is not null;
+
+        var model = new TaskStepModel
+        {
+            Message = step.Title,
+            Progress = 0.0,
+            SupportProgress = supprotProgress
+        };
+
+        pTask?.ProgressChanged += OnPTaskOnProgressChanged;
+        model.RegisterCleanup(() => { pTask?.ProgressChanged -= OnPTaskOnProgressChanged; });
+
+        return model;
+
+        void OnPTaskOnProgressChanged(double progress) => _RunInUi(() => model.Progress = progress);
+    }
+
+    private static void _RunInUi(Action action)
+    {
+        if (Application.Current?.Dispatcher is { } dispatcher)
+        {
+            dispatcher.InvokeAsync(action);
+        }
     }
 
     #endregion
