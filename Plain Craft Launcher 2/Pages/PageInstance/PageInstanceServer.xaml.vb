@@ -53,7 +53,7 @@ Public Class PageInstanceServer
         End If
 
         ' Read NBT file
-        Dim nbtData As NbtList = Await NbtFileHandler.ReadTagInNbtFileAsync(Of NbtList)(IO.Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers")
+        Dim nbtData As NbtList = Await NbtFileHandler.ReadTagInNbtFileAsync(Of NbtList)(Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers")
         If nbtData Is Nothing Then
             Hint("无法读取服务器数据文件", HintType.Critical)
             Exit Sub
@@ -177,9 +177,7 @@ Public Class PageInstanceServer
             ServerCardList.Add(serverCard)
             PanServers.Children.Add(serverCard)
 
-            Task.Run(Async Function()
-                Await serverCard.RefreshServerStatus(False)
-            End Function)
+            Await serverCard.RefreshServerStatus(False)
             
             Dim serversDatPath = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")
             

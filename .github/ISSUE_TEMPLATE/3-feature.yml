@@ -36,6 +36,6 @@ body:
     description: "详细描述你为什么需要这项功能，这有助于开发者评估它的优先度。"
     placeholder: |
       示例：
-      我需要这个功能来xxxx，如果没有这个功能，就不能xxxx了。
+      我需要这个功能来 xxxx，如果没有这个功能，就不能 xxxx 了。
   validations:
     required: false

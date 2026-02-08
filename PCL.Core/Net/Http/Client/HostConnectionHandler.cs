@@ -21,7 +21,7 @@ public class HostConnectionHandler
 
     private readonly DnsQuery _dnsQuery = DnsQuery.Instance;
     private static readonly TimeSpan _CacheDuration = TimeSpan.FromMinutes(10); // 10 分钟缓存(RFC 建议值)
-    private const int WaitTasks = 4;
+    private const int WaitTasks = 2;
 
     // 缓存结构: (host, port) -> (IPAddress -> LastSuccessUtc)
     private readonly ConcurrentDictionary<(string host, int port), ConcurrentDictionary<IPAddress, DateTime>>
@@ -78,7 +78,7 @@ public class HostConnectionHandler
             // 取消其他连接
             // ReSharper disable once MethodHasAsyncOverload
             cancellationSource.Cancel();
-            await _CleanupUnusedConnections(connectionTasks, winner).ConfigureAwait(false);
+            _ = _CleanupUnusedConnections(connectionTasks, winner).ConfigureAwait(false);
 
             return stream;
         }
@@ -91,7 +91,7 @@ public class HostConnectionHandler
             // 清理所有连接
             // ReSharper disable once MethodHasAsyncOverload
             cancellationSource.Cancel();
-            await _CleanupUnusedConnections(connectionTasks, null).ConfigureAwait(false);
+            _ = _CleanupUnusedConnections(connectionTasks, null).ConfigureAwait(false);
 
             LogWrapper.Error(ex, ModuleName, $"All connection attempts failed for {host}");
             throw new HttpRequestException($"Connection failed for {host}", ex);
@@ -177,7 +177,14 @@ public class HostConnectionHandler
 
     private static async Task<NetworkStream> _DelayedConnectAsync(IPAddress ip, int port, int delay, CancellationToken cancellationToken)
     {
-        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+        }
+        catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         return await _ConnectToAddressAsync(ip, port, cancellationToken).ConfigureAwait(false);
     }
 
@@ -204,28 +211,37 @@ public class HostConnectionHandler
         List<Task<NetworkStream>> allTasks,
         Task<NetworkStream>? winnerTask)
     {
-        foreach (var task in allTasks.Where(t => t != winnerTask && !t.IsCompleted))
+        foreach (var task in allTasks.Where(t => t != winnerTask))
         {
             try
             {
-                // 给连接一个极短的取消响应时间
-                var cleanupTask = Task.WhenAny(task, Task.Delay(50));
-                await cleanupTask.ConfigureAwait(false);
-
                 if (task.IsCompletedSuccessfully)
                 {
-                    // ReSharper disable once MethodHasAsyncOverload
-                    task.Result?.Dispose();
+                    var stream = await task.ConfigureAwait(false);
+                    await stream.DisposeAsync().ConfigureAwait(false);
                 }
-                else if (task.Exception != null)
+                else if (task.IsCompleted)
                 {
-                    // 吞掉异常避免日志污染
                     _ = task.Exception;
                 }
+                else
+                {
+                    _ = task.ContinueWith(t =>
+                    {
+                        if (t.IsCompletedSuccessfully)
+                        {
+                            t.Result.Dispose();
+                        }
+                        else
+                        {
+                            _ = t.Exception;
+                        }
+                    }, TaskScheduler.Default);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略清理异常
+                LogWrapper.Warn(ex, ModuleName, "Dispose connection with an error");
             }
         }
     }

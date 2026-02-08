@@ -1710,7 +1710,7 @@ Retry:
                     Return Nothing
                 End If
             End If
-            Dim Type = TypeIndexes.MaxOf(Function(kv) kv.Item2).FolderName.TrimStart("\"c)
+            Dim Type = TypeIndexes.MaxOrDefault(Function(kv) kv.Item2).FolderName.TrimStart("\"c)
             '根据类别进行查找
             Select Case Type
                 Case "assets\", "libraries\"

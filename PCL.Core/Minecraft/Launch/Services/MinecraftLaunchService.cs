@@ -8,18 +8,21 @@ using PCL.Core.Minecraft.Launch.Utils;
 
 namespace PCL.Core.Minecraft.Launch.Services;
 
-public class MinecraftLaunchService(IMcInstance instance, JavaInfo selectedJava, string launchArg) {
+public class MinecraftLaunchService(IMcInstance instance, JavaEntry selectedJava, string launchArg) {
     public void LaunchMinecraft() {
         var noJavaw = Config.Launch.NoJavaw;
 
         // 启动信息
         var gameProcess = new Process();
-        var startInfo = new ProcessStartInfo(noJavaw ? selectedJava.JavaExePath : selectedJava.JavawExePath);
+        var startInfo = new ProcessStartInfo(noJavaw
+            ? selectedJava.Installation.JavaExePath
+            : (selectedJava.Installation.JavawExePath ?? selectedJava.Installation.JavaExePath)
+        );
 
         // 设置环境变量
         var pathEnv = startInfo.EnvironmentVariables["PATH"];
         var paths = pathEnv != null ? pathEnv.Split(';').ToList() : [];
-        paths.Add(selectedJava.JavaFolder);
+        paths.Add(selectedJava.Installation.JavaFolder);
         startInfo.EnvironmentVariables["Path"] = string.Join(";", paths.Distinct().ToList());
         startInfo.EnvironmentVariables["appdata"] = instance.Folder.Path;
 
@@ -34,7 +37,7 @@ public class MinecraftLaunchService(IMcInstance instance, JavaInfo selectedJava,
 
         // 开始进程
         gameProcess.Start();
-        McLaunchUtils.Log("已启动游戏进程：" + selectedJava.JavawExePath);
+        McLaunchUtils.Log("已启动游戏进程：" + startInfo.FileName);
         // TODO: 有待考量
         /*
         if (Loader.IsAborted) {

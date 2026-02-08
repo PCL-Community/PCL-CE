@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using PCL.Core.Utils;
 
 namespace PCL.Core.Net.Http.Server;
@@ -62,6 +63,8 @@ public class HttpRouteResponse
         if (Cookies is {} cookies) target.Cookies = cookies;
         if (InputStream is {} inputStream) inputStream.CopyTo(target.OutputStream);
     }
+
+    public Task<HttpRouteResponse> AsTask() => Task.FromResult(this);
 
     /// <summary>
     /// 返回指定 HTTP 状态码的空响应

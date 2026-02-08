@@ -138,4 +138,80 @@ public static partial class RegexPatterns
     public static readonly Regex EnglishSpacedKeywords = _EnglishSpacedKeywords();
     [GeneratedRegex("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)")]
     private static partial Regex _EnglishSpacedKeywords();
+
+    #region Minecraft 实例解析
+
+    public static readonly Regex OptiFineVersion = _OptiFineVersion();
+    [GeneratedRegex(@"(?<=HD_U_)[^"":/]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _OptiFineVersion();
+
+    public static readonly Regex OptiFineLibVersion = _OptiFineLibVersion();
+    [GeneratedRegex(@"(?<=HD_U_)[^"":/]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _OptiFineLibVersion();
+
+    public static readonly Regex LegacyFabricVersion = _LegacyFabricVersion();
+    [GeneratedRegex(@"(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _LegacyFabricVersion();
+
+    public static readonly Regex FabricVersion = _FabricVersion();
+    [GeneratedRegex(@"(?<=(net.fabricmc:fabric-loader:))[0-9\.]+(\+build.[0-9]+)?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _FabricVersion();
+
+    public static readonly Regex QuiltVersion = _QuiltVersion();
+    [GeneratedRegex(@"(?<=(org.quiltmc:quilt-loader:))[0-9\.]+(\+build.[0-9]+)?((-beta.)[0-9]([0-9]?))", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _QuiltVersion();
+
+    public static readonly Regex CleanroomVersion = _CleanroomVersion();
+    [GeneratedRegex(@"(?<=(com.cleanroommc:cleanroom:))[0-9\.]+(\+build.[0-9]+)?(-alpha)?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _CleanroomVersion();
+
+    /// <summary>
+    /// 匹配 Forge 主版本号（位于 "forge:X.Y.Z-" 之后）。
+    /// </summary>
+    public static readonly Regex ForgeMainVersion = _ForgeMainVersion();
+    [GeneratedRegex(@"(?<=forge:[0-9\.]+(_pre[0-9]*)?\-)[0-9\.]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _ForgeMainVersion();
+
+    /// <summary>
+    /// 匹配 Forge Maven 坐标中的版本号（net.minecraftforge:minecraftforge:X.Y.Z）。
+    /// </summary>
+    public static readonly Regex ForgeLibVersion = _ForgeLibVersion();
+    [GeneratedRegex(@"(?<=net\.minecraftforge:(?:forge|fmlloader):[0-9.]+-)[0-9a-zA-Z._+-]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _ForgeLibVersion();
+
+    /// <summary>
+    /// 匹配 NeoForge 版本号（从 JSON 参数中提取，如 "--fml.neoForgeVersion", "20.6.119-beta"）。
+    /// </summary>
+    public static readonly Regex NeoForgeVersion = _NeoForgeVersion();
+    [GeneratedRegex(@"(?<=orgeVersion"",[^""]*?"")[^""]+(?="",)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _NeoForgeVersion();
+
+    public static readonly Regex FabricLikeLibVersion = _FabricLikeLibVersion();
+    [GeneratedRegex(@"(?<=((fabricmc)|(quiltmc)|(legacyfabric)):intermediary:)[^""]*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _FabricLikeLibVersion();
+
+    public static readonly Regex LabyModVersion = _LabyModVersion();
+    [GeneratedRegex(@"(?<=-Dnet.labymod.running-version=)1.[0-9+.]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _LabyModVersion();
+
+    public static readonly Regex MinecraftJsonVersion = _MinecraftJsonVersion();
+    [GeneratedRegex(@"(([1-9][0-9]w[0-9]{2}[a-g])|((1|[2-9][0-9])\.[0-9]+(\.[0-9]+)?(-(pre|rc|snapshot-?)[1-9]*| Pre-Release( [1-9])?)?))(_unobfuscated)?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _MinecraftJsonVersion();
+
+    public static readonly Regex MinecraftDownloadUrlVersion = _MinecraftDownloadUrlVersion();
+    [GeneratedRegex(@"(?<=launcher.mojang.com/mc/game/)[^/]*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _MinecraftDownloadUrlVersion();
+
+    public static readonly Regex CatchLwjglInLib = _CatchLwjglInLib();
+    [GeneratedRegex(@"(?<=org.lwjgl:)lwjgl(-[a-z._.\-.0-9]*)(?=(:[0-9].[0-9].[0-9](-[a-z.0-9._.\-]*)?:([a-z._.\-.0-9]*)?))", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _CatchLwjglInLib();
+
+    #endregion
+
+    #region 外部组件
+
+    public static readonly Regex ModIdMatch = _ModIdMatch();
+    [GeneratedRegex(@"[0-9a-zA-Z_-]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _ModIdMatch();
+    #endregion
 }

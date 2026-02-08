@@ -184,6 +184,6 @@
     End Sub
 
     Public Sub Refresh() Implements IRefreshable.Refresh
-        FrmToolsLeft.RefreshHelp()
+        PageToolsLeft.RefreshHelp()
     End Sub
 End Class

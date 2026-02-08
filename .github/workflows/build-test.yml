@@ -6,17 +6,18 @@ permissions:
 on:
   push:
     branches: [dev]
-    paths:
-      - 'Plain Craft Launcher 2/**'
-      - 'Plain Craft Launcher 2.sln'
-      - '.github/workflows/**'
-      - 'PCL.Core'
+    paths-ignore: &ignored
+      - '**/.editorconfig'
+      - '**/.gitignore'
+      - '**/.gitattributes'
+      - '**/*.md'
+      - '**/LICENSE'
+      - '**/LICENCE'
+      - 'PCL.Core.Test/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/FUNDING.yml'
   pull_request:
-    paths:
-      - 'Plain Craft Launcher 2/**'
-      - 'Plain Craft Launcher 2.sln'
-      - '.github/workflows/**'
-      - 'PCL.Core'
+    paths-ignore: *ignored
   workflow_dispatch:
 
 jobs:

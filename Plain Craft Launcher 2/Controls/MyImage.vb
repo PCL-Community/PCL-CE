@@ -127,7 +127,7 @@ Public Class MyImage
             If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
         End If
 
-        Dim TempDownloadingPath As String
+        Dim TempDownloadingPath As String = Nothing
         Try
             '下载
             ActualSource = LoadingSource '显示加载中图片

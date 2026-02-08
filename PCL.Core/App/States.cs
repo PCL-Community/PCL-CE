@@ -2,6 +2,10 @@
 
 namespace PCL.Core.App;
 
+/// <summary>
+/// 全局状态类。
+/// </summary>
+// ReSharper disable InconsistentNaming
 public static partial class States
 {
     /// <summary>
@@ -114,6 +118,9 @@ public static partial class States
         [ConfigItem<string>("SystemSystemAnnouncement", "")] public partial string ShowedAnnouncements { get; set; }
     }
 
+    /// <summary>
+    /// 游戏与启动相关状态。
+    /// </summary>
     [ConfigGroup("Game")] partial class GameStatesGroup
     {
         /// <summary>
@@ -193,6 +200,9 @@ public static partial class States
         [ConfigItem<string>("CompFavorites", "[]")] public partial string CompFavorites { get; set; }
     }
 
+    /// <summary>
+    /// 用户界面状态。
+    /// </summary>
     [ConfigGroup("UI")] partial class UiStatesGroup
     {
         /// <summary>
@@ -232,6 +242,9 @@ public static partial class States
 
     }
 
+    /// <summary>
+    /// 系统状态。
+    /// </summary>
     [ConfigGroup("System")] partial class SystemStatesGroup
     {
         /// <summary>
@@ -293,6 +306,9 @@ public static partial class States
 
     }
 
+    /// <summary>
+    /// 工具状态。
+    /// </summary>
     [ConfigGroup("Tool")] partial class ToolStatesGroup
     {
         /// <summary>
@@ -316,6 +332,9 @@ public static partial class States
         [ConfigItem<string>("ToolUpdateSnapshotLast", "")] public partial string LastSnapshot { get; set; }
     }
 
+    /// <summary>
+    /// 联机大厅状态。
+    /// </summary>
     [ConfigGroup("Link")] partial class LinkStatesGroup
     {
         /// <summary>

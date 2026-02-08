@@ -44,9 +44,10 @@
     </PropertyGroup>
     <!-- NuGet 引用 -->
     <ItemGroup>
-        <!-- 用户界面和响应式编程 -->
+        <!-- UI -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+        <PackageReference Include="Wacton.Unicolour" Version="6.4.0" />
         <!-- 语言和系统特性 -->
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
         <PackageReference Include="System.Management" Version="10.0.1" />
