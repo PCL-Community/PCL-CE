@@ -1,4 +1,4 @@
-using PCL.Core.IO.Pipes;
+﻿using PCL.Core.IO.Pipes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +7,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.App.IoC;
 
 namespace PCL.Core.App;
 
@@ -156,6 +157,11 @@ public class RpcProperty
 /// <param name="argument">参数</param>
 /// <returns>响应内容</returns>
 public delegate RpcResponse RpcFunction(string? argument, string? content, bool indent);
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
+[DependencyCollector<Action>("rpc-function", AttributeTargets.Method)]
+[DependencyCollector<string>("rpc-property", AttributeTargets.Property)]
+public sealed class RpcAttribute(string name) : Attribute;
 
 /// <summary>
 /// RPC 服务项
