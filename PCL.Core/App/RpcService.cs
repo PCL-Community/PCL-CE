@@ -158,11 +158,6 @@ public class RpcProperty
 /// <returns>响应内容</returns>
 public delegate RpcResponse RpcFunction(string? argument, string? content, bool indent);
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
-[DependencyCollector<Action>("rpc-function", AttributeTargets.Method)]
-[DependencyCollector<string>("rpc-property", AttributeTargets.Property)]
-public sealed class RpcAttribute(string name) : Attribute;
-
 /// <summary>
 /// RPC 服务项
 /// </summary>
@@ -216,7 +211,6 @@ public sealed partial class RpcService
     /// </summary>
     /// <param name="prop">要删除的属性</param>
     /// <returns></returns>
-    [Rpc("123")]
     public static bool RemoveProperty(RpcProperty prop)
     {
         var key = prop.Name;
