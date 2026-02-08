@@ -73,6 +73,34 @@ public static class TaskCenter
 
         if (task is IStepTask sTask)
         {
+            // TODO: impl dynamic step collection change tracking
+            //sTask.Steps.CollectionChanged += (s, e) =>
+            //{
+            //    _RunInUi(() =>
+            //    {
+            //        if (e.NewItems is not null)
+            //        {
+            //            foreach (ITask newItem in e.NewItems)
+            //            {
+            //                var stepModel = _CreateTaskStepModel(newItem);
+            //                steps?.Add(stepModel);
+            //            }
+            //        }
+
+            //        if (e.OldItems is not null)
+            //        {
+            //            foreach (ITask oldItem in e.OldItems)
+            //            {
+            //                var stepModel = steps?.FirstOrDefault(sm => sm.Message == oldItem.Title);
+            //                if (stepModel is not null)
+            //                {
+            //                    steps?.Remove(stepModel);
+            //                    stepModel.Dispose();
+            //                }
+            //            }
+            //        }
+            //    });
+            //};
             steps = sTask.Steps.Select(_CreateTaskStepModel).ToList();
         }
 
