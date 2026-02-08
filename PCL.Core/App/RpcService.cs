@@ -216,6 +216,7 @@ public sealed partial class RpcService
     /// </summary>
     /// <param name="prop">要删除的属性</param>
     /// <returns></returns>
+    [Rpc("123")]
     public static bool RemoveProperty(RpcProperty prop)
     {
         var key = prop.Name;

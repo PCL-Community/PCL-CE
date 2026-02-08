@@ -98,36 +98,24 @@ public static class SharedExtensions
                && l.IsKind(SyntaxKind.NumericLiteralExpression);
     }
 
-    public static string RenderSourceCode(this SemanticModel sm, ExpressionSyntax expr)
+    extension(ISymbol symbol)
     {
-        var sym = sm.GetSymbolInfo(expr).Symbol;
-        if (sym is IFieldSymbol fs && fs.ContainingType?.ToDisplayString() == "PCL.Core.App.Configuration.ConfigSource")
+        public string GetQualifiedSymbolName()
         {
-            return "ConfigSource." + fs.Name;
-        }
-        return expr.ToString();
-    }
-
-    public static string GetQualifiedSymbolName(this ISymbol symbol)
-    {
-        if (symbol is IFieldSymbol { ContainingType: not null } f)
-        {
+            if (symbol is ITypeSymbol ts) return ts.GetFullyQualifiedName();
+            
             var parts = new Stack<string>();
-            parts.Push(f.Name);
-            var t = f.ContainingType;
+            parts.Push(symbol.Name);
+            var t = symbol.ContainingType;
             while (t != null)
             {
                 parts.Push(t.Name);
                 t = t.ContainingType;
             }
-            var ns = f.ContainingNamespace?.ToDisplayString();
+            var ns = symbol.ContainingNamespace?.ToDisplayString();
             if (!string.IsNullOrEmpty(ns)) parts.Push(ns!);
             return string.Join(".", parts);
         }
-
-        if (symbol is ITypeSymbol ts) return ts.GetFullyQualifiedName();
-        var n = symbol.ContainingNamespace?.ToDisplayString();
-        return string.IsNullOrEmpty(n) ? symbol.ToDisplayString() : n + "." + symbol.ToDisplayString();
     }
 
     private static readonly SymbolDisplayFormat _SimplifiedTypeNameFormat = new(
