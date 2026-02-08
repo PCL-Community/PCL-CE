@@ -1,4 +1,4 @@
-﻿using PCL.Core.IO.Pipes;
+using PCL.Core.IO.Pipes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +7,6 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using PCL.Core.App.IoC;
 
 namespace PCL.Core.App;
 
