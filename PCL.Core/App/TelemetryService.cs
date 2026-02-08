@@ -17,7 +17,7 @@ namespace PCL.Core.App;
 
 [LifecycleScope("Telemetry", "遥测")]
 [LifecycleService(LifecycleState.Running)]
-public partial class TelemetryService : GeneralService
+public sealed partial class TelemetryService
 {
 
     // ReSharper disable UnusedAutoPropertyAccessor.Local
