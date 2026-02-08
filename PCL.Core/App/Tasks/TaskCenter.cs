@@ -1,5 +1,6 @@
 using PCL.Core.App.Tasks.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -11,18 +12,18 @@ namespace PCL.Core.App.Tasks;
 /// <summary>
 /// 任务中心，用于管理任务
 /// </summary>
-public static class TaskCenterService
+public static class TaskCenter
 {
     /// <summary>
     /// Current tasks in the TaskCenter
     /// </summary>
     public static ObservableCollection<TaskModel> CurrentTasks { get; } = [];
 
-    private static readonly SemaphoreSlim _ExcuteLock = new(1, 1);
+    private static readonly SemaphoreSlim _ExecuteLock = new(1, 1);
 
 
     /// <summary>
-    /// Add a task to <see cref="TaskCenterService"/>
+    /// Add a task to <see cref="TaskCenter"/>
     /// </summary>
     /// <param name="task"></param>
     /// <param name="showInList">Is visible in TaskCenter in UI</param>
@@ -35,7 +36,8 @@ public static class TaskCenterService
             SupportProgress = task is IProgressiveTask,
             State = TaskState.Waiting,
             StateMessage = "等待执行……",
-            Token = new CancellationTokenSource()
+            Token = new CancellationTokenSource(),
+            HasSteps = false
         };
 
         if (showInList)
@@ -56,12 +58,21 @@ public static class TaskCenterService
     /// <returns>Created model</returns>
     private static TaskModel _CreateTaskModel(ITask task)
     {
+        List<TaskModel>? steps = null;
+        if (task is ISequentallyStepTask stepTask)
+        {
+            steps = stepTask.Steps.Select(_CreateTaskModel).ToList();
+        }
+
         var model = new TaskModel
         {
             Title = task.Title,
             SupportProgress = task is IProgressiveTask,
             State = TaskState.Waiting,
-            StateMessage = "等待执行……"
+            StateMessage = "等待执行……",
+            Steps = steps,
+            HasSteps = steps is not null && steps.Count > 0,
+            Token = new CancellationTokenSource(),
         };
 
         task.StateChanged += (state, msg) =>
@@ -81,13 +92,6 @@ public static class TaskCenterService
             };
         }
 
-        if (task is IStepTask stepTask)
-        {
-            foreach (var stepModel in stepTask.Steps.Select(_CreateTaskModel))
-            {
-                model.Steps.Add(stepModel);
-            }
-        }
 
         return model;
     }
@@ -96,7 +100,7 @@ public static class TaskCenterService
     {
         try
         {
-            await _ExcuteLock.WaitAsync(token).ConfigureAwait(false);
+            await _ExecuteLock.WaitAsync(token).ConfigureAwait(false);
 
             if (rootModel.State is TaskState.Waiting)
             {
@@ -127,7 +131,9 @@ public static class TaskCenterService
                 proTask.ProgressChanged -= ChangeProgress;
             }
 
-            _ExcuteLock.Release();
+            CurrentTasks.Remove(rootModel);
+
+            _ExecuteLock.Release();
         }
 
         return;

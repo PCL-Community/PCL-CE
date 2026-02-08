@@ -17,9 +17,9 @@ public partial class TaskModel : ObservableObject
     public required bool SupportProgress { get; init; }
 
     /// <summary>
-    /// 由于取消此Model所属的任务
+    /// 由于取消此 <see cref="TaskModel"/> 所属的任务
     /// </summary>
-    public CancellationTokenSource Token { get; init; }
+    public required CancellationTokenSource Token { get; init; }
 
     /// <summary>
     /// 任务当前状态
@@ -39,10 +39,10 @@ public partial class TaskModel : ObservableObject
     /// <summary>
     /// Steps in this task
     /// </summary>
-    public ObservableCollection<TaskModel> Steps { get; } = [];
+    public ObservableCollection<TaskModel>? Steps { get; internal set; }
 
     /// <summary>
     /// Is have steps
     /// </summary>
-    public bool HasSteps => Steps.Count > 0;
+    public required bool HasSteps { get; init; }
 }

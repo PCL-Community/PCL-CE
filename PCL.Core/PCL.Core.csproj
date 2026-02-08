@@ -86,4 +86,7 @@
         <AdditionalFiles Include="App\LifecycleState.cs" />
         <ProjectReference Include="..\PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="App\Tasks\Implementations\" />
+    </ItemGroup>
 </Project>
