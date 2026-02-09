@@ -149,7 +149,7 @@ public class PipeServer(
         }
         catch (IOException ioEx)
         {
-            if (!(_PipeIsConnedted() && _isConnected))
+            if (!(_PipeIsConnected() && _isConnected))
             {
                 _LogDebug($"Client connection has been lost");
                 doNextLoop = true;
@@ -169,7 +169,7 @@ public class PipeServer(
         {
             try
             {
-                if (_PipeIsConnedted())
+                if (_PipeIsConnected())
                 {
                     PipeServerStream.Disconnect();
                 }
@@ -192,7 +192,7 @@ public class PipeServer(
 
     #region Helper Method
 
-    private bool _PipeIsConnedted() =>
+    private bool _PipeIsConnected() =>
         PipeServerStream.IsConnected;
 
     private static bool _ValidateProcessId(int clientProcessId, int[] allowedProcessId) =>
