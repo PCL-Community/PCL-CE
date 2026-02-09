@@ -20,7 +20,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             throw new ArgumentException("Not enough clients.");
 
         _concurrentCount = concurrentCount;
-        _clients = clients.Select(c => (Client: c, Weight: (byte)0)).ToArray();
+        _clients = clients.Select(static c => (Client: c, Weight: (byte)0)).ToArray();
     }
 
     public async Task<DnsMessage> Query(DnsMessage query, CancellationToken ct = default)
@@ -29,7 +29,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         lock (_lock)
         {
             candidates = _clients
-                .OrderByDescending(x => x.Weight)
+                .OrderByDescending(static x => x.Weight)
                 .Take(_concurrentCount)
                 .ToArray();
         }
@@ -40,7 +40,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         for (var i = 0; i < candidates.Length; i++)
         {
             var task = candidates[i].Client.Query(query, cts.Token);
-            _ = task.ContinueWith(static _ => { }, TaskContinuationOptions.OnlyOnFaulted);
+            task.Forget();
             tasks[i] = task;
         }
 

@@ -130,12 +130,12 @@ public class HostConnectionHandler
 
         // 非缓存地址: IPv6 优先 + 保持原始顺序
         var ipv6List = uncachedAddresses
-            .Where(ip => ip.AddressFamily == AddressFamily.InterNetworkV6)
+            .Where(static ip => ip.AddressFamily == AddressFamily.InterNetworkV6)
             .OrderBy(ip => Array.IndexOf(addresses, ip))
             .ToList();
 
         var ipv4List = uncachedAddresses
-            .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+            .Where(static ip => ip.AddressFamily == AddressFamily.InterNetwork)
             .OrderBy(ip => Array.IndexOf(addresses, ip))
             .ToList();
 
@@ -159,7 +159,7 @@ public class HostConnectionHandler
     private void _UpdateConnectionCache(string host, int port, IPAddress ip, DateTime now)
     {
         var cacheKey = (host, port);
-        var addressCache = _connectionCache.GetOrAdd(cacheKey, _ =>
+        var addressCache = _connectionCache.GetOrAdd(cacheKey, static _ =>
             new ConcurrentDictionary<IPAddress, DateTime>());
 
         // 移除过期条目 (懒清理)
@@ -226,7 +226,7 @@ public class HostConnectionHandler
                 }
                 else
                 {
-                    _ = task.ContinueWith(t =>
+                    _ = task.ContinueWith(static t =>
                     {
                         if (t.IsCompletedSuccessfully)
                         {

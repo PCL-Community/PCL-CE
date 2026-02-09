@@ -54,4 +54,15 @@ public static class TaskExtensions
         // Task 要么成功，要么 Faulted，要么 Canceled，大概率走不到这
         throw new InvalidOperationException("All tasks completed but none succeeded, failed, or canceled.");
     }
+
+    extension(Task task)
+    {
+        /// <summary>
+        /// 不关心 Task 后续的异常，但是需要观察下
+        /// </summary>
+        public void Forget()
+        {
+            _ = task.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+        }
+    }
 }
