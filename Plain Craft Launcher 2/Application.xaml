@@ -65,6 +65,7 @@
             <Color x:Key="ColorObjectGray6">#ebebeb</Color>
             <Color x:Key="ColorObjectGray7">#f0f0f0</Color>
             <Color x:Key="ColorObjectGray8">#f5f5f5</Color>
+            <SolidColorBrush x:Key="ColorBrushTransparent">#00000000</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedBack">#80fbdddd</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedLight">#ff4c4c</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushRedDark">#ce2111</SolidColorBrush>
