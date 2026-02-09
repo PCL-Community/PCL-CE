@@ -1,0 +1,237 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+
+namespace PCL.Core.SourceGenerators;
+
+[Generator]
+public class CacheGenerator : IIncrementalGenerator
+{
+    private const string AttributeName = "PCL.Core.App.Cache.CachedPropertyAttribute";
+
+    #region Errors
+
+    private static readonly DiagnosticDescriptor PartialClass = new(
+        id: "CACHE001",
+        title: "Class must be partial",
+        messageFormat: "Class '{0}' must be declared as partial to use CacheGenerator",
+        category: "Design",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor NonStaticField = new(
+        id: "CACHE002",
+        title: "Field must be static",
+        messageFormat: "Field '{0}' marked with [CachedProperty] must not be static",
+        category: "Design",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    #endregion
+
+    /// <inheritdoc />
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        var provider = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: (s, _) => s is FieldDeclarationSyntax { AttributeLists.Count: > 0 },
+                transform: (ctx, _) => GetFiledInfo(ctx))
+            .Where(m => m is not null);
+
+        var collect = provider.Collect();
+
+        context.RegisterSourceOutput(collect, Execute);
+    }
+
+    #region Helper Methods
+
+    private ExtractionResult? GetFiledInfo(GeneratorSyntaxContext context)
+    {
+        var fieldDecl = (FieldDeclarationSyntax)context.Node;
+        var variable = fieldDecl.Declaration.Variables.First();
+
+        var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, variable) as IFieldSymbol;
+        if (symbol is null)
+        {
+            return null;
+        }
+
+        var attr = symbol.GetAttributes().FirstOrDefault(ad =>
+            ad.AttributeClass?.ToDisplayString() == AttributeName);
+        if (attr is null)
+        {
+            return null;
+        }
+
+        var isPartial = false;
+        if (fieldDecl.Parent is TypeDeclarationSyntax typeDecl)
+        {
+            isPartial = typeDecl.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+        }
+
+        string? providerType = null;
+        if (attr.ConstructorArguments.Length > 0 &&
+            !attr.ConstructorArguments[0].IsNull)
+        {
+            var pSymble = attr.ConstructorArguments[0].Value as INamedTypeSymbol;
+            providerType = pSymble?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        var keyType = "string";
+        if (attr.ConstructorArguments.Length > 1)
+        {
+            var keyArg = attr.ConstructorArguments[1];
+
+            if (keyArg.Value is ITypeSymbol keySymbol)
+            {
+                keyType = keySymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            }
+        }
+
+        var rawName = variable.Identifier.Text;
+        var propName = rawName.TrimStart('_');
+        if (propName.Length > 0)
+        {
+            propName = char.ToUpper(propName[0]) + propName.Substring(1);
+        }
+        else
+        {
+            propName = "CachedProperty";
+        }
+
+        return new ExtractionResult(new FieldGenInfo
+        {
+            Namespace = symbol.ContainingType.ContainingNamespace.ToDisplayString(),
+            ClassName = symbol.ContainingType.Name,
+            FieldName = rawName,
+            PropertyName = propName,
+            EntityType = symbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            ProviderType = providerType,
+            KeyType = keyType,
+
+            IsStatic = symbol.IsStatic,
+            IsPartial = isPartial,
+            Location = variable.GetLocation()
+        }, null);
+    }
+
+    private static void Execute(SourceProductionContext context, ImmutableArray<ExtractionResult?> inputs)
+    {
+        if (inputs.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        var validInfos = new List<FieldGenInfo>();
+        foreach (var input in inputs)
+        {
+            if (input is null)
+            {
+                continue;
+            }
+
+            var item = (ExtractionResult)input;
+
+            if (item.Diagnostic is not null)
+            {
+                context.ReportDiagnostic(item.Diagnostic);
+            }
+            else if (item.Info is not null)
+            {
+                validInfos.Add(item.Info);
+            }
+        }
+
+        if (validInfos.Count == 0)
+        {
+            return;
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("// <auto-generated/>");
+        sb.AppendLine("using System;");
+        sb.AppendLine("using PCL.Core.App.Cache;");
+
+        var namespaceGroupds = validInfos
+            .GroupBy(x => x.Namespace)
+            .OrderBy(x => x.Key);
+
+        foreach (var nsGroup in namespaceGroupds)
+        {
+            var hasNamespace = !string.IsNullOrEmpty(nsGroup.Key);
+
+            if (hasNamespace)
+            {
+                sb.AppendLine($"\nnamespace {nsGroup.Key}");
+                sb.AppendLine("{");
+            }
+
+            var classGroups = nsGroup.GroupBy(x => x.ClassName).OrderBy(x => x.Key);
+
+            foreach (var clGroup in classGroups)
+            {
+                var indent = hasNamespace ? "    " : "";
+
+                sb.AppendLine($"{indent}partial class {clGroup.Key}");
+                sb.AppendLine($"{indent}{{"); // Start Class
+
+                foreach (var field in clGroup)
+                {
+                    var providerArg = field.ProviderType != null ? $"typeof({field.ProviderType})" : "null";
+
+                    sb.AppendLine($"{indent}    /// <summary>");
+                    sb.AppendLine($"{indent}    /// Auto-generated class property");
+                    sb.AppendLine($"{indent}    /// Key: {field.KeyType}<br/>");
+                    sb.AppendLine($"{indent}    /// Value: {field.EntityType} (Proxy field: {field.FieldName} )");
+                    sb.AppendLine($"{indent}    /// <summary/>");
+                    sb.AppendLine(
+                        $"{indent}    public ICacheProvider<{field.KeyType}, {field.EntityType}> {field.PropertyName}");
+                    sb.AppendLine($"{indent}    {{");
+                    sb.AppendLine($"{indent}        get");
+                    sb.AppendLine($"{indent}        {{");
+                    sb.AppendLine(
+                        $"{indent}            return CacheManager.GetProvider<{field.KeyType}, {field.EntityType}>({providerArg});");
+                    sb.AppendLine($"{indent}        }}");
+                    sb.AppendLine($"{indent}    }}");
+                }
+
+
+                sb.AppendLine($"{indent}}}"); // End Class
+            }
+
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
+
+            sb.AppendLine();
+        }
+
+        context.AddSource($"CachedProperties.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+    }
+
+    #endregion
+
+    private record struct ExtractionResult(FieldGenInfo? Info, Diagnostic? Diagnostic);
+
+    private record FieldGenInfo
+    {
+        public string Namespace { get; set; } = string.Empty;
+        public string ClassName { get; set; } = string.Empty;
+        public string FieldName { get; set; } = string.Empty;
+        public string PropertyName { get; set; } = string.Empty;
+
+        public string EntityType { get; set; } = string.Empty;
+        public string KeyType { get; set; } = string.Empty;
+        public string? ProviderType { get; set; }
+
+        public bool IsStatic { get; set; }
+        public bool IsPartial { get; set; }
+        public Location? Location { get; set; }
+    }
+}
