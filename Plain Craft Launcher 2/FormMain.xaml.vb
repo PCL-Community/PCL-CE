@@ -722,6 +722,8 @@ Public Class FormMain
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
                     e.Effects = DragDropEffects.Copy
+                ElseIf File.Exists(Str) Then
+                    e.Effects = DragDropEffects.Link
                 End If
             ElseIf e.Data.GetDataPresent(DataFormats.FileDrop) Then
                 Dim Files As String() = e.Data.GetData(DataFormats.FileDrop)
@@ -769,6 +771,10 @@ Public Class FormMain
                         e.Handled = True
                         e.Effects = DragDropEffects.Copy
                         FileDrag(New List(Of String) From {FilePath})
+                    ElseIf File.Exists(Str) Then
+                        e.Handled = True
+                        e.Effects = DragDropEffects.Link
+                        FileDrag(New List(Of String) From {Str})
                     End If
                 Catch ex As Exception
                     Log(ex, "无法接取文本拖拽事件", LogLevel.Developer)
