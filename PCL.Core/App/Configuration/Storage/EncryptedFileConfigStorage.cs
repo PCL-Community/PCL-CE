@@ -58,7 +58,7 @@ public class EncryptedFileConfigStorage(ConfigStorage source) : ConfigStorage
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "Encryption", "无法处理加解密");
+            LogWrapper.Error(ex, "Config", "无法处理加解密");
             return false;
         }
     }
