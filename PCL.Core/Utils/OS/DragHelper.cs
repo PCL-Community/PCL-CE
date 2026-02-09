@@ -149,6 +149,7 @@ public unsafe partial class DragHelper
             {
                 if (rented is not null)
                     ArrayPool<char>.Shared.Return(rented);
+                DragFinish(hDrop);
             }
         }
 
