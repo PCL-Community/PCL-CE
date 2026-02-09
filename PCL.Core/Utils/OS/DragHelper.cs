@@ -119,40 +119,17 @@ public unsafe partial class DragHelper
         if (msg != WM_DROPFILES)
             return false;
 
-        var count = DragQueryFile(hDrop, uint.MaxValue, null, 0);
+        uint count = DragQueryFile(hDrop, uint.MaxValue, out _, 0);
         filePaths = new string[count];
-
-        Span<char> buffer = stackalloc char[512];
-
+        
         for (uint i = 0; i < count; i++)
         {
-            var len = DragQueryFile(hDrop, i, null, 0);
-
-            char[]? rented = null;
-            Span<char> span = len + 1 <= buffer.Length
-                ? buffer
-                : (rented = ArrayPool<char>.Shared.Rent((int)len + 1));
-
-            try
-            {
-                unsafe
-                {
-                    fixed (char* p = span)
-                    {
-                        DragQueryFile(hDrop, i, p, len + 1);
-                    }
-                }
-
-                filePaths[i] = span[..(int)len].ToString();
-            }
-            finally
-            {
-                if (rented is not null)
-                    ArrayPool<char>.Shared.Return(rented);
-                DragFinish(hDrop);
-            }
+            uint len = DragQueryFile(hDrop, i, out _, 0);
+            DragQueryFile(hDrop, i, out var pathPtr, len + 1);
+            filePaths[i] = Marshal.PtrToStringUTF8(pathPtr) ?? "";
         }
 
+        DragFinish(hDrop);
         return true;
     }
 
@@ -190,7 +167,7 @@ public unsafe partial class DragHelper
     private static partial uint DragQueryFile(
         IntPtr hDrop,
         uint iFile,
-        char* lpszFile,
+        out IntPtr lpszFile,
         uint cch);
 
     [LibraryImport("shell32.dll")]
