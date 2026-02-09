@@ -84,14 +84,19 @@ Public Class FormMain
             Height = MinHeight + 100
             Width = MinWidth + 100
         End Try
-        ''开启管理员权限下的文件拖拽，但下列代码也没用（#2531）
-        'If IsAdmin() Then
-        '    Log("[Start] PCL 正以管理员权限运行")
-        '    ChangeWindowMessageFilter(&H233, 1)
-        '    ChangeWindowMessageFilter(&H4A, 1)
-        '    ChangeWindowMessageFilter(&H49, 1)
-        'End If
-        '切换到首页
+        '管理员权限下文件拖拽
+        If ProcessInterop.IsAdmin() Then 
+            Log("[Start] PCL 当前正以管理员权限运行")
+            Static helper As New DragHelper()
+            AddHandler Me.SourceInitialized,
+                Sub()
+                    Dim windowInterop As New WindowInteropHelper(Me)
+                    helper.HwndSource = HwndSource.FromHwnd(windowInterop.Handle)
+                    helper.AddHook()
+                End Sub
+            AddHandler Me.Closing,Sub() helper.RemoveHook()
+            AddHandler Helper.DragDrop, Sub() FileDrag(helper.DropFilePaths)
+        End If
         If Not IsNothing(FrmLaunchLeft.Parent) Then FrmLaunchLeft.SetValue(ContentPresenter.ContentProperty, Nothing)
         If Not IsNothing(FrmLaunchRight.Parent) Then FrmLaunchRight.SetValue(ContentPresenter.ContentProperty, Nothing)
         PanMainLeft.Child = FrmLaunchLeft
