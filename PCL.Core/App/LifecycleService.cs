@@ -190,5 +190,13 @@ public sealed class LifecycleStopAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LifecycleArgumentHandlerAttribute<TArgument>(string name, TArgument? defaultValue = default) : Attribute;
 
+/// <summary>
+/// 标记一个依赖注入入口，可以标记多个
+/// </summary>
+/// <param name="identifier">依赖标识符</param>
+/// <param name="targets">依赖类型</param>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class LifecycleDependencyInjectionAttribute(string identifier, AttributeTargets targets) : Attribute;
+
 #pragma warning restore CS9113 // Parameter is unread.
 #endregion

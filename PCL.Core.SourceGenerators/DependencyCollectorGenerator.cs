@@ -195,11 +195,14 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                             sb.Append(depRef);
                             break;
                         case AttributeTargets.Property:
-                            sb.Append("new(static () => ")
-                              .Append(depRef)
-                              .Append(", static value => ")
-                              .Append(depRef)
-                              .Append(" = value)");
+                            sb.Append("new(getter: ");
+                            var prop = (IPropertySymbol)dep.Target;
+                            if (prop.IsWriteOnly) sb.Append("null");
+                            else sb.Append("static () => ").Append(depRef);
+                            sb.Append(", setter: ");
+                            if (prop.IsReadOnly) sb.Append("null");
+                            else sb.Append("static value => ").Append(depRef).Append(" = value");
+                            sb.Append(")");
                             break;
                     }
                     if (argTypeList != string.Empty)

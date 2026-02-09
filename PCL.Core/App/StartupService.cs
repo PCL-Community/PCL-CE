@@ -102,4 +102,10 @@ public sealed partial class StartupService
         _UnhandledCommandMap.Remove("", out c!);
         CommandLine = c;
     }
+
+    [RegisterRpc("cli")]
+    public static RpcResponse OnRpcCommand(string? argument, string? content, bool indent)
+    {
+        return RpcResponse.EmptySuccess;
+    }
 }
