@@ -119,12 +119,12 @@ public unsafe partial class DragHelper
         if (msg != WM_DROPFILES)
             return false;
 
-        uint count = DragQueryFile(hDrop, uint.MaxValue, out _, 0);
+        var count = DragQueryFile(hDrop, uint.MaxValue, out _, 0);
         filePaths = new string[count];
         
         for (uint i = 0; i < count; i++)
         {
-            uint len = DragQueryFile(hDrop, i, out _, 0);
+            var len = DragQueryFile(hDrop, i, out _, 0);
             DragQueryFile(hDrop, i, out var pathPtr, len + 1);
             filePaths[i] = Marshal.PtrToStringUTF8(pathPtr) ?? "";
         }
