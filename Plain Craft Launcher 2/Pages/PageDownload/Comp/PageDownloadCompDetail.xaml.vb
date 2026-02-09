@@ -71,7 +71,8 @@ Public Class PageDownloadCompDetail
         End Sub
     End Class
 
-    Private _versionFilter As String
+    Private _instanceFilter As String
+    Private _modLoaderFilter As String
     Private GroupedDrop As Boolean '是否按 Drop 筛选（1.21 / 1.20 / 1.19 / ...）而非小版本号（1.21.1 / 1.21 / 1.20.4 / ...）
     Private GroupedOld As Boolean '是否折叠远古版本为一个选项
     '筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
@@ -90,62 +91,115 @@ Public Class PageDownloadCompDetail
         Dim results = GetResults()
 
         '初始化筛选器
-        Dim filters As List(Of String) = Nothing
+        Dim instanceFilters As List(Of String) = Nothing
+        Dim modLoaderFilters As List(Of String) = Nothing
         Dim updateFilters =
         Sub()
-            filters = results.SelectMany(Function(v) v.GameVersions).Select(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld)).
+            instanceFilters = results.SelectMany(Function(v) v.GameVersions).Select(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld)).
                 Distinct.OrderByDescending(Function(s) s, New VersionComparer).ToList
+            modLoaderFilters = results.SelectMany(Function(v) v.ModLoaders).Select(Function(l) l.ToString()).
+                Distinct.OrderByDescending(Function(s) s).ToList
         End Sub
 
         '确定分组方式
         GroupedDrop = False : GroupedOld = False
         updateFilters()
-        If filters.Count < 9 Then GoTo GroupDone
+        If instanceFilters.Count < 9 Then GoTo GroupDone
         GroupedDrop = True : GroupedOld = False
         updateFilters()
-        If filters.Count < 9 Then GoTo GroupDone
+        If instanceFilters.Count < 9 Then GoTo GroupDone
         GroupedDrop = False : GroupedOld = True
         updateFilters()
-        If filters.Count < 9 Then GoTo GroupDone
+        If instanceFilters.Count < 9 Then GoTo GroupDone
         GroupedDrop = True : GroupedOld = True
         updateFilters()
 GroupDone:
 
         'UI 化筛选器
-        PanFilter.Children.Clear()
-        If filters.Count < 2 Then
+        PanInstanceFilter.Children.Clear()
+        PanModLoaderFilter.Children.Clear()
+        If Not _pageType = CompType.Mod Then
+            PanInstanceFilter.Margin = New Thickness(10, 10, 0, 10)
+            PanModLoaderFilter.Margin = New Thickness(0)
+        End If
+        If instanceFilters.Count < 2 Then
             CardFilter.Visibility = Visibility.Collapsed
-            _versionFilter = Nothing
+            _instanceFilter = Nothing
         Else
             CardFilter.Visibility = Visibility.Visible
-            filters.Insert(0, "全部")
+            '插入标签
+            If _pageType = CompType.Mod Then
+                Dim instanceTextBlock As New TextBlock With {
+                        .Text = "实例筛选：", .VerticalAlignment = VerticalAlignment.Center,
+                        .Margin = New Thickness(2, 0, 0, 0)}
+                PanInstanceFilter.Children.Add(instanceTextBlock)
+                Dim modLoaderTextBlock As New TextBlock With {
+                        .Text = "模组加载器筛选：", .VerticalAlignment = VerticalAlignment.Center,
+                        .Margin = New Thickness(2, 0, 0, 0)}
+                PanModLoaderFilter.Children.Add(modLoaderTextBlock)
+            End If
+            
+            instanceFilters.Insert(0, "全部")
+            modLoaderFilters.Insert(0, "全部")
             '转化为按钮
-            For Each version As String In filters
+            For Each version As String In instanceFilters
                 Dim newButton As New MyRadioButton With {
                     .Text = version, .Margin = New Thickness(2, 0, 2, 0), .ColorType = MyRadioButton.ColorState.Highlight}
                 newButton.LabText.Margin = New Thickness(-2, 0, 10, 0)
                 AddHandler newButton.Check,
                 Sub(sender As MyRadioButton, raiseByMouse As Boolean)
-                    _versionFilter = If(sender.Text = "全部", Nothing, sender.Text)
+                    _instanceFilter = If(sender.Text = "全部", Nothing, sender.Text)
                     UpdateFilterResult()
                 End Sub
-                PanFilter.Children.Add(newButton)
+                PanInstanceFilter.Children.Add(newButton)
             Next
+            If _pageType = CompType.Mod Then
+                For Each loader As String In modLoaderFilters
+                    Dim newButton As New MyRadioButton With {
+                            .Text = loader, .Margin = New Thickness(2, 0, 2, 0),
+                            .ColorType = MyRadioButton.ColorState.Highlight}
+                    newButton.LabText.Margin = New Thickness(- 2, 0, 10, 0)
+                    AddHandler newButton.Check,
+                        Sub(sender As MyRadioButton, raiseByMouse As Boolean)
+                            _modLoaderFilter = If(sender.Text = "全部", Nothing, sender.Text)
+                            UpdateFilterResult()
+                        End Sub
+                    PanModLoaderFilter.Children.Add(newButton)
+                Next
+            End If
             '自动选择
-            Dim toCheck As MyRadioButton = Nothing
+            Dim instanceToCheck As MyRadioButton = Nothing
+            Dim modLoaderToCheck As MyRadioButton = Nothing
             If _targetInstance <> "" Then
                 Dim targetFile = results.FirstOrDefault(Function(v) v.GameVersions.Contains(_targetInstance))
                 If targetFile IsNot Nothing Then
                     Dim targetGroup = GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld)
-                    For Each button As MyRadioButton In PanFilter.Children
+                    For Each button As MyRadioButton In PanInstanceFilter.Children
                         If button.Text <> targetGroup Then Continue For
-                        toCheck = button
+                        instanceToCheck = button
                         Exit For
                     Next
                 End If
             End If
-            If toCheck Is Nothing Then toCheck = PanFilter.Children(0)
-            toCheck.Checked = True
+            If _pageType = CompType.Mod Then
+                If _targetLoader <> CompLoaderType.Any Then
+                    Dim targetFile = results.FirstOrDefault(Function(v) v.ModLoaders.Contains(_targetLoader))
+                    If targetFile IsNot Nothing Then
+                        For Each button As MyRadioButton In PanModLoaderFilter.Children
+                            If button.Text <> _targetLoader.ToString() Then Continue For
+                            modLoaderToCheck = button
+                            Exit For
+                        Next
+                    End If
+                End If
+            End If
+            
+            '注意：在 Mod 下 index 0 是 TextBlock
+            Dim index As Integer = If(_pageType = CompType.Mod, 1, 0) 
+            If instanceToCheck Is Nothing Then instanceToCheck = PanInstanceFilter.Children(index)
+            If modLoaderToCheck Is Nothing And _pageType = CompType.Mod Then modLoaderToCheck = PanModLoaderFilter.Children(index)
+            instanceToCheck.Checked = True
+            If _pageType = CompType.Mod Then modLoaderToCheck.Checked = True
         End If
 
         '更新筛选结果（文件列表 UI 化）
@@ -177,8 +231,7 @@ GroupDone:
             For Each gameVersion In version.GameVersions
                 ' 筛选器预检查
                 Dim currentGroupedName As String = GetGroupedVersionName(gameVersion, GroupedDrop, GroupedOld)
-                If _versionFilter IsNot Nothing AndAlso currentGroupedName <> _versionFilter Then Continue For
-
+                If _instanceFilter IsNot Nothing AndAlso currentGroupedName <> _instanceFilter Then Continue For
                 Dim verName As String = GetGroupedVersionName(gameVersion, False, False)
                 Dim loaders As New List(Of String)
 
@@ -186,8 +239,17 @@ GroupDone:
                 If hasMultipleLoaders AndAlso version.Type = CompType.Mod AndAlso McInstanceInfo.IsFormatFit(verName) Then
                     For Each loader In version.ModLoaders
                         If loader = CompLoaderType.Quilt AndAlso ignoreQuilt Then Continue For
-                        If supportedLoaders.Contains(loader) Then loaders.Add(loader.ToString() & " ")
+                        If Not supportedLoaders.Contains(loader) Then Continue For
+                        
+                        ' 模组加载器筛选器
+                        If _modLoaderFilter IsNot Nothing AndAlso loader.ToString() <> _modLoaderFilter Then Continue For
+                        
+                        loaders.Add(loader.ToString() & " ")
                     Next
+                    
+                    If loaders.Count = 0 AndAlso _modLoaderFilter IsNot Nothing Then
+                        Continue For
+                    End If
                 End If
 
                 If loaders.Count = 0 Then loaders.Add("")
@@ -201,13 +263,13 @@ GroupDone:
 
             ' 处理“所选版本”卡片 (逻辑合并，减少二次循环)
             If targetCardName <> "" Then
-                Dim isMatchFilter As Boolean = (_versionFilter Is Nothing OrElse
-                                           GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld).StartsWithF(_versionFilter))
+                Dim isMatchFilter As Boolean = (_instanceFilter Is Nothing OrElse
+                                           GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld).StartsWithF(_instanceFilter))
 
                 If isMatchFilter AndAlso version.GameVersions.Contains(_targetInstance) Then
                     If _targetLoader = CompLoaderType.Any OrElse version.ModLoaders.Contains(_targetLoader) Then
                         ' 再次检查 version 是否符合筛选器（针对该文件的所有游戏版本）
-                        If _versionFilter Is Nothing OrElse version.GameVersions.Any(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld) = _versionFilter) Then
+                        If _instanceFilter Is Nothing OrElse version.GameVersions.Any(Function(v) GetGroupedVersionName(v, GroupedDrop, GroupedOld) = _instanceFilter) Then
                             AddVersionToDict(dict, versionDuplicateChecker, targetCardName, version)
                         End If
                     End If

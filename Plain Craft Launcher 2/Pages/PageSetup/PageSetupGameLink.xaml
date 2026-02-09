@@ -5,8 +5,8 @@
     mc:Ignorable="d" x:Class="PageSetupGameLink"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
-        <StackPanel x:Name="PanMain" Margin="15,10">
-            <local:MyCard Margin="10" Title="EasyTier">
+        <StackPanel x:Name="PanMain" Margin="25,10">
+            <local:MyCard Margin="0,15" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <local:MyHint Text="修改此处的设置后，需要重新启动大厅以使设置生效。" Theme="Yellow" Margin="0,0,0,10"/>
                     <Grid>

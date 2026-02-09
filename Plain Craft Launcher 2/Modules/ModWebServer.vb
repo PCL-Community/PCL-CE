@@ -1,12 +1,10 @@
-Imports System.Net.NetworkInformation
 Imports System.Threading.Tasks
 Imports PCL.Core.Link.Natayark
-Imports PCL.Core.Net
 Imports PCL.Core.Net.Http.Server
 
 Public Module ModWebServer
 
-    Private _webServers As New Dictionary(Of String, HttpServer)
+    Private ReadOnly _webServers As New Dictionary(Of String, HttpServer)
 
     ''' <summary>
     ''' 在新的 <see cref="Task"/> 中开始 HTTP 服务端响应。
@@ -30,7 +28,7 @@ Public Module ModWebServer
                         SyncLock _webServers
                             If Not _webServers.ContainsKey(name) Then Exit While
                         End SyncLock
-                        System.Threading.Thread.Sleep(100)
+                        Thread.Sleep(100)
                     End While
                 Catch ex As Exception
                     Log(ex, $"[WebServer] 服务端 '{name}' 运行出错")
@@ -86,9 +84,9 @@ Public Module ModWebServer
         Private _status As OAuthCompleteStatus = Nothing
         Private _callbackParameters As IDictionary(Of String, String) = Nothing
         Private _callbackContent As String = Nothing
-        Private _completeCallback As OAuthComplete = Nothing
-        Private _serviceName As String = Nothing
-        Private _picAddress As String = Nothing
+        Private ReadOnly _completeCallback As OAuthComplete = Nothing
+        Private ReadOnly _serviceName As String = Nothing
+        Private ReadOnly _picAddress As String = Nothing
 
         Sub New(serviceName As String, completeCallback As OAuthComplete, picAddress As String)
             MyBase.New({IPAddress.Parse("127.0.0.1")})
@@ -99,22 +97,22 @@ Public Module ModWebServer
 
         Protected Overrides Sub Init()
             ' 注册回调路由
-            MyBase.Register(Net.Http.HttpMethod.Get, "/callback", AddressOf HandleCallback)
-            MyBase.Register(Net.Http.HttpMethod.Post, "/callback", AddressOf HandleCallback)
+            Register(Http.HttpMethod.Get, "/callback", AddressOf HandleCallback)
+            Register(Http.HttpMethod.Post, "/callback", AddressOf HandleCallback)
 
             ' 注册状态路由
-            MyBase.Register(Net.Http.HttpMethod.Get, "/status", AddressOf HandleStatus)
+            Register(Http.HttpMethod.Get, "/status", AddressOf HandleStatus)
 
             ' 注册资源路由
-            MyBase.Register(Net.Http.HttpMethod.Get, "/assets/background", AddressOf HandleBackground)
-            MyBase.Register(Net.Http.HttpMethod.Get, "/assets/icon", AddressOf HandleIcon)
-            MyBase.Register(Net.Http.HttpMethod.Get, "/complete", AddressOf HandleComplete)
+            Register(Http.HttpMethod.Get, "/assets/background", AddressOf HandleBackground)
+            Register(Http.HttpMethod.Get, "/assets/icon", AddressOf HandleIcon)
+            Register(Http.HttpMethod.Get, "/complete", AddressOf HandleComplete)
         End Sub
 
-        Private Async Function HandleCallback(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
-            If Not request.IsLocal Then Return HttpRouteResponse.Forbidden
+        Private Function HandleCallback(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If Not request.IsLocal Then Return HttpRouteResponse.Forbidden.AsTask()
 
-            Dim redirect = HttpRouteResponse.Redirect("/complete")
+            Dim redirect = HttpRouteResponse.Redirect("/complete").AsTask()
 
             ' 解析回调 URL 参数
             Dim parameterMap As New Dictionary(Of String, String)
@@ -152,41 +150,41 @@ Public Module ModWebServer
             Return redirect
         End Function
 
-        Private Async Function HandleStatus(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
-            If _callbackParameters Is Nothing Then Return HttpRouteResponse.NotFound
+        Private Function HandleStatus(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If _callbackParameters Is Nothing Then Return HttpRouteResponse.NotFound.AsTask()
 
             Try
                 If _status Is Nothing Then
-                    _callbackParameters("Port") = Me.Port.ToString()
+                    _callbackParameters("Port") = Port.ToString()
                     _status = _completeCallback(True, _callbackParameters, _callbackContent)
                 ElseIf Not _status.success Then
                     Log($"[OAuth] {_serviceName}: {_status.message}{vbCrLf}{_status.stacktrace}")
                     Dim pa = New Dictionary(Of String, String)
-                    pa("Port") = Me.Port.ToString()
+                    pa("Port") = Port.ToString()
                     _completeCallback(False, pa, _status.message)
                 End If
             Catch ex As Exception
                 _status = OAuthCompleteStatus.Failed("处理回调出错", ex)
             End Try
 
-            Return HttpRouteResponse.Json(_status)
+            Return HttpRouteResponse.Json(_status).AsTask()
         End Function
 
-        Private Async Function HandleBackground(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
-            If String.IsNullOrWhiteSpace(_picAddress) Then Return HttpRouteResponse.NotFound
-            Return HttpRouteResponse.Input(New FileStream(_picAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True))
+        Private Function HandleBackground(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            If String.IsNullOrWhiteSpace(_picAddress) Then Return Task.FromResult(HttpRouteResponse.NotFound)
+            Return HttpRouteResponse.Input(New FileStream(_picAddress, FileMode.Open, FileAccess.Read, FileShare.None, 16384, True)).AsTask()
         End Function
 
-        Private Async Function HandleIcon(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
-            Return HttpRouteResponse.Input(GetResourceStream("Images/icon.ico"))
+        Private Function HandleIcon(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            Return HttpRouteResponse.Input(GetResourceStream("Images/icon.ico")).AsTask()
         End Function
 
-        Private Async Function HandleComplete(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
-            Return HttpRouteResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html")
+        Private Function HandleComplete(request As HttpListenerRequest) As Task(Of HttpRouteResponse)
+            Return HttpRouteResponse.Input(GetResourceStream("Resources/oauth-complete.html"), "text/html").AsTask()
         End Function
     End Class
 
-    Private ChangeLock As New Object
+    Private ReadOnly ChangeLock As New Object
     Private PicAddress As String
     Public Function BackgroundPicChangeCallback(Pic As String)
         SyncLock ChangeLock
@@ -195,7 +193,6 @@ Public Module ModWebServer
         End SyncLock
     End Function
 
-    <Serializable>
     Public Class OAuthCompleteStatus
         Public Property success As Boolean = False
         Public Property username As String

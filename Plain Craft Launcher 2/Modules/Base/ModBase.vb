@@ -62,7 +62,7 @@ Public Module ModBase
     ''' <summary>
     ''' 设置对象。
     ''' </summary>
-    Public Setup As New ModSetup
+    Public Setup As New ModSetup()
     ''' <summary>
     ''' 程序的打开计时。
     ''' </summary>
@@ -1681,6 +1681,18 @@ RetryDir:
     <Extension> Public Function RegexSeek(str As String, regex As String, Optional options As RegexOptions = RegexOptions.None) As String
         Try
             Dim Result = RegularExpressions.Regex.Match(str, regex, options).Value
+            Return If(Result = "", Nothing, Result)
+        Catch ex As Exception
+            Log(ex, "正则匹配第一项出错")
+            Return Nothing
+        End Try
+    End Function
+    ''' <summary>
+    ''' 获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
+    ''' </summary>
+    <Extension> Public Function RegexSeek(str As String, regex As Regex, Optional options As RegexOptions = RegexOptions.None) As String
+        Try
+            Dim Result = regex.Match(str, options).Value
             Return If(Result = "", Nothing, Result)
         Catch ex As Exception
             Log(ex, "正则匹配第一项出错")

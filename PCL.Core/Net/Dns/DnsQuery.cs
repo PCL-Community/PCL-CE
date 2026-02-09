@@ -45,7 +45,7 @@ public class DnsQuery : IDisposable
             }
         ];
         _resolver = new DnsCachingClient(
-            new WeightedDnsRacerClient(2, _httpClients.Select(x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
+            new WeightedDnsRacerClient(2, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
             new MemoryCache("DoH Query Cache"));
     }
 
@@ -55,7 +55,7 @@ public class DnsQuery : IDisposable
         {
             return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
         }
-        catch (OperationCanceledException)
+        catch (TaskCanceledException)
         {
             throw;
         }
@@ -76,18 +76,18 @@ public class DnsQuery : IDisposable
             ]
         );
 
-        if (queryResponse.All(x => x == null))
+        if (queryResponse.All(static x => x == null))
         {
             LogWrapper.Warn(ModuleName, $"Failed to query IP for host {host} using DoH, use system default DNS");
             return await System.Net.Dns.GetHostAddressesAsync(host, cts);
         }
 
-        return queryResponse.Where(x => x != null)
-            .SelectMany(x => x!.Answers)
-            .Where(x => x.Type is DnsQueryType.A or DnsQueryType.AAAA)
-            .Select(x => x.Resource as DnsIpAddressResource)
-            .Where(x => x != null)
-            .Select(x => x!.IPAddress)
+        return queryResponse.Where(static x => x != null)
+            .SelectMany(static x => x!.Answers)
+            .Where(static x => x.Type is DnsQueryType.A or DnsQueryType.AAAA)
+            .Select(static x => x.Resource as DnsIpAddressResource)
+            .Where(static x => x != null)
+            .Select(static x => x!.IPAddress)
             .ToArray();
     }
 

@@ -9,24 +9,27 @@ Public Class PageInstanceLeft
     Public Shared Instance As McInstance = Nothing
 
     Public Sub RefreshModDisabled() Handles Me.Loaded
+        Dim hide = Config.Preference.Hide
+
         If Instance IsNot Nothing AndAlso Instance.Modable Then
-            ItemMod.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionMod"), Visibility.Collapsed, Visibility.Visible)
+            ItemMod.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceMod, Visibility.Collapsed, Visibility.Visible)
             ItemModDisabled.Visibility = Visibility.Collapsed
         Else
             ItemMod.Visibility = Visibility.Collapsed
-            ItemModDisabled.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionMod"), Visibility.Collapsed, Visibility.Visible)
+            ItemModDisabled.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceMod, Visibility.Collapsed, Visibility.Visible)
         End If
+
         '功能隐藏
         If Not PageSetupUI.HiddenForceShow Then
             Dim DisableCount As Integer = 0
-            If Setup.Get("UiHiddenVersionSave") Then DisableCount += 1
-            If Setup.Get("UiHiddenVersionScreenshot") Then DisableCount += 1
-            If Setup.Get("UiHiddenVersionMod") Then DisableCount += 1
-            If Setup.Get("UiHiddenVersionResourcePack") Then DisableCount += 1
-            If Setup.Get("UiHiddenVersionShader") Then DisableCount += 1
-            If Setup.Get("UiHiddenVersionSchematic") Then DisableCount += 1
-            If Config.Preference.Hide.InstanceServer Then DisableCount += 1
-            If DisableCount = 6 Then
+            If hide.InstanceSave Then DisableCount += 1
+            If hide.InstanceScreenshot Then DisableCount += 1
+            If hide.InstanceMod Then DisableCount += 1
+            If hide.InstanceResourcePack Then DisableCount += 1
+            If hide.InstanceShader Then DisableCount += 1
+            If hide.InstanceSchematic Then DisableCount += 1
+            If hide.InstanceServer Then DisableCount += 1
+            If DisableCount = 7 Then
                 TextResource.Visibility = Visibility.Collapsed
             Else
                 TextResource.Visibility = Visibility.Visible
@@ -34,14 +37,15 @@ Public Class PageInstanceLeft
         Else
             TextResource.Visibility = Visibility.Visible
         End If
-        ItemInstall.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionEdit"), Visibility.Collapsed, Visibility.Visible)
-        ItemExport.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionExport"), Visibility.Collapsed, Visibility.Visible)
-        ItemWorld.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionSave"), Visibility.Collapsed, Visibility.Visible)
-        ItemScreenshot.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionScreenshot"), Visibility.Collapsed, Visibility.Visible)
-        ItemResourcePack.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionResourcePack"), Visibility.Collapsed, Visibility.Visible)
-        ItemShader.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionShader"), Visibility.Collapsed, Visibility.Visible)
-        ItemSchematic.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenVersionSchematic"), Visibility.Collapsed, Visibility.Visible)
-        ItemServer.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Config.Preference.Hide.InstanceServer, Visibility.Collapsed, Visibility.Visible)
+
+        ItemInstall.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceEdit, Visibility.Collapsed, Visibility.Visible)
+        ItemExport.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceExport, Visibility.Collapsed, Visibility.Visible)
+        ItemWorld.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceSave, Visibility.Collapsed, Visibility.Visible)
+        ItemScreenshot.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceScreenshot, Visibility.Collapsed, Visibility.Visible)
+        ItemResourcePack.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceResourcePack, Visibility.Collapsed, Visibility.Visible)
+        ItemShader.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceShader, Visibility.Collapsed, Visibility.Visible)
+        ItemSchematic.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceSchematic, Visibility.Collapsed, Visibility.Visible)
+        ItemServer.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso hide.InstanceServer, Visibility.Collapsed, Visibility.Visible)
     End Sub
 
 #Region "页面切换"

@@ -1,5 +1,6 @@
 ﻿Imports System.Windows.Controls.Primitives
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 
 Public Class ServerCard
     Public Dim Server As MinecraftServerInfo
@@ -59,7 +60,7 @@ Public Class ServerCard
             End If
             
             ServerMotD.Visibility = Visibility.Collapsed
-            MotdRenderer.RenderMotd(Server.Description, ThemeHelper.IsDarkMode(), 2)
+            MotdRenderer.RenderMotd(Server.Description, ThemeService.IsDarkMode, 2)
             MotdRenderer.RenderCanvas()
         Else If Server.Status = ServerStatus.Pinging
             _manager.SetSelectedIconByName("loading")
@@ -99,7 +100,7 @@ Public Class ServerCard
             Hint($"正在刷新服务器 {Server.Name} 的状态...", HintType.Info)
         End If
         Server.Status = ServerStatus.Pinging
-        RunInUi(Sub() UpdateServerUi())
+        Await Dispatcher.InvokeAsync(Sub() UpdateServerUi())
         Dim serverInfo = Await PageInstanceServer.PingServer(Server, token)
         UpdateServerInfo(serverInfo)
     End Function

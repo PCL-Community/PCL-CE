@@ -14,6 +14,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.UI;
 
 namespace PCL.Core.Link.Lobby;
 
@@ -71,11 +72,6 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     /// Invoked when lobby state changed. (first arg is the old state; second arg is the new state.)
     /// </summary>
     public static event Action<LobbyState, LobbyState>? StateChanged;
-
-    /// <summary>
-    /// Used for UI layer to send Hint.
-    /// </summary>
-    public static event Action<string, CoreHintType>? OnHint;
 
     /// <summary>
     /// Invoked when need to download EasyTier core files.
@@ -159,7 +155,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
                     Convert.ToDateTime(expTime).CompareTo(DateTime.Now) < 0)
                 {
                     States.Link.NaidRefreshToken = string.Empty;
-                    OnHint?.Invoke("Natayark ID 令牌已过期，请重新登录", CoreHintType.Critical);
+                    HintWrapper.Show("Natayark ID 令牌已过期，请重新登录", HintTheme.Error);
                 }
                 else
                 {
@@ -175,7 +171,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Lobby service initialization failed.");
-            OnHint?.Invoke("大厅服务初始化失败，请检查网络连接。", CoreHintType.Critical);
+            HintWrapper.Show("大厅服务初始化失败，请检查网络连接。", HintTheme.Error);
             _SetState(LobbyState.Error);
         }
     }
@@ -251,7 +247,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     {
         if (_NotHaveNaid())
         {
-            OnHint?.Invoke("请先登录 Natayark ID 再使用大厅！", CoreHintType.Critical);
+            HintWrapper.Show("请先登录 Natayark ID 再使用大厅！", HintTheme.Error);
             return false;
         }
 
@@ -265,7 +261,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             var serverEntity = await _LobbyController.LaunchServerAsync(username, port).ConfigureAwait(false);
             if (serverEntity is null)
             {
-                OnHint?.Invoke("在创建房间的时候遇到了问题，请查看日志并将此问题反馈给开发者！", CoreHintType.Critical);
+                HintWrapper.Show("在创建房间的时候遇到了问题，请查看日志并将此问题反馈给开发者！", HintTheme.Error);
                 return false;
             }
 
@@ -289,7 +285,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed to create lobby.");
-            OnHint?.Invoke("创建大厅失败，请检查日志或向开发者反馈。", CoreHintType.Critical);
+            HintWrapper.Show("创建大厅失败，请检查日志或向开发者反馈。", HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
             return false;
@@ -388,7 +384,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (ArgumentException codeEx)
         {
             LogWrapper.Error(codeEx, "LobbyService", $"Failed to join lobby {lobbyCode}.");
-            OnHint?.Invoke("大厅编号不正确，请检查后再试！", CoreHintType.Critical);
+            HintWrapper.Show("大厅编号格式不正确，请检查后再试！", HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
             return false;
@@ -396,7 +392,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", $"Failed to join lobby {lobbyCode}.");
-            OnHint?.Invoke(ex.Message, CoreHintType.Critical);
+            HintWrapper.Show(ex.Message, HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
             return false;
@@ -549,27 +545,3 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 /// <param name="Name">World name.</param>
 /// <param name="Port">World share port.</param>
 public record FoundWorld(string Name, int Port);
-
-/// <summary>
-/// Hint type in PCL.Core (for UI display).
-/// </summary>
-public enum CoreHintType
-{
-    /// <summary>
-    /// 信息，通常是蓝色的“i”。
-    /// </summary>
-    /// <remarks></remarks>
-    Info,
-
-    /// <summary>
-    /// 已完成，通常是绿色的“√”。
-    /// </summary>
-    /// <remarks></remarks>
-    Finish,
-
-    /// <summary>
-    /// 错误，通常是红色的“×”。
-    /// </summary>
-    /// <remarks></remarks>
-    Critical
-}

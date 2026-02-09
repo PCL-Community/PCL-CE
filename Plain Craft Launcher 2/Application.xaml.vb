@@ -32,7 +32,7 @@ Public Class Application
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error
             SecretOnApplicationStart()
             '检查参数调用
-            Dim args = Environment.GetCommandLineArgs.Skip(1).ToArray()
+            Dim args = Basics.CommandLineArguments
             If args.Length > 0 Then
                 If args(0) = "--gpu" Then
                     '调整显卡设置
@@ -105,13 +105,6 @@ WaitRetry:
                 FrmStart = New SplashScreen("Images\icon.ico")
                 FrmStart.Show(False, True)
             End If
-            '添加日志
-            Log($"[Start] 程序版本：{VersionBaseName} (Channel: {VersionBranchName},Code: {VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
-            Log($"[Start] 识别码：{UniqueAddress}")
-            Log($"[Start] 程序路径：{ExePathWithName}")
-            Log($"[Start] 系统版本：{Environment.OSVersion.Version}, 架构：{Runtime.InteropServices.RuntimeInformation.OSArchitecture}")
-            Log($"[Start] 系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
-            Log($"[Start] 管理员权限：{ProcessInterop.IsAdmin()}")
             '检测异常环境
             Dim problemList As New List(Of String)
             Dim currentOSVersion = KernelInterop.GetCurrentOSVersion()
@@ -142,8 +135,6 @@ WaitRetry:
                 Dim oldLogFile = $"{ExePath}PCL\Log-CE{i}.log"
                 If File.Exists(oldLogFile) Then File.Delete(oldLogFile)
             Next
-            'Pipe RPC 初始化
-            StartEchoPipe()
             '计时
             Log("[Start] 第一阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
             ApplicationStartTick = TimeUtils.GetTimeTick()

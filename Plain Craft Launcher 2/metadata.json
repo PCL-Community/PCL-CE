@@ -1,17 +1,17 @@
 ﻿{
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.0",
+    "base": "2.14.2",
     "upstream": "2.12.1",
-    "suffix": "beta.6",
-    "code": 504
+    "suffix": "",
+    "code": 507
   },
   "licenses": [
     {
       "name": "PCL.Core",
       "info": "Copyright © PCL Community",
-      "website": "https://github.com/PCL-Community/PCL.Core",
-      "license": "https://github.com/PCL-Community/PCL.Core/blob/main/LICENCE"
+      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
     },
     {
       "name": "Java Launch Wrapper",
@@ -108,6 +108,12 @@
       "info": "Copyright © Microsoft\nLicensed under the MIT license.",
       "website": "https://github.com/dotnet/dotnet",
       "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Unicolour",
+      "info": "Copyright © 2022-2025 William Acton\nLicensed under the MIT license.",
+      "website": "https://github.com/waacton/Unicolour",
+      "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
     }
   ]
 }

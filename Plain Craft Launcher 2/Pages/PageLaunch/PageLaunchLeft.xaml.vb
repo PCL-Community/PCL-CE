@@ -1,5 +1,6 @@
-﻿Imports PCL.Core.Utils
-Imports System.Windows
+﻿Imports System.Windows
+Imports PCL.Core.App
+Imports PCL.Core.Utils
 
 Public Class PageLaunchLeft
 
@@ -472,7 +473,7 @@ Finish:
             CurrentState = 0
         Else
             If McInstanceSelected Is Nothing Then
-                If Setup.Get("UiHiddenPageDownload") AndAlso Not PageSetupUI.HiddenForceShow Then
+                If Config.Preference.Hide.PageDownload AndAlso Not PageSetupUI.HiddenForceShow Then
                     CurrentState = 1
                 Else
                     CurrentState = 2
@@ -522,7 +523,7 @@ Finish:
         End Select
 ExitRefresh:
         '功能隐藏
-        FrmLaunchLeft.BtnInstance.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Setup.Get("UiHiddenFunctionSelect"), Visibility.Collapsed, Visibility.Visible)
+        FrmLaunchLeft.BtnInstance.Visibility = If(Not PageSetupUI.HiddenForceShow AndAlso Config.Preference.Hide.FunctionSelect, Visibility.Collapsed, Visibility.Visible)
         If CurrentState = 3 Then
             FrmLaunchLeft.BtnMore.Visibility = FrmLaunchLeft.BtnInstance.Visibility
         End If
