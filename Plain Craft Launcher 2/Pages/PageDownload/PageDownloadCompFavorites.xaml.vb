@@ -172,6 +172,18 @@ Public Class PageDownloadCompFavorites
             For Each item In Loader.Output
                 Dim CompItem = item.ToListItem()
                 ListItemBuild(CompItem)
+                Dim InfoSuffix As String = ""
+                If item.LastUpdate.HasValue Then
+                    InfoSuffix &= "  |  更新于 " & item.LastUpdate.Value.ToString("yyyy-MM-dd")
+                End If
+                Dim CountStr As String = item.DownloadCount.ToString()
+                If item.DownloadCount > 100000000 Then
+                    CountStr = Math.Round(item.DownloadCount / 100000000, 1).ToString() & "亿"
+                ElseIf item.DownloadCount > 10000 Then
+                    CountStr = Math.Round(item.DownloadCount / 10000, 1).ToString() & "万"
+                End If
+                InfoSuffix &= "  |  " & CountStr & " 下载"
+                CompItem.Info &= InfoSuffix
                 CompItemList.Add(CompItem)
             Next
             If CompItemList.Any() Then '有收藏
