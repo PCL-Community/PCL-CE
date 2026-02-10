@@ -2141,10 +2141,11 @@ OnLoaded:
         '修改渲染器
         Dim mesaLoaderWindowsVersion = "25.1.7"
         Dim mesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & mesaLoaderWindowsVersion & "\Loader.jar"
-        Dim renderer = 0
-        If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) <> 0 Then
+        Dim renderer = -1
+        If McInstanceSelected IsNot Nothing Then
             renderer = Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) - 1
-        Else
+        End If
+        If renderer = -1 Then
             renderer = Setup.Get("LaunchAdvanceRenderer")
         End If
 

@@ -25,7 +25,7 @@ public class JavaManager
 
     private readonly SemaphoreSlim _scanLock = new(1, 1);
     private DateTime _lastScanTime = DateTime.MinValue;
-    private static readonly TimeSpan _MinScanInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _MinScanInterval = TimeSpan.FromSeconds(13);
 
     public JavaManager(
         IJavaParser parser,
@@ -109,7 +109,7 @@ public class JavaManager
     {
         if (ShouldSkip()) return;
 
-        await _scanLock.WaitAsync();
+        if (!await _scanLock.WaitAsync(TimeSpan.FromSeconds(7))) return;
         try
         {
             if (ShouldSkip()) return;
