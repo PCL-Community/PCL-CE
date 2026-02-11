@@ -1625,7 +1625,7 @@ LoginFinish:
         Else
             Renderer = Setup.Get("LaunchAdvanceRenderer")
         End If
-        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsVersion = "25.3.5"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
         If Renderer <> 0 Then
@@ -1722,7 +1722,7 @@ NextInstance:
         Else
             Renderer = Setup.Get("LaunchAdvanceRenderer")
         End If
-        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsVersion = "25.3.5"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
         If Renderer <> 0 Then
