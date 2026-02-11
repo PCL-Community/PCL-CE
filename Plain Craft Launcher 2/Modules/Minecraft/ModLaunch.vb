@@ -949,11 +949,13 @@ Retry:
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
+                    MyMsgBox("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse, "第三方验证失败", IsWarn:=True)
                     Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
                 End If
             Catch ex As Exception
                 Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
+                MyMsgBox("验证登录失败: " & AllMessage, "第三方验证失败", IsWarn:=True)
                 Throw
             End Try
             Data.Progress = 0.25
@@ -965,6 +967,7 @@ Refresh:
                 GoTo LoginFinish
             Catch ex As Exception
                 ProfileLog("刷新登录失败：" & ex.ToString())
+                MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
                 If WasRefreshed Then Throw New Exception("二轮刷新登录失败", ex)
             End Try
             Data.Progress = If(NeedRefresh, 0.85, 0.45)
@@ -984,9 +987,11 @@ Refresh:
                 '忽略
             End Try
             If message Is Nothing Then message = "第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & responseText
+            MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
             Throw New Exception("$" & message)
         Catch ex As Exception
             ProfileLog("验证失败：" & ex.ToString())
+            MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
             Throw New Exception("$第三方验证登录失败" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
         End Try
         If NeedRefresh Then
