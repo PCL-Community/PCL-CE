@@ -11,7 +11,9 @@ namespace PCL.Core.App.Tasks;
 public delegate void TaskStateEvent(TaskState state, string message);
 
 /// <summary>
-/// 任务模型
+/// 响应式任务接口<br/>
+/// <b>NOTE</b>: 为确保运行时响应式模型的 hash 映射正常工作，若无特殊需求，请勿重写对象相等性实现如
+/// <see cref="object.GetHashCode"/> 与 <see cref="object.Equals(object)"/>！
 /// </summary>
 public interface ITask
 {

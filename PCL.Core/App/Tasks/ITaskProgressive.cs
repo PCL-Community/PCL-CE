@@ -9,7 +9,7 @@ public delegate void TaskProgressEvent(double progress);
 /// <summary>
 /// 可观察进度的任务模型
 /// </summary>
-public interface IProgressiveTask : ITask
+public interface ITaskProgressive
 {
     /// <summary>
     /// 任务进度改变事件

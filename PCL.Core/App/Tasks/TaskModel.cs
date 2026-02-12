@@ -1,7 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace PCL.Core.App.Tasks;
 
+/// <summary>
+/// 可观察的任务模型<br/>
+/// <b>NOTE</b>: 请勿自行修改任何 observable 属性
+/// </summary>
 public partial class TaskModel : ObservableObject
 {
     /// <summary>
@@ -17,7 +23,7 @@ public partial class TaskModel : ObservableObject
     /// <summary>
     /// 任务当前状态
     /// </summary>
-    [ObservableProperty] private TaskState _state;
+    [ObservableProperty] private TaskState _state = TaskState.Waiting;
 
     /// <summary>
     /// 任务当前状态信息
@@ -25,7 +31,35 @@ public partial class TaskModel : ObservableObject
     [ObservableProperty] private string _stateMessage = string.Empty;
 
     /// <summary>
-    /// 任务当前进度，<see cref="SupportProgress"/> 为 <c>true</c> 时生效
+    /// 任务当前进度，<see cref="SupportProgress"/> 为 <see langword="true"/> 时有效
     /// </summary>
-    [ObservableProperty] private double _progress;
+    [ObservableProperty] private double _progress = 0.0;
+
+    private static readonly Action _EmptyAction = (static () => {});
+
+    /// <summary>
+    /// 取消任务时触发的事件，值为 <see langword="null"/> 表示不支持取消
+    /// </summary>
+    public required Action? OnCancel { private get; init; }
+
+    /// <summary>
+    /// 取消任务命令
+    /// </summary>
+    public RelayCommand Cancel
+    {
+        get => field ??= new RelayCommand(OnCancel ?? _EmptyAction, () => OnCancel != null);
+    } = null!;
+
+    /// <summary>
+    /// 暂停任务时触发的事件，值为 <see langword="null"/> 表示不支持暂停
+    /// </summary>
+    public required Action? OnPause { private get; init; }
+
+    /// <summary>
+    /// 暂停任务命令
+    /// </summary>
+    public RelayCommand Pause
+    {
+        get => field ??= new RelayCommand(OnPause ?? _EmptyAction, () => OnPause != null);
+    } = null!;
 }
