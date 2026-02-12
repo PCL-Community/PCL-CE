@@ -1,6 +1,4 @@
-﻿
-
-Public Class PageInstanceSavesLeft
+﻿Public Class PageInstanceSavesLeft
     Implements IRefreshable
 
 #Region "龙猫牌 页面管理"
@@ -13,11 +11,12 @@ Public Class PageInstanceSavesLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemBackup.Check, ItemInfo.Check
+    Private Sub PageCheck(sender As MyListItem, e As RouteEventArgs) Handles ItemBackup.Check, ItemInfo.Check, ItemDatapack.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
     End Sub
+
     Public Function PageGet(Optional ID As FormMain.PageSubType = -1)
         If ID = -1 Then ID = PageID
         Select Case ID
@@ -27,6 +26,9 @@ Public Class PageInstanceSavesLeft
             Case FormMain.PageSubType.VersionSavesBackup
                 If FrmInstanceSavesBackup Is Nothing Then FrmInstanceSavesBackup = New PageInstanceSavesBackup
                 Return FrmInstanceSavesBackup
+            Case FormMain.PageSubType.VersionSavesDatapack
+                If FrmInstanceSavesDatapack Is Nothing Then FrmInstanceSavesDatapack = New PageInstanceSavesDatapack
+                Return FrmInstanceSavesDatapack
             Case Else
                 Throw New Exception("未知的实例设置子页面种类：" & ID)
         End Select
@@ -65,7 +67,6 @@ Public Class PageInstanceSavesLeft
                    End Sub, 30, True)
         }, "PageLeft PageChange")
     End Sub
-
     Public Sub RefreshButton_Click(sender As Object, e As EventArgs) '由边栏按钮匿名调用
         Refresh(Val(sender.Tag))
     End Sub
@@ -81,12 +82,18 @@ Public Class PageInstanceSavesLeft
                 Else
                     ItemBackup.Checked = True
                 End If
+            Case FormMain.PageSubType.VersionSavesDatapack
+                If FrmInstanceSavesDatapack Is Nothing Then FrmInstanceSavesDatapack = New PageInstanceSavesDatapack
+                If ItemDatapack.Checked Then
+                    FrmInstanceSavesDatapack.Refresh()
+                Else
+                    ItemDatapack.Checked = True
+                End If
         End Select
         Hint("刷新中……")
     End Sub
 
 #End Region
-
     Public Shared CurrentSave As String
 
     '初始化

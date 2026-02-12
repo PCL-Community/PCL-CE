@@ -135,11 +135,17 @@ Public Class MyLocalCompItem
             End Get
             Set(value As Boolean)
                 _Swiping = value
-                TargetFrm.CardSelect.IsHitTestVisible = Not value
+                If TargetFrm IsNot Nothing Then
+                    Try
+                        Dim cardSelect = CallByName(TargetFrm, "CardSelect", CallType.Get)
+                        CallByName(cardSelect, "IsHitTestVisible", CallType.Set, Not value)
+                    Catch
+                    End Try
+                End If
             End Set
         End Property
         Public Property SwipeToState As Boolean
-        Public Property TargetFrm As PageInstanceCompResource
+        Public Property TargetFrm As Object
     End Class
 
     Public Property CurrentSwipe As SwipeSelect
@@ -529,6 +535,7 @@ Public Class MyLocalCompItem
                     Case CompType.Mod : FrmInstanceMod.UpdateResource({Entry})
                     Case CompType.ResourcePack : FrmInstanceResourcePack.UpdateResource({Entry})
                     Case CompType.Shader : FrmInstanceShader.UpdateResource({Entry})
+                    Case CompType.DataPack
                 End Select
             Case 2 '查看更新日志
                 ShowUpdateLog()
