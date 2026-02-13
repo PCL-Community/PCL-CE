@@ -293,9 +293,10 @@ public class JavaManager
                 .Values.ToList()
                 .Where(j => j.Installation.IsStillAvailable && j.IsEnabled &&
                             IsVersionSuitable(j.Installation.Version, minVersion, maxVersion))
-                .OrderBy(j => j.Installation.Version)
-                .ThenBy(j => j.Installation.IsJre)
-                .ThenBy(j => j.Installation.Brand)
+                .OrderBy(static j => j.Installation.MajorVersion) // 确保首要选择的大版本正确
+                .ThenBy(static j => j.Installation.IsJre) // JDK 优先
+                .ThenBy(static j => j.Installation.Brand) // Java 发行版优选
+                .ThenByDescending(static j => j.Installation.Version) // 优选后小版本号较高的版本
                 .ToArray();
         }
     }
