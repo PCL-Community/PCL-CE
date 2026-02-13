@@ -887,9 +887,9 @@ Public Class PageInstanceSavesDatapack
 
     Public Sub UpdateResource(DatapackList As IEnumerable(Of LocalCompFile))
         '更新前警告
-        If (Not Setup.Get("HintUpdateDatapack")) OrElse DatapackList.Count >= 15 Then
-            If MyMsgBox($"新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃！{vbCrLf}{vbCrLf}在更新前，请先备份存档。{vbCrLf}如果更新后出现问题，你也可以在回收站找回更新前的数据包。", "数据包更新警告", "我已了解风险，继续更新", "取消", IsWarn:=True) = 1 Then
-                Setup.Set("HintUpdateDatapack", True)
+        If (Not Setup.Get("UiHiddenFunctionDatapackUpdate")) OrElse DatapackList.Count >= 15 Then
+            If MyMsgBox($"新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！{vbCrLf}{vbCrLf}在更新前，请先备份存档。{vbCrLf}如果更新后出现问题，你也可以在回收站找回更新前的数据包。", "数据包更新警告", "我已了解风险，继续更新", "取消", IsWarn:=True) = 1 Then
+                Setup.Set("UiHiddenFunctionDatapackUpdate", True)
             Else
                 Return
             End If
