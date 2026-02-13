@@ -535,7 +535,7 @@ Public Class MyLocalCompItem
                     Case CompType.Mod : FrmInstanceMod.UpdateResource({Entry})
                     Case CompType.ResourcePack : FrmInstanceResourcePack.UpdateResource({Entry})
                     Case CompType.Shader : FrmInstanceShader.UpdateResource({Entry})
-                    Case CompType.DataPack
+                    Case CompType.DataPack : FrmInstanceSavesDatapack.UpdateResource({Entry})
                 End Select
             Case 2 '查看更新日志
                 ShowUpdateLog()

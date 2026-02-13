@@ -67,6 +67,7 @@
                    End Sub, 30, True)
         }, "PageLeft PageChange")
     End Sub
+
     Public Sub RefreshButton_Click(sender As Object, e As EventArgs) '由边栏按钮匿名调用
         Refresh(Val(sender.Tag))
     End Sub
@@ -94,6 +95,7 @@
     End Sub
 
 #End Region
+
     Public Shared CurrentSave As String
 
     '初始化

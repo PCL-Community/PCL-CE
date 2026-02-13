@@ -133,7 +133,7 @@ Public Class PageInstanceSavesDatapack
                 PanBack.Visibility = Visibility.Visible
                 PanEmpty.Visibility = Visibility.Collapsed
             Else
-                '根据组件类型设置PanEmpty的文本内容
+                '根据组件类型设置 PanEmpty 的文本内容
                 TxtEmptyTitle.Text = "尚未安装数据包"
                 TxtEmptyDescription.Text = "你可以从已经下载好的文件安装数据包。" & vbCrLf & "数据包需要放置在存档的 datapacks 文件夹中才能生效。"
 

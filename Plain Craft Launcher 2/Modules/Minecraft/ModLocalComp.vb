@@ -1730,10 +1730,10 @@ Finished:
                     Next
                     Log($"[Mod] 已从 Modrinth 获取本地 Mod 信息，继续获取更新信息")
                     '步骤 4：获取更新信息
-                    Dim SearchLoaders = If(CompType = CompType.DataPack, "datapack", ModLoaders.Join(""",""").ToLower)
+                    Dim targetLoaders = If(CompType = CompType.DataPack, "datapack", ModLoaders.Join(""",""").ToLower)
                     Dim ModrinthUpdate = CType(GetJson(DlModRequest("https://api.modrinth.com/v2/version_files/update", "POST",
                         $"{{""hashes"": [""{ModrinthMapping.SelectMany(Function(l) l.Value.Select(Function(m) m.ModrinthHash)).Join(""",""")}""], ""algorithm"": ""sha1"", 
-                    ""loaders"": [""{SearchLoaders}""],""game_versions"": [""{McInstance}""]}}", "application/json")), JObject)
+                    ""loaders"": [""{targetLoaders}""],""game_versions"": [""{McInstance}""]}}", "application/json")), JObject)
                     For Each Entry In Mods
                         If Not ModrinthUpdate.ContainsKey(Entry.ModrinthHash) OrElse Entry.CompFile Is Nothing Then Continue For
                         Dim UpdateFile As New CompFile(ModrinthUpdate(Entry.ModrinthHash), CompType.Mod)
