@@ -1,5 +1,4 @@
-﻿
-namespace PCL.Core.Minecraft.Java;
+﻿namespace PCL.Core.Minecraft.Java;
 
 public enum JavaBrandType
 {
