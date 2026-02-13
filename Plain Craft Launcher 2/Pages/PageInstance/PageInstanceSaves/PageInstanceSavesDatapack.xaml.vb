@@ -44,10 +44,8 @@ Public Class PageInstanceSavesDatapack
     Public Sub New()
         CurrentSwipSelect = New MyLocalCompItem.SwipeSelect() With {.TargetFrm = Me}
 
-        ' 此调用是设计器所必需的。
         InitializeComponent()
 
-        ' 在 InitializeComponent() 调用之后添加任何初始化。
     End Sub
 
     Private Function GetRequireLoaderData() As CompLocalLoaderData
@@ -102,17 +100,8 @@ Public Class PageInstanceSavesDatapack
         Refresh()
     End Sub
     Public Shared Sub Refresh()
-        '强制刷新
-        Try
-            CompProjectCache.Clear()
-            CompFilesCache.Clear()
-            File.Delete(PathTemp & "Cache\LocalComp.json")
-            Log("[CompResource] 由于点击刷新按钮，清理本地工程信息缓存")
-        Catch ex As Exception
-            Log(ex, "强制刷新时清理本地工程信息缓存失败")
-        End Try
-        If FrmInstanceSavesDatapack IsNot Nothing Then FrmInstanceSavesDatapack.ReloadDatapackFileList(True)
-        Hint("正在刷新……", Log:=False)
+        FrmInstanceSavesDatapack.ReloadDatapackFileList(True)
+        Log("[Datapack] 刷新数据包列表")
     End Sub
 
     Private Sub LoaderInit() Handles Me.Initialized
