@@ -7,9 +7,7 @@ Public Class PageInstanceSavesDatapack
     Implements IRefreshable
 
 #Region "数据包信息缓存"
-    ' 数据包信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
     Private ReadOnly DatapackFileInfoCache As New Dictionary(Of String, (CreationTime As DateTime, Length As Long))
-
 
     ' 获取数据包信息（带缓存）
     Private Function GetDatapackFileInfo(path As String) As (CreationTime As DateTime, Length As Long)
@@ -216,7 +214,6 @@ Public Class PageInstanceSavesDatapack
         ToolTipService.SetHorizontalOffset(BtnDelete, 2)
         AddHandler BtnDelete.Click, AddressOf Delete_Click
 
-        ' 数据包没有启用/禁用功能，通过重命名文件夹实现
         If sender.Entry.State = LocalCompFile.LocalFileStatus.Fine Then
             Dim BtnDisable As New MyIconButton With {.LogoScale = 1, .Logo = Logo.IconButtonStop, .Tag = sender}
             BtnDisable.ToolTip = "禁用"
