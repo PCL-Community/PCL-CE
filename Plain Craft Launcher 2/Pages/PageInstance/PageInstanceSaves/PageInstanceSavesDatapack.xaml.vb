@@ -952,6 +952,8 @@ Public Class PageInstanceSavesDatapack
                         Return
                 End Select
 
+                FrmInstanceSavesDatapack.ReloadDatapackFileList(True)
+
                 Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{PathDatapacks}")
                 UpdatingVersions.Remove(PathDatapacks)
 
