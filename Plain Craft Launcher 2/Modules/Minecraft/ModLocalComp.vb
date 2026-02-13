@@ -1224,8 +1224,10 @@ Finished:
             Select Case CompType
                 Case CompType.Mod
                     Return IsModFile(Path)
-                Case CompType.ResourcePack, CompType.Shader, CompType.DataPack
+                Case CompType.ResourcePack, CompType.Shader
                     Return Path.EndsWithF(".zip", True)
+                Case CompType.DataPack
+                    Return Path.EndsWithF(".zip", True) OrElse Path.EndsWithF(".zip.disabled", True)
                 Case CompType.Schematic
                     Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) OrElse Path.EndsWithF(".schem", True)
                 Case Else
