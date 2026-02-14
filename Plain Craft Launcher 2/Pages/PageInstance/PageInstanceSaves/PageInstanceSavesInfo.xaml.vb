@@ -22,6 +22,8 @@ Class PageInstanceSavesInfo
 
     End Sub
 
+    Public Shared CurrentVersionId As Integer? = Nothing
+
     Private Sub RefreshInfo()
         Try
             Dim saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
@@ -46,6 +48,7 @@ Class PageInstanceSavesInfo
                     gameVersion.TryGet(Of NbtString)("Name", versionName)
                     gameVersion.TryGet(Of NbtInt)("Id", versionId)
                 End If
+                CurrentVersionId = If(versionId?.Value, Nothing)
                 Dim hasDifficulty = gameLevel.Contains("Difficulty")
                 Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 
