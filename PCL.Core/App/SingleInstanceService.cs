@@ -1,9 +1,8 @@
-using PCL.Core.IO;
-using PCL.Core.IO.Pipes;
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using PCL.Core.IO;
 
 namespace PCL.Core.App;
 

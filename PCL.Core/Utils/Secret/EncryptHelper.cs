@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
@@ -153,7 +154,7 @@ public static class EncryptHelper
             return data.Version switch
             {
                 1 => ProtectedData.Unprotect(data.Data, _IdentifyEntropy, DataProtectionScope.CurrentUser),
-                _ => throw new NotSupportedException("Unsupported encryption version")
+                _ => throw new NotSupportedException("Unsupported key version")
             };
         }
         else

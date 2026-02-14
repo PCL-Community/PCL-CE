@@ -1,6 +1,4 @@
-using PCL.Core.IO.Pipes;
-using PCL.Core.Utils.OS;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +6,8 @@ using System.IO;
 using System.IO.Pipes;
 using System.Text.Json;
 using System.Threading;
+using PCL.Core.IO;
+using PCL.Core.Utils.OS;
 
 namespace PCL.Core.App;
 
@@ -17,24 +17,24 @@ public sealed class PromoteService : GeneralService
     private static LifecycleContext? _context;
     private static LifecycleContext Context => _context!;
     private PromoteService() : base("promote", "提权服务", false) { _context = ServiceContext; }
-
+    
     private static Process? _promoteProcess;
     private static NamedPipeServerStream? _promotePipeServer;
-
+    
     private static readonly ConcurrentQueue<PromoteOperation> _PendingOperations = [];
-
+    
     private record PromoteOperation(string Command, Action<string>? Callback, bool DetailLog);
-
+    
     /// <summary>
     /// 提权进程是否正在运行。
     /// </summary>
     public static bool IsPromoteProcessRunning => _promoteProcess != null;
-
+    
     /// <summary>
     /// 当前进程是否是提权进程。
     /// </summary>
     public static bool IsCurrentProcessPromoted { get; private set; }
-
+    
     private static string _GetPromotePipeName(int processId) => $"PCLCE_PM@{processId}";
 
     private static readonly Dictionary<string, Func<string?, string?>> _OperationFunctions = new();
@@ -66,12 +66,12 @@ public sealed class PromoteService : GeneralService
             return operation(obj);
         });
     }
-
+    
     private const string OperationErrNotFound = "ERR_OPERATION_NOT_FOUND";
     private const string OperationErrInvalidArgument = "ERR_ILLEGAL_ARGUMENT";
     private const string OperationErrExceptionThrown = "ERR_UNHANDLED_EXCEPTION";
     private const string OperationErrEmpty = "EMPTY";
-
+    
     /// <summary>
     /// 提权进程接收到操作请求时触发的事件，接收一个字符串作为操作命令并返回一个字符串作为结果。<br/>
     /// <b>注意：如果你不知道这是做什么的，请勿覆盖默认实现。</b>请使用 <see cref="AddOperationFunction"/>。
@@ -91,7 +91,7 @@ public sealed class PromoteService : GeneralService
             return OperationErrExceptionThrown;
         }
     };
-
+    
     private static string _ShortenString(string str)
     {
 #if TRACE
@@ -102,7 +102,7 @@ public sealed class PromoteService : GeneralService
         if (str.Length <= maxLength) return str;
         return str[..maxLength] + "...";
     }
-
+    
     // 提权进程: 连接管道开始通信
     private static void _PerformAsPromoteProcess(string pid)
     {
@@ -138,7 +138,7 @@ public sealed class PromoteService : GeneralService
             Context.Trace("返回成功");
         }
     }
-
+    
     private static readonly AutoResetEvent _ActivateEvent = new(false);
 
     // 主进程: 管道连接回调
@@ -198,7 +198,7 @@ public sealed class PromoteService : GeneralService
     {
         _PendingOperations.Enqueue(new PromoteOperation(command, callback, detailLog));
     }
-
+    
     [Obsolete("请使用 Append()")]
     public static void AppendOperation(string command, Action<string>? callback = null, bool detailLog = true) => Append(command, callback, detailLog);
 
@@ -227,7 +227,7 @@ public sealed class PromoteService : GeneralService
     }
 
     private static readonly Dictionary<string, Process> _RunningProcesses = new();
-
+    
     // name: kill
     // arg: process-id [timeout]
     // return: kill result (false over timeout)
@@ -285,7 +285,7 @@ public sealed class PromoteService : GeneralService
         _RunningProcesses[id] = process;
         return id;
     }
-
+    
     public override void Start()
     {
         var args = Basics.CommandLineArguments;

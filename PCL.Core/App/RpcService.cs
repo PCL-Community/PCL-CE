@@ -1,5 +1,4 @@
-using PCL.Core.IO.Pipes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,6 +7,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.IO;
 using PCL.Core.App.IoC;
 
 namespace PCL.Core.App;
@@ -191,7 +191,7 @@ public sealed partial class RpcService
     [LifecycleStop]
     private async Task _Stop()
     {
-        if (_pipe != null) await _pipe.DisposeAsync().ConfigureAwait(false);
+        if (_pipe != null) await _pipe.DisposeAsync();
     }
 
     [LifecycleDependencyInjection("rpc-function", AttributeTargets.Method)]
@@ -218,13 +218,13 @@ public sealed partial class RpcService
     }
 
     public const string PipePrefix = "PCLCE_RPC";
-
+    
     private static readonly string _EchoPipeName = $"{PipePrefix}@{Basics.CurrentProcess.Id}";
     private static readonly string[] _RequestTypeArray = ["GET", "SET", "REQ"];
-    private static readonly HashSet<string> _RequestType = [.. _RequestTypeArray];
+    private static readonly HashSet<string> _RequestType = [.._RequestTypeArray];
 
     #region Property
-
+    
     private static readonly Dictionary<string, RpcProperty> _PropertyMap = new();
 
     /// <summary>
@@ -262,8 +262,7 @@ public sealed partial class RpcService
 
     #region Function
 
-    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new()
-    {
+    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new() {
         ["ping"] = ((_, _, _) => RpcResponse.EmptySuccess),
         ["activate"] = ((_, _, _) =>
         {
@@ -283,7 +282,6 @@ public sealed partial class RpcService
                         window.Topmost = true;
                         window.Topmost = false;
                     }
-
                     window.Activate();
                 });
             }
@@ -307,7 +305,7 @@ public sealed partial class RpcService
     {
         return _FunctionMap.Remove(name);
     }
-
+    
     #endregion
 
     private static bool _EchoPipeCallback(StreamReader reader, StreamWriter writer, Process? client)
@@ -337,9 +335,7 @@ public sealed partial class RpcService
 
             switch (type)
             {
-                case "GET":
-                case "SET":
-                {
+                case "GET": case "SET": {
                     target = target.ToLowerInvariant();
                     var result = _PropertyMap.TryGetValue(target, out var prop);
                     if (!result) throw new RpcException($"不存在属性 {target}");
@@ -377,13 +373,11 @@ public sealed partial class RpcService
                         response = RpcResponse.EmptyFailure;
                         Context.Debug("设置失败: 只读属性");
                     }
-
                     response.Response(writer);
                     break;
                 }
 
-                case "REQ":
-                {
+                case "REQ": {
                     var targetArgs = target.Split([' '], 2); // 分离函数名和参数
                     var name = targetArgs[0].ToLowerInvariant();
                     var indent = false; // 检测缩进指示
@@ -392,7 +386,6 @@ public sealed partial class RpcService
                         indent = true;
                         name = name[..^1];
                     }
-
                     var result = _FunctionMap.TryGetValue(name, out var func);
                     if (!result) throw new RpcException($"不存在函数 {name}");
                     string? argument = null;

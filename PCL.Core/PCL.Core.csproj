@@ -51,6 +51,7 @@
         <!-- 语言和系统特性 -->
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
         <PackageReference Include="System.Management" Version="10.0.1" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.2" />
         <!-- 归档文件 -->
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->

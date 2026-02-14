@@ -586,9 +586,9 @@ Refresh:
 
             ' 顶部栏：下载、设置、工具
             Dim IsAllTitleHidden As Boolean = Not HiddenForceShow AndAlso
-                                        conf.PageDownload AndAlso
-                                        conf.PageSetup AndAlso
-                                        conf.PageTools
+                                    conf.PageDownload AndAlso
+                                    conf.PageSetup AndAlso
+                                    conf.PageTools
 
             If IsAllTitleHidden Then
                 FrmMain.PanTitleSelect.Visibility = Visibility.Collapsed
@@ -617,6 +617,19 @@ Refresh:
                 FrmSetupLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso conf.SetupAbout, Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso conf.SetupFeedback, Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemLog.Visibility = If(Not HiddenForceShow AndAlso conf.SetupLog, Visibility.Collapsed, Visibility.Visible)
+
+                Dim categories = {
+    (FrmSetupLeft.TextGameCategory, Not (conf.SetupLaunch AndAlso conf.SetupJava AndAlso conf.SetupGameManage)),
+    (FrmSetupLeft.TextToolsCategory, Not conf.SetupGameLink),
+    (FrmSetupLeft.TextLauncherCategory, Not (conf.SetupUi AndAlso conf.SetupLauncherMisc)),
+    (FrmSetupLeft.TextAboutCategory, Not (conf.SetupAbout AndAlso conf.SetupUpdate AndAlso conf.SetupFeedback AndAlso conf.SetupLog))
+}
+
+                For Each category In categories
+                    Dim isVisible = category.Item2 OrElse HiddenForceShow
+                    category.Item1.Visibility = If(isVisible, Visibility.Visible, Visibility.Collapsed)
+                    If isVisible Then category.Item1.Opacity = 0.6
+                Next
 
                 ' 统计设置页可用项数量
                 Dim SetupCount As Integer = 0
