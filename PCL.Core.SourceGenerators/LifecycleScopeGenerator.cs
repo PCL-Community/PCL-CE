@@ -35,9 +35,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
     private record StopMethodModel : ScopeMethodModel;
 
     private record ArgumentHandlerMethodModel(
-        string ArgumentName,
-        string ArgumentQualifiedTypeName,
-        string ArgumentDefaultValue
+        bool HasCommandModelArg,
+        (string Name, string TypeName, string DefaultValue)[] SplitArgs
     ) : ScopeMethodModel;
 
     private record DependencyInjectionMethodModel(
@@ -114,17 +113,10 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 };
                 if (methodModel != null) model.Methods.Add(methodModel);
                 continue;
-                ArgumentHandlerMethodModel GetArgumentHandlerMethodModel()
+                ArgumentHandlerMethodModel? GetArgumentHandlerMethodModel()
                 {
-                    var args = attr.ConstructorArguments;
-                    var argumentName = args[0].Value!.ToString();
-                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().GetSimplifiedTypeName();
-                    var argumentDefaultValue = args.Length > 1 ? args[1].ToCSharpString() : $"new {argumentTypeName}()";
-                    return new ArgumentHandlerMethodModel(argumentName, argumentTypeName, argumentDefaultValue)
-                    {
-                        MethodName = methodName,
-                        Awaitable = awaitable
-                    };
+                    // TODO
+                    return null;
                 }
                 DependencyInjectionMethodModel? GetDependencyInjectionMethodModel()
                 {

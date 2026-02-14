@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,6 +10,16 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App;
+
+/// <summary>
+/// 命令处理委托
+/// </summary>
+/// <param name="model">命令模型</param>
+/// <param name="isCallback">
+/// 指示该委托是否由已注册的回调触发，若是，则代表可能由 RPC
+/// 或用户后续操作而非当前进程的命令行参数触发，应注意鉴权问题
+/// </param>
+public delegate void CommandHandler(CommandLine model, bool isCallback);
 
 [LifecycleService(LifecycleState.BeforeLoading, Priority = int.MaxValue)]
 [LifecycleScope("startup", "基本信息", false)]
@@ -27,6 +38,7 @@ public sealed partial class StartupService
     } = null!;
 
     private static readonly Dictionary<string, CommandLine> _UnhandledCommandMap = [];
+    private static readonly ConcurrentDictionary<string, CommandHandler> _HandleCallbackMap = [];
 
     /// <summary>
     /// 未处理的子命令
@@ -37,17 +49,23 @@ public sealed partial class StartupService
     /// 处理一个子命令
     /// </summary>
     /// <param name="command">子命令</param>
-    /// <param name="model">命令行模型</param>
-    /// <returns>子命令是否存在</returns>
-    /// <exception cref="KeyNotFoundException">指定子命令不存在</exception>
-    public static bool TryHandleCommand(string command, [MaybeNullWhen(false)] out CommandLine model)
+    /// <param name="handler">用于处理命令的委托，传入 <see langword="null"/> 则触发已注册的处理回调</param>
+    /// <param name="registerCallback">指定是否注册该委托为处理回调</param>
+    /// <returns>是否执行成功，若子命令不存在或未注册任何处理回调则不成功</returns>
+    public static bool TryHandleCommand(string command, CommandHandler? handler = null, bool registerCallback = false)
     {
+        if (handler == null)
+        {
+            _HandleCallbackMap.TryGetValue(command, out handler);
+            if (handler == null) return false;
+        }
+        else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
         lock (_UnhandledCommandMap)
         {
-            _UnhandledCommandMap.TryGetValue(command, out model);
+            _UnhandledCommandMap.TryGetValue(command, out var model);
             if (model == null) return false;
             // remove all related commands
-            foreach (var x in _UnhandledCommandMap.Keys.ToList().Where(x => x.StartsWith(command)))
+            foreach (var x in UnhandledCommands.Where(x => x.StartsWith(command)).ToList())
                 _UnhandledCommandMap.Remove(x);
             return true;
         }

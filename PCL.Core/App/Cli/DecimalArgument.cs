@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace PCL.Core.App.Cli;
@@ -15,7 +16,7 @@ public class DecimalArgument : CommandArgument<decimal>
         init => base.Value = value;
     }
 
-    public override bool TryCastValue<T>(out T value)
+    public override bool TryCastValue<T>([NotNullWhen(true)] out T value)
     {
         if (base.TryCastValue(out value)) return true;
         var type = typeof(T);
@@ -34,7 +35,9 @@ public class DecimalArgument : CommandArgument<decimal>
             else if (type == typeof(nint)) Unsafe.As<T, nint>(ref value) = checked((nint)Convert.ToInt64(Value));
             else if (type == typeof(nuint)) Unsafe.As<T, nuint>(ref value) = checked((nuint)Convert.ToUInt64(Value));
             else return false;
+#pragma warning disable CS8762 // The analyzer sucks.
             return true;
+#pragma warning restore CS8762
         }
         catch (Exception ex) when (ex is OverflowException or InvalidCastException or FormatException)
         {
