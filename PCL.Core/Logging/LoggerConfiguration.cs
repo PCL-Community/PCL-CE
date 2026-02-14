@@ -2,7 +2,7 @@
 
 public record LoggerConfiguration(
     string StoreFolder,
-    long MaxFileSize = 5 * 1024 * 1024,
+    long MaxFileSize = 32 * 1024 * 1024,
     string? FileNameFormat = null,
     bool AutoDeleteOldFile = true,
     int MaxKeepOldFile = 16,
