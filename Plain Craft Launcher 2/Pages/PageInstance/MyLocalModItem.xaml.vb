@@ -513,18 +513,22 @@ Public Class MyLocalCompItem
         ShowUpdateLog()
     End Sub
     Private Sub ShowUpdateLog()
-        Dim CurseForgeUrl As String = Entry.ChangelogUrls.FirstOrDefault(Function(x) x.Contains("curseforge.com"))
-        Dim ModrinthUrl As String = Entry.ChangelogUrls.FirstOrDefault(Function(x) x.Contains("modrinth.com"))
-        If CurseForgeUrl Is Nothing OrElse ModrinthUrl Is Nothing Then
-            OpenWebsite(Entry.ChangelogUrls.First)
-        Else
-            Select Case MyMsgBox("要在哪个网站上查看更新日志？", "查看更新日志", "Modrinth", "CurseForge", "取消")
-                Case 1
-                    OpenWebsite(ModrinthUrl)
-                Case 2
-                    OpenWebsite(CurseForgeUrl)
-            End Select
+        If Entry.Comp IsNot Nothing Then
+            If Not IsNumeric(Entry.Comp.Id) Then
+                Dim modrinthUrl = Entry.ChangelogUrls.FirstOrDefault(Function(x) x.Contains("modrinth.com"))
+                If modrinthUrl IsNot Nothing Then
+                    OpenWebsite(modrinthUrl)
+                    Return
+                End If
+            Else
+                Dim curseForgeUrl = Entry.ChangelogUrls.FirstOrDefault(Function(x) x.Contains("curseforge.com"))
+                If curseForgeUrl IsNot Nothing Then
+                    OpenWebsite(curseForgeUrl)
+                    Return
+                End If
+            End If
         End If
+        Log("打开更新日志出现错误", LogLevel.Hint)
     End Sub
 
     '触发更新
