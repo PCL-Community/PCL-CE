@@ -107,7 +107,7 @@ public sealed class Logger : IDisposable
         const int maxBatchLines = 198;
         var writeTimeout = TimeSpan.FromMilliseconds(325);
         var batch = new StringBuilder(4096);
-        var lineCount = 0;
+        var lineCount = 0u;
         var lastFlush = Stopwatch.GetTimestamp();
 
         try
@@ -132,7 +132,7 @@ public sealed class Logger : IDisposable
                 }
                 else
                 {
-                    if (lineCount > 0)
+                    if (lineCount != 0)
                     {
                         await DoRefreshAsync().ConfigureAwait(false);
                     }
