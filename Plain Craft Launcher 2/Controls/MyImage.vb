@@ -1,5 +1,4 @@
 Imports System.Net.Http
-Imports PCL.Core.Net
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
@@ -13,7 +12,7 @@ Public Class MyImage
     ''' 网络图片的缓存有效期。
     ''' 在这个时间后，才会重新尝试下载图片。
     ''' </summary>
-    Public FileCacheExpiredTime As New TimeSpan(7, 0, 0, 0) '7 天
+    Public FileCacheExpiredTime As TimeSpan = TimeSpan.FromDays(14)
 
     ''' <summary>
     ''' 是否允许将网络图片存储到本地用作缓存。
@@ -131,7 +130,7 @@ Public Class MyImage
         Try
             '下载
             ActualSource = LoadingSource '显示加载中图片
-            TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 10000000)
+            TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 1000000)
             Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
             Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
                 Using response = Await HttpRequestBuilder.Create(Url, HttpMethod.Get).
@@ -140,6 +139,7 @@ Public Class MyImage
                         SendAsync()
                     If response.IsSuccess Then
                         Using nfs = Await response.AsStreamAsync()
+                            fs.SetLength(0)
                             Await nfs.CopyToAsync(fs)
                         End Using
                     ElseIf Not FallbackSource.IsNullOrWhiteSpace() Then
@@ -149,12 +149,14 @@ Public Class MyImage
                             WithDefaultHeaderOption(False).
                             SendAsync(True)
                             If fallbackResponse.IsSuccess Then
-                                fs.SetLength(0)
                                 Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
+                                    fs.SetLength(0)
                                     Await fallbackNfs.CopyToAsync(fs)
                                 End Using
                             End If
                         End Using
+                    Else
+                        Return
                     End If
                 End Using
             End Using
@@ -169,7 +171,6 @@ Public Class MyImage
             Else
                 '直接显示
                 ActualSource = TempDownloadingPath
-                File.Delete(TempDownloadingPath)
             End If
         Catch ex As Exception
             Try
@@ -184,12 +185,12 @@ Public Class MyImage
             TempFile = New FileInfo(TempPath)
             If EnableCache AndAlso TempFile.Exists() Then
                 ActualSource = TempPath
-                If (Date.Now - TempFile.CreationTime) < FileCacheExpiredTime Then Return '无需刷新缓存
+                If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
             End If
         End Try
     End Sub
     Public Shared Function GetTempPath(Url As String) As String
-        Return $"{PathTemp}MyImage\{GetHash(Url)}.png"
+        Return IO.Path.Combine(PathTemp, "Cache", "Images", $"{GetStringMD5(Url)}.png")
     End Function
 
 End Class
