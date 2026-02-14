@@ -104,7 +104,7 @@ public sealed class Logger : IDisposable
 
     private async Task _ProcessLogQueueAsync(CancellationToken token)
     {
-        const int maxBatchLines = 128;
+        const int maxBatchLines = 198;
         var writeTimeout = TimeSpan.FromMilliseconds(325);
         var batch = new StringBuilder(4096);
         var lineCount = 0;
@@ -114,7 +114,7 @@ public sealed class Logger : IDisposable
         {
             while (await _logChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (_logChannel.Reader.TryRead(out var message))
+                if (_logChannel.Reader.TryRead(out var message))
                 {
 #if DEBUG
                     message = message.ReplaceLineBreak("\r\n");
@@ -132,6 +132,10 @@ public sealed class Logger : IDisposable
                         lineCount = 0;
                         lastFlush = Stopwatch.GetTimestamp();
                     }
+                }
+                else
+                {
+                    await Task.Delay(80, token).ConfigureAwait(false);
                 }
             }
         }
