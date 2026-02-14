@@ -538,7 +538,7 @@ Public Class FormMain
                 FeedbackInfo()
                 Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
                 IsLogShown = True
-                ShellOnly(LogWrapper.CurrentLogger.LogFiles.Last())
+                ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last())
             End If
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If

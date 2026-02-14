@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using PCL.Core.Utils.Exts;
 
@@ -16,20 +17,25 @@ public sealed class Logger : IDisposable
     {
         Configuration = configuration;
         _CreateNewFile();
-        _processingThread = new Thread(() => _ProcessLogQueue(_cts.Token));
-        _processingThread.Start();
+        _processingTask = _ProcessLogQueueAsync(_cancelToken.Token);
     }
-
+    // Data stream
     private StreamWriter? _currentStream;
     private FileStream? _currentFile;
     private readonly List<string> _files = [];
-    
-    private readonly Thread _processingThread;
-    private readonly ConcurrentQueue<string> _logQueue = new();
-    private readonly ManualResetEventSlim _logEvent = new(false);
-    private readonly CancellationTokenSource _cts = new();
+    // Statis
+    private long _droppedCount;
+    public long DroppedLogCount => Interlocked.Read(ref _droppedCount);
+    // Processor
+    private readonly Task _processingTask;
+    private readonly Channel<string> _logChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
+    {
+        FullMode = BoundedChannelFullMode.DropWrite,
+        SingleReader = true
+    });
+    private readonly CancellationTokenSource _cancelToken = new();
 
-    public List<string> LogFiles => [.._files];
+    public List<string> CurrentLogFiles => [.._files];
 
     public LoggerConfiguration Configuration { get; }
 
@@ -42,21 +48,36 @@ public sealed class Logger : IDisposable
         var lastWriter = _currentStream;
         var lastFile = _currentFile;
         Directory.CreateDirectory(Configuration.StoreFolder);
+
         _currentFile = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
         _currentStream = new StreamWriter(_currentFile);
-        Task.Run(() =>
+
+        _ = Task.Run(async () =>
         {
-            lastWriter?.Close();
-            lastWriter?.Dispose();
-            lastFile?.Close();
-            lastFile?.Dispose();
+            if (lastWriter != null)
+                try
+                {
+                    await lastWriter.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception) { /* Don't care */ }
+
+            if (lastFile != null)
+                try
+                {
+                    await lastFile.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception) { /* Don't care */ }
+
             if (!Configuration.AutoDeleteOldFile)
                 return;
-            var logFiles = Directory.GetFiles(Configuration.StoreFolder);
+
+            var logFiles = Directory.GetFiles(
+                Configuration.StoreFolder,
+                "*.log",
+                SearchOption.TopDirectoryOnly);
             var needToDelete = logFiles.Select(x => new FileInfo(x))
                 .OrderBy(x => x.CreationTime)
-                .Take(logFiles.Length - Configuration.MaxKeepOldFile)
-                .ToList();
+                .Take(logFiles.Length - Configuration.MaxKeepOldFile);
             foreach (var logFile in needToDelete)
                 logFile.Delete();
         });
@@ -74,45 +95,51 @@ public sealed class Logger : IDisposable
     public void Log(string message)
     {
         if (_disposed) return;
-        _logQueue.Enqueue(message);
-        _logEvent.Set();
+        if (!_logChannel.Writer.TryWrite(message))
+        {
+            Interlocked.Increment(ref _droppedCount);
+            Console.WriteLine($"Log dropped error: {message}");
+        }
     }
 
-    private void _ProcessLogQueue(CancellationToken token)
+    private async Task _ProcessLogQueueAsync(CancellationToken token)
     {
-        const int maxBatchCount = 100;
+        const int maxBatchLines = 128;
+        var writeTimeout = TimeSpan.FromMilliseconds(325);
+        var batch = new StringBuilder();
+        var lineCount = 0;
+        var lastFlush = Stopwatch.GetTimestamp();
+
         try
         {
-            StringBuilder batch = new();
-            long currentBatchCount = 0;
-            while (true) // 循环一次写入一次日志
+            while (await _logChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
             {
-                while (true) // 循环一次从队列里拿一条待打印的日志
+                while (_logChannel.Reader.TryRead(out var message))
                 {
-                    _logEvent.Wait(millisecondsTimeout: 600, cancellationToken: token);
-                    if (!_logQueue.TryDequeue(out var message))
-                    {
-                        // 日志队列为空时
-                        if (currentBatchCount != 0) // 有待写入的日志 => 写入一次
-                            break;
-                        _logEvent.Reset();
-                        token.ThrowIfCancellationRequested(); // 已被 Dispose => 结束运行
-                        continue; // 否则 => 接着等待下一次 Log() 调用
-                    }
 #if DEBUG
                     message = message.ReplaceLineBreak("\r\n");
                     Console.WriteLine(message);
+                    System.Diagnostics.Debug.WriteLine(message);
 #endif
                     batch.AppendLine(message);
-                    if (++currentBatchCount >= maxBatchCount) // 行数达到缓冲上限 => 写入一次
-                        break;
+                    lineCount++;
+
+                    var elapsed = Stopwatch.GetElapsedTime(lastFlush);
+                    if (lineCount >= maxBatchLines || elapsed > writeTimeout || _logChannel.Reader.Count == 0)
+                    {
+                        await _DoWrite(batch).ConfigureAwait(false);
+                        batch.Clear();
+                        lineCount = 0;
+                        lastFlush = Stopwatch.GetTimestamp();
+                    }
                 }
-                _DoWrite(batch.ToString());
-                batch.Clear();
-                currentBatchCount = 0;
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            if (lineCount > 0)
+                await _DoWrite(batch).ConfigureAwait(false);
+        }
         catch (Exception e)
         {
             // 出错了先干到标准输出流中吧 Orz
@@ -121,16 +148,15 @@ public sealed class Logger : IDisposable
         }
     }
 
-    private void _DoWrite(string ctx)
+    private async Task _DoWrite(StringBuilder ctx)
     {
         try
         {
-            if (Configuration.SegmentMode == LoggerSegmentMode.BySize && _currentFile?.Length >= Configuration.MaxFileSize)
+            if (_currentFile?.Length >= Configuration.MaxFileSize)
             {
                 _CreateNewFile();
             }
-            _currentStream?.Write(ctx);
-            _currentStream?.Flush();
+            await _currentStream!.WriteAsync(ctx).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -144,10 +170,9 @@ public sealed class Logger : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _cts.Cancel();
-        _logEvent.Set();
-        _processingThread.Join(5000);
-        _logEvent.Dispose();
+        _cancelToken.Cancel();
+        _logChannel.Writer.Complete();
+        _processingTask.Wait(1500);
         _currentStream?.Dispose();
         _currentFile?.Dispose();
     }

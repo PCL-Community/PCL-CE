@@ -24,7 +24,7 @@ Class PageSetupLog
 
     Private Shared ReadOnly Property CurrentLogs As List(Of String)
         Get
-            Dim logs = LogService.Logger.LogFiles
+            Dim logs = LogService.Logger.CurrentLogFiles
             Return logs.ConvertAll(Function(item) IO.Path.GetFullPath(item))
         End Get
     End Property

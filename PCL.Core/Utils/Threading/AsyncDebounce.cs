@@ -67,7 +67,7 @@ public class AsyncDebounce(CancellationToken cancelToken = default) : IDisposabl
                 finally
                 {
                     // 仅由使用者自己释放，避免跨线程 Dispose 竞态
-                    // 注意：不要在这里释放 _cts
+                    // 注意：不要在这里释放 _cancelToken
                     capturedCts.Dispose();
                 }
 
