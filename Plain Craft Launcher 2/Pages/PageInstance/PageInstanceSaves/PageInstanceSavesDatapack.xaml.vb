@@ -430,6 +430,7 @@ Public Class PageInstanceSavesDatapack
         Dim FileList As String() = SystemDialogs.SelectFiles("数据包文件(*.zip)|*.zip", "选择要安装的数据包")
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
         InstallDatapackFiles(FileList)
+        Refresh()
     End Sub
 
     ''' <summary>
@@ -952,7 +953,7 @@ Public Class PageInstanceSavesDatapack
                         Return
                 End Select
 
-                FrmInstanceSavesDatapack.ReloadDatapackFileList(True)
+                Refresh()
 
                 Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{PathDatapacks}")
                 UpdatingVersions.Remove(PathDatapacks)
