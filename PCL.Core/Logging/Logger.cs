@@ -112,7 +112,7 @@ public sealed class Logger : IDisposable
 
         try
         {
-            while (await _logChannel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
+            while (!token.IsCancellationRequested)
             {
                 if (_logChannel.Reader.TryRead(out var message))
                 {
@@ -125,24 +125,35 @@ public sealed class Logger : IDisposable
                     lineCount++;
 
                     var elapsed = Stopwatch.GetElapsedTime(lastFlush);
-                    if (lineCount >= maxBatchLines || elapsed > writeTimeout || _logChannel.Reader.Count == 0)
+                    if (lineCount >= maxBatchLines || elapsed > writeTimeout)
                     {
-                        await _DoWrite(batch).ConfigureAwait(false);
-                        batch.Clear();
-                        lineCount = 0;
-                        lastFlush = Stopwatch.GetTimestamp();
+                        await DoRefreshAsync().ConfigureAwait(false);
                     }
                 }
                 else
                 {
+                    if (lineCount > 0)
+                    {
+                        await DoRefreshAsync().ConfigureAwait(false);
+                    }
                     await Task.Delay(80, token).ConfigureAwait(false);
+                }
+
+                if (_logChannel.Reader.Completion.IsCompleted) break;
+
+                async Task DoRefreshAsync()
+                {
+                    await _DoWriteAsync(batch).ConfigureAwait(false);
+                    batch.Clear();
+                    lineCount = 0;
+                    lastFlush = Stopwatch.GetTimestamp();
                 }
             }
         }
         catch (OperationCanceledException)
         {
             if (lineCount > 0)
-                await _DoWrite(batch).ConfigureAwait(false);
+                await _DoWriteAsync(batch).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -152,7 +163,7 @@ public sealed class Logger : IDisposable
         }
     }
 
-    private async Task _DoWrite(StringBuilder ctx)
+    private async Task _DoWriteAsync(StringBuilder ctx)
     {
         try
         {
@@ -176,8 +187,11 @@ public sealed class Logger : IDisposable
         _disposed = true;
         _cancelToken.Cancel();
         _logChannel.Writer.Complete();
-        _processingTask.Wait(1500);
-        _currentStream?.Dispose();
-        _currentFile?.Dispose();
+        _processingTask.Forget();
+        _processingTask.ContinueWith(_ =>
+        {
+            _currentStream?.Dispose();
+            _currentFile?.Dispose();
+        }).Forget();
     }
 }
