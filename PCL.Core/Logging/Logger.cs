@@ -106,7 +106,7 @@ public sealed class Logger : IDisposable
     {
         const int maxBatchLines = 128;
         var writeTimeout = TimeSpan.FromMilliseconds(325);
-        var batch = new StringBuilder();
+        var batch = new StringBuilder(4096);
         var lineCount = 0;
         var lastFlush = Stopwatch.GetTimestamp();
 
