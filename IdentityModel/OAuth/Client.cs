@@ -4,14 +4,15 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
 
 
 namespace PCL.Core.IdentityModel.OAuth;
 
 /// <summary>
-/// OAuth 客户端实现
+/// OAuth 客户端实现，配合 Polly 食用效果更佳
 /// </summary>
-/// <param name="getClient">获取 HttpClient 的方法</param>
+/// <param name="getClient">获取 HttpClient 的方法，实现方需自行管理 HttpClient 生命周期</param>
 /// <param name="options">OAuth 参数</param>
 public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOptions options)
 {
@@ -26,9 +27,10 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
         ArgumentException.ThrowIfNullOrWhiteSpace(options.Meta.AuthorizeEndpoint);
         var sb = new StringBuilder();
         sb.Append(options.Meta.AuthorizeEndpoint);
-        sb.Append($"?response_type=code&scope={string.Join(" ", scopes)}");
-        sb.Append($"&redirect_uri={redirectUri}&client_id={options.Meta.ClientId}");
-        return Uri.EscapeDataString(sb.ToString());
+        sb.Append($"?response_type=code&scope={Uri.EscapeDataString(string.Join(" ", scopes))}");
+        sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+        sb.Append($"&client_id={options.Meta.ClientId}");
+        return sb.ToString();
     }
     
     /// <summary>
@@ -36,9 +38,10 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
     /// </summary>
     /// <param name="code">授权代码</param>
     /// <param name="extData">附加属性，不应该包含必须参数和预定义字段 (e.g. client_id、grant_type)</param>
+    /// <param name="token"></param>
     /// <returns></returns>
     public async Task<AuthorizeResult?> AuthorizeWithCodeAsync(
-        string code,Dictionary<string,string>? extData = null
+        string code,CancellationToken token,Dictionary<string,string>? extData = null
         )
     {
         extData ??= new Dictionary<string, string>();
@@ -52,13 +55,19 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
         if(options.Headers is not null)
             foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request);
-        var result  = await response.Content.ReadAsStringAsync();
+        using var response = await client.SendAsync(request,token);
+        var result  = await response.Content.ReadAsStringAsync(token);
         return JsonSerializer.Deserialize<AuthorizeResult>(result);
     }
-
+    /// <summary>
+    /// 获取设备代码对
+    /// </summary>
+    /// <param name="scopes"></param>
+    /// <param name="token"></param>
+    /// <param name="extData"></param>
+    /// <returns></returns>
     public async Task<DeviceCodeData?> GetCodePairAsync
-        (string[] scopes, Dictionary<string, string>? extData = null)
+        (string[] scopes,CancellationToken token, Dictionary<string, string>? extData = null)
     {
         var client = getClient.Invoke();
         extData ??= new Dictionary<string, string>();
@@ -70,18 +79,63 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
         if(options.Headers is not null)
             foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        using var response = await client.SendAsync(request,token);
+        var result = await response.Content.ReadAsStringAsync(token);
         return JsonSerializer.Deserialize<DeviceCodeData>(result);
     }
-
-    public async Task<AuthorizeResult> AuthorizeWithDeviceCode(DeviceCodeData data,Dictionary<string,string> extData)
+    /// <summary>
+    /// 验证用户授权状态 <br/>
+    /// 注：此方法不会检查是否过去了 Interval 秒，请自行处理
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="token"></param>
+    /// <param name="extData"></param>
+    /// <returns></returns>
+    /// <exception cref="OperationCanceledException"></exception>
+    public async Task<AuthorizeResult?> AuthorizeWithDeviceCode
+        (DeviceCodeData data,CancellationToken token,Dictionary<string,string>? extData = null)
+    {
+        if (data.IsError) throw new OperationCanceledException(data.ErrorDescription); 
+        var client = getClient.Invoke();
+        extData ??= new Dictionary<string, string>();
+        extData["client_id"] = options.Meta.ClientId;
+        extData["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code";
+        extData["device_code"] = data.DeviceCode!;
+        using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
+        using var content = new FormUrlEncodedContent(extData);
+        request.Content = content;
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
+                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
+        using var response = await client.SendAsync(request,token);
+        var result = await response.Content.ReadAsStringAsync(token);
+        return JsonSerializer.Deserialize<AuthorizeResult>(result);
+    }
+    /// <summary>
+    /// 刷新登录
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="token"></param>
+    /// <param name="extData"></param>
+    /// <returns></returns>
+    /// <exception cref="OperationCanceledException"></exception>
+    public async Task<AuthorizeResult?> AuthorizeWithSilentAsync
+        (AuthorizeResult data,CancellationToken token,Dictionary<string,string>? extData = null)
     {
         var client = getClient.Invoke();
-    }
-
-    public async Task<AuthorizeResult> AuthorizeWithSilentAsync(AuthorizeResult data)
-    {
-        
+        if (data.IsError) throw new OperationCanceledException(data.ErrorDescription);
+        extData ??= new Dictionary<string, string>();
+        extData["refresh_token"] = data.RefreshToken!;
+        extData["grant_type"] = "refresh_token";
+        extData["client_id"] = options.Meta.ClientId;
+        using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
+        using var content = new FormUrlEncodedContent(extData);
+        request.Content = content;
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
+                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
+        using var response = await client.SendAsync(request,token);
+        var result = await response.Content.ReadAsStringAsync(token);
+        return JsonSerializer.Deserialize<AuthorizeResult>(result);
     }
 }
