@@ -27,7 +27,7 @@ public class Identify
             LogWrapper.Error(ex, "Identify", "获取设备基础信息失败");
         }
 
-        return Encoding.UTF8.GetBytes(SHA512Provider.Instance.ComputeHash(code.ToString()));
+        return Encoding.UTF8.GetBytes(SHA512Provider.Instance.ComputeHash(code.ToString()).ToHexString());
     }
 
     private static string _GetWmiProperty(string className, string propertyName)
@@ -62,7 +62,7 @@ public class Identify
             suffix.CopyTo(bufferSpan.Slice(prefix.Length + ctx.Length, suffix.Length));
 
             Array.Clear(ctx);
-            var sample = SHA512Provider.Instance.ComputeHash(bufferSpan);
+            var sample = SHA512Provider.Instance.ComputeHash(bufferSpan).ToHexString();
             bufferSpan.Clear();
 
             // 16 in length, 8 bytes, 64 bits, enough for us
