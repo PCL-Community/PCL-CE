@@ -15,9 +15,9 @@ namespace PCL.Core.Minecraft.Launch.Services;
 /// <summary>
 /// 负责执行自定义启动命令和生成启动脚本的服务
 /// </summary>
-public class CustomLaunchService(IMcInstance instance, JavaInfo selectedJava, string launchArg) {
+public class CustomLaunchService(IMcInstance instance, JavaEntry selectedJava, string launchArg) {
     private readonly IMcInstance _instance = instance ?? throw new ArgumentNullException(nameof(instance));
-    private readonly JavaInfo _selectedJava = selectedJava ?? throw new ArgumentNullException(nameof(selectedJava));
+    private readonly JavaEntry _selectedJava = selectedJava ?? throw new ArgumentNullException(nameof(selectedJava));
     private readonly string _launchArg = launchArg ?? throw new ArgumentNullException(nameof(launchArg));
     private readonly CustomEnvReplacer _envReplacer = new(instance, selectedJava);
 
@@ -97,7 +97,7 @@ public class CustomLaunchService(IMcInstance instance, JavaInfo selectedJava, st
         var scriptBuilder = new StringBuilder();
 
         // 设置编码（Java 9+ 支持 UTF-8）
-        if (_selectedJava.JavaMajorVersion > 8) {
+        if (_selectedJava.Installation.MajorVersion > 8) {
             scriptBuilder.AppendLine("chcp 65001>nul");
         }
 
@@ -117,7 +117,7 @@ public class CustomLaunchService(IMcInstance instance, JavaInfo selectedJava, st
         }
 
         // Java 启动命令
-        scriptBuilder.AppendLine($"\"{_selectedJava.JavaExePath}\" {_launchArg}");
+        scriptBuilder.AppendLine($"\"{_selectedJava.Installation.JavaExePath}\" {_launchArg}");
 
         // 结束提示
         scriptBuilder.AppendLine("echo 游戏已退出。");
@@ -130,7 +130,7 @@ public class CustomLaunchService(IMcInstance instance, JavaInfo selectedJava, st
     /// 获取脚本编码
     /// </summary>
     private Encoding GetScriptEncoding() {
-        return _selectedJava.JavaMajorVersion > 8 ? Encoding.UTF8 : Encoding.Default;
+        return _selectedJava.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default;
     }
 
     /// <summary>

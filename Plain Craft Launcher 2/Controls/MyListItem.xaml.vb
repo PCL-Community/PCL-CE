@@ -565,7 +565,7 @@ Public Class MyListItem
             SetValue(ForegroundProperty, value)
         End Set
     End Property
-    Public Shared ReadOnly ForegroundProperty As DependencyProperty = DependencyProperty.Register("Foreground", GetType(Brush), GetType(MyListItem), New PropertyMetadata(DynamicColors.Color1Brush))
+    Public Shared ReadOnly ForegroundProperty As DependencyProperty = DependencyProperty.Register("Foreground", GetType(Brush), GetType(MyListItem), New PropertyMetadata(AppResources("ColorBrush1")))
 
     '菜单与按钮绑定
     Public Property ContentHandler As Action(Of MyListItem, EventArgs)
@@ -704,7 +704,7 @@ Public Class MyListItem
                     ColumnPaddingRight.Width = New GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count * 25))
                 End If
                 '由于鼠标已经移入，所以直接实例化 RectBack
-                RectBack.Background = DynamicColors.ColorBg1Brush
+                RectBack.Background = AppResources("ColorBrushBg1")
                 RectBack.Opacity = 1
                 RectBack.RenderTransform = New ScaleTransform(1, 1)
                 Me.RenderTransform = New ScaleTransform(1, 1)
@@ -716,7 +716,7 @@ Public Class MyListItem
                 Me.RenderTransform = New ScaleTransform(1, 1)
                 If _RectBack IsNot Nothing Then
                     If IsScaleAnimationEnabled Then RectBack.RenderTransform = New ScaleTransform(0.75, 0.75)
-                    RectBack.Background = DynamicColors.Color7Brush
+                    RectBack.Background = AppResources("ColorBrush7")
                     RectBack.Opacity = 0
                 End If
             End If

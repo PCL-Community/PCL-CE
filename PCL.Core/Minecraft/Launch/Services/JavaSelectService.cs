@@ -22,7 +22,7 @@ public class JavaSelectService(IMcInstance instance) {
     /// 根据当前实例版本要求选择最佳 Java
     /// </summary>
     /// <returns>选择的 Java 信息，如果选择失败则抛出异常</returns>
-    public async Task<JavaInfo> SelectBestJavaAsync() {
+    public async Task<JavaEntry> SelectBestJavaAsync() {
         var (minVersion, maxVersion) = _GetJavaVersionRequirements();
 
         var selectedJava = await _SelectJavaByPriorityAsync(minVersion, maxVersion);
@@ -40,13 +40,13 @@ public class JavaSelectService(IMcInstance instance) {
     /// <summary>
     /// 按优先级选择 Java：实例指定 > 全局指定 > 自动搜索
     /// </summary>
-    private async Task<JavaInfo?> _SelectJavaByPriorityAsync(Version minVersion, Version maxVersion) {
+    private async Task<JavaEntry?> _SelectJavaByPriorityAsync(Version minVersion, Version maxVersion) {
         LogWrapper.Info($"开始选择 Java - 最低版本：{minVersion}，最高版本：{maxVersion}，实例：{instance.Name}");
 
         // 1. 优先使用实例指定的 Java
         var instanceJava = _GetInstanceSpecifiedJava();
         if (instanceJava != null) {
-            if (!_IsJavaVersionSuitable(instanceJava.Version, minVersion, maxVersion)) {
+            if (!_IsJavaVersionSuitable(instanceJava.Installation.Version, minVersion, maxVersion)) {
                 HintWrapper.Show("当前实例指定的 Java 版本可能不合适，可能导致游戏崩溃");
             }
             LogWrapper.Info($"使用实例指定 Java：{instanceJava}");
@@ -67,7 +67,7 @@ public class JavaSelectService(IMcInstance instance) {
     /// <summary>
     /// 处理 Java 自动下载逻辑
     /// </summary>
-    private async Task<JavaInfo?> _HandleJavaDownloadAsync(Version minVersion, Version maxVersion) {
+    private async Task<JavaEntry?> _HandleJavaDownloadAsync(Version minVersion, Version maxVersion) {
         var javaSpec = _DetermineRequiredJavaSpec(minVersion, maxVersion);
 
         if (!_ConfirmJavaDownload(javaSpec)) {
@@ -78,7 +78,7 @@ public class JavaSelectService(IMcInstance instance) {
         // return await DownloadJava(javaSpec.Code);
 
         // 暂时返回 null，等待下载逻辑实现
-        return await Task.FromResult<JavaInfo?>(null);
+        return await Task.FromResult<JavaEntry?>(null);
     }
 
     /// <summary>
@@ -182,31 +182,31 @@ public class JavaSelectService(IMcInstance instance) {
     /// <summary>
     /// 获取实例指定的 Java
     /// </summary>
-    private JavaInfo? _GetInstanceSpecifiedJava() {
+    private JavaEntry? _GetInstanceSpecifiedJava() {
         var userSetupVersion = Config.Instance.SelectedJava[instance.Path];
-        return userSetupVersion == UseGlobalSetting ? null : JavaInfo.Parse(userSetupVersion);
+        return userSetupVersion == UseGlobalSetting ? null : JavaService.JavaManager.Get(userSetupVersion);
     }
 
     /// <summary>
     /// 获取全局指定的 Java
     /// </summary>
-    private static JavaInfo? _GetGlobalSpecifiedJava() {
-        return JavaInfo.Parse(Config.Launch.SelectedJava);
+    private static JavaEntry? _GetGlobalSpecifiedJava() {
+        return JavaService.JavaManager.AddOrGet(Config.Launch.SelectedJava);
     }
 
     /// <summary>
     /// 自动搜索合适的 Java
     /// </summary>
-    private static async Task<JavaInfo?> _SearchSuitableJavaAsync(Version minVersion, Version maxVersion) {
+    private static async Task<JavaEntry?> _SearchSuitableJavaAsync(Version minVersion, Version maxVersion) {
         var javaManager = JavaService.JavaManager;
-        javaManager.CheckJavaAvailability();
+        javaManager.CheckAllAvailability();
 
-        var suitableJava = (await javaManager.SelectSuitableJava(minVersion, maxVersion)).FirstOrDefault();
+        var suitableJava = (await javaManager.SelectSuitableJavaAsync(minVersion, maxVersion)).FirstOrDefault();
 
         if (suitableJava == null) {
             LogWrapper.Info("首次搜索未找到合适 Java，重新扫描后再试");
             await javaManager.ScanJavaAsync();
-            suitableJava = (await javaManager.SelectSuitableJava(minVersion, maxVersion)).FirstOrDefault();
+            suitableJava = (await javaManager.SelectSuitableJavaAsync(minVersion, maxVersion)).FirstOrDefault();
         }
 
         LogWrapper.Info($"自动搜索结果：{suitableJava?.ToString() ?? "未找到"}");
@@ -238,7 +238,7 @@ public static class JavaSelectServiceFactory {
     /// 为当前实例创建 JavaSelectService 并选择最佳 Java
     /// </summary>
     /// <returns>选择的 Java 信息</returns>
-    public static async Task<JavaInfo> SelectBestJavaForCurrentInstanceAsync() {
+    public static async Task<JavaEntry> SelectBestJavaForCurrentInstanceAsync() {
         var currentInstance = FolderService.FolderManager.CurrentInst!;
 
         var service = new JavaSelectService(currentInstance);

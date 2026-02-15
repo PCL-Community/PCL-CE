@@ -274,7 +274,9 @@ public class EasyTierEntity
         "tcp://public.easytier.top:11010",
         "tcp://public2.easytier.cn:54321",
         "https://etnode.zkitefly.eu.org/node1",
-        "https://etnode.zkitefly.eu.org/node2"
+        "https://etnode.zkitefly.eu.org/node2",
+        "https://etnode.zkitefly.eu.org/-node1",
+        "https://etnode.zkitefly.eu.org/-node2"
     ];
 
 

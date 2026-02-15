@@ -1,3 +1,5 @@
+**简体中文** | [English](README-EN.md) | [繁體中文](README-ZH_TW.md)
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">

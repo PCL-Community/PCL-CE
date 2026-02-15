@@ -5,6 +5,7 @@ Imports System.Windows.Media.Effects
 Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
+Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
@@ -34,23 +35,16 @@ Public Class FormMain
     Public Sub New()
         ApplicationStartTick = TimeUtils.GetTimeTick()
         '刷新主题
-        ThemeCheckAll(False)
-        Dim dark As Int32 = Setup.Get("UiDarkMode")
-        Select Case dark
-            Case 0
-                IsDarkMode = False
-            Case 1
-                IsDarkMode = True
-            Case 2
-                IsDarkMode = SystemTheme.IsSystemInDarkMode()
-        End Select
-        ThemeRefreshColor()
+        'ThemeCheckAll(False)
+        'ThemeRefreshColor()
+        AddHandler ThemeService.ColorModeChanged, Sub(mode, theme) ThemeRefresh()
+        AddHandler ThemeService.ColorThemeChanged, AddressOf ThemeRefresh
         '窗体参数初始化
         FrmMain = Me
         FrmLaunchLeft = New PageLaunchLeft
         FrmLaunchRight = New PageLaunchRight
         '版本号改变
-        Dim LastVersion As Integer = Setup.Get("SystemLastVersionReg")
+        Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
             '触发升级
             UpgradeSub(LastVersion)
@@ -90,14 +84,19 @@ Public Class FormMain
             Height = MinHeight + 100
             Width = MinWidth + 100
         End Try
-        ''开启管理员权限下的文件拖拽，但下列代码也没用（#2531）
-        'If IsAdmin() Then
-        '    Log("[Start] PCL 正以管理员权限运行")
-        '    ChangeWindowMessageFilter(&H233, 1)
-        '    ChangeWindowMessageFilter(&H4A, 1)
-        '    ChangeWindowMessageFilter(&H49, 1)
-        'End If
-        '切换到首页
+        '管理员权限下文件拖拽
+        If ProcessInterop.IsAdmin() Then 
+            Log("[Start] PCL 当前正以管理员权限运行")
+            Static helper As New DragHelper()
+            AddHandler Me.SourceInitialized,
+                Sub()
+                    Dim windowInterop As New WindowInteropHelper(Me)
+                    helper.HwndSource = HwndSource.FromHwnd(windowInterop.Handle)
+                    helper.AddHook()
+                End Sub
+            AddHandler Me.Closing,Sub() helper.RemoveHook()
+            AddHandler Helper.DragDrop, Sub() FileDrag(helper.DropFilePaths)
+        End If
         If Not IsNothing(FrmLaunchLeft.Parent) Then FrmLaunchLeft.SetValue(ContentPresenter.ContentProperty, Nothing)
         If Not IsNothing(FrmLaunchRight.Parent) Then FrmLaunchRight.SetValue(ContentPresenter.ContentProperty, Nothing)
         PanMainLeft.Child = FrmLaunchLeft
@@ -125,6 +124,7 @@ Public Class FormMain
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
         Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
+        PageSetupUI.HiddenRefresh()
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
         '扩展按钮
@@ -964,8 +964,7 @@ Public Class FormMain
             If Marshal.PtrToStringAuto(lParam) = "ImmersiveColorSet" Then
                 Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}")
                 If Setup.Get("UiDarkMode") = 2 And IsDarkMode <> SystemTheme.IsSystemInDarkMode() Then
-                    IsDarkMode = SystemTheme.IsSystemInDarkMode()
-                    ThemeRefresh()
+                    ThemeService.RefreshColorMode()
                 End If
             End If
         End If
@@ -1086,10 +1085,6 @@ Public Class FormMain
         ''' </summary>
         GameLog = 10
         ''' <summary>
-        ''' Java 管理，这是一个副页面。
-        ''' </summary>
-        SetupJava = 11
-        ''' <summary>
         ''' 存档详细管理，这是一个副页面。
         ''' </summary>
         VersionSaves = 12
@@ -1124,13 +1119,15 @@ Public Class FormMain
 
         SetupLaunch = 0
         SetupUI = 1
-        SetupSystem = 2
+        SetupGameManage = 2
         SetupLink = 3
         SetupAbout = 4
         SetupLog = 5
         SetupFeedback = 6
         SetupGameLink = 7
         SetupUpdate = 8
+        SetupJava = 9
+        SetupLauncherMisc = 10
 
         ToolsGameLink = 1
         ToolsLauncherHelp = 2
@@ -1168,8 +1165,6 @@ Public Class FormMain
                 Return "资源下载 - " & CType(Stack.Additional(0), CompProject).TranslatedName
             Case PageType.HelpDetail
                 Return CType(Stack.Additional(0), HelpEntry).Title
-            Case PageType.SetupJava
-                Return "Java 管理"
             Case PageType.VersionSaves
                 Return $"存档管理 - {GetFolderNameFromPath(Stack.Additional)}"
             Case PageType.HomePageMarket
@@ -1394,9 +1389,6 @@ Public Class FormMain
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
-                Case PageType.SetupJava 'Java 设置
-                    FrmSetupJava = If(FrmSetupJava, New PageSetupJava)
-                    PageChangeAnim(New MyPageLeft, FrmSetupJava)
                 Case PageType.GameLog '实时日志
                     If FrmLogLeft Is Nothing Then FrmLogLeft = New PageLogLeft
                     If FrmLogLeft Is Nothing Then FrmLogRight = New PageLogRight

@@ -1,4 +1,9 @@
 ﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.App
+Imports System.Text.Json
+Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Minecraft.Java.UserPreference
+Imports PCL.Core.IO
 
 Public Module ModJava
     Public JavaListCacheVersion As Integer = 7
@@ -24,55 +29,148 @@ Public Module ModJava
     Public Function JavaSelect(CancelException As String,
                                Optional MinVersion As Version = Nothing,
                                Optional MaxVersion As Version = Nothing,
-                               Optional RelatedVersion As McInstance = Nothing) As JavaInfo
-        Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedVersion IsNot Nothing, RelatedVersion.Name, "未指定")}")
-        Dim IsVersionSuit = Function(ver As Version)
-                                Return ver >= MinVersion AndAlso ver <= MaxVersion
-                            End Function
-        If RelatedVersion IsNot Nothing Then '考虑选择的实例指定的 Java
-            Dim userVersionJava = GetVersionUserSetJava(RelatedVersion)
-            If userVersionJava IsNot Nothing Then
-                If Not IsVersionSuit(userVersionJava.Version) Then
-                    Hint("当前实例所指定的 Java 可能不合适，容易导致游戏崩溃")
+                               Optional RelatedInstance As McInstance = Nothing) As JavaEntry
+        Log($"[Java] 要求选择合适 Java，要求最低版本 {If(MinVersion IsNot Nothing, MinVersion.ToString(), "未指定")}，要求选择的最高版本 {If(MaxVersion IsNot Nothing, MaxVersion.ToString(), "未指定")}，关联实例 {If(RelatedInstance IsNot Nothing, RelatedInstance.Name, "未指定")}")
+
+        ' 版本范围验证函数（安全处理 null 边界）
+        Dim IsVersionSuitable = Function(ver As Version) As Boolean
+                                    Return (MinVersion Is Nothing OrElse ver >= MinVersion) AndAlso
+                                   (MaxVersion Is Nothing OrElse ver <= MaxVersion)
+                                End Function
+
+        ' ===== 优先级 1：实例专属 Java 偏好 =====
+        If RelatedInstance IsNot Nothing AndAlso RelatedInstance.PathInstance IsNot Nothing Then
+            Dim rawPreference = Config.Instance.SelectedJava(RelatedInstance.PathInstance)
+
+            If Not String.IsNullOrWhiteSpace(rawPreference) Then
+                Dim preference As JavaPreference = GetInstanceJavaPreference(RelatedInstance)
+
+                ' 处理解析成功的偏好
+                If preference IsNot Nothing Then
+                    Select Case True
+                        Case TypeOf preference Is ExistingJava ' "exist"
+                            Dim existPref = DirectCast(preference, ExistingJava)
+                            Dim candidate = Javas.AddOrGet(existPref.JavaExePath)
+
+                            If candidate IsNot Nothing AndAlso candidate.IsEnabled Then
+                                If Not IsVersionSuitable(candidate.Installation.Version) Then
+                                    Hint($"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{If(MinVersion?.ToString(), "无下限")}, {If(MaxVersion?.ToString(), "无上限")}]，可能导致游戏崩溃")
+                                End If
+                                Log($"[Java] 返回实例 '{RelatedInstance.Name}' 指定的 Java: {candidate}")
+                                Return candidate
+                            Else
+                                Log($"[Java] 警告：实例指定的 Java 路径无效或不可用: {existPref.JavaExePath}")
+                            End If
+
+                        Case TypeOf preference Is UseRelativePath ' "relative"
+                            Dim relPref = DirectCast(preference, UseRelativePath)
+                            Dim absPath = IO.Path.GetFullPath(IO.Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath))
+
+                            If Files.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory) Then
+                                Dim candidate = Javas.Get(absPath)
+                                If candidate IsNot Nothing AndAlso candidate.IsEnabled Then
+                                    If Not IsVersionSuitable(candidate.Installation.Version) Then
+                                        Hint($"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃", HintType.Critical)
+                                    End If
+                                    Log($"[Java] 返回实例 '{RelatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}")
+                                    Return candidate
+                                End If
+                            Else
+                                Log($"[Java] 警告：实例相对路径指定的 Java 无效: {absPath}")
+                            End If
+
+                        Case TypeOf preference Is UseGlobalPreference ' "global"
+                            Log($"[Java] 实例 '{RelatedInstance.Name}' 配置为使用全局 Java 设置，继续检查全局配置")
+                            ' 不返回，继续到全局设置检查
+
+                        Case Else
+                            Log($"[Java] 警告：未知的 Java 偏好类型 '{preference}'，跳过处理")
+                    End Select
+                Else
+                    Log($"[Java] 实例 '{RelatedInstance.Name}' 未指定 Java 偏好（空值），使用自动选择策略")
                 End If
-                Log($"[Java] 返回实例 {RelatedVersion.Name} 指定的 Java {userVersionJava.ToString()}")
-                Return userVersionJava
+            Else
+                Log($"[Java] 实例 '{RelatedInstance.Name}' 无 Java 偏好配置，使用自动选择策略")
             End If
         End If
-        '考虑用户全局指定的 Java
-        Dim userGlobalJava As String = Setup.Get("LaunchArgumentJavaSelect")
-        Dim userGlobalJavaSet = JavaInfo.Parse(userGlobalJava)
-        If userGlobalJavaSet IsNot Nothing Then
-            Log($"[Java] 返回全局指定的 Java {userGlobalJavaSet}")
-            Return userGlobalJavaSet
+
+        ' ===== 优先级 2：全局指定的 Java =====
+        Dim globalJavaPath = Config.Launch.SelectedJava
+        If Not String.IsNullOrWhiteSpace(globalJavaPath) Then
+            globalJavaPath = globalJavaPath.Trim()
+            Dim candidate = Javas.AddOrGet(globalJavaPath)
+
+            If candidate IsNot Nothing AndAlso candidate.IsEnabled Then
+                If Not IsVersionSuitable(candidate.Installation.Version) Then
+                    Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃")
+                End If
+                Log($"[Java] 返回全局指定的 Java: {candidate}")
+                Return candidate
+            Else
+                Log($"[Java] 警告：全局指定的 Java 路径无效或不可用: {globalJavaPath}")
+            End If
+        Else
+            Log("[Java] 无全局 Java 配置，使用自动选择策略")
         End If
-        '寻找合适 Java
-        Javas.CheckJavaAvailability()
+
+        ' ===== 优先级 3：自动搜索合适版本 =====
+        Log("[Java] 开始自动搜索符合版本要求的 Java 运行时")
+        Javas.CheckAllAvailability()
+
         Dim reqMin = If(MinVersion, New Version(1, 0, 0))
         Dim reqMax = If(MaxVersion, New Version(999, 999, 999))
-        Dim ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
-        If ret Is Nothing Then
-            Log("[Java] 没有找到合适的 Java 开始尝试重新搜索后选择")
+
+        Dim candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult()
+        Dim ret = candidates.FirstOrDefault()
+
+        If ret Is Nothing AndAlso candidates.Count = 0 Then
+            Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描")
             Javas.ScanJavaAsync().GetAwaiter().GetResult()
-            ret = Javas.SelectSuitableJava(reqMin, reqMax).GetAwaiter().GetResult().FirstOrDefault()
+            candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult()
+            ret = candidates.FirstOrDefault()
         End If
-        Log($"[Java] 返回自动选择的 Java {If(ret IsNot Nothing, ret.ToString(), "无结果")}")
+
+        If ret IsNot Nothing Then
+            Log($"[Java] 返回自动选择的 Java: {ret}")
+        Else
+            Log("[Java] 最终未能确定可用的 Java 运行时")
+        End If
+
         Return ret
     End Function
 
-    ''' <summary>
-    ''' 获取指定游戏实例所要求的版本
-    ''' </summary>
-    ''' <param name="Mc">实例</param>
-    ''' <returns>如果有设置为 Java 实例，否则为 null</returns>
-    Public Function GetVersionUserSetJava(Mc As McInstance) As JavaInfo
-        If Mc Is Nothing Then Return Nothing
-        Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=Mc)
-        If UserSetupVersion = "使用全局设置" Then
-            Return Nothing
-        Else
-            Return JavaInfo.Parse(UserSetupVersion)
-        End If
+    Public Function GetInstanceJavaPreference(instance As McInstance) As JavaPreference
+        Dim rawPreference = Config.Instance.SelectedJava(instance.PathInstance)
+
+        Dim preference As JavaPreference = Nothing
+
+        Try
+            preference = JsonSerializer.Deserialize(Of JavaPreference)(rawPreference.Trim())
+        Catch ex As JsonException
+            Dim trimmed = rawPreference.Trim()
+            If trimmed = "使用全局设置" Then '全局设置
+                preference = New UseGlobalPreference()
+            ElseIf trimmed.IsNullOrEmpty() Then
+                preference = New AutoSelect()
+            Else
+                preference = New ExistingJava(trimmed)
+            End If
+        End Try
+
+        Select Case True
+            Case TypeOf preference Is ExistingJava
+                Dim m = DirectCast(preference, ExistingJava)
+                If Not IO.Path.IsPathRooted(m.JavaExePath) Then
+                    preference = New UseGlobalPreference()
+                End If
+            Case TypeOf preference Is UseRelativePath
+                Dim m = DirectCast(preference, UseRelativePath)
+                If Not Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory) Then
+                    preference = New UseGlobalPreference()
+                End If
+        End Select
+
+        Return preference
     End Function
 
     ''' <summary>
@@ -88,25 +186,32 @@ Public Module ModJava
                 Setup.Set("LaunchArgumentJavaSelect", UserSetup)
             End If
             If RelatedVersion IsNot Nothing Then
-                Dim UserSetupVersion As String = Setup.Get("VersionArgumentJavaSelect", instance:=RelatedVersion)
-                If UserSetupVersion <> "使用全局设置" Then
-                    If File.Exists(UserSetupVersion) Then
-                        Dim k = JavaInfo.Parse(UserSetupVersion)
-                        Return k IsNot Nothing AndAlso k.Is64Bit
-                    Else
-                        Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)
-                    End If
-                End If
+                Dim instancePreference = GetInstanceJavaPreference(RelatedVersion)
+                Select Case True
+                    Case TypeOf instancePreference Is AutoSelect
+                        Return Javas.Existing64BitJava()
+                    Case TypeOf instancePreference Is ExistingJava
+                        Dim m = DirectCast(instancePreference, ExistingJava)
+                        Dim java = Javas.AddOrGet(m.JavaExePath)
+                        Return java IsNot Nothing AndAlso java.Installation.Is64Bit
+                    Case TypeOf instancePreference Is UseRelativePath
+                        Dim m = DirectCast(instancePreference, UseRelativePath)
+                        Dim javaExePath = IO.Path.GetFullPath(m.RelativePath)
+                        If Files.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory) Then
+                            Dim java = Javas.Get(javaExePath)
+                            Return java IsNot Nothing AndAlso java.Installation.Is64Bit
+                        End If
+                End Select
             End If
             If Not String.IsNullOrEmpty(UserSetup) AndAlso Not File.Exists(UserSetup) Then
                 Setup.Set("LaunchArgumentJavaSelect", "")
                 UserSetup = String.Empty
             End If
             If String.IsNullOrEmpty(UserSetup) Then
-                Return Javas.JavaList.Any(Function(x) x.Is64Bit)
+                Return Javas.Existing64BitJava()
             End If
-            Dim j = JavaInfo.Parse(UserSetup)
-            Return j IsNot Nothing AndAlso j.Is64Bit
+            Dim j = Javas.AddOrGet(UserSetup)
+            Return j IsNot Nothing AndAlso j.Installation.Is64Bit
         Catch ex As Exception
             Log(ex, "检查 Java 类别时出错", LogLevel.Feedback)
             If RelatedVersion IsNot Nothing Then Setup.Reset("VersionArgumentJavaSelect", instance:=RelatedVersion)

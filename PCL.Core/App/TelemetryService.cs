@@ -4,22 +4,21 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using PCL.Core.Net;
+using PCL.Core.Net.Dns;
 using PCL.Core.Net.Http.Client;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 
 namespace PCL.Core.App;
 
+[LifecycleScope("Telemetry", "遥测")]
 [LifecycleService(LifecycleState.Running)]
-public class TelemetryService : GeneralService
+public sealed partial class TelemetryService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private TelemetryService() : base("Telemetry", "遥测") { _context = Lifecycle.GetContext(this); }
 
     // ReSharper disable UnusedAutoPropertyAccessor.Local
 
@@ -36,22 +35,37 @@ public class TelemetryService : GeneralService
         [JsonPropertyName("UsedHMCL")] public required bool UsedHmcl { get; set; }
         [JsonPropertyName("UsedBakaXL")] public required bool UsedBakaXl { get; set; }
         public required ulong Memory { get; set; }
-        public required string NatMapBehaviour { get; set; }
-        public required string NatFilterBehaviour { get; set; }
+        public required string? NatMapBehaviour { get; set; }
+        public required string? NatFilterBehaviour { get; set; }
         [JsonPropertyName("IPv6Status")] public required string Ipv6Status { get; set; }
     }
 
-    // ReSharper restore UnusedAutoPropertyAccessor.Local
+    private const string STUN_SERVER_ADDR = "stun.miwifi.com";
 
-    public override void Start()
+    // ReSharper restore UnusedAutoPropertyAccessor.Local
+    [LifecycleStart]
+    private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
         var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");
         if (string.IsNullOrWhiteSpace(telemetryKey)) return;
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var natTest = new StunClient5389UDP(new IPEndPoint(Dns.GetHostAddresses("stun.miwifi.com").First(), 3478),
-            new IPEndPoint(IPAddress.Any, 0));
-        natTest.QueryAsync().GetAwaiter().GetResult();
+
+        // stun test
+        StunClient5389UDP? natTest = default;
+        var miWifiIps = await DnsQuery.Instance.QueryForIpAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
+        try
+        {
+            miWifiIps ??= await Dns.GetHostAddressesAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
+        } catch(Exception) { /* Ignore dns error */ }
+        
+        if (miWifiIps != null && miWifiIps.Length != 0)
+        {
+            natTest = new StunClient5389UDP(new IPEndPoint(miWifiIps.First(), 3478),
+                new IPEndPoint(IPAddress.Any, 0));
+            await natTest.QueryAsync().ConfigureAwait(false);
+        }
+
         var telemetry = new TelemetryDeviceEnvironment
         {
             Tag = "Telemetry",
@@ -73,14 +87,14 @@ public class TelemetryService : GeneralService
             UsedHmcl = Directory.Exists(Path.Combine(appDataFolder, ".hmcl")),
             UsedBakaXl = Directory.Exists(Path.Combine(appDataFolder, "BakaXL")),
             Memory = KernelInterop.GetPhysicalMemoryBytes().Total,
-            NatMapBehaviour = natTest.State.MappingBehavior.ToString(),
-            NatFilterBehaviour = natTest.State.FilteringBehavior.ToString(),
+            NatMapBehaviour = natTest?.State.MappingBehavior.ToString(),
+            NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = HttpRequestBuilder
+        using var response = await HttpRequestBuilder
             .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
             .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
-            .SendAsync().Result;
+            .SendAsync().ConfigureAwait(false);
         if (response.IsSuccess)
             Context.Info("已发送设备环境调查数据");
         else

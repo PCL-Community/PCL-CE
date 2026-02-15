@@ -74,9 +74,14 @@ public static class Basics
     public static string ExecutableNameWithoutExtension { get; } = Path.GetFileNameWithoutExtension(ExecutablePath);
 
     /// <summary>
+    /// 当前进程包括第一个参数（文件名）的完整命令行参数。
+    /// </summary>
+    public static string[] FullCommandLineArguments { get; } = Environment.GetCommandLineArgs();
+
+    /// <summary>
     /// 当前进程不包括第一个参数（文件名）的命令行参数。
     /// </summary>
-    public static string[] CommandLineArguments { get; } = Environment.GetCommandLineArgs().Skip(1).ToArray();
+    public static string[] CommandLineArguments { get; } = FullCommandLineArguments[1..];
 
     /// <summary>
     /// 实时获取的当前目录。若要在可执行文件目录中存放文件等内容，请使用更准确的 <see cref="ExecutableDirectory"/> 而不是这个目录。
@@ -102,7 +107,8 @@ public static class Basics
             try { action(); }
             catch (ThreadInterruptedException) { LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止"); }
             catch (Exception ex) { LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常"); }
-        }) { Priority = priority };
+        })
+        { Priority = priority };
         threadName.Value ??= $"Worker#{thread.ManagedThreadId}";
         thread.Name = threadName.Value;
         thread.Start();
@@ -159,7 +165,8 @@ public static class Basics
     /// </summary>
     /// <param name="path">资源路径，例如 "Resources/java-wrapper.jar"</param>
     /// <returns>资源输入流，若资源不存在则为 <c>null</c></returns>
-    public static Stream? GetResourceStream(string path) {
+    public static Stream? GetResourceStream(string path)
+    {
         var resourceInfo = Application.GetResourceStream(new Uri($"pack://application:,,,/{path}", UriKind.Absolute));
         return resourceInfo?.Stream;
     }

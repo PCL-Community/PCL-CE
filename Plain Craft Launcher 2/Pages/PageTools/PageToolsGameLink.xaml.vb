@@ -20,7 +20,6 @@ Public Class PageToolsGameLink
         AddHandler InitLoader.OnStateChangedUi, AddressOf OnLoadStateChanged
 
         AddHandler LobbyService.OnNeedDownloadEasyTier, AddressOf DownloadEasyTier
-        AddHandler LobbyService.OnHint, AddressOf ShowHintFromService
         AddHandler LobbyService.DiscoveredWorlds.CollectionChanged, AddressOf OnDiscoveredWorldsChanged
         AddHandler LobbyService.Players.CollectionChanged, AddressOf OnPlayersChanged
         AddHandler LobbyService.OnUserStopGame, AddressOf OnUserStopGame
@@ -215,18 +214,6 @@ Public Class PageToolsGameLink
                 End Sub)
     End Sub
 
-    Private Shared Sub ShowHintFromService(msg As String, type As CoreHintType)
-        RunInUi(Sub()
-                    Select Case type
-                        Case CoreHintType.Info
-                            Hint(msg, HintType.Info)
-                        Case CoreHintType.Finish
-                            Hint(msg, HintType.Finish)
-                        Case CoreHintType.Critical
-                            Hint(msg, HintType.Critical)
-                    End Select
-                End Sub)
-    End Sub
 #End Region
 
 

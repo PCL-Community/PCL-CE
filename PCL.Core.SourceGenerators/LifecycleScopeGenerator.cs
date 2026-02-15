@@ -17,50 +17,45 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
     private const string StartMethodAttributeType = "PCL.Core.App.LifecycleStartAttribute";
     private const string StopMethodAttributeType = "PCL.Core.App.LifecycleStopAttribute";
     private const string ArgumentHandlerMethodAttributeType = "PCL.Core.App.LifecycleArgumentHandlerAttribute";
+    private const string DependencyInjectionMethodAttributeType = "PCL.Core.App.LifecycleDependencyInjectionAttribute";
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
-        ArgumentHandlerMethodAttributeType
+        ArgumentHandlerMethodAttributeType, DependencyInjectionMethodAttributeType
     ];
 
-    private class ScopeMethodModel
+    private record ScopeMethodModel
     {
-        public string MethodName { get; set; } = null!;
-        public bool Awaitable { get; set; }
+        public string MethodName { get; init; } = null!;
+        public bool Awaitable { get; init; }
     }
 
-    private class StartMethodModel : ScopeMethodModel;
+    private record StartMethodModel : ScopeMethodModel;
 
-    private class StopMethodModel : ScopeMethodModel;
+    private record StopMethodModel : ScopeMethodModel;
 
-    private class ArgumentHandlerMethodModel : ScopeMethodModel
-    {
-        public string ArgumentName { get; set; } = null!;
-        public string ArgumentQualifiedTypeName { get; set; } = null!;
-        public string ArgumentDefaultValue { get; set; } = null!;
-    }
+    private record ArgumentHandlerMethodModel(
+        string ArgumentName,
+        string ArgumentQualifiedTypeName,
+        string ArgumentDefaultValue
+    ) : ScopeMethodModel;
+
+    private record DependencyInjectionMethodModel(
+        string Identifier,
+        int Targets,
+        string ParameterType
+    ) : ScopeMethodModel;
 
     private class ScopeModel
     {
-        public string Namespace { get; set; } = null!;
-        public string TypeName { get; set; } = null!;
+        public string Namespace { get; init; } = null!;
+        public string TypeName { get; init; } = null!;
         public string QualifiedTypeName => $"{Namespace}.{TypeName}";
-        public string Identifier { get; set; } = null!;
-        public string Name { get; set; } = null!;
-        public bool SupportAsync { get; set; }
+        public string Identifier { get; init; } = null!;
+        public string Name { get; init; } = null!;
+        public bool SupportAsync { get; init; }
         public List<ScopeMethodModel> Methods { get; } = [];
     }
-
-    private static readonly SymbolDisplayFormat _QualifiedTypeNameFormat = new(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-            SymbolDisplayMiscellaneousOptions.CollapseTupleTypes |
-            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-            SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-        genericsOptions: SymbolDisplayGenericsOptions.None
-    );
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -103,33 +98,45 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 var attrTypeName = string.Empty;
                 var attr = method.GetAttributes().FirstOrDefault(data =>
                 {
-                    attrTypeName = data.AttributeClass?.ToDisplayString(_QualifiedTypeNameFormat);
+                    attrTypeName = data.AttributeClass?.GetSimplifiedTypeName();
                     return attrTypeName != null && _MethodAttributeTypes.Contains(attrTypeName);
                 });
                 if (attr == null) continue;
                 var methodName = method.Name;
-                var awaitable = method.ReturnType.ToDisplayString(_QualifiedTypeNameFormat) == "System.Threading.Tasks.Task";
-                model.Methods.Add(attrTypeName switch
+                var awaitable = method.ReturnType.GetSimplifiedTypeName() == "System.Threading.Tasks.Task";
+                ScopeMethodModel? methodModel = attrTypeName switch
                 {
                     StartMethodAttributeType => new StartMethodModel { MethodName = methodName, Awaitable = awaitable },
                     StopMethodAttributeType => new StopMethodModel { MethodName = methodName, Awaitable = awaitable },
                     ArgumentHandlerMethodAttributeType => GetArgumentHandlerMethodModel(),
-                    _ => throw new ArgumentOutOfRangeException()
-                });
+                    DependencyInjectionMethodAttributeType => GetDependencyInjectionMethodModel(),
+                    _ => null
+                };
+                if (methodModel != null) model.Methods.Add(methodModel);
                 continue;
                 ArgumentHandlerMethodModel GetArgumentHandlerMethodModel()
                 {
                     var args = attr.ConstructorArguments;
                     var argumentName = args[0].Value!.ToString();
-                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().ToDisplayString(_QualifiedTypeNameFormat);
+                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().GetSimplifiedTypeName();
                     var argumentDefaultValue = args.Length > 1 ? args[1].ToCSharpString() : $"new {argumentTypeName}()";
-                    return new ArgumentHandlerMethodModel
+                    return new ArgumentHandlerMethodModel(argumentName, argumentTypeName, argumentDefaultValue)
                     {
                         MethodName = methodName,
-                        Awaitable = awaitable,
-                        ArgumentName = argumentName,
-                        ArgumentDefaultValue = argumentDefaultValue,
-                        ArgumentQualifiedTypeName = argumentTypeName
+                        Awaitable = awaitable
+                    };
+                }
+                DependencyInjectionMethodModel? GetDependencyInjectionMethodModel()
+                {
+                    var args = attr.ConstructorArguments;
+                    var identifier = args[0].Value!.ToString();
+                    var targets = (int)args[1].Value!;
+                    if (method.Parameters.FirstOrDefault() is not { } param) return null;
+                    var paramType = param.Type.GetFullyQualifiedName();
+                    return new DependencyInjectionMethodModel(identifier, targets, paramType)
+                    {
+                        MethodName = methodName,
+                        Awaitable = awaitable
                     };
                 }
             }
@@ -139,7 +146,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
 
     private static readonly HashSet<Type> _TypesIncludingInStartMethod = [
         typeof(StartMethodModel),
-        typeof(ArgumentHandlerMethodModel)
+        typeof(ArgumentHandlerMethodModel),
+        typeof(DependencyInjectionMethodModel),
     ];
 
     private static string _GenerateScopeSource(ScopeModel model)
@@ -216,7 +224,24 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         {
             // TODO argument handler implementation
         }
+        else if (model is DependencyInjectionMethodModel diModel)
+        {
+            var awaitable = diModel.Awaitable;
+            if (awaitable) yield return "await Task.Run(() => {";
+            var indentStr = awaitable ? "    " : "";
+            if (awaitable) yield return $"{indentStr}System.Func<{diModel.ParameterType}, Task>";
+            else yield return $"{indentStr}System.Action<{diModel.ParameterType}>";
+            yield return $"{indentStr}    action = {diModel.MethodName};";
+            yield return $"{indentStr}var result = IoC.DependencyGroups.InvokeInjection(action, " +
+                         $"{diModel.Identifier.ToLiteral()}, " +
+                         $"(System.AttributeTargets){diModel.Targets});";
+            var logStr = diModel.Identifier + "@" + diModel.Targets;
+            yield return $"{indentStr}if (result) Context.Trace(\"Dependency injection success: {logStr}\");";
+            yield return $"{indentStr}else Context.Warn(\"Dependency injection failed: {logStr}\");";
+            if (awaitable) yield return "});";
+        }
         yield break;
-        string MethodInvoke(params string[] args) => $"{(model.Awaitable ? "await " : "")}{model.MethodName}({string.Join(", ", args)});";
+        string MethodInvoke(params string[] args)
+            => $"{(model.Awaitable ? "await " : "")}{model.MethodName}({string.Join(", ", args)});";
     }
 }

@@ -1,9 +1,10 @@
 Imports System.IO.Compression
+Imports System.Net.Http
 Imports PCL.Core.Minecraft
 Imports PCL.Core.Net
-Imports System.Net.Http
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.UI
+Imports PCL.Core.Utils
 
 Public Module ModDownloadLib
 
@@ -459,7 +460,7 @@ pause"
     End Sub
     Private Sub McDownloadOptiFineInstall(BaseMcFolderHome As String, Target As String, Task As LoaderTask(Of List(Of NetFile), Boolean), UseJavaWrapper As Boolean)
         '选择 Java
-        Dim Java As JavaInfo
+        Dim Java As JavaEntry
         SyncLock JavaLock
             Java = JavaSelect("已取消安装。", New Version(1, 8, 0, 0))
             If Java Is Nothing Then
@@ -487,11 +488,11 @@ pause"
         Else
             Arguments = $"-Duser.home=""{BaseMcFolderHome.TrimEnd("\")}"" -cp ""{Target}"" optifine.Installer"
         End If
-        If Java.JavaMajorVersion >= 9 Then Arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " & Arguments
+        If Java.Installation.MajorVersion >= 9 Then Arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " & Arguments
         '开始启动
         SyncLock InstallSyncLock
             Dim Info = New ProcessStartInfo With {
-                .FileName = Java.JavawExePath,
+                .FileName = Java.Installation.JavaExePath,
                 .Arguments = Arguments,
                 .UseShellExecute = False,
                 .CreateNoWindow = True,
@@ -1140,7 +1141,7 @@ Retry:
 
     Private Sub ForgelikeInjector(Target As String, Task As LoaderTask(Of Boolean, Boolean), McFolder As String, UseJavaWrapper As Boolean, ForgeType As String)
         '选择 Java
-        Dim Java As JavaInfo
+        Dim Java As JavaEntry
         SyncLock JavaLock
             Java = JavaSelect("已取消安装。", New Version(1, 8, 0, 60))
             If Java Is Nothing Then
@@ -1168,11 +1169,11 @@ Retry:
         Else
             Arguments = $"-cp ""{PathTemp}Cache\forge_installer.jar;{Target}"" com.bangbang93.ForgeInstaller ""{McFolder}"
         End If
-        If Java.JavaMajorVersion >= 9 Then Arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " & Arguments
+        If Java.Installation.MajorVersion >= 9 Then Arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " & Arguments
         '开始启动
         SyncLock InstallSyncLock
             Dim Info = New ProcessStartInfo With {
-                .FileName = Java.JavawExePath,
+                .FileName = Java.Installation.JavaExePath,
                 .Arguments = Arguments,
                 .UseShellExecute = False,
                 .CreateNoWindow = True,
@@ -3141,7 +3142,7 @@ LabyModSkip:
                 End If
             Next
             For Each Library In LabyModJson("libraries")
-                Dim RegexMatchResult = RegexSeek(Library("name").ToString, "(?<=org.lwjgl:)lwjgl(-[a-z._.\-.0-9]*)(?=(:[0-9].[0-9].[0-9](-[a-z.0-9._.\-]*)?:([a-z._.\-.0-9]*)?))")
+                Dim RegexMatchResult = RegexSeek(Library("name").ToString, RegexPatterns.CatchLwjglInLib)
                 If RegexMatchResult Is Nothing OrElse Not IsolatedLibraries.Contains(New KeyValuePair(Of String, Boolean)(RegexMatchResult, True)) Then
                     OutputLibraries.Add(Library)
                 End If

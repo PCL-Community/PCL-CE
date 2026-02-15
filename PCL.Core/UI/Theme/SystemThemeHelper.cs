@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.Logging;
 
-namespace PCL.Core.UI;
+namespace PCL.Core.UI.Theme;
 
-public static class ThemeHelper {
+public static class SystemThemeHelper {
     private const string ThemeRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
     private const string AppsUseLightThemeKey = "AppsUseLightTheme";
 
@@ -32,11 +31,6 @@ public static class ThemeHelper {
         }
     }
 
-    public static bool IsDarkMode() =>
-        Config.Preference.Theme.ColorMode switch {
-            ColorMode.Light => false,
-            ColorMode.Dark => true,
-            ColorMode.System => IsSystemInDarkMode(),
-            _ => false
-        };
+    [Obsolete("Use ThemeService.IsDarkMode instead")]
+    public static bool IsDarkMode() => ThemeService.IsDarkMode;
 }

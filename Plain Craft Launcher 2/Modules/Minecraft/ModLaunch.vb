@@ -949,11 +949,13 @@ Retry:
                 ProfileLog("验证登录失败：" & AllMessage)
                 If (AllMessage.Contains("超时") OrElse AllMessage.Contains("imeout")) AndAlso Not AllMessage.Contains("403") Then
                     ProfileLog("已触发超时登录失败")
+                    MyMsgBox("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse, "第三方验证失败", IsWarn:=True)
                     Throw New Exception("$登录失败：连接登录服务器超时。" & vbCrLf & "请检查你的网络状况是否良好，或尝试使用 VPN！" & vbCrLf & vbCrLf & "详细信息：" & ex.InnerHttpException.WebResponse)
                 End If
             Catch ex As Exception
                 Dim AllMessage = ex.ToString()
                 ProfileLog("验证登录失败：" & AllMessage)
+                MyMsgBox("验证登录失败: " & AllMessage, "第三方验证失败", IsWarn:=True)
                 Throw
             End Try
             Data.Progress = 0.25
@@ -965,6 +967,7 @@ Refresh:
                 GoTo LoginFinish
             Catch ex As Exception
                 ProfileLog("刷新登录失败：" & ex.ToString())
+                MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
                 If WasRefreshed Then Throw New Exception("二轮刷新登录失败", ex)
             End Try
             Data.Progress = If(NeedRefresh, 0.85, 0.45)
@@ -984,9 +987,11 @@ Refresh:
                 '忽略
             End Try
             If message Is Nothing Then message = "第三方验证登录失败，请检查你的网络状况是否良好。" & vbCrLf & vbCrLf & "详细信息：" & responseText
+            MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
             Throw New Exception("$" & message)
         Catch ex As Exception
             ProfileLog("验证失败：" & ex.ToString())
+            MyMsgBox("刷新登录失败: " & ex.ToString(), "第三方验证失败", IsWarn:=True)
             Throw New Exception("$第三方验证登录失败" & vbCrLf & vbCrLf & "详细信息：" & ex.ToString())
         End Try
         If NeedRefresh Then
@@ -1192,7 +1197,7 @@ LoginFinish:
 
 #Region "Java 处理"
 
-    Public McLaunchJavaSelected As JavaInfo = Nothing
+    Public McLaunchJavaSelected As JavaEntry = Nothing
     Private Sub McLaunchJava(task As LoaderTask(Of Integer, Integer))
         Dim minVer As New Version(0, 0, 0, 0), maxVer As New Version(999, 999, 999, 999)
 
@@ -1514,11 +1519,11 @@ LoginFinish:
             McLaunchLog("新版 Game 参数获取成功")
         End If
         '编码参数（#4700、#5892、#5909）
-        If McLaunchJavaSelected.JavaMajorVersion > 8 Then
+        If McLaunchJavaSelected.Installation.MajorVersion > 8 Then
             If Not Arguments.Contains("-Dstdout.encoding=") Then Arguments = "-Dstdout.encoding=UTF-8 " & Arguments
             If Not Arguments.Contains("-Dstderr.encoding=") Then Arguments = "-Dstderr.encoding=UTF-8 " & Arguments
         End If
-        If McLaunchJavaSelected.JavaMajorVersion >= 18 Then
+        If McLaunchJavaSelected.Installation.MajorVersion >= 18 Then
             If Not Arguments.Contains("-Dfile.encoding=") Then Arguments = "-Dfile.encoding=COMPAT " & Arguments
         End If
         'MJSB
@@ -1589,14 +1594,14 @@ LoginFinish:
         If Not ArgumentJvm.Contains("-Dlog4j2.formatMsgNoLookups=true") Then ArgumentJvm += " -Dlog4j2.formatMsgNoLookups=true"
         ArgumentJvm = ArgumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", "") '#3511 的清理
         DataList.Insert(0, ArgumentJvm) '可变 JVM 参数
-        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024 * 0.15) & "m")
-        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024) & "m")
+        DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024 * 0.15) & "m")
+        DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024) & "m")
         DataList.Add("""-Djava.library.path=" & GetNativesFolder() & """")
         DataList.Add("-cp ${classpath}") '把支持库添加进启动参数表
 
         'Authlib-Injector
         If McLoginLoader.Output.Type = "Auth" Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
+            If McLaunchJavaSelected.Installation.MajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
                 Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
@@ -1625,7 +1630,7 @@ LoginFinish:
         Else
             Renderer = Setup.Get("LaunchAdvanceRenderer")
         End If
-        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsVersion = "25.3.5"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
         If Renderer <> 0 Then
@@ -1645,7 +1650,7 @@ LoginFinish:
         
         '添加 Java Wrapper 作为主 Jar
         If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceSelected) Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
+            If McLaunchJavaSelected.Installation.MajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
@@ -1695,7 +1700,7 @@ NextInstance:
 
         'Authlib-Injector
         If McLoginLoader.Output.Type = "Auth" Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
+            If McLaunchJavaSelected.Installation.MajorVersion >= 6 Then DataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT") '信任系统根证书（Meloong-Git/#5252）
             Dim Server As String = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "")
             Try
                 Dim Response As String = NetGetCodeByRequestRetry(Server, Encoding.UTF8)
@@ -1710,11 +1715,11 @@ NextInstance:
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
             If McInstanceSelected.ReleaseTime.Year >= 2017 Then
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
-            Else 
+            Else
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() & """")
             End If
         End If
-        
+
         '渲染器
         Dim Renderer = 0
         If Setup.Get("VersionAdvanceRenderer", instance:=McInstanceSelected) <> 0 Then
@@ -1722,7 +1727,7 @@ NextInstance:
         Else
             Renderer = Setup.Get("LaunchAdvanceRenderer")
         End If
-        Dim MesaLoaderWindowsVersion = "25.1.7"
+        Dim MesaLoaderWindowsVersion = "25.3.5"
         Dim MesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & MesaLoaderWindowsVersion & "\Loader.jar"
 
         If Renderer <> 0 Then
@@ -1746,7 +1751,7 @@ NextInstance:
         End If
         '添加 Java Wrapper 作为主 Jar
         If IsUtf8CodePage() AndAlso Not Setup.Get("LaunchAdvanceDisableJLW") AndAlso Not Setup.Get("VersionAdvanceDisableJLW", McInstanceSelected) Then
-            If McLaunchJavaSelected.JavaMajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
+            If McLaunchJavaSelected.Installation.MajorVersion >= 9 Then DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED")
             DataList.Add("-Doolloo.jlw.tmpdir=""" & PathPure.TrimEnd("\") & """")
             DataList.Add("-jar """ & ExtractJavaWrapper() & """")
         End If
@@ -1832,16 +1837,16 @@ NextInstance:
             For Each SubJson As JToken In currentInstance.JsonObject("arguments")("game")
                 If SubJson.Type = JTokenType.String Then
                     '字符串类型
-                    DataList.Add(SubJson.ToString)
+                    dataList.Add(SubJson.ToString)
                 Else
                     '非字符串类型
                     If McJsonRuleCheck(SubJson("rules")) Then
                         '满足准则
                         If SubJson("value").Type = JTokenType.String Then
-                            DataList.Add(SubJson("value").ToString)
+                            dataList.Add(SubJson("value").ToString)
                         Else
                             For Each value As JToken In SubJson("value")
-                                DataList.Add(value.ToString)
+                                dataList.Add(value.ToString)
                             Next
                         End If
                     End If
@@ -1856,15 +1861,15 @@ NextInstance:
         '将 "-XXX" 与后面 "XXX" 合并到一起
         '如果不进行合并 Impact 会启动无效，它有两个 --tweakclass
         Dim DeDuplicateDataList As New List(Of String)
-        For i = 0 To DataList.Count - 1
-            Dim CurrentEntry As String = DataList(i)
-            If DataList(i).StartsWithF("-") Then
-                Do While i < DataList.Count - 1
-                    If DataList(i + 1).StartsWithF("-") Then
+        For i = 0 To dataList.Count - 1
+            Dim CurrentEntry As String = dataList(i)
+            If dataList(i).StartsWithF("-") Then
+                Do While i < dataList.Count - 1
+                    If dataList(i + 1).StartsWithF("-") Then
                         Exit Do
                     Else
                         i += 1
-                        CurrentEntry += " " + DataList(i)
+                        CurrentEntry += " " + dataList(i)
                     End If
                 Loop
             End If
@@ -1930,10 +1935,10 @@ NextInstance:
                 GameSize = New Size(854, 480)
         End Select
         If McInstanceSelected.Info.Drop <= 120 AndAlso
-            McLaunchJavaSelected.JavaMajorVersion <= 8 AndAlso McLaunchJavaSelected.Version.Revision >= 200 AndAlso McLaunchJavaSelected.Version.Revision <= 321 AndAlso
+            McLaunchJavaSelected.Installation.MajorVersion <= 8 AndAlso McLaunchJavaSelected.Installation.Version.Revision >= 200 AndAlso McLaunchJavaSelected.Installation.Version.Revision <= 321 AndAlso
             Not McInstanceSelected.Info.HasOptiFine AndAlso Not McInstanceSelected.Info.HasForge Then
             '修复 #3463：1.12.2-，JRE 8u200~321 下窗口大小为设置大小的 DPI% 倍
-            McLaunchLog($"已应用窗口大小过大修复（{McLaunchJavaSelected.Version.Revision}）")
+            McLaunchLog($"已应用窗口大小过大修复（{McLaunchJavaSelected.Installation.Version.Revision}）")
             GameSize.Width /= DPI / 96
             GameSize.Height /= DPI / 96
         End If
@@ -2066,15 +2071,16 @@ NextInstance:
     Private Sub McLaunchPrerun()
 
         '要求 Java 使用高性能显卡
+        Dim javaExePath = If(McLaunchJavaSelected.Installation.JavawExePath, McLaunchJavaSelected.Installation.JavaExePath)
         Try
-            SetGPUPreference(McLaunchJavaSelected.JavawExePath, Config.Launch.SetGpuPreference)
+            SetGPUPreference(javaExePath, Config.Launch.SetGpuPreference)
         Catch ex As Exception
             If ProcessInterop.IsAdmin() OrElse Not Config.Launch.SetGpuPreference Then
                 Log(ex, "直接调整显卡设置失败")
             Else
                 Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试")
                 Try
-                    If ProcessInterop.StartAsAdmin($"--gpu ""{McLaunchJavaSelected.JavawExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
+                    If ProcessInterop.StartAsAdmin($"--gpu ""{javaExePath}""").ExitCode = ProcessReturnValues.TaskDone Then
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功")
                     Else
                         Throw New Exception("调整过程中出现异常")
@@ -2232,18 +2238,18 @@ NextInstance:
         '输出 bat
         Try
             Dim CmdString As String =
-                $"{If(McLaunchJavaSelected.JavaMajorVersion > 8, "chcp 65001>nul" & vbCrLf, "")}" &
+                $"{If(McLaunchJavaSelected.Installation.MajorVersion > 8, "chcp 65001>nul" & vbCrLf, "")}" &
                 "@echo off" & vbCrLf &
                 $"title 启动 - {McInstanceSelected.Name}" & vbCrLf &
                 "echo 游戏正在启动，请稍候。" & vbCrLf &
                 $"cd /D ""{ShortenPath(McInstanceSelected.PathIndie)}""" & vbCrLf &
                 CustomCommandGlobal & vbCrLf &
                 CustomCommandVersion & vbCrLf &
-                $"""{McLaunchJavaSelected.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
+                $"""{McLaunchJavaSelected.Installation.JavaExePath}"" {McLaunchArgument}" & vbCrLf &
                 "echo 游戏已退出。" & vbCrLf &
                 "pause"
             WriteFile(If(CurrentLaunchOptions.SaveBatch, ExePath & "PCL\LatestLaunch.bat"), FilterAccessToken(CmdString, "F"),
-                      Encoding:=If(McLaunchJavaSelected.JavaMajorVersion > 8, Encoding.UTF8, Encoding.Default))
+                      Encoding:=If(McLaunchJavaSelected.Installation.MajorVersion > 8, Encoding.UTF8, Encoding.Default))
             If CurrentLaunchOptions.SaveBatch IsNot Nothing Then
                 McLaunchLog("导出启动脚本完成，强制结束启动过程")
                 AbortHint = "导出启动脚本成功！"
@@ -2308,15 +2314,15 @@ NextInstance:
 
     End Sub
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
-        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw")
+        Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
         '启动信息
         Dim GameProcess = New Process()
-        Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.JavaExePath, McLaunchJavaSelected.JavawExePath))
+        Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.Installation.JavaExePath, McLaunchJavaSelected.Installation.JavawExePath))
 
         '设置环境变量
         Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"))
-        Paths.Add(ShortenPath(McLaunchJavaSelected.JavaFolder))
+        Paths.Add(ShortenPath(McLaunchJavaSelected.Installation.JavaFolder))
         StartInfo.EnvironmentVariables("Path") = Join(Paths.Distinct.ToList, ";")
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
 
@@ -2331,7 +2337,7 @@ NextInstance:
 
         '开始进程
         GameProcess.Start()
-        McLaunchLog("已启动游戏进程：" & McLaunchJavaSelected.JavawExePath)
+        McLaunchLog("已启动游戏进程：" & StartInfo.FileName)
         If Loader.IsAborted Then
             McLaunchLog("由于取消启动，已强制结束游戏进程") '#1631
             GameProcess.Kill()
@@ -2363,7 +2369,7 @@ NextInstance:
         McLaunchLog($"游戏版本：{McInstanceSelected.Info.VanillaName}（{McInstanceSelected.Info.Vanilla}，Drop {McInstanceSelected.Info.Drop}{If(McInstanceSelected.Info.Reliable, "", "，无法完全确定")}）")
         McLaunchLog("资源版本：" & McAssetsGetIndexName(McInstanceSelected))
         McLaunchLog("实例继承：" & If(McInstanceSelected.InheritInstanceName = "", "无", McInstanceSelected.InheritInstanceName))
-        McLaunchLog("分配的内存：" & PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) & " GB（" & Math.Round(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Is64Bit) * 1024) & " MB）")
+        McLaunchLog("分配的内存：" & PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) & " GB（" & Math.Round(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024) & " MB）")
         McLaunchLog("MC 文件夹：" & McFolderSelected)
         McLaunchLog("实例文件夹：" & McInstanceSelected.PathInstance)
         McLaunchLog("版本隔离：" & (McInstanceSelected.PathIndie = McInstanceSelected.PathInstance))
@@ -2386,7 +2392,7 @@ NextInstance:
         WindowTitle = ArgumentReplace(WindowTitle, False)
 
         'JStack 路径
-        Dim JStackPath As String = McLaunchJavaSelected.JavaFolder & "\jstack.exe"
+        Dim JStackPath As String = McLaunchJavaSelected.Installation.JavaFolder & "\jstack.exe"
 
         '初始化等待
         Dim Watcher As New Watcher(Loader, McInstanceSelected, WindowTitle, If(File.Exists(JStackPath), JStackPath, ""), CurrentLaunchOptions.IsTest)
@@ -2478,7 +2484,7 @@ NextInstance:
             text = text.Replace("{time}", replacer(Date.Now.ToString("HH':'mm':'ss")))
         End If
         'Minecraft
-        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.JavaFolder))
+        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.Installation.JavaFolder))
         text = text.Replace("{minecraft}", replacer(McFolderSelected))
         If McInstanceSelected?.IsLoaded Then
             text = text.Replace("{version_path}", replacer(McInstanceSelected.PathInstance)) : text = text.Replace("{verpath}", replacer(McInstanceSelected.PathInstance))

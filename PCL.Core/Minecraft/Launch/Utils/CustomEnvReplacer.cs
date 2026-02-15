@@ -8,9 +8,9 @@ namespace PCL.Core.Minecraft.Launch.Utils;
 /// <summary>
 /// 提供环境变量和参数替换功能，处理 PCL 约定的替换标记
 /// </summary>
-public class CustomEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
+public class CustomEnvReplacer(IMcInstance instance, JavaEntry selectedJava) {
     private readonly IMcInstance _instance = instance ?? throw new ArgumentNullException(nameof(instance));
-    private readonly JavaInfo _selectedJava = selectedJava ?? throw new ArgumentNullException(nameof(selectedJava));
+    private readonly JavaEntry _selectedJava = selectedJava ?? throw new ArgumentNullException(nameof(selectedJava));
 
     /// <summary>
     /// 在启动结束时，对 PCL 约定的替换标记进行处理
@@ -51,7 +51,7 @@ public class CustomEnvReplacer(IMcInstance instance, JavaInfo selectedJava) {
             ["{minecraft}"] = _instance.Folder.Path,
             ["{verpath}"] = _instance.Path,
             ["{verindie}"] = _instance.IsolatedPath,
-            ["{java}"] = _selectedJava.JavaFolder
+            ["{java}"] = _selectedJava.Installation.JavaFolder
         };
 
         return ApplyReplacements(input, replacements);

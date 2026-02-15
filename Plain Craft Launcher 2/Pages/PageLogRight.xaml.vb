@@ -139,8 +139,8 @@ Public Class PageLogRight
 #Region "滑动条"
     Private Sub SliderMaxLog_ValueChanged(sender As MySlider, user As Boolean) Handles SliderMaxLog.Change
         Setup.Set(sender.Tag, sender.Value)
-        If FrmSetupSystem Is Nothing Then Exit Sub
-        FrmSetupSystem.SliderMaxLog.Value = sender.Value
+        If FrmSetupLauncherMisc Is Nothing Then Exit Sub
+        FrmSetupLauncherMisc.SliderMaxLog.Value = sender.Value
     End Sub
 #End Region
 
