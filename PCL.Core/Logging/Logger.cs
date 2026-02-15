@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -28,14 +29,13 @@ public sealed class Logger : IDisposable
     public long DroppedLogCount => Interlocked.Read(ref _droppedCount);
     // Processor
     private readonly Task _processingTask;
-    private readonly Channel<string> _logChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
+    private readonly Channel<string> _logChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions()
     {
-        FullMode = BoundedChannelFullMode.DropWrite,
         SingleReader = true
     });
     private readonly CancellationTokenSource _cancelToken = new();
 
-    public List<string> CurrentLogFiles => [.._files];
+    public ReadOnlyCollection<string> CurrentLogFiles => _files.AsReadOnly();
 
     public LoggerConfiguration Configuration { get; }
 
