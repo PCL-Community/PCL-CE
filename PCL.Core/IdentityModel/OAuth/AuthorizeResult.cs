@@ -5,7 +5,7 @@ namespace PCL.Core.IdentityModel.OAuth;
 
 public record AuthorizeResult
 {
-    public bool IsSecuess => Error.IsNullOrEmpty();
+    public bool IsError => !Error.IsNullOrEmpty();
     /// <summary>
     /// 错误类型 (e.g. invalid_request)
     /// </summary>
