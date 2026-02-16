@@ -6,30 +6,29 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
 
-
 namespace PCL.Core.IdentityModel.OAuth;
 
 /// <summary>
 /// OAuth 客户端实现，配合 Polly 食用效果更佳
 /// </summary>
-/// <param name="getClient">获取 HttpClient 的方法，实现方需自行管理 HttpClient 生命周期</param>
 /// <param name="options">OAuth 参数</param>
-public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOptions options)
+public sealed class SimepleOAuthClient(OAuthClientOptions options):IOAuthClient
 {
     /// <summary>
     /// 获取授权 Url
     /// </summary>
     /// <param name="scopes">访问权限列表</param>
     /// <param name="redirectUri">重定向 Url</param>
+    /// <param name="state"></param>
     /// <returns></returns>
-    public string GetAuthorizeUrl(string[] scopes,string redirectUri)
+    public string GetAuthorizeUrl(string[] scopes,string redirectUri,string state)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(options.Meta.AuthorizeEndpoint);
         var sb = new StringBuilder();
         sb.Append(options.Meta.AuthorizeEndpoint);
         sb.Append($"?response_type=code&scope={Uri.EscapeDataString(string.Join(" ", scopes))}");
         sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri)}");
-        sb.Append($"&client_id={options.Meta.ClientId}");
+        sb.Append($"&client_id={options.ClientId}&state={state}");
         return sb.ToString();
     }
     
@@ -45,10 +44,10 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
         )
     {
         extData ??= new Dictionary<string, string>();
-        extData["client_id"] = options.Meta.ClientId;
+        extData["client_id"] = options.ClientId;
         extData["grant_type"] = "authorization_code";
         extData["code"] = code;
-        var client = getClient.Invoke();
+        var client = options.GetClient.Invoke();
         using var content = new FormUrlEncodedContent(extData);
         using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
         request.Content = content;
@@ -69,10 +68,10 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
     public async Task<DeviceCodeData?> GetCodePairAsync
         (string[] scopes,CancellationToken token, Dictionary<string, string>? extData = null)
     {
-        var client = getClient.Invoke();
+        var client = options.GetClient.Invoke();
         extData ??= new Dictionary<string, string>();
         extData["scope"] = string.Join(" ", scopes);
-        extData["client_id"] = options.Meta.ClientId;
+        extData["client_id"] = options.ClientId;
         using var request = new HttpRequestMessage(HttpMethod.Post, options.Meta.DeviceEndpoint);
         var content = new FormUrlEncodedContent(extData);
         request.Content = content;
@@ -92,13 +91,13 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
     /// <param name="extData"></param>
     /// <returns></returns>
     /// <exception cref="OperationCanceledException"></exception>
-    public async Task<AuthorizeResult?> AuthorizeWithDeviceCode
+    public async Task<AuthorizeResult?> AuthorizeWithDeviceAsync
         (DeviceCodeData data,CancellationToken token,Dictionary<string,string>? extData = null)
     {
         if (data.IsError) throw new OperationCanceledException(data.ErrorDescription); 
-        var client = getClient.Invoke();
+        var client = options.GetClient.Invoke();
         extData ??= new Dictionary<string, string>();
-        extData["client_id"] = options.Meta.ClientId;
+        extData["client_id"] = options.ClientId;
         extData["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code";
         extData["device_code"] = data.DeviceCode!;
         using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
@@ -122,12 +121,12 @@ public sealed class SimpleOAuthClient(Func<HttpClient> getClient, OAuthClientOpt
     public async Task<AuthorizeResult?> AuthorizeWithSilentAsync
         (AuthorizeResult data,CancellationToken token,Dictionary<string,string>? extData = null)
     {
-        var client = getClient.Invoke();
+        var client = options.GetClient.Invoke();
         if (data.IsError) throw new OperationCanceledException(data.ErrorDescription);
         extData ??= new Dictionary<string, string>();
         extData["refresh_token"] = data.RefreshToken!;
         extData["grant_type"] = "refresh_token";
-        extData["client_id"] = options.Meta.ClientId;
+        extData["client_id"] = options.ClientId;
         using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
         using var content = new FormUrlEncodedContent(extData);
         request.Content = content;
