@@ -101,12 +101,11 @@
     '初始化
     Private IsLoad As Boolean = False
     Private Sub Page_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+
+
         If IsLoad Then Return
         IsLoad = True
-        ItemDatapack.Visibility = If(Not FrmInstanceSavesInfo.CurrentVersionId.HasValue OrElse FrmInstanceSavesInfo.CurrentVersionId < 1444, Visibility.Collapsed, Visibility.Visible)
-    End Sub
-    Private Sub Page_Unloaded(sender As Object, e As RoutedEventArgs) Handles Me.Unloaded
-        IsLoad = False
+
     End Sub
 
     Private Sub BtnOpenFolder_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnOpenFolder.Click
