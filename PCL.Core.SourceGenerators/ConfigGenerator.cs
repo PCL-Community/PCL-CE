@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -147,7 +147,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
                 // 来源参数若存在，是第 2 个实参
                 if (args is { Count: >= 2 })
                 {
-                    sourceCode = ctx.SemanticModel.RenderSourceCode(args.Value[1].Expression);
+                    sourceCode = _RenderSourceCode(ctx.SemanticModel, args.Value[1].Expression);
                 }
             }
             else
@@ -159,7 +159,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
                 }
                 if (args is { Count: >= 3 })
                 {
-                    sourceCode = ctx.SemanticModel.RenderSourceCode(args.Value[2].Expression);
+                    sourceCode = _RenderSourceCode(ctx.SemanticModel, args.Value[2].Expression);
                 }
             }
         }
@@ -202,7 +202,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         if (attrSyntax?.ArgumentList?.Arguments is { Count: >= 2 } arguments)
         {
             hasDeclaredSource = true;
-            declaredSourceCode = ctx.SemanticModel.RenderSourceCode(arguments[1].Expression);
+            declaredSourceCode = _RenderSourceCode(ctx.SemanticModel, arguments[1].Expression);
         }
 
         return new GroupModel
@@ -681,6 +681,16 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         sb.Append(indentStr).AppendLine("    }");
 
         sb.Append(indentStr).AppendLine("}");
+    }
+
+    public static string _RenderSourceCode(SemanticModel sm, ExpressionSyntax expr)
+    {
+        var sym = sm.GetSymbolInfo(expr).Symbol;
+        if (sym is IFieldSymbol fs && fs.ContainingType?.ToDisplayString() == "PCL.Core.App.Configuration.ConfigSource")
+        {
+            return "ConfigSource." + fs.Name;
+        }
+        return expr.ToString();
     }
 
     // ===== Models/Trees =====

@@ -2,7 +2,6 @@ Imports System.Reflection
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.Net.Http.Client
-Imports PCL.Core.Utils.OS
 
 Public Class ModSetup
     Implements IConfigScope
@@ -30,10 +29,11 @@ Public Class ModSetup
         ))
     End Sub
 
-    Private _methodCache As New Concurrent.ConcurrentDictionary(Of String, MethodInfo)
+    Private ReadOnly _methodCache As New Concurrent.ConcurrentDictionary(Of String, MethodInfo)
     Public Sub OnConfigChanged(e As ConfigEventArgs)
-        Dim method As MethodInfo = _methodCache.GetOrAdd(e.Key, Function() GetType(ModSetup).GetMethod(e.Key))
-        If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(e.Key).DefaultValueNoType)})
+        Dim key = e.Item.Key
+        Dim method As MethodInfo = _methodCache.GetOrAdd(key, Function() GetType(ModSetup).GetMethod(key))
+        If method IsNot Nothing Then method.Invoke(Me, {If(e.Value, GetConfigItem(key).DefaultValueNoType)})
     End Sub
 
     Private Shared Function GetConfigItem(key As String) As ConfigItem

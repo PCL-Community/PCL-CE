@@ -38,8 +38,8 @@ public sealed partial class ThemeService
         handler: e =>
         {
             if (e.OldValue == e.Value) return;
-            if (IsDarkMode) { if (e.Key == "UiLightColor") return; }
-            else { if (e.Key == "UiDarkColor") return; }
+            if (IsDarkMode) { if (e.Item == Config.Preference.Theme.LightColorConfig) return; }
+            else { if (e.Item == Config.Preference.Theme.DarkColorConfig) return; }
             if (Lifecycle.CurrentState > LifecycleState.Loading)
             {
                 Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(() =>
