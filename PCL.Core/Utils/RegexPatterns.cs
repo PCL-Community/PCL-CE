@@ -138,6 +138,17 @@ public static partial class RegexPatterns
     public static readonly Regex EnglishSpacedKeywords = _EnglishSpacedKeywords();
     [GeneratedRegex("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)")]
     private static partial Regex _EnglishSpacedKeywords();
+    
+    /// <summary>
+    /// NTFS 8.3 文件名格式
+    /// </summary>
+    public static readonly Regex Ntfs83FileName = _Ntfs83FileName();
+    [GeneratedRegex(@".{2,}~\d")]
+    private static partial Regex _Ntfs83FileName();
+    
+    public static readonly Regex UncPath = _UncPath();
+    [GeneratedRegex("""^\\\\[^\\/:*?"<>|]+\\[^\\/:*?"<>|]+(\\[^\\/:*?"<>|]+)*\\?$""")]
+    private static partial Regex _UncPath();
 
     #region Minecraft 实例解析
 

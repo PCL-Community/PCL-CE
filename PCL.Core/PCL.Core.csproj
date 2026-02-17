@@ -66,6 +66,8 @@
         <PackageReference Include="Polly" Version="8.6.5" />
         <!-- 本地化 -->
         <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
+        <!-- 验证 -->
+        <PackageReference Include="FluentValidation" Version="12.1.1" />
     </ItemGroup>
     <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
     <PropertyGroup>
