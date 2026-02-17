@@ -10,6 +10,8 @@ public static class SharedExtensions
 {
     public static string ToLiteral(this string str) => SymbolDisplay.FormatLiteral(str, true);
 
+    public static string? ToPrimitive(this object? obj) => SymbolDisplay.FormatPrimitive(obj, true, false);
+
     public static int GetDeclarationOrder(this ISymbol symbol)
     {
         var loc = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation();

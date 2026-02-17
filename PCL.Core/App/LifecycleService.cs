@@ -183,18 +183,42 @@ public sealed class LifecycleStartAttribute : Attribute;
 public sealed class LifecycleStopAttribute : Attribute;
 
 /// <summary>
-/// 标记一个参数处理器，可以标记多个
+/// 标记一个命令处理器，可以标记多个，将自动识别和处理方法参数。<br/>
+/// 若方法的第一个参数类型为 <see cref="PCL.Core.App.Cli.CommandLine"/> 则会传入指定指令的命令行模型。<br/>
+/// 除命令行模型以外，任何参数在未显式声明默认值时均默认传入 <see langword="default"/> 值，请尽可能为所有参数提供显式默认值。<br/>
+/// <b>NOTE</b>: 请勿使用异步实现，返回 <see cref="Task"/> 的方法将被直接忽略。<br/>
+/// <b>NOTE</b>: 该方法可能在任意线程被调用，请注意线程上下文和同步问题。
+/// <p/>示例：
+/// <code>
+/// [LifecycleCommandHandler("foo")]
+/// private static void _FooHandler(CommandLine model, string bar, bool flag) {
+///     // process logic...
+///     // argument example: foo --flag --bar blablabla
+/// }
+/// </code>
 /// </summary>
-/// <param name="name">参数名</param>
-/// <param name="defaultValue">默认值</param>
+/// <param name="command">命令名</param>
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class LifecycleArgumentHandlerAttribute<TArgument>(string name, TArgument? defaultValue = default) : Attribute;
+public sealed class LifecycleCommandHandlerAttribute(string command) : Attribute;
 
 /// <summary>
-/// 标记一个依赖注入入口，可以标记多个
+/// 标记一个依赖注入入口，可以标记多个。
+/// <p/>示例：
+/// <code>
+/// [LifecycleDependencyInjection("some-property", AttributeTargets.Property)]
+/// private static void _LoadProperties(ImmutableList&lt;(PropertyAccessor&lt;string&gt; prop, string name)&gt; items)
+/// {
+///     // process logic...
+/// }
+/// [LifecycleDependencyInjection("some-method", AttributeTargets.Method)]
+/// private static void _LoadMethods(ImmutableList&lt;(Action method, string name)&gt; items)
+/// {
+///     // process logic...
+/// }
+/// </code>
 /// </summary>
 /// <param name="identifier">依赖标识符</param>
-/// <param name="targets">依赖类型</param>
+/// <param name="targets">依赖类型，可以使用 <c>|</c> 连接多个</param>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LifecycleDependencyInjectionAttribute(string identifier, AttributeTargets targets) : Attribute;
 

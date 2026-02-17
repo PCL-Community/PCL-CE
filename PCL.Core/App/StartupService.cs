@@ -105,7 +105,8 @@ public sealed partial class StartupService
         IEnumerable<SubcommandDefinition> subcommands = [
             ("update", [("execute"), ("success"), ("failed")]),
             ("activate"),
-            ("memory")
+            ("memory"),
+            ("promote")
         ];
         Context.Debug("正在解析命令行参数...");
         var c = CommandLine.Parse(Basics.FullCommandLineArguments, subcommands);
@@ -125,5 +126,10 @@ public sealed partial class StartupService
     public static RpcResponse OnRpcCommand(string? argument, string? content, bool indent)
     {
         return RpcResponse.EmptySuccess;
+    }
+
+    [LifecycleCommandHandler("debug")]
+    private static void _DebugHandler(CommandLine model, string foo = "123", bool bar = true)
+    {
     }
 }

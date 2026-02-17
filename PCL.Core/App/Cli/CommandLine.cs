@@ -34,30 +34,18 @@ public class CommandLine
     /// <param name="key">参数键</param>
     /// <param name="value">参数值，若获取失败则为对应类型默认值</param>
     /// <typeparam name="TValue">参数值的类型</typeparam>
-    /// <returns>是否获取成功，若不存在该键或值类型不匹配则失败</returns>
-    public bool TryGetArgumentValue<TValue>(string key, out TValue? value)
+    /// <returns>是否存在该键; 存在该键时值的类型是否匹配</returns>
+    public (bool exists, bool isTypeMatch) TryGetArgumentValue<TValue>(string key, out TValue? value)
     {
-        var result = Arguments.TryGetValue(key, out var arg);
-        if (result && arg!.TryCastValue(out TValue? typedValue))
+        var exists = Arguments.TryGetValue(key, out var arg);
+        var isTypeMatch = false;
+        if (exists && (isTypeMatch = arg!.TryCastValue(out TValue? typedValue)))
         {
             value = typedValue;
-            return true;
+            return (true, true);
         }
         value = default;
-        return false;
-    }
-
-    /// <summary>
-    /// 尝试获取参数值
-    /// </summary>
-    /// <param name="key">参数键</param>
-    /// <typeparam name="TValue">参数值的类型</typeparam>
-    /// <returns>参数值</returns>
-    /// <exception cref="InvalidCastException">不存在该键或值类型不匹配</exception>
-    public TValue? GetArgumentValue<TValue>(string key)
-    {
-        var result = TryGetArgumentValue(key, out TValue? value);
-        return result ? value : throw new InvalidCastException($"Key '{key}' not found or value type mismatch");
+        return (exists, isTypeMatch);
     }
 
     /// <summary>
@@ -78,7 +66,9 @@ file static class CommandLineParser
 {
     private static (CommandArgument, bool) _ParseArgument(string key, string possibleValueText)
     {
-        if (possibleValueText.Length == 0 || possibleValueText.StartsWith("--"))
+        var flagKey = key.StartsWith("--");
+        if (flagKey) key = key[2..];
+        if (possibleValueText.Length == 0 || flagKey)
             return (new BoolArgument { Key = key, ValueText = string.Empty }, false);
         if (possibleValueText.ToLowerInvariant() is "true" or "false")
             return (new BoolArgument { Key = key, ValueText = possibleValueText }, true);
