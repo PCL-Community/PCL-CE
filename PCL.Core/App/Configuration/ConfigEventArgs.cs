@@ -3,13 +3,13 @@
 /// <summary>
 /// 配置项事件参数。
 /// </summary>
-/// <param name="Key">配置键。</param>
+/// <param name="Item">配置项。</param>
 /// <param name="Event">触发事件。</param>
 /// <param name="Argument">上下文参数。</param>
 /// <param name="OldValue">旧值。</param>
 /// <param name="NewValue">新值。</param>
 public record ConfigEventArgs(
-    string Key,
+    ConfigItem Item,
     ConfigEvent Event,
     object? Argument,
     object? OldValue,
