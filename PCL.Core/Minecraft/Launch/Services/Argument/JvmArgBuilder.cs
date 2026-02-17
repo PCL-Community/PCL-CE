@@ -19,7 +19,7 @@ namespace PCL.Core.Minecraft.Launch.Services.Argument;
 /// 构建 Minecraft JVM 启动参数的工具类
 /// </summary>
 public class JvmArgBuilder(IMcInstance instance) {
-    private const string MesaLoaderVersion = "25.1.7";
+    private const string MesaLoaderVersion = "25.3.5";
     private const string HeapDumpParameter = "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump";
     private const string Log4JSecurityParameter = "-Dlog4j2.formatMsgNoLookups=true";
     private const string MaxDirectMemoryParameter = "-XX:MaxDirectMemorySize=256M";

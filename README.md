@@ -1,3 +1,5 @@
+**简体中文** | [English](README-EN.md) | [繁體中文](README-ZH_TW.md)
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
@@ -12,7 +14,7 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
 [![哔哩哔哩](https://img.shields.io/badge/动态-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[社区版下载](https://github.com/PCL-Community/PCL2-CE/releases) |
+[社区版下载](https://github.com/PCL-Community/PCL2-CE/releases/latest) |
 [上游存储库](https://github.com/Meloong-Git/PCL) |
 [帮助文档库](https://github.com/PCL-Community/PCL2CEHelp)
 

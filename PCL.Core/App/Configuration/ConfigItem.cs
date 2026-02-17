@@ -199,7 +199,7 @@ public class ConfigItem<TValue>(
                 if (isPreview == false && !bypassOldValue) bypassOldValue = true;
                 var currentValue = (fillNewValue || !bypassOldValue) ? _GetValueOrNull(argument) : null;
                 if (newValue == null && fillNewValue) newValue = currentValue ?? DefaultValue;
-                e = new ConfigEventArgs(Key, trigger, argument, bypassOldValue ? null : currentValue, newValue);
+                e = new ConfigEventArgs(this, trigger, argument, bypassOldValue ? null : currentValue, newValue);
             }
             observer.Handler(e);
             // 对 preview 的特殊处理
