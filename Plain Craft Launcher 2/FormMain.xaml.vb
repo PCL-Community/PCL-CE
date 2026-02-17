@@ -702,6 +702,9 @@ Public Class FormMain
             ElseIf PageCurrent = PageType.InstanceSelect Then
                 '实例选择自动刷新
                 LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+            ElseIf TypeOf FrmMain.PageRight Is PageInstanceSavesDatapack AndAlso FrmInstanceSavesDatapack IsNot Nothing Then
+                '数据包管理自动刷新
+                FrmInstanceSavesDatapack.ReloadDatapackFileList()
             End If
         Catch ex As Exception
             Log(ex, "切回窗口时出错", LogLevel.Feedback)
