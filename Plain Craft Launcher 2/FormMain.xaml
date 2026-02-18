@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
@@ -28,9 +28,11 @@
                 <TranslateTransform x:Name="TransformPos" X="0" Y="60" />
             </TransformGroup>
         </Grid.RenderTransform>
-        <Grid.Effect>
-            <DropShadowEffect BlurRadius="20" Opacity=".2" ShadowDepth="0" RenderingBias="Performance"/>
-        </Grid.Effect>
+        <Border x:Name="ShadowLayer" Background="Transparent" CornerRadius="6">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" Opacity=".2" ShadowDepth="0" RenderingBias="Performance"/>
+            </Border.Effect>
+        </Border>
         <Border>
             <Border.Clip>
                 <RectangleGeometry x:Name="RectForm" RadiusX="6" RadiusY="6" />
