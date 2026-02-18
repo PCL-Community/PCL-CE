@@ -439,7 +439,6 @@ public static partial class Config
             [ConfigItem<bool>("UiHiddenFunctionSelect", false, ConfigSource.Local)] public partial bool FunctionSelect { get; set; }
             [ConfigItem<bool>("UiHiddenFunctionModUpdate", false, ConfigSource.Local)] public partial bool FunctionModUpdate { get; set; }
             [ConfigItem<bool>("UiHiddenFunctionHidden", false, ConfigSource.Local)] public partial bool FunctionHidden { get; set; }
-            [ConfigItem<bool>("UiHiddenFunctionDatapackUpdate", false, ConfigSource.Local)] public partial bool DatapackUpdateHint { get; set; }
         }
     }
 
