@@ -2003,29 +2003,31 @@ Install:
     End Property
     Private SearchResult As List(Of LocalCompFile)
     Private _cancelToken As CancellationTokenSource
-    Public Async Sub SearchRun() Handles SearchBox.TextChanged
-        _cancelToken?.Cancel()
-        _cancelToken?.Dispose()
-        _cancelToken = New CancellationTokenSource()
+    Public Sub SearchRun() Handles SearchBox.TextChanged
+        Dim curToken = New CancellationTokenSource()
+        Dim oldToken = Interlocked.Exchange(_cancelToken, curToken)
+        oldToken?.Cancel()
+        oldToken?.Dispose()
 
-        Try
-            Await Task.Delay(350, _cancelToken.Token)
-            If IsSearching Then
-                Dim searchText = SearchBox.Text
-                SearchResult = Await Task.Run(
-                    Function() GetSearchResult(searchText),
-                    _cancelToken.Token
-                )
-            End If
-            Await Dispatcher.BeginInvoke(
-            Sub()
-                RefreshUI()
-            End Sub)
-        Catch ignore As TaskCanceledException
-            ' this exception is ignored
-        Catch ex As Exception
-            Log(ex, "搜索过程中发生异常", LogLevel.Debug)
-        End Try
+        Dispatcher.BeginInvoke(
+            Async Function() As Task
+                Try
+                    Await Task.Delay(350, curToken.Token)
+                    If curToken.IsCancellationRequested Then Return
+                    If IsSearching Then
+                        Dim searchText = SearchBox.Text
+                        SearchResult = Await Task.Run(
+                            Function() GetSearchResult(searchText),
+                            curToken.Token)
+                    End If
+                    If curToken.IsCancellationRequested Then Return
+                    RefreshUI()
+                Catch ignore As TaskCanceledException
+                    ' this exception is ignored
+                Catch ex As Exception
+                    Log(ex, "搜索过程中发生异常", LogLevel.Debug)
+                End Try
+            End Function)
     End Sub
 
     Private Function GetSearchResult(query As String) As List(Of LocalCompFile)
