@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Core.Utils.Exts;
 
-public static class StringExtension
+public static class StringConvertExtension
 {
     public static object? Convert(string? value, Type targetType)
     {
@@ -42,7 +42,7 @@ public static class StringExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse", 
+        var parse = targetType.GetMethod("Parse",
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
@@ -50,13 +50,16 @@ public static class StringExtension
         throw new NotSupportedException($"无法将字符串转换为类型 {targetType.FullName}");
     }
 
-    public static T? Convert<T>(this string? value)
+    public static T? ConvertTo<T>(this string? value)
     {
         var obj = Convert(value, typeof(T));
         if (obj is null) return default;
         return (T)obj;
     }
+}
 
+public static class StringExtension
+{
     public static string? ConvertToString(object? obj)
     {
         if (obj == null) return null;
@@ -141,6 +144,29 @@ public static class StringExtension
                 _ => throw new ArgumentOutOfRangeException(nameof(input), $"Character '{c}' out of Base32 range")
             };
         }
+
+        public string FromB64ToB64UrlSafe() => input.Replace("+", "-").Replace("/", "_");
+        public string FromB64UrlSafeToB64() => input.Replace("-", "+").Replace("_", "/");
+
+        public byte[] FromB64ToBytes()
+        {
+            switch (input.Length % 4)
+            {
+                case 3:
+                    input += "===";
+                    break;
+                case 2:
+                    input += "==";
+                    break;
+                case 1:
+                    input += "=";
+                    break;
+            }
+
+            return Convert.FromBase64String(input);
+        }
+
+        public byte[] FromB64UrlSafeToBytes() => input.FromB64UrlSafeToB64().FromB64ToBytes();
     }
 
     extension(string input)
