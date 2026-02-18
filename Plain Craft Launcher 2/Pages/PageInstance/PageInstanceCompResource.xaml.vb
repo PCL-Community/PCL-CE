@@ -2002,37 +2002,56 @@ Install:
         End Get
     End Property
     Private SearchResult As List(Of LocalCompFile)
-    Public Sub SearchRun() Handles SearchBox.TextChanged
+    Private _cancelToken As CancellationTokenSource
+    Public Async Sub SearchRun() Handles SearchBox.TextChanged
+        _cancelToken?.Cancel()
+        _cancelToken?.Dispose()
+        _cancelToken = New CancellationTokenSource()
+
         Try
+            Await Task.Delay(350, _cancelToken.Token)
             If IsSearching Then
-                '构造请求
-                Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
-                For Each Entry As LocalCompFile In CompResourceListLoader.Output
-                    Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
-                    If Entry.Version IsNot Nothing Then
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
-                    End If
-                    If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
-                    End If
-                    If Entry.Comp IsNot Nothing Then
-                        If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
-                        If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
-                        If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
-                        SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
-                    End If
-                    QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
-                Next
-                '进行搜索
-                SearchResult = Search(QueryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+                Dim searchText = SearchBox.Text
+                SearchResult = Await Task.Run(
+                    Function() GetSearchResult(searchText),
+                    _cancelToken.Token
+                )
             End If
-            RefreshUI()
+            Await Dispatcher.BeginInvoke(
+            Sub()
+                RefreshUI()
+            End Sub)
+        Catch ignore As TaskCanceledException
+            ' this exception is ignored
         Catch ex As Exception
             Log(ex, "搜索过程中发生异常", LogLevel.Debug)
         End Try
     End Sub
+
+    Private Function GetSearchResult(query As String) As List(Of LocalCompFile)
+        '构造请求
+        Dim QueryList As New List(Of SearchEntry(Of LocalCompFile))
+        For Each Entry As LocalCompFile In CompResourceListLoader.Output.AsReadOnly()
+            Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
+            SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Name, 1))
+            SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.FileName, 1))
+            If Entry.Version IsNot Nothing Then
+                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Version, 0.2))
+            End If
+            If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
+                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
+            End If
+            If Entry.Comp IsNot Nothing Then
+                If Entry.Comp.RawName <> Entry.Name Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.RawName, 1))
+                If Entry.Comp.TranslatedName <> Entry.Comp.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.TranslatedName, 1))
+                If Entry.Comp.Description <> Entry.Description Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Comp.Description, 0.4))
+                SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Comp.Tags), 0.2))
+            End If
+            QueryList.Add(New SearchEntry(Of LocalCompFile) With {.Item = Entry, .SearchSource = SearchSource})
+        Next
+        '进行搜索
+        Return Search(QueryList, query, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList
+    End Function
 
 #End Region
 
