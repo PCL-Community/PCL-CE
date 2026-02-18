@@ -10,6 +10,19 @@ namespace PCL.Core.Test.App;
 public sealed class CommandLineTest
 {
     private readonly CommandLine _model;
+    private readonly string _correct = """
+        bar []
+        -> foo [
+             --f: true
+             --bar: foo
+           ]
+           -> bar [
+                --foo: true
+              ]
+              -> foo [
+                   --1234: 5678
+                 ]
+        """.Trim();
 
     public CommandLineTest()
     {
@@ -26,32 +39,23 @@ public sealed class CommandLineTest
     {
         var modelStr = _model.ToString();
         Console.WriteLine(modelStr);
-        var correct = """
-            bar []
-            -> foo [
-                 --f: true
-                 --bar: foo
-               ]
-               -> bar [
-                    --foo: true
-                  ]
-                  -> foo [
-                       --1234: 5678
-                     ]
-            """.Trim();
-        Assert.AreEqual(correct, modelStr);
+        Assert.AreEqual(_correct, modelStr);
     }
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        IndentSize = 4,
     };
 
     [TestMethod]
     public void JsonSerialization()
     {
+        Console.WriteLine("Serialized JSON string:");
         var json = JsonSerializer.Serialize(_model, _jsonSerializerOptions);
         Console.WriteLine(json);
+        Console.WriteLine("Deserialization result:");
+        var modelStr = JsonSerializer.Deserialize<CommandLine>(json)?.ToString();
+        Console.WriteLine(modelStr);
+        Assert.AreEqual(_correct, modelStr);
     }
 }
