@@ -97,7 +97,7 @@ Public Class PageInstanceSavesDatapack
     Private Sub RefreshSelf() Implements IRefreshable.Refresh
         Refresh()
     End Sub
-    Public Shared Sub Refresh()
+    Public Sub Refresh()
         FrmInstanceSavesDatapack.ReloadDatapackFileList(True)
         Log("[Datapack] 刷新数据包列表")
     End Sub
