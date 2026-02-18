@@ -50,7 +50,7 @@ public static class StringConvertExtension
         throw new NotSupportedException($"无法将字符串转换为类型 {targetType.FullName}");
     }
 
-    public static T? ConvertTo<T>(this string? value)
+    public static T? Convert<T>(this string? value)
     {
         var obj = Convert(value, typeof(T));
         if (obj is null) return default;
