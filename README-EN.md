@@ -42,7 +42,7 @@ Everyone is welcome to try it out!
 
 **✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
 
-**⚠️ Should work, but little community support**: PCL CE is expected to run on these platforms, but full functionality is not guaranteed. You may have to upgrade to a fully supported OS version to receive further community technical support.
+**⚠️ Expected to run; community support offered at discretion**: PCL CE is expected to run on these platforms, but full functionality is not guaranteed. You may need to upgrade to a fully supported OS version to receive further community technical support.
 
 **❌ Unsupported**: PCL CE may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL CE.
 
