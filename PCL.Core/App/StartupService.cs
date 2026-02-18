@@ -5,7 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using PCL.Core.App.Cli;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
@@ -43,7 +46,7 @@ public sealed partial class StartupService
     /// <summary>
     /// 未处理的子命令
     /// </summary>
-    public static ICollection<string> UnhandledCommands => _UnhandledCommandMap.Keys;
+    public static IReadOnlyDictionary<string, CommandLine> UnhandledCommands => _UnhandledCommandMap.AsReadOnly();
 
     /// <summary>
     /// 处理一个子命令
@@ -52,12 +55,17 @@ public sealed partial class StartupService
     /// <param name="handler">用于处理命令的委托，传入 <see langword="null"/> 则触发已注册的处理回调</param>
     /// <param name="registerCallback">指定是否注册该委托为处理回调</param>
     /// <returns>是否执行成功，若子命令不存在或未注册任何处理回调则不成功</returns>
-    public static bool TryHandleCommand(string command, CommandHandler? handler = null, bool registerCallback = false)
+    public static bool TryHandleCommand(
+        string command,
+        CommandHandler? handler = null,
+        bool registerCallback = false)
     {
+        var isCallback = false;
         if (handler == null)
         {
             _HandleCallbackMap.TryGetValue(command, out handler);
             if (handler == null) return false;
+            isCallback = true;
         }
         else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
         lock (_UnhandledCommandMap)
@@ -65,8 +73,11 @@ public sealed partial class StartupService
             _UnhandledCommandMap.TryGetValue(command, out var model);
             if (model == null) return false;
             // remove all related commands
-            foreach (var x in UnhandledCommands.Where(x => x.StartsWith(command)).ToList())
+            foreach (var x in _UnhandledCommandMap.Keys.Where(x => x.StartsWith(command)).ToList())
                 _UnhandledCommandMap.Remove(x);
+            // run handler
+            try { handler(model, isCallback); }
+            catch (Exception ex) { Context.Warn($"Exception thrown while handle command: {command}", ex); }
             return true;
         }
     }
@@ -104,9 +115,9 @@ public sealed partial class StartupService
     {
         IEnumerable<SubcommandDefinition> subcommands = [
             ("update", [("execute"), ("success"), ("failed")]),
-            ("activate"),
-            ("memory"),
-            ("promote")
+            ("activate", []),
+            ("memory", []),
+            ("promote", []),
         ];
         Context.Debug("正在解析命令行参数...");
         var c = CommandLine.Parse(Basics.FullCommandLineArguments, subcommands);
@@ -125,6 +136,24 @@ public sealed partial class StartupService
     [RegisterRpc("cli")]
     public static RpcResponse OnRpcCommand(string? argument, string? content, bool indent)
     {
+        if (content == null) return RpcResponse.Err("Must provide valid JSON model");
+        try
+        {
+            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content);
+            if (models == null) return RpcResponse.Err("Invalid JSON: empty/null content");
+            Task.Run(() =>
+            {
+                foreach (var (command, model) in models)
+                {
+                    _UnhandledCommandMap[command] = model;
+                    TryHandleCommand(command);
+                }
+            });
+        }
+        catch (JsonException ex)
+        {
+            return RpcResponse.Err($"Invalid JSON: {ex.Message}");
+        }
         return RpcResponse.EmptySuccess;
     }
 }

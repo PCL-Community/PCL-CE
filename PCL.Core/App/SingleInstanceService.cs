@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Text.Json;
 using PCL.Core.IO;
 
 namespace PCL.Core.App;
@@ -13,13 +14,13 @@ public sealed partial class SingleInstanceService
     private static FileStream? _lockStream;
     private static readonly string _LockFilePath = Path.Combine(FileService.LocalDataPath, "instance.lock");
 
-    private static void _TryActivateProcessWindow(int processId)
+    private static void _TryRpc(string processId, string content)
     {
         var pipeName = $"{RpcService.PipePrefix}@{processId}";
         using var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut);
         pipe.Connect(1000);
         using var sw = new StreamWriter(pipe, PipeComm.PipeEncoding);
-        sw.WriteLine("REQ activate");
+        sw.WriteLine(content);
         sw.Write(PipeComm.PipeEndingChar);
         sw.Flush();
     }
@@ -43,8 +44,13 @@ public sealed partial class SingleInstanceService
                 using var stream = File.Open(_LockFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var reader = new StreamReader(stream);
                 var pid = reader.ReadToEnd();
-                Context.Info($"发现重复实例 {pid}，尝试拉起主窗口");
-                _TryActivateProcessWindow(int.Parse(pid));
+                Context.Info($"发现重复实例 {pid}，尝试传递参数并拉起主窗口");
+                try
+                {
+                    _TryRpc(pid, "REQ cli\n" + JsonSerializer.Serialize(StartupService.UnhandledCommands));
+                    _TryRpc(pid, "REQ activate");
+                }
+                catch (Exception ex) { Context.Warn("RPC 通信失败", ex); }
             }
             catch (Exception ex) { Context.Error("读取单例锁出错", ex); }
             finally { Context.RequestExit(1); }
