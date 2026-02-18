@@ -42,7 +42,7 @@ public static class StringConvertExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse",
+        var parse = targetType.GetMethod("Parse", 
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
