@@ -2139,7 +2139,7 @@ OnLoaded:
         End If
 
         '修改渲染器
-        Dim mesaLoaderWindowsVersion = "25.1.7"
+        Dim mesaLoaderWindowsVersion = "25.3.5"
         Dim mesaLoaderWindowsTargetFile = PathPure & "\mesa-loader-windows\" & mesaLoaderWindowsVersion & "\Loader.jar"
         Dim renderer = -1
         If McInstanceSelected IsNot Nothing Then

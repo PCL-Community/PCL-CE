@@ -1,3 +1,5 @@
+**简体中文** | [English](README-EN.md) | [繁體中文](README-ZH_TW.md)
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
@@ -12,7 +14,7 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
 [![哔哩哔哩](https://img.shields.io/badge/动态-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[社区版下载](https://github.com/PCL-Community/PCL2-CE/releases) |
+[社区版下载](https://github.com/PCL-Community/PCL2-CE/releases/latest) |
 [上游存储库](https://github.com/Meloong-Git/PCL) |
 [帮助文档库](https://github.com/PCL-Community/PCL2CEHelp)
 
@@ -27,7 +29,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 欢迎大家来用用看！
 
-**开发群:** [599620549](https://qm.qq.com/q/PNQA4Md8wc) | **用户 1 群:** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ) | **用户 2 群:** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
+**开发群:** [599620549](https://qm.qq.com/q/PNQA4Md8wc)[✦](https://t.me/+78XW2bUOvKJjMTZl) | **用户 1 群:** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ) | **用户 2 群:** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
 
 ## 💻 支持平台
 

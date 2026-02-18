@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.IO;
+using PCL.Core.App.IoC;
 
 namespace PCL.Core.App;
 
@@ -157,6 +159,20 @@ public class RpcProperty
 /// <returns>响应内容</returns>
 public delegate RpcResponse RpcFunction(string? argument, string? content, bool indent);
 
+#pragma warning disable CS9113 // Parameter is unread.
+
+/// <summary>
+/// 标记一个方法或属性，使其成为 RPC 函数/属性。<br/>
+/// 方法签名需兼容 <see cref="RpcFunction"/> 委托，属性仅支持 <see langword="string"/> 类型。
+/// </summary>
+/// <param name="name">该 RPC 函数/属性的名称</param>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+[DependencyCollector<RpcFunction>("rpc-function", AttributeTargets.Method)]
+[DependencyCollector<string>("rpc-property", AttributeTargets.Property)]
+public sealed class RegisterRpc(string name) : Attribute;
+
+#pragma warning restore CS9113 // Parameter is unread.
+
 /// <summary>
 /// RPC 服务项
 /// </summary>
@@ -176,6 +192,29 @@ public sealed partial class RpcService
     private async Task _Stop()
     {
         if (_pipe != null) await _pipe.DisposeAsync();
+    }
+
+    [LifecycleDependencyInjection("rpc-function", AttributeTargets.Method)]
+    private static void _CollectRpcFunctionRegistry(ImmutableList<(RpcFunction func, string name)> items)
+    {
+        foreach (var (func, name) in items)
+        {
+            AddFunction(name, func);
+        }
+    }
+
+    [LifecycleDependencyInjection("rpc-property", AttributeTargets.Property)]
+    private static void _CollectRpcPropertyRegistry(ImmutableList<(PropertyAccessor<string> prop, string name)> items)
+    {
+        foreach (var (prop, name) in items)
+        {
+            AddProperty(new RpcProperty(
+                name,
+                () => prop.Value,
+                value => prop.Value = value ?? "",
+                prop.CanSet
+            ));
+        }
     }
 
     public const string PipePrefix = "PCLCE_RPC";
@@ -342,7 +381,7 @@ public sealed partial class RpcService
                     var targetArgs = target.Split([' '], 2); // 分离函数名和参数
                     var name = targetArgs[0].ToLowerInvariant();
                     var indent = false; // 检测缩进指示
-                    if (name.EndsWith("$"))
+                    if (name.EndsWith('$'))
                     {
                         indent = true;
                         name = name[..^1];

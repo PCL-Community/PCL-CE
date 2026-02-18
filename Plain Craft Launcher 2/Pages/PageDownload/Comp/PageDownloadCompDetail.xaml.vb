@@ -90,7 +90,7 @@ Public Class PageDownloadCompDetail
     Private Sub Load_OnFinish()
         Dim results = GetResults()
 
-        '初始化筛选器
+        ' 初始化筛选器
         Dim instanceFilters As List(Of String) = Nothing
         Dim modLoaderFilters As List(Of String) = Nothing
         Dim updateFilters =
@@ -101,7 +101,7 @@ Public Class PageDownloadCompDetail
                 Distinct.OrderByDescending(Function(s) s).ToList
         End Sub
 
-        '确定分组方式
+        ' 确定分组方式
         GroupedDrop = False : GroupedOld = False
         updateFilters()
         If instanceFilters.Count < 9 Then GoTo GroupDone
@@ -115,7 +115,7 @@ Public Class PageDownloadCompDetail
         updateFilters()
 GroupDone:
 
-        'UI 化筛选器
+        ' UI 化筛选器
         PanInstanceFilter.Children.Clear()
         PanModLoaderFilter.Children.Clear()
         If Not _pageType = CompType.Mod Then
@@ -127,7 +127,7 @@ GroupDone:
             _instanceFilter = Nothing
         Else
             CardFilter.Visibility = Visibility.Visible
-            '插入标签
+            ' 插入标签
             If _pageType = CompType.Mod Then
                 Dim instanceTextBlock As New TextBlock With {
                         .Text = "实例筛选：", .VerticalAlignment = VerticalAlignment.Center,
@@ -141,7 +141,7 @@ GroupDone:
             
             instanceFilters.Insert(0, "全部")
             modLoaderFilters.Insert(0, "全部")
-            '转化为按钮
+            ' 转化为按钮
             For Each version As String In instanceFilters
                 Dim newButton As New MyRadioButton With {
                     .Text = version, .Margin = New Thickness(2, 0, 2, 0), .ColorType = MyRadioButton.ColorState.Highlight}
@@ -167,14 +167,18 @@ GroupDone:
                     PanModLoaderFilter.Children.Add(newButton)
                 Next
             End If
-            '自动选择
+            ' 自动选择
             Dim instanceToCheck As MyRadioButton = Nothing
             Dim modLoaderToCheck As MyRadioButton = Nothing
             If _targetInstance <> "" Then
                 Dim targetFile = results.FirstOrDefault(Function(v) v.GameVersions.Contains(_targetInstance))
                 If targetFile IsNot Nothing Then
                     Dim targetGroup = GetGroupedVersionName(_targetInstance, GroupedDrop, GroupedOld)
-                    For Each button As MyRadioButton In PanInstanceFilter.Children
+                    Dim children =
+                            If _
+                            (_pageType = CompType.Mod, PanInstanceFilter.Children.Cast (Of UIElement)().Skip(1),
+                             PanInstanceFilter.Children)
+                    For Each button As MyRadioButton In children
                         If button.Text <> targetGroup Then Continue For
                         instanceToCheck = button
                         Exit For
@@ -185,7 +189,11 @@ GroupDone:
                 If _targetLoader <> CompLoaderType.Any Then
                     Dim targetFile = results.FirstOrDefault(Function(v) v.ModLoaders.Contains(_targetLoader))
                     If targetFile IsNot Nothing Then
-                        For Each button As MyRadioButton In PanModLoaderFilter.Children
+                        Dim children =
+                                If _
+                                (_pageType = CompType.Mod, PanInstanceFilter.Children.Cast (Of UIElement)().Skip(1),
+                                 PanInstanceFilter.Children)
+                        For Each button As MyRadioButton In children
                             If button.Text <> _targetLoader.ToString() Then Continue For
                             modLoaderToCheck = button
                             Exit For
@@ -194,7 +202,7 @@ GroupDone:
                 End If
             End If
             
-            '注意：在 Mod 下 index 0 是 TextBlock
+            ' 注意：在 Mod 下 index 0 是 TextBlock
             Dim index As Integer = If(_pageType = CompType.Mod, 1, 0) 
             If instanceToCheck Is Nothing Then instanceToCheck = PanInstanceFilter.Children(index)
             If modLoaderToCheck Is Nothing And _pageType = CompType.Mod Then modLoaderToCheck = PanModLoaderFilter.Children(index)

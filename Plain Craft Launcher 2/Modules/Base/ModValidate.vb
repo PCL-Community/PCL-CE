@@ -279,7 +279,7 @@ Public Class ValidateFolderName
             Dim CharactCheck As String = New ValidateExcept(IO.Path.GetInvalidFileNameChars() & If(UseMinecraftCharCheck, "!;", ""), "文件夹名不可包含 % 字符！").Validate(Str)
             If CharactCheck <> "" Then Return CharactCheck
             '检查特殊字符串
-            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}, "文件夹名不可为 %！", True).Validate(Str)
+            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"}, "文件夹名不可为 %！", True).Validate(Str)
             If InvalidStrCheck <> "" Then Return InvalidStrCheck
             '检查 NTFS 8.3 文件名（#4505）
             If RegexCheck(Str, ".{2,}~\d") Then Return "文件夹名不能包含这一特殊格式！"
@@ -336,7 +336,7 @@ Public Class ValidateFileName
             Dim CharactCheck As String = New ValidateExcept(IO.Path.GetInvalidFileNameChars() & If(UseMinecraftCharCheck, "!;", ""), "文件名不可包含 % 字符！").Validate(Str)
             If CharactCheck <> "" Then Return CharactCheck
             '检查特殊字符串
-            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}, "文件名不可为 %！", True).Validate(Str)
+            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"}, "文件名不可为 %！", True).Validate(Str)
             If InvalidStrCheck <> "" Then Return InvalidStrCheck
             '检查 NTFS 8.3 文件名（#4505）
             If RegexCheck(Str, ".{2,}~\d") Then Return "文件名不能包含这一特殊格式！"
@@ -403,7 +403,7 @@ Fin:
             '检查尾部小数点
             If SubStr.EndsWithF(".") Then Return "文件夹名不能以小数点结尾！"
             '检查特殊字符串
-            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}, "文件夹名不可为 %！").Validate(SubStr)
+            Dim InvalidStrCheck As String = New ValidateExceptSame({"CON", "PRN", "AUX", "CLOCK$", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM¹", "COM²", "COM³", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"}, "文件夹名不可为 %！").Validate(SubStr)
             If Not InvalidStrCheck = "" Then Return InvalidStrCheck
             '检查 NTFS 8.3 文件名（#4505）
             If RegexCheck(Str, ".{2,}~\d") Then Return "文件夹名不能包含这一特殊格式！"
