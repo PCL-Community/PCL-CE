@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -62,4 +64,22 @@ public partial class TaskModel : ObservableObject
     {
         get => field ??= new RelayCommand(OnPause ?? _EmptyAction, () => OnPause != null);
     } = null!;
+
+    /// <summary>
+    /// 任务是否为任务组，即是否存在子任务
+    /// </summary>
+    [ObservableProperty] private bool _isGroup;
+
+    /// <summary>
+    /// 子任务模型
+    /// </summary>
+    public ObservableCollection<TaskModel> Children { get; } = [];
+
+    public TaskModel()
+    {
+        Children.CollectionChanged += (sender, _) =>
+        {
+            if (sender is ObservableCollection<TaskModel> c) IsGroup = c.Count > 0;
+        };
+    }
 }

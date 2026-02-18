@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using PCL.Core.Logging;
 
 namespace PCL.Core.App.Tasks;
 
@@ -10,31 +12,96 @@ namespace PCL.Core.App.Tasks;
 /// </summary>
 public static class TaskCenter
 {
-    private static readonly ConditionalWeakTable<ITask, TaskModel> _ModelMap = [];
-
-    private static readonly ObservableCollection<TaskModel> _ModelCollection = [];
-
     /// <summary>
     /// 可观察的任务模型集合
     /// </summary>
-    public static INotifyCollectionChanged Tasks => _ModelCollection;
+    public static ObservableCollection<TaskModel> Tasks { get; } = [];
+
+    private static readonly ConditionalWeakTable<ITask, TaskModel> _ModelMap = [];
+
+    private static TaskModel _InitModel(ITask instance)
+    {
+        // ReSharper disable SuspiciousTypeConversion.Global
+        var cancelable = instance as ITaskCancelable;
+        var pausable = instance as ITaskPausable;
+        var progressive = instance as ITaskProgressive;
+        // ReSharper restore SuspiciousTypeConversion.Global
+
+        var model = new TaskModel
+        {
+            Title = instance.Title,
+            SupportProgress = progressive != null,
+            OnCancel = cancelable == null ? null : (() => cancelable.Cancel()),
+            OnPause = pausable == null ? null : (() => pausable.OnPause()),
+        };
+
+        // state event
+        instance.StateChanged += (state, message) =>
+        {
+            LogWrapper.Trace("TaskCenter", $"{instance.Title}: state changed ({state}): {message}");
+            model.State = state;
+            model.StateMessage = message;
+        };
+
+        // progress event
+        if (progressive != null)
+        {
+            progressive.ProgressChanged += progress =>
+            {
+                model.Progress = Math.Clamp(progress, 0.0, 1.0);
+            };
+        }
+
+        // group events
+        if (instance is ITaskGroup group)
+        {
+            group.AddTask += task =>
+            {
+                var taskModel = _InitModel(task);
+                _ModelMap.Add(task, taskModel);
+                model.Children.Add(taskModel);
+            };
+            group.RemoveTask += task =>
+            {
+                if (_ModelMap.TryGetValue(task, out var taskModel)) model.Children.Remove(taskModel);
+            };
+        }
+
+        return model;
+    }
 
     /// <summary>
     /// 注册响应式任务实例
     /// </summary>
     /// <param name="instance">任务实例</param>
-    public static void Register(ITask instance)
+    /// <param name="start">是否立即启动该实例</param>
+    public static void Register(ITask instance, bool start = true)
     {
-        if (Exists(instance)) throw new InvalidOperationException("Existent ITask instance");
-        // TODO
+        var model = _InitModel(instance);
+        Tasks.Add(model);
+
+        if (start)
+        {
+            _ = Task.Run(async () =>
+            {
+                try { await instance.ExecuteAsync(); }
+                catch (OperationCanceledException) { /* ignoring */ }
+                catch (Exception ex)
+                {
+                    LogWrapper.Warn(ex, "TaskCenter", $"{instance.Title}: exception thrown");
+                    model.State = TaskState.Failed;
+                    model.StateMessage = ex.Message;
+                }
+            });
+        }
     }
 
     /// <summary>
-    /// 检查指定任务实例是否已存在于任务列表中
+    /// 移除所有已结束的任务
     /// </summary>
-    /// <param name="instance">任务实例</param>
-    public static bool Exists(ITask instance)
+    public static void RemoveFinished()
     {
-        return _ModelMap.TryGetValue(instance, out _);
+        foreach (var model in Tasks.Where(x => x.State > TaskState.Running).ToList())
+            Tasks.Remove(model);
     }
 }
