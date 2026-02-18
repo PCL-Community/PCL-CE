@@ -127,9 +127,4 @@ public sealed partial class StartupService
     {
         return RpcResponse.EmptySuccess;
     }
-
-    [LifecycleCommandHandler("debug")]
-    private static void _DebugHandler(CommandLine model, string foo = "123", bool bar = true)
-    {
-    }
 }

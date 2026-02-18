@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 
 namespace PCL.Core.App.Cli;
 
@@ -60,15 +62,37 @@ public class CommandLine
         SubcommandDefinition root = (args[0], subcommands);
         return CommandLineParser.Parse(args, root);
     }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append(CommandText).Append(" [");
+        if (Arguments.Count > 0) sb.AppendLine();
+        foreach (var arg in Arguments.Values)
+        {
+            sb.Append("  --").Append(arg.Key);
+            var value = arg.ValueKind switch
+            {
+                ArgumentValueKind.Bool => arg.CastValue<bool>() ? "true" : "false",
+                ArgumentValueKind.Decimal => arg.CastValue<decimal>().ToString(CultureInfo.InvariantCulture),
+                ArgumentValueKind.Text => arg.ValueText,
+                _ => null
+            };
+            if (value != null) sb.Append(": ").Append(value);
+            sb.AppendLine();
+        }
+        sb.Append(']');
+        if (Subcommand != null) sb.AppendLine().Append("-> ").Append(Subcommand.ToString().Replace("\n", "\n   "));
+        return sb.ToString();
+    }
 }
 
 file static class CommandLineParser
 {
     private static (CommandArgument, bool) _ParseArgument(string key, string possibleValueText)
     {
-        var flagKey = key.StartsWith("--");
-        if (flagKey) key = key[2..];
-        if (possibleValueText.Length == 0 || flagKey)
+        if (key.StartsWith("--")) key = key[2..];
+        if (possibleValueText.Length == 0 || possibleValueText.StartsWith("--"))
             return (new BoolArgument { Key = key, ValueText = string.Empty }, false);
         if (possibleValueText.ToLowerInvariant() is "true" or "false")
             return (new BoolArgument { Key = key, ValueText = possibleValueText }, true);
@@ -92,7 +116,8 @@ file static class CommandLineParser
                 subcommand = Parse(args[i..], subcommands.SubcommandMap[currentText]);
                 break;
             }
-            var (commandArgument, hasValueText) = _ParseArgument(currentText, (i == args.Length - 1) ? "" : args[i + 1]);
+            var (commandArgument, hasValueText) = _ParseArgument(currentText,
+                (i == args.Length - 1) || (subcommands.Contains(args[i + 1])) ? "" : args[i + 1]);
             argumentList[commandArgument.Key] = commandArgument;
             i += hasValueText ? 2 : 1;
         }
