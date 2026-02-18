@@ -28,7 +28,7 @@
                 <TranslateTransform x:Name="TransformPos" X="0" Y="60" />
             </TransformGroup>
         </Grid.RenderTransform>
-        <Border x:Name="ShadowLayer" Background="Transparent" CornerRadius="6">
+        <Border x:Name="ShadowLayer" Background="White" BorderThickness="3" CornerRadius="6">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="20" Opacity=".2" ShadowDepth="0" RenderingBias="Performance"/>
             </Border.Effect>
