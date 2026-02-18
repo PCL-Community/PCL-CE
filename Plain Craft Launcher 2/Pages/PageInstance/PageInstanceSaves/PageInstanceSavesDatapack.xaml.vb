@@ -430,6 +430,7 @@ Public Class PageInstanceSavesDatapack
         Dim FileList As String() = SystemDialogs.SelectFiles("数据包文件(*.zip)|*.zip", "选择要安装的数据包")
         If FileList Is Nothing OrElse Not FileList.Any Then Exit Sub
         InstallDatapackFiles(FileList)
+        Refresh()
     End Sub
 
     ''' <summary>
