@@ -155,6 +155,7 @@ Public Module ModComp
                     trueDbFile.CopyTo(ms)
                     ms.Seek(0, SeekOrigin.Begin)
                     Dim fileHash = GetHexString(SHA1Provider.Instance.ComputeHash(ms))
+                    ms.Seek(0, SeekOrigin.Begin)
                     Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, $"Cache\ModData{fileHash}.sqlite"))
                     If Not File.Exists(dbPath) Then
                         Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
