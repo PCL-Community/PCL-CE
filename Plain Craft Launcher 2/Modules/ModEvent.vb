@@ -1,4 +1,5 @@
-﻿Imports PCL.Core.App.Basics
+﻿Imports PCL.Core.App
+Imports PCL.Core.App.Basics
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Exts.StringExtension
 
@@ -274,11 +275,9 @@ Public Class CustomEvent
                     If args.Length = 2 Then Hint($"已写入设置：{args(0)} → {args(1)}", HintType.Finish)
 
                 Case EventType.修改变量, EventType.写入变量
-                    Throw New Exception("PCL CE 暂不支持变量设置...")
-                    If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 VariableName|SomeValue")
-                    'WriteReg("CustomEvent" & args(0), args(1))
+                    If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 VariableName|Value")
+                    States.CustomVariables.Add(args(0), args(1))
                     If args.Length = 2 Then Hint($"已写入变量：{args(0)} → {args(1)}", HintType.Finish)
-
                 Case Else
                     MyMsgBox("未知的事件类型：" & type & vbCrLf & "请检查事件类型填写是否正确，或者 PCL 是否为最新版本。", "事件执行失败")
             End Select
@@ -286,7 +285,15 @@ Public Class CustomEvent
             Log(ex, $"事件执行失败（{type}, {arg}）", LogLevel.Msgbox)
         End Try
     End Sub
-
+    
+    ''' <summary>
+    ''' 获取自定义变量的值。若不存在这个变量则返回 Nothing。
+    ''' </summary>
+    Public Shared Function GetCustomVariable(name As String) As String
+        If States.CustomVariables.ContainsKey(name) Then Return States.CustomVariables(name)
+        Return Nothing
+    End Function
+    
     ''' <summary>
     ''' 返回自定义事件的绝对 Url。实际返回 {绝对 Url, WorkingDir}。
     ''' 失败会抛出异常。

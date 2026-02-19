@@ -962,71 +962,72 @@ NextFile:
     ''' <summary>
     ''' 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
     ''' </summary>
-    Public Function ArgumentReplace(Text As String, Optional EscapeHandler As Func(Of String, String) = Nothing, Optional ReplaceTime As Boolean = True) As String
+    Public Function ArgumentReplace(text As String, Optional escapeHandler As Func(Of String, String) = Nothing, Optional replaceTime As Boolean = True) As String
         '预处理
-        If Text Is Nothing Then Return Nothing
-        Dim Replacer =
+        If text Is Nothing Then Return Nothing
+        Dim replacer =
         Function(s As String) As String
             If s Is Nothing Then Return ""
-            If EscapeHandler Is Nothing Then Return s
+            If escapeHandler Is Nothing Then Return s
             If s.Contains(":\") Then s = ShortenPath(s)
-            Return EscapeHandler(s)
+            Return escapeHandler(s)
         End Function
         '基础
-        Text = Text.Replace("{pcl_version}", Replacer(VersionBaseName))
-        Text = Text.Replace("{pcl_version_code}", Replacer(VersionCode))
-        Text = Text.Replace("{pcl_version_branch}", Replacer(VersionBranchName))
-        Text = Text.Replace("{pcl_branch}", Replacer(VersionBranchName))
-        Text = Text.Replace("{identify}", Replacer(UniqueAddress))
-        Text = Text.Replace("{path}", Replacer(Basics.ExecutableDirectory))
-        Text = Text.Replace("{path_with_name}", Replacer(Basics.ExecutableName))
-        Text = Text.Replace("{path_temp}", Replacer(PathTemp))
+        text = text.Replace("{pcl_version}", replacer(VersionBaseName))
+        text = text.Replace("{pcl_version_code}", replacer(VersionCode))
+        text = text.Replace("{pcl_version_branch}", replacer(VersionBranchName))
+        text = text.Replace("{pcl_branch}", replacer(VersionBranchName))
+        text = text.Replace("{identify}", replacer(UniqueAddress))
+        text = text.Replace("{path}", replacer(Basics.ExecutableDirectory))
+        text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName))
+        text = text.Replace("{path_temp}", replacer(PathTemp))
         '时间
-        If ReplaceTime Then '在窗口标题中，时间会被后续动态替换，所以此时不应该替换
-            Text = Text.Replace("{date}", Replacer(Date.Now.ToString("yyyy/M/d")))
-            Text = Text.Replace("{time}", Replacer(Date.Now.ToString("HH:mm:ss")))
+        If replaceTime Then '在窗口标题中，时间会被后续动态替换，所以此时不应该替换
+            text = text.Replace("{date}", replacer(Date.Now.ToString("yyyy/M/d")))
+            text = text.Replace("{time}", replacer(Date.Now.ToString("HH:mm:ss")))
         End If
         'Minecraft
-        Text = Text.Replace("{java}", Replacer(McLaunchJavaSelected?.Installation.JavaFolder))
-        Text = Text.Replace("{minecraft}", Replacer(McFolderSelected))
+        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.Installation.JavaFolder))
+        text = text.Replace("{minecraft}", replacer(McFolderSelected))
         If McInstanceSelected IsNot Nothing Then
-            Text = Text.Replace("{version_path}", Replacer(McInstanceSelected.PathInstance)) : Text = Text.Replace("{verpath}", Replacer(McInstanceSelected.PathInstance))
-            Text = Text.Replace("{version_indie}", Replacer(McInstanceSelected.PathIndie)) : Text = Text.Replace("{verindie}", Replacer(McInstanceSelected.PathIndie))
-            Text = Text.Replace("{name}", Replacer(McInstanceSelected.Name))
+            text = text.Replace("{version_path}", replacer(McInstanceSelected.PathInstance)) : text = text.Replace("{verpath}", replacer(McInstanceSelected.PathInstance))
+            text = text.Replace("{version_indie}", replacer(McInstanceSelected.PathIndie)) : text = text.Replace("{verindie}", replacer(McInstanceSelected.PathIndie))
+            text = text.Replace("{name}", replacer(McInstanceSelected.Name))
             If {"unknown", "old", "pending"}.Contains(McInstanceSelected.Info.VanillaName) Then
-                Text = Text.Replace("{version}", Replacer(McInstanceSelected.Name))
+                text = text.Replace("{version}", replacer(McInstanceSelected.Name))
             Else
-                Text = Text.Replace("{version}", Replacer(McInstanceSelected.Info.VanillaName))
+                text = text.Replace("{version}", replacer(McInstanceSelected.Info.VanillaName))
             End If
         Else
-            Text = Text.Replace("{version_path}", Replacer(Nothing)) : Text = Text.Replace("{verpath}", Replacer(Nothing))
-            Text = Text.Replace("{version_indie}", Replacer(Nothing)) : Text = Text.Replace("{verindie}", Replacer(Nothing))
-            Text = Text.Replace("{name}", Replacer(Nothing))
-            Text = Text.Replace("{version}", Replacer(Nothing))
+            text = text.Replace("{version_path}", replacer(Nothing)) : text = text.Replace("{verpath}", replacer(Nothing))
+            text = text.Replace("{version_indie}", replacer(Nothing)) : text = text.Replace("{verindie}", replacer(Nothing))
+            text = text.Replace("{name}", replacer(Nothing))
+            text = text.Replace("{version}", replacer(Nothing))
         End If
         '验证信息
         If McLoginLoader.State = LoadState.Finished Then
-            Text = Text.Replace("{user}", Replacer(McLoginLoader.Output.Name))
-            Text = Text.Replace("{uuid}", Replacer(McLoginLoader.Output.Uuid.ToLower))
+            text = text.Replace("{user}", replacer(McLoginLoader.Output.Name))
+            text = text.Replace("{uuid}", replacer(McLoginLoader.Output.Uuid.ToLower))
             Select Case McLoginLoader.Input.Type
                 Case McLoginType.Legacy
-                    Text = Text.Replace("{login}", Replacer("离线"))
+                    text = text.Replace("{login}", replacer("离线"))
                 Case McLoginType.Ms
-                    Text = Text.Replace("{login}", Replacer("正版"))
+                    text = text.Replace("{login}", replacer("正版"))
                 Case McLoginType.Auth
-                    Text = Text.Replace("{login}", Replacer("Authlib-Injector"))
+                    text = text.Replace("{login}", replacer("Authlib-Injector"))
             End Select
         Else
-            Text = Text.Replace("{user}", Replacer(Nothing))
-            Text = Text.Replace("{uuid}", Replacer(Nothing))
-            Text = Text.Replace("{login}", Replacer(Nothing))
+            text = text.Replace("{user}", replacer(Nothing))
+            text = text.Replace("{uuid}", replacer(Nothing))
+            text = text.Replace("{login}", replacer(Nothing))
         End If
         '高级
-        Text = Text.RegexReplaceEach("\{hint\}", Function() Replacer(PageToolsTest.GetRandomHint()))
-        Text = Text.RegexReplaceEach("\{cave\}", Function() Replacer(PageToolsTest.GetRandomCave()))
-        Text = Text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) Replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceSelected)))
-        Text = Text.RegexReplaceEach("\{varible:([^\}]+)\}", Function(m) Replacer(ReadReg("CustomEvent" & m.Groups(1).Value, Nothing)))
-        Return Text
+        text = text.RegexReplaceEach("\{hint\}", Function() replacer(PageToolsTest.GetRandomHint()))
+        text = text.RegexReplaceEach("\{cave\}", Function() replacer(PageToolsTest.GetRandomCave()))
+        text = text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceSelected)))
+        text = text.RegexReplaceEach("\{varible:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
+        text = text.RegexReplaceEach("\{variable:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
+        Return text
     End Function
 #End Region
 

@@ -1,4 +1,5 @@
-﻿using PCL.Core.App.Configuration;
+﻿using System.Collections.Generic;
+using PCL.Core.App.Configuration;
 
 namespace PCL.Core.App;
 
@@ -12,6 +13,11 @@ public static partial class States
     /// 唯一标识符。
     /// </summary>
     [ConfigItem<string>("Identify", "")] public static partial string Identifier { get; set; }
+    
+    /// <summary>
+    /// 自定义变量。
+    /// </summary>
+    [AnyConfigItem<Dictionary<string, string>>("CustomVariables", ConfigSource.Local)] public static partial Dictionary<string, string> CustomVariables { get; set; }
 
     /// <summary>
     /// 提示状态。
