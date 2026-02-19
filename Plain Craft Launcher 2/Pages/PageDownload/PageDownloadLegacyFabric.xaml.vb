@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadLegacyFabric
+Public Class PageDownloadLegacyFabric
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlLegacyFabricListLoader, AddressOf Load_OnFinish)

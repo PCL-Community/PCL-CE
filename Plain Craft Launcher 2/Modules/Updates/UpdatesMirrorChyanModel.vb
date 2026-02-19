@@ -1,4 +1,4 @@
-﻿Imports System.Net.Http
+Imports System.Net.Http
 Imports PCL.Core.Net
 Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils

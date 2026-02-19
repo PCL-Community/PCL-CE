@@ -1,4 +1,4 @@
-﻿Public Module ModVideoBack
+Public Module ModVideoBack
     Public Class BooleanEventArgs
         Inherits EventArgs
         Public Property Value As Boolean

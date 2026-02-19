@@ -1,4 +1,4 @@
-﻿Public Class VersionDataModel
+Public Class VersionDataModel
     Public VersionName As String
     Public VersionCode As Integer
     Public SHA256 As String

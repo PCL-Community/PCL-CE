@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadQuilt
+Public Class PageDownloadQuilt
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlQuiltListLoader, AddressOf Load_OnFinish)

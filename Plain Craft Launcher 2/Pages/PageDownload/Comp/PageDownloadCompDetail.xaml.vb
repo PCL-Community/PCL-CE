@@ -1,4 +1,4 @@
-﻿
+
 Imports PCL.Core.UI
 
 Public Class PageDownloadCompDetail

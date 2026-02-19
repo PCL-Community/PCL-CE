@@ -1,4 +1,4 @@
-﻿Imports System.Collections.ObjectModel
+Imports System.Collections.ObjectModel
 Imports System.Text.Json.Serialization
 Imports PCL.Core.Net.Http.Client
 Public Class PageSetupAbout

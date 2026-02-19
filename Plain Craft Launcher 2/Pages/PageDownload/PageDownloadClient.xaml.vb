@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadClient
+Public Class PageDownloadClient
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanBack, Nothing, DlClientListLoader, AddressOf Load_OnFinish)

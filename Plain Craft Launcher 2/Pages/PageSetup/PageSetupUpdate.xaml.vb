@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.App
+Imports PCL.Core.App
 Imports PCL.Core.Utils
 
 Public Class PageSetupUpdate

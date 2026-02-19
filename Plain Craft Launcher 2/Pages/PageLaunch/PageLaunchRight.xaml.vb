@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.App
 Public Class PageLaunchRight
     Implements IRefreshable

@@ -1,4 +1,4 @@
-﻿
+
 
 Public Class PageSpeedLeft
     Private Const WatcherInterval As Integer = 300

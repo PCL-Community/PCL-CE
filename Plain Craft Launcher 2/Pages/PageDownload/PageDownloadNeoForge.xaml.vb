@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadNeoForge
+Public Class PageDownloadNeoForge
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlNeoForgeListLoader, AddressOf Load_OnFinish)

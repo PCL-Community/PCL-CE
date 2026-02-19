@@ -1,4 +1,4 @@
-﻿Public Class MyMenuItem
+Public Class MyMenuItem
     Inherits MenuItem
 
     Private Sub MyMenuItem_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded

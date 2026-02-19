@@ -1,4 +1,4 @@
-﻿'一个万能的自动图片类型转换工具类
+'一个万能的自动图片类型转换工具类
 
 Imports System.Drawing.Imaging
 Imports PCL.Core.UI.Media

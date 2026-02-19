@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Logging
+Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Codecs

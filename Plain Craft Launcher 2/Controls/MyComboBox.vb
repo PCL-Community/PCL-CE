@@ -1,4 +1,4 @@
-﻿Public Class MyComboBox
+Public Class MyComboBox
     Inherits ComboBox
     Public Event TextChanged(sender As Object, e As TextChangedEventArgs)
 

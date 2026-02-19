@@ -1,4 +1,4 @@
-﻿Imports System.Windows
+Imports System.Windows
 Imports PCL.Core.App
 Imports PCL.Core.Utils
 

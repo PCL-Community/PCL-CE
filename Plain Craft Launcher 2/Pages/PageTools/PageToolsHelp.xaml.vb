@@ -1,4 +1,4 @@
-﻿Public Class PageToolsHelp
+Public Class PageToolsHelp
     Implements IRefreshable
 
 #Region "初始化"

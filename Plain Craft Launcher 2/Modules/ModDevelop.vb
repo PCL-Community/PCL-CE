@@ -1,4 +1,4 @@
-﻿Public Module ModDevelop
+Public Module ModDevelop
 
 #If DEBUGRESERVED Then
     Public Sub Start()

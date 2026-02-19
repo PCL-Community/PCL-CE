@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Markup
+Imports System.Windows.Markup
 Imports PCL.Core.App
 Imports PCL.Core.UI.Theme
 

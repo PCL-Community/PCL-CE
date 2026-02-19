@@ -1,4 +1,4 @@
-﻿Public Class PageLogLeft
+Public Class PageLogLeft
     Public ShownLogs As New List(Of KeyValuePair(Of Integer, Watcher))
     Public FlowDocuments As New Dictionary(Of Integer, FlowDocument)
     Public CurrentUuid As Integer

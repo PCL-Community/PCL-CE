@@ -1,4 +1,4 @@
-﻿Public Class MySlider
+Public Class MySlider
 
     '基础
 

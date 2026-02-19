@@ -1,4 +1,4 @@
-﻿Public Class PageToolsLeft
+Public Class PageToolsLeft
 
     Private IsLoad As Boolean = False
     Private IsPageSwitched As Boolean = False '如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次

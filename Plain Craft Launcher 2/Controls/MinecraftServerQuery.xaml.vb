@@ -1,4 +1,4 @@
-﻿
+
 
 Class MinecraftServerQuery
     Inherits Grid

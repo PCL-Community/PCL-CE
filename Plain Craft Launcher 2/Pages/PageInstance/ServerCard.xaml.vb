@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Controls.Primitives
+Imports System.Windows.Controls.Primitives
 Imports PCL.Core.UI
 Imports PCL.Core.UI.Theme
 

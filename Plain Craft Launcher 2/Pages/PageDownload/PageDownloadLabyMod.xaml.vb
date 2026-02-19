@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadLabyMod
+Public Class PageDownloadLabyMod
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlLabyModListLoader, AddressOf Load_OnFinish)

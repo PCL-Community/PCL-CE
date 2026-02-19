@@ -1,4 +1,4 @@
-﻿Imports System.Collections.ObjectModel
+Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Threading.Tasks
 Imports fNbt

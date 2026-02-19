@@ -1,4 +1,4 @@
-﻿Imports System.Threading.Tasks
+Imports System.Threading.Tasks
 Imports PCL.Core.Link
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI

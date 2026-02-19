@@ -1,4 +1,4 @@
-﻿Public Class PageLoginMs
+Public Class PageLoginMs
     Private Sub BtnBack_Click(sender As Object, e As EventArgs) Handles BtnBack.Click
         RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
     End Sub

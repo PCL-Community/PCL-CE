@@ -1,4 +1,4 @@
-﻿Public Enum UpdateChannel
+Public Enum UpdateChannel
     stable
     beta
 End Enum

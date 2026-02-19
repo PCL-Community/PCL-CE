@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.IO
+Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 

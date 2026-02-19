@@ -1,4 +1,4 @@
-﻿Imports PCL.MyLoading
+Imports PCL.MyLoading
 
 Public Class MyLoading
 

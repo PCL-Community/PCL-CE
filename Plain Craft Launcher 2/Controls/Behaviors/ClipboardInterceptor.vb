@@ -1,4 +1,4 @@
-﻿' Author: uye (owner of the MaaAssistantArknights team)
+' Author: uye (owner of the MaaAssistantArknights team)
 ' Original Source: MaaAssistantArknights project - https://github.com/MaaAssistantArknights/MaaAssistantArknights
 ' License: Apache License 2.0 (this file only)
 '

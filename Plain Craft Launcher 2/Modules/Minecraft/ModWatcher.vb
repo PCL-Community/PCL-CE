@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Logging
+Imports PCL.Core.Logging
 Imports PCL.Core.Utils.Exts
 
 Public Module ModWatcher

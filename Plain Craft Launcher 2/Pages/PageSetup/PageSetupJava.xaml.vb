@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
 Public Class PageSetupJava

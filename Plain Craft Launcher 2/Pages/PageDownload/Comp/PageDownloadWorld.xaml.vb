@@ -1,2 +1,2 @@
-﻿Public Class PageDownloadWorld
+Public Class PageDownloadWorld
 End Class

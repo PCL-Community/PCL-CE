@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadOptiFine
+Public Class PageDownloadOptiFine
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlOptiFineListLoader, AddressOf Load_OnFinish)

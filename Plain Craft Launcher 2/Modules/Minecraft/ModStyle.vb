@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.UI.Controls
+Imports PCL.Core.UI.Controls
 
 Module ModStyle
     

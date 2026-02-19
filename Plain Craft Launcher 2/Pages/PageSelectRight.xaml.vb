@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Threading
+Imports System.Windows.Threading
 Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.App.Configuration.Storage

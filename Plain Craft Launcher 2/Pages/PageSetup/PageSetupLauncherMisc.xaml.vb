@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.App
+Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.Exts

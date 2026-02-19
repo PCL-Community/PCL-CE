@@ -1,4 +1,4 @@
-﻿Imports System.Collections.Concurrent
+Imports System.Collections.Concurrent
 Imports System.Net.Http
 Imports System.Threading.Tasks
 Imports Dapper

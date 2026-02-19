@@ -1,4 +1,4 @@
-﻿Imports System.Collections.ObjectModel
+Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
 Imports PCL.Core.Utils.Exts
 

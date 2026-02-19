@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadCleanroom
+Public Class PageDownloadCleanroom
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlCleanroomListLoader, AddressOf Load_OnFinish)

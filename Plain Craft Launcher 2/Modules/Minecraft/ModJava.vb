@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Minecraft
+Imports PCL.Core.Minecraft
 Imports PCL.Core.App
 Imports System.Text.Json
 Imports PCL.Core.Utils.Exts

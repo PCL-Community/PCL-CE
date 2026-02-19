@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadLeft
+Public Class PageDownloadLeft
     Implements IRefreshable
 
 #Region "页面切换"

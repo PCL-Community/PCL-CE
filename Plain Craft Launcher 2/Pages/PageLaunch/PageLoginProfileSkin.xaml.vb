@@ -1,4 +1,4 @@
-﻿Class PageLoginProfileSkin
+Class PageLoginProfileSkin
     Public Sub New()
         InitializeComponent()
     End Sub

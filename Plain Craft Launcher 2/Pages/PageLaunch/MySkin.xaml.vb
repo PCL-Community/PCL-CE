@@ -1,4 +1,4 @@
-﻿Imports System.Drawing
+Imports System.Drawing
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 

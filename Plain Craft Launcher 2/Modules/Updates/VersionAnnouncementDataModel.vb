@@ -1,4 +1,4 @@
-﻿Public Class VersionAnnouncementDataModel
+Public Class VersionAnnouncementDataModel
     Public Property content As List(Of VersionAnnouncementContentModel)
 End Class
 

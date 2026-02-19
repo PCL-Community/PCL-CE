@@ -1,4 +1,4 @@
-﻿Imports System.Globalization
+Imports System.Globalization
 Imports System.IO.Compression
 Imports PCL.Core.App
 Imports PCL.Core.Logging

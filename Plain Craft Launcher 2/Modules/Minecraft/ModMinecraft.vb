@@ -1,4 +1,4 @@
-﻿Imports System.IO.Compression
+Imports System.IO.Compression
 Imports System.Text.Json.Nodes
 Imports PCL.Core.App
 Imports PCL.Core.UI

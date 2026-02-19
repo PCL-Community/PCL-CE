@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Link.EasyTier
+Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link

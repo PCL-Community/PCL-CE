@@ -1,4 +1,4 @@
-﻿Public Class AnimatedBackgroundGrid
+Public Class AnimatedBackgroundGrid
     Inherits Grid
 
     Public ReadOnly Uuid As Integer = GetUuid()

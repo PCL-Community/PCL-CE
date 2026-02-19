@@ -1,4 +1,4 @@
-﻿Imports fNbt
+Imports fNbt
 
 Class PageInstanceSavesInfo
     Implements IRefreshable

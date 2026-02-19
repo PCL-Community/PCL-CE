@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualBasic.FileIO
+Imports Microsoft.VisualBasic.FileIO
 Imports System.IO
 
 Public Class PageInstanceSaves

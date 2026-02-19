@@ -1,4 +1,4 @@
-﻿Public Class MyIconButton
+Public Class MyIconButton
 
     '自定义事件
     Public Event Click(sender As Object, e As EventArgs)

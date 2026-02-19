@@ -1,4 +1,4 @@
-﻿Public Class MyScrollViewer
+Public Class MyScrollViewer
     Inherits ScrollViewer
 
     Public Property DeltaMult As Double = 1

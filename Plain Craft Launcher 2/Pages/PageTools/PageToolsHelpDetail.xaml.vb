@@ -1,4 +1,4 @@
-﻿Public Class PageOtherHelpDetail
+Public Class PageOtherHelpDetail
     Implements IRefreshable
     Public Entry As HelpEntry
 

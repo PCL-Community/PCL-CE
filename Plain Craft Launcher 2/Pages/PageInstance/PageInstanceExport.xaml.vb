@@ -1,4 +1,4 @@
-﻿Imports System.IO.Compression
+Imports System.IO.Compression
 Imports PCL.Core.UI
 
 Public Class ExportOption

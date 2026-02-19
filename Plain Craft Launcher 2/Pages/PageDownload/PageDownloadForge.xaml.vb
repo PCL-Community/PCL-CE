@@ -1,4 +1,4 @@
-﻿Public Class PageDownloadForge
+Public Class PageDownloadForge
 
     Private Sub LoaderInit() Handles Me.Initialized
         PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlForgeListLoader, AddressOf Load_OnFinish)
