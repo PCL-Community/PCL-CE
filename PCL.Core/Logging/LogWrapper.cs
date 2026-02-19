@@ -40,9 +40,9 @@ public static class LogWrapper
 
     public static Logger CurrentLogger => LogService.Logger;
 
-    private static Lazy<LoggerFactoryAdapter> _loggerFactory = new(static () =>
+    private static readonly Lazy<LoggerFactoryAdapter> _LoggerFactory = new(static () =>
     {
         return new LoggerFactoryAdapter(CurrentLogger);
     });
-    public static LoggerFactoryAdapter LoggerFactory => _loggerFactory.Value;
+    public static LoggerFactoryAdapter LoggerFactory => _LoggerFactory.Value;
 }
