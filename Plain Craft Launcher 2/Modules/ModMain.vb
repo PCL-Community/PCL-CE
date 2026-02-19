@@ -987,7 +987,7 @@ NextFile:
             Text = Text.Replace("{time}", Replacer(Date.Now.ToString("HH:mm:ss")))
         End If
         'Minecraft
-        Text = Text.Replace("{java}", Replacer(McLaunchJavaSelected?.JavaFolder))
+        Text = Text.Replace("{java}", Replacer(McLaunchJavaSelected?.Installation.JavaFolder))
         Text = Text.Replace("{minecraft}", Replacer(McFolderSelected))
         If McInstanceSelected IsNot Nothing Then
             Text = Text.Replace("{version_path}", Replacer(McInstanceSelected.PathInstance)) : Text = Text.Replace("{verpath}", Replacer(McInstanceSelected.PathInstance))

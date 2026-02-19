@@ -61,15 +61,15 @@
                         <ColumnDefinition Width="150" />
                     </Grid.ColumnDefinitions>
                     <local:MyListItem Title="bangbang93" Margin="-5,0,15,0" IsHitTestVisible="False" Info="提供 BMCLAPI 镜像源和 Forge 安装工具，详见 https://bmclapi.bangbang93.com" Grid.Row="0" Grid.Column="1" />
-                    <local:MyButton Text="赞助镜像源" Grid.Row="0" Grid.Column="2" Height="35" EventType="打开网页" EventData="https://afdian.com/a/bangbang93" />
+                    <local:MyButton Text="赞助镜像源" Grid.Row="0" Grid.Column="2" Height="35" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://afdian.com/a/bangbang93" />
                     <local:MyListItem Title="MC 百科" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了 Mod 名称的中文翻译和更多相关信息！" Grid.Row="1" Grid.Column="1" />
-                    <local:MyButton Text="打开百科" Grid.Row="1" Grid.Column="2" Height="35" EventType="打开网页" EventData="https://www.mcmod.cn" />
+                    <local:MyButton Text="打开百科" Grid.Row="1" Grid.Column="2" Height="35" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://www.mcmod.cn" />
                     <local:MyListItem Title="Pysio @ Akaere Network" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了 PCL CE 的相关云服务" Grid.Row="2" Grid.Column="1" />
-                    <local:MyButton Text="转到博客" Grid.Row="2" Grid.Column="2" Height="35" EventType="打开网页" EventData="https://www.pysio.online" />
+                    <local:MyButton Text="转到博客" Grid.Row="2" Grid.Column="2" Height="35" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://www.pysio.online" />
                     <local:MyListItem Title="云默安 @ 至远光辉" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了 PCL CE 的相关云服务" Grid.Row="3" Grid.Column="1" />
-                    <local:MyButton Text="打开网站" Grid.Row="3" Grid.Column="2" Height="35" EventType="打开网页" EventData="https://www.zyghit.cn" />
+                    <local:MyButton Text="打开网站" Grid.Row="3" Grid.Column="2" Height="35" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://www.zyghit.cn" />
                     <local:MyListItem Title="EasyTier" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了联机模块" Grid.Row="4" Grid.Column="1" />
-                    <local:MyButton Text="打开网站" Grid.Row="4" Grid.Column="2" Height="35" EventType="打开网页" EventData="https://easytier.cn" />
+                    <local:MyButton Text="打开网站" Grid.Row="4" Grid.Column="2" Height="35" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://easytier.cn" />
                     <local:MyListItem Title="z0z0r4" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了 MCIM 中国 Mod 下载镜像源和帮助库图床！" Grid.Row="5" Grid.Column="1" />
                     <local:MyListItem Title="00ll00" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="提供了 Java Launch Wrapper 和一些重要服务支持！" Grid.Row="6" Grid.Column="1" />
                     <local:MyListItem Title="Patrick" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2" Info="设计并制作了 PCL 图标，让龙猫从做图标的水深火热中得到了解脱……" Grid.Row="7" Grid.Column="1" />
