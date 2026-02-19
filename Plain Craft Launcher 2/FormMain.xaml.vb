@@ -1,4 +1,4 @@
-﻿Imports System.ComponentModel
+Imports System.ComponentModel
 Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
