@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.Launch.Services.Authentication;
+namespace PCL.Core.Minecraft.Launch.Services.Authentication;
 
 public enum McLoginType {
     Ms,

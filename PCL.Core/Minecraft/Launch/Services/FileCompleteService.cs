@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.Launch.Services;
+namespace PCL.Core.Minecraft.Launch.Services;
 
 // TODO: 实例下载
 /*

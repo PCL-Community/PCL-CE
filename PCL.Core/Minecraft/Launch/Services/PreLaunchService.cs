@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Instance.Interface;

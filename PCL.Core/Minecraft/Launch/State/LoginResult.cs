@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.Launch.State;
+namespace PCL.Core.Minecraft.Launch.State;
 /*
 /// <summary>
 /// Minecraft 登录结果

@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;

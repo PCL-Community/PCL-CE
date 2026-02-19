@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft.Instance.Interface;
 using PCL.Core.Minecraft.Launch.Services;

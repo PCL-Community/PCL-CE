@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using PCL.Core.App;
 using PCL.Core.Minecraft.Instance.Interface;
