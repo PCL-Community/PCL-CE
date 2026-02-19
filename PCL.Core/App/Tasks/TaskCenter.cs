@@ -32,7 +32,7 @@ public static class TaskCenter
             Title = instance.Title,
             SupportProgress = progressive != null,
             OnCancel = cancelable == null ? null : (() => cancelable.Cancel()),
-            OnPause = pausable == null ? null : (() => pausable.OnPause()),
+            OnPause = pausable == null ? null : (() => pausable.Pause()),
         };
 
         // state event

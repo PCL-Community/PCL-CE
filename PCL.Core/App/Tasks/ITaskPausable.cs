@@ -5,5 +5,5 @@ namespace PCL.Core.App.Tasks;
 /// </summary>
 public interface ITaskPausable
 {
-    public void OnPause();
+    public void Pause();
 }
