@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Animation.ValueProcessor;

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Cli;
+namespace PCL.Core.App.Cli;
 
 public class TextArgument : CommandArgument<string>
 {

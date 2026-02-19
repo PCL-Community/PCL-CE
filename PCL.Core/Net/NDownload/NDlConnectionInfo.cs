@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Net.NDownload;
+namespace PCL.Core.Net.NDownload;
 
 /// <summary>
 /// 下载连接信息。

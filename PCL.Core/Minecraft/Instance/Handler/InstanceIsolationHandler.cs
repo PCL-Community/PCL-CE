@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;

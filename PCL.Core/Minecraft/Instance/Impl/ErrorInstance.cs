@@ -1,4 +1,4 @@
-﻿using PCL.Core.App;
+using PCL.Core.App;
 using PCL.Core.Minecraft.Folder;
 using PCL.Core.Minecraft.Instance.Handler;
 using PCL.Core.Minecraft.Instance.Interface;

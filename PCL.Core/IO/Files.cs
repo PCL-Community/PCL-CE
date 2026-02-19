@@ -1,4 +1,4 @@
-﻿using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;

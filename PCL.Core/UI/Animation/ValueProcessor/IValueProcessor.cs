@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.ValueProcessor;
+namespace PCL.Core.UI.Animation.ValueProcessor;
 
 /// <summary>
 /// 数值处理器。

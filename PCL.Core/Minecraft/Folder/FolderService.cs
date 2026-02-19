@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using PCL.Core.App;
 namespace PCL.Core.Minecraft.Folder;
 

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using PCL.Core.UI.Animation.Animatable;
 
 namespace PCL.Core.UI.Animation.Core;

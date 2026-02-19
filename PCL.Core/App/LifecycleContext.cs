@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PCL.Core.Logging;
 
 namespace PCL.Core.App;

@@ -1,4 +1,4 @@
-﻿// reshaper disable all
+// reshaper disable all
 #pragma warning disable all
 
 using System;

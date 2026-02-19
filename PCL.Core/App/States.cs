@@ -1,4 +1,4 @@
-﻿using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration;
 
 namespace PCL.Core.App;
 

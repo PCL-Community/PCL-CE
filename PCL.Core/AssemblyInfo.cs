@@ -1,4 +1,4 @@
-﻿using System.Windows.Markup;
+using System.Windows.Markup;
 
 [assembly: XmlnsDefinition("https://ce.pclc.cc/core/ui/animation", "PCL.Core.UI.Animation")]
 [assembly: XmlnsDefinition("https://ce.pclc.cc/core/ui/animation", "PCL.Core.UI.Animation.Core")]

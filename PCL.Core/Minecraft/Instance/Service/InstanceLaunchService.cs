@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.Instance.Service;
+namespace PCL.Core.Minecraft.Instance.Service;
 
 // TODO: 交给实例下载来做
 /*

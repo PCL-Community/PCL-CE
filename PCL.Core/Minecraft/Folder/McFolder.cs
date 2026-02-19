@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PCL.Core.Minecraft.Instance;
 
 namespace PCL.Core.Minecraft.Folder;

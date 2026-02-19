@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Tasks;
+namespace PCL.Core.App.Tasks;
 
 /// <summary>
 /// 状态值改变处理。

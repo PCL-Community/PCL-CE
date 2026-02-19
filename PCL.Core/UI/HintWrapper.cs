@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI;
+namespace PCL.Core.UI;
 
 public enum HintTheme
 {

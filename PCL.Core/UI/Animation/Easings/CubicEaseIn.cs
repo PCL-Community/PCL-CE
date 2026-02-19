@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Easings;
+namespace PCL.Core.UI.Animation.Easings;
 
 public class CubicEaseIn : Easing
 {

@@ -1,4 +1,4 @@
-﻿using PCL.Core.UI.Animation.Animatable;
+using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 
 namespace PCL.Core.UI.Animation;

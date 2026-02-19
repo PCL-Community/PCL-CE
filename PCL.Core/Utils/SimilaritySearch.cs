@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Utils;
+namespace PCL.Core.Utils;
 
 using System;
 using System.Collections.Generic;

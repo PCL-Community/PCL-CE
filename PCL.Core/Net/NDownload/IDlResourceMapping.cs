@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Net.NDownload;
+namespace PCL.Core.Net.NDownload;
 
 /// <summary>
 /// 资源 ID 映射。

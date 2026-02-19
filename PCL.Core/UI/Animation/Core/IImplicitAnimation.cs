@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Core;
+namespace PCL.Core.UI.Animation.Core;
 
 public interface IImplicitAnimation
 {
