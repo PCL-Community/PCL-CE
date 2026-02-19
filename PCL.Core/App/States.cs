@@ -120,7 +120,7 @@ public static partial class States
         /// <summary>
         /// 数据包更新警告。
         /// </summary>
-        [ConfigItem<bool>("UiHiddenFunctionDatapackUpdate",false)]public partial bool FunctionDatapackUpdate { get; set; }
+        [ConfigItem<bool>("HintDatapackUpdate",false)] public partial bool FunctionDatapackUpdate { get; set; }
     }
 
     /// <summary>
