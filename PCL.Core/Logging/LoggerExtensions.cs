@@ -89,29 +89,19 @@ public static class LoggerExtensions
     /// </summary>
     public static IDisposable LogPerformance(this ILogger logger, string operationName)
     {
-        var startTime = DateTime.UtcNow;
         logger.LogInformation("开始执行: {OperationName}", operationName);
         
-        return new PerformanceLoggerDisposable(logger, operationName, startTime);
+        return new PerformanceLoggerDisposable(logger, operationName);
     }
 
-    private class PerformanceLoggerDisposable : IDisposable
+    private class PerformanceLoggerDisposable(ILogger logger, string operationName) : IDisposable
     {
-        private readonly ILogger _logger;
-        private readonly string _operationName;
-        private readonly long _startTime;
-
-        public PerformanceLoggerDisposable(ILogger logger, string operationName, DateTime startTime)
-        {
-            _logger = logger;
-            _operationName = operationName;
-            _startTime = Stopwatch.GetTimestamp();
-        }
+        private readonly long _startTime = Stopwatch.GetTimestamp();
 
         public void Dispose()
         {
             var elapsed = Stopwatch.GetElapsedTime(_startTime);
-            _logger.LogInformation("完成执行: {OperationName}, 耗时: {ElapsedMs}ms", _operationName, elapsed.TotalMilliseconds);
+            logger.LogInformation("完成执行: {OperationName}, 耗时: {ElapsedMs}ms", operationName, elapsed.TotalMilliseconds);
         }
     }
 }

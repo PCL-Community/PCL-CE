@@ -11,16 +11,10 @@ namespace PCL.Core.Logging;
 /// Microsoft.Extensions.Logging.ILogger 适配器
 /// 将现有的 Logger 包装为标准的 ILogger 接口实现
 /// </summary>
-public class LoggerAdapter : ILogger
+public class LoggerAdapter(Logger logger, string categoryName) : ILogger
 {
-    private readonly Logger _innerLogger;
-    private readonly string _categoryName;
-
-    public LoggerAdapter(Logger logger, string categoryName)
-    {
-        _innerLogger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _categoryName = categoryName ?? throw new ArgumentNullException(nameof(categoryName));
-    }
+    private readonly Logger _innerLogger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly string _categoryName = categoryName ?? throw new ArgumentNullException(nameof(categoryName));
 
     private static readonly AsyncLocal<Stack<object>> _ScopeStack = new();
 
@@ -31,26 +25,20 @@ public class LoggerAdapter : ILogger
         return new ScopeDisposable(state);
     }
 
-    private class ScopeDisposable : IDisposable
+    private class ScopeDisposable(object state) : IDisposable
     {
-        private readonly object _state;
         private bool _disposed;
-
-        public ScopeDisposable(object state)
-        {
-            _state = state;
-        }
 
         public void Dispose()
         {
             if (_disposed)
                 return;
 
-            if (_ScopeStack.Value != null && _ScopeStack.Value.Count > 0)
+            if (_ScopeStack.Value is { Count: > 0 })
             {
                 var popped = _ScopeStack.Value.Pop();
 #if DEBUG
-                if (!ReferenceEquals(popped, _state))
+                if (!ReferenceEquals(popped, state))
                 {
                     throw new InvalidOperationException("Scope disposal order mismatch.");
                 }
