@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 
-public class PreLaunchService(IMcInstance instance, JavaInfo selectedJava) {
+public class PreLaunchService(IMcInstance instance, JavaEntry selectedJava) {
     private static readonly SemaphoreSlim GpuAdjustmentSemaphore = new(1, 1);
 
     public async Task McLaunchPrerunAsync(CancellationToken cancellationToken = default) {
@@ -129,7 +129,7 @@ public class PreLaunchService(IMcInstance instance, JavaInfo selectedJava) {
         await GpuAdjustmentSemaphore.WaitAsync(cancellationToken);
 
         try {
-            ProcessInterop.SetGpuPreference(selectedJava.JavawExePath, Config.Launch.SetGpuPreference);
+            ProcessInterop.SetGpuPreference(selectedJava.Installation.JavawExePath ?? selectedJava.Installation.JavaExePath, Config.Launch.SetGpuPreference);
         } catch (Exception ex) {
             await HandleGpuAdjustmentFailureAsync(ex, cancellationToken);
         }
@@ -144,7 +144,7 @@ public class PreLaunchService(IMcInstance instance, JavaInfo selectedJava) {
         LogWrapper.Warn(originalException, "Failed to adjust GPU settings directly, restarting PCL with admin privileges to retry");
 
         try {
-            var process = ProcessInterop.StartAsAdmin($"--gpu \"{selectedJava.JavawExePath}\"");
+            var process = ProcessInterop.StartAsAdmin($"--gpu \"{selectedJava.Installation.JavawExePath ?? selectedJava.Installation.JavaExePath}\"");
             if (process == null) {
                 throw new InvalidOperationException("Failed to start admin process");
             }

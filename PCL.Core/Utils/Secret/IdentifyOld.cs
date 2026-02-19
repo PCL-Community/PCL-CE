@@ -3,6 +3,7 @@ using System.Management;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Hash;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Secret;
 
@@ -13,12 +14,12 @@ public static class IdentifyOld
     private static readonly Lazy<string?> _LazyCpuId = new(_GetCpuId);
 
     private static readonly Lazy<string> _LazyRawCode =
-        new(() => CpuId is null ? DefaultRawCode : SHA256Provider.Instance.ComputeHash(CpuId).ToUpper());
+        new(() => CpuId is null ? DefaultRawCode : SHA256Provider.Instance.ComputeHash(CpuId).ToHexString().ToUpper());
 
     private static readonly Lazy<string> _LaunchId = new(_GetLaunchId);
 
     private static readonly Lazy<string> _LazyEncryptKey =
-        new(() => SHA512Provider.Instance.ComputeHash(RawCode).Substring(4, 32).ToUpper());
+        new(() => SHA512Provider.Instance.ComputeHash(RawCode).ToHexString().Substring(4, 32).ToUpper());
 
     public static string GetGuid() => Guid.NewGuid().ToString();
     [Obsolete]
@@ -78,7 +79,7 @@ public static class IdentifyOld
 
     public static string GetMachineId(string randomId)
     {
-        return SHA512Provider.Instance.ComputeHash($"{randomId}|{CpuId}").ToUpper();
+        return SHA512Provider.Instance.ComputeHash($"{randomId}|{CpuId}").ToHexString().ToUpper();
     }
 
     private static string _GetLaunchId()

@@ -1,8 +1,11 @@
-﻿namespace PCL.Core.App.Configuration;
+﻿using System;
+
+namespace PCL.Core.App.Configuration;
 
 /// <summary>
 /// 配置项事件。
 /// </summary>
+[Flags]
 public enum ConfigEvent
 {
     /// <summary>

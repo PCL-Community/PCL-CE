@@ -36,7 +36,7 @@ body:
     description: "详细描述你为什么需要这项优化，这有助于开发者评估它的优先度。"
     placeholder: |
       示例：
-      这项优化让我可以更方便地xxxx。
-      如果没有这项优化，我每次都必须xxxx，让操作变得很麻烦。
+      这项优化让我可以更方便地 xxxx。
+      如果没有这项优化，我每次都必须 xxxx，让操作变得很麻烦。
   validations:
     required: false
