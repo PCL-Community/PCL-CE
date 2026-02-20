@@ -118,7 +118,7 @@ public class HttpRouteResponse
     /// <param name="contentType">内容 MIME 类型</param>
     /// <param name="encoding">响应流使用的字符编码，默认为 UTF-8</param>
     public static HttpRouteResponse Text(string text, string contentType = "text/plain", Encoding? encoding = null) =>
-        Input(new StringStream(text, encoding), contentType, encoding);
+        Input(new StringStream(text, encoding ?? Encoding.UTF8), contentType, encoding);
 
     /// <summary>
     /// 响应重定向。
