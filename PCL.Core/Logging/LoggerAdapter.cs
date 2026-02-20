@@ -25,6 +25,7 @@ public class LoggerAdapter(Logger logger, string categoryName) : ILogger
         return new ScopeDisposable(state);
     }
 
+#pragma warning disable CS9113 // 参数未读。
     private class ScopeDisposable(object state) : IDisposable
     {
         private bool _disposed;
@@ -36,12 +37,14 @@ public class LoggerAdapter(Logger logger, string categoryName) : ILogger
 
             if (_ScopeStack.Value is { Count: > 0 })
             {
-                var popped = _ScopeStack.Value.Pop();
 #if DEBUG
+                var popped = _ScopeStack.Value.Pop();
                 if (!ReferenceEquals(popped, state))
                 {
                     throw new InvalidOperationException("Scope disposal order mismatch.");
                 }
+#else
+                _ = _ScopeStack.Value.Pop();
 #endif
             }
 
