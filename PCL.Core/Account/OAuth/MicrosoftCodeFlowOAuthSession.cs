@@ -1,6 +1,6 @@
 ﻿using PCL.Core.Logging;
-using PCL.Core.Net.Http.Client;
-using PCL.Core.Net.Http.Server;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Server;
 using System;
 using System.Net;
 using System.Net.Http;
