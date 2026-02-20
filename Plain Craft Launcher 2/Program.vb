@@ -1,4 +1,6 @@
 ﻿Imports PCL.Core.App
+Imports PCL.Core.App.Essentials
+Imports PCL.Core.App.IoC
 
 Module Program
 

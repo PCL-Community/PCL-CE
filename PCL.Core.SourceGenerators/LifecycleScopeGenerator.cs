@@ -11,12 +11,13 @@ namespace PCL.Core.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public class LifecycleScopeGenerator : IIncrementalGenerator
 {
-    private const string ScopeAttributeType = "PCL.Core.App.LifecycleScopeAttribute";
+    private const string LifecycleNamespace = "PCL.Core.App.IoC";
+    private const string ScopeAttributeType = $"{LifecycleNamespace}.LifecycleScopeAttribute";
 
-    private const string StartMethodAttributeType = "PCL.Core.App.LifecycleStartAttribute";
-    private const string StopMethodAttributeType = "PCL.Core.App.LifecycleStopAttribute";
-    private const string CommandHandlerMethodAttributeType = "PCL.Core.App.LifecycleCommandHandlerAttribute";
-    private const string DependencyInjectionMethodAttributeType = "PCL.Core.App.LifecycleDependencyInjectionAttribute";
+    private const string StartMethodAttributeType = $"{LifecycleNamespace}.LifecycleStartAttribute";
+    private const string StopMethodAttributeType = $"{LifecycleNamespace}.LifecycleStopAttribute";
+    private const string CommandHandlerMethodAttributeType = $"{LifecycleNamespace}.LifecycleCommandHandlerAttribute";
+    private const string DependencyInjectionMethodAttributeType = $"{LifecycleNamespace}.LifecycleDependencyInjectionAttribute";
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
@@ -168,7 +169,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine("using PCL.Core.App;");
+        sb.AppendLine($"using {LifecycleNamespace};");
         sb.AppendLine();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();

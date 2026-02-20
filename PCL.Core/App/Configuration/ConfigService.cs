@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using PCL.Core.App.Configuration.Storage;
-using PCL.Core.IO;
+using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
 
@@ -41,12 +41,12 @@ public sealed partial class ConfigService
     /// <summary>
     /// 全局共享配置文件路径。
     /// </summary>
-    public static string SharedConfigPath { get; } = Path.Combine(FileService.SharedDataPath, "config.v1.json");
+    public static string SharedConfigPath { get; } = Path.Combine(Paths.SharedData, "config.v1.json");
 
     /// <summary>
     /// 本地配置文件路径。
     /// </summary>
-    public static string LocalConfigPath { get; } = Path.Combine(FileService.DataPath, "config.v1.yml");
+    public static string LocalConfigPath { get; } = Path.Combine(Paths.Data, "config.v1.yml");
 
     #region Getters & Setters
 
@@ -144,8 +144,8 @@ public sealed partial class ConfigService
                 if (!File.Exists(SharedConfigPath))
                 {
                     string[] oldPaths = [
-                        Path.Combine(FileService.OldSharedDataPath, "Config.json"),
-                        Path.Combine(FileService.SharedDataPath, "config.json")
+                        Path.Combine(Paths.OldSharedData, "Config.json"),
+                        Path.Combine(Paths.SharedData, "config.json")
                     ];
                     _TryMigrate(SharedConfigPath, oldPaths.Select(path =>
                         new ConfigMigration { From = path, To = SharedConfigPath, OnMigration = SharedJsonMigration }));
@@ -162,7 +162,7 @@ public sealed partial class ConfigService
                 if (!File.Exists(LocalConfigPath)) _TryMigrate(LocalConfigPath, [
                     new ConfigMigration
                     {
-                        From = Path.Combine(FileService.DataPath, "setup.ini"),
+                        From = Path.Combine(Paths.Data, "setup.ini"),
                         To = LocalConfigPath,
                         OnMigration = CatIniMigration
                     }

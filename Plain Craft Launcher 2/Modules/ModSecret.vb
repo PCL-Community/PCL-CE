@@ -2,10 +2,7 @@ Imports System.ComponentModel
 Imports System.Management
 Imports System.Net.Http
 Imports System.Runtime.InteropServices
-Imports System.Security.Cryptography
 Imports PCL.Core.App
-Imports PCL.Core.IO
-Imports PCL.Core.UI
 Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
@@ -45,7 +42,7 @@ Friend Module ModSecret
             Dim VersionTest As New FormattedText("", Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Fonts.SystemTypefaces.First, 96, New MyColor, DPI)
         End Try
         '检测当前文件夹权限
-        Dim dataPath = FileService.DataPath
+        Dim dataPath = Paths.Data
         Try
             Directory.CreateDirectory(dataPath)
         Catch ex As Exception

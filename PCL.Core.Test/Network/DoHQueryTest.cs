@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 using Ae.Dns.Protocol.Enums;
 using Ae.Dns.Protocol.Records;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Net;
-using PCL.Core.Net.Dns;
+using PCL.Core.IO.Net.Dns;
 
 namespace PCL.Core.Test.Network;
 

@@ -1,5 +1,6 @@
 Imports System.IO
 Imports PCL.Core.App
+Imports PCL.Core.App.IoC
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 
