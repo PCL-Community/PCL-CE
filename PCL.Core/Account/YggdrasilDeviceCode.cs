@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Account;
+namespace PCL.Core.Account;
 public class YggdrasilDeviceCode
 {
 

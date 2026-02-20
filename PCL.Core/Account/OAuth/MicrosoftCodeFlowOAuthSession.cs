@@ -1,4 +1,4 @@
-﻿using PCL.Core.Logging;
+using PCL.Core.Logging;
 using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.IO.Net.Http.Server;
 using System;
@@ -31,9 +31,13 @@ public class MicrosoftCodeFlowOAuthSession(string clientId, string scope) : Logi
             if (!request.IsLocal) return HttpRouteResponse.Forbidden;
             if (request.QueryString.Get("error") == null)
             {
-                var code = request.QueryString.Get("code");
+                Code = request.QueryString.Get("code");
                 var inputState = request.QueryString.Get("state");
-                if (State != null && inputState != State) return HttpRouteResponse.BadRequest;
+                
+                if (State != null
+                    && inputState != null
+                    && inputState != State)
+                    return HttpRouteResponse.BadRequest;
                 return HttpRouteResponse.Redirect("/oauth/success");
             }
             else
@@ -89,9 +93,11 @@ public class MicrosoftCodeFlowOAuthSession(string clientId, string scope) : Logi
             var challenge = PKCE.GenerateChallenge();
             var state = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             _server.State = state;
+            state = Uri.EscapeDataString(state);
             var encodedScope = Uri.EscapeDataString(scope);
             this.AuthUrl =
                 $"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri=http://127.0.0.1:{_server.Port}/oauth/callback&response_mode=query&scope={encodedScope}&state={state}&code_challenge={challenge.Challenge}&code_challenge_method={challenge.Method}";
+            _server.Start();
             await Task.Run(() => OnStateChanged(AuthStep.PendingUser));
             await _server.WaitForCallbackAsync();
             await Task.Run(() => OnStateChanged(AuthStep.GettingCode));
@@ -110,7 +116,7 @@ public class MicrosoftCodeFlowOAuthSession(string clientId, string scope) : Logi
             this.RefreshToken = ret.RefreshToken;
             this.ExpireIn = ret.ExpiresIn;
             await Task.Run(() => OnStateChanged(AuthStep.Success));
-            _tcs.TrySetResult(new MicrosoftCodeFlowOAuth());
+            Tcs.TrySetResult(new MicrosoftCodeFlowOAuth());
         }
         catch (Exception ex)
         {

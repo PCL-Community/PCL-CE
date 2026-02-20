@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Account.OAuth;
+namespace PCL.Core.Account.OAuth;
 
 public enum AuthStep
 {
