@@ -1007,13 +1007,9 @@ Public Module ModBase
         End If
     End Function
 
-    Public Function GetHexString(bytes As Memory(Of Byte))
-        Dim sb As New StringBuilder(bytes.Length * 2)
-        For Each c In bytes.Span
-            sb.Append(c.ToString("x2"))
-        Next
-
-        Return sb.ToString()
+    Public Function GetHexString(bytes As ReadOnlyMemory(Of Byte))
+        ' 神秘的 VB 遇到 Span ReadOnlySpan 就嗷嗷叫
+        Return Convert.ToHexString(bytes.Span).ToLower()
     End Function
 
     '文件校验
