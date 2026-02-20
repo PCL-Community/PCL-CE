@@ -1349,11 +1349,12 @@ Retry:
                             Throw New Exception($"小文件缓存为空，无法合并文件（{LocalName}）。可能原因：缓存被意外清空或下载未完成。")
                         End If
                         If ModeDebug Then Log($"[Download] {LocalName}：下载结束，从缓存输出文件，长度：" & SmallFileCache.Length)
-                        If SmallFileCache.Length = 0 Then
-                            Throw New Exception($"小文件缓存长度为0，无法合并文件（{LocalName}）。")
-                        End If
-                        MergeFile = New FileStream(LocalPath, FileMode.Create)
+                        '大小可能真的是 0，需要后续校验的支持
+                        'If SmallFileCache.Length = 0 Then
+                        '    Throw New Exception($"小文件缓存长度为0，无法合并文件（{LocalName}）。")
+                        'End If
                         SmallFileCache.Seek(0, SeekOrigin.Begin)
+                        MergeFile = New FileStream(LocalPath, FileMode.Create)
                         SmallFileCache.CopyTo(MergeFile)
                         MergeFile.Dispose() : MergeFile = Nothing
                     ElseIf Threads.DownloadDone = DownloadDone AndAlso Threads.Temp IsNot Nothing Then
