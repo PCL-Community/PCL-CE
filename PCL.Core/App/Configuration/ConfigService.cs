@@ -278,11 +278,11 @@ public sealed partial class ConfigService
 #if DEBUG
             msg += "\n\n嘻嘻，连配置系统都搞不明白...真是杂鱼呢~❤️ 快修好故障重新启动吧，杂鱼~❤️杂鱼~❤️";
 #else
-            if (ex is FileInitException e)
+            if (ex is ConfigFileInitException e)
             {
-                var filePath = e.FilePath;
-                var backupPath = e.FilePath + ".failbackup";
-                var bakPath = e.FilePath + ".bak";
+                var filePath = e.Path;
+                var backupPath = e.Path + ".failbackup";
+                var bakPath = e.Path + ".bak";
                 File.Move(filePath, backupPath, true);
                 if (File.Exists(bakPath)) File.Copy(bakPath, filePath, true);
                 msg += $"\n\n配置文件 {filePath} 的内容出了问题，不出意外的话，它应当已经备份到 {backupPath} 文件中。"
