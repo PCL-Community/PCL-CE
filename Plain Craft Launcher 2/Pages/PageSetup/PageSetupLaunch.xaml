@@ -81,7 +81,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <local:MyComboBox x:Name="ComboArgumentWindowType" Tag="LaunchArgumentWindowType">
+                            <local:MyComboBox x:Name="ComboArgumentWindowType" Tag="LaunchArgumentWindowType" ToolTip="注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效">
                                 <local:MyComboBoxItem Content="全屏" />
                                 <local:MyComboBoxItem Content="默认" IsSelected="True" />
                                 <local:MyComboBoxItem Content="与启动器尺寸一致" />

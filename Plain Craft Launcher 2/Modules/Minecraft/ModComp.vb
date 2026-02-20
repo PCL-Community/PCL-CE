@@ -139,7 +139,7 @@ Public Module ModComp
 
 #Region "CompDatabase | Mod 数据库"
 
-    Private ReadOnly _dbInitializer As New Lazy(Of String)(AddressOf _InitializeAndGetConnectionString)
+    Private ReadOnly _dbInitializer As New Lazy(Of String)(AddressOf InitializeModDbAndGetConnectionString)
 
     Private ReadOnly Property CompDBConnectionString As String
         Get
@@ -147,14 +147,15 @@ Public Module ModComp
         End Get
     End Property
 
-    Private Function _InitializeAndGetConnectionString() As String
+    Private Function InitializeModDbAndGetConnectionString() As String
         Log($"[DB] 解压 ModData (SQLite) 中")
         Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
             Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
                 Using ms As New MemoryStream()
                     trueDbFile.CopyTo(ms)
                     ms.Seek(0, SeekOrigin.Begin)
-                    Dim fileHash = SHA1Provider.Instance.ComputeHash(ms)
+                    Dim fileHash = GetHexString(SHA1Provider.Instance.ComputeHash(ms))
+                    ms.Seek(0, SeekOrigin.Begin)
                     Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, $"Cache\ModData{fileHash}.sqlite"))
                     If Not File.Exists(dbPath) Then
                         Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))

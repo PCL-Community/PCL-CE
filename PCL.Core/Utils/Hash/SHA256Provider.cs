@@ -2,39 +2,39 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using PCL.Core.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PCL.Core.Utils.Hash;
 
 public class SHA256Provider : IHashProvider
 {
     public static SHA256Provider Instance { get; } = new();
-    
-    public string ComputeHash(Stream input)
-    {
-        var originalPosition = input.Position;
-        try
-        {
-            return HashResultHandler.ConvertResultToString(SHA256.HashData(input), Length);
-        }
-        catch (Exception e)
-        {
-            LogWrapper.Error(e, "Hash", "Compute SHA256 failed");
-            throw;
-        }
-        finally
-        {
-            input.Position = originalPosition;
-        }
-    }
-    public string ComputeHash(byte[] input) => HashResultHandler.ConvertResultToString(SHA256.HashData(input), Length);
-    public string ComputeHash(ReadOnlySpan<byte> input) => HashResultHandler.ConvertResultToString(SHA256.HashData(input), Length);
-
-    public string ComputeHash(string input, Encoding? en = null) => ComputeHash(
-        en == null
-            ? Encoding.UTF8.GetBytes(input)
-            : en.GetBytes(input));
-
-
     public int Length => 64;
+
+    public byte[] ComputeHash(byte[] input)
+    {
+        return SHA256.HashData(input);
+    }
+
+    public byte[] ComputeHash(ReadOnlySpan<byte> input)
+    {
+        return SHA256.HashData(input);
+    }
+
+    public byte[] ComputeHash(string input, Encoding? encoding = null)
+    {
+        encoding ??= Encoding.UTF8;
+        return ComputeHash(encoding.GetBytes(input));
+    }
+
+    public byte[] ComputeHash(Stream input)
+    {
+        return SHA256.HashData(input);
+    }
+
+    public async ValueTask<byte[]> ComputeHashAsync(Stream input, CancellationToken cancellationToken = default)
+    {
+        return await SHA256.HashDataAsync(input, cancellationToken).ConfigureAwait(false);
+    }
 }

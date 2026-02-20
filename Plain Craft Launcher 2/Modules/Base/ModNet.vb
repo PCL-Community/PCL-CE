@@ -2,11 +2,11 @@ Imports System.Net.Http
 Imports System.Threading.Tasks
 Imports System
 Imports System.Buffers
-Imports PCL.Core.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 Imports PCL.Core.Utils.TimeUtils
 Imports PCL.Core.App
+Imports PCL.Core.IO.Net
 
 Public Module ModNet
     Public Const NetDownloadEnd As String = ".PCLDownloading"

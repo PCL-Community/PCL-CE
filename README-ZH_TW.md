@@ -14,7 +14,7 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
 [![嗶哩嗶哩](https://img.shields.io/badge/貼文-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[社群版下載](https://github.com/PCL-Community/PCL2-CE/releases) |
+[社群版下載](https://github.com/PCL-Community/PCL2-CE/releases/latest) |
 [上游儲存庫](https://github.com/Meloong-Git/PCL) |
 [說明文件庫](https://github.com/PCL-Community/PCL2CEHelp)
 
@@ -33,18 +33,18 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 
 ## 💻 支援平台
 
-| 作業系統 | 支援的啟動器版本 | 環境要求 | 社群技術支援 |
-|---|---|---|---|
-| Windows 10 1809 (17763) 或更高 | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ 完整支援 |
-| Windows 8 - Windows 10 1809- (17763-) | [最新版](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ 理論能跑，但不提供社群支援 |
-| Windows 7 或更低版本 | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ 不提供社群支援 |
-| macOS / Linux / 其他作業系統 | 暫不支援 | [.NET 10 SDK](http://get.dot.net/10) | ⚠️ 僅跨平台開發支援（交叉編譯） |
+| 作業系統 | 支援情況 | 環境要求 |
+|---|---|---|
+| Windows 10 1809 (17763) 或更高 | ✅ 完整支援 | [.NET 8 Desktop Runtime](https://get.dot.net/8) |
+| Windows 8 - Windows 10 1809 (17763) 或更低 | ⚠️ 理論能跑，酌情提供社群支援 | [.NET 8 Desktop Runtime](https://get.dot.net/8) |
+| Windows 7 或更低版本 | ❌ 不支援 | / |
+| macOS / Linux / 其他作業系統 | ⚠️ 僅跨平台開發支援（交叉編譯）| [.NET 10 SDK](https://get.dot.net/10) |
 
 **✅ 完整支援**：盡可能提供一切相關支援，但必須確保啟動器為最新版本。
 
-**⚠️ 理論能跑，但不提供社群支援**：PCL CE 應該可以在這些平台上執行，但不保證功能完全可用。你必須升級到完整支援的系統版本以獲得社群技術支援。
+**⚠️ 理論能跑，酌情提供社群支援**：PCL CE 應該可以在這些平台上執行，但不保證功能完全可用。你可能需要升級到完整支援的系統版本以獲得進一步社群技術支援。
 
-**❌ 不提供社群支援**：不保證 PCL CE 在這些平台的可用性，甚至根本打不開。請升級作業系統以使用 PCL CE。
+**❌ 不支援**：PCL CE 在這些平台的可用性較低，甚至根本打不開。請升級作業系統以使用 PCL CE。
 
 **⚠️ 僅跨平台開發支援（交叉編譯）**：PCL CE 的原始碼可以在 macOS 與 Linux 平台編譯，但無法直接執行。作為開發者，你可以在這些平台上進行開發，然後將編譯產物轉移到 Windows 系統測試。
 
@@ -52,7 +52,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 社群僅對最新版本的啟動器提供支援。
 取決於部分問題的特殊性（如系統不完整），有時你仍然必須升級作業系統以繼續獲得支援。
 PCL CE 始終建議使用最新版本的作業系統以獲得最佳體驗。
-Windows 7 仍然可以嘗試使用最新版本的啟動器，但可能會遇到很多額外問題。
+你仍然可以嘗試在不受支援的系統上使用 PCL CE，但可能會遇到很多額外問題。
 
 ## 🔒 授權條款
 

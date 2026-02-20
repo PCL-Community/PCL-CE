@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
 
 namespace PCL.Core.IO.Storage;
@@ -24,7 +25,7 @@ public class HashStorage(string folder, IHashProvider hashProvider, bool compres
         if (!File.Exists(filePath)) return null;
         //必要数据准备
         await using var originalFs = File.Open(fromPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return await PutAsync(originalFs, hash);
+        return await PutAsync(originalFs, hash).ConfigureAwait(false);
     }
 
     public async Task<string?> PutAsync(Stream input, string? hash = null)
@@ -36,100 +37,100 @@ public class HashStorage(string folder, IHashProvider hashProvider, bool compres
 
         if (input.CanSeek) input.Position = 0;
 
-        var fileHash = hash ?? hashProvider.ComputeHash(input);
-        var destPath = _getDestPath(fileHash);
+        var fileHash = hash ?? (await hashProvider.ComputeHashAsync(input).ConfigureAwait(false)).ToHexString();
+        var destPath = _GetDestPath(fileHash);
         //纠正: 由于之前错误设计导致的文件访问效率低下的文件结构
-        if (correctMisplacedFile && _correctMisplacedFile(fileHash)) LogWrapper.Info("HashStorage", "Move misplaced file into correct folder");
+        if (correctMisplacedFile && _CorrectMisplacedFile(fileHash)) LogWrapper.Info("HashStorage", "Move misplaced file into correct folder");
         //检查是否已存在保存的文件
         if (File.Exists(destPath)) return fileHash;
-        await using var destinationFs = _getSaveStream(destPath);
-        await input.CopyToAsync(destinationFs);
+        await using var destinationFs = _GetSaveStream(destPath);
+        await input.CopyToAsync(destinationFs).ConfigureAwait(false);
         return fileHash;
     }
 
-    public async Task<bool> DeleteAsync(string hash)
+    public Task<bool> DeleteAsync(string hash)
     {
         ArgumentNullException.ThrowIfNull(hash);
 
-        var filePath = _getDestPath(hash);
+        var filePath = _GetDestPath(hash);
         if (!File.Exists(filePath) && correctMisplacedFile)
-            filePath = _getMisplacedFilePath(hash);
+            filePath = _GetMisplacedFilePath(hash);
 
-        if (!File.Exists(filePath)) return false;
+        if (!File.Exists(filePath)) return Task.FromResult(false);
 
         try
         {
-            await Task.Run(() => File.Delete(filePath));
+            File.Delete(filePath);
         }
         catch (FileNotFoundException) { /* 忽略此错误 */ }
         catch (DirectoryNotFoundException ex)
         {
             LogWrapper.Error(ex, "HashStorage", $"Unexpected directory not found {filePath}");
-            return false;
+            return Task.FromResult(false);
         }
         catch (IOException ex)
         {
             LogWrapper.Error(ex, "HashStorage", $"Failed to delete file {filePath}");
-            return false;
+            return Task.FromResult(false);
         }
         catch (UnauthorizedAccessException ex)
         {
             LogWrapper.Error(ex, "HashStorage", $"Access denied when deleting file {filePath}");
-            return false;
+            return Task.FromResult(false);
         }
-        return true;
+        return Task.FromResult(true);
     }
 
     public Stream? Get(string hash)
     {
         ArgumentNullException.ThrowIfNull(hash);
-        var destPath = _getDestPath(hash);
-        if (correctMisplacedFile && _correctMisplacedFile(hash))
+        var destPath = _GetDestPath(hash);
+        if (correctMisplacedFile && _CorrectMisplacedFile(hash))
             LogWrapper.Info("HashStorage", $"Move misplaced file into correct folder: {hash}");
 
-        return File.Exists(destPath) ? _getReadStream(destPath) : null;
+        return File.Exists(destPath) ? _GetReadStream(destPath) : null;
     }
 
     public bool Exists(string hash)
     {
         ArgumentNullException.ThrowIfNull(hash);
-        return File.Exists(_getDestPath(hash)) || (correctMisplacedFile && File.Exists(_getMisplacedFilePath(hash)));
+        return File.Exists(_GetDestPath(hash)) || (correctMisplacedFile && File.Exists(_GetMisplacedFilePath(hash)));
     }
 
-    private Stream _getSaveStream(string destPath)
+    private Stream _GetSaveStream(string destPath)
     {
         var fs = File.Open(destPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
         if (compressObjects) return new DeflateStream(fs, CompressionMode.Compress);
         return fs;
     }
 
-    private Stream _getReadStream(string destPath)
+    private Stream _GetReadStream(string destPath)
     {
         var fs = File.Open(destPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (compressObjects) return new DeflateStream(fs, CompressionMode.Decompress);
         return fs;
     }
 
-    private string _getDestPath(string hash)
+    private string _GetDestPath(string hash)
     {
-        return Path.Combine(folder, _getPrefixFolder(hash), hash);
+        return Path.Combine(folder, _GetPrefixFolder(hash), hash);
     }
 
-    private bool _correctMisplacedFile(string hash)
+    private bool _CorrectMisplacedFile(string hash)
     {
-        var misplacedPath = _getMisplacedFilePath(hash);
+        var misplacedPath = _GetMisplacedFilePath(hash);
         if (!File.Exists(misplacedPath)) return false;
-        var correctPath = _getDestPath(hash);
+        var correctPath = _GetDestPath(hash);
         File.Move(misplacedPath, correctPath);
         return true;
     }
 
-    private string _getMisplacedFilePath(string hash)
+    private string _GetMisplacedFilePath(string hash)
     {
         return Path.Combine(folder, hash);
     }
 
-    private string _getPrefixFolder(string hash)
+    private string _GetPrefixFolder(string hash)
     {
         if (hash.Length < prefixLength)
             throw new ArgumentException($"Hash length({hash.Length}) is shorter than required prefix length({prefixLength})", nameof(hash));

@@ -87,7 +87,7 @@ public static partial class KernelInterop
     public static uint CurrentNativeThreadId => _GetCurrentThreadId();
 
     /// <summary>
-    /// 直接结束当前进程。若无特殊情况请使用 <see cref="App.Lifecycle.Shutdown"/>
+    /// 直接结束当前进程。若无特殊情况请使用 <see cref="PCL.Core.App.IoC.Lifecycle.Shutdown"/>
     /// </summary>
     /// <param name="statusCode">退出状态码 (返回值)</param>
     public static void ExitProcess(int statusCode = 0) => _ExitProcess((uint)statusCode);

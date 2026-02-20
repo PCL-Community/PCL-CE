@@ -14,6 +14,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.App.IoC;
 using PCL.Core.UI;
 
 namespace PCL.Core.Link.Lobby;
