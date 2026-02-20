@@ -1,13 +1,12 @@
 ﻿Imports System.Collections.Concurrent
 Imports System.Net.Http
-Imports System.Threading.Tasks
+Imports System.Text.Json
+Imports System.Text.Json.Serialization
 Imports Dapper
 Imports Microsoft.Data.Sqlite
-Imports System.Text.Json.Serialization
-Imports System.Text.Json
+Imports PCL.Core.App
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
-Imports PCL.Core.App
 Imports PCL.Core.Utils.Hash
 
 Public Module ModComp
@@ -149,18 +148,42 @@ Public Module ModComp
 
     Private Function InitializeModDbAndGetConnectionString() As String
         Log($"[DB] 解压 ModData (SQLite) 中")
-        Using compressedDbData As Stream = GetResourceStream("Resources/ModData.dbcp")
+        Using compressedDbData As Stream = GetResourceStream("Resources/mcmod.buf")
             Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
                 Using ms As New MemoryStream()
                     trueDbFile.CopyTo(ms)
                     ms.Seek(0, SeekOrigin.Begin)
                     Dim fileHash = GetHexString(SHA1Provider.Instance.ComputeHash(ms))
-                    ms.Seek(0, SeekOrigin.Begin)
+
                     Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, $"Cache\ModData{fileHash}.sqlite"))
                     If Not File.Exists(dbPath) Then
+                        ms.Seek(0, SeekOrigin.Begin)
+                        Dim entries = ProtoBuf.Serializer.Deserialize(Of List(Of CompDatabaseEntry))(ms)
                         Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
-                        Using uncompressedDbFile As New FileStream(dbPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                            ms.CopyTo(uncompressedDbFile)
+                        Using buildDbConnection As New SqliteConnection($"Data Source=""{dbPath}"";Pooling=False")
+                            buildDbConnection.Open()
+                            buildDbConnection.Execute("
+                                CREATE TABLE ModTranslation (
+                                    WikiId INTEGER,
+                                    ChineseName TEXT,
+                                    CurseForgeSlug TEXT,
+                                    ModrinthSlug TEXT
+                                );
+                                CREATE INDEX idx_curseforge ON ModTranslation (CurseForgeSlug);
+                                CREATE INDEX idx_modrinth ON ModTranslation (ModrinthSlug);
+                                CREATE INDEX idx_chinesename ON ModTranslation (ChineseName);
+                            ")
+
+                            Using tran = buildDbConnection.BeginTransaction()
+                                Dim insertSql = "INSERT INTO ModTranslation (WikiId, ChineseName, CurseForgeSlug, ModrinthSlug) 
+                                VALUES (@WikiId, @ChineseName, @CurseForgeSlug, @ModrinthSlug)"
+
+                                For Each entry In entries
+                                    buildDbConnection.Execute(insertSql, entry, tran)
+                                Next
+
+                                tran.Commit()
+                            End Using
                         End Using
                     End If
                     Return $"Data Source=""{dbPath}"""
@@ -181,7 +204,7 @@ Public Module ModComp
         Try
             Using conn = CompDB
                 Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
-                    "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
+                    "Select * FROM ModTranslation WHERE CurseForgeSlug = @s Or ModrinthSlug = @s LIMIT 1",
                     New With {Key .s = slug})
             End Using
         Catch ex As Exception
@@ -190,22 +213,27 @@ Public Module ModComp
         End Try
     End Function
 
+    <ProtoBuf.ProtoContract>
     Private Class CompDatabaseEntry
         ''' <summary>
         ''' McMod 的对应 ID。
         ''' </summary>
+        <ProtoBuf.ProtoMember(1)>
         Public Property WikiId As Integer
         ''' <summary>
         ''' 中文译名。空字符串代表没有翻译。
         ''' </summary>
+        <ProtoBuf.ProtoMember(2)>
         Public Property ChineseName As String = ""
         ''' <summary>
         ''' CurseForge Slug（例如 advanced-solar-panels）。
         ''' </summary>
+        <ProtoBuf.ProtoMember(3)>
         Public Property CurseForgeSlug As String = Nothing
         ''' <summary>
         ''' Modrinth Slug（例如 advanced-solar-panels）。
         ''' </summary>
+        <ProtoBuf.ProtoMember(4)>
         Public Property ModrinthSlug As String = Nothing
 
         Public Overrides Function ToString() As String

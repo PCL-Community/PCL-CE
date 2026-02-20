@@ -114,6 +114,12 @@
       "info": "Copyright © 2022-2025 William Acton\nLicensed under the MIT license.",
       "website": "https://github.com/waacton/Unicolour",
       "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
+    },
+    {
+      "name": "protobuf-net",
+      "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/protobuf-net/protobuf-net",
+      "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
     }
   ]
 }
