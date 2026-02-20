@@ -204,7 +204,7 @@ Public Module ModComp
         Try
             Using conn = CompDB
                 Return conn.QueryFirstOrDefault(Of CompDatabaseEntry)(
-                    "Select * FROM ModTranslation WHERE CurseForgeSlug = @s Or ModrinthSlug = @s LIMIT 1",
+                    "SELECT * FROM ModTranslation WHERE CurseForgeSlug = @s OR ModrinthSlug = @s LIMIT 1",
                     New With {Key .s = slug})
             End Using
         Catch ex As Exception
