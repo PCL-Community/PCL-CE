@@ -499,17 +499,6 @@ NextInner:
             GoTo SkipLogin
         End If
         '尝试登录
-        Dim session As New PCL.Core.Account.OAuth.MicrosoftCodeFlowOAuthSession(OAuthClientId, "XboxLive.signin offline_access")
-        AddHandler session.StateChanged, Sub(sneder As Object, cStep As PCL.Core.Account.OAuth.AuthStep)
-                                             Dim sender = DirectCast(sneder, PCL.Core.Account.OAuth.MicrosoftCodeFlowOAuthSession)
-                                             Hint($"State: {cStep}")
-                                             If cStep.Equals(PCL.Core.Account.OAuth.AuthStep.PendingUser) Then
-                                                 OpenWebsite(sender.AuthUrl)
-                                             End If
-                                         End Sub
-        session.BeginAsync().GetAwaiter().GetResult()
-        session.WaitForResultAsync().GetAwaiter().GetResult()
-
         Dim IsSkipAuth As Boolean = False
         Dim OAuthTokens As String()
         Dim OAuthAccessToken As String
