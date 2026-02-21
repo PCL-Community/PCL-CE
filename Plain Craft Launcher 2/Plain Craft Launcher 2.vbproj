@@ -119,7 +119,4 @@
   <ItemGroup>
     <Content Include="LICENCE" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="My Project\Application.myapp" />
-  </ItemGroup>
 </Project>
