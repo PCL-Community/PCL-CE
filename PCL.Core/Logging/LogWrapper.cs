@@ -39,4 +39,10 @@ public static class LogWrapper
     public static void Trace(string msg) => Trace(null, msg);
 
     public static Logger CurrentLogger => LogService.Logger;
+
+    private static readonly Lazy<LoggerFactoryAdapter> _LoggerFactory = new(static () =>
+    {
+        return new LoggerFactoryAdapter(CurrentLogger);
+    });
+    public static LoggerFactoryAdapter LoggerFactory => _LoggerFactory.Value;
 }

@@ -27,8 +27,8 @@
     <Description>Minecraft 启动器 (作者: 龙腾猫跃; 经社区二次开发版本)</Description>
     <Product>Plain Craft Launcher Community Edition</Product>
     <Copyright>Copyright © 龙腾猫跃 2016. All Rights Reserved.</Copyright>
-    <AssemblyVersion>2.14.2.0</AssemblyVersion>
-    <FileVersion>2.14.2.0</FileVersion>
+    <AssemblyVersion>2.14.3.0</AssemblyVersion>
+    <FileVersion>2.14.3.0</FileVersion>
     <NoWarn>
       41999;42016;42017;42018;42019;42020;42021;42022;42032;42036;42314;
       VSTHRD002;VSTHRD003;VSTHRD110;VSTHRD200
@@ -70,11 +70,11 @@
     <PackageReference Include="fNbt" Version="1.0.0" />
     <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
-    <PackageReference Include="IPNetwork2" Version="3.4.851" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2" />
+    <PackageReference Include="IPNetwork2" Version="3.4.853" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Management" Version="10.0.2" />
+    <PackageReference Include="System.Management" Version="10.0.3" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
