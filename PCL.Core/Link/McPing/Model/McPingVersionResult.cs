@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace PCL.Core.Link.McPing.Model;
 
 public record McPingVersionResult(
-    string Name,
-    int Protocol);
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("protocol")] int Protocol);

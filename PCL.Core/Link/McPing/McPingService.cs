@@ -141,34 +141,22 @@ public class McPingService : IMcPingService
 
         LogWrapper.Debug("McPing", resJsonDebug.ToJsonString());
 #endif
-        var versionNode = retJson["version"] ?? throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
-        var playersNode = retJson["players"] ?? new JsonObject();
-        var descNode = _ConvertJNodeToMcString(retJson["description"] ?? new JsonObject());
-        var modInfoNode = retJson["modinfo"];
-        var ret = new McPingResult(
-            new McPingVersionResult(
-                versionNode["name"]?.ToString() ?? "未知服务端版本名",
-                Convert.ToInt32(versionNode["id"]?.ToString() ?? "-1")),
-            new McPingPlayerResult(
-                Convert.ToInt32(playersNode["max"]?.ToString() ?? "0"),
-                Convert.ToInt32(playersNode["online"]?.ToString() ?? "0"),
-                (playersNode["sample"]?.AsArray() ?? []).Select(x =>
-                    new McPingPlayerSampleResult(x!["name"]?.ToString() ?? "", x["id"]?.ToString() ?? "")).ToList()),
-            descNode,
-            retJson["favicon"]?.ToString() ?? string.Empty,
-            watcher.ElapsedMilliseconds,
-            modInfoNode is null
-                ? null
-                : new McPingModInfoResult(
-                    modInfoNode["type"]?.ToString() ?? "未知服务端类型",
-                    (modInfoNode["modList"]?.AsArray() ?? [])
-                    .Where(x => x!.AsObject().TryGetPropertyValue("modid", out _))
-                    .Select(x => new McPingModInfoModResult(
-                        x!["modid"]?.ToString() ?? string.Empty,
-                        x["version"]?.ToString() ?? string.Empty))
-                    .ToList())
-        );
-        return ret;
+        // 先处理Description字段，将其转换为字符串形式
+        if (retJson["description"] is JsonObject descObj)
+        {
+            retJson["description"] = _ConvertJNodeToMcString(descObj);
+        }
+
+        var response = JsonSerializer.Deserialize<McPingResult>(retJson);
+        if (response?.Version == null)
+            throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
+
+        response = response with
+        {
+            Latency = watcher.ElapsedMilliseconds
+        };
+
+        return response;
     }
 
     public void Dispose()

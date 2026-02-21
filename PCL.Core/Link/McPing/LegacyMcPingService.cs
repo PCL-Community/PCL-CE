@@ -95,7 +95,7 @@ public class LegacyMcPingService : IMcPingService
                 return null;
             return new McPingResult(new McPingVersionResult(retPart[2], int.Parse(retPart[1])),
                 new McPingPlayerResult(int.Parse(retPart[5]), int.Parse(retPart[4]), []), retPart[3], string.Empty, 0,
-                new McPingModInfoResult(string.Empty, []));
+                new McPingModInfoResult(string.Empty, []), null);
         }
         catch (Exception e)
         {

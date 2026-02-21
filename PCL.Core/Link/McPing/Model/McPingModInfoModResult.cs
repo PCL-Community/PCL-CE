@@ -1,4 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace PCL.Core.Link.McPing.Model;
+
 public record McPingModInfoModResult(
-    string Id,
-    string Version);
+    [property: JsonPropertyName("modid")] string Id,
+    [property: JsonPropertyName("version")] string Version);
