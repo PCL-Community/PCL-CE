@@ -1,0 +1,572 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
+using Microsoft.VisualBasic;
+using Microsoft.VisualBasic.CompilerServices;
+
+namespace PCL;
+
+public partial class PageSetupLaunch
+{
+    private bool IsLoad;
+
+    public PageSetupLaunch()
+    {
+        Loaded += PageSetupLaunch_Loaded;
+    }
+
+    private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
+    {
+        // 重复加载部分
+        PanBack.ScrollToHome();
+        RefreshRam(false);
+        if (ModMinecraft.McInstanceSelected is null)
+            BtnSwitch.Visibility = Visibility.Collapsed;
+        else
+            BtnSwitch.Visibility = Visibility.Visible;
+
+        // 非重复加载部分
+        if (IsLoad)
+            return;
+        IsLoad = true;
+
+        ModAnimation.AniControlEnabled += 1;
+        Reload();
+        ModAnimation.AniControlEnabled -= 1;
+
+        // 内存自动刷新
+        var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
+        timer.Tick += (_, __) => RefreshRam();
+        timer.Start();
+    }
+
+    public void Reload()
+    {
+        try
+        {
+            // 启动参数
+            TextArgumentTitle.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentTitle"));
+            TextArgumentInfo.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentInfo"));
+            ComboArgumentIndieV2.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentIndieV2"));
+            ComboArgumentVisibie.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentVisible"));
+            ComboArgumentPriority.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentPriority"));
+            ComboArgumentWindowType.SelectedIndex =
+                Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentWindowType"));
+            TextArgumentWindowWidth.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentWindowWidth"));
+            TextArgumentWindowHeight.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentWindowHeight"));
+            CheckArgumentRam.Checked = (bool?)ModBase.Setup.Get("LaunchArgumentRam");
+            ComboMsAuthType.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LoginMsAuthType"));
+            ComboPreferredIpStack.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchPreferredIpStack"));
+            // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
+
+            // 游戏内存
+            ((MyRadioBox)FindName(
+                    Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
+                        ModBase.Setup.Load("LaunchRamType")))))
+                .Checked = true;
+            SliderRamCustom.Value = Conversions.ToInteger(ModBase.Setup.Get("LaunchRamCustom"));
+
+            // 高级设置
+            ComboAdvanceRenderer.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchAdvanceRenderer"));
+            TextAdvanceJvm.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceJvm"));
+            TextAdvanceGame.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceGame"));
+            TextAdvanceRun.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceRun"));
+            CheckAdvanceRunWait.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceRunWait");
+            CheckAdvanceDisableRW.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceDisableRW");
+            CheckAdvanceGraphicCard.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceGraphicCard");
+            CheckAdvanceNoJavaw.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceNoJavaw");
+            if (ModBase.IsArm64System)
+            {
+                CheckAdvanceDisableJLW.Checked = true;
+                CheckAdvanceDisableJLW.IsEnabled = false;
+                CheckAdvanceDisableJLW.ToolTip = "在启动游戏时不使用 Java Wrapper 进行包装。&#xa;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。";
+            }
+            else
+            {
+                CheckAdvanceDisableJLW.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceDisableJLW");
+            }
+        }
+
+        catch (NullReferenceException ex)
+        {
+            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            Reset();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogLevel.Feedback);
+        }
+    }
+
+    // 初始化
+    public void Reset()
+    {
+        try
+        {
+            Config.Launch.Reset();
+            ModBase.Log("[Setup] 已初始化启动设置");
+            ModMain.Hint("已初始化启动设置！", ModMain.HintType.Finish, false);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogLevel.Msgbox);
+        }
+
+        Reload();
+    }
+
+    // 将控件改变路由到设置改变
+    private static void RadioBoxChange(MyRadioBox sender, object e)
+    {
+        var gotCfg = sender.Tag.ToString().Split("/");
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+    }
+
+    private static void TextBoxChange(MyTextBox sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+    }
+
+    private static void SliderChange(MySlider sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
+    }
+
+    private static void ComboChange(MyComboBox sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+    }
+
+    private static void CheckBoxChange(MyCheckBox sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
+    }
+
+    // 切换到实例独立设置
+    private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
+    {
+        ModMinecraft.McInstanceSelected.Load();
+        PageInstanceLeft.Instance = ModMinecraft.McInstanceSelected;
+        ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
+    }
+
+    #region 游戏内存
+
+    public void RamType(int Type)
+    {
+        if (SliderRamCustom is null)
+            return;
+        SliderRamCustom.IsEnabled = Type == 1;
+    }
+
+    /// <summary>
+    ///     刷新 UI 上的 RAM 显示。
+    /// </summary>
+    public void RefreshRam(bool ShowAnim)
+    {
+        if (LabRamGame is null || LabRamUsed is null || ModMain.FrmMain.PageCurrent != FormMain.PageType.Setup ||
+            ModMain.FrmSetupLeft.PageID != FormMain.PageSubType.SetupLaunch)
+            return;
+        // 获取内存情况
+        var RamGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
+        var phyRam = KernelInterop.GetPhysicalMemoryBytes();
+        double RamTotal = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1);
+        double RamAvailable = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1);
+        var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
+        var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
+        var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        // 设置最大可用内存
+        if (RamTotal <= 1.5d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));
+        else if (RamTotal <= 8d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 1.5d) / 0.5d) + 12d);
+        else if (RamTotal <= 16d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 8d) / 1d) + 25d);
+        else
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 16d) / 2d) + 33d);
+        // 设置文本
+        LabRamGame.Text = Conversions.ToString(Operators.ConcatenateObject(
+            Operators.ConcatenateObject(RamGame == Math.Floor(RamGame) ? RamGame + ".0" : RamGame, " GB"),
+            RamGame != RamGameActual
+                ? Operators.ConcatenateObject(
+                    Operators.ConcatenateObject(" (可用 ",
+                        RamGameActual == Math.Floor(RamGameActual) ? RamGameActual + ".0" : RamGameActual), " GB)")
+                : ""));
+        LabRamUsed.Text =
+            Conversions.ToString(Operators.ConcatenateObject(RamUsed == Math.Floor(RamUsed) ? RamUsed + ".0" : RamUsed,
+                " GB"));
+        LabRamTotal.Text = Conversions.ToString(Operators.ConcatenateObject(
+            Operators.ConcatenateObject(" / ", RamTotal == Math.Floor(RamTotal) ? RamTotal + ".0" : RamTotal), " GB"));
+        LabRamWarn.Visibility =
+            RamGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        HintRamTooHigh.Visibility = RamGame / RamTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
+        if (ShowAnim)
+        {
+            // 宽度动画
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, RamUsed - ColumnRamUsed.Width.Value, 800,
+                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                    ModAnimation.AaGridLengthWidth(ColumnRamGame, RamGameActual - ColumnRamGame.Width.Value, 800,
+                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, RamEmpty - ColumnRamEmpty.Width.Value, 800,
+                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+                }, "SetupLaunch Ram Grid");
+        }
+        else
+        {
+            // 宽度设置
+            ColumnRamUsed.Width = new GridLength(RamUsed, GridUnitType.Star);
+            ColumnRamGame.Width = new GridLength(RamGameActual, GridUnitType.Star);
+            ColumnRamEmpty.Width = new GridLength(RamEmpty, GridUnitType.Star);
+        }
+    }
+
+    private void RefreshRam()
+    {
+        RefreshRam(true);
+    }
+
+    private int RamTextLeft = 2;
+    private int RamTextRight = 1;
+
+    /// <summary>
+    ///     刷新 UI 上的文本位置。
+    /// </summary>
+    private void RefreshRamText()
+    {
+        // 获取宽度信息
+        var RectUsedWidth = RectRamUsed.ActualWidth;
+        var TotalWidth = PanRamDisplay.ActualWidth;
+        var LabGameWidth = LabRamGame.ActualWidth;
+        var LabUsedWidth = LabRamUsed.ActualWidth;
+        var LabTotalWidth = LabRamTotal.ActualWidth;
+        var LabGameTitleWidth = LabRamGameTitle.ActualWidth;
+        var LabUsedTitleWidth = LabRamUsedTitle.ActualWidth;
+        // 左侧
+        int Left;
+        if (RectUsedWidth - 30d < LabUsedWidth || RectUsedWidth - 30d < LabUsedTitleWidth)
+            // 全写不下了
+            Left = 0;
+        else if (RectUsedWidth - 25d < LabUsedWidth + LabTotalWidth)
+            // 显示不下完整数据
+            Left = 1;
+        else
+            // 正常
+            Left = 2;
+        if (RamTextLeft != Left)
+        {
+            RamTextLeft = Left;
+            switch (Left)
+            {
+                case 0:
+                {
+                    ModAnimation.AniStart(
+                        new[]
+                        {
+                            ModAnimation.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
+                        }, "SetupLaunch Ram TextLeft");
+                    break;
+                }
+                case 1:
+                {
+                    ModAnimation.AniStart(
+                        new[]
+                        {
+                            ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
+                        }, "SetupLaunch Ram TextLeft");
+                    break;
+                }
+                case 2:
+                {
+                    ModAnimation.AniStart(
+                        new[]
+                        {
+                            ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
+                            ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
+                        }, "SetupLaunch Ram TextLeft");
+                    break;
+                }
+            }
+        }
+
+        // 右侧
+        int Right;
+        if (TotalWidth < LabGameWidth + 2d + RectUsedWidth || TotalWidth < LabGameTitleWidth + 2d + RectUsedWidth)
+            // 挤到最右边
+            Right = 0;
+        else
+            // 正常情况
+            Right = 1;
+        if (Right == 0)
+        {
+            if (ModAnimation.AniControlEnabled == 0 &&
+                (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
+            {
+                // 需要动画
+                ModAnimation.AniStart(
+                    new[]
+                    {
+                        ModAnimation.AaX(LabRamGame, TotalWidth - LabGameWidth - LabRamGame.Margin.Left, 100,
+                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                        ModAnimation.AaX(LabRamGameTitle, TotalWidth - LabGameTitleWidth - LabRamGameTitle.Margin.Left,
+                            100, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                    }, "SetupLaunch Ram TextRight");
+            }
+            else
+            {
+                // 不需要动画
+                ModAnimation.AniStop("SetupLaunch Ram TextRight");
+                LabRamGame.Margin = new Thickness(TotalWidth - LabGameWidth, 3d, 0d, 0d);
+                LabRamGameTitle.Margin = new Thickness(TotalWidth - LabGameTitleWidth, 0d, 0d, 5d);
+            }
+        }
+        else if (ModAnimation.AniControlEnabled == 0 &&
+                 (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
+        {
+            // 需要动画
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaX(LabRamGame, 2d + RectUsedWidth - LabRamGame.Margin.Left, 100,
+                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                    ModAnimation.AaX(LabRamGameTitle, 2d + RectUsedWidth - LabRamGameTitle.Margin.Left, 100,
+                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                }, "SetupLaunch Ram TextRight");
+        }
+        else
+        {
+            // 不需要动画
+            ModAnimation.AniStop("SetupLaunch Ram TextRight");
+            LabRamGame.Margin = new Thickness(2d + RectUsedWidth, 3d, 0d, 0d);
+            LabRamGameTitle.Margin = new Thickness(2d + RectUsedWidth, 0d, 0d, 5d);
+        }
+
+        RamTextRight = Right;
+    }
+
+    /// <summary>
+    ///     获取当前设置的 RAM 值。单位为 GB。
+    /// </summary>
+    public static double GetRam(ModMinecraft.McInstance Version, bool UseVersionJavaSetup, bool? Is32BitJava = default)
+    {
+        // ------------------------------------------
+        // 修改下方代码时需要一并修改 PageInstanceSetup
+        // ------------------------------------------
+
+        var RamGive = default(double);
+        if (Conversions.ToBoolean(
+                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchRamType"), 0, false)))
+        {
+            // 自动配置
+            double RamAvailable =
+                Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
+            // 确定需求的内存值
+            double RamMininum; // 无论如何也需要保证的最低限度内存
+            double RamTarget1; // 估计能勉强带动了的内存
+            double RamTarget2; // 估计没啥问题了的内存
+            double RamTarget3; // 放一百万个材质和 Mod 和光影需要的内存
+            if (Version is not null && !Version.IsLoaded)
+                Version.Load();
+            if (Version is not null && Version.Modable)
+            {
+                // 可安装 Mod 的实例
+                var ModDir = new DirectoryInfo(Version.PathIndie + @"mods\");
+                var ModCount = ModDir.Exists ? ModDir.GetFiles().Length : 0;
+                RamMininum = 0.5d + ModCount / 150d;
+                RamTarget1 = 1.5d + ModCount / 90d;
+                RamTarget2 = 2.7d + ModCount / 50d;
+                RamTarget3 = 4.5d + ModCount / 25d;
+            }
+            else if (Version is not null && Version.Info.HasOptiFine)
+            {
+                // OptiFine 实例
+                RamMininum = 0.5d;
+                RamTarget1 = 1.5d;
+                RamTarget2 = 3d;
+                RamTarget3 = 5d;
+            }
+            else
+            {
+                // 普通实例
+                RamMininum = 0.5d;
+                RamTarget1 = 1.5d;
+                RamTarget2 = 2.5d;
+                RamTarget3 = 4d;
+            }
+
+            double RamDelta;
+            // 预分配内存，阶段一，0 ~ T1，100%
+            RamDelta = RamTarget1;
+            RamGive += Math.Min(RamAvailable, RamDelta);
+            RamAvailable -= RamDelta;
+            if (RamAvailable < 0.1d)
+                goto PreFin;
+            // 预分配内存，阶段二，T1 ~ T2，70%
+            RamDelta = RamTarget2 - RamTarget1;
+            RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
+            RamAvailable -= RamDelta / 0.7d;
+            if (RamAvailable < 0.1d)
+                goto PreFin;
+            // 预分配内存，阶段三，T2 ~ T3，40%
+            RamDelta = RamTarget3 - RamTarget2;
+            RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
+            RamAvailable -= RamDelta / 0.4d;
+            if (RamAvailable < 0.1d)
+                goto PreFin;
+            // 预分配内存，阶段四，T3 ~ T3 * 2，15%
+            RamDelta = RamTarget3;
+            RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
+            RamAvailable -= RamDelta / 0.15d;
+            if (RamAvailable < 0.1d)
+                goto PreFin;
+            PreFin: ;
+
+            // 不低于最低值
+            RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
+        }
+        else
+        {
+            // 手动配置
+            var Value = Conversions.ToInteger(ModBase.Setup.Get("LaunchRamCustom"));
+            if (Value <= 12)
+                RamGive = Value * 0.1d + 0.3d;
+            else if (Value <= 25)
+                RamGive = (Value - 12) * 0.5d + 1.5d;
+            else if (Value <= 33)
+                RamGive = (Value - 25) * 1 + 8;
+            else
+                RamGive = (Value - 33) * 2 + 16;
+        }
+
+        // 若使用 32 位 Java，则限制为 1G
+        if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(UseVersionJavaSetup ? Version : null))
+            RamGive = Math.Min(1d, RamGive);
+        return RamGive;
+    }
+
+    #endregion
+
+    #region 其他选项
+
+    private void WindowTypeUIRefresh()
+    {
+        if (ComboArgumentWindowType is null)
+            return;
+        if (ComboArgumentWindowType.SelectedIndex == 3 && LabArgumentWindowMiddle is not null &&
+            LabArgumentWindowMiddle.Visibility == Visibility.Collapsed)
+        {
+            LabArgumentWindowMiddle.Visibility = Visibility.Visible;
+            TextArgumentWindowHeight.Visibility = Visibility.Visible;
+            TextArgumentWindowWidth.Visibility = Visibility.Visible;
+        }
+        else if (ComboArgumentWindowType.SelectedIndex != 3 && LabArgumentWindowMiddle is not null &&
+                 LabArgumentWindowMiddle.Visibility == Visibility.Visible)
+        {
+            LabArgumentWindowMiddle.Visibility = Visibility.Collapsed;
+            TextArgumentWindowHeight.Visibility = Visibility.Collapsed;
+            TextArgumentWindowWidth.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    // 可见性选择直接关闭的警告
+    private void ComboArgumentVisibie_SizeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (ComboArgumentVisibie.SelectedIndex == 0)
+            if (ModMain.MyMsgBox(
+                    "若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。" + Constants.vbCrLf + "如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。",
+                    "提醒", "继续", "取消") == 2)
+                ComboArgumentVisibie.SelectedItem = e.RemovedItems[0];
+    }
+
+    // 开启自动内存优化的警告
+    private void CheckArgumentRam_Change()
+    {
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (CheckArgumentRam.Checked == false)
+            return;
+        if (ModMain.MyMsgBox(
+                "内存优化会显著延长启动耗时，建议仅在内存不足时开启。" + Constants.vbCrLf + "如果你在使用机械硬盘，这还可能导致一小段时间的严重卡顿。" +
+                (ProcessInterop.IsAdmin()
+                    ? ""
+                    : $"{Constants.vbCrLf}{Constants.vbCrLf}每次启动游戏，PCL 都需要申请管理员权限以进行内存优化。{Constants.vbCrLf}若想自动授予权限，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。"),
+                "提醒", "确定", "取消") == 2) CheckArgumentRam.Checked = false;
+    }
+
+    // 实例隔离提示
+    private void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        ModMain.MyMsgBox("默认策略只会对今后新安装的实例生效。" + Constants.vbCrLf + "已有实例的隔离策略需要在它的设置中调整。");
+    }
+
+    #endregion
+
+    #region 高级设置
+
+    private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        CheckAdvanceRunWait.Visibility =
+            string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    // JVM 参数重设
+    private void TextAdvanceJvm_TextChanged()
+    {
+        BtnAdvanceJvmReset.Visibility =
+            Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(TextAdvanceJvm.Text,
+                ModBase.Setup.GetDefault("LaunchAdvanceJvm"), false))
+                ? Visibility.Hidden
+                : Visibility.Visible;
+    }
+
+    private void BtnAdvanceJvmReset_Click(object sender, EventArgs e)
+    {
+        ModBase.Setup.Reset("LaunchAdvanceJvm");
+        Reload();
+    }
+
+    private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (Conversions.ToBoolean(!ModBase.Setup.Get("HintRenderer") && ComboAdvanceRenderer.SelectedIndex != 0))
+        {
+            if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf + "你确定要继续修改吗？", "警告",
+                    "我知道我在做什么", "取消", IsWarn: true) == 2)
+            {
+                ComboAdvanceRenderer.SelectedItem = ((dynamic)e).RemovedItems(0);
+            }
+            else
+            {
+                ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+                ModBase.Setup.Set("HintRenderer", true);
+            }
+        }
+        else
+        {
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+        }
+    }
+
+    #endregion
+}

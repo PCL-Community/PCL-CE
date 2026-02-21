@@ -1,0 +1,51 @@
+using Newtonsoft.Json.Linq;
+
+namespace PCL;
+
+public partial class PageDownloadLegacyFabric
+{
+    public PageDownloadLegacyFabric()
+    {
+        Initialized += (_, __) => LoaderInit();
+        Loaded += (_, __) => Init();
+    }
+
+    private void LoaderInit()
+    {
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlLegacyFabricListLoader,
+            _ => Load_OnFinish());
+    }
+
+    private void Init()
+    {
+        PanBack.ScrollToHome();
+    }
+
+    private void Load_OnFinish()
+    {
+        // 结果数据化
+        try
+        {
+            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["installer"];
+            PanVersions.Children.Clear();
+            foreach (var Version in Versions)
+                PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)Version,
+                    (_, __) => this.LegacyFabric_Selected()));
+            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "可视化 LegacyFabric 版本列表出错", ModBase.LogLevel.Feedback);
+        }
+    }
+
+    private void LegacyFabric_Selected(MyListItem sender, EventArgs e)
+    {
+        ModDownloadLib.McDownloadLegacyFabricLoaderSave((JObject)sender.Tag);
+    }
+
+    private void BtnWeb_Click(object sender, EventArgs e)
+    {
+        ModBase.OpenWebsite("https://legacyfabric.net/");
+    }
+}

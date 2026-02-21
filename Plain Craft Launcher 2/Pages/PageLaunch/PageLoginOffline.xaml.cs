@@ -1,0 +1,76 @@
+using System.Windows;
+using Microsoft.VisualBasic;
+
+namespace PCL;
+
+public partial class PageLoginOffline
+{
+    private void BtnBack_Click(object sender, EventArgs e)
+    {
+        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+    }
+
+    private void RadioCustomUuid_Checked()
+    {
+        if (RadioUuidCustom.Checked)
+        {
+            TextUuidTitle.Visibility = Visibility.Visible;
+            TextUuid.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TextUuidTitle.Visibility = Visibility.Collapsed;
+            TextUuid.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void BtnLogin_Click(object sender, EventArgs e)
+    {
+        // 玩家 ID 输入检查
+        var Username = TextName.Text;
+        var UsernameValidateResult = new ValidateRegex("^[A-z0-9_]{3,16}$").Validate(Username);
+        if (!string.IsNullOrEmpty(UsernameValidateResult))
+            if (ModMain.MyMsgBox(
+                    $"你输入的玩家 ID 不符合标准（3 - 16 位，只可以包含英文字母、数字与下划线），可能导致部分版本的游戏无法启动或发生错误。{Constants.vbCrLf}强烈建议使用规范的玩家 ID！{Constants.vbCrLf}如果你坚持，仍然可以继续创建档案。",
+                    "玩家 ID 不符合规范", "继续", "取消", IsWarn: true, ForceWait: true) == 2)
+                return;
+        // UUID
+        string UserUuid = null;
+        if (RadioUuidCustom.Checked)
+        {
+            // 自定义输入检查
+            var UuidInput = TextUuid.Text.Replace("-", "");
+            var UuidValidateResult = new ValidateRegex("^[a-fA-F0-9]{32}$").Validate(UuidInput);
+            if (RadioUuidCustom.Checked && !string.IsNullOrEmpty(UuidValidateResult))
+            {
+                ModMain.Hint("UUID 不符合要求：" + UuidValidateResult, ModMain.HintType.Critical);
+                return;
+            }
+
+            UserUuid = UuidInput;
+        }
+        else if (RadioUuidLegacy.Checked)
+        {
+            UserUuid = ModProfile.GetOfflineUuid(Username, isLegacy: true);
+        }
+        else
+        {
+            UserUuid = ModProfile.GetOfflineUuid(Username);
+        }
+
+        // 创建档案
+        var NewProfile = new ModProfile.McProfile
+        {
+            Type = ModLaunch.McLoginType.Legacy,
+            Uuid = UserUuid,
+            Username = Username,
+            Desc = ""
+        };
+        ModProfile.ProfileList.Add(NewProfile);
+        ModProfile.SaveProfile();
+        ModProfile.SelectedProfile = NewProfile;
+        ModProfile.IsCreatingProfile = false;
+        ModMain.Hint("档案新建成功！", ModMain.HintType.Finish);
+        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+    }
+}

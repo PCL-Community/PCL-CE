@@ -1,0 +1,50 @@
+using Newtonsoft.Json.Linq;
+
+namespace PCL;
+
+public partial class PageDownloadQuilt
+{
+    public PageDownloadQuilt()
+    {
+        Initialized += (_, __) => LoaderInit();
+        Loaded += (_, __) => Init();
+    }
+
+    private void LoaderInit()
+    {
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlQuiltListLoader, _ => Load_OnFinish());
+    }
+
+    private void Init()
+    {
+        PanBack.ScrollToHome();
+    }
+
+    private void Load_OnFinish()
+    {
+        // 结果数据化
+        try
+        {
+            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["installer"];
+            PanVersions.Children.Clear();
+            foreach (var Version in Versions)
+                PanVersions.Children.Add(
+                    ModDownloadLib.QuiltDownloadListItem((JObject)Version, (_, __) => this.Quilt_Selected()));
+            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "可视化 Quilt 版本列表出错", ModBase.LogLevel.Feedback);
+        }
+    }
+
+    private void Quilt_Selected(MyListItem sender, EventArgs e)
+    {
+        ModDownloadLib.McDownloadQuiltLoaderSave((JObject)sender.Tag);
+    }
+
+    private void BtnWeb_Click(object sender, EventArgs e)
+    {
+        ModBase.OpenWebsite("https://quiltmc.org");
+    }
+}
