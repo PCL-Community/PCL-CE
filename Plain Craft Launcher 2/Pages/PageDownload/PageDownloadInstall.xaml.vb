@@ -1,3 +1,6 @@
+Imports FluentValidation
+Imports PCL.Core.Utils.Validate
+
 Public Class PageDownloadInstall
 
     Private Sub LoaderInit() Handles Me.Initialized
@@ -23,7 +26,7 @@ Public Class PageDownloadInstall
         DlLegacyFabricListLoader.Start()
 
         '重载预览
-        TextSelectName.ValidateRules = New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(McFolderSelected & "versions")}
+        TextSelectName.ValidateRules = New ObjectModel.Collection(Of IValidator(Of String)) From {New FolderNameValidator(McFolderSelected & "versions")}
         TextSelectName.Validate()
         ReloadSelected()
 

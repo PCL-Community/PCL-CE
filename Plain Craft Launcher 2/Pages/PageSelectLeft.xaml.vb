@@ -1,6 +1,8 @@
-﻿Imports PCL.Core.IO
+﻿Imports FluentValidation
+Imports PCL.Core.IO
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Utils.Validate
 
 Public Class PageSelectLeft
     Implements IRefreshable
@@ -239,7 +241,7 @@ Public Class PageSelectLeft
             Dim DefaultName As String = If(SplitedNames.Last = ".minecraft", If(SplitedNames.Count >= 3, SplitedNames(SplitedNames.Count - 2), ""), SplitedNames.Last)
             If DefaultName.Length > 40 Then DefaultName = DefaultName.Substring(0, 39)
             Dim NewName As String = MyMsgBoxInput("输入显示名称", "输入该文件夹在左边栏列表中显示的名称。", DefaultName,
-                                              New ObjectModel.Collection(Of Validate) From {New ValidateNullOrWhiteSpace, New ValidateLength(1, 30), New ValidateExcept({">", "|"})})
+                                              New ObjectModel.Collection(Of IValidator(Of String)) From {New NullOrWhiteSpaceValidator, New StringLengthValidator(1, 30), New BlacklistValidator(New List(Of String)() From{">", "|"})})
             If String.IsNullOrWhiteSpace(NewName) Then Return
             '添加文件夹
             AddFolder(NewFolder, NewName, True)
@@ -437,7 +439,7 @@ Public Class PageSelectLeft
             '获取输入
             Dim NewName As String =
                 MyMsgBoxInput("输入新名称", "", Folder.Name,
-                              New ObjectModel.Collection(Of Validate) From {New ValidateNullOrWhiteSpace, New ValidateLength(1, 30), New ValidateExcept({">", "|"})})
+                              New ObjectModel.Collection(Of IValidator(Of String)) From {New NullOrWhiteSpaceValidator, New StringLengthValidator(1, 30), New BlacklistValidator(New List(Of String)() From{">", "|"})})
             If String.IsNullOrWhiteSpace(NewName) Then Return
             '修改自定义名
             Dim Folders As New List(Of String)(Setup.Get("LaunchFolders").ToString.Split("|"))

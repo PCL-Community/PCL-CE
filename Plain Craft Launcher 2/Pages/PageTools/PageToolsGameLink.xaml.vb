@@ -1,5 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports System.Collections.Specialized
+Imports FluentValidation
 Imports PCL.Core.App
 Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
@@ -8,6 +9,7 @@ Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Scaffolding.Client.Models
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.Validate
 
 Public Class PageToolsGameLink
 
@@ -541,7 +543,7 @@ Public Class PageToolsGameLink
             If Not LobbyPrecheck() Then
                 Return
             End If
-            Dim input = MyMsgBoxInput("请输入端口", ValidateRules:=New Collection(Of Validate) From {New ValidateInteger(1024, 65535)})
+            Dim input = MyMsgBoxInput("请输入端口", ValidateRules:=New Collection(Of IValidator(Of String)) From {New IntValidator(1024, 65535)})
             Dim port As Integer
             If Integer.TryParse(input, port) Then
                 Using ping As New McPing("127.0.0.1", port, 5000)

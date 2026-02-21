@@ -2,9 +2,11 @@
 Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Text.Json
+Imports FluentValidation
 Imports PCL.Core.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Secret
+Imports PCL.Core.Utils.Validate
 
 Public Module ModProfile
 
@@ -286,7 +288,7 @@ Public Module ModProfile
         If SelectedProfile.Type = McLoginType.Ms Then
             Dim newUsername As String = Nothing
             RunInUiWait(Sub() newUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
-                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
+                                                          ValidateRules:=New ObjectModel.Collection(Of IValidator(Of String)) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If newUsername = Nothing Then Exit Sub
             If String.IsNullOrWhiteSpace(newUsername) Then
@@ -334,7 +336,7 @@ Public Module ModProfile
         Else
             Dim newUsername As String = Nothing
             RunInUiWait(Sub() newUsername = MyMsgBoxInput("输入新的玩家 ID", DefaultInput:=SelectedProfile.Username,
-                                                          ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
+                                                          ValidateRules:=New ObjectModel.Collection(Of IValidator(Of String)) From {New StringLengthValidator(3, 16), New RegexValidator("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If newUsername = Nothing Then Exit Sub
             EditOfflineUuid(SelectedProfile, GetOfflineUuid(newUsername))
@@ -368,7 +370,7 @@ Public Module ModProfile
         ElseIf uuidType = 1 Then
             newUuid = GetOfflineUuid(profile.Username, IsLegacy:=True)
         Else
-            newUuid = MyMsgBoxInput($"更改档案 {profile.Username} 的 UUID", DefaultInput:=profile.Uuid, HintText:="32 位，不含连字符", ValidateRules:=New ObjectModel.Collection(Of Validate) From {New ValidateLength(32, 32), New ValidateRegex("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！")}, Button1:="继续", Button2:="取消")
+            newUuid = MyMsgBoxInput($"更改档案 {profile.Username} 的 UUID", DefaultInput:=profile.Uuid, HintText:="32 位，不含连字符", ValidateRules:=New ObjectModel.Collection(Of IValidator(Of String)) From {New StringLengthValidator(32, 32), New RegexValidator("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！")}, Button1:="继续", Button2:="取消")
         End If
         If newUuid = Nothing Then Exit Sub
 Write:

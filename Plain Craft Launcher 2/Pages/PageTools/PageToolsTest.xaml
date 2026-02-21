@@ -4,6 +4,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:PCL"
+    xmlns:val="https://ce.pclc.cc/core/utils/validate"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
@@ -45,7 +46,7 @@
                         <TextBlock  Grid.Column="0" Grid.Row="0" Text="下载地址"/>
                         <local:MyTextBox x:Name="TextDownloadUrl" Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" TextChanged="TextDownloadUrl_TextChanged">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateHttpOrUnc/>
+                                <val:HttpAndUncValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         
@@ -55,7 +56,7 @@
                         <TextBlock Grid.Column="0" Grid.Row="2" Text="保存到"/>
                         <local:MyTextBox x:Name="TextDownloadFolder" Grid.Column="1" Grid.Row="2" Margin="0,10">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateFolderPath/>
+                                <val:FolderPathValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <local:MyTextButton Grid.Column="2" Grid.Row="2" Margin="10,0,5,0" VerticalAlignment="Center" Text="选择" Click="MyTextButton_Click"/>
@@ -63,7 +64,7 @@
                         <TextBlock  Grid.Column="0" Grid.Row="3" Text="文件名"/>
                         <local:MyTextBox x:Name="TextDownloadName" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateFileName/>
+                                <val:FileNameValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                     </Grid>
@@ -124,21 +125,21 @@
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="物品名（ID）" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10" >
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateRegex Regex="^[a-z0-9_]+$" ErrorDescription="请输入正确的物品 ID！"/>
+                                <val:RegexValidator Pattern="^[a-z0-9_]+$" ErrorMessage="请输入正确的物品 ID！" />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="成就名" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" x:Name="AchievementTitleTextBox" MaxLength="50">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateNullOrEmpty/>
+                                <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="第一行" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateNullOrEmpty/>
+                                <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         

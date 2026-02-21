@@ -1,7 +1,10 @@
 ﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:local="clr-namespace:PCL"
+    xmlns:val="https://ce.pclc.cc/core/utils/validate"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:System="clr-namespace:System;assembly=mscorlib" 
     mc:Ignorable="d" x:Class="PageInstanceSetup"
     PanScroll="{Binding ElementName=PanBack}">
@@ -43,13 +46,13 @@
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义信息" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="6" Grid.ColumnSpan="2" Tag="VersionArgumentInfo" Grid.Column="1" HintText="跟随全局设置" ToolTip="该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角。&#xa;若留空，则跟随全局设置的值。">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateExcept>
-                                    <local:ValidateExcept.Excepts>
+                                <val:BlacklistValidator>
+                                    <val:BlacklistValidator.Blacklist>
                                         <System:String>"</System:String>
                                         <System:String>“</System:String>
                                         <System:String>”</System:String>
-                                    </local:ValidateExcept.Excepts>
-                                </local:ValidateExcept>
+                                    </val:BlacklistValidator.Blacklist>
+                                </val:BlacklistValidator>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="游戏 Java" Margin="0,0,25,0" />
@@ -160,13 +163,13 @@
                         <TextBlock Name="LabServerAuthServer" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="目标验证服务器" Margin="0,8,25,0" Visibility="Collapsed" />
                         <local:MyTextBox x:Name="TextServerAuthServer" Grid.Row="1" Grid.ColumnSpan="2" ShowValidateResult="False" Tag="VersionServerAuthServer" Grid.Column="1" Margin="0,8,0,0" Visibility="Collapsed" HintText="Yggdrasil API 认证服务器的完整地址">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateHttp />
+                                <val:HttpValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock Name="LabServerAuthRegister" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="注册链接" Margin="0,8,25,0" Visibility="Collapsed" />
                         <local:MyTextBox x:Name="TextServerAuthRegister" Grid.Row="2" Grid.ColumnSpan="2" ShowValidateResult="False" Tag="VersionServerAuthRegister" Grid.Column="1" Margin="0,8,0,0" Visibility="Collapsed" HintText="注册账号的网页地址，如 https://xxxxx.xxx/auth/register">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateHttp AllowsNullOrEmpty="True" />
+                                <val:HttpValidator AllowsNullOrEmpty="True" /> 
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock Name="LabServerAuthName" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" Text="服务器名称" Margin="0,8,25,0" Visibility="Collapsed" />
@@ -174,15 +177,15 @@
                         <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left" Text="自动进入服务器" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextServerEnter" Grid.ColumnSpan="2" Grid.Row="5" Tag="VersionServerEnter" Grid.Column="1" ToolTip="在打开 Minecraft 后自动进入某服务器。&#xa;用英文冒号间隔 IP 与端口，例如 233.233.233.233:12345。">
                             <local:MyTextBox.ValidateRules>
-                                <local:ValidateExcept>
-                                    <local:ValidateExcept.Excepts>
+                                <val:BlacklistValidator>
+                                    <val:BlacklistValidator.Blacklist>
                                         <System:String>"</System:String>
                                         <System:String>“</System:String>
                                         <System:String>”</System:String>
                                         <System:String>http://</System:String>
                                         <System:String>https://</System:String>
-                                    </local:ValidateExcept.Excepts>
-                                </local:ValidateExcept>
+                                    </val:BlacklistValidator.Blacklist>
+                                </val:BlacklistValidator>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                     </Grid>

@@ -1,5 +1,7 @@
 ﻿
+Imports FluentValidation
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Validate
 
 Public Class PageDownloadCompDetail
     Private _compItem As MyCompItem = Nothing
@@ -437,9 +439,9 @@ GroupDone:
 
             '获取实例名
             Dim PackName As String = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "").Replace("\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("""", "").Replace("： ", "：")
-            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
-            If Validate.Validate(PackName) <> "" Then PackName = ""
-            Dim InstanceName As String = MyMsgBoxInput("输入实例名称", "", PackName, New ObjectModel.Collection(Of Validate) From {Validate})
+            Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
+            If Validate.Validate(PackName).IsValid <> True Then PackName = ""
+            Dim InstanceName As String = MyMsgBoxInput("输入实例名称", "", PackName, New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Return
 
             '构造步骤加载器

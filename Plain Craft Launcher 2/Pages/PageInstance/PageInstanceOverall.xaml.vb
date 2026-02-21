@@ -1,9 +1,11 @@
+Imports FluentValidation
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.App.Configuration.Storage
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
+Imports PCL.Core.Utils.Validate
 
 Public Class PageInstanceOverall
 
@@ -160,7 +162,7 @@ Public Class PageInstanceOverall
     Private Sub BtnDisplayDesc_Click(sender As Object, e As EventArgs) Handles BtnDisplayDesc.Click
         Try
             Dim OldInfo As String = Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance)
-            Dim NewInfo As String = MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo, New ObjectModel.Collection(Of Validate), "默认描述")
+            Dim NewInfo As String = MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo, New ObjectModel.Collection(Of IValidator(Of String)), "默认描述")
             If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance) = NewInfo
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
@@ -177,7 +179,7 @@ Public Class PageInstanceOverall
             Dim OldName As String = PageInstanceLeft.Instance.Name
             Dim OldPath As String = PageInstanceLeft.Instance.PathInstance
             '修改此部分的同时修改快速安装的实例名检测*
-            Dim NewName As String = MyMsgBoxInput("重命名实例", "", OldName, New ObjectModel.Collection(Of Validate) From {New ValidateFolderName(McFolderSelected & "versions", IgnoreCase:=False)})
+            Dim NewName As String = MyMsgBoxInput("重命名实例", "", OldName, New ObjectModel.Collection(Of IValidator(Of String)) From {New FolderNameValidator(McFolderSelected & "versions", IgnoreCase:=False)})
             If String.IsNullOrWhiteSpace(NewName) Then Return
             Dim NewPath As String = McFolderSelected & "versions\" & NewName & "\"
             '获取临时中间名，以防止仅修改大小写的重命名失败

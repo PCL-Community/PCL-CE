@@ -1,4 +1,7 @@
-﻿Public Class MyTextBox
+﻿Imports FluentValidation
+Imports FluentValidation.Results
+
+Public Class MyTextBox
     Inherits TextBox
 
     '自定义属性
@@ -93,22 +96,29 @@
     ''' <summary>
     ''' 输入验证的规则。
     ''' </summary>
-    Public Property ValidateRules As ObjectModel.Collection(Of Validate)
+    Public Property ValidateRules As ObjectModel.Collection(Of IValidator(Of String))
         Get
             Return _ValidateRules
         End Get
-        Set(Value As ObjectModel.Collection(Of Validate))
+        Set
             _ValidateRules = Value
             Validate()
         End Set
     End Property
-    Private _ValidateRules As New ObjectModel.Collection(Of Validate)
+    Private _ValidateRules As New ObjectModel.Collection(Of IValidator(Of String))
     ''' <summary>
     ''' 进行输入验证。
     ''' </summary>
     Public Sub Validate() Handles Me.Loaded
-        '执行输入验证
-        ValidateResult = ModValidate.Validate(Text, ValidateRules)
+        ' 执行输入验证
+        Dim result As ValidationResult
+        Dim textResult As String = String.Empty
+        For Each validateRule As IValidator(Of String) In ValidateRules
+            result = validateRule.Validate(Text)
+            textResult = If(result.IsValid, result.Errors.FirstOrDefault().ErrorMessage, "")
+        Next
+        
+        ValidateResult = textResult
         '根据结果改变样式
         If ShownValidateResult <> If(IsValidated, ValidateState.Success, ValidateState.FailedAndShowDetail) Then
             If IsLoaded AndAlso labWrong IsNot Nothing Then

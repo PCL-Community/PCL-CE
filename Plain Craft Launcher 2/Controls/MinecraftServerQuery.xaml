@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:local="clr-namespace:PCL"
+      xmlns:val="https://ce.pclc.cc/core/utils/validate"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
     <Grid.RowDefinitions>
@@ -17,11 +18,11 @@
     </Grid.ColumnDefinitions>
     <local:MyTextBox x:Name="LabServerIp" HintText="输入服务器地址" Margin="0,0,15,0" Grid.Column="0">
         <local:MyTextBox.ValidateRules>
-            <local:ValidateExcept>
-                <local:ValidateExcept.Excepts>
+            <val:BlacklistValidator>
+                <val:BlacklistValidator.Blacklist>
                     <sys:String>/</sys:String>
-                </local:ValidateExcept.Excepts>
-            </local:ValidateExcept>
+                </val:BlacklistValidator.Blacklist>
+            </val:BlacklistValidator>
         </local:MyTextBox.ValidateRules>
     </local:MyTextBox>
     <local:MyButton x:Name="BtnServerQuery" Text="查询" Width="60" Grid.Column="1"/>
