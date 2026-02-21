@@ -277,6 +277,7 @@ Public Class CustomEvent
                 Case EventType.修改变量, EventType.写入变量
                     If args.Length = 1 Then Throw New Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 VariableName|Value")
                     States.CustomVariables.Add(args(0), args(1))
+                    States.CustomVariables = States.CustomVariables
                     If args.Length = 2 Then Hint($"已写入变量：{args(0)} → {args(1)}", HintType.Finish)
                 Case Else
                     MyMsgBox("未知的事件类型：" & type & vbCrLf & "请检查事件类型填写是否正确，或者 PCL 是否为最新版本。", "事件执行失败")
