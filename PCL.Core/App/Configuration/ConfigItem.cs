@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using PCL.Core.Utils.Exts;
 
@@ -67,6 +69,29 @@ public class ConfigItem<TValue>(
     } = true;
 
     /// <summary>
+    /// 处理看起来是新的值，并返回是否真的是新的。<br/>
+    /// 只有启用缓存时该方法才会生效，未启用缓存将始终直接返回 <see langword="true"/>。
+    /// </summary>
+    private bool _ProcessNewCache(TValue newCache, object? argument)
+    {
+        if (!EnableCache) return true;
+        var existsOld = _valueCache.TryRead(out var oldCache, argument);
+        if (existsOld)
+        {
+            // 判断一下是否是新值
+            if (EqualityComparer<TValue>.Default.Equals(oldCache, newCache)) return false;
+            // 对新缓存值执行准备工作
+            if (newCache is INotifyPropertyChanged reactive)
+                reactive.PropertyChanged += (_, _) => OnContentChanged();
+            else if (newCache is INotifyCollectionChanged reactiveCollection)
+                reactiveCollection.CollectionChanged += (_, _) => OnContentChanged();
+        }
+        _valueCache.Write(newCache, argument);
+        return true;
+        void OnContentChanged() => SetValue(newCache, argument, true);
+    }
+
+    /// <summary>
     /// 获取配置值。
     /// </summary>
     /// <param name="argument">上下文参数</param>
@@ -75,10 +100,11 @@ public class ConfigItem<TValue>(
     {
         TValue? value = default; // 这个初始化是多余的，但是煞笔巨硬不初始化会报错
         var exists = EnableCache && _valueCache.TryRead(out value, argument);
+        var newValue = false;
         if (!exists)
         {
+            newValue = true;
             exists = _Provider.GetValue(Key, out value, argument);
-            if (exists && EnableCache) _valueCache.Write(value!, argument);
         }
         var e = _TriggerEvent(ConfigEvent.Get, argument, value, true);
         if (e != null)
@@ -86,7 +112,9 @@ public class ConfigItem<TValue>(
             if (e.Cancelled) return DefaultValue;
             if (e.NewValueReplacement != null) return (TValue)e.NewValueReplacement;
         }
-        return exists ? value! : DefaultValue;
+        if (!exists) value = DefaultValue;
+        if (newValue) _ProcessNewCache(value!, argument);
+        return value!;
     }
 
     public object GetValueNoType(object? argument = null)
@@ -99,8 +127,9 @@ public class ConfigItem<TValue>(
     /// </summary>
     /// <param name="value">用于设置的值</param>
     /// <param name="argument">上下文参数</param>
+    /// <param name="bypassCacheCheck">跳过缓存检查，<b>将造成一些功能不按预期工作，请仅在真正需要的时候指定该参数</b></param>
     /// <returns>是否成功设置值，若成功则为 <c>true</c></returns>
-    public bool SetValue(TValue value, object? argument = null)
+    public bool SetValue(TValue value, object? argument = null, bool bypassCacheCheck = false)
     {
         var e = _TriggerEvent(ConfigEvent.Set, argument, value, isPreview: true);
         if (e != null)
@@ -108,8 +137,7 @@ public class ConfigItem<TValue>(
             if (e.Cancelled) return false;
             if (e.NewValueReplacement != null) value = (TValue)e.NewValueReplacement;
         }
-        _Provider.SetValue(Key, value, argument);
-        if (EnableCache) _valueCache.Write(value, argument);
+        if (bypassCacheCheck || _ProcessNewCache(value, argument)) _Provider.SetValue(Key, value, argument);
         _TriggerEvent(ConfigEvent.Set, argument, value, e: e, isPreview: false);
         return true;
     }

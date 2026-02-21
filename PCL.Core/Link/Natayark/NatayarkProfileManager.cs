@@ -1,6 +1,5 @@
 using PCL.Core.App;
 using PCL.Core.Logging;
-using PCL.Core.Net;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 using System;
@@ -8,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PCL.Core.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client;
 
 namespace PCL.Core.Link.Natayark;
 

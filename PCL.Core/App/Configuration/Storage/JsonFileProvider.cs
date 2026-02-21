@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using PCL.Core.IO;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -43,7 +42,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
                 using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 var parseResult = JsonNode.Parse(stream, documentOptions: _DocumentOptions);
                 if (parseResult is not JsonObject root)
-                    throw new FileInitException(path,
+                    throw new ConfigFileInitException(path,
                         $"Invalid root element type: {parseResult?.GetValueKind().ToString() ?? "Empty"}");
                 _rootElement = root;
             }
@@ -56,8 +55,8 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
         }
         catch (Exception ex)
         {
-            if (ex is FileInitException) throw;
-            throw new FileInitException(path, "Failed to read JSON file", ex);
+            if (ex is ConfigFileInitException) throw;
+            throw new ConfigFileInitException(path, "Failed to read JSON file", ex);
         }
     }
 

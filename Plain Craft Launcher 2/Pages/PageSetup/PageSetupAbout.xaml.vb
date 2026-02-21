@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.Text.Json.Serialization
-Imports PCL.Core.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client
+
 Public Class PageSetupAbout
 
     Private Shadows IsLoaded As Boolean = False

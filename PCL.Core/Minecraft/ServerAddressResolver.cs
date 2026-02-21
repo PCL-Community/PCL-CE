@@ -9,9 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Dns.Protocol.Enums;
 using Ae.Dns.Protocol.Records;
+using PCL.Core.IO.Net.Dns;
 using PCL.Core.Logging;
-using PCL.Core.Net;
-using PCL.Core.Net.Dns;
 using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft;

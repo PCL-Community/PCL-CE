@@ -493,7 +493,7 @@ Public Module ModWatcher
                     Analyzer.Prepare()
                     Analyzer.Analyze(Version)
                     Analyzer.Output(False, New List(Of String) From
-                        {Version.PathInstance & Version.Name & ".json", LogWrapper.CurrentLogger.LogFiles.Last(), ExePath & "PCL\LatestLaunch.bat"})
+                        {Version.PathInstance & Version.Name & ".json", LogWrapper.CurrentLogger.CurrentLogFiles.Last(), ExePath & "PCL\LatestLaunch.bat"})
                 Catch ex As Exception
                     Log(ex, "崩溃分析失败", LogLevel.Feedback)
                 End Try

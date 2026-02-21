@@ -547,10 +547,12 @@ EndHint:
     Public FrmInstanceInstall As PageInstanceInstall
     Public FrmInstanceExport As PageInstanceExport
     Public FrmInstanceServer As PageInstanceServer
+
     '实例存档页面
     Public FrmInstanceSavesLeft As PageInstanceSavesLeft
     Public FrmInstanceSavesInfo As PageInstanceSavesInfo
     Public FrmInstanceSavesBackup As PageInstanceSavesBackup
+    Public FrmInstanceSavesDatapack As PageInstanceSavesDatapack
 
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail

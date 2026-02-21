@@ -5,9 +5,9 @@ Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.App
+Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Minecraft.Launch.Utils
 Imports PCL.Core.Utils.Secret
-Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.Utils.Exts
 
 Public Module ModLaunch

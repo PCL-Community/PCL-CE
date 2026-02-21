@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Exts;
@@ -146,7 +147,7 @@ public static class EncryptHelper
 
     private static byte[] _GetKey()
     {
-        var keyFile = Path.Combine(FileService.SharedDataPath, "UserKey.bin");
+        var keyFile = Path.Combine(Paths.SharedData, "UserKey.bin");
         if (File.Exists(keyFile))
         {
             var buf = File.ReadAllBytes(keyFile);

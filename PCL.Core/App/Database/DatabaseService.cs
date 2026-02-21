@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using LiteDB;
+using PCL.Core.App.IoC;
 
 namespace PCL.Core.App.Database;
 

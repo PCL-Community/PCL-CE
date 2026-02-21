@@ -3,6 +3,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
+Imports PCL.Core.App.IoC
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.UI.Animation
@@ -659,7 +660,7 @@ Public Class FormMain
                 FeedbackInfo()
                 Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）")
                 IsLogShown = True
-                ShellOnly(LogWrapper.CurrentLogger.LogFiles.Last())
+                ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last())
             End If
             Thread.Sleep(500) '防止 PCL 在记事本打开前就被掐掉
         End If
@@ -823,6 +824,9 @@ Public Class FormMain
             ElseIf PageCurrent = PageType.InstanceSelect Then
                 '实例选择自动刷新
                 LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+            ElseIf TypeOf FrmMain.PageRight Is PageInstanceSavesDatapack AndAlso FrmInstanceSavesDatapack IsNot Nothing Then
+                '数据包管理自动刷新
+                FrmInstanceSavesDatapack.ReloadDatapackFileList()
             End If
         Catch ex As Exception
             Log(ex, "切回窗口时出错", LogLevel.Feedback)
@@ -1268,6 +1272,7 @@ Public Class FormMain
         VersionServer = 11
         VersionSavesInfo = 0
         VersionSavesBackup = 1
+        VersionSavesDatapack = 2
     End Enum
     ''' <summary>
     ''' 获取次级页面的名称。若并非次级页面则返回空字符串，故可以以此判断是否为次级页面。
