@@ -122,8 +122,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Dim userAgent As String = If(Not String.IsNullOrEmpty(CustomUserAgent),
                                      CustomUserAgent,
                                          If(UseBrowserUserAgent,
-                                             $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
-                                             $"PCL2/{UpstreamVersion}.{VersionBranchCode} PCLCE/{VersionStandardCode}"
+                                             $"PCLCE/{VersionStandardCode} PCL2/{UpstreamVersion}.{VersionBranchCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+                                             $"PCLCE/{VersionStandardCode} PCL2/{UpstreamVersion}.{VersionBranchCode}"
                                          )
                                      )
         Client.Headers.Add("User-Agent", userAgent)
