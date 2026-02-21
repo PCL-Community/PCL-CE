@@ -1,3 +1,4 @@
+using PCL.Core.Net.NDownload.Interfaces;
 using System.Collections.Generic;
 
 namespace PCL.Core.IO.Download;

@@ -1,4 +1,6 @@
-namespace PCL.Core.IO.Download;
+using PCL.Core.Net.NDownload.Interfaces;
+
+namespace PCL.Core.Net.NDownload;
 
 /// <summary>
 /// 无泛型的下载器构建工厂。
@@ -44,6 +46,8 @@ public abstract class NDlFactory<TSourceArgument, TTargetArgument> : NDlFactory
     /// <returns>下载连接</returns>
     protected abstract IDlConnection CreateConnection(TSourceArgument source);
 
+
+    /// <inheritdoc />
     public override IDlConnection? CreateConnection(string resId)
     {
         var source = SourceMapping.Parse(resId);
@@ -57,6 +61,7 @@ public abstract class NDlFactory<TSourceArgument, TTargetArgument> : NDlFactory
     /// <returns>下载写入器</returns>
     protected abstract IDlWriter CreateWriter(TTargetArgument target);
 
+    /// <inheritdoc />
     public override IDlWriter? CreateWriter(string resId)
     {
         var target = TargetMapping.Parse(resId);
