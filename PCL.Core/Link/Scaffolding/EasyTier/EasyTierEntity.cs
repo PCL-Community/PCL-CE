@@ -158,7 +158,7 @@ public class EasyTierEntity
             EnableRaisingEvents = true,
             StartInfo = new ProcessStartInfo
             {
-                FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-core.exe",
+                FileName = Path.Combine(EasyTierMetadata.EasyTierFilePath, "easytier-core.exe"),
                 WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
                 WindowStyle = ProcessWindowStyle.Hidden
             }
@@ -206,7 +206,9 @@ public class EasyTierEntity
                 .Add("l", "udp://0.0.0.0:0");
         }
 
-        foreach (var address in _fallbackNodeLinks)
+        foreach (var address in ETRelay.RelayList
+            .Select(static x => x.Url)
+            .Concat(_fallbackNodeLinks))
         {
             args.Add("p", address);
         }
