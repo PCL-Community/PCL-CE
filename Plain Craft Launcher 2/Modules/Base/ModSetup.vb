@@ -83,8 +83,8 @@ Public Class ModSetup
     ''' 若该设置项经过了加密，则会抛出异常。
     ''' </summary>
     Public Function GetSafe(key As String, Optional instance As McInstance = Nothing)
-        Dim item As ConfigItem(Of Object) = Nothing
-        If Not ConfigService.TryGetConfigItem(key, item) Then Return Nothing
+        Dim item As ConfigItem = Nothing
+        If Not ConfigService.TryGetConfigItemNoType(key, item) Then Return Nothing
         If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止读取加密设置项：" & key)
         Return [Get](key, instance)
     End Function
