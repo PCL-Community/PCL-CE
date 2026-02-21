@@ -1,8 +1,7 @@
 Imports System.IO.Compression
 Imports System.Net.Http
+Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Minecraft
-Imports PCL.Core.Net
-Imports PCL.Core.Net.Http.Client
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.IoC;
 
 namespace PCL.Core.UI.Theme;
 

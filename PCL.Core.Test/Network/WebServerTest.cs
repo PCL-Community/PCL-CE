@@ -3,8 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Net.Http.Client;
-using PCL.Core.Net.Http.Server;
+using PCL.Core.IO.Net.Http.Server;
 
 namespace PCL.Core.Test.Network;
 

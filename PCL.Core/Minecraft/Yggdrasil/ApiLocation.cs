@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using PCL.Core.Net;
-using PCL.Core.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client;
 
 namespace PCL.Core.Minecraft.Yggdrasil;
 

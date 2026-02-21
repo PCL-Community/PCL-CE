@@ -3,7 +3,7 @@ Imports System.Net.Http
 Imports System.Security.Cryptography
 Imports System.Text.Json
 Imports FluentValidation
-Imports PCL.Core.Net
+Imports PCL.Core.IO.Net
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Secret
 Imports PCL.Core.Utils.Validate

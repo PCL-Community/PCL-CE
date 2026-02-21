@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PCL.Core.SourceGenerators;
@@ -12,16 +11,17 @@ namespace PCL.Core.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public class LifecycleScopeGenerator : IIncrementalGenerator
 {
-    private const string ScopeAttributeType = "PCL.Core.App.LifecycleScopeAttribute";
+    private const string LifecycleNamespace = "PCL.Core.App.IoC";
+    private const string ScopeAttributeType = $"{LifecycleNamespace}.LifecycleScopeAttribute";
 
-    private const string StartMethodAttributeType = "PCL.Core.App.LifecycleStartAttribute";
-    private const string StopMethodAttributeType = "PCL.Core.App.LifecycleStopAttribute";
-    private const string ArgumentHandlerMethodAttributeType = "PCL.Core.App.LifecycleArgumentHandlerAttribute";
-    private const string DependencyInjectionMethodAttributeType = "PCL.Core.App.LifecycleDependencyInjectionAttribute";
+    private const string StartMethodAttributeType = $"{LifecycleNamespace}.LifecycleStartAttribute";
+    private const string StopMethodAttributeType = $"{LifecycleNamespace}.LifecycleStopAttribute";
+    private const string CommandHandlerMethodAttributeType = $"{LifecycleNamespace}.LifecycleCommandHandlerAttribute";
+    private const string DependencyInjectionMethodAttributeType = $"{LifecycleNamespace}.LifecycleDependencyInjectionAttribute";
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
-        ArgumentHandlerMethodAttributeType, DependencyInjectionMethodAttributeType
+        CommandHandlerMethodAttributeType, DependencyInjectionMethodAttributeType
     ];
 
     private record ScopeMethodModel
@@ -34,10 +34,10 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
 
     private record StopMethodModel : ScopeMethodModel;
 
-    private record ArgumentHandlerMethodModel(
-        string ArgumentName,
-        string ArgumentQualifiedTypeName,
-        string ArgumentDefaultValue
+    private record CommandHandlerMethodModel(
+        string Command,
+        bool HasCommandModelArg,
+        (string Name, string TypeName, bool hasDefaultValue, object? DefaultValue)[] SplitArgs
     ) : ScopeMethodModel;
 
     private record DependencyInjectionMethodModel(
@@ -59,6 +59,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Debugger.Launch();
         var candidates = context.SyntaxProvider.ForAttributeWithMetadataName(
             ScopeAttributeType,
             static (node, _) => node is ClassDeclarationSyntax syntax && syntax.Modifiers.Any(m => m.ValueText == "partial"),
@@ -108,22 +109,29 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 {
                     StartMethodAttributeType => new StartMethodModel { MethodName = methodName, Awaitable = awaitable },
                     StopMethodAttributeType => new StopMethodModel { MethodName = methodName, Awaitable = awaitable },
-                    ArgumentHandlerMethodAttributeType => GetArgumentHandlerMethodModel(),
+                    CommandHandlerMethodAttributeType => GetCommandHandlerMethodModel(),
                     DependencyInjectionMethodAttributeType => GetDependencyInjectionMethodModel(),
                     _ => null
                 };
                 if (methodModel != null) model.Methods.Add(methodModel);
                 continue;
-                ArgumentHandlerMethodModel GetArgumentHandlerMethodModel()
+                CommandHandlerMethodModel? GetCommandHandlerMethodModel()
                 {
-                    var args = attr.ConstructorArguments;
-                    var argumentName = args[0].Value!.ToString();
-                    var argumentTypeName = attr.AttributeClass!.TypeArguments.First().GetSimplifiedTypeName();
-                    var argumentDefaultValue = args.Length > 1 ? args[1].ToCSharpString() : $"new {argumentTypeName}()";
-                    return new ArgumentHandlerMethodModel(argumentName, argumentTypeName, argumentDefaultValue)
+                    if (awaitable) return null;
+                    var command = attr.ConstructorArguments[0].Value!.ToString();
+                    var paraArray = method.Parameters;
+                    var hasCommandModelArg = paraArray.Length > 0 && paraArray[0].Type.GetSimplifiedTypeName() == "PCL.Core.App.Cli.CommandLine";
+                    var splitArgs = (
+                        from para in hasCommandModelArg ? paraArray.Skip(1) : paraArray
+                        let name = para.Name
+                        let typeName = para.Type.GetFullyQualifiedName()
+                        let hasDefaultValue = para.HasExplicitDefaultValue
+                        select (name, typeName, hasDefaultValue, hasDefaultValue ? para.ExplicitDefaultValue : null)
+                    ).ToArray();
+                    return new CommandHandlerMethodModel(command, hasCommandModelArg, splitArgs)
                     {
                         MethodName = methodName,
-                        Awaitable = awaitable
+                        Awaitable = false
                     };
                 }
                 DependencyInjectionMethodModel? GetDependencyInjectionMethodModel()
@@ -146,8 +154,9 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
 
     private static readonly HashSet<Type> _TypesIncludingInStartMethod = [
         typeof(StartMethodModel),
-        typeof(ArgumentHandlerMethodModel),
+        typeof(CommandHandlerMethodModel),
         typeof(DependencyInjectionMethodModel),
+        typeof(CommandHandlerMethodModel),
     ];
 
     private static string _GenerateScopeSource(ScopeModel model)
@@ -158,8 +167,9 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine("// <auto-generated />");
         sb.AppendLine("// 此文件由 Source Generator 自动生成，请勿手动修改");
         sb.AppendLine();
+        sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine("using PCL.Core.App;");
+        sb.AppendLine($"using {LifecycleNamespace};");
         sb.AppendLine();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();
@@ -169,14 +179,13 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         // basic structure
         sb.AppendLine($"partial class {model.TypeName} : ILifecycleService");
         sb.AppendLine("{");
-        sb.AppendLine("    private static LifecycleContext? _context;");
-        sb.AppendLine($"    private {model.TypeName}() {{ _context = Lifecycle.GetContext(this); }}");
-        sb.AppendLine();
         sb.AppendLine($"    public string Identifier => {model.Identifier.ToLiteral()};");
         sb.AppendLine($"    public string Name => {model.Name.ToLiteral()};");
         sb.AppendLine($"    public bool SupportAsync => {(model.SupportAsync ? "true" : "false")};");
-        sb.AppendLine("    private static LifecycleContext Context => _context!;");
+        sb.AppendLine();
+        sb.AppendLine("    private static LifecycleContext Context { get => field ?? throw new InvalidOperationException(\"Not initialized\"); set; } = null!;");
         sb.AppendLine("    private static ILifecycleService Service => Context.ServiceInstance;");
+        sb.AppendLine($"    public {model.TypeName}() {{ Context = Lifecycle.GetContext(this); }}");
         sb.AppendLine();
 
         // StopAsync() implementation
@@ -220,28 +229,41 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         {
             yield return MethodInvoke();
         }
-        else if (model is ArgumentHandlerMethodModel argModel)
+        else if (model is CommandHandlerMethodModel argModel)
         {
-            // TODO argument handler implementation
+            yield return $"StartupService.TryHandleCommand({argModel.Command.ToLiteral()}, (model, _) => {{";
+            var argTexts = new List<string>();
+            if (argModel.HasCommandModelArg) argTexts.Add("model");
+            foreach (var (name, typeName, hasDefaultValue, defaultValue) in argModel.SplitArgs)
+            {
+                var existsText = "exists_" + name;
+                var isTypeMatchText = "isTypeMatch_" + name;
+                var valueText = "value_" + name;
+                yield return $"    var ({(hasDefaultValue ? existsText : "_")}, {isTypeMatchText}) = model.TryGetArgumentValue<{typeName}>(\"{name}\", out var {valueText});";
+                yield return $"    if (!{isTypeMatchText}) throw new InvalidCastException(\"Argument type mismatch\");";
+                argTexts.Add(hasDefaultValue ? $"{existsText} ? {valueText} : {defaultValue.ToPrimitive() ?? "default"}" : valueText);
+            }
+            yield return MethodInvoke("    ", argTexts);
+            yield return "}, true);";
         }
         else if (model is DependencyInjectionMethodModel diModel)
         {
             var awaitable = diModel.Awaitable;
             if (awaitable) yield return "await Task.Run(() => {";
             var indentStr = awaitable ? "    " : "";
-            if (awaitable) yield return $"{indentStr}System.Func<{diModel.ParameterType}, Task>";
-            else yield return $"{indentStr}System.Action<{diModel.ParameterType}>";
+            if (awaitable) yield return $"{indentStr}Func<{diModel.ParameterType}, Task>";
+            else yield return $"{indentStr}Action<{diModel.ParameterType}>";
             yield return $"{indentStr}    action = {diModel.MethodName};";
             yield return $"{indentStr}var result = IoC.DependencyGroups.InvokeInjection(action, " +
                          $"{diModel.Identifier.ToLiteral()}, " +
-                         $"(System.AttributeTargets){diModel.Targets});";
+                         $"(AttributeTargets){diModel.Targets});";
             var logStr = diModel.Identifier + "@" + diModel.Targets;
             yield return $"{indentStr}if (result) Context.Trace(\"Dependency injection success: {logStr}\");";
             yield return $"{indentStr}else Context.Warn(\"Dependency injection failed: {logStr}\");";
             if (awaitable) yield return "});";
         }
         yield break;
-        string MethodInvoke(params string[] args)
-            => $"{(model.Awaitable ? "await " : "")}{model.MethodName}({string.Join(", ", args)});";
+        string MethodInvoke(string prefix = "", params IEnumerable<string> args)
+            => $"{prefix}{(model.Awaitable ? "await " : "")}{model.MethodName}({string.Join(", ", args)});";
     }
 }

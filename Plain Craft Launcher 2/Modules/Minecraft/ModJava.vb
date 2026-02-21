@@ -261,6 +261,7 @@ Public Module ModJava
         Return Loader
     End Function
     Private LastJavaBaseDir As String = Nothing '用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
+    Private ReadOnly IgnoreHash As HashSet(Of String) = {"12976a6c2b227cbac58969c1455444596c894656", "c80e4bab46e34d02826eab226a4441d0970f2aba", "84d2102ad171863db04e7ee22a259d1f6c5de4a5"}.ToHashSet()
     Private Sub JavaFileList(Loader As LoaderTask(Of String, List(Of NetFile)))
         Log("[Java] 开始获取 Java 下载信息")
         Dim IndexFileStr As String = NetGetCodeByLoader(DlVersionListOrder(
@@ -282,20 +283,25 @@ Public Module ModJava
         '获取文件列表
         Dim Address As String = TargetComponent("manifest")("url")
         McLaunchLog($"准备下载 Java {TargetComponent("version")("name")}（{TargetEntry.Name}）：{Address}")
-        Dim ListFileStr As String = NetGetCodeByRequestRetry(DlSourceOrder({Address}, {Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")}).First(), IsJson:=True)
-        LastJavaBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) & "\.minecraft\runtime\" & TargetEntry.Name & "\"
-        Dim Results As New List(Of NetFile)
-        For Each File As JProperty In CType(GetJson(ListFileStr), JObject)("files")
+        Dim ListFileStr As JObject = NetGetCodeByRequestRetry(DlSourceOrder({Address}, {Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")}).First(), IsJson:=True)
+        LastJavaBaseDir = IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "runtime", TargetEntry.Name)
+        Dim Results As New List(Of NetFile)(ListFileStr("files").Count())
+        For Each File As JProperty In ListFileStr("files")
             If CType(File.Value, JObject)("downloads")?("raw") Is Nothing Then Continue For
+
             Dim Info As JObject = CType(File.Value, JObject)("downloads")("raw")
+            Dim checkHash = Info("sha1")
+            If IgnoreHash.Contains(checkHash) Then Continue For '跳过 3 个无意义大量重复文件（#3827）
+
             Dim Checker As New FileChecker(ActualSize:=Info("size"), Hash:=Info("sha1"))
-            If Checker.Hash = "12976a6c2b227cbac58969c1455444596c894656" OrElse Checker.Hash = "c80e4bab46e34d02826eab226a4441d0970f2aba" OrElse Checker.Hash = "84d2102ad171863db04e7ee22a259d1f6c5de4a5" Then
-                '跳过 3 个无意义大量重复文件（#3827）
-                Continue For
+            Dim filePath = IO.Path.GetFullPath(IO.Path.Combine(LastJavaBaseDir, File.Name))
+            If Not Files.IsPathWithinDirectory(filePath, LastJavaBaseDir) Then
+                Throw New Exception($"{filePath} 不在 {LastJavaBaseDir} 中")
             End If
-            If Checker.Check(LastJavaBaseDir & File.Name) Is Nothing Then Continue For '跳过已存在的文件
+
+            If Checker.Check(filePath) Is Nothing Then Continue For '跳过已存在的文件
             Dim Url As String = Info("url")
-            Results.Add(New NetFile(DlSourceOrder({Url}, {Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com")}), LastJavaBaseDir & File.Name, Checker))
+            Results.Add(New NetFile(DlSourceOrder({Url}, {Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com")}), filePath, Checker))
         Next
         Loader.Output = Results
         Log($"[Java] 需要下载 {Results.Count} 个文件，目标文件夹：{LastJavaBaseDir}")

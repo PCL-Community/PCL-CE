@@ -2,7 +2,6 @@ using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Logging;
-using PCL.Core.Net;
 using PCL.Core.Utils;
 using Polly;
 using System;
@@ -17,7 +16,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.Net.Http.Client;
+using PCL.Core.IO.Net;
+using PCL.Core.IO.Net.Http.Client;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 

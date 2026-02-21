@@ -2,41 +2,39 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using PCL.Core.Logging;
-using PCL.Core.Utils.Hash;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PCL.Core.Utils.Hash;
 
 public class SHA512Provider : IHashProvider
 {
     public static SHA512Provider Instance { get; } = new();
-    
-    public string ComputeHash(Stream input)
+    public int Length => 128;
+
+    public byte[] ComputeHash(byte[] input)
     {
-        var originalPosition = input.Position;
-        try
-        {
-            return HashResultHandler.ConvertResultToString(SHA512.HashData(input), Length);
-        }
-        catch (Exception e)
-        {
-            LogWrapper.Error(e, "Hash", "Compute SHA512 failed");
-            throw;
-        }
-        finally
-        {
-            input.Position = originalPosition;
-        }
+        return SHA512.HashData(input);
     }
 
-    public string ComputeHash(byte[] input) => HashResultHandler.ConvertResultToString(SHA512.HashData(input), Length);
+    public byte[] ComputeHash(ReadOnlySpan<byte> input)
+    {
+        return SHA512.HashData(input);
+    }
 
-    public string ComputeHash(ReadOnlySpan<byte> input) =>
-        HashResultHandler.ConvertResultToString(SHA512.HashData(input), Length);
-    public string ComputeHash(string input, Encoding? en = null) => ComputeHash(
-        en == null
-            ? Encoding.UTF8.GetBytes(input)
-            : en.GetBytes(input));
+    public byte[] ComputeHash(string input, Encoding? encoding = null)
+    {
+        encoding ??= Encoding.UTF8;
+        return ComputeHash(encoding.GetBytes(input));
+    }
 
-    public int Length => 128;
+    public byte[] ComputeHash(Stream input)
+    {
+        return SHA512.HashData(input);
+    }
+
+    public async ValueTask<byte[]> ComputeHashAsync(Stream input, CancellationToken cancellationToken = default)
+    {
+        return await SHA512.HashDataAsync(input, cancellationToken).ConfigureAwait(false);
+    }
 }

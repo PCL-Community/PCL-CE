@@ -1226,6 +1226,8 @@ Finished:
                     Return IsModFile(Path)
                 Case CompType.ResourcePack, CompType.Shader
                     Return Path.EndsWithF(".zip", True)
+                Case CompType.DataPack
+                    Return Path.EndsWithF(".zip", True) OrElse Path.EndsWithF(".zip.disabled", True)
                 Case CompType.Schematic
                     Return Path.EndsWithF(".litematic", True) OrElse Path.EndsWithF(".nbt", True) OrElse Path.EndsWithF(".schematic", True) OrElse Path.EndsWithF(".schem", True)
                 Case Else
@@ -1684,6 +1686,7 @@ Finished:
         '获取作为检查目标的加载器和版本
         '此处不应向下扩展检查的 MC 小版本，例如 Mod 在更新 1.16.5 后，对早期的 1.16.2 版本发布了修补补丁，这会导致 PCL 将 1.16.5 版本的 Mod 降级到 1.16.2
         Dim ModLoaders = Loader.Input.Loaders
+        Dim CompType = Loader.Input.CompType
         Dim McInstance = Loader.Input.GameVersion.Info.VanillaName
         '开始网络获取
         Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McInstance}")
@@ -1727,9 +1730,10 @@ Finished:
                     Next
                     Log($"[Mod] 已从 Modrinth 获取本地 Mod 信息，继续获取更新信息")
                     '步骤 4：获取更新信息
+                    Dim targetLoaders = If(CompType = CompType.DataPack, "datapack", ModLoaders.Join(""",""").ToLower)
                     Dim ModrinthUpdate = CType(GetJson(DlModRequest("https://api.modrinth.com/v2/version_files/update", "POST",
                         $"{{""hashes"": [""{ModrinthMapping.SelectMany(Function(l) l.Value.Select(Function(m) m.ModrinthHash)).Join(""",""")}""], ""algorithm"": ""sha1"", 
-                    ""loaders"": [""{ModLoaders.Join(""",""").ToLower}""],""game_versions"": [""{McInstance}""]}}", "application/json")), JObject)
+                    ""loaders"": [""{targetLoaders}""],""game_versions"": [""{McInstance}""]}}", "application/json")), JObject)
                     For Each Entry In Mods
                         If Not ModrinthUpdate.ContainsKey(Entry.ModrinthHash) OrElse Entry.CompFile Is Nothing Then Continue For
                         Dim UpdateFile As New CompFile(ModrinthUpdate(Entry.ModrinthHash), CompType.Mod)
@@ -1807,7 +1811,7 @@ Finished:
                             Dim NewestVersion As String = Nothing
                             Dim NewestFileIds As New List(Of Integer)
                             For Each IndexEntry In ProjectJson("latestFilesIndexes")
-                                If IndexEntry("modLoader") Is Nothing OrElse ModLoaders.Single <> IndexEntry("modLoader").ToObject(Of Integer) Then Continue For 'ModLoader 唯一且匹配
+                                If CompType <> CompType.DataPack AndAlso (IndexEntry("modLoader") Is Nothing OrElse ModLoaders.Single <> IndexEntry("modLoader").ToObject(Of Integer)) Then Continue For 'ModLoader 唯一且匹配
                                 Dim IndexVersion As String = IndexEntry("gameVersion")
                                 If IndexVersion <> McInstance Then Continue For 'MC 版本匹配
                                 '由于 latestFilesIndexes 是按时间从新到老排序的，所以只需取第一个；如果需要检查多个 releaseType 下的文件，将 > -1 改为 = 1，但这应当并不会获取到更新的文件
