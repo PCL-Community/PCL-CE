@@ -67,7 +67,7 @@ public class McPingService : IMcPingService
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("连接超时"), "ModernMcPing", $"Failed to connect to the {_endpoint}");
+            LogWrapper.Error(new TimeoutException("连接超时"), ModuleName, $"Failed to connect to the {_endpoint}");
             return null;
         }
         catch (Exception e)
@@ -87,17 +87,17 @@ public class McPingService : IMcPingService
         try
         {
             await stream.WriteAsync(handshakePacket, linkedCts.Token);
-            LogWrapper.Debug("McPing", $"Handshake sent, packet length: {handshakePacket.Length}");
+            LogWrapper.Debug(ModuleName, $"Handshake sent, packet length: {handshakePacket.Length}");
 
             await stream.WriteAsync(statusPacket, linkedCts.Token);
-            LogWrapper.Debug("McPing", $"Status sent, packet length: {statusPacket.Length}");
+            LogWrapper.Debug(ModuleName, $"Status sent, packet length: {statusPacket.Length}");
 
             var buffer = new byte[4096];
             watcher.Start();
 
             var totalLength = Convert.ToInt64(await VarIntHelper.ReadFromStreamAsync(stream, linkedCts.Token));
             watcher.Stop();
-            LogWrapper.Debug("McPing", $"Total length: {totalLength}");
+            LogWrapper.Debug(ModuleName, $"Total length: {totalLength}");
 
             long readLength = 0;
             while (readLength < totalLength)
@@ -114,7 +114,7 @@ public class McPingService : IMcPingService
         }
         catch (Exception e)
         {
-            LogWrapper.Error(e, "McPing", $"Failed to communicate with {_endpoint}: {e.Message}");
+            LogWrapper.Error(e, ModuleName, $"Failed to communicate with {_endpoint}: {e.Message}");
             return null;
         }
         finally
@@ -127,7 +127,7 @@ public class McPingService : IMcPingService
         var retBinary = res.ToArray();
         var dataLength =
             Convert.ToInt32(VarIntHelper.Decode(retBinary.Skip(1).ToArray(), out var packDataHeaderLength));
-        LogWrapper.Debug("McPing", $"ServerDataLength: {dataLength}");
+        LogWrapper.Debug(ModuleName, $"ServerDataLength: {dataLength}");
         if (dataLength > retBinary.Length) throw new Exception("The server data is too large");
         var retCtx = Encoding.UTF8.GetString(retBinary.Skip(1 + packDataHeaderLength).Take(dataLength).ToArray());
 
@@ -139,7 +139,7 @@ public class McPingService : IMcPingService
             jsonObject["favicon"] = "...";
         }
 
-        LogWrapper.Debug("McPing", resJsonDebug.ToJsonString());
+        LogWrapper.Debug(ModuleName, resJsonDebug.ToJsonString());
 #endif
         // 先处理Description字段，将其转换为字符串形式
         if (retJson["description"] is JsonObject descObj)
@@ -262,7 +262,7 @@ public class McPingService : IMcPingService
             }
         }
 
-        LogWrapper.Debug("McPing", $"处理 Motd 内容完成，结果：{result}");
+        LogWrapper.Debug(ModuleName, $"处理 Motd 内容完成，结果：{result}");
         return result.ToString();
     }
 
