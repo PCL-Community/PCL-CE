@@ -75,7 +75,7 @@
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2"/>
         <PackageReference Include="NAudio" Version="2.2.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
-        <PackageReference Include="System.Management" Version="10.0.2"/>
+        <PackageReference Include="System.Management" Version="10.0.3" />
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
         <PackageReference Include="System.Private.Uri" Version="4.3.2"/>
         <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1"/>
@@ -109,9 +109,6 @@
         <EnableDefaultPageItems>false</EnableDefaultPageItems>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="My Project\MyNamespace.Static.1.Designer.cs"/>
-        <Compile Include="My Project\MyNamespace.Static.2.Designer.cs"/>
-        <Compile Include="My Project\MyNamespace.Static.3.Designer.cs"/>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**"/>
         <ApplicationDefinition Include="Application.xaml" Condition="Exists('Application.xaml')"/>
         <ApplicationDefinition Include="App.xaml" Condition="Exists('App.xaml')"/>
