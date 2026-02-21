@@ -1,10 +1,10 @@
-using Microsoft.Win32.SafeHandles;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
-namespace PCL.Core.Net.Downloader.IO;
+namespace PCL.Core.IO.Download.IO;
 
 public class FileStorage : IDisposable
 {

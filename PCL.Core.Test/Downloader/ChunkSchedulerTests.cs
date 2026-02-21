@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Net.Downloader.Scheduling;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.IO.Download.Scheduling;
 
 namespace PCL.Core.Test.Downloader;
 

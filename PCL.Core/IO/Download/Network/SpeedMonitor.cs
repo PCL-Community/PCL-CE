@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.Net.Downloader.Network;
+namespace PCL.Core.IO.Download.Network;
 
 public class SpeedMonitor : IAsyncDisposable
 {

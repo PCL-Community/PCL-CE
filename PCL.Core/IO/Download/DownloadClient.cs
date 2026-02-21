@@ -1,7 +1,7 @@
-using PCL.Core.Net.Downloader.Core;
-using PCL.Core.Net.Downloader.IO;
-using PCL.Core.Net.Downloader.Network;
-using PCL.Core.Net.Downloader.Scheduling;
+using PCL.Core.IO.Download.Core;
+using PCL.Core.IO.Download.IO;
+using PCL.Core.IO.Download.Network;
+using PCL.Core.IO.Download.Scheduling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.Net.Downloader;
+namespace PCL.Core.IO.Download;
 
 public class DownloadClient
 {
@@ -23,6 +23,7 @@ public class DownloadClient
     public event DownloadStateChangeEventHandler? StateChanged;
     public event MirrorSwitchedEventHandler? MirrorSwitched;
     public event DownloadProgressEventHandler? ProgressChanged;
+    internal event Action<int>? DownloadFinished;
 
     #endregion
 
@@ -31,6 +32,9 @@ public class DownloadClient
     private readonly object _progressLock = new();
     private DateTime _lastProgressReport = DateTime.MinValue;
     private long _bytesSinceLastReport;
+    private List<MirrorInfo>? _mirrors;
+
+    public int ActiveWorkers { get; private set; }
 
     public DownloadClient(DownloadOptions options)
     {
@@ -46,25 +50,45 @@ public class DownloadClient
         _httpClient = new HttpClient(handler) { Timeout = options.TimeOut };
     }
 
-    public async Task StartAsync(CancellationToken globalToken = default)
+    public DownloadClient(DownloadOptions options, HttpClient client)
+    {
+        _options = options;
+        _httpClient = client;
+    }
+
+    public DownloadClient(DownloadOptions options, SocketsHttpHandler handler)
+    {
+        _options = options;
+
+        _httpClient = new HttpClient(handler) { Timeout = options.TimeOut };
+    }
+
+    public async Task InitializeAsync()
     {
         _ChangeState(DownloadState.Preparing, DownloadState.Probing);
 
         var prober = new MetadataProber(_options.TimeOut);
         var (fileSize, supprotRange, mirrors) = await prober.ProbeAsync(_options.MirrorUrls, _httpClient).ConfigureAwait(false);
         _totalFileSize = fileSize;
+        _mirrors = mirrors;
 
-        _ChangeState(DownloadState.Probing, DownloadState.Downloading);
+        _ChangeState(DownloadState.Probing, DownloadState.Waiting);
 
         var actualWorkers = supprotRange && fileSize > _options.ChunkSizeBytes ? _options.MaxConcurrentWorkers : 1;
+        ActiveWorkers = actualWorkers;
+    }
 
-        var scheduler = new ChunkScheduler(fileSize, _options.ChunkSizeBytes);
-        using var storage = new FileStorage(_options.DestinationFilePath, fileSize);
+    public async Task StartAsync(CancellationToken globalToken = default)
+    {
+        _ChangeState(DownloadState.Waiting, DownloadState.Downloading);
+
+        var scheduler = new ChunkScheduler(_totalFileSize, _options.ChunkSizeBytes);
+        using var storage = new FileStorage(_options.DestinationFilePath, _totalFileSize);
 
         var workerTasks = new List<Task>();
-        for (int i = 0; i < actualWorkers; i++)
+        for (int i = 0; i < ActiveWorkers; i++)
         {
-            workerTasks.Add(_WorkerLoopAsync(scheduler, storage, mirrors, globalToken));
+            workerTasks.Add(_WorkerLoopAsync(scheduler, storage, _mirrors!, globalToken));
         }
 
         await Task.WhenAll(workerTasks).ConfigureAwait(false);
@@ -114,7 +138,7 @@ public class DownloadClient
                     response.EnsureSuccessStatusCode();
 
                     await using var stream = await response.Content.ReadAsStreamAsync(streamReadCts.Token).ConfigureAwait(false);
-                    using var bufferOwner = MemoryPool<byte>.Shared.Rent(81920); // 80KB
+                    using var bufferOwner = MemoryPool<byte>.Shared.Rent(_options.MemoryBufferSizeBytes);
                     var buffer = bufferOwner.Memory;
 
                     await using var speedMonitor = new SpeedMonitor(

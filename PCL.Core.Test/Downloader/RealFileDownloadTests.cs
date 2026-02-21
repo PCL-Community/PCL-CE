@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Net.Downloader;
-using PCL.Core.Net.Downloader.Core;
+using PCL.Core.IO.Download;
+using PCL.Core.IO.Download.Core;
 using System;
 using System.IO;
 using System.Threading;

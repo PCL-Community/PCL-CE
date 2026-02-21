@@ -1,11 +1,11 @@
-namespace PCL.Core.Net.Downloader.Core;
+namespace PCL.Core.IO.Download.Core;
 
 public enum DownloadState
 {
     Preparing,
     Probing,
+    Waiting,
     Downloading,
-    Stalled,
     Completed,
     Failed
 }

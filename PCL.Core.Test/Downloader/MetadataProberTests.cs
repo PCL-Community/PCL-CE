@@ -1,5 +1,4 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.Net.Downloader.Network;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -7,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.IO.Download.Network;
 
 namespace PCL.Core.Test.Downloader;
 

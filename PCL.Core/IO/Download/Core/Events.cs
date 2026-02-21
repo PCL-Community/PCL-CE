@@ -1,6 +1,6 @@
 using System;
 
-namespace PCL.Core.Net.Downloader.Core;
+namespace PCL.Core.IO.Download.Core;
 
 public delegate void DownloadStateChangeEventHandler(object sender, DownloadStateChangeEventArgs e);
 

@@ -1,10 +1,10 @@
-using PCL.Core.Net.Downloader.Core;
 using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using PCL.Core.IO.Download.Core;
 
-namespace PCL.Core.Net.Downloader.Scheduling;
+namespace PCL.Core.IO.Download.Scheduling;
 
 public class ChunkScheduler
 {

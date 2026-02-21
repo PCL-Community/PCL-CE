@@ -1,4 +1,4 @@
-using PCL.Core.Net.Downloader.Core;
+using PCL.Core.IO.Download.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,12 +9,12 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.Net.Downloader.Network;
+namespace PCL.Core.IO.Download.Network;
 
 public class MetadataProber(TimeSpan timeout)
 {
-    public async Task<(long FileSize, bool SupportRange, List<MirrorInfo> SortedMirrors)> ProbeAsync(List<string> urls,
-        HttpClient client)
+    public async Task<(long FileSize, bool SupportRange, List<MirrorInfo> SortedMirrors)>
+        ProbeAsync(List<string> urls, HttpClient client)
     {
         var probeTasks = urls.Select(url => _ProbeSingleUrlAsync(url, client)).ToList();
         var results = await Task.WhenAll(probeTasks).ConfigureAwait(false);
@@ -46,7 +46,7 @@ public class MetadataProber(TimeSpan timeout)
             {
                 Url = r.Url,
                 IsAlive = true,
-                LatencyMs = r.LatencyMs,
+                LatencyMilliseconds = r.LatencyMs,
                 HealthScore = Math.Max(100 - (index * 5), 50)
             })
             .ToList();
@@ -63,8 +63,15 @@ public class MetadataProber(TimeSpan timeout)
         string ETag
     );
 
+    private static readonly Dictionary<string, ProbeResult> _ProbeCache = [];
+
     private async Task<ProbeResult> _ProbeSingleUrlAsync(string url, HttpClient client)
     {
+        if (_ProbeCache.TryGetValue(url, out var cache))
+        {
+            return cache;
+        }
+
         var sw = Stopwatch.StartNew();
         using var ctx = new CancellationTokenSource(timeout);
 
@@ -106,12 +113,17 @@ public class MetadataProber(TimeSpan timeout)
 
             var eTag = response.Headers.ETag?.Tag?.Trim('"') ?? "NO_ETAG";
 
-            return new ProbeResult(url, true, sw.ElapsedMilliseconds, fileSize, supportRange, eTag);
+
+            var result = new ProbeResult(url, true, sw.ElapsedMilliseconds, fileSize, supportRange, eTag);
+            _ProbeCache.Add(url, result);
+            return result;
         }
         catch
         {
             sw.Stop();
-            return new ProbeResult(url, false, sw.ElapsedMilliseconds, 0, false, string.Empty);
+            var result = new ProbeResult(url, false, sw.ElapsedMilliseconds, 0, false, string.Empty);
+            _ProbeCache.Add(url, result);
+            return result;
         }
     }
 }
