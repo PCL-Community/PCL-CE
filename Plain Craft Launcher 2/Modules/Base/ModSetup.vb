@@ -303,7 +303,7 @@ Public Class ModSetup
 #End If
     '高级材质
     Public Sub UiBlur(Value As Boolean)
-        FrmSetupUI.PanBlurValue.Visibility = If(Value, Visibility.Visible, Visibility.Collapsed)
+        If FrmSetupUI IsNot Nothing Then FrmSetupUI.PanBlurValue.Visibility = If(Value, Visibility.Visible, Visibility.Collapsed)
         If Value Then
             UiBlurValue(Setup.Get("UiBlurValue"))
         Else
