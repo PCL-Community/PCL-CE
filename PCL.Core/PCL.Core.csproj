@@ -89,7 +89,4 @@
         <AdditionalFiles Include="App\IoC\LifecycleState.cs" />
         <ProjectReference Include="..\PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Net\Downloader\" />
-    </ItemGroup>
 </Project>
