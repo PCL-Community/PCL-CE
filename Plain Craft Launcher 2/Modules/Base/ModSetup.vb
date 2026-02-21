@@ -1,7 +1,7 @@
 Imports System.Reflection
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App.Configuration
-Imports PCL.Core.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client
 
 Public Class ModSetup
     Implements IConfigScope

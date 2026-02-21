@@ -1,7 +1,7 @@
-Imports PCL.Core.Net
+
 Imports System.Net.Http
 Imports PCL.Core.App
-Imports PCL.Core.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Utils
 
 Public Module ModDownload

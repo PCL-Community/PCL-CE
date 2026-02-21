@@ -1,4 +1,5 @@
 Imports System.Runtime.InteropServices
+Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.Link
 Imports PCL.Core.Link.EasyTier
@@ -178,7 +179,7 @@ Public Module ModLink
                                address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
 
                                loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(address.ToArray, dlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(dlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(dlTargetPath, IO.Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
                                loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
                                                                                                 File.Delete(dlTargetPath)
                                                                                                 CleanupEasyTierCache()
@@ -198,7 +199,7 @@ Public Module ModLink
         Return 0
     End Function
     Private Sub CleanupEasyTierCache()
-        Dim subDirs As String() = Directory.GetDirectories(IO.Path.Combine(FileService.LocalDataPath, "EasyTier"))
+        Dim subDirs As String() = Directory.GetDirectories(IO.Path.Combine(Paths.SharedLocalData, "EasyTier"))
         For Each folderPath As String In subDirs
             Dim name As String = IO.Path.GetFileName(folderPath)
             If Not name.Equals(ETInfoProvider.ETVersion) Then

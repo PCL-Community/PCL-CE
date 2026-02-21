@@ -34,12 +34,12 @@ public class YamlFileProvider : CommonFileProvider, IEnumerableKeyProvider
             yaml.Load(reader);
             if (yaml.Documents.Count == 0) return [];
             var rootNode = yaml.Documents[0].RootNode;
-            return rootNode as YamlMappingNode ?? throw new FileInitException(path, $"Invalid root node type: {rootNode.NodeType}");
+            return rootNode as YamlMappingNode ?? throw new ConfigFileInitException(path, $"Invalid root node type: {rootNode.NodeType}");
         }
         catch (Exception ex)
         {
-            if (ex is FileInitException) throw;
-            throw new FileInitException(path, "Failed to load YAML content", ex);
+            if (ex is ConfigFileInitException) throw;
+            throw new ConfigFileInitException(path, "Failed to load YAML content", ex);
         }
     }
 

@@ -33,18 +33,18 @@ Everyone is welcome to try it out!
 
 ## 💻 Supported Platforms
 
-| Operating System | Supported Launcher Version | Requirements | Community Support |
-|---|---|---|---|
-| Windows 10 1809 (17763) or later | [Latest release](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ✅ Fully supported |
-| Windows 8 – Windows 10 earlier than 1809 (below 17763) | [Latest release](https://github.com/PCL-Community/PCL2-CE/releases/latest) | [.NET 8 Desktop Runtime](http://get.dot.net/8) | ⚠️ Should run, but no community support |
-| Windows 7 or earlier | [2.9.5](https://github.com/PCL-Community/PCL2-CE/releases/tag/2.9.5) | [.NET Framework 4.8](https://dotnet.microsoft.com/zh-cn/download/dotnet-framework/thank-you/net48-offline-installer) | ❌ No community support |
-| macOS / Linux / other operating systems | Not supported yet | [.NET 10 SDK](http://get.dot.net/10) | ⚠️ Cross-platform development only (cross-compilation) |
+| Operating System | Support Status | Requirements |
+|---|---|---|
+| Windows 10 1809 (17763) or later | ✅ Fully supported | [.NET 8 Desktop Runtime](http://get.dot.net/8) |
+| Windows 8 to Windows 10 1809 (17763) or earlier | ⚠️ Expected to run; community support offered at discretion | [.NET 8 Desktop Runtime](http://get.dot.net/8) |
+| Windows 7 or earlier | ❌ Not supported | N/A |
+| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) | [.NET 10 SDK](http://get.dot.net/10) |
 
-**✅ Fully supported**: We’ll provide as much support as possible, but you must ensure you are using the latest version of the launcher.
+**✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
 
-**⚠️ Should run, but no community support**: PCL CE is expected to run on these platforms, but full functionality is not guaranteed. You must upgrade to a fully supported OS version to receive community technical support.
+**⚠️ Expected to run; community support offered at discretion**: PCL CE is expected to run on these platforms, but full functionality is not guaranteed. You may need to upgrade to a fully supported OS version to receive further community technical support.
 
-**❌ No community support**: PCL CE may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL CE.
+**❌ Not supported**: PCL CE may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL CE.
 
 **⚠️ Cross-platform development only (cross-compilation)**: PCL CE’s source code can be built on macOS and Linux, but it cannot run directly. As a developer, you can develop on these platforms and then move the build artifacts to Windows for testing.
 
@@ -52,7 +52,7 @@ Everyone is welcome to try it out!
 The community only supports the latest version of the launcher.    
 Depending on the nature of certain issues (e.g., an incomplete system environment), you may still need to upgrade your OS to continue receiving support.    
 PCL CE always recommends using the latest version of your OS for the best experience.    
-Windows 7 can still try using the latest launcher version, but you may run into many additional issues.
+You can still try using the latest launcher version on unsupported platforms, but you may encounter many additional problems.
 
 ## 🔒 License
 

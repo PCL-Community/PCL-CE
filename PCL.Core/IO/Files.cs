@@ -17,6 +17,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.App;
 
 namespace PCL.Core.IO;
 
@@ -612,7 +613,7 @@ public static class Files {
     /// </summary>
     public static string GetFullPath(string filePath) {
         ArgumentNullException.ThrowIfNull(filePath);
-        return Path.IsPathRooted(filePath) ? filePath : Path.Combine(FileService.DefaultDirectory, filePath);
+        return Path.IsPathRooted(filePath) ? filePath : Path.Combine(Paths.DefaultDirectory, filePath);
     }
 
     /// <summary>

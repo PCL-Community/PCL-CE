@@ -39,7 +39,7 @@ public class LifecycleServiceTypesGenerator : IIncrementalGenerator
 
         // 生成代码
         context.RegisterSourceOutput(combinedProvider, 
-            static (spc, data) => _Execute(spc, data.Left.FirstOrDefault() ?? new List<string>(), data.Right.Where(x => x != null).Select(x => x!).ToImmutableArray()));
+            static (spc, data) => _Execute(spc, data.Left.FirstOrDefault() ?? new List<string>(), [..data.Right.Where(x => x != null).Select(x => x!)]));
     }
 
     private static List<string>? _GetValidLifecycleStates(string? content)
@@ -208,7 +208,7 @@ public class LifecycleServiceTypesGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("using System;");
         sb.AppendLine();
-        sb.AppendLine("namespace PCL.Core.App;");
+        sb.AppendLine("namespace PCL.Core.App.IoC;");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
         sb.AppendLine("/// 包含所有使用 LifecycleService 注解的类型，按 StartState 分类并按 Priority 降序排序");

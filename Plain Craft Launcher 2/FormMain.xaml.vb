@@ -3,6 +3,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Interop
 Imports System.Windows.Media.Effects
 Imports PCL.Core.App
+Imports PCL.Core.App.IoC
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
 Imports PCL.Core.UI.Theme
@@ -702,6 +703,9 @@ Public Class FormMain
             ElseIf PageCurrent = PageType.InstanceSelect Then
                 '实例选择自动刷新
                 LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.RunOnUpdated, MaxDepth:=1, ExtraPath:="versions\")
+            ElseIf TypeOf FrmMain.PageRight Is PageInstanceSavesDatapack AndAlso FrmInstanceSavesDatapack IsNot Nothing Then
+                '数据包管理自动刷新
+                FrmInstanceSavesDatapack.ReloadDatapackFileList()
             End If
         Catch ex As Exception
             Log(ex, "切回窗口时出错", LogLevel.Feedback)
@@ -1147,6 +1151,7 @@ Public Class FormMain
         VersionServer = 11
         VersionSavesInfo = 0
         VersionSavesBackup = 1
+        VersionSavesDatapack = 2
     End Enum
     ''' <summary>
     ''' 获取次级页面的名称。若并非次级页面则返回空字符串，故可以以此判断是否为次级页面。
