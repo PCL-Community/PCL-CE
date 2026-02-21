@@ -55,8 +55,8 @@ Public Class ModSetup
     ''' 若该设置项经过了加密，则会抛出异常。
     ''' </summary>
     Public Sub SetSafe(key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
-        Dim item As ConfigItem(Of Object) = Nothing
-        If Not ConfigService.TryGetConfigItem(key, item) Then Return
+        Dim item As ConfigItem = Nothing
+        If Not ConfigService.TryGetConfigItemNoType(key, item) Then Return
         If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止写入加密设置项：" & Key)
         [Set](key, value, forceReload, instance)
     End Sub
