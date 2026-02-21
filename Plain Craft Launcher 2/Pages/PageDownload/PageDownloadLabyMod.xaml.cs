@@ -36,9 +36,9 @@ public partial class PageDownloadLabyMod
             SnapshotEntry.Add("version", Versions["snapshot"]["labyModVersion"].ToString());
             PanVersions.Children.Clear();
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(ProductionEntry,
-                (_, __) => this.LabyMod_Production_Selected()));
+                (a, b) => this.LabyMod_Production_Selected((dynamic)a, b)));
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(SnapshotEntry,
-                (_, __) => this.LabyMod_Snapshot_Selected()));
+                (a, b) => this.LabyMod_Snapshot_Selected((dynamic)a, b)));
             CardVersions.Title = "版本列表 (" + Versions.Count + ")";
         }
         catch (Exception ex)

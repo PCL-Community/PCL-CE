@@ -82,10 +82,9 @@ public partial class PageToolsLeft
             PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID = -1)
+    public object PageGet(FormMain.PageSubType? ID = null)
     {
-        if ((int)ID == -1)
-            ID = PageID;
+        FormMain.PageSubType targetID = ID ?? PageID;
         switch (ID)
         {
             case 0:

@@ -4,8 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Xml.Linq;
 using Microsoft.VisualBasic;
+using PCL.Core.Logging;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -27,7 +28,7 @@ public partial class PageSelectLeft : IRefreshable
 
     private void PageSelectLeft_Initialized(object sender, EventArgs e)
     {
-        ModMinecraft.McFolderListLoader.PreviewFinish += () =>
+        ModMinecraft.McFolderListLoader.PreviewFinish += (_) =>
         {
             if (ModMain.FrmSelectLeft is not null) ModBase.RunInUiWait(McFolderListUI);
         };
@@ -45,159 +46,93 @@ public partial class PageSelectLeft : IRefreshable
         try
         {
             // 确认数据有变化
-            if (McFolderListLast is not null && McFolderListLast.Equals(ModMinecraft.McFolderList))
-            {
-                var IsEqual = true;
-                for (int i = 0, loopTo = McFolderListLast.Count - 1; i <= loopTo; i++)
-                    if (!McFolderListLast[i].Equals(ModMinecraft.McFolderList[i]))
-                    {
-                        IsEqual = false;
-                        break;
-                    }
-
-                if (IsEqual)
-                    return;
-            }
+            if (McFolderListLast != null && McFolderListLast.SequenceEqual(ModMinecraft.McFolderList))
+                return;
 
             McFolderListLast = new List<ModMinecraft.McFolder>(ModMinecraft.McFolderList);
 
             // 创建 UI
             ModMain.FrmSelectLeft.PanList.Children.Clear();
 
-            // 文件夹列表
+            // 文件夹列表标题
             ModMain.FrmSelectLeft.PanList.Children.Add(new TextBlock
-                { Text = "文件夹列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
-            for (int i = 0, loopTo1 = ModMinecraft.McFolderList.Count - 1; i <= loopTo1; i++)
             {
-                var Folder = ModMinecraft.McFolderList[i];
-                // 添加控件
-                ContextMenu ContMenu = null;
-                switch (Folder.Type)
+                Text = "文件夹列表",
+                Margin = new Thickness(13, 18, 5, 4),
+                Opacity = 0.6,
+                FontSize = 12
+            });
+
+            for (int i = 0; i < ModMinecraft.McFolderList.Count; i++)
+            {
+                var folder = ModMinecraft.McFolderList[i];
+
+                // 创建 ContextMenu
+                ContextMenu contMenu = new ContextMenu();
+
+                // 添加菜单项
+                void AddMenuItem(string name, string header, string icon = null, Thickness? padding = null, RoutedEventHandler clickHandler = null)
                 {
-                    case ModMinecraft.McFolder.Types.Original:
+                    var item = new MyMenuItem
                     {
-                        ContMenu = (ContextMenu)ModBase.GetObjectFromXML(new XElement("ContextMenu",
-                                new XAttribute("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"),
-                                new XAttribute(XNamespace.Xmlns + "x", "http://schemas.microsoft.com/winfx/2006/xaml"),
-                                new XAttribute(XNamespace.Xmlns + "local",
-                                    "clr-namespace:PCL;assembly=Plain Craft Launcher 2"),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Rename"), new XAttribute("Header", "重命名"),
-                                    new XAttribute("Padding", "0,2,0,0"),
-                                    new XAttribute("Icon",
-                                        "F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveUp"), new XAttribute("Header", "上移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveDown"), new XAttribute("Header", "下移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Open"), new XAttribute("Header", "打开"),
-                                    new XAttribute("Icon",
-                                        "F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Refresh"), new XAttribute("Header", "刷新"),
-                                    new XAttribute("Icon",
-                                        "F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Delete"), new XAttribute("Header", "删除"),
-                                    new XAttribute("Padding", "0,0,0,2"),
-                                    new XAttribute("Icon",
-                                        "F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "))
-                            )
-                        );
-                        break;
-                    }
-                    case ModMinecraft.McFolder.Types.RenamedOriginal:
-                    {
-                        ContMenu = (ContextMenu)ModBase.GetObjectFromXML(new XElement("ContextMenu",
-                                new XAttribute("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"),
-                                new XAttribute(XNamespace.Xmlns + "x", "http://schemas.microsoft.com/winfx/2006/xaml"),
-                                new XAttribute(XNamespace.Xmlns + "local",
-                                    "clr-namespace:PCL;assembly=Plain Craft Launcher 2"),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Restore"), new XAttribute("Header", "复原名称"),
-                                    new XAttribute("Padding", "0,2,0,0"),
-                                    new XAttribute("Icon",
-                                        "F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Rename"), new XAttribute("Header", "重命名"),
-                                    new XAttribute("Icon",
-                                        "F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveUp"), new XAttribute("Header", "上移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveDown"), new XAttribute("Header", "下移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Open"), new XAttribute("Header", "打开"),
-                                    new XAttribute("Icon",
-                                        "F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Refresh"), new XAttribute("Header", "刷新"),
-                                    new XAttribute("Icon",
-                                        "F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Delete"), new XAttribute("Header", "删除"),
-                                    new XAttribute("Padding", "0,0,0,2"),
-                                    new XAttribute("Icon",
-                                        "F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "))
-                            )
-                        );
-                        break;
-                    }
-                    case ModMinecraft.McFolder.Types.Custom:
-                    {
-                        ContMenu = (ContextMenu)ModBase.GetObjectFromXML(new XElement("ContextMenu",
-                                new XAttribute("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"),
-                                new XAttribute(XNamespace.Xmlns + "x", "http://schemas.microsoft.com/winfx/2006/xaml"),
-                                new XAttribute(XNamespace.Xmlns + "local",
-                                    "clr-namespace:PCL;assembly=Plain Craft Launcher 2"),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Rename"), new XAttribute("Header", "重命名"),
-                                    new XAttribute("Padding", "0,2,0,0"),
-                                    new XAttribute("Icon",
-                                        "F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveUp"), new XAttribute("Header", "上移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "MoveDown"), new XAttribute("Header", "下移"),
-                                    new XAttribute("Icon",
-                                        "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Open"), new XAttribute("Header", "打开"),
-                                    new XAttribute("Icon",
-                                        "F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Refresh"), new XAttribute("Header", "刷新"),
-                                    new XAttribute("Icon",
-                                        "F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Remove"), new XAttribute("Header", "移出列表"),
-                                    new XAttribute("Icon",
-                                        "F1 M 23.3428,25.205L 23.3805,25.4461C 23.9229,27.177 30.261,29.0992 38,29.0992C 45.7386,29.0992 52.0765,27.1771 52.6194,25.4463L 52.6571,25.205C 52.6571,23.3616 46.0949,21.3109 38,21.3109C 29.9051,21.3109 23.3428,23.3616 23.3428,25.205 Z M 23.3428,53.0204L 19.1571,26.2111C 19.0534,25.8817 19,25.5459 19,25.205C 19,20.9036 27.5066,17.4167 38,17.4167C 48.4934,17.4167 57,20.9036 57,25.205C 57,25.5459 56.9466,25.8818 56.8429,26.2112L 52.6571,53.0204L 52.5974,53.0204C 51.9241,56.1393 45.6457,58.5833 38,58.5833C 30.3543,58.5833 24.076,56.1393 23.4026,53.0204L 23.3428,53.0204 Z M 51.8228,30.5485C 48.3585,32.0537 43.4469,32.9933 38,32.9933C 32.5531,32.9933 27.6415,32.0537 24.1771,30.5484L 27.5988,52.464L 27.6857,52.464C 27.6857,53.3857 32.3036,54.6892 38,54.6892C 43.6964,54.6892 48.3143,53.3857 48.3143,52.464L 48.4011,52.464L 51.8228,30.5485 Z ")),
-                                new XElement(XmlImports.local + "MyMenuItem",
-                                    new XAttribute(XmlImports.x + "Name", "Delete"), new XAttribute("Header", "删除"),
-                                    new XAttribute("Padding", "0,0,0,2"),
-                                    new XAttribute("Icon",
-                                        "F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "))
-                            )
-                        );
-                        break;
-                    }
+                        Name = name,
+                        Header = header,
+                        Icon = icon,
+                        Padding = padding ?? new Thickness(0)
+                    };
+                    if (clickHandler != null)
+                        item.Click += clickHandler;
+                    contMenu.Items.Add(item);
                 }
 
-                // 根据位置控制上移和下移按钮的显示
-                var moveUpItem = (MyMenuItem)ContMenu.FindName("MoveUp");
-                var moveDownItem = (MyMenuItem)ContMenu.FindName("MoveDown");
+                const string ICON_RENAME =
+                    "F1 M 53.2929,21.2929L 54.7071,22.7071C 56.4645,24.4645 56.4645,27.3137 54.7071,29.0711L 52.2323,31.5459L 44.4541,23.7677L 46.9289,21.2929C 48.6863,19.5355 51.5355,19.5355 53.2929,21.2929 Z M 31.7262,52.052L 23.948,44.2738L 43.0399,25.182L 50.818,32.9601L 31.7262,52.052 Z M 23.2409,47.1023L 28.8977,52.7591L 21.0463,54.9537L 23.2409,47.1023 Z";
+                const string ICON_MOVEUP =
+                    "M104.704 685.248a64 64 0 0 0 90.496 0L512 368.448l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z";
+                const string ICON_MOVEDOWN =
+                    "M104.704 338.752a64 64 0 0 1 90.496 0L512 655.552l316.8-316.8a64 64 0 0 1 90.496 90.496l-362.048 362.048a64 64 0 0 1-90.496 0L104.704 429.248a64 64 0 0 1 0-90.496z";
+                const string ICON_OPEN =
+                    "F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 54,28.0001L 54,32L 27,32L 19,46.4L 19,28.0001 Z";
+                const string ICON_REFRESH =
+                    "F1 M 38,20.5833C 42.9908,20.5833 47.4912,22.6825 50.6667,26.046L 50.6667,17.4167L 55.4166,22.1667L 55.4167,34.8333L 42.75,34.8333L 38,30.0833L 46.8512,30.0833C 44.6768,27.6539 41.517,26.125 38,26.125C 31.9785,26.125 27.0037,30.6068 26.2296,36.4167L 20.6543,36.4167C 21.4543,27.5397 28.9148,20.5833 38,20.5833 Z M 38,49.875C 44.0215,49.875 48.9963,45.3932 49.7703,39.5833L 55.3457,39.5833C 54.5457,48.4603 47.0852,55.4167 38,55.4167C 33.0092,55.4167 28.5088,53.3175 25.3333,49.954L 25.3333,58.5833L 20.5833,53.8333L 20.5833,41.1667L 33.25,41.1667L 38,45.9167L 29.1487,45.9167C 31.3231,48.3461 34.483,49.875 38,49.875 Z";
+                const string ICON_DELETE =
+                    "F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z";
+
+                switch (folder.Type)
+                {
+                    case ModMinecraft.McFolder.Types.Original:
+                        AddMenuItem("Rename", "重命名", ICON_RENAME, new Thickness(0,2,0,0), ModMain.FrmSelectLeft.Rename_Click);
+                        AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
+                        AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
+                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Delete", ModMinecraft.McFolderList.Count == 1 && folder.Location == ModBase.ExePath + ".minecraft\\" ? "清空" : "删除", ICON_DELETE, new Thickness(0,0,0,2), ModMain.FrmSelectLeft.Delete_Click);
+                        break;
+
+                    case ModMinecraft.McFolder.Types.RenamedOriginal:
+                        AddMenuItem("Restore", "复原名称", ICON_RENAME, new Thickness(0,2,0,0), ModMain.FrmSelectLeft.Restore_Click);
+                        AddMenuItem("Rename", "重命名", ICON_RENAME, null, ModMain.FrmSelectLeft.Rename_Click);
+                        AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
+                        AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
+                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Delete", "删除", ICON_DELETE, new Thickness(0,0,0,2), ModMain.FrmSelectLeft.Delete_Click);
+                        break;
+
+                    case ModMinecraft.McFolder.Types.Custom:
+                        AddMenuItem("Rename", "重命名", ICON_RENAME, new Thickness(0,2,0,0), ModMain.FrmSelectLeft.Rename_Click);
+                        AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
+                        AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
+                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Remove", "移出列表", "F1 M 23.3428,25.205L ...", null, ModMain.FrmSelectLeft.Remove_Click);
+                        AddMenuItem("Delete", "删除", ICON_DELETE, new Thickness(0,0,0,2), ModMain.FrmSelectLeft.Delete_Click);
+                        break;
+                }
+
+                // 控制上移下移显示
+                var moveUpItem = contMenu.Items.OfType<MyMenuItem>().FirstOrDefault(x => x.Name == "MoveUp");
+                var moveDownItem = contMenu.Items.OfType<MyMenuItem>().FirstOrDefault(x => x.Name == "MoveDown");
 
                 // 如果是第一个项目，隐藏上移按钮
                 if (i == 0) moveUpItem.Visibility = Visibility.Collapsed;
@@ -205,140 +140,140 @@ public partial class PageSelectLeft : IRefreshable
                 // 如果是最后一个项目，隐藏下移按钮
                 if (i == ModMinecraft.McFolderList.Count - 1) moveDownItem.Visibility = Visibility.Collapsed;
 
-                if ((Folder.Type == ModMinecraft.McFolder.Types.Original ||
-                     Folder.Type == ModMinecraft.McFolder.Types.RenamedOriginal) &&
-                    (Folder.Location ?? "") == (ModBase.ExePath + @".minecraft\" ?? "") &&
-                    ModMinecraft.McFolderList.Count == 1)
-                    ((MyMenuItem)ContMenu.FindName("Delete")).Header = "清空";
-                // 注册事件
-                if (Folder.Type == ModMinecraft.McFolder.Types.Custom)
-                    ((MyMenuItem)ContMenu.FindName("Remove")).AddHandler(MenuItem.ClickEvent,
-                        new RoutedEventHandler(ModMain.FrmSelectLeft.Remove_Click));
-                if (Folder.Type == ModMinecraft.McFolder.Types.RenamedOriginal)
-                    ((MyMenuItem)ContMenu.FindName("Restore")).AddHandler(MenuItem.ClickEvent,
-                        new RoutedEventHandler(ModMain.FrmSelectLeft.Restore_Click));
-                moveUpItem.AddHandler(MenuItem.ClickEvent, new RoutedEventHandler(ModMain.FrmSelectLeft.MoveUp_Click));
-                moveDownItem.AddHandler(MenuItem.ClickEvent,
-                    new RoutedEventHandler(ModMain.FrmSelectLeft.MoveDown_Click));
-                ((MyMenuItem)ContMenu.FindName("Open")).AddHandler(MenuItem.ClickEvent,
-                    new RoutedEventHandler(ModMain.FrmSelectLeft.Open_Click));
-                ((MyMenuItem)ContMenu.FindName("Delete")).AddHandler(MenuItem.ClickEvent,
-                    new RoutedEventHandler(ModMain.FrmSelectLeft.Delete_Click));
-                ((MyMenuItem)ContMenu.FindName("Rename")).AddHandler(MenuItem.ClickEvent,
-                    new RoutedEventHandler(ModMain.FrmSelectLeft.Rename_Click));
-                ((MyMenuItem)ContMenu.FindName("Refresh")).AddHandler(MenuItem.ClickEvent,
-                    new RoutedEventHandler(ModMain.FrmSelectLeft.Refresh_Click));
-
-                // 构建框架与图表按钮
-                var NewItem = new MyListItem
+                // 构建列表项
+                var newItem = new MyListItem
                 {
-                    IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = Folder.Name, Info = Folder.Location, Height = 40d, ContextMenu = ContMenu, Tag = Folder
+                    IsScaleAnimationEnabled = false,
+                    Type = MyListItem.CheckType.RadioBox,
+                    MinPaddingRight = 30,
+                    Title = folder.Name,
+                    Info = folder.Location,
+                    Height = 40,
+                    ContextMenu = contMenu,
+                    Tag = folder
                 };
-                NewItem.Changed += (_, __) => ModMain.FrmSelectLeft.Folder_Change();
 
-                // 启用拖拽功能
-                NewItem.AllowDrop = true;
-                NewItem.MouseMove += ModMain.FrmSelectLeft.Item_MouseMove;
-                NewItem.DragEnter += ModMain.FrmSelectLeft.Item_DragEnter;
-                NewItem.DragOver += ModMain.FrmSelectLeft.Item_DragOver;
-                NewItem.DragLeave += ModMain.FrmSelectLeft.Item_DragLeave;
-                NewItem.Drop += ModMain.FrmSelectLeft.Item_Drop;
+                newItem.Changed += (a, b) => ModMain.FrmSelectLeft.Folder_Change((dynamic)a, b);
 
-                var NewIconButton = new MyIconButton { Logo = ModBase.Logo.IconButtonSetup, LogoScale = 1.1d };
-                NewIconButton.Click += (sender, e) =>
+                // 拖拽
+                newItem.AllowDrop = true;
+                newItem.MouseMove += ModMain.FrmSelectLeft.Item_MouseMove;
+                newItem.DragEnter += ModMain.FrmSelectLeft.Item_DragEnter;
+                newItem.DragOver += ModMain.FrmSelectLeft.Item_DragOver;
+                newItem.DragLeave += ModMain.FrmSelectLeft.Item_DragLeave;
+                newItem.Drop += ModMain.FrmSelectLeft.Item_Drop;
+
+                // 图标按钮
+                var newIconButton = new MyIconButton
                 {
-                    ContMenu.PlacementTarget = NewItem;
-                    ContMenu.IsOpen = true;
+                    Logo = ModBase.Logo.IconButtonSetup,
+                    LogoScale = 1.1
                 };
-                NewItem.Buttons = new[] { NewIconButton };
-                ModMain.FrmSelectLeft.PanList.Children.Add(NewItem);
-                ModBase.Log("[Minecraft] 有效的 Minecraft 文件夹：" + Folder.Name + " > " + Folder.Location);
+                newIconButton.Click += (_, _) =>
+                {
+                    contMenu.PlacementTarget = newItem;
+                    contMenu.IsOpen = true;
+                };
+                newItem.Buttons = new[] { newIconButton };
+
+                ModMain.FrmSelectLeft.PanList.Children.Add(newItem);
+
+                LogWrapper.Info("[Minecraft] 有效的 Minecraft 文件夹：" + folder.Name + " > " + folder.Location);
             }
 
             // 标题文本
             ModMain.FrmSelectLeft.PanList.Children.Add(new TextBlock
-                { Text = "添加或导入", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
-
-            // 确认创建按钮状态
-            if (!Directory.Exists(ModBase.ExePath + @".minecraft\"))
             {
-                var ItemCreate = new MyListItem
+                Text = "添加或导入",
+                Margin = new Thickness(13, 18, 5, 4),
+                Opacity = 0.6,
+                FontSize = 12
+            });
+
+            // 创建新文件夹按钮
+            if (!Directory.Exists(ModBase.ExePath + ".minecraft\\"))
+            {
+                var itemCreate = new MyListItem
                 {
                     IsScaleAnimationEnabled = false,
                     Type = MyListItem.CheckType.Clickable,
                     Title = "新建 .minecraft 文件夹",
-                    Height = 34d,
+                    Height = 34,
                     ToolTip = "在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹",
-                    LogoScale = 0.9d,
+                    LogoScale = 0.9,
                     Logo = ModBase.Logo.IconButtonCreate
                 };
-                ToolTipService.SetPlacement(ItemCreate, PlacementMode.Right);
-                ToolTipService.SetHorizontalOffset(ItemCreate, -50);
-                ToolTipService.SetVerticalOffset(ItemCreate, 2.5d);
-                ModMain.FrmSelectLeft.PanList.Children.Add(ItemCreate);
-                ItemCreate.Click += (_, __) => ModMain.FrmSelectLeft.Create_Click();
+                ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
+                ToolTipService.SetHorizontalOffset(itemCreate, -50);
+                ToolTipService.SetVerticalOffset(itemCreate, 2.5);
+                itemCreate.Click += (_, _) => ModMain.FrmSelectLeft.Create_Click();
+                ModMain.FrmSelectLeft.PanList.Children.Add(itemCreate);
             }
 
             // 添加按钮
-            var ItemAdd = new MyListItem
+            var itemAdd = new MyListItem
             {
                 IsScaleAnimationEnabled = false,
                 Type = MyListItem.CheckType.Clickable,
                 Title = "添加已有文件夹",
-                Height = 34d,
+                Height = 34,
                 ToolTip = "将一个已有的 Minecraft 文件夹添加到列表",
                 Logo = ModBase.Logo.IconButtonAdd
             };
-            ToolTipService.SetPlacement(ItemAdd, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(ItemAdd, -50);
-            ToolTipService.SetVerticalOffset(ItemAdd, 2.5d);
-            ModMain.FrmSelectLeft.PanList.Children.Add(ItemAdd);
-            ItemAdd.Click += (_, __) => ModMain.FrmSelectLeft.Add_Click();
+            ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
+            ToolTipService.SetHorizontalOffset(itemAdd, -50);
+            ToolTipService.SetVerticalOffset(itemAdd, 2.5);
+            itemAdd.Click += (_, _) => ModMain.FrmSelectLeft.Add_Click();
+            ModMain.FrmSelectLeft.PanList.Children.Add(itemAdd);
 
-            // 安装按钮
-            var ItemInstall = new MyListItem
+            // 导入整合包
+            var itemInstall = new MyListItem
             {
                 IsScaleAnimationEnabled = false,
                 Type = MyListItem.CheckType.Clickable,
                 Title = "导入整合包",
-                Height = 34d,
+                Height = 34,
                 ToolTip = "在当前选择的 Minecraft 文件夹下安装整合包",
-                Logo =
-                    "F1 m 11.293 11.293 l -3 3 a 1 1 0 0 0 0 1.41406 a 1 1 0 0 0 1.41406 0 L 12 13.4141 l 2.29297 2.29297 a 1 1 0 0 0 1.41406 0 a 1 1 0 0 0 0 -1.41406 l -3 -3 a 1.0001 1.0001 0 0 0 -1.41406 0 z M 12 11 a 1 1 0 0 0 -1 1 v 6 a 1 1 0 0 0 1 1 a 1 1 0 0 0 1 -1 V 12 A 1 1 0 0 0 12 11 Z M 14 1 a 1 1 0 0 0 -1 1 v 5 c 0 1.09272 0.907275 2 2 2 h 5 A 1 1 0 0 0 21 8 A 1 1 0 0 0 20 7 H 15 V 2 A 1 1 0 0 0 14 1 Z M 6 1 C 4.35499 1 3 2.35499 3 4 v 16 c 0 1.64501 1.35499 3 3 3 h 12 c 1.64501 0 3 -1.35499 3 -3 V 8.00195 V 8 C 21.001 7.09394 20.6387 6.22279 19.9961 5.58398 L 16.4121 2 L 16.4101 1.99805 C 15.7718 1.35838 14.9038 0.999054 14 1 Z m 0 2 h 8 a 1.0001 1.0001 0 0 0 0.002 0 c 0.373356 -0.0006051 0.730614 0.147632 0.994141 0.412109 a 1.0001 1.0001 0 0 0 0 0.00195 l 3.58789 3.58789 a 1.0001 1.0001 0 0 0 0.0039 0.00195 C 18.8531 7.26753 19.0006 7.62412 19 7.99805 A 1.0001 1.0001 0 0 0 19 8 v 12 c 0 0.564129 -0.435871 1 -1 1 H 6 C 5.43587 21 5 20.5641 5 20 V 4 C 5 3.43587 5.43587 3 6 3 Z"
+                Logo = "F1 m 11.293 11.293 l -3 3 a 1 1 0 0 0 0 1.41406 a 1 1 0 0 0 1.41406 0 L 12 13.4141 l 2.29297 2.29297 a 1 1 0 0 0 1.41406 0 ..."
             };
-            ToolTipService.SetPlacement(ItemInstall, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(ItemInstall, -50);
-            ToolTipService.SetVerticalOffset(ItemInstall, 2.5d);
-            ModMain.FrmSelectLeft.PanList.Children.Add(ItemInstall);
-            ItemInstall.Click += (_, __) => ModModpack.ModpackInstall();
+            ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
+            ToolTipService.SetHorizontalOffset(itemInstall, -50);
+            ToolTipService.SetVerticalOffset(itemInstall, 2.5);
+            itemInstall.Click += (_, _) => ModModpack.ModpackInstall();
+            ModMain.FrmSelectLeft.PanList.Children.Add(itemInstall);
 
             // 边距
-            ModMain.FrmSelectLeft.PanList.Children.Add(new FrameworkElement { Height = 10d, IsHitTestVisible = false });
+            ModMain.FrmSelectLeft.PanList.Children.Add(new FrameworkElement { Height = 10, IsHitTestVisible = false });
 
             // 确认勾选状态
-            for (int i = 0, loopTo2 = ModMinecraft.McFolderList.Count - 1; i <= loopTo2; i++)
-                if ((ModMinecraft.McFolderList[i].Location ?? "") == (ModMinecraft.McFolderSelected ?? ""))
+            for (int i = 0; i < ModMinecraft.McFolderList.Count; i++)
+            {
+                if (ModMinecraft.McFolderList[i].Location == ModMinecraft.McFolderSelected)
                 {
-                    ((MyListItem)ModMain.FrmSelectLeft.PanList.Children[i + 1]).Checked = true; // 去掉第一个标题
+                    ((MyListItem)ModMain.FrmSelectLeft.PanList.Children[i + 1]).Checked = true; //去掉第一个标题
                     return;
                 }
+            }
 
-            if (!ModMinecraft.McFolderList.Any()) throw new ArgumentNullException("没有可用的 Minecraft 文件夹");
-
-            ModBase.Setup.Set("LaunchFolderSelect",
-                ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$"));
-            ((MyListItem)ModMain.FrmSelectLeft.PanList.Children[1]).Checked = true;
+            if (!ModMinecraft.McFolderList.Any())
+                throw new ArgumentNullException("没有可用的 Minecraft 文件夹");
+            else
+            {
+                ModBase.Setup.Set("LaunchFolderSelect", ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$"));
+                ((MyListItem)ModMain.FrmSelectLeft.PanList.Children[1]).Checked = true;
+            }
         }
-
         catch (Exception ex)
         {
-            ModBase.Log(ex, "构建 Minecraft 文件夹列表 UI 出错", ModBase.LogLevel.Feedback);
+            LogWrapper.Error(ex, "构建 Minecraft 文件夹列表 UI 出错");
         }
         finally
         {
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
-                ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\"); // 刷新实例列表
+            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, 
+                ModMinecraft.McFolderSelected, 
+                ModLoader.LoaderFolderRunType.RunOnUpdated, 
+                MaxDepth: 1, 
+                ExtraPath: "versions\\");
         }
     }
 

@@ -5,6 +5,8 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.Utils.OS; 
 
 namespace PCL;
 
@@ -177,8 +179,8 @@ public partial class PageSetupLaunch
         // 获取内存情况
         var RamGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        double RamTotal = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1);
-        double RamAvailable = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1);
+        double RamTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
+        double RamAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
         var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
         var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
         var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
@@ -374,8 +376,7 @@ public partial class PageSetupLaunch
                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchRamType"), 0, false)))
         {
             // 自动配置
-            double RamAvailable =
-                Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
+            double RamAvailable = Math.Round((double)KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
             // 确定需求的内存值
             double RamMininum; // 无论如何也需要保证的最低限度内存
             double RamTarget1; // 估计能勉强带动了的内存
@@ -549,12 +550,12 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (Conversions.ToBoolean(!ModBase.Setup.Get("HintRenderer") && ComboAdvanceRenderer.SelectedIndex != 0))
+        if (!Conversions.ToBoolean(ModBase.Setup.Get("HintRenderer")) && ComboAdvanceRenderer.SelectedIndex != 0)
         {
             if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf + "你确定要继续修改吗？", "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
             {
-                ComboAdvanceRenderer.SelectedItem = ((dynamic)e).RemovedItems(0);
+                ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
             }
             else
             {

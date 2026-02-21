@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -229,10 +230,9 @@ public partial class PageSetupLeft
     /// <summary>
     ///     获取当前导航指定的右页面。
     /// </summary>
-    public object PageGet(FormMain.PageSubType ID = -1)
+    public object PageGet(FormMain.PageSubType? ID = null)
     {
-        if ((int)ID == -1)
-            ID = PageID;
+        FormMain.PageSubType targetID = ID ?? PageID;
         switch (ID)
         {
             case FormMain.PageSubType.SetupLaunch:

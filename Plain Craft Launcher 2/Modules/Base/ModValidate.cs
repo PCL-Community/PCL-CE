@@ -516,7 +516,7 @@ public class ValidateFolderPath : ValidateType
     {
         // 去除尾部斜线，统一为 \
         Str = Str.Replace("/", @"\");
-        if (!Str.TrimEnd(@"\").EndsWithF(":"))
+        if (!Str.TrimEnd(@"\").EndsWith(":"))
             Str = Str.TrimEnd('\\');
         // 检查是否为空
         var LengthCheck = new ValidateNullOrWhiteSpace().Validate(Str);

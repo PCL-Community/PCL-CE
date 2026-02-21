@@ -70,7 +70,7 @@ public partial class PageSpeedLeft
                 var Tasks = ModLoader.LoaderTaskbar.Where(l => l.Show).ToList(); // 筛选掉启动 MC 的任务（#6270）
                 var RawPercent = Tasks.Any()
                     ? ModBase.MathClamp(
-                        Enumerable.Select<double>((IEnumerable<ModLoader.LoaderBase>)Tasks, l => l.Progress).Average(),
+                        Tasks.Average(l => l.Progress),
                         0, 1)
                     : 1d;
                 var PredictText = Math.Floor(RawPercent * 100d) + "." +
@@ -112,7 +112,7 @@ public partial class PageSpeedLeft
         try
         {
             // 获取实际加载器列表
-            var LoaderList = (List<ModLoader.LoaderBase>)((object)Loader).GetLoaderList();
+            var LoaderList = (List<ModLoader.LoaderBase>)((dynamic)Loader).GetLoaderList();
             if (RightCards.ContainsKey(Loader.Name))
             {
                 // 已有此卡片
@@ -143,9 +143,9 @@ public partial class PageSpeedLeft
                             var Tb = (TextBlock)ModBase.GetObjectFromXML(
                                 "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TextWrapping=\"Wrap\" HorizontalAlignment=\"Left\" ToolTip=\"单击复制错误详情\" Grid.Column=\"1\" Grid.Row=\"0\" Margin=\"0,0,0,5\" />");
                             Tb.Text = Loader.Error.ToString();
-                            Tb.MouseLeftButtonDown += (TextBlock sender, EventArgs e) =>
+                            Tb.MouseLeftButtonDown += (sender, _) =>
                             {
-                                ModBase.ClipboardSet(sender.Text, false);
+                                ModBase.ClipboardSet(((dynamic)sender).Text, false);
                                 ModMain.Hint("已复制错误详情！", ModMain.HintType.Finish);
                             };
                             Card.Children.Add(Tb);
@@ -356,8 +356,8 @@ public partial class PageSpeedLeft
                     Card.Children.Add(Cancel);
                     Cancel.Click += (sender, e) =>
                     {
-                        ModAnimation.AniDispose(sender, false);
-                        ModAnimation.AniDispose(Card, true, () =>
+                        ModAnimation.AniDispose(((dynamic)sender), false);
+                        ModAnimation.AniDispose(Card, true, (_) =>
                         {
                             if (ModMain.FrmSpeedRight.PanMain.Children.Count == 0 &&
                                 ModMain.FrmMain.PageCurrent == FormMain.PageType.TaskManager)

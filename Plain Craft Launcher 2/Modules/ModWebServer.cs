@@ -270,7 +270,7 @@ public static class ModWebServer
         }
     }
 
-    public delegate OAuthCompleteStatus OAuthComplete(bool success, IDictionary<string, string> parameters,
+    public delegate OAuthCompleteStatus? OAuthComplete(bool success, IDictionary<string, string> parameters,
         string content);
 
     public static bool StartOAuthWaitingCallback(string serviceName, string url, OAuthComplete completeCallback)
@@ -308,15 +308,17 @@ public static class ModWebServer
 
     public static void StartNaidAuthorize(Action? completeCallback = null)
     {
+        Exception? resultEx = null;
         StartOAuthWaitingCallback("NatayarkID",
             $"https://account.naids.com/oauth2/authorize?response_type=code&client_id={ModSecret.NatayarkClientId}&redirect_uri=%r",
             (success, parameters, content) =>
             {
+                OAuthCompleteStatus? status;
                 if (!success)
                 {
                     ModMain.MyMsgBox(content, IsWarn: true);
                     completeCallback?.Invoke();
-                    return;
+                    return null;
                 }
 
                 
@@ -328,7 +330,7 @@ public static class ModWebServer
                 }
                 catch (AggregateException ex)
                 {
-                    resultEx = ex.InnerExceptions(0);
+                    resultEx = ex.InnerExceptions[0];
                 }
 
                 if (resultEx is null)

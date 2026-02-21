@@ -45,7 +45,7 @@ public class MyPageRight : AdornerDecorator
 
             return (MyScrollViewer)res;
         }
-        set => SetValue(PanScrollProperty, value);
+        set => SetValue(((dynamic)PanScrollProperty), value);
     }
 
     public PageStates PageState
@@ -95,7 +95,7 @@ public class MyPageRight : AdornerDecorator
         PageLoaderAutoRun = AutoRun;
         // 添加结束 Invoke
         if (FinishedInvoke is not null)
-            RealLoader.PreviewFinish += () =>
+            RealLoader.PreviewFinish += (_) =>
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
@@ -114,13 +114,13 @@ public class MyPageRight : AdornerDecorator
         {
             if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
             {
-                PageLoader.Start(((object)PageLoader).StartGetInput((object)null, PageLoaderInputInvoke));
+                PageLoader.Start(((dynamic)PageLoader).StartGetInput((object)null, PageLoaderInputInvoke));
             }
             else
             {
                 object Input = null;
                 if (PageLoaderInputInvoke is not null)
-                    Input = this.PageLoaderInputInvoke();
+                    Input = PageLoaderInputInvoke;
                 PageLoader.Start(Input);
             }
         }
@@ -129,7 +129,7 @@ public class MyPageRight : AdornerDecorator
             ModBase.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
         PageLoaderUi.State = RealLoader;
-        PageLoaderUi.Click += () =>
+        PageLoaderUi.Click += (_, _) =>
         {
             if (RealLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件
@@ -142,12 +142,12 @@ public class MyPageRight : AdornerDecorator
             return;
         if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
         {
-            PageLoader.Start(((object)PageLoader).StartGetInput(Input, PageLoaderInputInvoke), IsForceRestart);
+            PageLoader.Start(((dynamic)PageLoader).StartGetInput(Input, PageLoaderInputInvoke), IsForceRestart);
         }
         else
         {
             if (Input is null && PageLoaderInputInvoke is not null)
-                Input = this.PageLoaderInputInvoke();
+                Input = PageLoaderInputInvoke;
             PageLoader.Start(Input, IsForceRestart);
         }
     }

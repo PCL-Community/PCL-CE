@@ -132,8 +132,8 @@ public static partial class ModAnimation
                         {
                             // 如果是去向颜色资源的动画，设置引用
                             if (Conversions.ToBoolean(Anim.TypeMain == AniType.Color &&
-                                                      !Operators.ConditionalCompareObjectEqual(Anim.Obj(2), "", false)))
-                                Anim.Obj(0).SetResourceReference(Anim.Obj(1), Anim.Obj(2));
+                                                      !Operators.ConditionalCompareObjectEqual(((dynamic)Anim.Obj)[2], "", false)))
+                                ((dynamic)Anim.Obj)[0].SetResourceReference(((dynamic)Anim.Obj)[1], ((dynamic)Anim.Obj)[2]);
                             // 删除
                             Entry.Data.RemoveAt(ii);
                             goto NextAni;
@@ -271,8 +271,8 @@ public static partial class ModAnimation
                             }
                             case AniTypeSub.Double:
                             {
-                                Ani.Obj(0).SetValue(Ani.Obj(1),
-                                    Operators.AddObject(Ani.Obj(0).GetValue(Ani.Obj(1)), Delta));
+                                ((dynamic)Ani.Obj)[0].SetValue(((dynamic)Ani.Obj)[1],
+                                    Operators.AddObject(((dynamic)Ani.Obj)[0].GetValue(((dynamic)Ani.Obj)[1]), Delta));
                                 break;
                             }
                             case AniTypeSub.DoubleParam:
@@ -300,8 +300,8 @@ public static partial class ModAnimation
                     var Delta = ModBase.MathPercent(new ModBase.MyColor(0d, 0d, 0d, 0d), (ModBase.MyColor)Ani.Value,
                                     Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent)) +
                                 (ModBase.MyColor)Ani.ValueLast;
-                    var Obj = (FrameworkElement)Ani.Obj(0);
-                    var Prop = (DependencyProperty)Ani.Obj(1);
+                    var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
+                    var Prop = (DependencyProperty)((dynamic)Ani.Obj)[1];
                     var NewColor = new ModBase.MyColor(Obj.GetValue(Prop)) + Delta;
                     Obj.SetValue(Prop, Prop.PropertyType.Name == "Color" ? (Color)NewColor : (SolidColorBrush)NewColor);
                     Ani.ValueLast = NewColor - new ModBase.MyColor(Obj.GetValue(Prop));
@@ -333,17 +333,17 @@ public static partial class ModAnimation
                 case AniType.TextAppear:
                 {
                     var TextCount = (int)Math.Round(
-                        (double)(Conversions.ToBoolean(Ani.Value(1)) ? Ani.Value(0).ToString().Length : 0) + Math.Round(
-                            Ani.Value(0).ToString().Length * (Conversions.ToBoolean(Ani.Value(1)) ? -1 : 1) *
+                        (double)(Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? ((dynamic)Ani.Value)[0].ToString().Length : 0) + Math.Round(
+                            ((dynamic)Ani.Value)[0].ToString().Length * (Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? -1 : 1) *
                             Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, 0d)));
-                    var NewText = Strings.Mid(Conversions.ToString(Ani.Value(0)), 1, TextCount);
+                    var NewText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), 1, TextCount);
                     // 添加乱码
-                    if (TextCount < Ani.Value(0).ToString().Length)
+                    if (TextCount < ((dynamic)Ani.Value)[0].ToString().Length)
                     {
-                        var NextText = Strings.Mid(Conversions.ToString(Ani.Value(0)), TextCount + 1, 1);
+                        var NextText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), TextCount + 1, 1);
                         if (Convert.ToInt32(Convert.ToChar(NextText)) >= Convert.ToInt32(Convert.ToChar(128)))
                             NewText += Encoding.GetEncoding("GB18030").GetString(new byte[]
-                                { RandomUtils.NextInt(16 + 160, 87 + 160), RandomUtils.NextInt(1 + 160, 89 + 160) });
+                                { (byte)RandomUtils.NextInt(16 + 160, 87 + 160), (byte)RandomUtils.NextInt(1 + 160, 89 + 160) });
                         else
                             NewText += RandomUtils.PickRandom(
                                 @"0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
@@ -938,7 +938,7 @@ public static partial class ModAnimation
         return new AniData
         {
             TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
-            Obj = new[] { Obj, Prop, "" }, Value = Value, IsAfter = After, TimeFinished = -Delay,
+            Obj = new object[] { Obj, Prop, "" }, Value = Value, IsAfter = After, TimeFinished = -Delay,
             ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
         };
     }
@@ -961,7 +961,7 @@ public static partial class ModAnimation
         return new AniData
         {
             TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
-            Obj = new[] { Obj, Prop, Res },
+            Obj = new object[] { Obj, Prop, Res },
             Value = new ModBase.MyColor(System.Windows.Application.Current.FindResource(Res)) -
                     new ModBase.MyColor(Obj.GetValue(Prop)),
             IsAfter = After, TimeFinished = -Delay, ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
@@ -1460,7 +1460,7 @@ public static partial class ModAnimation
         if (RefreshTime)
             AniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
         // 添加到正在执行的动画组
-        var NewEntry = new AniGroupEntry { Data = GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
+        var NewEntry = new AniGroupEntry { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(Name))
             Name = NewEntry.Uuid.ToString();
         else

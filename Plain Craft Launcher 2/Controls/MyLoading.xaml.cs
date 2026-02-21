@@ -104,7 +104,7 @@ public partial class MyLoading
             {
                 if (TextErrorInherit && State.IsLoader)
                 {
-                    var Ex = (Exception)((object)State).Error;
+                    var Ex = (Exception)((dynamic)State).Error;
                     if (Ex is null)
                     {
                         LabText.Text = "未知错误";
@@ -128,7 +128,7 @@ public partial class MyLoading
             {
                 LabText.Text = Conversions.ToString(Operators.ConcatenateObject(
                     Operators.ConcatenateObject(Text + " - ",
-                        Math.Floor(Operators.MultiplyObject(((object)State).Progress, 100))), "%"));
+                        Math.Floor(Operators.MultiplyObject(((dynamic)State).Progress, 100))), "%"));
             }
             else
             {

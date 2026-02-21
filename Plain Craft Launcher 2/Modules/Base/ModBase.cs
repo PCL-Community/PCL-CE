@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -23,6 +24,10 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Logging;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Hash;
+using PCL.Core.Utils.OS;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -1388,7 +1393,7 @@ public static class ModBase
             // 获取 MD5
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(Hash.MD5Provider.Instance.ComputeHash(fs)));
+                return Conversions.ToString(GetHexString(MD5Provider.Instance.ComputeHash(fs)));
             }
         }
         catch (Exception ex)
@@ -1421,7 +1426,7 @@ public static class ModBase
             // 获取 SHA512
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(Hash.SHA512Provider.Instance.ComputeHash(fs)));
+                return Conversions.ToString(GetHexString(SHA512Provider.Instance.ComputeHash(fs)));
             }
         }
         catch (Exception ex)
@@ -1454,7 +1459,7 @@ public static class ModBase
             // 获取 SHA256
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(Hash.SHA256Provider.Instance.ComputeHash(fs)));
+                return Conversions.ToString(GetHexString(SHA256Provider.Instance.ComputeHash(fs)));
             }
         }
         catch (Exception ex)
@@ -1485,7 +1490,7 @@ public static class ModBase
             // 获取 SHA1
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(Hash.SHA1Provider.Instance.ComputeHash(fs)));
+                return Conversions.ToString(GetHexString(SHA1Provider.Instance.ComputeHash(fs)));
             }
         }
         catch (Exception ex)
@@ -1510,7 +1515,7 @@ public static class ModBase
     {
         try
         {
-            return Conversions.ToString(GetHexString(Hash.SHA1Provider.Instance.ComputeHash(inputStream)));
+            return Conversions.ToString(GetHexString(SHA1Provider.Instance.ComputeHash(inputStream)));
         }
         catch (Exception ex)
         {
@@ -1808,7 +1813,7 @@ public static class ModBase
         if (LongPath.Length <= ShortenThreshold)
             return LongPath;
         var ShortPath = new StringBuilder(260);
-        ModBase.GetShortPathName(ref LongPath, ShortPath, 260);
+        ModBase.GetShortPathName(LongPath, ShortPath, 260);
         return ShortPath.ToString();
     }
 
@@ -2013,7 +2018,7 @@ public static class ModBase
     /// </summary>
     public static string GetStringMD5(string Str)
     {
-        return Conversions.ToString(GetHexString(Hash.MD5Provider.Instance.ComputeHash(Str)));
+        return Conversions.ToString(GetHexString(MD5Provider.Instance.ComputeHash(Str)));
     }
 
     /// <summary>
@@ -2500,54 +2505,96 @@ public static class ModBase
     ///     线程安全的 List。
     ///     通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
     /// </summary>
-    public class SafeList<T> : List<T>, IEnumerable, IEnumerable<T>
-    {
-        private readonly object SyncRoot = new();
-
-        // 构造函数
-        public SafeList()
+            public class SafeList<T> : IEnumerable<T>, IDisposable, ICollection<T>
         {
-        }
+            private readonly List<T> _internalList;
+            private readonly ReaderWriterLockSlim _lock = new();
 
-        public SafeList(IEnumerable<T> Data) : base(Data)
-        {
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumeratorGeneral();
-        }
-
-        // 基于 SyncLock 覆写
-        public new IEnumerator<T> GetEnumerator()
-        {
-            lock (SyncRoot)
+            public SafeList()
             {
-                return base.ToList().GetEnumerator();
+                _internalList = new List<T>();
+            }
+
+            public SafeList(IEnumerable<T> data)
+            {
+                _internalList = new List<T>(data);
+            }
+
+            public void Add(T item)
+            {
+                _lock.EnterWriteLock();
+                try { _internalList.Add(item); }
+                finally { _lock.ExitWriteLock(); }
+            }
+
+            public bool Remove(T item)
+            {
+                _lock.EnterWriteLock();
+                try { return _internalList.Remove(item); }
+                finally { _lock.ExitWriteLock(); }
+            }
+
+            public void Clear()
+            {
+                _lock.EnterWriteLock();
+                try { _internalList.Clear(); }
+                finally { _lock.ExitWriteLock(); }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    _lock.EnterReadLock();
+                    try { return _internalList.Count; }
+                    finally { _lock.ExitReadLock(); }
+                }
+            }
+
+            public bool IsReadOnly => ((ICollection<T>)_internalList).IsReadOnly;
+
+            public List<T> ToList()
+            {
+                _lock.EnterReadLock();
+                try { return _internalList.ToList(); }
+                finally { _lock.ExitReadLock(); }
+            }
+
+            public void RemoveAt(int index)
+            {
+                _lock.EnterWriteLock();
+                try { _internalList.RemoveAt(index); }
+                finally { _lock.ExitWriteLock(); }
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return ToList().GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+            public void Dispose()
+            {
+                _lock.Dispose();
+            }
+
+            public bool Contains(T item)
+            {
+                return ((ICollection<T>)_internalList).Contains(item);
+            }
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                ((ICollection<T>)_internalList).CopyTo(array, arrayIndex);
+            }
+
+            public T this[int index]
+            {
+                get => _internalList[index];
+                set => _internalList[index] = value;
             }
         }
-
-        public static SafeList<T> FromList(List<T> data)
-        {
-            return new SafeList<T>(data);
-        }
-
-        public List<T> ToList()
-        {
-            lock (SyncRoot)
-            {
-                return base.ToList(); // 创建副本
-            }
-        }
-
-        private IEnumerator GetEnumeratorGeneral()
-        {
-            lock (SyncRoot)
-            {
-                return base.ToList().GetEnumerator();
-            }
-        }
-    }
 
     /// <summary>
     ///     线程安全的字典。
@@ -3133,7 +3180,7 @@ public static class ModBase
     /// </summary>
     /// <param name="Name">参数名。</param>
     /// <param name="DefaultValue">默认值。</param>
-    public static object GetProgramArgument(string Name, object DefaultValue = "")
+    public static object GetProgramArgument(string Name, object DefaultValue = null)
     {
         var AllArguments = Interaction.Command().Split(" ");
         for (int i = 0, loopTo = AllArguments.Length - 1; i <= loopTo; i++)
@@ -3943,13 +3990,31 @@ public static class ModBase
     /// </summary>
     public static void FeedbackInfo()
     {
-        // On Error Resume Next
-        var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        Log("[System] 诊断信息：" + Constants.vbCrLf + "操作系统：" + RuntimeInformation.OSDescription + "（32 位：" +
-            Is32BitSystem + "）" + Constants.vbCrLf + "剩余内存：" + Int(phyRam.Available / 1024 / 1024) + " M / " +
-            Int(phyRam.Total / 1024 / 1024) + " M" + Constants.vbCrLf + "DPI：" + DPI + "（" +
-            Math.Round(DPI / 96d, 2) * 100d + "%）" + Constants.vbCrLf + "MC 文件夹：" +
-            (ModMinecraft.McFolderSelected ?? "Nothing") + Constants.vbCrLf + "文件位置：" + ExePath);
+        try 
+        {
+            // Get system memory info
+            var phyRam = KernelInterop.GetPhysicalMemoryBytes();
+        
+            // Calculate memory and DPI scale
+            ulong availableMb = phyRam.Available / 1024 / 1024;
+            ulong totalMb = phyRam.Total / 1024 / 1024;
+            double dpiScale = Math.Round(DPI / 96.0, 2);
+
+            // Build diagnostic information string
+            string info = $"[System] Diagnostic Information:{Environment.NewLine}" +
+                          $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){Environment.NewLine}" +
+                          $"Memory: {availableMb} MB / {totalMb} MB{Environment.NewLine}" +
+                          $"DPI: {DPI} ({dpiScale * 100}%){Environment.NewLine}" +
+                          $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{Environment.NewLine}" +
+                          $"Executable Path: {ExePath}";
+
+            LogWrapper.Info(info);
+        }
+        catch (Exception ex)
+        {
+            // Basic fail-safe to replace "On Error Resume Next"
+            LogWrapper.Error(ex, "Failed to collect feedback information");
+        }
     }
 
     // 断言
@@ -4082,9 +4147,11 @@ public class InverseBooleanConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is null)
-            return false;
-        return Conversions.ToBoolean(bool.TryParse(value.ToString(), out value)) ? !value : false;
+        if (value == null) return false;
+
+        if (bool.TryParse(value.ToString(), out bool result)) return !result;
+
+        return false;
     }
 }
 

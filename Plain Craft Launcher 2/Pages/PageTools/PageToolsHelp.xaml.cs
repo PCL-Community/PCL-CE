@@ -114,7 +114,7 @@ public partial class PageToolsHelp : IRefreshable
                 var FrmHelpDetail = new PageOtherHelpDetail();
                 if (FrmHelpDetail.Init(Entry))
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.HelpDetail, Additional = new[] { Entry, FrmHelpDetail } });
+                        { Page = FormMain.PageType.HelpDetail, Additional = new dynamic[] { Entry, FrmHelpDetail } });
                 else
                     ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
             });
@@ -132,7 +132,7 @@ public partial class PageToolsHelp : IRefreshable
                 var FrmHelpDetail = new PageOtherHelpDetail();
                 if (FrmHelpDetail.Init(Entry))
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.HelpDetail, Additional = new[] { Entry, FrmHelpDetail } });
+                        { Page = FormMain.PageType.HelpDetail, Additional = new dynamic[] { Entry, FrmHelpDetail } });
                 else
                     ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
             });
@@ -237,7 +237,7 @@ public partial class PageToolsHelp : IRefreshable
     // 初始化加载器信息
     private void PageOther_Inited(object sender, EventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.HelpLoader, _ => this.HelpListLoad());
+        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.HelpLoader, (a) => this.HelpListLoad((dynamic)a));
     }
 
     #endregion

@@ -26,7 +26,8 @@ public partial class MyCheckBox
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool?),
         typeof(MyCheckBox), new PropertyMetadata(false, (d, e) =>
         {
-            if (!d.IsLoaded) d.SyncUI();
+            dynamic obj = d;
+            if (!obj.IsLoaded) obj.SyncUI();
         }));
 
     /// <summary>
@@ -147,90 +148,52 @@ public partial class MyCheckBox
 
             var isChecked = GetFinalState(Checked, IsThreeState);
 
-            switch (true)
+            switch ((isChecked, _previousState))
             {
-                case object _ when isChecked.HasValue ? isChecked.Value : (bool?)null:
-                {
-                    switch (true)
-                    {
-                        case object _ when _previousState.HasValue ? !_previousState.Value : (bool?)null:
-                        {
-                            // 由无变有
-                            AniBackgroundScale();
-                            AniCheckShow();
-                            AniColorChecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                        case object _ when _previousState is null:
-                        {
-                            // 由空变有
-                            AniBackgroundScale();
-                            AniIndeterminateHide();
-                            AniCheckShow();
-                            AniColorChecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                    }
-
+                case (true, false):
+                    AniBackgroundScale();
+                    AniCheckShow();
+                    AniColorChecked();
+                    AniAllowMouseDown();
                     break;
-                }
 
-                case object _ when isChecked.HasValue ? !isChecked.Value : (bool?)null:
-                {
-                    switch (true)
-                    {
-                        case object _ when _previousState.HasValue ? _previousState.Value : (bool?)null:
-                        {
-                            // 由有变无
-                            AniBackgroundScale();
-                            AniCheckHide();
-                            AniColorUnchecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                        case object _ when _previousState is null:
-                        {
-                            // 由空变无
-                            AniBackgroundScale();
-                            AniIndeterminateHide();
-                            AniCheckHide();
-                            AniColorUnchecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                    }
-
+                case (true, null):
+                    AniBackgroundScale();
+                    AniIndeterminateHide();
+                    AniCheckShow();
+                    AniColorChecked();
+                    AniAllowMouseDown();
                     break;
-                }
-                case object _ when isChecked is null:
-                {
-                    switch (true)
-                    {
-                        case object _ when _previousState.HasValue ? _previousState.Value : (bool?)null:
-                        {
-                            // 由有变空
-                            AniBackgroundScale();
-                            AniCheckHide();
-                            AniIndeterminateShow();
-                            AniColorUnchecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                        case object _ when _previousState.HasValue ? !_previousState.Value : (bool?)null:
-                        {
-                            // 由无变空
-                            AniBackgroundScale();
-                            AniIndeterminateShow();
-                            AniColorUnchecked();
-                            AniAllowMouseDown();
-                            break;
-                        }
-                    }
 
+                case (false, true):
+                    AniBackgroundScale();
+                    AniCheckHide();
+                    AniColorUnchecked();
+                    AniAllowMouseDown();
                     break;
-                }
+
+                case (false, null):
+                    AniBackgroundScale();
+                    AniIndeterminateHide();
+                    AniCheckHide();
+                    AniColorUnchecked();
+                    AniAllowMouseDown();
+                    break;
+
+                case (null, true):
+                    AniBackgroundScale();
+                    AniCheckHide();
+                    AniIndeterminateShow();
+                    AniColorUnchecked();
+                    AniAllowMouseDown();
+                    break;
+
+                case (null, false):
+                    AniBackgroundScale();
+                    AniIndeterminateShow();
+                    AniColorUnchecked();
+                    AniAllowMouseDown();
+                    break;
             }
         }
 
@@ -296,23 +259,17 @@ public partial class MyCheckBox
         MouseDowned = false;
         if (IsThreeState)
         {
-            switch (true)
+            switch (Checked)
             {
-                case object _ when Checked is { } arg2 ? arg2 : (bool?)null:
-                {
-                    SetChecked(default, true);
+                case true:
+                    SetChecked(null, true); 
                     break;
-                }
-                case object _ when Checked is { } arg3 ? !arg3 : (bool?)null:
-                {
+                case false:
                     SetChecked(true, true);
                     break;
-                }
-                case object _ when Checked is null:
-                {
+                case null:
                     SetChecked(false, true);
                     break;
-                }
             }
 
             ModAnimation.AniStart(

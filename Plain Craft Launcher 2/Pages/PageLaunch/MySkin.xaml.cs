@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -461,7 +462,7 @@ public partial class MySkin
                 if (Result.Contains("\"errorMessage\""))
                     ModMain.Hint(
                         Conversions.ToString(Operators.ConcatenateObject("更改披风失败：",
-                            ModBase.GetJson(Result)("errorMessage"))), ModMain.HintType.Critical);
+                            ((dynamic)ModBase.GetJson(Result))["errorMessage"])), ModMain.HintType.Critical);
                 else
                     ModMain.Hint("更改披风成功！等待一段时间后将会生效……", ModMain.HintType.Finish);
             }

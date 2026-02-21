@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -244,7 +245,7 @@ public static class ModWatcher
             this.JStackPath = JStackPath;
 
             WatcherLog("开始 Minecraft 日志监控");
-            if (string.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(WindowTitle))
                 WatcherLog("要求窗口标题：" + WindowTitle);
 
             // 更改列表
@@ -280,14 +281,14 @@ public static class ModWatcher
                     {
                         TimerWindow();
                         TimerLog();
-                        if (!string.IsNullOrWhiteSpace())
+                        if (!string.IsNullOrWhiteSpace(WindowTitle))
                             for (var i = 1; i <= 3; i++)
                             {
                                 if (State == MinecraftState.Running && !GameProcess.HasExited)
                                 {
                                     var RealTitle = WindowTitle.Replace("{date}", DateTime.Now.ToString("yyyy'/'M'/'d"))
                                         .Replace("{time}", DateTime.Now.ToString("HH':'mm':'ss"));
-                                    Watcher.SetWindowText(WindowHandle, ref RealTitle);
+                                    Watcher.SetWindowText(WindowHandle, RealTitle);
                                 }
 
                                 Thread.Sleep(64);
@@ -709,20 +710,8 @@ public static class ModWatcher
                     Thread.Sleep(2000);
                     WatcherLog("崩溃分析开始");
                     ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                                Dim Analyzer As New Global.PCL.CrashAnalyzer(Me.PID)
-
-                                             */
-                    Analyzer.Collect(Version.PathIndie, LatestLog.ToList);
+                    var Analyzer = new CrashAnalyzer(PID);
+                    Analyzer.Collect(Version.PathIndie, LatestLog.ToList());
                     Analyzer.Prepare();
                     Analyzer.Analyze(Version);
                     Analyzer.Output(false,

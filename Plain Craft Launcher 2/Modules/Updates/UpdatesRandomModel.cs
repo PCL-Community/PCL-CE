@@ -1,3 +1,5 @@
+using PCL.Core.Utils;
+
 namespace PCL;
 
 public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统格式

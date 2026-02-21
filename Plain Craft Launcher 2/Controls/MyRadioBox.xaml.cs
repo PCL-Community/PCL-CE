@@ -24,8 +24,9 @@ public partial class MyRadioBox : IMyRadio
 
     // 在使用 XAML 设置 Checked 属性时，不会触发 Checked_Set 方法，所以需要在这里手动触发 UI 改变
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool),
-        typeof(MyRadioBox), new PropertyMetadata(false, (d, e) =>
+        typeof(MyRadioBox), new PropertyMetadata(false, (dRaw, e) =>
         {
+            dynamic d = dRaw;
             if (!d.IsLoaded) d.SyncUI();
         }));
 
@@ -111,7 +112,7 @@ public partial class MyRadioBox : IMyRadio
                 return;
             var RadioboxList = new List<MyRadioBox>();
             var CheckedCount = 0;
-            foreach (var Control in (IEnumerable)((object)Parent).Children) // 收集控件列表与选中个数
+            foreach (var Control in (IEnumerable)((dynamic)Parent).Children) // 收集控件列表与选中个数
                 if (Control is MyRadioBox)
                 {
                     RadioboxList.Add((MyRadioBox)Control);

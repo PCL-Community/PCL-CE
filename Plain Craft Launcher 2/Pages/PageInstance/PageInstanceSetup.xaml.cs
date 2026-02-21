@@ -6,6 +6,12 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.IO;
+using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Core.UI;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -129,7 +135,7 @@ public partial class PageInstanceSetup
     {
         try
         {
-            if (Conversions.ToBoolean(!ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
+            if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
             {
                 ModBase.Setup.Reset("VersionServerLoginRequire", instance: PageInstanceLeft.Instance);
                 ModBase.Setup.Reset("VersionServerAuthServer", instance: PageInstanceLeft.Instance);
@@ -239,8 +245,8 @@ public partial class PageInstanceSetup
         // 获取内存情况
         var RamGame = Math.Round(GetRam(PageInstanceLeft.Instance), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        double RamTotal = Math.Round(phyRam.Total / 1024 / 1024 / 1024, 1);
-        double RamAvailable = Math.Round(phyRam.Available / 1024 / 1024 / 1024, 1);
+        var RamTotal = Math.Round((double)(phyRam.Total / 1024 / 1024 / 1024), 1);
+        var RamAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
         var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
         var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
         var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
@@ -441,8 +447,8 @@ public partial class PageInstanceSetup
                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 0, false)))
         {
             // 自动配置
-            double RamAvailable =
-                Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
+            var RamAvailable =
+                Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10)) / 10;
             // 确定需求的内存值
             double RamMininum; // 无论如何也需要保证的最低限度内存
             double RamTarget1; // 估计能勉强带动了的内存
@@ -926,7 +932,7 @@ public partial class PageInstanceSetup
 
         // 保存配置
         var json = JsonSerializer.Serialize(preference);
-        Config.Instance.SelectedJava(PageInstanceLeft.Instance.PathInstance) = json;
+        Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = json;
 
 
         ModBase.Log(logMessage);
@@ -982,7 +988,7 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (Conversions.ToBoolean(!ModBase.Setup.Get("HintRenderer") && ComboAdvanceRenderer.SelectedIndex != 0))
+        if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("HintRenderer") && ComboAdvanceRenderer.SelectedIndex != 0))
         {
             if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf + "你确定要继续修改吗？", "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
@@ -1007,9 +1013,7 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (((CheckUseDebugLog4j2Config.Checked is { } arg1 ? (int?)Conversions.ToInteger(arg1) : null) is { } arg2
-                ? arg2 != 0
-                : null) && !States.Hint.DebugLog4j2Config)
+        if (CheckUseDebugLog4j2Config.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {
             if (ModMain.MyMsgBox(
                     "本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf +
@@ -1019,7 +1023,7 @@ public partial class PageInstanceSetup
             }
             else
             {
-                Config.Instance.UseDebugLof4j2Config(PageInstanceLeft.Instance) = sender.Checked;
+                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance] = sender.Checked.GetValueOrDefault();
                 ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked,
                     instance: PageInstanceLeft.Instance);
                 States.Hint.DebugLog4j2Config = true;
@@ -1027,7 +1031,7 @@ public partial class PageInstanceSetup
         }
         else
         {
-            Config.Instance.UseDebugLof4j2Config(PageInstanceLeft.Instance) = sender.Checked;
+            Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance] = sender.Checked.GetValueOrDefault();
         }
     }
 

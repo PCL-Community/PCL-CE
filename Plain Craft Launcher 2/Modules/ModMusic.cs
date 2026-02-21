@@ -3,6 +3,8 @@ using System.Windows.Controls;
 using Microsoft.VisualBasic;
 using NAudio;
 using NAudio.Wave;
+using PCL.Core.App;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -407,7 +409,7 @@ public static class ModMusic
 
     public static bool MusicResume()
     {
-        if (MusicState == MusicStates.Play || (!(MusicAllList?.Any() is { } arg4 ? arg4 : null)).GetValueOrDefault())
+        if (MusicState == MusicStates.Play || MusicAllList.Count == 0)
         {
             ModBase.Log($"[Music] 无需继续播放，当前状态为 {MusicState}");
             return false;

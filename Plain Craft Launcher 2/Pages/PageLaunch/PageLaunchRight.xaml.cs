@@ -2,6 +2,9 @@ using System.IO;
 using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -33,7 +36,7 @@ public partial class PageLaunchRight : IRefreshable
     private void BtnHintClose_Click(object sender, EventArgs e)
     {
         var input = ModMain.MyMsgBoxInput("输入 PCL CE 开发组织名称");
-        if (string.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(input))
             return;
         input = new string(input.Where(x => char.IsAsciiLetter(x)).ToArray()).ToLower();
         if (input.Contains("pclcommunity"))
@@ -73,168 +76,155 @@ public partial class PageLaunchRight : IRefreshable
 
     private void RefreshReal()
     {
-        var Content = "";
-        string Url;
-        switch (ModBase.Setup.Get("UiCustomType"))
+        string content = "";
+        string url = null;
+
+        int uiCustomType = (int)ModBase.Setup.Get("UiCustomType");
+
+        if (uiCustomType == 1)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 1, false):
+            // 本地文件
+            LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
+            content = ModBase.ReadFile(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml"));
+        }
+        else if (uiCustomType == 2)
+        {
+            // 网络文件
+            url = (string)ModBase.Setup.Get("UiCustomNet");
+            content = LoadFromNetwork(url);
+        }
+        else if (uiCustomType == 3)
+        {
+            // 预设主页
+            int preset = (int)ModBase.Setup.Get("UiCustomPreset");
+            switch (preset)
             {
-                // 加载本地文件
-                ModBase.Log("[Page] 主页自定义数据来源：本地文件");
-                Content = ModBase.ReadFile(ModBase.ExePath + @"PCL\Custom.xaml"); // ReadFile 会进行存在检测
-                break;
-            }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
-            {
-                Url = Conversions.ToString(ModBase.Setup.Get("UiCustomNet"));
-
-                // 加载联网文件
-                if (string.IsNullOrWhiteSpace(Url))
+                case 0:
+                    LogWrapper.Info("[Page] 主页预设：你知道吗");
+                    string hintText = PageLaunchRight.GetRandomHint(false);
+                    content = $@"
+    <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
+        <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
+        <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
+            EventType=""刷新主页"" EventData=""/""
+            Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
+    </local:MyCard>";
                     break;
-                if (Conversions.ToBoolean(
-                        Operators.ConditionalCompareObjectEqual(Url, ModBase.Setup.Get("CacheSavedPageUrl"), false)) &&
-                    File.Exists(ModBase.PathTemp + @"Cache\Custom.xaml"))
-                {
-                    // 缓存可用
-                    ModBase.Log("[Page] 主页自定义数据来源：联网缓存文件");
-                    Content = ModBase.ReadFile(ModBase.PathTemp + @"Cache\Custom.xaml");
-                    // 后台更新缓存
-                    OnlineLoader.Start(Url);
-                }
-                else
-                {
-                    // 缓存不可用
-                    ModBase.Log("[Page] 主页自定义数据来源：联网全新下载");
-                    ModMain.Hint("正在加载主页……");
-                    ModBase.RunInUiWait(() => LoadContent("")); // 在加载结束前清空页面
-                    ModBase.Setup.Set("CacheSavedPageVersion", "");
-                    OnlineLoader.Start(Url); // 下载完成后将会再次触发更新
+
+                case 1:
+                    LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
+                    ModMain.MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示");
                     return;
-                }
 
-                break;
-            }
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, 3, false):
-            {
-                switch (ModBase.Setup.Get("UiCustomPreset"))
-                {
-                    case var case3 when Operators.ConditionalCompareObjectEqual(case3, 0, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：你知道吗");
-                        var hintText = GetRandomHint();
-                        Content = $@"
-        <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
-            <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
-            <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                EventType=""刷新主页"" EventData=""/""
-                Logo=""M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z"" />
-        </local:MyCard>";
-                        break;
-                    }
-                    case var case4 when Operators.ConditionalCompareObjectEqual(case4, 1, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：预设 回声洞 是已被移除的主页预设");
-                        ModMain.MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页");
-                        return;
-                    }
-                    case var case5 when Operators.ConditionalCompareObjectEqual(case5, 2, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：Minecraft 新闻");
-                        Url = "https://pcl.mcnews.thestack.top";
-                        goto Download;
-                        break;
-                    }
-                    case var case6 when Operators.ConditionalCompareObjectEqual(case6, 3, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：简单主页");
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case7 when Operators.ConditionalCompareObjectEqual(case7, 4, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：每日整合包推荐");
-                        Url = "https://pclsub.sodamc.com/";
-                        goto Download;
-                        break;
-                    }
-                    case var case8 when Operators.ConditionalCompareObjectEqual(case8, 5, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：Minecraft 皮肤推荐");
-                        Url = "https://forgepixel.com/pcl_sub_file";
-                        goto Download;
-                        break;
-                    }
-                    case var case9 when Operators.ConditionalCompareObjectEqual(case9, 6, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite");
-                        Url = "https://pcl-bmcl.milu.ink/";
-                        goto Download;
-                        break;
-                    }
-                    case var case10 when Operators.ConditionalCompareObjectEqual(case10, 7, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：主页市场");
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case11 when Operators.ConditionalCompareObjectEqual(case11, 8, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：更新日志");
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case12 when Operators.ConditionalCompareObjectEqual(case12, 9, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：PCL 新功能说明书");
-                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case13 when Operators.ConditionalCompareObjectEqual(case13, 10, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：OpenMCIM Dashboard");
-                        Url = "https://files.mcimirror.top/PCL";
-                        goto Download;
-                        break;
-                    }
-                    case var case14 when Operators.ConditionalCompareObjectEqual(case14, 11, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：杂志主页");
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case15 when Operators.ConditionalCompareObjectEqual(case15, 12, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：PCL GitHub 仪表盘");
-                        Url = "https://ddf.pcl-community.org/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case16 when Operators.ConditionalCompareObjectEqual(case16, 13, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：Minecraft 更新摘要");
-                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
-                        goto Download;
-                        break;
-                    }
-                    case var case17 when Operators.ConditionalCompareObjectEqual(case17, 14, false):
-                    {
-                        ModBase.Log("[Page] 主页预设：PCL CE 公告栏");
-                        Url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
-                        goto Download;
-                        break;
-                    }
-                }
+                case 2:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 新闻");
+                    url = "https://pcl.mcnews.thestack.top";
+                    content = LoadFromNetwork(url);
+                    break;
 
-                break;
+                case 3:
+                    LogWrapper.Info("[Page] 主页预设：简单主页");
+                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 4:
+                    LogWrapper.Info("[Page] 主页预设：每日整合包推荐");
+                    url = "https://pclsub.sodamc.com/";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 5:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 皮肤推荐");
+                    url = "https://forgepixel.com/pcl_sub_file";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 6:
+                    LogWrapper.Info("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite");
+                    url = "https://pcl-bmcl.milu.ink/";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 7:
+                    LogWrapper.Info("[Page] 主页预设：主页市场");
+                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 8:
+                    LogWrapper.Info("[Page] 主页预设：更新日志");
+                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 9:
+                    LogWrapper.Info("[Page] 主页预设：PCL 新功能说明书");
+                    url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 10:
+                    LogWrapper.Info("[Page] 主页预设：OpenMCIM Dashboard");
+                    url = "https://files.mcimirror.top/PCL";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 11:
+                    LogWrapper.Info("[Page] 主页预设：杂志主页");
+                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 12:
+                    LogWrapper.Info("[Page] 主页预设：PCL GitHub 仪表盘");
+                    url = "https://ddf.pcl-community.org/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 13:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 更新摘要");
+                    url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 14:
+                    LogWrapper.Info("[Page] 主页预设：PCL CE 公告栏");
+                    url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
             }
         }
 
-        ModBase.RunInUi(() => LoadContent(Content));
+        ModBase.RunInUi(() => LoadContent(content));
+    }
+
+    /// <summary>
+    /// 根据 URL 加载网络内容，优先使用缓存
+    /// </summary>
+    private string LoadFromNetwork(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+
+        var cachePath = Path.Combine(ModBase.PathTemp, "Cache", "Custom.xaml");
+        var cachedUrl = (string)ModBase.Setup.Get("CacheSavedPageUrl");
+
+        if (url == cachedUrl && File.Exists(cachePath))
+        {
+            LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
+            // 后台更新缓存
+            OnlineLoader.Start(url);
+            return ModBase.ReadFile(cachePath);
+        }
+        else
+        {
+            LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
+            HintWrapper.Show("正在加载主页……");
+            ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
+            ModBase.Setup.Set("CacheSavedPageVersion", "");
+            OnlineLoader.Start(url); // 下载完成后将会再次触发更新
+            return "";
+        }
     }
 
     private readonly object RefreshLock = new();

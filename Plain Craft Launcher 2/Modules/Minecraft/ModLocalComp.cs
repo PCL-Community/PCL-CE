@@ -32,7 +32,7 @@ public static class ModLocalComp
         /// <summary>
         ///     根据完整文件路径的文件扩展名判断是否为 Mod 文件。
         /// </summary>
-        public static object IsModFile(string Path)
+        public static bool IsModFile(string Path)
         {
             if (Path is null || !Path.Contains("."))
                 return false;
@@ -48,7 +48,7 @@ public static class ModLocalComp
         /// <summary>
         ///     检查是否为指定类型的组件文件。
         /// </summary>
-        public static object IsCompFile(string Path, CompType CompType)
+        public static bool IsCompFile(string Path, CompType CompType)
         {
             if (Path is null || !Path.Contains("."))
                 return false;

@@ -335,7 +335,7 @@ public static partial class ModAnimation
             AaCode(() =>
             {
                 if (RemoveFromChildren)
-                    ((object)Control.Parent).Children.Remove(Control);
+                    ((dynamic)Control.Parent).Children.Remove(Control);
                 else
                     Control.Visibility = Visibility.Collapsed;
                 if (CallBack is not null)

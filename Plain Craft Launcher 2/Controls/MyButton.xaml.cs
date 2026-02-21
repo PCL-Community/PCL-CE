@@ -33,7 +33,7 @@ public partial class MyButton
     public new static readonly DependencyProperty PaddingProperty = DependencyProperty.Register("Padding",
         typeof(Thickness), typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) sender.PanFore.Padding = (Thickness)e.NewValue;
+            if (sender is not null) ((dynamic)sender).PanFore.Padding = (Thickness)e.NewValue;
         }));
 
     public static readonly DependencyProperty EventTypeProperty =
@@ -55,7 +55,7 @@ public partial class MyButton
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         Loaded += RefreshColor;
-        IsEnabledChanged += RefreshColor;
+        IsEnabledChanged += (_, _) => RefreshColor();
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseEnter += (_, __) => Button_MouseEnter();

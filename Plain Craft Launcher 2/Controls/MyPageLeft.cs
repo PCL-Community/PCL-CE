@@ -56,9 +56,9 @@ public class MyPageLeft : Grid
             var AniList = new List<ModAnimation.AniData>();
             var Id = 0;
             var Delay = 0;
-            foreach (var Element in GetAllAnimControls(true))
+            foreach (var ElementRaw in GetAllAnimControls(true))
             {
-                Element = MyVirtualizingElement.TryInit(Element);
+                var Element = MyVirtualizingElement.TryInit(ElementRaw);
                 if (Element.Visibility == Visibility.Collapsed)
                 {
                     // 还原之前的隐藏动画可能导致的改变（#2436）

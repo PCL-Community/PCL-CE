@@ -15,6 +15,7 @@ using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using System.Text.Json.Nodes;
 
 namespace PCL;
 
@@ -38,36 +39,36 @@ public static class ModDownloadLib
     /// </summary>
     /// <param name="Id">所下载的 Minecraft 的版本名。</param>
     /// <param name="JsonUrl">Json 文件的 Mojang 官方地址。</param>
-    public static ModLoader.LoaderCombo<string> McDownloadClient(ModNet.NetPreDownloadBehaviour Behaviour, string Id,
-        string JsonUrl = null)
+    public static ModLoader.LoaderCombo<string> McDownloadClient(ModNet.NetPreDownloadBehaviour behaviour, string id,
+        string jsonUrl = null)
     {
         try
         {
-            var VersionFolder = ModMinecraft.McFolderSelected + @"versions\" + Id + @"\";
-
+            var versionFolder = ModMinecraft.McFolderSelected + @"versions\" + id + @"\";
+            
             // 重复任务检查
-            foreach (var OngoingLoader in ModLoader.LoaderTaskbar.ToList())
+            foreach (var ongoingLoader in ModLoader.LoaderTaskbar.ToList())
             {
-                if ((OngoingLoader.Name ?? "") != ($"Minecraft {Id} 下载" ?? ""))
+                if (ongoingLoader.Name != $"Minecraft {id} 下载")
                     continue;
-                if (Behaviour == ModNet.NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
-                    return (ModLoader.LoaderCombo<string>)OngoingLoader;
+                if (behaviour == ModNet.NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
+                    return (ModLoader.LoaderCombo<string>)ongoingLoader;
                 ModMain.Hint("该实例正在下载中！", ModMain.HintType.Critical);
-                return (ModLoader.LoaderCombo<string>)OngoingLoader;
+                return (ModLoader.LoaderCombo<string>)ongoingLoader;
             }
 
             // 已有实例检查
-            if (Behaviour != ModNet.NetPreDownloadBehaviour.IgnoreCheck && File.Exists(VersionFolder + Id + ".json") &&
-                File.Exists(VersionFolder + Id + ".jar"))
+            if (behaviour != ModNet.NetPreDownloadBehaviour.IgnoreCheck && File.Exists(versionFolder + id + ".json") &&
+                File.Exists(versionFolder + id + ".jar"))
             {
-                if (Behaviour == ModNet.NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
+                if (behaviour == ModNet.NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return null;
                 if (ModMain.MyMsgBox(
-                        "实例 " + Id + " 已存在，是否重新下载？" + Constants.vbCrLf + "这会覆盖实例的 Json 与 Jar 文件，但不会影响版本隔离的文件。", "实例已存在",
+                        "实例 " + id + " 已存在，是否重新下载？" + Constants.vbCrLf + "这会覆盖实例的 Json 与 Jar 文件，但不会影响版本隔离的文件。", "实例已存在",
                         "继续", "取消") == 1)
                 {
-                    File.Delete(VersionFolder + Id + ".jar");
-                    File.Delete(VersionFolder + Id + ".json");
+                    File.Delete(versionFolder + id + ".jar");
+                    File.Delete(versionFolder + id + ".json");
                 }
                 else
                 {
@@ -77,9 +78,9 @@ public static class ModDownloadLib
 
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<string>("Minecraft " + Id + " 下载", McDownloadClientLoader(Id, JsonUrl))
+                new ModLoader.LoaderCombo<string>("Minecraft " + id + " 下载", McDownloadClientLoader(id, jsonUrl))
                     { OnStateChanged = McInstallState };
-            Loader.Start(VersionFolder);
+            Loader.Start(versionFolder);
             ModLoader.LoaderTaskbarAdd(Loader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();
@@ -860,7 +861,7 @@ pause";
                     .AsStringContent();
                 Task.Progress = 0.8d;
                 Sources.Add("https://optifine.net/" + PageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
-                ModBase.Log("[Download] OptiFine " + DownloadInfo.DisplayName + " 官方下载地址：" + Sources.Last);
+                ModBase.Log("[Download] OptiFine " + DownloadInfo.DisplayName + " 官方下载地址：" + Sources.Last());
             }
             catch (Exception ex)
             {
@@ -869,7 +870,7 @@ pause";
 
             // 构造文件请求
             Task.Output = new List<ModNet.NetFile>
-                { new(Sources.ToArray, Target, new ModBase.FileChecker(300 * 1024)) };
+                { new(Sources.ToArray(), Target, new ModBase.FileChecker(300 * 1024)) };
         })
         {
             ProgressWeight = 8d
@@ -1057,55 +1058,55 @@ pause";
     /// <summary>
     ///     获取保存某个 OptiFine 版本的加载器列表。
     /// </summary>
-    private static List<ModLoader.LoaderBase> McDownloadOptiFineSaveLoader(ModDownload.DlOptiFineListEntry DownloadInfo,
-        string TargetFolder)
+    private static List<ModLoader.LoaderBase> McDownloadOptiFineSaveLoader(ModDownload.DlOptiFineListEntry downloadInfo,
+        string targetFolder)
     {
-        var Loaders = new List<ModLoader.LoaderBase>();
+        var loaders = new List<ModLoader.LoaderBase>();
         // 获取下载地址
-        Loaders.Add(new ModLoader.LoaderTask<ModDownload.DlOptiFineListEntry, List<ModNet.NetFile>>("获取 OptiFine 下载地址",
+        loaders.Add(new ModLoader.LoaderTask<ModDownload.DlOptiFineListEntry, List<ModNet.NetFile>>("获取 OptiFine 下载地址",
             Task =>
             {
-                ;
+                var sources = new List<string>();
                 // BMCLAPI 源
-                var BmclapiInherit = DownloadInfo.Inherit;
+                var BmclapiInherit = downloadInfo.Inherit;
                 if (BmclapiInherit == "1.8" || BmclapiInherit == "1.9")
                     BmclapiInherit += ".0"; // #4281
-                if (DownloadInfo.IsPreview)
-                    Sources.Add("https://bmclapi2.bangbang93.com/optifine/" + BmclapiInherit + "/HD_U_" +
-                                DownloadInfo.DisplayName.Replace(DownloadInfo.Inherit + " ", "").Replace(" ", "/"));
+                if (downloadInfo.IsPreview)
+                    sources.Add("https://bmclapi2.bangbang93.com/optifine/" + BmclapiInherit + "/HD_U_" +
+                                downloadInfo.DisplayName.Replace(downloadInfo.Inherit + " ", "").Replace(" ", "/"));
                 else
-                    Sources.Add("https://bmclapi2.bangbang93.com/optifine/" + BmclapiInherit + "/HD_U/" +
-                                DownloadInfo.DisplayName.Replace(DownloadInfo.Inherit + " ", ""));
+                    sources.Add("https://bmclapi2.bangbang93.com/optifine/" + BmclapiInherit + "/HD_U/" +
+                                downloadInfo.DisplayName.Replace(downloadInfo.Inherit + " ", ""));
                 // 官方源
                 string PageData;
                 try
                 {
                     PageData = HttpRequestBuilder
-                        .Create("https://optifine.net/adloadx?f=" + DownloadInfo.NameFile, HttpMethod.Get)
+                        .Create("https://optifine.net/adloadx?f=" + downloadInfo.NameFile, HttpMethod.Get)
                         .WithHeader("Accept", "text/html").WithHeader("Accept-Language", "en-US,en;q=0.5")
                         .WithHeader("X-Requested-With", "XMLHttpRequest").SendAsync(true).GetAwaiter().GetResult()
                         .AsStringContent();
                     Task.Progress = 0.8d;
-                    Sources.Add("https://optifine.net/" + PageData.RegexSearch(@"downloadx\?f=[^""']+")(0));
-                    ModBase.Log("[Download] OptiFine " + DownloadInfo.DisplayName + " 官方下载地址：" + Sources.Last);
+                    sources.Add("https://optifine.net/" + PageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
+                    ModBase.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取 OptiFine " + DownloadInfo.DisplayName + " 官方下载地址失败");
+                    ModBase.Log(ex, "获取 OptiFine " + downloadInfo.DisplayName + " 官方下载地址失败");
                 }
 
                 Task.Progress = 0.9d;
                 // 构造文件请求
                 Task.Output = new List<ModNet.NetFile>
-                    { new(Sources.ToArray, TargetFolder, new ModBase.FileChecker(64 * 1024)) };
+                    { new(sources.ToArray(), targetFolder, new ModBase.FileChecker(64 * 1024)) };
             })
         {
             ProgressWeight = 6d
         });
         // 下载
-        Loaders.Add(new ModNet.LoaderDownload("下载 OptiFine 主文件", new List<ModNet.NetFile>())
+        loaders.Add(new ModNet.LoaderDownload("下载 OptiFine 主文件", new List<ModNet.NetFile>())
             { ProgressWeight = 10d, Block = true });
-        return Loaders;
+        return loaders;
     }
 
     #endregion
@@ -1146,23 +1147,23 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.OptiFineLog_Click();
+        BtnInfo.Click += static (object sender, EventArgs e) => OptiFineSaveContMenuBuild(sender, e);
         ((dynamic)sender).Buttons = new[] { BtnInfo };
     }
 
     private static void OptiFineContMenuBuild(object sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
-        ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(BtnSave, 30d);
-        ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (_, __) => ModDownloadLib.OptiFineSave_Click();
+        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
+        ToolTipService.SetVerticalOffset(btnSave, 30d);
+        ToolTipService.SetHorizontalOffset(btnSave, 2d);
+        //btnSave.Click += () ModDownloadLib.OptiFineSave_Click;
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.OptiFineLog_Click();
-        ((dynamic)sender).Buttons = new[] { BtnSave, BtnInfo };
+        BtnInfo.Click += (object sender, EventArgs e) => OptiFineLog_Click(sender,(RoutedEventArgs)e);
+        ((dynamic)sender).Buttons = new[] { btnSave, BtnInfo };
     }
 
     private static void OptiFineLog_Click(object sender, RoutedEventArgs e)
@@ -1343,7 +1344,7 @@ pause";
 
         // 启动依赖实例的下载
         if (ClientDownloadLoader is null)
-            Loaders.Add(new ModLoader.LoaderTask<string, string>("启动 LiteLoader 依赖实例下载", () =>
+            Loaders.Add(new ModLoader.LoaderTask<string, string>("启动 LiteLoader 依赖实例下载", (_) =>
             {
                 if (IsCustomFolder)
                     throw new Exception("如果没有指定原版下载器，则不能指定 MC 安装文件夹");
@@ -1359,7 +1360,7 @@ pause";
         // 新建实例文件夹
         // 构造实例 Json
         // 输出 Json 文件
-        Loaders.Add(new ModLoader.LoaderTask<string, string>("安装 LiteLoader", Task =>
+        Loaders.Add(new ModLoader.LoaderTask<string, string>("安装 LiteLoader", _ =>
         {
             try
             {
@@ -1444,7 +1445,7 @@ pause";
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
-            BtnList.Click += (_, __) => ModDownloadLib.LiteLoaderAll_Click();
+            BtnList.Click += (sender,e) => ModDownloadLib.LiteLoaderAll_Click(sender,(RoutedEventArgs)e);
             sender.Buttons = new[] { BtnList };
         }
     }
@@ -1455,10 +1456,10 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (_, __) => ModDownloadLib.LiteLoaderSave_Click();
+        BtnSave.Click += (sender , e) => ModDownloadLib.LiteLoaderSave_Click(sender,(RoutedEventArgs)e);
         if (Conversions.ToBoolean(((dynamic)sender.Tag).IsLegacy))
         {
-            sender.Buttons = new[] { BtnSave };
+            sender.Buttons = [ BtnSave ];
         }
         else
         {
@@ -1466,8 +1467,8 @@ pause";
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
-            BtnList.Click += (_, __) => ModDownloadLib.LiteLoaderAll_Click();
-            sender.Buttons = new[] { BtnSave, BtnList };
+            BtnList.Click += (sender, e) => ModDownloadLib.LiteLoaderAll_Click(sender,(RoutedEventArgs)e);
+            sender.Buttons = [ BtnSave, BtnList ];
         }
     }
 
@@ -1594,7 +1595,7 @@ pause";
 
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
-        if (Conversions.ToBoolean(UseJavaWrapper && !ModBase.Setup.Get("LaunchAdvanceDisableJLW")))
+        if (Conversions.ToBoolean(UseJavaWrapper && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW")))
             Arguments =
                 $@"-Doolloo.jlw.tmpdir=""{ModBase.PathPure.TrimEnd('\\')}"" -cp ""{ModBase.PathTemp}Cache\forge_installer.jar;{Target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{McFolder}";
         else
@@ -1658,7 +1659,7 @@ pause";
                         {
                         }
 
-                        return (object)null;
+                        return;
                     };
                     process.ErrorDataReceived += (sender, e) =>
                     {
@@ -1696,7 +1697,7 @@ pause";
                         {
                         }
 
-                        return (object)null;
+                        return;
                     };
                     process.Start();
                     process.BeginOutputReadLine();
@@ -1947,7 +1948,7 @@ pause";
                     var Json2 = (JObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
-                    if (Conversions.ToBoolean(Inherit == "1.16.5" && ModBase.Setup.Get("ToolFixAuthlib")))
+                    if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)ModBase.Setup.Get("ToolFixAuthlib")))
                         Json = JObject.Parse(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
@@ -2075,43 +2076,18 @@ pause";
             Loaders.Add(new ModLoader.LoaderTask<bool, bool>(
                 ForgeType == "Forge" ? "安装 Forge（方式 A）" : "安装 " + ForgeType, Task =>
                 {
-                    ;
+                    var Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     try
                     {
                         // 记录当前文件夹列表（在新建目标文件夹之前）
                         ModBase.Log("[Download] 开始进行 Forgelike 安装：" + InstallerAddress);
-                        ;
                         // 解压并获取信息
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                        /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                                Input:
-                                                                    '记录当前文件夹列表（在新建目标文件夹之前）
-                                                                    Dim OldList = New DirectoryInfo(McFolder & "versions\").EnumerateDirectories.Select(Function(i) i.FullName).ToList()
-
-                                                 */
-                        Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
-                        ;
+                        var OldList = new DirectoryInfo(McFolder + "versions/")
+                            .EnumerateDirectories().Select(i => i.FullName).ToList();
+                        
+                        
                         // 新建目标实例文件夹
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                        /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                                Input:
-                                                                    Dim Json As Global.Newtonsoft.Json.Linq.JObject = Global.PCL.ModBase.GetJson(Global.PCL.ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open))
-
-                                                 */
+                        var Json = ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
                         Directory.CreateDirectory(VersionFolder);
                         Task.Progress = 0.04d;
                         // 释放 launcher_installer.json
@@ -2119,7 +2095,7 @@ pause";
                         Task.Progress = 0.05d;
                         // 运行 Forge 安装器
                         var UseJavaWrapper = ModBase.IsUtf8CodePage();
-                        Retry: ;
+                        Retry: 
 
                         try
                         {
@@ -2144,47 +2120,19 @@ pause";
                             // 拷贝新增的实例 Json
                         }
 
-                        ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                        /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                                Input:
-                                                                    '拷贝新增的实例 Json
-                                                                    Dim DeltaList = New DirectoryInfo(McFolder & "versions\").EnumerateDirectories.
-                                                                        SkipWhile(Function(i) OldList.Contains(i.FullName)).ToList()
-
-                                                 */
+                        var DeltaList = new DirectoryInfo(McFolder + "versions/").EnumerateDirectories()
+                            .SkipWhile(i => OldList.Contains(i.FullName)).ToList();
+                              
                         if (DeltaList.Count > 1)
                             // 它可能和 OptiFine 安装同时运行，导致增加的文件不止一个（这导致了 #151）
                             // 也可能是因为 Forge 安装器的 Bug，生成了一个名字错误的文件夹，所以需要检查文件夹是否为空
-                            DeltaList = DeltaList.Where(l => l.Name.ContainsF("forge", true) && l.EnumerateFiles.Any)
-                                .ToList;
+                            DeltaList = DeltaList.Where(l => l.Name.ContainsF("forge", true) && l.EnumerateFiles().Any())
+                                .ToList();
                         // 如果没有新增文件夹，那么预测的文件夹名就是正确的
                         // 如果只新增 1 个文件夹，那么拷贝 Json 文件
                         if (DeltaList.Count == 1)
                         {
-                            ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                            /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                                           at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                                           at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                                           at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                                           at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                                           at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                                           at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                                        Input:
-                                                                                '如果没有新增文件夹，那么预测的文件夹名就是正确的
-                                                                                '如果只新增 1 个文件夹，那么拷贝 Json 文件
-                                                                                Dim JsonFile As Global.System.IO.FileInfo = DeltaList(0).EnumerateFiles.First()
-
-                                                         */
+                            var JsonFile = DeltaList[0].EnumerateFiles().First();
                             ModBase.WriteFile(VersionFolder + TargetVersion + ".json",
                                 ModBase.ReadFile(JsonFile.FullName));
                             ModBase.Log(
@@ -2193,8 +2141,9 @@ pause";
                         else if (DeltaList.Count > 1)
                         {
                             // 新增了多个文件夹
+                            //Enumerable.Select<string>((IEnumerable<DirectoryInfo>)DeltaList, d => d.Name).Join(";")
                             ModBase.Log(
-                                $"[Download] 有多个疑似的新增实例，无法确定：{Enumerable.Select<string>((IEnumerable<DirectoryInfo>)DeltaList, d => d.Name).Join(";")}");
+                                $"[Download] 有多个疑似的新增实例，无法确定：{string.Join(";",DeltaList.Select<DirectoryInfo,string>(d => d.Name))}");
                         }
                         else
                         {
@@ -2389,12 +2338,12 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (_, __) => ModDownloadLib.ForgeSave_Click();
+        BtnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.ForgeLog_Click();
+        BtnInfo.Click += (ss, ee) => ModDownloadLib.ForgeLog_Click(ss, (dynamic)ee);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2404,7 +2353,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.ForgeLog_Click();
+        BtnInfo.Click += (ss, ee) => ModDownloadLib.ForgeLog_Click(ss, (dynamic)e);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2589,12 +2538,12 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (_, __) => ModDownloadLib.NeoForgeSave_Click();
+        BtnSave.Click += (sender,e) => ModDownloadLib.NeoForgeSave_Click(sender,(RoutedEventArgs)e);
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.NeoForgeLog_Click();
+        BtnInfo.Click += (sender, e) => ModDownloadLib.NeoForgeLog_Click(sender,(RoutedEventArgs)e);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2604,7 +2553,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.NeoForgeLog_Click();
+        BtnInfo.Click += (sender,e) => ModDownloadLib.NeoForgeLog_Click(sender,(RoutedEventArgs)e);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2697,12 +2646,12 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (_, __) => ModDownloadLib.CleanroomSave_Click();
+        BtnSave.Click += (sender, _e) => ModDownloadLib.CleanroomSave_Click(sender,(RoutedEventArgs)e);
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.CleanroomLog_Click();
+        BtnInfo.Click += (sender, e) => ModDownloadLib.CleanroomLog_Click(sender,(RoutedEventArgs)e);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2712,7 +2661,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (_, __) => ModDownloadLib.CleanroomLog_Click();
+        BtnInfo.Click += (a, b) => ModDownloadLib.CleanroomLog_Click(a, (dynamic)b);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2968,7 +2917,7 @@ pause";
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (_, __) => ModDownloadLib.FabricLog_Click();
+        btnInfo.Click += (a, b) => ModDownloadLib.FabricLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3187,7 +3136,7 @@ pause";
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (_, __) => ModDownloadLib.QuiltLog_Click();
+        btnInfo.Click += (a, b) => ModDownloadLib.QuiltLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3461,12 +3410,12 @@ pause";
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.Click += (_, __) => ModDownloadLib.LabyModSave_Click();
+        btnSave.Click += (a, b) => ModDownloadLib.LabyModSave_Click(a, (dynamic)b);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (_, __) => ModDownloadLib.LabyModLog_Click();
+        btnInfo.Click += (a, b) => ModDownloadLib.LabyModLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -3899,7 +3848,7 @@ pause";
         var LoaderList = new List<ModLoader.LoaderBase>();
         // 添加忽略标识
         LoaderList.Add(new ModLoader.LoaderTask<int, int>("添加忽略标识",
-                () => ModBase.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
+                (_) => ModBase.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
             { Show = false, Block = false });
         // Fabric API
         if (Request.FabricApi is not null)
@@ -4096,7 +4045,7 @@ pause";
         }
 
         // 删除忽略标识
-        LoaderList.Add(new ModLoader.LoaderTask<int, int>("删除忽略标识", () => File.Delete(InstanceFolder + ".pclignore"))
+        LoaderList.Add(new ModLoader.LoaderTask<int, int>("删除忽略标识", (_) => File.Delete(InstanceFolder + ".pclignore"))
             { Show = false });
         // 总加载器
         return LoaderList;
@@ -4497,7 +4446,7 @@ pause";
 
             foreach (var Library in LabyModJson["libraries"])
             {
-                string RegexMatchResult = RegexSeek(Library["name"].ToString(), RegexPatterns.CatchLwjglInLib);
+                string RegexMatchResult = ModBase.RegexSeek(Library["name"].ToString(), RegexPatterns.CatchLwjglInLib);
                 if (RegexMatchResult is null ||
                     !IsolatedLibraries.Contains(new KeyValuePair<string, bool>(RegexMatchResult, true)))
                     OutputLibraries.Add(Library);

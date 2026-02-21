@@ -12,6 +12,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
+using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
@@ -623,7 +624,7 @@ public partial class FormMain
                 TransformScale.CenterX = Width / 2d;
                 TransformScale.CenterY = Height / 2d;
                 RenderTransform = new TransformGroup
-                    { Children = new TransformCollection(new[] { TransformRotate, TransformPos, TransformScale }) };
+                    { Children = new TransformCollection([TransformRotate, TransformPos, TransformScale]) };
                 ModAnimation.AniStart(new[]
                 {
                     ModAnimation.AaOpacity(this, -Opacity, 140, 40,
@@ -633,10 +634,10 @@ public partial class FormMain
                         TransformScale.ScaleX += (double)i;
                         TransformScale.ScaleY += (double)i;
                     }, 0.88d - TransformScale.ScaleX, 180),
-                    ModAnimation.AaDouble(i => TransformPos.Y = Conversions.ToDouble(TransformPos.Y + i),
+                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
                         20d - TransformPos.Y, 180, 0,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle = Conversions.ToDouble(TransformRotate.Angle + i),
+                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                         0.6d - TransformRotate.Angle, 180, 0,
                         new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaCode(() =>
@@ -685,7 +686,7 @@ public partial class FormMain
         ModBase.Log("[System] 程序已退出，返回值：" + ModBase.GetStringFromEnum(ReturnCode));
         // If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         // Process.GetCurrentProcess.Kill()
-        Lifecycle.Shutdown(ReturnCode, force);
+        Lifecycle.Shutdown((int)ReturnCode, force);
     }
 
     private void BtnTitleClose_Click(object sender, RoutedEventArgs e)
@@ -778,7 +779,7 @@ public partial class FormMain
         {
             if (e.Key == Key.Enter)
             {
-                ((object)PanMsg.Children[0]).Btn1_Click();
+                ((dynamic)PanMsg.Children[0]).Btn1_Click();
                 return;
             }
 
@@ -1586,23 +1587,23 @@ public partial class FormMain
     {
         get
         {
-            switch (PageCurrent)
+            switch ((dynamic)PageCurrent)
             {
-                case 1:
+                case PageType.Download:
                 {
                     if (ModMain.FrmDownloadLeft is null)
                         ModMain.FrmDownloadLeft = new PageDownloadLeft();
                     return ModMain.FrmDownloadLeft.PageID;
                 }
 
-                case 2:
+                case PageType.Setup:
                 {
                     if (ModMain.FrmSetupLeft is null)
                         ModMain.FrmSetupLeft = new PageSetupLeft();
                     return ModMain.FrmSetupLeft.PageID;
                 }
 
-                case 7:
+                case PageType.InstanceSetup:
                 {
                     if (ModMain.FrmInstanceLeft is null)
                         ModMain.FrmInstanceLeft = new PageInstanceLeft();
@@ -1689,7 +1690,7 @@ public partial class FormMain
             // 切换到主页面
             PageChangeExit();
             IsChangingPage = true; // 防止下面的勾选直接触发了 PageChangeActual
-            ((MyRadioButton)PanTitleSelect.Children[Stack]).SetChecked(true, true,
+            ((MyRadioButton)PanTitleSelect.Children[(dynamic)Stack]).SetChecked(true, true,
                 string.IsNullOrEmpty(PageNameGet(PageCurrent)));
             IsChangingPage = false;
             switch (Stack.Page)
@@ -1767,7 +1768,7 @@ public partial class FormMain
     {
         if (IsChangingPage)
             return;
-        PageChangeActual((PageStackData)ModBase.Val(sender.Tag));
+        PageChangeActual((dynamic)ModBase.Val(sender.Tag), PageSubType.Default);
     }
 
     /// <summary>
@@ -1776,7 +1777,7 @@ public partial class FormMain
     public void PageBack()
     {
         if (PageStack.Any())
-            PageChangeActual(PageStack[0]);
+            PageChangeActual(PageStack[0], PageSubType.Default);
         else
             PageChange(PageType.Launch);
     }
@@ -1785,7 +1786,7 @@ public partial class FormMain
     /// <summary>
     ///     切换现有页面的实际方法。
     /// </summary>
-    private void PageChangeActual(PageStackData Stack, PageSubType SubType = -1)
+    private void PageChangeActual(PageStackData Stack, PageSubType SubType)
     {
         if (PageCurrent == Stack && (PageCurrentSub == SubType || (int)SubType == -1))
             return;
@@ -1918,7 +1919,7 @@ public partial class FormMain
                 }
                 case PageType.HelpDetail: // 帮助详情
                 {
-                    PageChangeAnim(new MyPageLeft(), (FrameworkElement)Stack.Additional(1));
+                    PageChangeAnim(new MyPageLeft(), ((dynamic)Stack.Additional)[1]);
                     break;
                 }
                 case PageType.VersionSaves: // 存档管理

@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -67,11 +69,11 @@ public partial class PageSetupJava
             var BtnOpenFolder = new MyIconButton();
             BtnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
             BtnOpenFolder.ToolTip = "打开";
-            BtnOpenFolder.Click += () => ModBase.OpenExplorer(J.Installation.JavaFolder);
+            BtnOpenFolder.Click += (sender, e) => ModBase.OpenExplorer(J.Installation.JavaFolder);
             var BtnInfo = new MyIconButton();
             BtnInfo.Logo = ModBase.Logo.IconButtonInfo;
             BtnInfo.ToolTip = "详细信息";
-            BtnInfo.Click += () =>
+            BtnInfo.Click += (sender, e) =>
                 ModMain.MyMsgBox(
                     $"类型: {VersionTypeDesc}" + Constants.vbCrLf + $"版本: {J.Installation.Version.ToString()}" +
                     Constants.vbCrLf + $"架构: {J.Installation.Architecture.ToString()} ({DisplayBits})" +
@@ -101,7 +103,7 @@ public partial class PageSetupJava
             }
 
             ;
-            BtnEnableSwitch.Click += () =>
+            BtnInfo.Click += (sender, e) =>
             {
                 try
                 {
@@ -135,7 +137,7 @@ public partial class PageSetupJava
             Title = "自动选择",
             Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
         };
-        ItemAuto.Check += () => ModBase.Setup.Set("LaunchArgumentJavaSelect", "");
+        ItemAuto.Check += (sender, e) => ModBase.Setup.Set("LaunchArgumentJavaSelect", "");
         PanContent.Children.Add(ItemAuto);
         var CurrentSetJava = ModBase.Setup.Get("LaunchArgumentJavaSelect");
         foreach (var J in ModJava.Javas.GetSortedJavaList())
@@ -159,11 +161,12 @@ public partial class PageSetupJava
         if (ModJava.Javas.Exist(ret))
             ModMain.Hint("Java 已经存在，不用再次添加……");
         else
-            Dispatcher.BeginInvoke(() =>
+        {
+            Dispatcher.BeginInvoke(new Action(async () => 
             {
                 await Task.Run(() =>
                 {
-                    ;
+                    ModJava.Javas.AddOrGet(ret); 
                     ModJava.Javas.SaveConfig();
                 });
                 if (ModJava.Javas.Exist(ret))
@@ -175,6 +178,7 @@ public partial class PageSetupJava
                 {
                     ModMain.Hint("未能成功将 Java 加入列表中", ModMain.HintType.Critical);
                 }
-            });
+            }));
+        }
     }
 }

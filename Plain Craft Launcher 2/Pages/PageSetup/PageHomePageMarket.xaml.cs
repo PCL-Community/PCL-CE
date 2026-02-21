@@ -1,21 +1,15 @@
-using System.Windows;
-using System.Windows.Input;
 using PCL.Core.IO.Net.Http.Client;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using PCL;
 
-namespace PCL;
-
-public class PageHomepageMarket : IRefreshable
+public class PageHomepageMarket : UserControl, IRefreshable
 {
-    public PageHomepageMarket()
-    {
-        this.Loaded += Page_Loaded;
-    }
-
-    public void Refresh()
-    {
-        this.Dispatcher.BeginInvoke(new Func<Task>(() => RefreshAsync()));
-    }
-
+    public StackPanel PanMain { get; }
+    public StackPanel PanCustom { get; }
+    public MyLoading Load { get; }
+    
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         InitLoading();
@@ -23,16 +17,27 @@ public class PageHomepageMarket : IRefreshable
 
     private void InitLoading()
     {
-        this.Load.Text = "正在加载主页市场";
-        this.Load.TextError = "加载失败，点击重试";
-        this.Load.State.LoadingState = MyLoading.MyLoadingState.Run;
-        this.Load.Click += OnRetryClick;
+        Load.Text = "正在加载主页市场";
+        Load.TextError = "加载失败，点击重试";
+        Load.State.LoadingState = MyLoading.MyLoadingState.Run;
+
+        Load.Click -= OnRetryClick;
+        Load.Click += OnRetryClick;
+
         Refresh();
     }
 
     private void OnRetryClick(object sender, MouseButtonEventArgs e)
     {
-        if (this.Load.State.LoadingState == MyLoading.MyLoadingState.Error) InitLoading();
+        if (Load.State.LoadingState == MyLoading.MyLoadingState.Error)
+        {
+            InitLoading();
+        }
+    }
+
+    public void Refresh()
+    {
+        Dispatcher.BeginInvoke(new Func<Task>(RefreshAsync));
     }
 
     private async Task RefreshAsync()
@@ -41,19 +46,36 @@ public class PageHomepageMarket : IRefreshable
         {
             const string HomepageMarketUri =
                 "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Homepage.Market/Custom.xaml";
-            var content = await (await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(true)).AsStringAsync();
-            content = content.Replace("EventType=\"刷新主页\"", "EventType=\"刷新主页市场\"");
-            this.PanCustom.Children.Clear();
-            this.PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(
-                $"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>"));
-            this.Load.State.LoadingState = MyLoading.MyLoadingState.Stop;
-            this.PanMain.Visibility = Visibility.Visible;
+
+            var response = await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(true);
+            string content = await response.AsStringAsync();
+
+            // 替换事件类型
+            content = content.Replace(@"EventType=""刷新主页""", @"EventType=""刷新主页市场""");
+
+            PanCustom.Children.Clear();
+            PanCustom.Children.Add(GetObjectFromXML($@"
+<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' 
+            xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' 
+            xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' 
+            xmlns:sys='clr-namespace:System;assembly=System.Runtime'>
+    {content}
+</StackPanel>"));
+
+            Load.State.LoadingState = MyLoading.MyLoadingState.Stop;
+            PanMain.Visibility = Visibility.Visible;
         }
         catch
         {
-            this.Load.Text = "加载失败，点击重试";
-            this.Load.State.LoadingState = MyLoading.MyLoadingState.Error;
-            this.PanMain.Visibility = Visibility.Visible;
+            Load.Text = "加载失败，点击重试";
+            Load.State.LoadingState = MyLoading.MyLoadingState.Error;
+            PanMain.Visibility = Visibility.Visible;
         }
+    }
+
+    // 假设这是你原本的 VB 方法
+    private UIElement GetObjectFromXML(string xaml)
+    {
+        return (UIElement)System.Windows.Markup.XamlReader.Parse(xaml);
     }
 }

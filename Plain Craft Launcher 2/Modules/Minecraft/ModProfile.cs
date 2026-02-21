@@ -8,6 +8,9 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO.Net;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Secret;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -300,11 +303,11 @@ public static class ModProfile
                         Type = ModLaunch.McLoginType.Ms,
                         Uuid = (string)Profile["uuid"],
                         Username = (string)Profile["username"],
-                        AccessToken = EncryptHelper.SecretDecrypt(Profile["accessToken"]),
-                        RefreshToken = EncryptHelper.SecretDecrypt(Profile["refreshToken"]),
+                        AccessToken = EncryptHelper.SecretDecrypt((string?)Profile["accessToken"]),
+                        RefreshToken = EncryptHelper.SecretDecrypt((string?)Profile["refreshToken"]),
                         Expires = (long)Profile["expires"],
                         Desc = (string)Profile["desc"],
-                        RawJson = EncryptHelper.SecretDecrypt(Profile["rawJson"]),
+                        RawJson = EncryptHelper.SecretDecrypt((string?)Profile["rawJson"]),
                         SkinHeadId = (string)Profile["skinHeadId"]
                     };
                 else if ((string)Profile["type"] == "authlib")
@@ -313,14 +316,14 @@ public static class ModProfile
                         Type = ModLaunch.McLoginType.Auth,
                         Uuid = (string)Profile["uuid"],
                         Username = (string)Profile["username"],
-                        AccessToken = EncryptHelper.SecretDecrypt(Profile["accessToken"]),
-                        RefreshToken = EncryptHelper.SecretDecrypt(Profile["refreshToken"]),
+                        AccessToken = EncryptHelper.SecretDecrypt((string?)Profile["accessToken"]),
+                        RefreshToken = EncryptHelper.SecretDecrypt((string?)Profile["refreshToken"]),
                         Expires = (long)Profile["expires"],
                         Server = (string)Profile["server"],
                         ServerName = (string)Profile["serverName"],
-                        Name = EncryptHelper.SecretDecrypt(Profile["name"]),
-                        Password = EncryptHelper.SecretDecrypt(Profile["password"]),
-                        ClientToken = EncryptHelper.SecretDecrypt(Profile["clientToken"]),
+                        Name = EncryptHelper.SecretDecrypt((string?)Profile["name"]),
+                        Password = EncryptHelper.SecretDecrypt((string?)Profile["password"]),
+                        ClientToken = EncryptHelper.SecretDecrypt((string?)Profile["clientToken"]),
                         Desc = (string)Profile["desc"],
                         SkinHeadId = (string)Profile["skinHeadId"]
                     };
@@ -437,40 +440,42 @@ public static class ModProfile
         {
             List<IMyRadio> authTypeList;
             var HasMinecraftAccount = ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
-            ;
-            ;
+            var Restricted = RegionUtils.IsRestrictedFeatAllowed && ProfileList.Count > 0;
+            var HasNetwork = NetworkHelper.IsNetworkAvailable();
             if (HasMinecraftAccount || Restricted || !HasNetwork)
-                authTypeList = new List<IMyRadio>
-                {
+                authTypeList =
+                [
                     new MyListItem
                     {
                         Title = "正版验证",
                         Type = MyListItem.CheckType.RadioBox,
                         Logo = ModBase.Logo.IconButtonAuth
                     },
+
                     new MyListItem
                     {
                         Title = "第三方验证",
                         Type = MyListItem.CheckType.RadioBox,
                         Logo = ModBase.Logo.IconButtonThirdparty
                     },
+
                     new MyListItem
                     {
                         Title = "离线验证",
                         Type = MyListItem.CheckType.RadioBox,
                         Logo = ModBase.Logo.IconButtonOffline
                     }
-                };
+                ];
             else
-                authTypeList = new List<IMyRadio>
-                {
+                authTypeList =
+                [
                     new MyListItem
                     {
                         Title = "正版验证",
                         Type = MyListItem.CheckType.RadioBox,
                         Logo = ModBase.Logo.IconButtonAuth
                     }
-                };
+                ];
             selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");
         });
         if (selectedAuthTypeNum is null)
@@ -1130,7 +1135,7 @@ public static class ModProfile
                 if (res.Contains("\"error\""))
                 {
                     ModMain.Hint(
-                        Conversions.ToString(Operators.ConcatenateObject("更改皮肤失败：", ModBase.GetJson(res)("error"))),
+                        Conversions.ToString(Operators.ConcatenateObject("更改皮肤失败：", ((JObject)ModBase.GetJson(res))["error"])),
                         ModMain.HintType.Critical);
                     return;
                 }

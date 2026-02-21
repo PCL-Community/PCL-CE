@@ -13,6 +13,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -263,7 +264,7 @@ public static class ModMain
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
     {
-        Hint(message, messageTheme);
+        HintWrapper.Show(message, messageTheme);
     }
 
     private static void HintTick()
@@ -290,12 +291,12 @@ public static class ModMain
                 // 检查是否有重复提示
                 Border DoubleStack = null;
                 foreach (Border stack in FrmMain.PanHint.Children)
-                    if (Conversions.ToBoolean(stack.Tag(0) &&
+                    if (Conversions.ToBoolean(((dynamic)stack.Tag)[0] &&
                                               (((TextBlock)stack.Child).Text ?? "") == (CurrentHint.Text ?? "")))
                         DoubleStack = stack;
                 // 获取渐变颜色
                 ModBase.MyColor TargetColor0, TargetColor1;
-                var Percent = 0.3d;
+                double Percent = 0.3d;
                 switch (CurrentHint.Type)
                 {
                     case HintType.Info:
@@ -322,12 +323,10 @@ public static class ModMain
                 if (!(DoubleStack == null))
                 {
                     // 有重复提示，且该提示的进入动画已播放
-                    if (!ModAnimation.AniIsRun(
-                            Conversions.ToString(Operators.ConcatenateObject("Hint Show ", DoubleStack.Tag(1)))))
+                    if (!ModAnimation.AniIsRun($"Hint Show {((dynamic)DoubleStack.Tag)[1]}"))
                     {
-                        ModAnimation.AniStop(
-                            Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", DoubleStack.Tag(1))));
-                        var Delay = (800d + ModBase.MathClamp(CurrentHint.Text.Length, 5d, 23d) * 180d) *
+                        ModAnimation.AniStop($"Hint Hide {((dynamic)DoubleStack.Tag)[1]}");
+                        double Delay = (800d + ModBase.MathClamp(CurrentHint.Text.Length, 5d, 23d) * 180d) *
                                     ModAnimation.AniSpeed;
                         ModAnimation.AniStart(new[]
                         {
@@ -338,7 +337,7 @@ public static class ModMain
                             ModAnimation.AaX(DoubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaDouble(i =>
                             {
-                                Percent = Conversions.ToDouble(Percent + i);
+                                Percent += (dynamic)i;
                                 var Gradient = (LinearGradientBrush)DoubleStack.Background;
                                 Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                                   new ModBase.MyColor(255d, 255d, 255d) *
@@ -350,11 +349,11 @@ public static class ModMain
                             ModAnimation.AaX(DoubleStack, -50, 200, (int)Math.Round(Delay),
                                 new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaOpacity(DoubleStack, -1, 150, (int)Math.Round(Delay)),
-                            ModAnimation.AaCode(() => DoubleStack.Tag(0) = false, (int)Math.Round(Delay)),
+                            ModAnimation.AaCode(() => ((dynamic)DoubleStack.Tag)[0] = false, (int)Math.Round(Delay)),
                             ModAnimation.AaHeight(DoubleStack, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(),
                                 After: true),
                             ModAnimation.AaCode(() => FrmMain.PanHint.Children.Remove(DoubleStack), After: true)
-                        }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", DoubleStack.Tag(1))));
+                        }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", ((dynamic)DoubleStack.Tag)[1])));
                     }
                 }
                 else
@@ -362,7 +361,7 @@ public static class ModMain
                     // 准备控件
                     var NewHintControl = new Border
                     {
-                        Tag = new[] { true, ModBase.GetUuid() }, Margin = new Thickness(-70, 0d, 20d, 0d), Opacity = 0d,
+                        Tag = new dynamic[] { true, ModBase.GetUuid() }, Margin = new Thickness(-70, 0d, 20d, 0d), Opacity = 0d,
                         Height = 0d, HorizontalAlignment = HorizontalAlignment.Left,
                         CornerRadius = new CornerRadius(0d, 6d, 6d, 0d)
                     };
@@ -397,7 +396,7 @@ public static class ModMain
                         ModAnimation.AaOpacity(NewHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
-                            Percent = Conversions.ToDouble(Percent + i);
+                            Percent = Conversions.ToDouble(Percent + (dynamic)i);
                             var Gradient = (LinearGradientBrush)NewHintControl.Background;
                             Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent);
@@ -405,8 +404,7 @@ public static class ModMain
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent);
                         }, 0.7d, 250, 100)
                     });
-                    ModAnimation.AniStart(Animations,
-                        Conversions.ToString(Operators.ConcatenateObject("Hint Show ", NewHintControl.Tag(1))));
+                    ModAnimation.AniStart(Animations, $"Hint Show {((dynamic)NewHintControl.Tag)[1]}");
                     // 结束动画
                     var Delay = (800d + ModBase.MathClamp(CurrentHint.Text.Length, 5d, 23d) * 180d) *
                                 ModAnimation.AniSpeed;
@@ -416,11 +414,11 @@ public static class ModMain
                             ModAnimation.AaX(NewHintControl, -50, 200, (int)Math.Round(Delay),
                                 new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaOpacity(NewHintControl, -1, 150, (int)Math.Round(Delay)),
-                            ModAnimation.AaCode(() => NewHintControl.Tag(0) = false, (int)Math.Round(Delay)),
+                            ModAnimation.AaCode(() => ((dynamic)NewHintControl.Tag)[0] = false, (int)Math.Round(Delay)),
                             ModAnimation.AaHeight(NewHintControl, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(),
                                 After: true),
                             ModAnimation.AaCode(() => FrmMain.PanHint.Children.Remove(NewHintControl), After: true)
-                        }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", NewHintControl.Tag(1))));
+                        }, $"Hint Hide {((dynamic)NewHintControl.Tag)[1]}");
                 }
 
                 // 结束处理
@@ -447,10 +445,10 @@ public static class ModMain
                 {
                     ModAnimation.AaX(Control, -50, 200, Ease: new ModAnimation.AniEaseInFluent()),
                     ModAnimation.AaOpacity(Control, -1, 150, Ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaCode(() => Control.Tag(0) = false),
+                    ModAnimation.AaCode(() => ((dynamic)Control.Tag)[0] = false),
                     ModAnimation.AaHeight(Control, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(), After: true),
                     ModAnimation.AaCode(() => FrmMain.PanHint.Children.Remove(Control), After: true)
-                }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", Control.Tag(1))));
+                }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", ((dynamic)Control.Tag)[1])));
         }
     }
 
@@ -1197,8 +1195,8 @@ public static class ModMain
     public static string HelpArgumentReplace(string Xaml)
     {
         var Result = Xaml.Replace("{path}", ModBase.EscapeXML(ModBase.ExePath));
-        Result = Result.RegexReplaceEach(@"\{hint\}", () => ModBase.EscapeXML(PageToolsTest.GetRandomHint()));
-        Result = Result.RegexReplaceEach(@"\{cave\}", () => ModBase.EscapeXML(PageToolsTest.GetRandomCave()));
+        Result = Result.RegexReplaceEach(@"\{hint\}", (_) => ModBase.EscapeXML(PageToolsTest.GetRandomHint()));
+        Result = Result.RegexReplaceEach(@"\{cave\}", (_) => ModBase.EscapeXML(PageToolsTest.GetRandomCave()));
         return Result;
     }
 

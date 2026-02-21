@@ -65,7 +65,7 @@ public partial class PageDownloadLiteLoader
                 {
                     Stack.Tag = ModBase.Sort(
                         (IList<ModDownload.DlLiteLoaderListEntry>)(List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag,
-                        (a, b) => ModMinecraft.CompareVersion(a.Inherit, b.Inherit));
+                        (a, b) => ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));

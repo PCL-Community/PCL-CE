@@ -1,7 +1,12 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+
 
 namespace PCL;
 
@@ -18,8 +23,10 @@ public partial class PageSetupUpdate
     {
         ModAnimation.AniControlEnabled += 1;
         TextMirrorCDK.Password = Config.Update.MirrorChyanKey;
-        ComboSystemUpdateChannel.SelectedIndex = Config.Update.UpdateChannel;
-        ComboSystemUpdateMode.SelectedIndex = Config.Update.UpdateMode;
+
+        ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
+        ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
+        
         TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.VersionBaseName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
@@ -29,9 +36,12 @@ public partial class PageSetupUpdate
     {
         try
         {
+            // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
             if (await ModSecret.RemoteServer.IsLatestAsync(
                     Conversions.ToBoolean(ModSecret.IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
+                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, 
+                    (dynamic)PCL.Core.Utils.SemVer.Parse(ModBase.VersionBaseName),
                     ModBase.VersionCode))
             {
                 ModBase.Log("[Update] 已是最新版本");
@@ -167,7 +177,7 @@ public partial class PageSetupUpdate
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            Config.Update.UpdateMode = ComboSystemUpdateMode.SelectedIndex;
+            Config.Update.UpdateMode = (PCL.Core.App.LauncherAutoUpdateBehavior)ComboSystemUpdateMode.SelectedIndex;
     }
 
     private void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -239,7 +249,7 @@ public partial class PageSetupUpdate
         }
         else
         {
-            Config.Update.UpdateChannel = ComboSystemUpdateChannel.SelectedIndex;
+            Config.Update.UpdateChannel = (PCL.Core.App.UpdateChannel)ComboSystemUpdateChannel.SelectedIndex;
         }
     }
 

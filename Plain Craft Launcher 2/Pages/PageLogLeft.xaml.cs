@@ -36,7 +36,7 @@ public partial class PageLogLeft
         {
             if (ShownLogs.Count == 0)
             {
-                ModMain.FrmMain.PageChange((FormMain.PageStackData)ModMain.FrmMain.PageCurrentSub);
+                ModMain.FrmMain.PageChange((dynamic)ModMain.FrmMain.PageCurrentSub);
                 return;
             }
 
@@ -64,7 +64,7 @@ public partial class PageLogLeft
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 var RemoveButton = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
-                RemoveButton.Click += (_, __) => ModMain.FrmLogLeft.Remove_Click();
+                    RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (dynamic)b);
                 NewItem.Buttons = new[] { RemoveButton };
                 if (Uuid == CurrentUuid)
                     NewItem.Checked = true;
@@ -73,7 +73,7 @@ public partial class PageLogLeft
 
             // 通知日志保留设置
             // TODO(i18n): 文本 @ PageLog 左侧 - 日志保留设置通知
-            if (Conversions.ToBoolean(!ModBase.Setup.Get("HintMaxLog")))
+            if (!(bool)ModBase.Setup.Get("HintMaxLog"))
             {
                 ModBase.Setup.Set("HintMaxLog", true);
                 ModMain.Hint("实时日志默认只保留 500 行，你可以在 实时日志行数 设置中修改！");

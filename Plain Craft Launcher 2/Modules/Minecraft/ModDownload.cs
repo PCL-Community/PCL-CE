@@ -6,6 +6,9 @@ using System.Text;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -367,7 +370,7 @@ public static class ModDownload
             string Version;
             // 快照版
             Version = (string)Json["latest"]["snapshot"];
-            if (Conversions.ToBoolean(ModBase.Setup.Get("ToolUpdateSnapshot") &&
+            if (Conversions.ToBoolean((bool)ModBase.Setup.Get("ToolUpdateSnapshot") &&
                                       !Operators.ConditionalCompareObjectEqual(
                                           ModBase.Setup.Get("ToolUpdateSnapshotLast"), "", false) &&
                                       Operators.ConditionalCompareObjectNotEqual(
@@ -381,7 +384,7 @@ public static class ModDownload
             ModBase.Setup.Set("ToolUpdateSnapshotLast", Version ?? "Nothing");
             // 正式版
             Version = (string)Json["latest"]["release"];
-            if (Conversions.ToBoolean(ModBase.Setup.Get("ToolUpdateRelease") &&
+            if (Conversions.ToBoolean((bool)ModBase.Setup.Get("ToolUpdateRelease") &&
                                       !Operators.ConditionalCompareObjectEqual(
                                           ModBase.Setup.Get("ToolUpdateReleaseLast"), "", false) &&
                                       Operators.ConditionalCompareObjectNotEqual(
@@ -1640,7 +1643,7 @@ public static class ModDownload
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
                     JsonToken = RealEntry
                 });
             }
@@ -1683,7 +1686,7 @@ public static class ModDownload
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp(RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
                     JsonToken = RealEntry
                 });
             }

@@ -12,6 +12,12 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.IO;
+using PCL.Core.IO.Net;
+using PCL.Core.UI;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -139,9 +145,9 @@ public partial class PageToolsTest
                 loaderdownload = new ModNet.LoaderDownloadUnc("自定义下载文件：" + FileName + " ",
                     new Tuple<string, string>(Url, Folder + FileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>("自定义下载 (" + uuid + ") ", new[] { loaderdownload })
-                { OnStateChanged = _ => PageToolsTest.DownloadState() };
+                { OnStateChanged = (a) => PageToolsTest.DownloadState((dynamic)a) };
             loaderCombo.Start();
-            LoaderTaskbarAdd<int>(loaderCombo);
+            ModLoader.LoaderTaskbarAdd<int>(loaderCombo);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();
         }
@@ -389,10 +395,10 @@ public partial class PageToolsTest
             {
                 string arglpSystemName = null;
                 var arglpName = "SeProfileSingleProcessPrivilege";
-                PageToolsTest.LookupPrivilegeValue(ref arglpSystemName, ref arglpName, out luid1);
+                PageToolsTest.LookupPrivilegeValue(arglpSystemName, arglpName, out luid1);
                 string arglpSystemName1 = null;
                 var arglpName1 = "SeIncreaseQuotaPrivilege";
-                PageToolsTest.LookupPrivilegeValue(ref arglpSystemName1, ref arglpName1, out luid2);
+                PageToolsTest.LookupPrivilegeValue(arglpSystemName1, arglpName1, out luid2);
 
                 var tokenPrivileges1 = new TokenPrivileges();
                 tokenPrivileges1.Luid = luid1;
@@ -555,7 +561,7 @@ public partial class PageToolsTest
         {
             try
             {
-                if (ID.Count < 3)
+                if (ID.Length < 3)
                 {
                     ModMain.Hint("这不是一个有效的 ID...");
                 }

@@ -30,7 +30,7 @@ public partial class PageDownloadLegacyFabric
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)Version,
-                    (_, __) => this.LegacyFabric_Selected()));
+                    (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             CardVersions.Title = "版本列表 (" + Versions.Count + ")";
         }
         catch (Exception ex)

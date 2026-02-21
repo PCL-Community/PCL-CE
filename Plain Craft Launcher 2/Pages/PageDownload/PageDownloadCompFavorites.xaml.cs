@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -24,7 +25,7 @@ public partial class PageDownloadCompFavorites
         // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
         // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
         Btn_ManageTargetFav.Logo = ModBase.Logo.IconButtonSetup;
-        Btn_ManageTargetFav.Click += (_, __) => this.Manage_Click();
+        Btn_ManageTargetFav.Click += (sender, e) => this.Manage_Click(sender, (dynamic)e);
         Initialized += PageDownloadCompFavorites_Inited;
         Loaded += PageDownloadCompFavorites_Loaded;
         KeyDown += Page_KeyDown;
@@ -336,7 +337,7 @@ public partial class PageDownloadCompFavorites
         // ---操作逻辑---
         // 右键查看详细信息界面
         if (CompItem.Tag is ModComp.CompProject)
-            CompItem.MouseRightButtonUp += (object sender, EventArgs e) => ModMain.FrmMain.PageChange(
+            CompItem.MouseRightButtonUp += (_, _) => ModMain.FrmMain.PageChange(
                 new FormMain.PageStackData
                 {
                     Page = FormMain.PageType.CompDetail,
@@ -560,11 +561,20 @@ public partial class PageDownloadCompFavorites
             var GetInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
             GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<ModNet.NetFile>>("查询资源信息", Ts =>
             {
-                ;
-                ;
-                // 工程支持的全部版本获取
+                List<List<ModComp.CompFile>> AllFiles = [];
+                List<string> SuitVersion = [];
                 var VersionFirstSet = true;
-                ;
+                // 工程支持的全部版本获取
+                Func<List<List<string>>, List<string>> GetAllVersionList = ls =>
+                {
+                    var allVersionList = new List<string>();
+                    foreach (var i in ls)
+                    {
+                        allVersionList.AddRange(i);
+                    }
+
+                    return allVersionList.Distinct().ToList();
+                };
                 // 获取多个工程之间支持的版本的交集
                 var FinishedTasks = 0;
                 foreach (var Item in Ts.Input)
@@ -590,21 +600,7 @@ public partial class PageDownloadCompFavorites
                 // 求取共同的版本
                 foreach (var Item in AllFiles)
                 {
-                    ;
-                    // Log(Current.Join(","))
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                                                                Dim Current = GetAllVersionList(Item.Select(Function(i) i.GameVersions).ToList())
-
-                                             */
+                    var Current = GetAllVersionList(Item.Select(i => i.GameVersions).ToList());
                     if (VersionFirstSet)
                     {
                         VersionFirstSet = false;
@@ -625,16 +621,16 @@ public partial class PageDownloadCompFavorites
                     // 要求用户选择希望下载的版本
                 }
 
-                ;
+                int? SelectedVersion = 0;
                 ModBase.RunInUiWait(() =>
                 {
-                    ;
+                    List<IMyRadio> Selection = [];
                     foreach (var i in SuitVersion)
                         Selection.Add(new MyRadioBox { Text = i });
                     SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: "取消");
                     if (SelectedVersion is null) Ts.Abort();
                 });
-                string SelectedVersionStr = SuitVersion(Conversions.ToInteger(SelectedVersion));
+                string SelectedVersionStr = SuitVersion[(dynamic)SelectedVersion];
                 ModMain.Hint($"已选择 {SelectedVersionStr} 版本，下面请选择保存位置");
                 string SaveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(SaveFolder))
@@ -645,27 +641,14 @@ public partial class PageDownloadCompFavorites
 
                 ;
                 // 获取有期望版本号的文件
+                List<ModNet.NetFile> Res = [];
                 foreach (var Target in AllFiles)
                 {
-                    ;
                     // 按照发布日期排序
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                                                                ' 获取有期望版本号的文件
-                                                                                                Dim FinalChoices = Target.Where(Function(i) i.GameVersions.Contains(SelectedVersionStr)).ToList()
-
-                                             */
+                    var FinalChoices = Target.Where((i) => i.GameVersions.Contains((SelectedVersionStr))).ToList();
                     FinalChoices.Sort((ModComp.CompFile a, ModComp.CompFile b) => a.ReleaseDate > b.ReleaseDate);
                     // 选择最新版本进行下载
-                    Res.Add(FinalChoices.First.ToNetFile(SaveFolder + FinalChoices.First.FileName));
+                    Res.Add(FinalChoices.First().ToNetFile(SaveFolder + FinalChoices.First().FileName));
                 }
 
                 Ts.Output = Res;
@@ -735,13 +718,13 @@ public partial class PageDownloadCompFavorites
             Header = "分享当前收藏夹",
             Icon = ModBase.Logo.IconButtonShare
         };
-        NewItem.Click += () =>
+        NewItem.Click += (_, _) =>
         {
             try
             {
                 if (CurrentFavTarget.Favs.Count == 0)
                 {
-                    ModMain.Hint("分享了个寂寞啊！");
+                    HintWrapper.Show("分享了个寂寞啊！");
                     return;
                 }
 
@@ -758,7 +741,7 @@ public partial class PageDownloadCompFavorites
             Header = "导入收藏",
             Icon = ModBase.Logo.IconButtonAdd
         };
-        NewItem.Click += () =>
+        NewItem.Click += (_, _) =>
         {
             try
             {
@@ -804,7 +787,7 @@ public partial class PageDownloadCompFavorites
             Header = "新建收藏夹",
             Icon = ModBase.Logo.IconButtonCreate
         };
-        NewItem.Click += () =>
+        NewItem.Click += (_, _) =>
         {
             var NewFavName = ModMain.MyMsgBoxInput("新建收藏夹", "请输入新收藏夹名称");
             if (string.IsNullOrWhiteSpace(NewFavName))
@@ -820,7 +803,7 @@ public partial class PageDownloadCompFavorites
             Header = "重命名收藏夹名称",
             Icon = ModBase.Logo.IconButtonEdit
         };
-        NewItem.Click += () =>
+        NewItem.Click += (_, _) =>
         {
             var newName = ModMain.MyMsgBoxInput("输入新名称", DefaultInput: CurrentFavTarget.Name);
             if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
@@ -835,7 +818,7 @@ public partial class PageDownloadCompFavorites
             Header = "删除当前收藏夹",
             Icon = ModBase.Logo.IconButtonDelete
         };
-        NewItem.Click += () =>
+        NewItem.Click += (_, _) =>
         {
             if (ModComp.CompFavorites.FavoritesList.Count == 1)
             {

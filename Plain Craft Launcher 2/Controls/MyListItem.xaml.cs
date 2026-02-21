@@ -72,8 +72,7 @@ public partial class MyListItem : IMyRadio
                         (int)Math.Round(Time * 0.3d)));
                     Ani.Add(ModAnimation.AaDouble(
                         i => ColumnPaddingRight.Width =
-                            new GridLength(Conversions.ToDouble(Math.Max(0,
-                                Operators.AddObject(ColumnPaddingRight.Width.Value, i)))),
+                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                         Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25) - ColumnPaddingRight.Width.Value,
                         (int)Math.Round(Time * 0.3d), (int)Math.Round(Time * 0.7d)));
                 }
@@ -105,8 +104,7 @@ public partial class MyListItem : IMyRadio
                     Ani.Add(ModAnimation.AaOpacity(ButtonStack, -ButtonStack.Opacity, (int)Math.Round(Time * 0.4d)));
                     Ani.Add(ModAnimation.AaDouble(
                         i => ColumnPaddingRight.Width =
-                            new GridLength(Conversions.ToDouble(Math.Max(0,
-                                Operators.AddObject(ColumnPaddingRight.Width.Value, i)))),
+                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                         MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(Time * 0.4d)));
                 }
 
@@ -781,9 +779,9 @@ public partial class MyListItem : IMyRadio
                 var RadioboxList = new List<MyListItem>();
                 var CheckedCount = 0;
                 // 收集控件列表与选中个数
-                foreach (var Control in (IEnumerable)((object)Parent).Children)
+                foreach (var ControlRaw in (IEnumerable)((dynamic)Parent).Children)
                 {
-                    Control = MyVirtualizingElement.TryInit((FrameworkElement)Control);
+                    var Control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
                     if (Control is MyListItem && ((MyListItem)Control).Type == CheckType.RadioBox)
                     {
                         RadioboxList.Add((MyListItem)Control);

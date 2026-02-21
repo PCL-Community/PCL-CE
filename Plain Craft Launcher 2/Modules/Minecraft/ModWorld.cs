@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using fNbt;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -11,7 +12,7 @@ public static class ModWorld
     /// <summary>
     ///     尝试处理存档。
     /// </summary>
-    /// <exception cref="CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
+    /// <exception cref="ModBase.CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
     /// <exception cref="Exception"></exception>
     public static void ReadWorld(string SavePath)
     {

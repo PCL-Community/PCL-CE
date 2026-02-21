@@ -3,6 +3,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using fNbt;
+using PCL.Core.Link;
+using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -36,7 +38,7 @@ public partial class PageInstanceServer : MyPageRight
         {
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (_, __) => this.EditServer();
+            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
             serverCard.UpdateServerInfo(server);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -209,7 +211,7 @@ public partial class PageInstanceServer : MyPageRight
 
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (_, __) => this.EditServer();
+            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
             serverCard.UpdateServerInfo(newServer);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -331,7 +333,7 @@ public partial class PageInstanceServer : MyPageRight
         {
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (_, __) => this.EditServer();
+            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
             serverCard.UpdateServerInfo(server);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -425,7 +427,7 @@ public partial class PageInstanceServer : MyPageRight
                     server.MaxPlayers = result.Players.Max;
                     server.Description = result.Description;
                     server.Version = result.Version.Name;
-                    server.Ping = result.Latency;
+                    server.Ping = (int)result.Latency;
                     server.Icon = result.Favicon;
                 }
                 else

@@ -7,6 +7,9 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace PCL;
@@ -39,7 +42,7 @@ public partial class PageSelectRight
         ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
-        PanVerSearchBox.TextChanged += (_, __) => this.PanVerSearchBox_TextChanged();
+        PanVerSearchBox.TextChanged += (a, b) => this.PanVerSearchBox_TextChanged(a, (dynamic)b);
 
         ReloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(NormalDelay) };
         ReloadTimer.Tick += ReloadTimer_Tick;
@@ -101,7 +104,7 @@ public partial class PageSelectRight
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.McInstanceListLoader, _ => this.McInstanceListUI(),
+        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.McInstanceListLoader, (a) => this.McInstanceListUI((dynamic)a),
             AutoRun: false);
     }
 
@@ -411,7 +414,7 @@ public partial class PageSelectRight
     {
         var Version = (ModMinecraft.McInstance)sender.Tag;
         // 注册点击事件
-        sender.Click += (_, __) => PageSelectRight.Item_Click();
+        sender.Click += (a, b) => PageSelectRight.Item_Click((dynamic)a, b);
         // 图标按钮
         var BtnStar = new MyIconButton();
         if (Version.IsStar)
@@ -433,9 +436,9 @@ public partial class PageSelectRight
             BtnStar.Logo = ModBase.Logo.IconButtonLikeLine;
         }
 
-        BtnStar.Click += () =>
+        BtnStar.Click += (_, _) =>
         {
-            Config.Instance.Starred(Version.PathInstance) = !Version.IsStar;
+            Config.Instance.Starred[Version.PathInstance] = !Version.IsStar;
             ModMinecraft.McInstanceListForceRefresh = true;
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
@@ -445,13 +448,13 @@ public partial class PageSelectRight
         ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
-        BtnOpenFolder.Click += () => PageInstanceOverall.OpenVersionFolder(Version);
+        BtnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
         var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonDelete };
         BtnDel.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDel, 30d);
         ToolTipService.SetHorizontalOffset(BtnDel, 2d);
-        BtnDel.Click += () => DeleteVersion(sender, Version);
+        BtnDel.Click += (_, _) => DeleteVersion(sender, Version);
         if (Version.State != ModMinecraft.McInstanceState.Error)
         {
             var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonSetup };
@@ -459,12 +462,12 @@ public partial class PageSelectRight
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
             ToolTipService.SetHorizontalOffset(BtnCont, 2d);
-            BtnCont.Click += () =>
+            BtnCont.Click += (_, _) =>
             {
                 PageInstanceLeft.Instance = Version;
                 ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
-            sender.MouseRightButtonUp += () =>
+            sender.MouseRightButtonUp += (_, _) =>
             {
                 PageInstanceLeft.Instance = Version;
                 ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup);
@@ -478,8 +481,8 @@ public partial class PageSelectRight
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
             ToolTipService.SetHorizontalOffset(BtnCont, 2d);
-            BtnCont.Click += () => PageInstanceOverall.OpenVersionFolder(Version);
-            sender.MouseRightButtonUp += () => PageInstanceOverall.OpenVersionFolder(Version);
+            BtnCont.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
+            sender.MouseRightButtonUp += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
             sender.Buttons = new[] { BtnStar, BtnOpenFolder, BtnDel, BtnCont };
         }
     }

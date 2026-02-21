@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -354,7 +357,7 @@ public partial class PageSetupUI
 
             // 视频加载异常处理
 
-            Action<object, ExceptionRoutedEventArgs> videoHandler = (sender, e) =>
+            EventHandler<ExceptionRoutedEventArgs> videoHandler = (sender, e) =>
             {
                 var videoEx = e.ErrorException;
                 var videoAddress = ModMain.FrmMain.VideoBack.Source.ToString();
@@ -728,9 +731,9 @@ public partial class PageSetupUI
     private void SliderLoad()
     {
         SliderMusicVolume.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Ceiling(Operators.MultiplyObject(v, 0.1d)), "%"));
+            Operators.ConcatenateObject(Math.Ceiling(Convert.ToDouble(v) * 0.1d), "%"));
         SliderLauncherOpacity.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Round(Operators.AddObject(40, Operators.MultiplyObject(v, 0.1d))), "%"));
+            Operators.ConcatenateObject(Math.Round(40 + Convert.ToDouble(v) * 0.1d), "%"));
         SliderLauncherHue.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "°"));
         SliderLauncherSat.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
         SliderLauncherDelta.GetHintText = new Func<int, string>(Value =>
@@ -750,7 +753,7 @@ public partial class PageSetupUI
             return (Value - 20).ToString();
         });
         SliderBackgroundOpacity.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Round(Operators.MultiplyObject(v, 0.1d)), "%"));
+            Operators.ConcatenateObject(Math.Round(Convert.ToDouble(v) * 0.1d), "%"));
         SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, " 像素"));
         SliderBlurValue.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, " 像素"));
         SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));

@@ -7,6 +7,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -284,8 +285,9 @@ public partial class PageInstanceExport : IRefreshable
     /// </summary>
     private IEnumerable<string> StandardizeLines(IEnumerable<string> Raw, bool AddSuffixStarToFolderPath)
     {
-        foreach (var IgnoreLine in Raw)
+        foreach (var IgnoreLineRaw in Raw)
         {
+            var IgnoreLine = IgnoreLineRaw;
             IgnoreLine = IgnoreLine.Trim();
             if (string.IsNullOrEmpty(IgnoreLine) || IgnoreLine.StartsWithF("#") || IgnoreLine.StartsWithF("="))
                 continue;
@@ -306,7 +308,7 @@ public partial class PageInstanceExport : IRefreshable
                     Visibility.Visible, false)))
                 continue;
             if (Element is MyCheckBox)
-                yield return Element;
+                yield return (MyCheckBox)Element;
             else if (Element is StackPanel)
                 foreach (var SubElement in ((StackPanel)Element).Children)
                 {
@@ -315,7 +317,7 @@ public partial class PageInstanceExport : IRefreshable
                                 Visibility.Visible, false)))
                         continue;
                     if (SubElement is MyCheckBox)
-                        yield return SubElement;
+                        yield return (MyCheckBox)SubElement;
                 }
         }
     }
@@ -460,7 +462,7 @@ public partial class PageInstanceExport : IRefreshable
         try
         {
             string ConfigPath = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt",
-                ModBase.Setup.Get("CacheExportConfig"));
+                (string?)ModBase.Setup.Get("CacheExportConfig"));
             if (string.IsNullOrEmpty(ConfigPath))
                 return;
             ModBase.Setup.Set("CacheExportConfig", ConfigPath);
@@ -531,8 +533,9 @@ public partial class PageInstanceExport : IRefreshable
 
             // === 解析INI段 ===
             var Ini = new Dictionary<string, string>();
-            foreach (var Line in Segments[0].Split(Constants.vbCrLf.ToCharArray()))
+            foreach (var LineRaw in Segments[0].Split(Constants.vbCrLf.ToCharArray()))
             {
+                var Line = LineRaw;
                 Line = Line.Trim();
                 if (string.IsNullOrEmpty(Line) || Line.StartsWithF("#") || Line.StartsWithF("="))
                     continue;
@@ -582,7 +585,7 @@ public partial class PageInstanceExport : IRefreshable
         try
         {
             string ConfigPath = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件",
-                ModBase.Setup.Get("CacheExportConfig"));
+                (string?)ModBase.Setup.Get("CacheExportConfig"));
             if (string.IsNullOrEmpty(ConfigPath))
                 return;
 
@@ -749,7 +752,7 @@ public partial class PageInstanceExport : IRefreshable
             Loader.Output = new List<ModLocalComp.LocalCompFile>();
             // 复制实例文件
             var Progress = 0;
-            Action<DirectoryInfo> SearchFolder;
+            Action<DirectoryInfo> SearchFolder = null;
             SearchFolder = Folder =>
             {
                 // 文件夹：进一步搜索

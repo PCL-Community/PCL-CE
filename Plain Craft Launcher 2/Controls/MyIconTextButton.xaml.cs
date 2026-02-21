@@ -52,12 +52,12 @@ public partial class MyIconTextButton
 
     public MyIconTextButton()
     {
-        MouseLeftButtonUp += (_, __) => MyIconTextButton_MouseUp();
-        MouseLeftButtonDown += (_, __) => MyIconTextButton_MouseDown();
-        MouseLeave += (_, __) => MyIconTextButton_MouseLeave();
+        MouseLeftButtonUp += (_, _) => MyIconTextButton_MouseUp();
+        MouseLeftButtonDown += (_, _) => MyIconTextButton_MouseDown();
+        MouseLeave += (_, _) => MyIconTextButton_MouseLeave();
         MouseEnter += RefreshColor;
         Loaded += RefreshColor;
-        IsEnabledChanged += RefreshColor;
+        IsEnabledChanged += (_, _) => RefreshColor();
     }
 
     // 自定义属性

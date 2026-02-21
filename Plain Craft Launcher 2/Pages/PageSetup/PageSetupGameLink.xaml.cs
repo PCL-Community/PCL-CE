@@ -1,5 +1,9 @@
 using System.Windows;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.Link;
+using PCL.Core.Link.Scaffolding;
+using PCL.Core.Link.Scaffolding.EasyTier;
 
 namespace PCL;
 
@@ -127,13 +131,13 @@ public partial class PageSetupGameLink
             BtnNetTest.Text = "正在测试";
             ModBase.RunInNewThread(() =>
             {
-                ;
+                var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
                 ModBase.RunInUi(() =>
                 {
                     TextUdpNatType.Text =
-                        "UDP NAT 类型: " + Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.UdpNatType);
+                        "UDP NAT 类型: " + CliNetTest.GetNatTypeString(status.UdpNatType);
                     TextTcpNatType.Text =
-                        "TCP NAT 类型: " + Scaffolding.EasyTier.CliNetTest.GetNatTypeString(status.TcpNatType);
+                        "TCP NAT 类型: " + CliNetTest.GetNatTypeString(status.TcpNatType);
                     TextIpv6Status.Text = "IPv6: " + (status.SupportIPv6 ? "支持" : "不支持");
                     BtnNetTest.IsEnabled = true;
                     BtnNetTest.Text = "开始测试";

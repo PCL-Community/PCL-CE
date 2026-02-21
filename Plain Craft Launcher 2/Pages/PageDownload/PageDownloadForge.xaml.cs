@@ -53,8 +53,8 @@ public partial class PageDownloadForge
                             ModDownload.DlForgeVersionMain);
                     LoadingPickaxe.State = Loader;
                     Loader.Start(Stack.Tag);
-                    LoadingPickaxe.StateChanged += (_, __, ___) => ModMain.FrmDownloadForge.Forge_StateChanged();
-                    LoadingPickaxe.Click += (_, __) => ModMain.FrmDownloadForge.Forge_Click();
+                    LoadingPickaxe.StateChanged += (a, b, c) => ModMain.FrmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
+                    LoadingPickaxe.Click += (a, b) => ModMain.FrmDownloadForge.Forge_Click((MyLoading)a, b);
                     Stack.Children.Add(LoadingPickaxe);
                 };
                 NewCard.IsSwapped = true;

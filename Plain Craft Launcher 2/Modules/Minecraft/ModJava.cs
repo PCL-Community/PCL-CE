@@ -155,7 +155,7 @@ public static class ModJava
         var candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
         var ret = candidates.FirstOrDefault();
 
-        if (ret is null && candidates.Count == 0)
+        if (ret is null && candidates.Length == 0)
         {
             ModBase.Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描");
             Javas.ScanJavaAsync().GetAwaiter().GetResult();

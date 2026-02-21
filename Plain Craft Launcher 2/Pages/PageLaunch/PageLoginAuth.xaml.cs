@@ -1,7 +1,12 @@
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Minecraft.Yggdrasil;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -118,29 +123,16 @@ public partial class PageLoginAuth
             return;
         }
 
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(async () =>
         {
             string serverUri = null;
             string serverName = null;
             try
             {
                 serverUri = await ApiLocation.TryRequestAsync(serverUriInput);
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                    Input:
-                                                    Dim response = Await HttpRequestBuilder.Create(serverUri, Global.System.Net.Http.HttpMethod.[Get]).SendAsync()
-
-                                     */
+                var response = await HttpRequestBuilder.Create(serverUri, HttpMethod.Get).SendAsync();
                 string responseText = await response.AsStringAsync();
-                serverName = await Task.Run(() => JObject.Parse(responseText)("meta")("serverName").ToString());
+                serverName = await Task.Run(() => JObject.Parse(responseText)["meta"]["serverName"].ToString());
             }
             catch (Exception ex)
             {

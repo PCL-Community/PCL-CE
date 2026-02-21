@@ -1,7 +1,11 @@
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Diff;
 
 namespace PCL;
 
@@ -69,7 +73,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         loaders.Add(new ModLoader.LoaderTask<int, List<ModNet.NetFile>>("获取版本信息", load =>
         {
             var channelName = GetChannelName(channel, arch);
-            ;
+            var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")
+                ?.ToObject<MinioUpdateModel>()
+                ?.assets
+                ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
             var selfSha256 = ModBase.GetFileSHA256(ModBase.ExePathWithName);
@@ -91,65 +98,38 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             }
         }));
         loaders.Add(new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile>()));
-        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", () =>
+        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", (_) =>
         {
             if (patchUpdate)
             {
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                Input:
-                                                                                       Dim diff As New BsDiff()
-
-                 */
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                    Input:
-                                                                                                           Dim newFile = diff.ApplyAsync(Global.PCL.ModBase.ReadFileBytes(Global.PCL.ModBase.ExePathWithName), Global.PCL.ModBase.ReadFileBytes(tempPath)).GetAwaiter().GetResult()
-
-                                     */
-                WriteFile(output, newFile);
+                var diff = new BsDiff();
+                var newFile = diff
+                    .ApplyAsync(ModBase.ReadFileBytes(ModBase.ExePathWithName), ModBase.ReadFileBytes(tempPath))
+                    .GetAwaiter().GetResult();
+                ModBase.WriteFile(output, newFile);
             }
             else
             {
-                ;
-#error Cannot convert UsingBlockSyntax - see comment for details
-                /* Cannot convert UsingBlockSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitUsingBlock(UsingBlockSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 1089
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
+                using (var fs = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var zip = new ZipArchive(fs))
+                {
+                    // 尝试找到目标条目
+                    var entry = zip.Entries
+                        .FirstOrDefault(x => x.Name.Contains("Plain Craft Launcher Community Edition.exe")) ?? zip.Entries
+                        .FirstOrDefault(x => x.Name.Contains("Plain Craft Launcher"));
 
-                                    Input:
-                                                                                                           Using fs As New Global.System.IO.FileStream(tempPath, Global.System.IO.FileMode.Open, Global.System.IO.FileAccess.Read, Global.System.IO.FileShare.Read)
-                                                                                                               Using zip As New Global.System.IO.Compression.ZipArchive(fs)
-                                                                                                                   Dim entry = zip.Entries.Where(Function(x) x.Name.Contains("Plain Craft Launcher Community Edition.exe")).FirstOrDefault()
-                                                                                                                   If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains("Plain Craft Launcher")).FirstOrDefault()
-                                                                                                                   If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains("Launcher")).FirstOrDefault()
-                                                                                                                   If entry Is Nothing Then entry = zip.Entries.Where(Function(x) x.Name.Contains(".exe")).FirstOrDefault()
-                                                                                                                   If entry Is Nothing Then Throw New Global.System.Exception("找不到更新文件")
-                                                                                                                   entry.ExtractToFile(output, True)
-                                                                                                               End Using
-                                                                                                           End Using
+                    entry ??= zip.Entries
+                        .FirstOrDefault(x => x.Name.Contains("Launcher"));
 
-                                     */
+                    entry ??= zip.Entries
+                        .FirstOrDefault(x => x.Name.Contains(".exe"));
+
+                    if (entry == null)
+                        throw new Exception("找不到更新文件");
+
+                    // 解压到指定文件（覆盖已存在文件）
+                    entry.ExtractToFile(output, overwrite: true);
+                }
             }
         }));
         return loaders;
@@ -185,7 +165,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             var response = HttpRequestBuilder.Create($"{_baseUrl}apiv2/{path}{name}.json", HttpMethod.Get).SendAsync()
                 .GetAwaiter().GetResult();
             jsonData = JToken.Parse(response.AsStringContent());
-            WriteFile(localInfoFile, response.AsStringContent());
+            ModBase.WriteFile(localInfoFile, response.AsStringContent());
         }
 
         return jsonData;

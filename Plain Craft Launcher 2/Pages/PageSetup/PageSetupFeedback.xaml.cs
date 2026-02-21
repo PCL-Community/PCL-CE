@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -98,7 +99,7 @@ public partial class PageSetupFeedback
         li.Logo = ModBase.PathImage + logo;
         li.Tags = item.Type;
 
-        li.Click += (object sender, RoutedEventArgs e) => ShowFeedbackDetail(item);
+        li.Click += (sender, e) => ShowFeedbackDetail(item);
 
         return li;
     }

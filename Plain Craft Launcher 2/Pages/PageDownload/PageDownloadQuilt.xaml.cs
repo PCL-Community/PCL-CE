@@ -29,7 +29,8 @@ public partial class PageDownloadQuilt
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(
-                    ModDownloadLib.QuiltDownloadListItem((JObject)Version, (_, __) => this.Quilt_Selected()));
+                    ModDownloadLib.QuiltDownloadListItem((JObject)Version,
+                        (a, b) => this.Quilt_Selected((dynamic)a, b)));
             CardVersions.Title = "版本列表 (" + Versions.Count + ")";
         }
         catch (Exception ex)

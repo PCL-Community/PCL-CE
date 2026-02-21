@@ -3,6 +3,8 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.UI.Theme;
 
 namespace PCL;
 
@@ -19,10 +21,18 @@ public partial class MyHint
 
     public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
         typeof(MyHint),
-        new PropertyMetadata(true, (d, e) => d.Theme = Conversions.ToBoolean(e.NewValue) ? Themes.Red : Themes.Blue));
+        new PropertyMetadata(true,
+        (d, e) => {
+            var f =  (MyHint)d;
+            f.Theme = e.NewValue != null ? Themes.Red : Themes.Blue;
+        }));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
-        typeof(MyHint), new PropertyMetadata("", (d, e) => d.LabText.Text = Conversions.ToString(e.NewValue)));
+        typeof(MyHint), new PropertyMetadata("", (d, e) =>
+        {
+            dynamic f = d;
+            f.LabText.Text = Conversions.ToString(e.NewValue);
+        }));
 
     public static readonly DependencyProperty EventTypeProperty =
         DependencyProperty.Register("EventType", typeof(string), typeof(MyHint), new PropertyMetadata(null));
@@ -140,8 +150,8 @@ public partial class MyHint
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
     {
-        ThemeService.ColorModeChanged += _ThemeChanged;
-        if (Conversions.ToBoolean(CanClose && ModBase.Setup.Get(RelativeSetup)))
+        ThemeService.ColorModeChanged += (v, theme) => _ThemeChanged(v, theme);
+        if (CanClose && ModBase.Setup.Get(RelativeSetup) != null)
             Visibility = Visibility.Collapsed;
     }
 
@@ -251,7 +261,7 @@ public static partial class ModAnimation
             AaCode(() =>
             {
                 if (RemoveFromChildren)
-                    ((object)Control.Parent).Children.Remove(Control);
+                    ((dynamic)Control.Parent).Children.Remove(Control);
                 else
                     Control.Visibility = Visibility.Collapsed;
                 if (CallBack is not null)

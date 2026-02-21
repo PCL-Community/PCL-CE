@@ -106,7 +106,7 @@ public class MyCard : AnimatedBackgroundGrid
 
     protected override SolidColorBrush AnimatableBrush
     {
-        get => MainBorder.Background;
+        get => (SolidColorBrush)MainBorder.Background;
         set => MainBorder.Background = value;
     }
 
@@ -472,7 +472,7 @@ public static partial class ModAnimation
                     {
                         if (Control.Parent is null)
                             return;
-                        ((object)Control.Parent).Children.Remove(Control);
+                        ((Panel)Control.Parent).Children.Remove(Control);
                     }
                     else
                     {
@@ -490,7 +490,7 @@ public static partial class ModAnimation
             {
                 if (Control.Parent is null)
                     return;
-                ((object)Control.Parent).Children.Remove(Control);
+                ((Panel)Control.Parent).Children.Remove(Control);
             }
             else
             {

@@ -134,7 +134,7 @@ public partial class MyRadioButton
             var RadioboxList = new List<MyRadioButton>();
             var CheckedCount = 0;
             // 收集控件列表与选中个数
-            foreach (var Control in (IEnumerable)((object)Parent).Children)
+            foreach (var Control in (IEnumerable)((dynamic)Parent).Children)
                 if (Control is MyRadioButton)
                 {
                     RadioboxList.Add((MyRadioButton)Control);

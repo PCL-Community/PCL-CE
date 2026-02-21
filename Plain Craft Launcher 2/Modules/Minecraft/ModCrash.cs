@@ -4,6 +4,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -1202,7 +1207,7 @@ public class CrashAnalyzer
                     IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
                     IsHandAnalyze ? "" : "导出错误报告",
                     Button2Action: IsHandAnalyze || DirectFile is null || isModLoaderIncompatible
-                        ? (var)null
+                        ? null
                         : new Action(() =>
                         {
                             if (File.Exists(DirectFile.Value.Key))

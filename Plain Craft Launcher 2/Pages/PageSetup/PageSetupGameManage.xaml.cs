@@ -1,6 +1,7 @@
 using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -123,7 +124,7 @@ public partial class PageSetupGameManage
     {
         if (SliderDownloadThread.Value < 100)
             return;
-        if (Conversions.ToBoolean(!ModBase.Setup.Get("HintDownloadThread")))
+        if (!(ModBase.Setup.Get("HintDownloadThread") as bool? ?? false))
         {
             ModBase.Setup.Set("HintDownloadThread", true);
             ModMain.MyMsgBox(

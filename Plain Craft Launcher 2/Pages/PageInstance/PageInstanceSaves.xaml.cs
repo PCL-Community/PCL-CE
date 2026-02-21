@@ -204,7 +204,7 @@ public partial class PageInstanceSaves : IRefreshable
                             $"创建时间：{Directory.GetCreationTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}",
                         Type = MyListItem.CheckType.Clickable
                     };
-                    worldItem.Click += () => ModMain.FrmMain.PageChange(new FormMain.PageStackData
+                    worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
                         { Page = FormMain.PageType.VersionSaves, Additional = tmpCurFolder });
 
                     var BtnOpen = new MyIconButton
@@ -212,13 +212,13 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = ModBase.Logo.IconButtonOpen,
                         ToolTip = "打开"
                     };
-                    BtnOpen.Click += () => ModBase.OpenExplorer(tmpCurFolder);
+                    BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
                         Logo = ModBase.Logo.IconButtonDelete,
                         ToolTip = "删除"
                     };
-                    BtnDelete.Click += () =>
+                    BtnDelete.Click += (_, _) =>
                     {
                         worldItem.IsEnabled = false;
                         worldItem.Info = "删除中……";
@@ -243,7 +243,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = ModBase.Logo.IconButtonCopy,
                         ToolTip = "复制"
                     };
-                    BtnCopy.Click += () =>
+                    BtnCopy.Click += (_, _) =>
                     {
                         try
                         {
@@ -268,7 +268,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = ModBase.Logo.IconButtonInfo,
                         ToolTip = "详情"
                     };
-                    BtnInfo.Click += () => ModMain.FrmMain.PageChange(new FormMain.PageStackData
+                    BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
                         { Page = FormMain.PageType.VersionSaves, Additional = tmpCurFolder });
 
                     var BtnLaunch = new MyIconButton
@@ -276,7 +276,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = ModBase.Logo.IconPlayGame,
                         ToolTip = "快捷启动"
                     };
-                    BtnLaunch.Click += () =>
+                    BtnLaunch.Click += (_, _) =>
                     {
                         var WorldName = GetFileNameFromPath(tmpCurFolder);
                         var LaunchOptions = new ModLaunch.McLaunchOptions { WorldName = WorldName };
@@ -362,7 +362,7 @@ public partial class PageInstanceSaves : IRefreshable
     {
         var files = Clipboard.GetFileDropList();
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, int>("Copy saves", () =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("Copy saves", (_) =>
         {
             var Copied = 0;
             foreach (var i in files)
@@ -454,7 +454,7 @@ public partial class PageInstanceSaves : IRefreshable
         {
             var item = new MyMenuItem();
             item.Header = GetSortName(i);
-            item.Click += () => SetSortMethod(i);
+            item.Click += (_, _) => SetSortMethod(i);
             body.Items.Add(item);
         }
 

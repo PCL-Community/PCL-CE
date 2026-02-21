@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -55,8 +56,8 @@ public partial class MyMsgText
             Btn1.Focus();
             // 动画
             Opacity = 0d;
-            AniStart(
-                AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (MyConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
@@ -65,9 +66,9 @@ public partial class MyMsgText
                 new[]
                 {
                     ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y = Conversions.ToDouble(TransformPos.Y + i),
+                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
                         -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle = Conversions.ToDouble(TransformRotate.Angle + i),
+                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                         -TransformRotate.Angle, 300, 60,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "MyMsgBox " + Uuid);
@@ -88,19 +89,19 @@ public partial class MyMsgText
             MyConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
-        AniStart(new[]
+        ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
                 if (!ModMain.WaitingMyMsgBox.Any())
-                    AniStart(AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y = Conversions.ToDouble(TransformPos.Y + i), 20d - TransformPos.Y,
+            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle = Conversions.ToDouble(TransformRotate.Angle + i),
+            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
         }, "MyMsgBox " + Uuid);

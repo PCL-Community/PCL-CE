@@ -35,7 +35,7 @@ public class AnimatedBackgroundGrid : Grid
         set => Background = value;
     }
 
-    protected object IsAnimating
+    protected bool IsAnimating
     {
         get => _isAnimating;
         private set => _isAnimating = Conversions.ToBoolean(value);

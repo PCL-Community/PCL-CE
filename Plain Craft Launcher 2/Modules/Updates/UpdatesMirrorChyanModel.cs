@@ -1,6 +1,8 @@
 using System.Net.Http;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Utils;
 
 namespace PCL;
 

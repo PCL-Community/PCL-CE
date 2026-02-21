@@ -6,6 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App.Configuration;
+using PCL.Core.IO.Net.Http.Client;
 
 namespace PCL;
 
@@ -41,7 +43,7 @@ public class ModSetup : IConfigScope
     public void OnConfigChanged(ConfigEventArgs e)
     {
         var key = e.Item.Key;
-        var method = _methodCache.GetOrAdd(key, () => typeof(ModSetup).GetMethod(key));
+        var method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
         if (method is not null)
             method.Invoke(this, new[] { e.Value ?? GetConfigItem(key).DefaultValueNoType });
     }
@@ -49,7 +51,7 @@ public class ModSetup : IConfigScope
     private static ConfigItem GetConfigItem(string key)
     {
         ConfigItem item = default;
-        var result = ConfigService.TryGetConfigItemNoType(key, item);
+        var result = ConfigService.TryGetConfigItemNoType(key, out item);
         if (result)
             return item;
         throw new KeyNotFoundException($"配置项 '{key}' 不存在");
@@ -69,7 +71,7 @@ public class ModSetup : IConfigScope
     public object Load(string key, bool forceReload = false, ModMinecraft.McInstance instance = null)
     {
         var value = Get(key, instance);
-        var method = _methodCache.GetOrAdd(key, () => typeof(ModSetup).GetMethod(key));
+        var method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
         if (method is not null)
             method.Invoke(this, new[] { value });
         return value;
@@ -690,9 +692,9 @@ public class ModSetup : IConfigScope
         }
     }
 
-    public void SystemHttpProxyType(int value)
+    public void SystemHttpProxyType(string value)
     {
-        HttpProxyManager.Instance.Mode = Enum.Parse(typeof(HttpProxyManager.ProxyMode), value);
+        HttpProxyManager.Instance.Mode = Enum.Parse<HttpProxyManager.ProxyMode>(value); 
     }
 
     public void SystemHttpProxyCustomUsername(string value)
@@ -704,7 +706,7 @@ public class ModSetup : IConfigScope
         }
         else
         {
-            HttpProxyManager.Instance.Credentials = (object)null;
+            HttpProxyManager.Instance.Credentials = null;
         }
     }
 
@@ -714,7 +716,7 @@ public class ModSetup : IConfigScope
         if (!string.IsNullOrEmpty(username))
             HttpProxyManager.Instance.Credentials = new NetworkCredential(username, value);
         else
-            HttpProxyManager.Instance.Credentials = (object)null;
+            HttpProxyManager.Instance.Credentials = null;
     }
 
     #endregion

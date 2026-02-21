@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -80,7 +82,7 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 文件夹存在
             ModMinecraft.McFolderSelected =
-                ModBase.Setup.Get("LaunchFolderSelect").ToString.Replace("$", ModBase.ExePath);
+                ModBase.Setup.Get("LaunchFolderSelect").ToString().Replace("$", ModBase.ExePath);
             if (string.IsNullOrEmpty(ModMinecraft.McFolderSelected) || !Directory.Exists(ModMinecraft.McFolderSelected))
             {
                 // 无效的文件夹
@@ -91,7 +93,7 @@ public partial class PageLaunchLeft
                         ModBase.LogLevel.Debug);
                 ModMinecraft.McFolderListLoader.WaitForExit(IsForceRestart: true);
                 ModBase.Setup.Set("LaunchFolderSelect",
-                    ModMinecraft.McFolderList(0).Location.Replace(ModBase.ExePath, "$"));
+                    ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$"));
             }
 
             ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.McFolderSelected);
@@ -101,20 +103,7 @@ public partial class PageLaunchLeft
             if (PackInstallPath is not null)
                 try
                 {
-                    ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                                Dim InstallLoader = Global.PCL.ModModpack.ModpackInstall(PackInstallPath)
-
-                                             */
+                    var InstallLoader = ModModpack.ModpackInstall(PackInstallPath);
                     ModBase.Log("[Launch] 自动安装整合包已开始：" + PackInstallPath);
                     InstallLoader.WaitForExit();
                     if (InstallLoader.State == ModBase.LoadState.Finished)
@@ -135,7 +124,7 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 版本实例
             var Selection = Conversions.ToString(ModBase.Setup.Get("LaunchInstanceSelect"));
-            ;
+            var Instance = Selection == "" ? null : new ModMinecraft.McInstance(Selection);
             if (Instance is null || !Instance.PathInstance.StartsWithF(ModMinecraft.McFolderSelected) ||
                 !Instance.Check())
             {
@@ -146,7 +135,7 @@ public partial class PageLaunchLeft
                     ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (!ModMinecraft.McInstanceList.Any() ||
-                    ModMinecraft.McInstanceList.First.Value(0).Logo.Contains("RedstoneBlock"))
+                    ModMinecraft.McInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
                 {
                     Instance = (ModMinecraft.McInstance)null;
                     ModBase.Setup.Set("LaunchInstanceSelect", "");
@@ -154,7 +143,7 @@ public partial class PageLaunchLeft
                 }
                 else
                 {
-                    Instance = ModMinecraft.McInstanceList.First.Value(0);
+                    Instance = ModMinecraft.McInstanceList.First().Value[0];
                     ModBase.Setup.Set("LaunchInstanceSelect", Instance.Name);
                     ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + Instance.PathInstance);
                 }

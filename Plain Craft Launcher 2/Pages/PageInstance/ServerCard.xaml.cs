@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic;
+using PCL.Core.UI;
+using PCL.Core.UI.Theme;
 
 namespace PCL;
 

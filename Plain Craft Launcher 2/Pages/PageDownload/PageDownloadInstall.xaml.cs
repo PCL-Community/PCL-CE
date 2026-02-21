@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -137,18 +138,18 @@ public partial class PageDownloadInstall
         CardOptiFabric.IsSwapped = true;
         CardLabyMod.IsSwapped = true;
 
-        if (Conversions.ToBoolean(!ModBase.Setup.Get("HintInstallBack")))
+        if (!States.Hint.InstallPageBack)
         {
             ModBase.Setup.Set("HintInstallBack", true);
             ModMain.Hint("点击 Minecraft 项即可返回游戏主版本选择页面！");
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
-        foreach (var Control in GetAllAnimControls(PanSelect))
+        foreach (var control in GetAllAnimControls(PanSelect))
         {
-            Control.Opacity = 1d;
-            if (Control.RenderTransform is null || Control.RenderTransform is TranslateTransform)
-                Control.RenderTransform = new TranslateTransform();
+            control.Opacity = 1d;
+            if (control.RenderTransform is null || control.RenderTransform is TranslateTransform)
+                control.RenderTransform = new TranslateTransform();
         }
 
         // 启动 Forge 加载
@@ -269,7 +270,7 @@ public partial class PageDownloadInstall
     public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs e)
     {
         _vanillaName = sender.Title;
-        _vanillaData = (JObject)sender.Tag;
+        _vanillaData = (JObject)((dynamic)sender.Tag);
         _vanillaIcon = sender.Logo;
         EnterSelectPage();
     }
@@ -1096,7 +1097,7 @@ public partial class PageDownloadInstall
                 {
                     if ((Version["id"].ToString() ?? "") != (McVersionWaitingForSelect ?? ""))
                         continue;
-                    var Item = ModDownloadLib.McDownloadListItem(Version, () => { }, false);
+                    var Item = ModDownloadLib.McDownloadListItem(Version, (_, _) => { }, false);
                     MinecraftSelected(Item, null);
                 }
             }
@@ -1127,7 +1128,7 @@ public partial class PageDownloadInstall
             return "加载中……";
         if (LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((object)LoadOptiFine.State).Error.Message));
+                ((dynamic)LoadOptiFine.State).Error.Message));
         // 是否有 Cleanroom
         if (SelectedCleanroom is not null)
             return "与 Cleanroom 不兼容";
@@ -1201,7 +1202,7 @@ public partial class PageDownloadInstall
             var Versions = new List<ModDownload.DlOptiFineListEntry>();
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
             {
-                if (Conversions.ToBoolean(SelectedForge is not null && !IsOptiFineSuitForForge(Version, SelectedForge)))
+                if (Conversions.ToBoolean(SelectedForge is not null && !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
                     continue;
                 if (Version.DisplayName.StartsWith(_vanillaName + " "))
                     Versions.Add(Version);
@@ -1222,7 +1223,7 @@ public partial class PageDownloadInstall
             PanOptiFine.Children.Clear();
             foreach (var Version in Versions)
                 PanOptiFine.Children.Add(
-                    ModDownloadLib.OptiFineDownloadListItem(Version, (_, __) => this.OptiFine_Selected(), false));
+                    ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) => this.OptiFine_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1233,9 +1234,9 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void OptiFine_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedOptiFine = (ModDownload.DlOptiFineListEntry)sender.Tag;
+        SelectedOptiFine = (ModDownload.DlOptiFineListEntry)((dynamic)sender.Tag);
         if (Conversions.ToBoolean(SelectedForge is not null &&
-                                  !IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
             SelectedForge = null;
         OptiFabric_Loaded();
         Forge_Loaded();
@@ -1301,7 +1302,7 @@ public partial class PageDownloadInstall
             PanLiteLoader.Children.Clear();
             foreach (var Version in Versions)
                 PanLiteLoader.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(Version,
-                    (_, __) => this.LiteLoader_Selected(), false));
+                    (a, b) => this.LiteLoader_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1312,7 +1313,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void LiteLoader_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLiteLoader = (ModDownload.DlLiteLoaderListEntry)sender.Tag;
+        SelectedLiteLoader = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender.Tag);
         CardLiteLoader.IsSwapped = true;
         ReloadSelected();
     }
@@ -1353,7 +1354,7 @@ public partial class PageDownloadInstall
                 ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
                 return "与 OptiFine 不兼容"; // 1.13 ~ 1.14.3 OptiFine 检查
             if (Conversions.ToBoolean(
-                    SelectedOptiFine is not null && !IsOptiFineSuitForForge(SelectedOptiFine, Version)))
+                    SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version)))
                 continue;
             return null;
         }
@@ -1391,14 +1392,14 @@ public partial class PageDownloadInstall
             {
                 if (v.Category == "universal" || v.Category == "client")
                     return false; // 跳过无法自动安装的版本
-                if (Conversions.ToBoolean(SelectedOptiFine is not null && !IsOptiFineSuitForForge(SelectedOptiFine, v)))
+                if (Conversions.ToBoolean(SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
                     return false;
                 return true;
             }).OrderByDescending(v => v).ToList();
-            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions, (_, __) => this.Forge_Selected(), false);
+            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions, (a, b) => this.Forge_Selected((dynamic)a, b), false);
             foreach (var Version in versions)
                 PanForge.Children.Add(
-                    ModDownloadLib.ForgeDownloadListItem(Version, (_, __) => this.Forge_Selected(), false));
+                    ModDownloadLib.ForgeDownloadListItem(Version, (a, b) => this.Forge_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1409,11 +1410,11 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void Forge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedForge = (ModDownload.DlForgeVersionEntry)sender.Tag;
+        SelectedForge = (ModDownload.DlForgeVersionEntry)((dynamic)sender.Tag);
         SelectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
         if (Conversions.ToBoolean(SelectedOptiFine is not null &&
-                                  !IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
             SelectedOptiFine = null;
         OptiFine_Loaded();
         ReloadSelected();
@@ -1474,11 +1475,11 @@ public partial class PageDownloadInstall
                 return;
             // 可视化
             PanNeoForge.Children.Clear();
-            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions, (_, __) => this.NeoForge_Selected(),
+            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions, (a, b) => this.NeoForge_Selected((dynamic)a, b),
                 false);
             foreach (var Version in Versions)
                 PanNeoForge.Children.Add(
-                    ModDownloadLib.NeoForgeDownloadListItem(Version, (_, __) => this.NeoForge_Selected(), false));
+                    ModDownloadLib.NeoForgeDownloadListItem(Version, (a, b) => this.NeoForge_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1489,7 +1490,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void NeoForge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedNeoForge = (ModDownload.DlNeoForgeListEntry)sender.Tag;
+        SelectedNeoForge = (ModDownload.DlNeoForgeListEntry)((dynamic)sender.Tag);
         SelectedLoaderName = "NeoForge";
         CardNeoForge.IsSwapped = true;
         OptiFine_Loaded();
@@ -1554,10 +1555,10 @@ public partial class PageDownloadInstall
             // 可视化
             PanCleanroom.Children.Clear();
             ModDownloadLib.CleanroomDownloadListItemPreload(PanCleanroom, Versions,
-                (_, __) => this.Cleanroom_Selected(), false);
+                (a, b) => this.Cleanroom_Selected((dynamic)a, b), false);
             foreach (var Version in Versions)
                 PanCleanroom.Children.Add(
-                    ModDownloadLib.CleanroomDownloadListItem(Version, (_, __) => this.Cleanroom_Selected(), false));
+                    ModDownloadLib.CleanroomDownloadListItem(Version, (a, b) => this.Cleanroom_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1568,7 +1569,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void Cleanroom_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedCleanroom = (ModDownload.DlCleanroomListEntry)sender.Tag;
+        SelectedCleanroom = (ModDownload.DlCleanroomListEntry)((dynamic)sender.Tag);
         SelectedLoaderName = "Cleanroom";
         CardCleanroom.IsSwapped = true;
         OptiFine_Loaded();
@@ -1641,7 +1642,7 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)stack.Tag)
                     stack.Children.Add(
-                        ModDownloadLib.FabricDownloadListItem((JObject)item, (_, __) => this.Fabric_Selected()));
+                        ModDownloadLib.FabricDownloadListItem((JObject)item, (a, b) => this.Fabric_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -1653,8 +1654,8 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void Fabric_Selected(MyListItem sender, EventArgs e)
     {
-        ModBase.Log(sender.Tag.ToString());
-        SelectedFabric = sender.Tag("version").ToString();
+        ModBase.Log(((dynamic)sender.Tag).ToString());
+        SelectedFabric = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
         SelectedLoaderName = "Fabric";
         FabricApi_Loaded();
         OptiFabric_Loaded();
@@ -1797,7 +1798,7 @@ public partial class PageDownloadInstall
                 if (!IsFabricApiCompatible(version))
                     continue;
                 PanFabricApi.Children.Add(
-                    ModDownloadLib.FabricApiDownloadListItem(version, (_, __) => this.FabricApi_Selected()));
+                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.Fabric_Selected((dynamic)a, b)));
             }
 
             // 自动选择 Fabric API
@@ -1818,7 +1819,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void FabricApi_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedFabricApi = (ModComp.CompFile)sender.Tag;
+        SelectedFabricApi = (ModComp.CompFile)((dynamic)sender.Tag);
         SelectedAPIName = "Fabric API";
         CardFabricApi.IsSwapped = true;
         ReloadSelected();
@@ -1846,7 +1847,7 @@ public partial class PageDownloadInstall
             return "加载中……";
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((object)LoadLegacyFabric.State).Error.Message));
+                ((dynamic)LoadLegacyFabric.State).Error.Message));
         foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
@@ -1888,7 +1889,7 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)item,
-                        (_, __) => this.LegacyFabric_Selected()));
+                        (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -1900,7 +1901,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLegacyFabric = sender.Tag("version").ToString();
+        SelectedLegacyFabric = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
         SelectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;
@@ -1950,7 +1951,7 @@ public partial class PageDownloadInstall
             return "加载中……";
         if (LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((object)LoadLegacyFabricApi.State).Error.Message));
+                ((dynamic)LoadLegacyFabricApi.State).Error.Message));
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "Legacy Fabric API"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlLegacyFabricApiLoader.Output is null)
@@ -2009,7 +2010,7 @@ public partial class PageDownloadInstall
                     continue;
                 PanLegacyFabricApi.Children.Add(
                     ModDownloadLib.LegacyFabricApiDownloadListItem(Version,
-                        (_, __) => this.LegacyFabricApi_Selected()));
+                        (a, b) => this.LegacyFabricApi_Selected((dynamic)a, b)));
             }
 
             // 自动选择 Legacy Fabric API
@@ -2030,7 +2031,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void LegacyFabricApi_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLegacyFabricApi = (ModComp.CompFile)sender.Tag;
+        SelectedLegacyFabricApi = (ModComp.CompFile)((dynamic)sender.Tag);
         SelectedAPIName = "Legacy Fabric API";
         CardLegacyFabricApi.IsSwapped = true;
         ReloadSelected();
@@ -2102,7 +2103,7 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JObject)item, (_, __) => this.Quilt_Selected()));
+                        ModDownloadLib.QuiltDownloadListItem((JObject)item, (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2114,7 +2115,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void Quilt_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedQuilt = sender.Tag("version").ToString();
+        SelectedQuilt = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
         SelectedLoaderName = "Quilt";
         FabricApi_Loaded();
         QSL_Loaded();
@@ -2165,7 +2166,7 @@ public partial class PageDownloadInstall
             return "正在获取版本列表……";
         if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((object)LoadQSL.State).Error.Message));
+                ((dynamic)LoadQSL.State).Error.Message));
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlQSLLoader.Output is null)
@@ -2230,7 +2231,7 @@ public partial class PageDownloadInstall
             {
                 if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
                     continue;
-                PanQSL.Children.Add(ModDownloadLib.QSLDownloadListItem(Version, (_, __) => this.QSL_Selected()));
+                PanQSL.Children.Add(ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
             }
 
             // 自动选择 QSL
@@ -2250,7 +2251,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void QSL_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedQSL = (ModComp.CompFile)sender.Tag;
+        SelectedQSL = (ModComp.CompFile)((dynamic)sender.Tag);
         SelectedAPIName = "QFAPI / QSL";
         CardQSL.IsSwapped = true;
         ReloadSelected();
@@ -2361,7 +2362,7 @@ public partial class PageDownloadInstall
                 if (!IsOptiFabricCompatible(Version))
                     continue;
                 PanOptiFabric.Children.Add(
-                    ModDownloadLib.OptiFabricDownloadListItem(Version, (_, __) => this.OptiFabric_Selected()));
+                    ModDownloadLib.OptiFabricDownloadListItem(Version, (a, b) => this.OptiFabric_Selected((dynamic)a, b)));
             }
 
             // 自动选择 OptiFabric
@@ -2380,7 +2381,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void OptiFabric_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedOptiFabric = (ModComp.CompFile)sender.Tag;
+        SelectedOptiFabric = (ModComp.CompFile)((dynamic)sender.Tag);
         CardOptiFabric.IsSwapped = true;
         ReloadSelected();
     }
@@ -2406,7 +2407,7 @@ public partial class PageDownloadInstall
             return "加载中……";
         if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((object)LoadLabyMod.State).Error.Message));
+                ((dynamic)LoadLabyMod.State).Error.Message));
         // 检查 Loader
         if (GetLoaderError(LoadLabyMod) is not null)
             return GetLoaderError(LoadLabyMod);
@@ -2473,7 +2474,7 @@ public partial class PageDownloadInstall
             {
                 foreach (JObject item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.LabyModDownloadListItem(item, (_, __) => this.LabyMod_Selected()));
+                        ModDownloadLib.LabyModDownloadListItem(item, (a, b) => this.LabyMod_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2485,10 +2486,10 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void LabyMod_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLabyModChannel = sender.Tag("channel").ToString();
-        SelectedLabyModCommitRef = sender.Tag("commitReference").ToString();
+        SelectedLabyModChannel = ((dynamic)sender.Tag)["channel"].ToString();
+        SelectedLabyModCommitRef = ((dynamic)sender.Tag)["commitReference"].ToString();
         SelectedLabyModVersion =
-            sender.Tag("version").ToString() + (SelectedLabyModChannel == "snapshot" ? " 快照版" : " 稳定版");
+            ((dynamic)sender.Tag)["version"].ToString() + (SelectedLabyModChannel == "snapshot" ? " 快照版" : " 稳定版");
         SelectedLoaderName = "LabyMod";
         CardLabyMod.IsSwapped = true;
         ReloadSelected();

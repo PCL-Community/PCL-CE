@@ -16,7 +16,7 @@ public class MyTextBox : TextBox
     public static readonly DependencyProperty ValidateResultProperty = DependencyProperty.Register("ValidateResult",
         typeof(string), typeof(MyTextBox),
         new PropertyMetadata("",
-            (MyTextBox d, DependencyPropertyChangedEventArgs e) => d.SetValue(IsValidatedPropertyKey,
+            (d, e) => d.SetValue(IsValidatedPropertyKey,
                 string.IsNullOrEmpty(Conversions.ToString(e.NewValue)))));
 
     private static readonly DependencyPropertyKey IsValidatedPropertyKey =
@@ -27,7 +27,7 @@ public class MyTextBox : TextBox
     public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
-            if (t.labHint is not null) t.labHint.Text = string.IsNullOrEmpty(t.Text) ? t.HintText : "";
+            if (((dynamic)t).labHint is not null) ((dynamic)t).labHint.Text = string.IsNullOrEmpty(((dynamic)t).Text) ? ((dynamic)t).HintText : "";
         }));
 
     private TextBlock _labHint;
@@ -54,7 +54,7 @@ public class MyTextBox : TextBox
     public MyTextBox()
     {
         Loaded += (_, __) => Validate();
-        TextChanged += MyTextBox_TextChanged;
+        TextChanged += (a, b) => MyTextBox_TextChanged((dynamic)a, b);
         IsEnabledChanged += (_, __) => RefreshColor();
         MouseEnter += (_, __) => RefreshColor();
         MouseLeave += (_, __) => RefreshColor();

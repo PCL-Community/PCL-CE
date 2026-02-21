@@ -12,6 +12,12 @@ using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -19,18 +25,13 @@ internal static class ModSecret
 {
     #region 杂项
 
-    /* TODO ERROR: Skipped IfDirectiveTrivia
-    #If DEBUG Then
-    */
-    public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    #if DEBUG
+        public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+    #else
+        public const string RegFolder = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
+    #endif
 
-    /* TODO ERROR: Skipped ElseDirectiveTrivia
-    #Else
-    */ /* TODO ERROR: Skipped DisabledTextTrivia
-        Public Const RegFolder As String = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-    #End If
-    */ // 用于微软登录的 ClientId
+     // 用于微软登录的 ClientId
     public static readonly string OAuthClientId =
         EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true).ReplaceNullOrEmpty();
 
@@ -152,7 +153,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
 
         ModLaunch.McLaunchLog("当前剩余内存：" +
-                              Math.Round(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) /
+                              Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes() 
+                                                  / 1024 / 1024 / 1024 * 10)) /
                               10 + "G");
         DataList.Add("-Xmn" + Math.Floor(PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d * 0.15d) +
                      "m");
@@ -198,9 +200,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     #region 主题
 
-    /* TODO ERROR: Skipped IfDirectiveTrivia
-    #If DEBUG Then
-    */
+    #if DEBUG
     public static readonly bool EnableCustomTheme = Environment.GetEnvironmentVariable("PCL_CUSTOM_THEME") is not null;
     private static readonly object EnvThemeHue = Environment.GetEnvironmentVariable("PCL_THEME_HUE"); // 0 ~ 359
     private static readonly object EnvThemeSat = Environment.GetEnvironmentVariable("PCL_THEME_SAT"); // 0 ~ 100
@@ -209,16 +209,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     private static readonly object
         EnvThemeHueDelta = Environment.GetEnvironmentVariable("PCL_THEME_HUE_DELTA"); // -90 ~ 90
 
-    private static readonly object CustomThemeHue = EnvThemeHue is null ? default(int?) : int.Parse(EnvThemeHue);
-    private static readonly object CustomThemeSat = EnvThemeSat is null ? default(int?) : int.Parse(EnvThemeSat);
-    private static readonly object CustomThemeLight = EnvThemeLight is null ? default(int?) : int.Parse(EnvThemeLight);
+    private static readonly object CustomThemeHue = EnvThemeHue is null ? default(int?) : int.Parse((dynamic)EnvThemeHue);
+    private static readonly object CustomThemeSat = EnvThemeSat is null ? default(int?) : int.Parse((dynamic)EnvThemeSat);
+    private static readonly object CustomThemeLight = EnvThemeLight is null ? default(int?) : int.Parse((dynamic)EnvThemeLight);
 
     private static readonly object CustomThemeHueDelta =
-        EnvThemeHueDelta is null ? default(int?) : int.Parse(EnvThemeHueDelta);
+        EnvThemeHueDelta is null ? default(int?) : int.Parse((dynamic)EnvThemeHueDelta);
+    #endif
 
-    /* TODO ERROR: Skipped EndIfDirectiveTrivia
-    #End If
-    */
     public static bool IsDarkMode => ThemeService.IsDarkMode;
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
@@ -234,7 +232,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     public static int ThemeDontClick = 0;
 
     // 深色模式事件
-    /* TODO ERROR: Skipped IfDirectiveTrivia
+    /* TODO ERROR: Skiped IfDirectiveTrivia
     #If False
     */ /* TODO ERROR: Skipped DisabledTextTrivia
         ' 定义自定义事件
@@ -343,88 +341,27 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             */ // 主页面背景
             if (Conversions.ToBoolean(ModBase.Setup.Get("UiBackgroundColorful")))
             {
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
+                LinearGradientBrush brush = new(){
+                    EndPoint = new(0.1,1),
+                    StartPoint = new(0.9,0)
+                };
 
-                Input:
-                                Dim Brush = New Global.System.Windows.Media.LinearGradientBrush With {.EndPoint = New Global.System.Windows.Point(0.1, 1), .StartPoint = New Global.System.Windows.Point(0.9, 0)}
-
-                 */
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                Input:
-                                Dim hue = ThemeService.GetCurrentThemeArgs().Hue
-
-                 */
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                Input:
-                                Dim hue1 = hue - 15
-
-                 */
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                   at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                   at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                   at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                Input:
-                                Dim hue2 = hue + 15
-
-                 */
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                    Input:
-                                                    Dim tone = ThemeService.CurrentTone
-
-                                     */
-                Brush.GradientStops.Add(new GradientStop
+                var hue = ThemeService.GetCurrentThemeArgs().Hue;
+                var hue1 = hue - 15;
+                var hue2 = hue + 15;
+                var tone = ThemeService.CurrentTone;
+                brush.GradientStops.Add(new GradientStop
                     { Offset = -0.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue1) });
-                Brush.GradientStops.Add(new GradientStop
+                brush.GradientStops.Add(new GradientStop
                     { Offset = 0.4d, Color = LabColor.FromLch(GetDarkThemeLight(0.96d), tone.C7, hue) });
-                Brush.GradientStops.Add(new GradientStop
+                brush.GradientStops.Add(new GradientStop
                     { Offset = 1.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue2) });
-                ModMain.FrmMain.PanForm.Background = Brush;
+                ModMain.FrmMain.PanForm.Background = brush;
             }
             else
             {
                 ModMain.FrmMain.PanForm.Background =
-                    (Brush)System.Windows.Application.Current.Resources("ColorBrushBackground");
+                    (Brush)System.Windows.Application.Current.Resources["ColorBrushBackground"];
             }
 
             ModMain.FrmMain.PanForm.Background.Freeze();
@@ -467,7 +404,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     public static bool IsCheckingUpdates = false;
     public static bool IsUpdateWaitingRestart;
 
-    public static UpdatesWrapperModel RemoteServer = new(new[]
+    public static UpdatesWrapperModel RemoteServer = new(new List<IUpdateSource>
     {
         new UpdatesMirrorChyanModel(),
         new UpdatesRandomModel(new[]
@@ -478,13 +415,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         new UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
     });
 
-    public static object IsCurrentVersionBeta
+    public static bool IsCurrentVersionBeta
     {
         get
         {
             if (ModBase.VersionBaseName.Contains("beta"))
                 return true;
-            return Config.Update.UpdateChannel == 1;
+            return (int)Config.Update.UpdateChannel == 1;
         }
     }
 
@@ -499,7 +436,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         try
         {
-            if (IsCurrentVersionBeta && !(Config.Update.UpdateChannel == 1))
+            if (IsCurrentVersionBeta && !((int)Config.Update.UpdateChannel == 1))
             {
                 var isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
@@ -541,22 +478,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         {
             try
             {
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
 
-                                    Input:
-                                                                   Dim version = Global.PCL.ModSecret.RemoteServer.GetLatestVersion(
-                                                                   If(Global.PCL.ModSecret.IsCurrentVersionBeta, Global.PCL.UpdateChannel.beta, Global.PCL.UpdateChannel.stable),
-                                                                   If(Global.PCL.ModBase.IsArm64System, Global.PCL.UpdateArch.arm64, Global.PCL.UpdateArch.x64))
+                var version = ModSecret.RemoteServer.GetLatestVersion(
+                    IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
+                    );
 
-                                     */
                 ModBase.WriteFile($"{ModBase.PathTemp}CEUpdateLog.md", version.Changelog);
                 ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.VersionBaseName}");
                 if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.VersionBaseName)))
@@ -575,37 +502,23 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     // 构造步骤加载器
                 }
 
-                ;
+                var loaders = new List<ModLoader.LoaderBase>();
                 // 下载
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                    Input:
-                                                                   '构造步骤加载器
-                                                                   Dim loaders As New Global.System.Collections.Generic.List(Of Global.PCL.ModLoader.LoaderBase)
-
-                                     */
                 loaders.AddRange((IEnumerable<ModLoader.LoaderBase>)RemoteServer.GetDownloadLoader(
                     Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
-                loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", () =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
                     var curHash = ModBase.GetFileSHA256(dlTargetPath);
                     if ((curHash ?? "") != (version.SHA256 ?? ""))
                         throw new Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}");
                 }));
                 if (type == UpdateType.UpdateNow)
-                    loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", () => UpdateRestart(true, true)));
+                    loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", _ => UpdateRestart(true, true)));
                 else if (type == UpdateType.Silent)
-                    loaders.Add(new ModLoader.LoaderTask<int, int>("准备更新", () => IsUpdateWaitingRestart = true));
+                    loaders.Add(new ModLoader.LoaderTask<int, int>("准备更新", _ => IsUpdateWaitingRestart = true));
                 else if (type == UpdateType.DownloadAndPrompt)
-                    loaders.Add(new ModLoader.LoaderTask<int, int>("显示按钮", () =>
+                    loaders.Add(new ModLoader.LoaderTask<int, int>("显示按钮", _ =>
                     {
                         IsUpdateWaitingRestart = true;
                         ModBase.RunInUi(() =>
@@ -619,7 +532,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     {
                         Show = false
                     });
-                loaders.Add(new ModLoader.LoaderTask<int, int>("刷新设置 UI", () =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>("刷新设置 UI", _ =>
                 {
                     if (ModMain.FrmSetupUpdate is not null)
                         ModBase.RunInUi(() =>
@@ -765,10 +678,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             ModBase.RunInNewThread(() =>
             {
                 foreach (var item in ShowAnnounce)
+                {
                     var SelectedBtn = ModMain.MyMsgBox(item.detail, item.title, item.btn1 is null ? "" : item.btn1.text,
                         item.btn2 is null ? "" : item.btn2.text, "关闭",
                         Button1Action: () => ModEvent.TryStartEvent(item.btn1.command, item.btn1.command_paramter),
                         Button2Action: () => ModEvent.TryStartEvent(item.btn2.command, item.btn2.command_paramter));
+                }
             });
             ShowedAnnounced.AddRange(ShowAnnounce.Select(x => x.id).ToList());
             ShowedAnnounced = ShowedAnnounced.Distinct().ToList();
@@ -790,7 +705,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     /// <summary>
     ///     已安装物理内存大小，单位 MB
     /// </summary>
-    internal static long SystemMemorySize = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
+    internal static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 
     /// <summary>
     ///     系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0

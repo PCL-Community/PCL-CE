@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -95,13 +96,13 @@ internal static class ModStyle
                 return;
             }
 
-            if (Conversions.ToBoolean(!_isTimerRunning))
+            if (!(bool)_isTimerRunning)
                 _timer?.Start();
         }
 
         public void StopTimer()
         {
-            if (Conversions.ToBoolean(_isTimerRunning))
+            if ((bool)_isTimerRunning)
                 _timer?.Stop();
         }
     }
@@ -198,7 +199,7 @@ internal static class ModStyle
 
                 if (isColorCode)
                 {
-                    if (!MotdRenderer.TryGetColorFromCode(c, isDarkMode, color))
+                    if (!MotdRenderer.TryGetColorFromCode(c.ToString(), isDarkMode, out color))
                         switch (c)
                         {
                             // 格式化代码

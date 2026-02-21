@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -195,7 +196,7 @@ public partial class PageInstanceLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID = -1)
+    public object PageGet(FormMain.PageSubType ID)
     {
         if ((int)ID == -1)
             ID = PageID;

@@ -9,6 +9,13 @@ using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Launch.Utils;
+using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -51,7 +58,7 @@ public static class ModLaunch
         if (ModMinecraft.McInstanceSelected.PathInstance.Contains("!") ||
             ModMinecraft.McInstanceSelected.PathInstance.Contains(";"))
             throw new Exception("游戏路径中不可包含 ! 或 ;（" + ModMinecraft.McInstanceSelected.PathInstance + "）");
-        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !ModBase.Setup.Get("HintDisableGamePathCheckTip") &&
+        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)ModBase.Setup.Get("HintDisableGamePathCheckTip") &&
                                   !ModMinecraft.McInstanceSelected.PathInstance.IsASCII()))
         {
             var userChoice = ModMain.MyMsgBox(
@@ -108,27 +115,55 @@ public static class ModLaunch
 
         if (!string.IsNullOrEmpty(CheckResult))
             throw new ArgumentException(CheckResult);
-        /* TODO ERROR: Skipped IfDirectiveTrivia
-        #If BETA Then
-        */ /* TODO ERROR: Skipped DisabledTextTrivia
-                '求赞助
-                If CurrentLaunchOptions?.SaveBatch Is Nothing Then '保存脚本时不提示
-                    RunInNewThread(
-                    Sub()
-                        Select Case Setup.Get("SystemLaunchCount")
-                            Case 10, 20, 40, 60, 80, 100, 120, 150, 200, 250, 300, 350, 400, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000
-                                If MyMsgBox("PCL 已经为你启动了 " & Setup.Get("SystemLaunchCount") & " 次游戏啦！" & vbCrLf &
-                                            "如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……" & vbCrLf &
-                                            "如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！",
-                                            Setup.Get("SystemLaunchCount") & " 次启动！", "支持一下！", "但是我拒绝") = 1 Then
-                                    OpenWebsite("https://afdian.com/a/LTCat")
-                                End If
-                        End Select
-                    End Sub, "Donate")
-                End If
-        */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-        #End If
-        */ // 正版购买提示
+        
+        #if BETA
+        if (CurrentLaunchOptions?.SaveBatch == null) // 保存脚本时不提示
+            {
+                RunInNewThread(() =>
+                {
+                    switch ((int)ModBase.Setup.Get("SystemLaunchCount"))
+                    {
+                        case 10:
+                        case 20:
+                        case 40:
+                        case 60:
+                        case 80:
+                        case 100:
+                        case 120:
+                        case 150:
+                        case 200:
+                        case 250:
+                        case 300:
+                        case 350:
+                        case 400:
+                        case 500:
+                        case 600:
+                        case 700:
+                        case 800:
+                        case 900:
+                        case 1000:
+                        case 1200:
+                        case 1400:
+                        case 1600:
+                        case 1800:
+                        case 2000:
+                            if (ModMain.MyMsgBox(
+                                    "PCL 已经为你启动了 " + Setup.Get("SystemLaunchCount") + " 次游戏啦！\n" +
+                                    "如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……\n" +
+                                    "如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！",
+                                    Setup.Get("SystemLaunchCount") + " 次启动！",
+                                    "支持一下！",
+                                    "但是我拒绝") == 1)
+                            {
+                                OpenWebsite("https://afdian.com/a/LTCat");
+                            }
+                            break;
+                    }
+                }, "Donate");
+            }
+        #endif
+        
+        // 正版购买提示
         if (!ModProfile.ProfileList.Any(x => x.Type == McLoginType.Ms))
         {
             if (RegionUtils.IsRestrictedFeatAllowed)
@@ -268,7 +303,7 @@ public static class ModLaunch
 
     // 启动状态切换
     public static ModLoader.LoaderTask<McLaunchOptions, object> McLaunchLoader = new("Loader Launch", McLaunchStart)
-        { OnStateChanged = _ => ModLaunch.McLaunchState() };
+        { OnStateChanged = (a) => ModLaunch.McLaunchState((dynamic)a) };
 
     public static ModLoader.LoaderCombo<object> McLaunchLoaderReal;
     public static Process McLaunchProcess;
@@ -652,7 +687,7 @@ public static class ModLaunch
 
         // 尝试加载
         Loader.WaitForExit(Data.Input, McLoginLoader, Data.IsForceRestarting);
-        Data.Output = (McLoginResult)((object)Loader).Output;
+        Data.Output = (McLoginResult)((dynamic)((object)Loader)).Output;
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
         ModBase.Log("[Profile] 选定档案加载完成");
     }
@@ -674,152 +709,196 @@ public static class ModLaunch
 
     #region 正版验证
 
-    private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> Data)
+    private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
-        var Input = Data.Input;
-        var LogUsername = Input.UserName;
-        var IsNewProfile = true;
-        ModProfile.ProfileLog("验证方式：正版（" + (string.IsNullOrEmpty(LogUsername) ? "尚未登录" : LogUsername) + "）");
-        Data.Progress = 0.05d;
-        // 检查是否已经登录完成
-        if (!Data.IsForceRestarting && !string.IsNullOrEmpty(Input.AccessToken) && McLoginMsRefreshTime > 0L &&
-            TimeUtils.GetTimeTick() - McLoginMsRefreshTime < 1000 * 60 * 10) // 不要求强行重启
-            // 已经登录过了
-            // 完成时间在 10 分钟内
+        var input = data.Input;
+        string logUsername = input.UserName;
+        bool isNewProfile = true;
+
+        ModProfile.ProfileLog($"验证方式：正版（{(string.IsNullOrEmpty(logUsername) ? "尚未登录" : logUsername)}）");
+        data.Progress = 0.05d;
+
+        // 已登录且不需要强制重启且登录未过期
+        if (!data.IsForceRestarting && !string.IsNullOrEmpty(input.AccessToken) &&
+            McLoginMsRefreshTime > 0L &&
+            TimeUtils.GetTimeTick() - McLoginMsRefreshTime < 1000 * 60 * 10)
         {
-            Data.Output = new McLoginResult
+            data.Output = new McLoginResult
             {
-                AccessToken = Input.AccessToken, Name = Input.UserName, Uuid = Input.Uuid, Type = "Microsoft",
-                ClientToken = Input.Uuid, ProfileJson = Input.ProfileJson
+                AccessToken = input.AccessToken,
+                Name = input.UserName,
+                Uuid = input.Uuid,
+                Type = "Microsoft",
+                ClientToken = input.Uuid,
+                ProfileJson = input.ProfileJson
             };
-            goto SkipLogin;
+
+            McLoginMsRefreshTime = TimeUtils.GetTimeTick();
+            ModProfile.ProfileLog("正版验证完成");
+            return;
         }
 
-        // 尝试登录
-        var IsSkipAuth = false;
-        string[] OAuthTokens;
-        string OAuthAccessToken;
-        string OAuthRefreshToken;
-        if (string.IsNullOrEmpty(Input.OAuthRefreshToken))
+        data.Progress = 0.1d;
+
+        // 尝试获取 OAuthToken
+        var oauthTokens = GetOAuthTokens(data, input, out bool skipAuth);
+        if (skipAuth)
         {
-            OAuthTokens = MsLoginStep1New(Data);
-        }
-        else
-        {
-            OAuthTokens = MsLoginStep1Refresh(Input.OAuthRefreshToken);
-            if (OAuthTokens[0] == "Relogin")
-                goto Relogin;
-        }
-
-        if (OAuthTokens[0] == "Ignore")
-            goto SkipLogin;
-        OAuthAccessToken = OAuthTokens[0];
-        OAuthRefreshToken = OAuthTokens[1];
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        Data.Progress = 0.25d;
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        // Step 2
-        var XBLToken = MsLoginStep2(OAuthAccessToken);
-        if (XBLToken == "Ignore")
-            goto SkipLogin;
-        Data.Progress = 0.4d;
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        // Step 3
-        var Tokens = MsLoginStep3(XBLToken);
-        if (Tokens[1] == "Ignore")
-            goto SkipLogin;
-        Data.Progress = 0.55d;
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        // Step 4
-        var AccessToken = MsLoginStep4(Tokens);
-        if (AccessToken == "Ignore")
-            goto SkipLogin;
-        Data.Progress = 0.7d;
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        // Step 5
-        MsLoginStep5(AccessToken);
-        Data.Progress = 0.85d;
-        if (Data.IsAborted)
-            throw new ThreadInterruptedException();
-        // Step 6
-        var Result = MsLoginStep6(AccessToken);
-        if (Result[2] == "Ignore")
-            goto SkipLogin;
-        Data.Progress = 0.98d;
-
-        foreach (var Profile in ModProfile.ProfileList)
-            if (Profile.Type == McLoginType.Ms && (Profile.Username ?? "") == (Result[1] ?? "") &&
-                (Profile.Uuid ?? "") == (Result[0] ?? ""))
+            data.Progress = 0.99d;
+            var profile = ModProfile.SelectedProfile;
+            data.Output = new McLoginResult
             {
-                IsNewProfile = false;
+                AccessToken = profile.AccessToken,
+                Name = profile.Username,
+                Uuid = profile.Uuid,
+                Type = "Microsoft"
+            };
+            return;
+        }
+
+        string oauthAccessToken = oauthTokens[0];
+        string oauthRefreshToken = oauthTokens[1];
+        ThrowIfAborted(data);
+
+        data.Progress = 0.25d;
+
+        // Step 2: XBL Token
+        string xblToken = MsLoginStep2(oauthAccessToken);
+        if (string.IsNullOrEmpty(xblToken) || xblToken == "Ignore")
+            goto SkipLogin;
+
+        data.Progress = 0.4d;
+        ThrowIfAborted(data);
+
+        // Step 3: XSTS / Minecraft login
+        string[] tokens = MsLoginStep3(xblToken);
+        if (tokens.Length < 2 || tokens[1] == "Ignore")
+            goto SkipLogin;
+
+        data.Progress = 0.55d;
+        ThrowIfAborted(data);
+
+        // Step 4: Final access token
+        string accessToken = MsLoginStep4(tokens);
+        if (string.IsNullOrEmpty(accessToken) || accessToken == "Ignore")
+            goto SkipLogin;
+
+        data.Progress = 0.7d;
+        ThrowIfAborted(data);
+
+        // Step 5: Additional setup
+        MsLoginStep5(accessToken);
+        data.Progress = 0.85d;
+        ThrowIfAborted(data);
+
+        // Step 6: Profile info
+        string[] result = MsLoginStep6(accessToken);
+        if (result.Length < 3 || result[2] == "Ignore")
+            goto SkipLogin;
+
+        data.Progress = 0.98d;
+
+        // 检查是否已有相同档案
+        foreach (var profile in ModProfile.ProfileList)
+        {
+            if (profile.Type == McLoginType.Ms &&
+                string.Equals(profile.Username, result[1], StringComparison.Ordinal) &&
+                string.Equals(profile.Uuid, result[0], StringComparison.Ordinal))
+            {
+                isNewProfile = false;
                 if (ModProfile.IsCreatingProfile)
                 {
-                    var ProfileIndex = ModProfile.ProfileList.IndexOf(Profile);
-                    ModProfile.ProfileList[ProfileIndex].Username = Result[1];
-                    ModProfile.ProfileList[ProfileIndex].AccessToken = AccessToken;
-                    ModProfile.ProfileList[ProfileIndex].RefreshToken = OAuthRefreshToken;
+                    int index = ModProfile.ProfileList.IndexOf(profile);
+                    ModProfile.ProfileList[index].Username = result[1];
+                    ModProfile.ProfileList[index].AccessToken = accessToken;
+                    ModProfile.ProfileList[index].RefreshToken = oauthRefreshToken;
                     ModMain.Hint("你已经添加了这个档案...");
                     goto SkipLogin;
                 }
             }
+        }
 
         // 输出登录结果
-        if (IsNewProfile)
+        if (isNewProfile)
         {
-            var NewProfile = new ModProfile.McProfile
+            var newProfile = new ModProfile.McProfile
             {
                 Type = McLoginType.Ms,
-                Uuid = Result[0],
-                Username = Result[1],
-                AccessToken = AccessToken,
-                RefreshToken = OAuthRefreshToken,
+                Uuid = result[0],
+                Username = result[1],
+                AccessToken = accessToken,
+                RefreshToken = oauthRefreshToken,
                 Expires = 1743779140286L,
                 Desc = "",
-                RawJson = Result[2]
+                RawJson = result[2]
             };
-            ModProfile.ProfileList.Add(NewProfile);
-            ModProfile.SelectedProfile = NewProfile;
+            ModProfile.ProfileList.Add(newProfile);
+            ModProfile.SelectedProfile = newProfile;
             ModProfile.IsCreatingProfile = false;
         }
         else
         {
-            var ProfileIndex = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
-            ModProfile.ProfileList[ProfileIndex].Username = Result[1];
-            ModProfile.ProfileList[ProfileIndex].AccessToken = AccessToken;
-            ModProfile.ProfileList[ProfileIndex].RefreshToken = OAuthRefreshToken;
+            int index = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
+            ModProfile.ProfileList[index].Username = result[1];
+            ModProfile.ProfileList[index].AccessToken = accessToken;
+            ModProfile.ProfileList[index].RefreshToken = oauthRefreshToken;
         }
 
         ModProfile.SaveProfile();
-        Data.Output = new McLoginResult
-        {
-            AccessToken = AccessToken,
-            Name = Result[1],
-            Uuid = Result[0],
-            Type = "Microsoft",
-            ClientToken = Result[0],
-            ProfileJson = Result[2]
-        };
-        SkipLogin: ;
 
-        // 结束
+        data.Output = new McLoginResult
+        {
+            AccessToken = accessToken,
+            Name = result[1],
+            Uuid = result[0],
+            Type = "Microsoft",
+            ClientToken = result[0],
+            ProfileJson = result[2]
+        };
+
+    SkipLogin:
         McLoginMsRefreshTime = TimeUtils.GetTimeTick();
         ModProfile.ProfileLog("正版验证完成");
-        if (IsSkipAuth)
+    }
+
+    /// <summary>
+    /// 获取 OAuth Tokens，处理刷新和重新登录逻辑
+    /// </summary>
+    private static string[] GetOAuthTokens(ModLoader.LoaderTask<McLoginMs, McLoginResult> data, McLoginMs input, out bool skipAuth)
+    {
+        skipAuth = false;
+        string[] tokens;
+
+        while (true)
         {
-            Data.Progress = 0.99d;
-            Data.Output = new McLoginResult
+            if (string.IsNullOrEmpty(input.OAuthRefreshToken))
             {
-                AccessToken = ModProfile.SelectedProfile.AccessToken,
-                Name = ModProfile.SelectedProfile.Username,
-                Uuid = ModProfile.SelectedProfile.Uuid,
-                Type = "Microsoft"
-            };
+                tokens = MsLoginStep1New(data);
+            }
+            else
+            {
+                tokens = MsLoginStep1Refresh(input.OAuthRefreshToken);
+                if (tokens.Length > 0 && tokens[0] == "Relogin")
+                    continue; // 重新登录
+            }
+
+            if (tokens.Length > 0 && tokens[0] == "Ignore")
+            {
+                skipAuth = true;
+                return tokens;
+            }
+
+            return tokens;
         }
+    }
+
+    /// <summary>
+    /// 检查是否被中断
+    /// </summary>
+    private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
+    {
+        if (data.IsAborted)
+            throw new ThreadInterruptedException();
     }
 
     /// <summary>
@@ -1281,114 +1360,163 @@ public static class ModLaunch
 
     #region 第三方验证
 
-    private static void McLoginServerStart(ModLoader.LoaderTask<McLoginServer, McLoginResult> Data)
+    private static void McLoginServerStart(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
-        var Input = Data.Input;
-        var NeedRefresh = false;
-        var WasRefreshed = false;
-        ModProfile.ProfileLog("验证方式：" + Input.Description);
-        Data.Progress = 0.05d;
-        // 尝试登录
-        if (!Data.Input.ForceReselectProfile && !ModProfile.IsCreatingProfile)
+        var input = data.Input;
+        bool needRefresh = false;
+        bool wasRefreshed = false;
+
+        ModProfile.ProfileLog("验证方式：" + input.Description);
+        data.Progress = 0.05d;
+
+        // 尝试验证登录（如果不需要重新选择档案且不是创建档案）
+        if (!input.ForceReselectProfile && !ModProfile.IsCreatingProfile)
         {
-            // 尝试验证登录
             try
             {
-                if (Data.IsAborted)
-                    throw new ThreadInterruptedException();
-                McLoginRequestValidate(ref Data);
-                goto LoginFinish;
+                ThrowIfAborted(data);
+                McLoginRequestValidate(ref data);
+                data.Progress = 0.95d;
+                return; // 登录成功，直接返回
             }
             catch (ModNet.HttpWebException ex)
             {
-                var AllMessage = ex.ToString();
-                ModProfile.ProfileLog("验证登录失败：" + AllMessage);
-                if ((AllMessage.Contains("超时") || AllMessage.Contains("imeout")) && !AllMessage.Contains("403"))
-                {
-                    ModProfile.ProfileLog("已触发超时登录失败");
-                    ModMain.MyMsgBox(
-                        "$登录失败：连接登录服务器超时。" + Constants.vbCrLf + "请检查你的网络状况是否良好，或尝试使用 VPN！" + Constants.vbCrLf +
-                        Constants.vbCrLf + "详细信息：" + ex.InnerHttpException.WebResponse, "第三方验证失败", IsWarn: true);
-                    throw new Exception("$登录失败：连接登录服务器超时。" + Constants.vbCrLf + "请检查你的网络状况是否良好，或尝试使用 VPN！" +
-                                        Constants.vbCrLf + Constants.vbCrLf + "详细信息：" +
-                                        ex.InnerHttpException.WebResponse);
-                }
+                HandleHttpWebException(ex, "验证登录失败");
             }
             catch (Exception ex)
             {
-                var AllMessage = ex.ToString();
-                ModProfile.ProfileLog("验证登录失败：" + AllMessage);
-                ModMain.MyMsgBox("验证登录失败: " + AllMessage, "第三方验证失败", IsWarn: true);
-                throw;
+                HandleException(ex, "验证登录失败");
             }
 
-            Data.Progress = 0.25d;
-            // 尝试刷新登录
+            data.Progress = 0.25d;
 
+            // 尝试刷新登录
             try
             {
-                if (Data.IsAborted)
-                    throw new ThreadInterruptedException();
-                McLoginRequestRefresh(ref Data, NeedRefresh);
-                goto LoginFinish;
+                ThrowIfAborted(data);
+                McLoginRequestRefresh(ref data, needRefresh);
+                data.Progress = needRefresh ? 0.85d : 0.45d;
+                data.Progress = 0.95d;
+                return; // 刷新成功，直接返回
             }
             catch (Exception ex)
             {
                 ModProfile.ProfileLog("刷新登录失败：" + ex);
                 ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
-                if (WasRefreshed)
+                if (wasRefreshed)
                     throw new Exception("二轮刷新登录失败", ex);
             }
-
-            Data.Progress = NeedRefresh ? 0.85d : 0.45d;
         }
 
         // 尝试普通登录
         try
         {
-            if (Data.IsAborted)
-                throw new ThreadInterruptedException();
-            NeedRefresh = McLoginRequestLogin(ref Data);
+            ThrowIfAborted(data);
+            needRefresh = McLoginRequestLogin(ref data);
         }
         catch (ModNet.HttpWebException ex)
         {
-            ModProfile.ProfileLog("验证失败：" + ex);
-            string message = null;
-            var responseText = ex.InnerHttpException.WebResponse;
-            try
-            {
-                var err = JsonNode.Parse(responseText)["errorMessage"];
-                if (err is not null)
-                    message = "登录失败：" + err;
-            }
-            catch
-            {
-                // 忽略
-            }
-
-            if (message is null)
-                message = "第三方验证登录失败，请检查你的网络状况是否良好。" + Constants.vbCrLf + Constants.vbCrLf + "详细信息：" + responseText;
-            ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
-            throw new Exception("$" + message);
+            HandleLoginHttpException(ex);
         }
         catch (Exception ex)
         {
-            ModProfile.ProfileLog("验证失败：" + ex);
-            ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
-            throw new Exception("$第三方验证登录失败" + Constants.vbCrLf + Constants.vbCrLf + "详细信息：" + ex);
+            HandleException(ex, "第三方验证登录失败");
         }
 
-        if (NeedRefresh)
+        // 如果需要刷新，循环刷新一次
+        if (needRefresh)
         {
             ModProfile.ProfileLog("重新进行刷新登录");
-            WasRefreshed = true;
-            Data.Progress = 0.65d;
-            goto Refresh;
+            wasRefreshed = true;
+            data.Progress = 0.65d;
+
+            try
+            {
+                ThrowIfAborted(data);
+                McLoginRequestRefresh(ref data, needRefresh);
+                data.Progress = 0.95d;
+                return;
+            }
+            catch (Exception ex)
+            {
+                ModProfile.ProfileLog("刷新登录失败：" + ex);
+                ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
+                throw new Exception("二轮刷新登录失败", ex);
+            }
         }
 
-        LoginFinish: ;
+        // 最终完成
+        data.Progress = 0.95d;
+    }
 
-        Data.Progress = 0.95d;
+    /// <summary>
+    /// 检查任务是否被中断
+    /// </summary>
+    private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
+    {
+        if (data.IsAborted)
+            throw new ThreadInterruptedException();
+    }
+
+    /// <summary>
+    /// 统一处理 HttpWebException
+    /// </summary>
+    private static void HandleHttpWebException(ModNet.HttpWebException ex, string logPrefix)
+    {
+        var allMessage = ex.ToString();
+        ModProfile.ProfileLog(logPrefix + "：" + allMessage);
+
+        if ((allMessage.Contains("超时") || allMessage.Contains("imeout")) && !allMessage.Contains("403"))
+        {
+            ModProfile.ProfileLog("已触发超时登录失败");
+            ModMain.MyMsgBox(
+                "$登录失败：连接登录服务器超时。" + Constants.vbCrLf +
+                "请检查你的网络状况是否良好，或尝试使用 VPN！" + Constants.vbCrLf + Constants.vbCrLf +
+                "详细信息：" + ex.InnerHttpException.WebResponse,
+                "第三方验证失败", IsWarn: true);
+
+            throw new Exception("$登录失败：连接登录服务器超时。" + Constants.vbCrLf +
+                                "请检查你的网络状况是否良好，或尝试使用 VPN！" + Constants.vbCrLf +
+                                Constants.vbCrLf + "详细信息：" + ex.InnerHttpException.WebResponse);
+        }
+    }
+
+    /// <summary>
+    /// 统一处理普通异常
+    /// </summary>
+    private static void HandleException(Exception ex, string logPrefix)
+    {
+        ModProfile.ProfileLog(logPrefix + "：" + ex);
+        ModMain.MyMsgBox(logPrefix + ": " + ex, "第三方验证失败", IsWarn: true);
+        throw new Exception("$" + logPrefix + Constants.vbCrLf + Constants.vbCrLf + "详细信息：" + ex);
+    }
+
+    /// <summary>
+    /// 处理普通登录 HttpWebException
+    /// </summary>
+    private static void HandleLoginHttpException(ModNet.HttpWebException ex)
+    {
+        ModProfile.ProfileLog("验证失败：" + ex);
+        string message = null;
+        var responseText = ex.InnerHttpException.WebResponse;
+
+        try
+        {
+            var err = JsonNode.Parse(responseText)["errorMessage"];
+            if (err is not null)
+                message = "登录失败：" + err;
+        }
+        catch
+        {
+            // 忽略解析错误
+        }
+
+        if (message is null)
+            message = "第三方验证登录失败，请检查你的网络状况是否良好。" + Constants.vbCrLf + Constants.vbCrLf +
+                      "详细信息：" + responseText;
+
+        ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
+        throw new Exception("$" + message);
     }
 
     // Server 登录：三种验证方式的请求
@@ -2026,8 +2154,8 @@ public static class ModLaunch
     {
         return Conversions.ToBoolean((Mc.ReleaseTime >= new DateTime(2013, 6, 25) && Mc.Info.Drop == 99) ||
                                      (Mc.Info.Drop < 60 && Mc.Info.Drop != 99 &&
-                                      !ModBase.Setup.Get("LaunchAdvanceDisableRW") &&
-                                      !ModBase.Setup.Get("VersionAdvanceDisableRW", Mc))); // <1.6
+                                      !(bool)ModBase.Setup.Get("LaunchAdvanceDisableRW") &&
+                                      !(bool)ModBase.Setup.Get("VersionAdvanceDisableRW", Mc))); // <1.6
     }
 
 
@@ -2105,8 +2233,9 @@ public static class ModLaunch
         }
 
         var FinalArguments = "";
-        foreach (var Argument in Arguments.Split(" "))
+        foreach (var ArgumentRaw in Arguments.Split(" "))
         {
+            var Argument = ArgumentRaw;
             foreach (var Entry in ReplaceArguments)
                 Argument = Argument.Replace(Entry.Key, Entry.Value);
             if ((Argument.Contains(" ") || Argument.Contains(@":\")) && !Argument.EndsWithF("\""))
@@ -2198,7 +2327,7 @@ public static class ModLaunch
             }
         }
 
-        if (Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie))
+        if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
                 DataList.Insert(0, "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractDebugLog4j2Config() + "\"");
@@ -2226,7 +2355,7 @@ public static class ModLaunch
                 (Renderer == 1 ? "llvmpipe" : Renderer == 2 ? "d3d12" : "zink"));
 
         // 设置代理
-        if (Config.Instance.UseProxy.Item(instance.PathIndie) && Config.Network.HttpProxy.Type.Equals(2) &&
+        if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
             !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
             try
             {
@@ -2242,8 +2371,8 @@ public static class ModLaunch
             }
 
         // 添加 Java Wrapper 作为主 Jar
-        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
-                                  !ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
+        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
+                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
@@ -2315,7 +2444,7 @@ public static class ModLaunch
             }
         }
 
-        if (Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie))
+        if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
                 DataList.Insert(0, "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractDebugLog4j2Config() + "\"");
@@ -2343,7 +2472,7 @@ public static class ModLaunch
                 (Renderer == 1 ? "llvmpipe" : Renderer == 2 ? "d3d12" : "zink"));
 
         // 设置代理
-        if (Config.Instance.UseProxy.Item(instance.PathIndie) && Config.Network.HttpProxy.Type.Equals(2) &&
+        if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
             !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
             try
             {
@@ -2363,8 +2492,8 @@ public static class ModLaunch
             // https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
             DataList.Add("-Dretrowrapper.doUpdateCheck=false");
         // 添加 Java Wrapper 作为主 Jar
-        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
-                                  !ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
+        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
+                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
@@ -2593,8 +2722,8 @@ public static class ModLaunch
             }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 3, false): // 自定义
             {
-                GameSize = new Size(Conversions.ToDouble(Math.Max(100, ModBase.Setup.Get("LaunchArgumentWindowWidth"))),
-                    Conversions.ToDouble(Math.Max(100, ModBase.Setup.Get("LaunchArgumentWindowHeight"))));
+                GameSize = new Size(Math.Max(100, (double)ModBase.Setup.Get("LaunchArgumentWindowWidth")),
+                    Math.Max(100, (double)ModBase.Setup.Get("LaunchArgumentWindowHeight")));
                 break;
             }
 
@@ -2659,7 +2788,7 @@ public static class ModLaunch
                 CpStrings.Add(Library.LocalPath);
         }
 
-        foreach (string library in Config.Instance.ClasspathHead(instance.PathInstance).Split(";")) // 自定义 Classpath 头部
+        foreach (string library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
         {
             if (string.IsNullOrWhiteSpace(library))
                 continue;
@@ -2801,7 +2930,7 @@ public static class ModLaunch
                 try
                 {
                     if (ProcessInterop.StartAsAdmin($"--gpu \"{javaExePath}\"").ExitCode ==
-                        ModBase.ProcessReturnValues.TaskDone)
+                        (int)ModBase.ProcessReturnValues.TaskDone)
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
                     else
                         throw new Exception("调整过程中出现异常");
@@ -3027,7 +3156,7 @@ public static class ModLaunch
                 CustomCommandGlobal + Constants.vbCrLf + CustomCommandVersion + Constants.vbCrLf +
                 $"\"{McLaunchJavaSelected.Installation.JavaExePath}\" {McLaunchArgument}" + Constants.vbCrLf +
                 "echo 游戏已退出。" + Constants.vbCrLf + "pause";
-            WriteFile(CurrentLaunchOptions.SaveBatch ?? ModBase.ExePath + @"PCL\LatestLaunch.bat",
+                ModBase.WriteFile(CurrentLaunchOptions.SaveBatch ?? ModBase.ExePath + @"PCL\LatestLaunch.bat",
                 ModMinecraft.FilterAccessToken(CmdString, 'F'),
                 Encoding: McLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default);
             if (CurrentLaunchOptions.SaveBatch is not null)
@@ -3110,7 +3239,7 @@ public static class ModLaunch
 
     private static void McLaunchRun(ModLoader.LoaderTask<int, Process> Loader)
     {
-        var noJavaw = Conversions.ToBoolean(ModBase.Setup.Get("LaunchAdvanceNoJavaw") &&
+        var noJavaw = Conversions.ToBoolean((bool)ModBase.Setup.Get("LaunchAdvanceNoJavaw") &&
                                             McLaunchJavaSelected.Installation.JavawExePath is not null);
 
         // 启动信息
@@ -3205,10 +3334,8 @@ public static class ModLaunch
         McLaunchLog("");
 
         // 获取窗口标题
-        var WindowTitle =
-            Conversions.ToString(ModBase.Setup.Get("VersionArgumentTitle", ModMinecraft.McInstanceSelected));
-        if (Conversions.ToBoolean(string.IsNullOrEmpty() &&
-                                  !ModBase.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected)))
+        var WindowTitle = (string?)ModBase.Setup.Get("VersionArgumentTitle", ModMinecraft.McInstanceSelected);
+        if (string.IsNullOrEmpty(WindowTitle) && !(bool)ModBase.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected))
             WindowTitle = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentTitle"));
         WindowTitle = ArgumentReplace(WindowTitle, false);
 

@@ -242,43 +242,58 @@ public static class ModModpack
         }
     }
 
-    private static void ExtractModpackFiles(string InstallTemp, string FileAddress, LoaderBase Loader,
-        double ProgressIncrement)
+    private static void ExtractModpackFiles(string installTemp, string fileAddress, LoaderBase loader, double progressIncrement)
     {
         // 解压文件
-        var RetryCount = 1;
-        var Encode = Encoding.GetEncoding("GB18030");
-        var InitialProgress = Loader.Progress;
-        try
-        {
-            Loader.Progress = InitialProgress;
-            ModBase.DeleteDirectory(InstallTemp);
-            ModBase.ExtractFile(FileAddress, InstallTemp, Encode,
-                Delta => Loader.Progress += Delta * ProgressIncrement);
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "第 " + RetryCount + " 次解压尝试失败");
-            if (ex is ArgumentException || ex is IOException)
-            {
-                Encode = Encoding.UTF8;
-                ModBase.Log("[ModPack] 已切换压缩包解压编码为 UTF8");
-            }
+        int retryCount = 1;
+        Encoding encode = Encoding.GetEncoding("GB18030");
+        double initialProgress = loader.Progress;
 
-            // 完全不知道为啥会出现文件正在被另一进程使用的问题，总之加个重试
-            if (RetryCount < 5)
+        while (retryCount <= 5)
+        {
+            try
             {
-                Thread.Sleep(RetryCount * 2000);
-                if (Loader is not null && Loader.LoadingState != MyLoading.MyLoadingState.Run)
+                loader.Progress = initialProgress;
+
+                // 删除旧目录
+                ModBase.DeleteDirectory(installTemp);
+
+                // 解压文件，ProgressIncrementHandler 通过 Lambda 更新进度
+                ModBase.ExtractFile(fileAddress, installTemp, encode,
+                    delta => loader.Progress += delta * progressIncrement);
+
+                // 解压成功，更新进度并退出循环
+                loader.Progress = initialProgress + progressIncrement;
+                return;
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, $"第 {retryCount} 次解压尝试失败");
+
+                if (ex is ArgumentException || ex is IOException)
+                {
+                    encode = Encoding.UTF8;
+                    ModBase.Log("[ModPack] 已切换压缩包解压编码为 UTF8");
+                }
+
+                // 检查加载器状态，决定是否中止
+                if (loader is not null && loader.LoadingState != MyLoading.MyLoadingState.Run)
                     return;
-                RetryCount += 1;
-                goto Retry;
+
+                // 增加重试次数
+                retryCount++;
+
+                if (retryCount <= 5)
+                {
+                    // 等待一段时间再重试
+                    Thread.Sleep((retryCount - 1) * 2000);
+                }
+                else
+                {
+                    throw new Exception("解压整合包文件失败", ex);
+                }
             }
-
-            throw new Exception("解压整合包文件失败", ex);
         }
-
-        Loader.Progress = InitialProgress + ProgressIncrement;
     }
 
     /// <summary>
@@ -362,7 +377,7 @@ public static class ModModpack
         string NeoForgeVersion = null;
         string FabricVersion = null;
         string QuiltVersion = null;
-        foreach (var Entry in Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
+        foreach (var Entry in  (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
         {
             var Id = (Entry["id"] ?? "").ToString().ToLower();
             if (Id.StartsWithF("forge-"))
@@ -428,7 +443,7 @@ public static class ModModpack
         // 获取 Mod 列表
         var ModList = new List<int>();
         var ModOptionalList = new List<int>();
-        foreach (var ModEntry in Json["files"] ?? Array.Empty<JToken>())
+        foreach (var ModEntry in (dynamic)Json["files"] ?? Array.Empty<JToken>())
         {
             if (ModEntry["projectID"] is null || ModEntry["fileID"] is null)
             {
@@ -453,8 +468,8 @@ public static class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JArray)ModBase.GetJson(ModDownload.DlModRequest("https://api.curseforge.com/v1/mods/files",
-                        "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json", allowMirror))("data");
+                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest("https://api.curseforge.com/v1/mods/files",
+                        "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json", allowMirror)))["data"];
                     if (ModList.Count <= ret.Count)
                     {
                         ModBase.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
@@ -569,8 +584,8 @@ public static class ModModpack
             if (Logo is not null && File.Exists(Logo))
             {
                 File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
-                Config.Instance.LogoPath(VersionFolder) = @"PCL\Logo.png";
-                Config.Instance.IsLogoCustom(VersionFolder) = true;
+                Config.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
+                Config.Instance.IsLogoCustom[VersionFolder] = true;
                 ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
@@ -589,30 +604,17 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (Json("version") is not null) Config.Instance.ModpackVersion(VersionFolder) = Json("version").ToString();
-            Config.Instance.ModpackSource(VersionFolder) = "CurseForge";
-            Config.Instance.ModpackId(VersionFolder) = resourceId;
+            if (Json["version"] is not null) Config.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
+            Config.Instance.ModpackSource[VersionFolder] = "CurseForge";
+            Config.Instance.ModpackId[VersionFolder] = resourceId;
             do
             {
                 try
                 {
-                    ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                            Dim projects = Global.PCL.ModComp.CompRequest.GetCompProjectsByIds(New Global.System.Collections.Generic.List(Of String) From {resourceId})
-
-                                             */
+                    var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    Config.Instance.CustomInfo(VersionFolder) = projects.First().Description;
+                    Config.Instance.CustomInfo[VersionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {
@@ -671,7 +673,7 @@ public static class ModModpack
         string NeoForgeVersion = null;
         string FabricVersion = null;
         string QuiltVersion = null;
-        foreach (JProperty Entry in Json["dependencies"] ?? Array.Empty<JToken>())
+        foreach (JProperty Entry in (dynamic)Json["dependencies"] ?? Array.Empty<JToken>())
             switch (Entry.Name.ToLower() ?? "")
             {
                 case "minecraft":
@@ -743,7 +745,7 @@ public static class ModModpack
         }); // 每 6M 需要 1s
         // 获取下载文件列表
         var FileList = new List<ModNet.NetFile>();
-        foreach (var File in Json["files"] ?? Array.Empty<JToken>())
+        foreach (var File in (dynamic)Json["files"] ?? Array.Empty<JToken>())
         {
             // 检查是否需要该文件
             if (File["env"] is not null)
@@ -763,7 +765,9 @@ public static class ModModpack
                 }
 
             // 添加下载文件
-            var Urls = File["downloads"].Select(x => ModComp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
+            var Urls = ((JArray)File["downloads"])
+                .OfType<JToken>()
+                .Select(x => ModComp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
                 .ToList();
             // 镜像源
             Urls = Urls.SelectMany(x => ModDownload.DlSourceModDownloadGet(x)).ToList();
@@ -831,30 +835,17 @@ public static class ModModpack
 
             // 整合包版本
             if (Json["versionId"] is not null)
-                Config.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString();
-            Config.Instance.ModpackSource(VersionFolder) = "Modrinth";
-            Config.Instance.ModpackId(VersionFolder) = resourceId;
+                Config.Instance.ModpackVersion[VersionFolder] = Json["versionId"].ToString();
+            Config.Instance.ModpackSource[VersionFolder] = "Modrinth";
+            Config.Instance.ModpackId[VersionFolder] = resourceId;
             do
             {
                 try
                 {
-                    ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                            Dim projects = Global.PCL.ModComp.CompRequest.GetCompProjectsByIds(New Global.System.Collections.Generic.List(Of String) From {resourceId})
-
-                                             */
+                    var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    Config.Instance.CustomInfo(VersionFolder) = projects.First().Description;
+                    Config.Instance.CustomInfo[VersionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {
@@ -993,7 +984,7 @@ public static class ModModpack
             if (!string.IsNullOrEmpty(Validate.Validate(InstanceName))) InstanceName = "";
 
             if (string.IsNullOrEmpty(InstanceName))
-                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", new Collection<ModBase.Validate> { Validate });
+                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
 
             if (string.IsNullOrEmpty(InstanceName)) throw new ModBase.CancelledException();
         }
@@ -1021,7 +1012,7 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (Json["version"] != null) Config.Instance.ModpackVersion(VersionFolder, Json["version"].ToString());
+            if (Json["version"] != null) Config.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
         });
 
         unzipTask.ProgressWeight = new FileInfo(FileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
@@ -1543,21 +1534,7 @@ public static class ModModpack
                 // 将其中的等号替换为冒号，以符合 ini 文件格式
                 if (File.Exists(MMCSetupFile))
                 {
-                    ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                    /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                               at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                               at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                               at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                               at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                            Input:
-                                                                '将其中的等号替换为冒号，以符合 ini 文件格式
-                                                                Dim Lines As New Global.System.Collections.Generic.List(Of String)
-
-                                             */
+                    List<string> Lines = [];
                     foreach (var Line in ModBase.ReadFile(MMCSetupFile).Split(new[] { Constants.vbCr, Constants.vbLf },
                                  StringSplitOptions.RemoveEmptyEntries))
                     {
@@ -1579,7 +1556,7 @@ public static class ModModpack
                                 .Replace("$INST_MC_DIR", "{minecraft}").Replace(@"$INST_DIR\", "{verpath}")
                                 .Replace("$INST_DIR", "{verpath}").Replace("$INST_ID", "{name}")
                                 .Replace("$INST_NAME", "{name}");
-                            Config.Instance.PreLaunchCommand(VersionFolder) = PreLaunchCommand;
+                            Config.Instance.PreLaunchCommand[VersionFolder] = PreLaunchCommand;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" + PreLaunchCommand);
                         }
                     }
@@ -1589,22 +1566,22 @@ public static class ModModpack
                     {
                         var ServerAddress = ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress")
                             .Replace(@"\""", "\"");
-                        Config.Instance.ServerToEnter(VersionFolder) = ServerAddress;
+                        Config.Instance.ServerToEnter[VersionFolder] = ServerAddress;
                         ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + ServerAddress);
                     }
 
                     if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility",
                             Conversions.ToString(false))))
                     {
-                        Config.Instance.IgnoreJavaCompatibility(VersionFolder) = true;
+                        Config.Instance.IgnoreJavaCompatibility[VersionFolder] = true;
                         ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
                     }
 
                     var Logo = Path.GetFileName(ModBase.ReadIni(MMCSetupFile, "iconKey"));
                     if (!string.IsNullOrEmpty(Logo) && File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png"))
                     {
-                        Config.Instance.IsLogoCustom(VersionFolder) = true;
-                        Config.Instance.LogoPath(VersionFolder) = @"PCL\Logo.png";
+                        Config.Instance.IsLogoCustom[VersionFolder] = true;
+                        Config.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                         ModBase.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
                             $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\PCL\Logo.png");
                         ModBase.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）");
@@ -1617,7 +1594,7 @@ public static class ModModpack
                         if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideJavaArgs",
                                 Conversions.ToString(false))))
                         {
-                            Config.Instance.JvmArgs(VersionFolder) = JvmArgs;
+                            Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + JvmArgs);
                         }
                         else
@@ -1625,7 +1602,7 @@ public static class ModModpack
                             JvmArgs = Conversions.ToString(JvmArgs +
                                                            Operators.ConcatenateObject(" ",
                                                                ModBase.Setup.Get("LaunchAdvanceJvm")));
-                            Config.Instance.JvmArgs(VersionFolder) = JvmArgs;
+                            Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + JvmArgs);
                         }
                     }

@@ -7,6 +7,11 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace PCL;
@@ -50,7 +55,7 @@ public partial class PageInstanceOverall
 
         var instance = PageInstanceLeft.Instance;
         // 刷新设置项目
-        ComboDisplayType.SelectedIndex = Config.Instance.CardType(instance.PathInstance);
+        ComboDisplayType.SelectedIndex = Config.Instance.CardType[instance.PathInstance];
         BtnDisplayStar.Text = instance.IsStar ? "从收藏夹中移除" : "加入收藏夹";
         BtnFolderMods.Visibility = instance.Modable ? Visibility.Visible : Visibility.Collapsed;
         // 刷新实例显示
@@ -63,8 +68,8 @@ public partial class PageInstanceOverall
         GetInstanceInfo();
         // 刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0;
-        string Logo = Config.Instance.LogoPath(instance.PathInstance);
-        bool LogoCustom = Config.Instance.IsLogoCustom(instance.PathInstance);
+        string Logo = Config.Instance.LogoPath[instance.PathInstance];
+        bool LogoCustom = Config.Instance.IsLogoCustom[instance.PathInstance];
         if (LogoCustom)
             foreach (MyComboBoxItem Selection in ComboDisplayLogo.Items)
                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Selection.Tag, Logo, false)) ||
@@ -88,25 +93,12 @@ public partial class PageInstanceOverall
             PanInfo.Children.Add(new MyLoading { Text = "正在获取信息", Margin = new Thickness(0d, 0d, 0d, 10d) });
         });
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, int>("获取可能的整合包信息", () =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("获取可能的整合包信息", (_) =>
         {
-            ;
+            string modpackId = Config.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
-                ;
-#error Cannot convert LocalDeclarationStatementSyntax - see comment for details
-                /* Cannot convert LocalDeclarationStatementSyntax, System.NullReferenceException: Object reference not set to an instance of an object.
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.ShouldPreferExplicitType(ExpressionSyntax exp, ITypeSymbol expConvertedType, Boolean& isNothingLiteral) in /_/CodeConverter/CSharp/CommonConversions.cs:line 120
-                                       at ICSharpCode.CodeConverter.CSharp.CommonConversions.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax declarator, HashSet`1 symbolsToSkip, Boolean preferExplicitType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 74
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.SplitVariableDeclarationsAsync(VariableDeclaratorSyntax v, Boolean preferExplicitType) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 658
-                                       at ICSharpCode.CodeConverter.CSharp.MethodBodyExecutableStatementVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) in /_/CodeConverter/CSharp/MethodBodyExecutableStatementVisitor.cs:line 106
-                                       at ICSharpCode.CodeConverter.CSharp.PerScopeStateVisitorDecorator.AddLocalVariablesAsync(VisualBasicSyntaxNode node, SyntaxKind exitableType, Boolean isBreakableInCs) in /_/CodeConverter/CSharp/PerScopeStateVisitorDecorator.cs:line 38
-                                       at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisitInnerAsync(SyntaxNode node) in /_/CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 24
-
-                                    Input:
-                                                                                                                  Dim compProjects = Global.PCL.ModComp.CompRequest.GetCompProjectsByIds(New Global.System.Collections.Generic.List(Of String) From {Config.Instance.ModpackId(Global.PCL.PageInstanceLeft.Instance.PathInstance)})
-
-                                     */
+                var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
                 if (!(compProjects.Count == 0))
                     ModBase.RunInUi(() =>
                     {
@@ -118,12 +110,12 @@ public partial class PageInstanceOverall
         {
             Block = true
         });
-        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", () => ModBase.RunInUi(() =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", (_) => ModBase.RunInUi(() =>
         {
-            ;
-            ;
-            ;
-            ;
+            var instance = PageInstanceLeft.Instance;
+            var instanceInfo = instance.Info;
+            List<MyListItem> items = [];
+            var launchCount = Config.Instance.LaunchCount[instance.PathInstance];
             if (launchCount == 0)
                 items.Add(new MyListItem
                 {
@@ -133,13 +125,13 @@ public partial class PageInstanceOverall
                 items.Add(new MyListItem
                 {
                     Title = "启动次数",
-                    Info = "已启动 " + Config.Instance.LaunchCount(instance.PathInstance).ToString() + " 次",
+                    Info = "已启动 " + Config.Instance.LaunchCount[instance.PathInstance].ToString() + " 次",
                     Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"
                 });
-            if (!string.IsNullOrWhiteSpace(Config.Instance.ModpackVersion(instance.PathInstance)))
+            if (!string.IsNullOrWhiteSpace(Config.Instance.ModpackVersion[instance.PathInstance]))
                 items.Add(new MyListItem
                 {
-                    Title = "整合包版本", Info = Config.Instance.ModpackVersion(instance.PathInstance),
+                    Title = "整合包版本", Info = Config.Instance.ModpackVersion[instance.PathInstance],
                     Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"
                 });
             items.Add(new MyListItem
@@ -196,7 +188,7 @@ public partial class PageInstanceOverall
                     Title = "LabyMod", Info = instanceInfo.LabyMod,
                     Logo = "pack://application:,,,/images/Blocks/LabyMod.png"
                 });
-            ;
+            var wrapPanel = new WrapPanel { Margin = new Thickness(0, -5, -20, 7) };
             foreach (var item in items)
             {
                 wrapPanel.Children.Add(item);
@@ -229,10 +221,10 @@ public partial class PageInstanceOverall
             try
             {
                 // 若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = ComboDisplayType.SelectedIndex;
+                Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance] = ComboDisplayType.SelectedIndex;
                 PageInstanceLeft.Instance.DisplayType =
                     (ModMinecraft.McInstanceCardType)Conversions.ToInteger(
-                        Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance));
+                        Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance]);
                 ModMain.FrmInstanceLeft.RefreshModDisabled();
 
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
@@ -251,8 +243,8 @@ public partial class PageInstanceOverall
             // 改为隐藏
             try
             {
-                if (Conversions.ToBoolean(!ModBase.Setup.Get("HintHide")))
-                {
+                if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("HintHide")))
+                {   
                     if (ModMain.MyMsgBox(
                             "确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。" + Constants.vbCrLf +
                             "此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。", "隐藏实例提示", Button2: "取消") != 1)
@@ -264,7 +256,7 @@ public partial class PageInstanceOverall
                     ModBase.Setup.Set("HintHide", true);
                 }
 
-                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) =
+                Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
                     (int)ModMinecraft.McInstanceCardType.Hidden;
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -282,11 +274,11 @@ public partial class PageInstanceOverall
     {
         try
         {
-            string OldInfo = Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance);
+            string OldInfo = Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
             var NewInfo = ModMain.MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo,
                 new Collection<ValidateType>(), "默认描述");
             if (NewInfo is not null && (OldInfo ?? "") != (NewInfo ?? ""))
-                Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance) = NewInfo;
+                Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance] = NewInfo;
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
             Reload();
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -432,8 +424,8 @@ public partial class PageInstanceOverall
         try
         {
             string NewLogo = Conversions.ToString(((dynamic)ComboDisplayLogo.SelectedItem).Tag);
-            Config.Instance.LogoPath(PageInstanceLeft.Instance.PathInstance) = NewLogo;
-            Config.Instance.IsLogoCustom(PageInstanceLeft.Instance.PathInstance) = !string.IsNullOrEmpty(NewLogo);
+            Config.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
+            Config.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
             // 刷新显示
             ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
@@ -452,7 +444,7 @@ public partial class PageInstanceOverall
     {
         try
         {
-            Config.Instance.Starred(PageInstanceLeft.Instance.PathInstance) = !PageInstanceLeft.Instance.IsStar;
+            Config.Instance.Starred[PageInstanceLeft.Instance.PathInstance] = !PageInstanceLeft.Instance.IsStar;
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
             Reload();
             ModMinecraft.McInstanceListForceRefresh = true;
@@ -558,7 +550,7 @@ public partial class PageInstanceOverall
             var Loader = new ModLoader.LoaderCombo<string>(PageInstanceLeft.Instance.Name + " 文件补全",
                 ModDownload.DlClientFix(PageInstanceLeft.Instance, true,
                     ModDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
-            Loader.OnStateChanged = () =>
+            Loader.OnStateChanged = (_) =>
             {
                 switch (Loader.State)
                 {
@@ -739,28 +731,10 @@ public partial class PageInstanceOverall
                 ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
                 ModBase.RunInNewThread(() =>
                 {
-                    ;
+                    var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar");
                     Core.AddToCore(UserInput);
                     ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
-                    ModBase.Setup.Set(default
-#error Cannot convert LiteralExpressionSyntax - see comment for details
-                        /* Cannot convert LiteralExpressionSyntax, System.ArgumentOutOfRangeException: length ('-1') must be a non-negative value. (Parameter 'length')
-                        Actual value was -1.
-                           at System.ArgumentOutOfRangeException.ThrowNegative[T](T value, String paramName)
-                           at System.ArgumentOutOfRangeException.ThrowIfNegative[T](T value, String paramName)
-                           at System.String.ThrowSubstringArgumentOutOfRange(Int32 startIndex, Int32 length)
-                           at System.String.Substring(Int32 startIndex, Int32 length)
-                           at ICSharpCode.CodeConverter.CSharp.LiteralConversions.Unquote(String quotedText) in /_/CodeConverter/CSharp/LiteralConversions.cs:line 122
-                           at ICSharpCode.CodeConverter.CSharp.LiteralConversions.GetQuotedStringTextForUser(String textForUser, String valueTextForCompiler) in /_/CodeConverter/CSharp/LiteralConversions.cs:line 90
-                           at ICSharpCode.CodeConverter.CSharp.LiteralConversions.GetLiteralExpression(Object value, String textForUser, ITypeSymbol convertedType) in /_/CodeConverter/CSharp/LiteralConversions.cs:line 16
-                           at ICSharpCode.CodeConverter.CSharp.CommonConversions.Literal(Object o, String textForUser, ITypeSymbol convertedType) in /_/CodeConverter/CSharp/CommonConversions.cs:line 276
-                           at ICSharpCode.CodeConverter.CSharp.ExpressionNodeVisitor.VisitLiteralExpression(LiteralExpressionSyntax node) in /_/CodeConverter/CSharp/ExpressionNodeVisitor.cs:line 166
-                           at ICSharpCode.CodeConverter.CSharp.CommentConvertingVisitorWrapper.ConvertHandledAsync[T](VisualBasicSyntaxNode vbNode, SourceTriviaMapKind sourceTriviaMap) in /_/CodeConverter/CSharp/CommentConvertingVisitorWrapper.cs:line 40
-
-                        Input:
-                        “VersionAdvanceAssetsV2"
-                         */
-                        , true, instance: PageInstanceLeft.Instance);
+                    ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
                 });
                 break;
             }

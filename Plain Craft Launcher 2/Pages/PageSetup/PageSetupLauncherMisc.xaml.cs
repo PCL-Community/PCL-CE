@@ -5,6 +5,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -118,7 +122,7 @@ public partial class PageSetupLauncherMisc
         SliderDebugAnim.GetHintText = new Func<object, object>(v =>
             Conversions.ToBoolean(Operators.ConditionalCompareObjectGreater(v, 29, false))
                 ? "关闭"
-                : Operators.ConcatenateObject(Math.Round(Operators.AddObject(Operators.DivideObject(v, 10), 0.1d), 1),
+                : Operators.ConcatenateObject( Math.Round(Convert.ToDouble(Operators.AddObject(Operators.DivideObject(v, 10), 0.1d)), 1),
                     "x"));
         SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Operators.AddObject(v, 1)} FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
@@ -181,7 +185,7 @@ public partial class PageSetupLauncherMisc
     {
         string savePath =
             SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
-        if (string.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
@@ -191,7 +195,7 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
     {
         string sourcePath = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件");
-        if (string.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
         ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);

@@ -4,6 +4,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.Link;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -82,7 +85,7 @@ public partial class MinecraftServer : Grid
         ModStyle.MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false);
 
         // 玩家列表提示
-        if (ret.Players.Samples?.Any())
+        if (ret.Players.Samples.Any())
         {
             LabServerPlayer.ToolTip = string.Join(Constants.vbCrLf, ret.Players.Samples.Select(x => x.Name));
             ToolTipService.SetPlacement(LabServerPlayer, PlacementMode.Mouse);
