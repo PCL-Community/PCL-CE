@@ -1,3 +1,4 @@
+using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
@@ -13,23 +14,33 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.Link;
+namespace PCL.Core.Link.McPing;
 
-public class McPing : IDisposable
+/// <summary>
+/// 现代Minecraft协议服务器探测服务实现
+/// 支持1.7+版本的服务器信息查询协议
+/// </summary>
+public class McPingService : IMcPingService
 {
     private readonly IPEndPoint _endpoint;
     private readonly string _host;
     private const int DefaultTimeout = 10000;
     private readonly int _timeout;
+    private bool _disposed;
+    private const string ModuleName = "McPing";
 
-    public McPing(IPEndPoint endpoint, int timeout = DefaultTimeout)
+    public IPEndPoint Endpoint => _endpoint;
+    public string Host => _host;
+    public int Timeout => _timeout;
+
+    public McPingService(IPEndPoint endpoint, int timeout = DefaultTimeout)
     {
         _endpoint = endpoint;
         _host = _endpoint.Address.ToString();
         _timeout = timeout;
     }
 
-    public McPing(string ip, int port = 25565, int timeout = DefaultTimeout)
+    public McPingService(string ip, int port = 25565, int timeout = DefaultTimeout)
     {
         _endpoint = IPAddress.TryParse(ip, out var ipAddress)
             ? new IPEndPoint(ipAddress, port)
@@ -39,10 +50,10 @@ public class McPing : IDisposable
     }
 
     /// <summary>
-    /// 执行一次 Mc 服务器信息 Ping
+    /// 执行现代Minecraft协议的服务器探测
     /// </summary>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    /// <exception cref="NullReferenceException">获取的结果出现字段缺失时</exception>
     public async Task<McPingResult?> PingAsync(CancellationToken cancellationToken = default)
     {
         using var so = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -51,22 +62,23 @@ public class McPing : IDisposable
 
         try
         {
-            LogWrapper.Debug("McPing", $"Connecting to {_endpoint}");
+            LogWrapper.Debug(ModuleName, $"Connecting to {_endpoint}");
             await so.ConnectAsync(_endpoint.Address, _endpoint.Port, linkedCts.Token);
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("连接超时"), "McPing", $"Failed to connect to the {_endpoint}");
+            LogWrapper.Error(new TimeoutException("连接超时"), "ModernMcPing", $"Failed to connect to the {_endpoint}");
             return null;
         }
         catch (Exception e)
         {
-            LogWrapper.Error(e, "McPing", $"Failed to connect to the {_endpoint}");
+            LogWrapper.Error(e, ModuleName, $"Failed to connect to the {_endpoint}");
             return null;
         }
 
-        LogWrapper.Debug("McPing", $"Connection established: {_endpoint}");
+        LogWrapper.Debug(ModuleName, $"Connection established: {_endpoint}");
         await using var stream = new NetworkStream(so, false);
+
         var handshakePacket = _BuildHandshakePacket(_host, _endpoint.Port);
         var statusPacket = _BuildStatusRequestPacket();
 
@@ -159,56 +171,11 @@ public class McPing : IDisposable
         return ret;
     }
 
-    public async Task<McPingResult?> PingOldAsync()
+    public void Dispose()
     {
-        using var so = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(_timeout);
-        cts.Token.Register(() =>
-        {
-            try
-            {
-                if (so.Connected) so.Close();
-            }
-            catch (ObjectDisposedException)
-            {
-                /* Ignore */
-            }
-        });
-        await so.ConnectAsync(_endpoint, cts.Token);
-        LogWrapper.Debug("McPing", $"Connected to {_endpoint}");
-        await using var stream = new NetworkStream(so, false);
-        var queryPack = new byte[] { 0xfe, 0x01 };
-        await stream.WriteAsync(queryPack.AsMemory(0, queryPack.Length), cts.Token);
-        var ms = new MemoryStream();
-        await stream.CopyToAsync(ms, cts.Token);
-        so.Close();
-        var retData = ms.ToArray();
-        if (retData.Length < 21 || (retData.Length >= 21 && retData[0] != 0xff))
-        {
-            LogWrapper.Info("McPing", $"Unknown response from {_endpoint}, ignore");
-            return null;
-        }
-
-        var retRep = Encoding.UTF8.GetString(retData);
-        try
-        {
-            var retPart = retRep.Split(["\0\0\0"], StringSplitOptions.None);
-            retPart = retPart.Select(s => new string(s
-                    .Where((_, index) => index % 2 == 0)
-                    .ToArray()))
-                .ToArray();
-            if (retPart.Length < 6)
-                return null;
-            return new McPingResult(new McPingVersionResult(retPart[2], int.Parse(retPart[1])),
-                new McPingPlayerResult(int.Parse(retPart[5]), int.Parse(retPart[4]), []), retPart[3], string.Empty, 0,
-                new McPingModInfoResult(string.Empty, []));
-        }
-        catch (Exception e)
-        {
-            LogWrapper.Error(e, "McPing", $"Unable to serialize response from {_endpoint}");
-            return null;
-        }
+        if (_disposed) return;
+        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -301,7 +268,7 @@ public class McPing : IDisposable
                     }
                 default:
                     {
-                        LogWrapper.Warn("McPing", $"解析到无法处理的 Motd 内容({current.GetValueKind()})：{current}");
+                        LogWrapper.Warn(ModuleName, $"解析到无法处理的 Motd 内容({current.GetValueKind()})：{current}");
                         break;
                     }
             }
@@ -348,14 +315,5 @@ public class McPing : IDisposable
         if (strikethrough) sb.Append("§m");
         if (color.StartsWith('#')) sb.Append(color);
         return sb.ToString();
-    }
-
-    private bool _disposed;
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-        GC.SuppressFinalize(this);
     }
 }

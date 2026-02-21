@@ -8,7 +8,7 @@ using PCL.Core.IO.Net;
 
 namespace PCL.Core.Link;
 
-public class Broadcast(string description, int localPort) : IDisposable
+public class BroadcastLocal(string description, int localPort) : IDisposable
 {
     private Socket? _broadcastSocket;
     private CancellationTokenSource? _cts;
@@ -80,6 +80,7 @@ public class Broadcast(string description, int localPort) : IDisposable
     {
         Stop();
         _cts?.Dispose();
+        _broadcastSocket.SafeClose();
         GC.SuppressFinalize(this);
     }
 }

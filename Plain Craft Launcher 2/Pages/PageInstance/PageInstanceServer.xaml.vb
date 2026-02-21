@@ -1,8 +1,9 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.IO
-Imports System.Threading.Tasks
 Imports fNbt
 Imports PCL.Core.Link
+Imports PCL.Core.Link.McPing
+Imports PCL.Core.Link.McPing.Model
 Imports PCL.Core.Minecraft
 
 Public Class PageInstanceServer
@@ -342,7 +343,7 @@ Public Class PageInstanceServer
     Public Async Shared Function PingServer(server As MinecraftServerInfo, token As CancellationToken) As Task(Of MinecraftServerInfo)
         Try
             Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(server.Address, token)
-            Using query = New McPing(addr.Ip, addr.Port)
+            Using query = McPingServiceFactory.CreateService(addr.Ip, addr.Port)
                 Dim result As McPingResult
                 Log("Pinging server: " & server.Address & ":" & addr.Port)
                 result = Await query.PingAsync(token) ' 传递 token

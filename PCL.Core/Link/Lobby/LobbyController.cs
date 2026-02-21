@@ -19,6 +19,7 @@ using PCL.Core.IO.Net.Http.Client;
 using static PCL.Core.Link.Lobby.LobbyInfoProvider;
 using static PCL.Core.Link.Natayark.NatayarkProfileManager;
 using LobbyType = PCL.Core.Link.Scaffolding.Client.Models.LobbyType;
+using PCL.Core.Link.McPing;
 
 namespace PCL.Core.Link.Lobby;
 
@@ -88,7 +89,7 @@ public sealed class LobbyController
 
             var tcpPortForForward = NetworkHelper.NewTcpPort();
             McForward = new TcpForward(IPAddress.Loopback, tcpPortForForward, IPAddress.Loopback, localPort);
-            McBroadcast = new Broadcast($"§ePCL CE 大厅{desc}", tcpPortForForward);
+            McBroadcast = new BroadcastLocal($"§ePCL CE 大厅{desc}", tcpPortForForward);
             McForward.Start();
             McBroadcast.Start();
 
@@ -159,7 +160,7 @@ public sealed class LobbyController
     /// </summary>
     public static async Task<bool> IsHostInstanceAvailableAsync(int port)
     {
-        var ping = new McPing("127.0.0.1", port);
+        using var ping = McPingServiceFactory.CreateService("127.0.0.1", port);
         var info = await ping.PingAsync().ConfigureAwait(false);
 
         if (info != null) return true;
