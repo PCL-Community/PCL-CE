@@ -189,12 +189,10 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(MyListItem sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, ModBase.RouteEventArgs e)
     {
-        // 尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
-        // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
-        if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+        if (sender is MyListItem item && item.Tag is not null)
+            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType ID)
