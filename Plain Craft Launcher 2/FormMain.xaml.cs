@@ -1760,7 +1760,8 @@ public partial class FormMain
     {
         if (IsChangingPage)
             return;
-        PageChangeActual((dynamic)ModBase.Val(sender.Tag), PageSubType.Default);
+        PageType pageType =  (PageType)int.Parse(sender.Tag.ToString());
+        PageChangeActual(pageType, PageSubType.Default);
     }
 
     private void BtnTitleInner_Click(object sender, EventArgs e)
