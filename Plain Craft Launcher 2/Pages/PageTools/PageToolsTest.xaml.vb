@@ -9,6 +9,7 @@ Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
+Imports PCL.Core.Utils.Validate
 
 Public Class PageToolsTest
     Public Sub New()
@@ -99,7 +100,7 @@ Public Class PageToolsTest
             Log("[Download] 自定义下载文件目标：" + Folder, ModBase.LogLevel.Normal, "出现错误")
             Dim uuid As Integer = GetUuid()
             Dim loaderdownload As LoaderBase
-            If String.IsNullOrEmpty(New ValidateHttp().Validate(Url)) Then
+            If New HttpValidator().Validate(Url).IsValid Then
                 loaderdownload = New LoaderDownload("自定义下载文件：" + FileName + " ", New List(Of NetFile)() From {New NetFile(New String() {Url}, Folder + FileName, Nothing, True, UserAgent)})
             Else 'UNC 路径
                 loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))

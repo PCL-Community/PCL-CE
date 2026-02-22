@@ -3,6 +3,7 @@ Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.Validate
 
 Public Class PageLoginAuth
     Public Shared DraggedAuthServer As String = Nothing
@@ -110,7 +111,7 @@ Public Class PageLoginAuth
     '切换注册按钮可见性
     Private Sub ReloadRegisterButton() Handles Me.Loaded
         Dim Address As String = If(McInstanceSelected IsNot Nothing, Setup.Get("VersionServerAuthRegister", instance:=McInstanceSelected), "")
-        BtnLink.Visibility = If(String.IsNullOrEmpty(New ValidateHttp().Validate(Address)), Visibility.Visible, Visibility.Collapsed)
+        BtnLink.Visibility = If(New HttpValidator().Validate(Address).IsValid, Visibility.Visible, Visibility.Collapsed)
     End Sub
     '预设服务器
     Private Shared ReadOnly PredefinedAuthServers As New Dictionary(Of String, String) From {

@@ -9,6 +9,7 @@ Imports PCL.Core.UI
 Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.Utils.Validate
 
 Public Class FormMain
 
@@ -758,7 +759,7 @@ Public Class FormMain
                         e.Effects = DragDropEffects.Copy
                         Dim AuthlibServer As String = Net.WebUtility.UrlDecode(Str.Substring("authlib-injector:yggdrasil-server:".Length))
                         Log("[System] Authlib 拖拽：" & AuthlibServer)
-                        If Not String.IsNullOrEmpty(New ValidateHttp().Validate(AuthlibServer)) Then
+                        If Not New HttpValidator().Validate(AuthlibServer).IsValid Then
                             Hint($"输入的 Authlib 验证服务器不符合网址格式（{AuthlibServer}）！", HintType.Critical)
                             Return
                         End If

@@ -288,7 +288,7 @@ Public Module ModProfile
         If SelectedProfile.Type = McLoginType.Ms Then
             Dim newUsername As String = Nothing
             RunInUiWait(Sub() newUsername = MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！", DefaultInput:=SelectedProfile.Username,
-                                                          ValidateRules:=New ObjectModel.Collection(Of IValidator(Of String)) From {New ValidateLength(3, 16), New ValidateRegex("([A-z]|[0-9]|_)+")},
+                                                          ValidateRules:=New ObjectModel.Collection(Of IValidator(Of String)) From {New StringLengthValidator(3, 16), New RegexValidator("([A-z]|[0-9]|_)+")},
                                                           HintText:="3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1:="确认", Button2:="取消"))
             If newUsername = Nothing Then Exit Sub
             If String.IsNullOrWhiteSpace(newUsername) Then
