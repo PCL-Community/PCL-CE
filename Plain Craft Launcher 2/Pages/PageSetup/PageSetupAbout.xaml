@@ -30,7 +30,7 @@
                                       Info="当前版本: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)" Grid.Row="2"
                                       Grid.Column="1" x:Name="ItemAboutPcl" />
                     <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-CE.png" Grid.Row="2" Margin="3"
-                           x:Name="ImgPCLLogo">
+                           x:Name="ImgPCLLogo" MouseLeftButtonDown="ImgPCLLogo_Click">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>

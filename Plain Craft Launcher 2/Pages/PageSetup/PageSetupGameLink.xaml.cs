@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Link;
@@ -89,8 +90,9 @@ public partial class PageSetupGameLink
     }
 
     // 将控件改变路由到设置改变
-    private static void TextBoxChange(MyTextBox sender, object e) // , TextLinkRelay.ValidatedTextChanged
+    private void TextBoxChange(object senderRaw, TextChangedEventArgs e) // , TextLinkRelay.ValidatedTextChanged
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
     }
@@ -103,18 +105,19 @@ public partial class PageSetupGameLink
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
     }
 
-    private static void CheckBoxChange(MyCheckBox sender, object e)
+    private void CheckBoxChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
+            ModBase.Setup.Set(sender.Tag, sender.Checked);
     }
 
-    private static void LinkProtocolPerferenceChange(MyComboBox sender, object e)
+    private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled == 0)
             try
             {
-                LinkProtocolPreference selection = (LinkProtocolPreference)sender.SelectedIndex;
+                LinkProtocolPreference selection = (LinkProtocolPreference)((dynamic)sender).SelectedIndex;
                 Config.Link.ProtocolPreference = selection;
             }
             catch (Exception ex)
