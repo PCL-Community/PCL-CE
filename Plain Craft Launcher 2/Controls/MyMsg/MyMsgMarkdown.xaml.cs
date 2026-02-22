@@ -108,7 +108,7 @@ public partial class MyMsgMarkdown
         }, "MyMsgBox " + Uuid);
     }
 
-    public void Btn1_Click()
+    public void Btn1_Click(o)
     {
         if (MyConverter.IsExited)
             return;

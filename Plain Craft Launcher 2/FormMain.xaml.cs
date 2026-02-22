@@ -150,7 +150,7 @@ public partial class FormMain
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
         Closing += FormMain_Closing;
-        SizeChanged += (_, __) => FormMain_SizeChanged();
+        SizeChanged += ((_, __)) => FormMain_SizeChanged();
         KeyDown += FormMain_KeyDown;
         MouseDown += FormMain_MouseDown;
         Activated += (_, __) => FormMain_Activated();
