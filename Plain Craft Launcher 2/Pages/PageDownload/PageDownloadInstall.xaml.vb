@@ -1148,9 +1148,9 @@ Public Class PageDownloadInstall
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Cleanroom" Then Return $"与 {SelectedLoaderName} 不兼容"
         '检查 Loader
-        If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
+        If GetLoaderError(LoadCleanroom) IsNot Nothing Then Return GetLoaderError(LoadCleanroom)
         '检查版本
-        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
+        Return If(DlCleanroomListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
