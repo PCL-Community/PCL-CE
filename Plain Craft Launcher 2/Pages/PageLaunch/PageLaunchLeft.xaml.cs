@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.CompilerServices;
@@ -299,7 +300,7 @@ public partial class PageLaunchLeft
     }
 
     // 取消按钮
-    private void BtnCancel_Click()
+    private void BtnCancel_Click(object sender, EventArgs e)
     {
         if (ModLaunch.McLaunchLoaderReal is not null)
         {
@@ -961,4 +962,7 @@ public partial class PageLaunchLeft
         { SkinMs, SkinLegacy, SkinAuth };
 
     #endregion
+
+    // 启动游戏按钮
+    private void BtnLaunch_Click(object sender, EventArgs e) => LaunchButtonClick();
 }

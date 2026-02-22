@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
     mc:Ignorable="d"
+    KeyDown="FormMain_KeyDown" MouseDown="FormMain_MouseDown" SizeChanged="FormMain_SizeChanged"
     x:Name="WindMain" x:Class="PCL.FormMain" Style="{StaticResource MyWindow}"
     AllowDrop="True" Topmost="True" Title="Plain Craft Launcher Community Edition " MinHeight="470" MinWidth="810"
     ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico"
@@ -47,7 +48,7 @@
                                   Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible"
                                   MediaEnded="VideoEnded" Volume="0" />
                 </Canvas>
-                <local:AnimatedBackgroundGrid Grid.Row="0" x:Name="PanTitle" Height="48"
+                <local:AnimatedBackgroundGrid Grid.Row="0" x:Name="PanTitle" Height="48" MouseLeftButtonDown="FormDragMove"
                                               WindowChrome.IsHitTestVisibleInChrome="True"
                                               BackgroundBrush="{DynamicResource ColorBrush3}">
                     <!-- <Grid.Background> -->
@@ -71,7 +72,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
-                        <Grid x:Name="PanTitleLeft">
+                        <Grid x:Name="PanTitleLeft" SizeChanged="PanTitle_SizeChanged">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition />
@@ -189,7 +190,7 @@
                 </StackPanel>
                 <controls:BlurBorder x:Name="PanMsgBackground" Grid.Row="0" Grid.RowSpan="2" Background="#00000000"
                                      Visibility="Collapsed">
-                    <Grid x:Name="PanMsg" Background="#00000000" />
+                    <Grid x:Name="PanMsg" Background="#00000000" MouseLeftButtonDown="FormDragMove"/>
                 </controls:BlurBorder>
             </Grid>
         </Border>

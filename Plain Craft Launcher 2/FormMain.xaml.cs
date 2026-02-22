@@ -708,7 +708,7 @@ public partial class FormMain
     /// </summary>
     public bool IsSizeSaveable;
 
-    private void FormMain_SizeChanged()
+    private void FormMain_SizeChanged(object sender, EventArgs e)
     {
         if (IsSizeSaveable)
         {
@@ -741,12 +741,12 @@ public partial class FormMain
     }
 
     // 标题栏改变大小
-    private void PanTitle_SizeChanged()
+    private void PanTitle_SizeChanged(object sender, EventArgs e)
     {
-        if (PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d <= 0d)
-            PanTitleLeft.ColumnDefinitions[0].MaxWidth = 0d;
+        if (PanTitleMain.ColumnDefinitions[0].ActualWidth - 30 <= 0)
+            PanTitleLeft.ColumnDefinitions[0].MaxWidth = 0;
         else
-            PanTitleLeft.ColumnDefinitions[0].MaxWidth = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d;
+            PanTitleLeft.ColumnDefinitions[0].MaxWidth = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30;
     }
 
     // 最小化
@@ -2242,4 +2242,9 @@ public partial class FormMain
     }
 
     #endregion
+
+    private void FormMain_OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
 }
