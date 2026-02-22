@@ -262,7 +262,13 @@ public static class ModMain
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
     {
-        HintWrapper.Show(message, messageTheme);
+        var hintType = messageTheme switch
+        {
+            HintTheme.Error => HintType.Critical,
+            HintTheme.Info => HintType.Info,
+            _ => HintType.Finish
+        };
+        Hint(message,hintType);
     }
 
     private static void HintTick()
