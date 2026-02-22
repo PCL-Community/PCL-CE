@@ -488,7 +488,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI != null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Visible;
@@ -504,7 +504,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI != null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -526,7 +526,7 @@ public class ModSetup : IConfigScope
         }
 
         ModBase.Setup.Load("UiLogoLeft", true);
-        if (!(ModMain.FrmSetupUI == null))
+        if (ModMain.FrmSetupUI != null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
 
@@ -699,6 +699,7 @@ public class ModSetup : IConfigScope
 
     public void SystemHttpProxy(string value)
     {
+        if (value.IsNullOrWhiteSpace()) return;
         try
         {
             HttpProxyManager.Instance.CustomProxyAddress = new Uri(value);
