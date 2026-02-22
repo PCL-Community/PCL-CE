@@ -104,13 +104,13 @@ public partial class PageToolsGameLink
         await LobbyService.InitializeAsync().ConfigureAwait(false);
     }
 
-    private void BtnAgreeEula_Click(object sender, EventArgs e)
+    private void BtnAgreeEula_Click(object sender, MouseButtonEventArgs e)
     {
         States.Link.LinkEula = true;
         CurrentSubpage = Subpages.PanSelect;
     }
 
-    private void BtnEulaStop_Click(object sender, EventArgs e)
+    private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
         if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn: true) == 1)
         {
@@ -668,7 +668,7 @@ public partial class PageToolsGameLink
     #endregion
 
     // 网络测试功能
-    private async void BtnNetTest_Click(object sender, RoutedEventArgs e)
+    private async void BtnNetTest_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -720,12 +720,12 @@ public partial class PageToolsGameLink
     #region PanSelect | 种类选择页面
 
     // 刷新按钮
-    private void BtnRefresh_Click(object sender, EventArgs e)
+    private void BtnRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         var lobby = LobbyService.DiscoverWorldAsync();
     }
 
-    private async void BtnInputPort_Click(object sender, EventArgs e)
+    private async void BtnInputPort_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -751,7 +751,7 @@ public partial class PageToolsGameLink
     }
 
     // 创建大厅
-    private async void BtnCreate_Click(object sender, EventArgs e)
+    private async void BtnCreate_Click(object sender, MouseButtonEventArgs e)
     {
         if (ComboWorldList.SelectedItem is null)
         {
@@ -807,7 +807,7 @@ public partial class PageToolsGameLink
     }
 
     // 加入大厅
-    private async void BtnJoin_Click(object sender, EventArgs e)
+    private async void BtnJoin_Click(object sender, MouseButtonEventArgs e)
     {
         if (!ModLink.LobbyPrecheck())
             return;
@@ -846,7 +846,7 @@ public partial class PageToolsGameLink
     private void TextJoinLobbyId_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
-            BtnJoin_Click(sender, e);
+            BtnJoin_Click(sender, null);
     }
 
     #endregion
@@ -933,7 +933,7 @@ public partial class PageToolsGameLink
     #region PanFinish | 加载完成页面
 
     // 退出
-    private async void BtnFinishExit_Click(object sender, EventArgs e)
+    private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? Constants.vbCrLf + "由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
         if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
@@ -945,13 +945,13 @@ public partial class PageToolsGameLink
     }
 
     // 复制大厅编号
-    private void BtnFinishCopy_Click(object sender, EventArgs e)
+    private void BtnFinishCopy_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         ModBase.ClipboardSet(LabFinishId.Text);
     }
 
     // 复制 IP
-    private void BtnFinishCopyIp_Click(object sender, EventArgs e)
+    private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var ip = "127.0.0.1:" + LobbyInfoProvider.McForward.LocalPort;
         ModMain.MyMsgBox(
