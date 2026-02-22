@@ -90,17 +90,17 @@ public partial class PageComp
     }
 
     // 切换页码
-    private void BtnPageFirst_Click(object sender, RoutedEventArgs e)
+    private void BtnPageFirst_Click(object sender, EventArgs e)
     {
         ChangePage(0);
     }
 
-    private void BtnPageLeft_Click(object sender, RoutedEventArgs e)
+    private void BtnPageLeft_Click(object sender, EventArgs e)
     {
         ChangePage(Page - 1);
     }
 
-    private void BtnPageRight_Click(object sender, RoutedEventArgs e)
+    private void BtnPageRight_Click(object sender, EventArgs e)
     {
         ChangePage(Page + 1);
     }
@@ -384,6 +384,11 @@ public partial class PageComp
         ComboSearchShaderLoader.SelectedIndex = 0;
         ComboSearchSort.SelectedIndex = 0;
         Loader.LastFinishedTime = 0L; // 要求强制重新开始
+    }
+
+    private void BtnSearchReset_Click(object sender, EventArgs e)
+    {
+        ResetFilter();
     }
 
     #endregion

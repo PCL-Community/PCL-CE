@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel.Design;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -2560,4 +2561,9 @@ public partial class PageDownloadInstall
     }
 
     #endregion
+
+    private void BtnBack_Click(object sender, EventArgs e)
+    {
+        ExitSelectPage();
+    }
 }
