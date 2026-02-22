@@ -51,15 +51,11 @@ public partial class PageInstanceSetup
         try
         {
             // 启动参数
-            TextArgumentTitle.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionArgumentTitle", PageInstanceLeft.Instance));
-            CheckArgumentTitleEmpty.Checked =
-                (bool?)ModBase.Setup.Get("VersionArgumentTitleEmpty", PageInstanceLeft.Instance);
-            TextArgumentInfo.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionArgumentInfo", PageInstanceLeft.Instance));
+            TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.Instance];
+            CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.Instance];
+            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.Instance];
             var _unused = PageInstanceLeft.Instance.PathIndie; // 触发自动判定
-            ComboArgumentIndieV2.SelectedIndex =
-                Conversions.ToBoolean(ModBase.Setup.Get("VersionArgumentIndieV2", PageInstanceLeft.Instance)) ? 0 : 1;
+            ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance] ? 0 : 1;
             CheckArgumentTitleEmpty.Visibility =
                 TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
             TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
@@ -68,34 +64,23 @@ public partial class PageInstanceSetup
             // 游戏内存
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
                 ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
-            SliderRamCustom.Value =
-                Conversions.ToInteger(ModBase.Setup.Get("VersionRamCustom", PageInstanceLeft.Instance));
-            ComboRamOptimize.SelectedIndex =
-                Conversions.ToInteger(ModBase.Setup.Get("VersionRamOptimize", PageInstanceLeft.Instance));
+            SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance];
+            ComboRamOptimize.SelectedIndex = Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance];
 
             // 服务器
-            TextServerEnter.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionServerEnter", PageInstanceLeft.Instance));
-            ComboServerLoginRequire.SelectedIndex =
-                Conversions.ToInteger(ModBase.Setup.Get("VersionServerLoginRequire", PageInstanceLeft.Instance));
+            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance];
+            ComboServerLoginRequire.SelectedIndex = Config.Instance.LoginRequirementSolution[PageInstanceLeft.Instance];
             ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
             ServerLogin(ComboServerLoginRequire.SelectedIndex);
-            TextServerAuthServer.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionServerAuthServer", PageInstanceLeft.Instance));
-            TextServerAuthName.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionServerAuthName", PageInstanceLeft.Instance));
-            TextServerAuthRegister.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionServerAuthRegister", PageInstanceLeft.Instance));
+            TextServerAuthServer.Text = Config.Instance.AuthServerAddress[PageInstanceLeft.Instance];
+            TextServerAuthName.Text = Config.Instance.AuthServerDisplayName[PageInstanceLeft.Instance];
+            TextServerAuthRegister.Text = Config.Instance.AuthRegisterAddress[PageInstanceLeft.Instance];
 
             // 高级设置
-            ComboAdvanceRenderer.SelectedIndex =
-                Conversions.ToInteger(ModBase.Setup.Get("VersionAdvanceRenderer", PageInstanceLeft.Instance));
-            TextAdvanceJvm.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", PageInstanceLeft.Instance));
-            TextAdvanceGame.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionAdvanceGame", PageInstanceLeft.Instance));
-            TextAdvanceRun.Text =
-                Conversions.ToString(ModBase.Setup.Get("VersionAdvanceRun", PageInstanceLeft.Instance));
+            ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance];
+            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.Instance];
+            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance];
+            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance];
             CheckAdvanceRunWait.Checked = (bool?)ModBase.Setup.Get("VersionAdvanceRunWait", PageInstanceLeft.Instance);
             if (Conversions.ToBoolean(
                     Operators.ConditionalCompareObjectEqual(
