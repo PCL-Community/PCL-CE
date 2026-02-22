@@ -842,7 +842,7 @@ public partial class FormMain
     private void FormMain_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 鼠标侧键返回上一级
-        if (ModMain.FrmMain.PanMsg.Children.Count > 0 || ModMain.WaitingMyMsgBox.Any())
+        if (ModMain.FrmMain!.PanMsg.Children.Count > 0 || ModMain.WaitingMyMsgBox.Any())
             return; // 弹窗中（#5513）
         if (e.ChangedButton == MouseButton.XButton1 || e.ChangedButton == MouseButton.XButton2)
             TriggerPageBack();
@@ -2132,7 +2132,7 @@ public partial class FormMain
     #region 附加按钮
 
     // 更新重启
-    private void BtnExtraUpdateRestart_Click(object sender, EventArgs e)
+    private void BtnExtraUpdateRestart_Click(object sender, MouseButtonEventArgs e)
     {
         ModSecret.UpdateRestart(true);
     }
@@ -2143,18 +2143,18 @@ public partial class FormMain
     }
 
     // 音乐
-    private void BtnExtraMusic_Click(object sender, EventArgs e)
+    private void BtnExtraMusic_Click(object sender, MouseButtonEventArgs e)
     {
         ModMusic.MusicControlPause();
     }
 
-    private void BtnExtraMusic_RightClick(object sender, EventArgs e)
+    private void BtnExtraMusic_RightClick(object sender, MouseButtonEventArgs e)
     {
         ModMusic.MusicControlNext();
     }
 
     // 任务管理
-    private void BtnExtraDownload_Click(object sender, EventArgs e)
+    private void BtnExtraDownload_Click(object sender, MouseButtonEventArgs e)
     {
         PageChange(PageType.TaskManager);
     }
@@ -2177,7 +2177,7 @@ public partial class FormMain
         }
     }
 
-    private void BtnExtraApril_Click(object sender, EventArgs e)
+    private void BtnExtraApril_Click(object sender, MouseButtonEventArgs e)
     {
         AprilGiveup();
     }
@@ -2188,7 +2188,7 @@ public partial class FormMain
     }
 
     // 关闭 Minecraft
-    private void BtnExtraShutdown_Click(object sender, EventArgs e)
+    private void BtnExtraShutdown_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -2210,7 +2210,7 @@ public partial class FormMain
     }
 
     // 游戏日志
-    private void BtnExtraLog_Click(object sender, EventArgs e)
+    private void BtnExtraLog_Click(object sender, MouseButtonEventArgs e)
     {
         PageChange(PageType.GameLog);
     }
@@ -2234,7 +2234,7 @@ public partial class FormMain
             ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogLevel.Hint);
     }
 
-    private void BtnExtraBack_Click(object sender, EventArgs e)
+    private void BtnExtraBack_Click(object sender, MouseButtonEventArgs e)
     {
         BackToTop();
     }
