@@ -691,9 +691,12 @@ public class ModSetup : IConfigScope
         }
     }
 
-    public void SystemHttpProxyType(string value)
+    public void SystemHttpProxyType(int value)
     {
-        HttpProxyManager.Instance.Mode = Enum.Parse<HttpProxyManager.ProxyMode>(value); 
+        var mode = (HttpProxyManager.ProxyMode)value;
+        HttpProxyManager.Instance.Mode = Enum.IsDefined(mode)
+            ? mode
+            :  HttpProxyManager.Instance.Mode; 
     }
 
     public void SystemHttpProxyCustomUsername(string value)
