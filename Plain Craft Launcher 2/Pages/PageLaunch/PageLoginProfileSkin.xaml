@@ -29,7 +29,6 @@
                       CornerRadius="5" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal" Margin="10,3,9,3">
                 <local:MyIconButton Height="24" Margin="0,0.5,9,0" x:Name="BtnSkin"
-                                    Click="BtnSkin_Click"
                                     ToolTip="皮肤与披风" ToolTipService.Placement="Center"
                                     ToolTipService.VerticalOffset="35" ToolTipService.HorizontalOffset="1"
                                     ToolTipService.InitialShowDelay="50"
@@ -45,7 +44,6 @@
                     </local:MyIconButton.ContextMenu>
                 </local:MyIconButton>
                 <local:MyIconButton Height="24" Margin="0,0,9,0" x:Name="BtnEdit"
-                                    Click="BtnEdit_Click"
                                     ToolTip="修改信息" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
                                     ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
                                     LogoScale="1.1"

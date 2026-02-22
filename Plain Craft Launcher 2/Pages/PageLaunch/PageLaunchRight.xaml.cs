@@ -15,8 +15,10 @@ public partial class PageLaunchRight : IRefreshable
         InitializeComponent();
         OnlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
             { ReloadTimeout = 10 * 60 * 1000 };
-        Loaded += (_, __) => Init();
-        Loaded += (_, __) => Refresh();
+        Loaded += (_, _) => Init();
+        Loaded += (_, _) => Refresh();
+        // Handles
+        BtnHintClose.Click += BtnHintClose_Click;
     }
 
     private void Init()

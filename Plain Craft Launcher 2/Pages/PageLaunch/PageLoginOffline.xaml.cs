@@ -5,12 +5,21 @@ namespace PCL;
 
 public partial class PageLoginOffline
 {
+    public PageLoginOffline()
+    {
+        // Handles
+        BtnBack.Click += BtnBack_Click;
+        RadioUuidCustom.Check += RadioUuid_Checked;
+        RadioUuidStandard.Check += RadioUuid_Checked;
+        RadioUuidLegacy.Check += RadioUuid_Checked;
+        BtnLogin.Click += BtnLogin_Click;
+    }
     private void BtnBack_Click(object sender, EventArgs e)
     {
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioCustomUuid_Checked(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
     {
         if (RadioUuidCustom.Checked)
         {

@@ -9,7 +9,13 @@ public partial class PageLoginProfileSkin
     public PageLoginProfileSkin()
     {
         InitializeComponent();
-        Loaded += (_, __) => Reload();
+        Loaded += (_, _) => Reload();
+        // Handles
+        PanData.MouseEnter += ShowPanel;
+        PanData.MouseLeave += HidePanel;
+        BtnSkin.Click += BtnSkin_Click;
+        BtnEdit.Click += BtnEdit_Click;
+        BtnSelect.Click += ChangeProfile;
     }
 
     /// <summary>
@@ -52,7 +58,7 @@ public partial class PageLoginProfileSkin
             "PageLoginProfileSkin Button");
     }
 
-    private void HidePanel()
+    private void HidePanel(object sender, EventArgs e)
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
@@ -62,7 +68,7 @@ public partial class PageLoginProfileSkin
 
     private void MenuAccountOptions_Closed(object sender, RoutedEventArgs e)
     {
-        HidePanel();
+        HidePanel(sender, e);
     }
 
     // 皮肤与披风子菜单
@@ -128,20 +134,20 @@ public partial class PageLoginProfileSkin
     // 保存皮肤
     private void BtnSkinSave_Click(object sender, RoutedEventArgs e)
     {
-        Skin.BtnSkinSave_Click();
+        Skin.BtnSkinSave_Click(sender, e);
     }
 
     // 刷新皮肤
     private void BtnSkinRefresh_Click(object sender, RoutedEventArgs e)
     {
-        Skin.RefreshClick();
+        Skin.RefreshClick(sender, e);
     }
 
     // 修改披风
     private void BtnSkinCape_Click(object sender, RoutedEventArgs e)
     {
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
-            Skin.BtnSkinCape_Click();
+            Skin.BtnSkinCape_Click(sender, e);
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
             ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");

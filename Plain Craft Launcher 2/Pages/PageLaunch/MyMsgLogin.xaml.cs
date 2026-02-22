@@ -15,6 +15,16 @@ public partial class MyMsgLogin
     private string UserCode; // 需要用户在网页上输入的设备代码
     private string Website; // 验证网页的网址
 
+    public MyMsgLogin()
+    {
+        Loaded += Load;
+        // Handles
+        Btn1.Click += Btn1_Click;
+        Btn3.Click += Btn3_Click;
+        PanBorder.MouseLeftButtonDown += Drag;
+        LabTitle.MouseLeftButtonDown += Drag;
+    }
+    
     private void Finished(object Result)
     {
         if (MyConverter.IsExited)
@@ -159,9 +169,9 @@ public partial class MyMsgLogin
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
-            Btn3.Name = Btn3.Name + ModBase.GetUuid();
+            Btn1.Name += ModBase.GetUuid();
+            Btn2.Name += ModBase.GetUuid();
+            Btn3.Name += ModBase.GetUuid();
             MyConverter = Converter;
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
             Data = (JObject)Converter.Content;
@@ -229,11 +239,11 @@ public partial class MyMsgLogin
     }
 
     // 实现回车和 Esc 的接口（#4857）
-    public void Btn1_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+    public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
     }
 
-    public void Btn3_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
+    public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
         Finished(new ThreadInterruptedException());
     }

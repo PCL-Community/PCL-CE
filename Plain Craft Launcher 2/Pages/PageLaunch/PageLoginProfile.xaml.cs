@@ -14,7 +14,10 @@ public partial class PageLoginProfile
     public PageLoginProfile()
     {
         InitializeComponent();
-        Loaded += (_, __) => Reload();
+        Loaded += (_, _) => Reload();
+        // Handles
+        BtnNew.Click += BtnNew_Click;
+        BtnPort.Click += BtnPort_Click;
     }
 
     public ObservableCollection<ProfileItem> ProfileCollection { get; set; } = new();

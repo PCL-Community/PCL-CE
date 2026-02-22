@@ -22,7 +22,6 @@
             Fill="{DynamicResource ColorBrush2}" Opacity="0.7" Width="40" Stretch="Uniform" Grid.ColumnSpan="2"
             Margin="4,0,0,0" />
         <local:MyButton Text="开始正版验证" x:Name="BtnLogin" ColorType="Highlight"
-                        Click="BtnLogin_Click"
                         Height="28" Width="100" Margin="0,0,0,0" Grid.Row="2" Grid.Column="0" />
         <Grid Grid.Row="4" Grid.ColumnSpan="2" Opacity="0.3" Margin="2,30,2,0" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
@@ -37,7 +36,6 @@
                                 Grid.Column="2" />
         </Grid>
         <local:MyTextButton x:Name="BtnBack" Text="«  返回" Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Center"
-                            Click="BtnBack_Click"
                             Margin="0,60,0,0" Opacity="0.3" />
     </Grid>
 </StackPanel>

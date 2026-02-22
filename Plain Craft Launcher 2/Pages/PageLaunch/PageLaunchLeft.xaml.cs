@@ -30,10 +30,18 @@ public partial class PageLaunchLeft
     public PageLaunchLeft()
     {
         InitializeComponent();
-        Loaded += (_, __) => PageLaunchLeft_Loaded();
+        Loaded += PageLaunchLeft_Loaded;
+        // Handles
+        BtnInstance.Click += BtnInstance_Click;
+        BtnLaunch.Click += BtnLaunch_Click;
+        BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
+        BtnCancel.Click += BtnCancel_Click;
+        BtnMore.Click += BtnMore_Click;
+        PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
+        PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
     }
 
-    public void PageLaunchLeft_Loaded()
+    public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
     {
         if (IsLoad)
             RefreshPage(false);

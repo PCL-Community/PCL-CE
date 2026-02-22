@@ -23,6 +23,11 @@ public partial class PageLoginAuth
         InitializeComponent();
         Loaded += (_, __) => Reload();
         Loaded += (_, __) => ReloadRegisterButton();
+        // Handles
+        BtnBack.Click += BtnBack_Click;
+        BtnLogin.Click += BtnLogin_Click;
+        TextServer.TextChanged += ComboName_TextChanged;
+        BtnLink.Click += Btn_Click;
     }
 
     private void Reload()
@@ -155,7 +160,7 @@ public partial class PageLoginAuth
     }
 
     // 链接处理
-    private void ComboName_TextChanged(object sender, TextChangedEventArgs textChangedEventArgs)
+    private void ComboName_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnLink.Content = string.IsNullOrEmpty(TextName.Text) ? "注册账号" : "找回密码";
     }

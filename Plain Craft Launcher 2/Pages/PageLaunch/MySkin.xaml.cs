@@ -30,6 +30,11 @@ public partial class MySkin
         MouseLeave += PanSkin_MouseLeave;
         MouseLeftButtonDown += PanSkin_MouseLeftButtonDown;
         MouseLeftButtonUp += PanSkin_MouseLeftButtonUp;
+        // Handles
+        BtnSkinSave.Click += BtnSkinSave_Click;
+        BtnSkinSave.Checked += BtnSkinSave_Checked;
+        BtnSkinRefresh.Click += RefreshClick;
+        BtnSkinCape.Click += BtnSkinCape_Click;
     }
 
     public string Address
@@ -94,7 +99,7 @@ public partial class MySkin
     }
 
     // 保存皮肤
-    public void BtnSkinSave_Click()
+    public void BtnSkinSave_Click(object sender, RoutedEventArgs e)
     {
         Save(Loader);
     }
@@ -136,10 +141,9 @@ public partial class MySkin
         }
     }
 
-    private void BtnSkinSave_Checked(object o, RoutedEventArgs e)
+    private void BtnSkinSave_Checked(object sender, RoutedEventArgs e)
     {
-        var sender = (MyMenuItem)o;
-        sender.IsEnabled = string.IsNullOrEmpty(Address);
+        ((MyMenuItem)sender).IsEnabled = string.IsNullOrEmpty(Address);
     }
 
     /// <summary>
@@ -265,7 +269,7 @@ public partial class MySkin
     }
 
     // 刷新缓存
-    public void RefreshClick()
+    public void RefreshClick(object sender, RoutedEventArgs e)
     {
         RefreshCache(Loader);
     }
@@ -342,7 +346,7 @@ public partial class MySkin
         });
     }
 
-    public void BtnSkinCape_Click()
+    public void BtnSkinCape_Click(object sender, RoutedEventArgs e)
     {
         // 检查条件，获取新披风
         if (IsChanging)

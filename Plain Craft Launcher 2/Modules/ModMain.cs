@@ -737,22 +737,21 @@ public static class ModMain
     /// <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static string MyMsgBoxInput(string Title, string Text = "", string DefaultInput = "",
-        Collection<ValidateType> ValidateRules = null, string HintText = "", string Button1 = "确定",
+        Collection<ValidateType>? ValidateRules = null, string HintText = "", string Button1 = "确定",
         string Button2 = "取消", bool IsWarn = false)
     {
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
             Text = Text, HintText = HintText, Type = MyMsgBoxType.Input,
-            ValidateRules = ValidateRules ?? new Collection<ValidateType>(), Button1 = Button1, Button2 = Button2,
+            ValidateRules = ValidateRules ?? [], Button1 = Button1, Button2 = Button2,
             Content = DefaultInput, IsWarn = IsWarn, Title = Title
         };
         WaitingMyMsgBox.Add(Converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
         try
         {
-            if (FrmMain is not null)
-                FrmMain.DragStop();
+            FrmMain?.DragStop();
             ComponentDispatcher.PushModal();
             Dispatcher.PushFrame(Converter.WaitFrame);
         }
@@ -761,8 +760,8 @@ public static class ModMain
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log(Conversions.ToString(Operators.ConcatenateObject("[Control] 输入弹框返回：", Converter.Result ?? "null")));
-        return Conversions.ToString(Converter.Result);
+        ModBase.Log($"[Control] 输入弹框返回：{Converter.Result}");
+        return Converter.Result?.ToString();
     }
 
     /// <summary>
