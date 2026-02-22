@@ -60,7 +60,7 @@ public partial class PageSetupUpdate
         }
     }
 
-    public async void CheckUpdate(object sender, MouseButtonEventArgs e)
+    public async void CheckUpdate()
     {
         ModBase.Log("[Update] 开始检查更新");
         CardUpdate.Visibility = Visibility.Collapsed;
@@ -286,5 +286,10 @@ public partial class PageSetupUpdate
         Available = 1,
         Error = 2,
         Latest = 3
+    }
+
+    private void BtnCheckAgain_OnClick(object sender, MouseButtonEventArgs e)
+    {
+        CheckUpdate();
     }
 }

@@ -122,7 +122,7 @@
                                    HorizontalAlignment="Left" VerticalAlignment="Top" />
                         <local:MyButton x:Name="BtnCheckAgain" Text="再次检查" ColorType="Highlight" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch" Click="CheckUpdate" />
+                                        VerticalAlignment="Stretch" Click="BtnCheckAgain_OnClick" />
                         <local:MyButton x:Name="BtnChangelog" Text="查看更新日志" ColorType="Normal" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="5" HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch" Click="BtnChangelog_Click" />
