@@ -8,6 +8,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -23,12 +24,12 @@ public class ModSetup : IConfigScope
         return methods.Where(method => keys.Contains(method.Name)).Select(method => method.Name);
     }
 
-    public bool Reset(object argument = null)
+    public bool Reset(object? argument = null)
     {
         throw new NotSupportedException();
     }
 
-    public bool IsDefault(object argument = null)
+    public bool IsDefault(object? argument = null)
     {
         throw new NotSupportedException();
     }
@@ -38,56 +39,69 @@ public class ModSetup : IConfigScope
         ConfigService.RegisterObserver(this, new ConfigObserver(Event: ConfigEvent.Changed, Handler: OnConfigChanged));
     }
 
-    private readonly ConcurrentDictionary<string, MethodInfo> _methodCache = new();
+    private readonly ConcurrentDictionary<string, MethodInfo?> _methodCache = new();
+
+    private void InvokeEventMethod(string key, Func<object> valueGetter)
+    {
+        var method = _methodCache.GetOrAdd(key, typeof(ModSetup).GetMethod);
+        if (method == null) return;
+        var para = method.GetParameters();
+        if (para.Length < 1) return;
+        var paraType = para[0].ParameterType;
+        var value = valueGetter();
+        var valueType = value.GetType();
+        if (valueType != paraType)
+        {
+            if (valueType.IsEnum) value = (int)value;
+            else if (value is string s) value = StringConvertExtension.Convert(s, paraType);
+            else if (paraType == typeof(string)) value = value.ConvertToString();
+            else throw new InvalidCastException($"{key}: {valueType.FullName} cannot be converted to {paraType.FullName}");
+        }
+        method.Invoke(this, [value]);
+    }
 
     public void OnConfigChanged(ConfigEventArgs e)
     {
         var key = e.Item.Key;
-        var method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
-        if (method is not null)
-            method.Invoke(this, new[] { e.Value ?? GetConfigItem(key).DefaultValueNoType });
+        InvokeEventMethod(key, () => e.Value ?? GetConfigItem(key).DefaultValueNoType);
     }
 
     private static ConfigItem GetConfigItem(string key)
     {
-        ConfigItem item = default;
-        var result = ConfigService.TryGetConfigItemNoType(key, out item);
-        if (result)
-            return item;
-        throw new KeyNotFoundException($"配置项 '{key}' 不存在");
+        var result = ConfigService.TryGetConfigItemNoType(key, out var item);
+        return result ? item! : throw new KeyNotFoundException($"配置项 '{key}' 不存在");
     }
 
     /// <summary>
-    ///     改变某个设置项的值。
+    /// 改变某个设置项的值。
     /// </summary>
-    public void Set(string key, object value, bool forceReload = false, ModMinecraft.McInstance instance = null)
+    public void Set(string key, object value, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
         GetConfigItem(key).SetValueNoType(value, instance?.PathInstance);
     }
 
     /// <summary>
-    ///     应用某个设置项的值。
+    /// 应用某个设置项的值。
     /// </summary>
-    public object Load(string key, bool forceReload = false, ModMinecraft.McInstance instance = null)
+    public object Load(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
         var value = Get(key, instance);
-        var method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
-        if (method != null) method.Invoke(this, new[] { value });
+        InvokeEventMethod(key, () => value);
         return value;
     }
 
     /// <summary>
-    ///     获取某个设置项的值。
+    /// 获取某个设置项的值。
     /// </summary>
-    public object Get(string key, ModMinecraft.McInstance instance = null)
+    public object Get(string key, ModMinecraft.McInstance? instance = null)
     {
         return GetConfigItem(key).GetValueNoType(instance?.PathInstance);
     }
 
     /// <summary>
-    ///     初始化某个设置项的值。
+    /// 初始化某个设置项的值。
     /// </summary>
-    public void Reset(string key, bool forceReload = false, ModMinecraft.McInstance instance = null)
+    public void Reset(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
         GetConfigItem(key).Reset(instance?.PathInstance);
     }
@@ -103,7 +117,7 @@ public class ModSetup : IConfigScope
     /// <summary>
     ///     某个设置项是否从未被设置过。
     /// </summary>
-    public bool IsUnset(string key, ModMinecraft.McInstance instance = null)
+    public bool IsUnset(string key, ModMinecraft.McInstance? instance = null)
     {
         return GetConfigItem(key).IsDefault(instance?.PathInstance);
     }
@@ -688,6 +702,7 @@ public class ModSetup : IConfigScope
         }
         catch (Exception ex)
         {
+            ModBase.Log(ex, "HTTP 代理应用出错");
         }
     }
 
