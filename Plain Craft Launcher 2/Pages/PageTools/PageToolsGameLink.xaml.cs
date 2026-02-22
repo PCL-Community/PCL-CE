@@ -27,7 +27,7 @@ public partial class PageToolsGameLink
     public PageToolsGameLink()
     {
         InitializeComponent();
-        Initialized += (_, __) => LoaderInit();
+        LoaderInit();
         Loaded += (_, __) => Reload();
         PageEnter += PageLinkLobby_OnPageEnter;
     }
@@ -94,10 +94,7 @@ public partial class PageToolsGameLink
         HintAnnounce.Theme = MyHint.Themes.Blue;
 
         // 加载公告
-        if (LobbyAnnouncementLoader != null)
-        {
-            LobbyAnnouncementLoader.Start();
-        }
+        LobbyAnnouncementLoader.Start();
         if (_linkAnnounceUpdateCancelSource is not null)
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
@@ -113,7 +110,7 @@ public partial class PageToolsGameLink
         CurrentSubpage = Subpages.PanSelect;
     }
 
-    private void BtnEulaStop_Click(object sender, EventArgs e)
+    private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
         if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn: true) == 1)
         {
@@ -936,7 +933,7 @@ public partial class PageToolsGameLink
     #region PanFinish | 加载完成页面
 
     // 退出
-    private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs e)
+    private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? Constants.vbCrLf + "由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
         if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
@@ -948,13 +945,13 @@ public partial class PageToolsGameLink
     }
 
     // 复制大厅编号
-    private void BtnFinishCopy_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnFinishCopy_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         ModBase.ClipboardSet(LabFinishId.Text);
     }
 
     // 复制 IP
-    private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var ip = "127.0.0.1:" + LobbyInfoProvider.McForward.LocalPort;
         ModMain.MyMsgBox(
