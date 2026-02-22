@@ -28,7 +28,7 @@
                                Grid.Row="0" />
                     <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1"
                                       Grid.Row="0"
-                                      SelectionChanged="ComboChange, ComboSystemActivity_SelectionChanged">
+                                      SelectionChanged="ComboSystemActivity_OnSelectionChanged">
                         <local:MyComboBoxItem Content="显示所有公告" ToolTip="显示包括启动器功能调查、活动等在内的全部公告" />
                         <local:MyComboBoxItem Content="仅在有重要通知时显示公告" />
                         <local:MyComboBoxItem Content="关闭所有公告" />

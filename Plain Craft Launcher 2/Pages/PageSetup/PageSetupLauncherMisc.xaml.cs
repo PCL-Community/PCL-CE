@@ -220,4 +220,10 @@ public partial class PageSetupLauncherMisc
         CheckBoxChange(sender, user);
         Check_DisableHardwareAcceleration(sender, user);
     }
+
+    private void ComboSystemActivity_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange(sender, e); 
+        ComboSystemActivity_SelectionChanged(sender, e); 
+    }
 }
