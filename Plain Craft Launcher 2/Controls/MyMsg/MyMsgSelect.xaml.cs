@@ -129,7 +129,7 @@ public partial class MyMsgSelect
         }, "MyMsgBox " + Uuid);
     }
 
-    public void Btn1_Click()
+    public void Btn1_Click(object? sender = null,EventArgs? e = null)
     {
         if (MyConverter.IsExited || SelectedIndex == -1)
             return;
@@ -138,7 +138,7 @@ public partial class MyMsgSelect
         Close();
     }
 
-    public void Btn2_Click()
+    public void Btn2_Click(object? sender = null,EventArgs? e = null)
     {
         if (MyConverter.IsExited)
             return;
