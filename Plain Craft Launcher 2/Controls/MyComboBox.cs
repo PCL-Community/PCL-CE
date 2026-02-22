@@ -33,7 +33,7 @@ public class MyComboBox : ComboBox
 
     public MyComboBox()
     {
-        _Text = SelectedItem.ToString();
+        _Text = SelectedItem?.ToString() ?? "";
         PreviewMouseLeftButtonDown += MyComboBox_PreviewMouseLeftButtonDown;
         PreviewMouseLeftButtonUp += MyComboBox_PreviewMouseLeftButtonUp;
         MouseLeave += MyComboBox_PreviewMouseLeftButtonUp;

@@ -28,6 +28,7 @@ public partial class MySlider
 
     public MySlider()
     {
+        InitializeComponent();
         SizeChanged += RefreshWidth;
         MouseLeftButtonDown += DragStart;
         IsEnabledChanged += (_, __) => RefreshColor();

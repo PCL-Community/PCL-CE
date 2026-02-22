@@ -48,6 +48,7 @@ public partial class MyRadioBox : IMyRadio
 
     public MyRadioBox()
     {
+        InitializeComponent();
         MouseLeftButtonUp += (_, __) => Radiobox_MouseUp();
         MouseLeftButtonDown += (_, __) => Radiobox_MouseDown();
         MouseLeave += (_, __) => Radiobox_MouseLeave();
