@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
@@ -59,7 +60,7 @@ public partial class PageSetupUpdate
         }
     }
 
-    public async void CheckUpdate()
+    public async void CheckUpdate(object sender, MouseButtonEventArgs e)
     {
         ModBase.Log("[Update] 开始检查更新");
         CardUpdate.Visibility = Visibility.Collapsed;

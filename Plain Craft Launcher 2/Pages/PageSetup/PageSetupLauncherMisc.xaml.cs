@@ -84,29 +84,33 @@ public partial class PageSetupLauncherMisc
     }
 
     // 将控件改变路由到设置改变
-    private static void ComboChange(MyComboBox sender, object e)
+    private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
     }
 
-    private static void RadioBoxChange(MyRadioBox sender, object e)
+    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
+        dynamic sender = senderRaw;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
-    private static void CheckBoxChange(MyCheckBox sender, object e)
+    private void CheckBoxChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
+            ModBase.Setup.Set(sender.Tag, sender.Checked);
     }
 
-    private static void SliderChange(MySlider sender, object e)
+    private void SliderChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
+            ModBase.Setup.Set(sender.Tag, sender.Value);
     }
 
     // 网络
@@ -121,10 +125,9 @@ public partial class PageSetupLauncherMisc
     private void SliderLoad()
     {
         SliderDebugAnim.GetHintText = new Func<object, object>(v =>
-            Conversions.ToBoolean(Operators.ConditionalCompareObjectGreater(v, 29, false))
+            (int)v > 29
                 ? "关闭"
-                : Operators.ConcatenateObject( Math.Round(Convert.ToDouble(Operators.AddObject(Operators.DivideObject(v, 10), 0.1d)), 1),
-                    "x"));
+                : (Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1)) + "x");
         SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Operators.AddObject(v, 1)} FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
@@ -154,13 +157,13 @@ public partial class PageSetupLauncherMisc
     }
 
     // 硬件加速
-    private void Check_DisableHardwareAcceleration(object sender, bool user)
+    private void Check_DisableHardwareAcceleration(object _, bool __)
     {
         ModMain.Hint("此项变更将在重启 PCL 后生效");
     }
 
     // 调试模式
-    private void CheckDebugMode_Change()
+    private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
             ModMain.Hint("部分调试信息将在刷新或启动器重启后切换显示！", Log: false);
@@ -205,4 +208,16 @@ public partial class PageSetupLauncherMisc
     }
 
     #endregion
+
+    private void CheckDebugMode_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckDebugMode_Change(sender, user);
+    }
+
+    private void CheckSystemDisableHardwareAcceleration_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        Check_DisableHardwareAcceleration(sender, user);
+    }
 }

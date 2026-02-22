@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
@@ -248,34 +249,37 @@ public partial class PageSetupUI
     }
 
     // 将控件改变路由到设置改变
-    private static void
-        SliderChange(MySlider sender,
-            object e) // , SliderLauncherHue.Change, SliderLauncherLight.Change, SliderLauncherSat.Change, SliderLauncherDelta.Change
+    private void SliderChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
+            ModBase.Setup.Set(sender.Tag, sender.Value);
     }
 
-    private static void ComboChange(MyComboBox sender, object e)
+    private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
     }
 
-    private static void CheckBoxChange(MyCheckBox sender, object e)
+    private void CheckBoxChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         // 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
+        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(sender.Tag, sender.Checked);
     }
 
-    private static void TextBoxChange(MyTextBox sender, object e)
+    private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+            ModBase.Setup.Set(sender.Tag, sender.Text);
     }
 
-    private static void RadioBoxChange(MyRadioBox sender, object e)
+    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
+        dynamic sender = senderRaw;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
@@ -655,7 +659,7 @@ public partial class PageSetupUI
         }
     }
 
-    private void BtnCustomRefresh_Click()
+    private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.FrmLaunchRight.ForceRefresh();
         ModMain.Hint("已刷新主页！", ModMain.HintType.Finish);
@@ -670,9 +674,10 @@ public partial class PageSetupUI
     }
 
     // 主题
-    private void ThemeColor_Change(MyComboBox sender, EventArgs e)
+    private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
-        ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+        dynamic sender = senderRaw;
+        ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
         ModSecret.ThemeRefresh();
     }
 
@@ -704,20 +709,17 @@ public partial class PageSetupUI
         CardLauncher.TriggerForceResize();
     }
 
-    private void HSL_Change()
+    private void HSL_Change(object senderRaw, bool user)
     {
         if (ModAnimation.AniControlEnabled != 0 || SliderLauncherSat is null || !SliderLauncherSat.IsLoaded)
             return;
-        /* TODO ERROR: Skipped IfDirectiveTrivia
-        #If False
-        */ /* TODO ERROR: Skipped DisabledTextTrivia
-                If EnableCustomTheme Then
+        #if False
+                if (EnableCustomTheme) 
+                {
                     ColorHueTopbarDelta = SliderLauncherDelta.Value - 90
                     ColorLightAdjust = SliderLauncherLight.Value - 20
-                End If
-        */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-        #End If
-        */
+                }
+        #endif
         ModSecret.ThemeRefresh();
     }
 

@@ -120,33 +120,38 @@ public partial class PageSetupLaunch
     }
 
     // 将控件改变路由到设置改变
-    private static void RadioBoxChange(MyRadioBox sender, object e)
+    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
+        dynamic sender = senderRaw;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
-    private static void TextBoxChange(MyTextBox sender, object e)
+    private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
     }
 
-    private static void SliderChange(MySlider sender, object e)
+    private void SliderChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
     }
 
-    private static void ComboChange(MyComboBox sender, object e)
+    private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
     }
 
-    private static void CheckBoxChange(MyCheckBox sender, object e)
+    private void CheckBoxChange(object senderRaw, bool user)
     {
+        dynamic sender = senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
     }
