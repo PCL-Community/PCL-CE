@@ -13,10 +13,10 @@ public class PeHeaderParser : IJavaParser
     {
         ["Eclipse"] = JavaBrandType.EclipseTemurin,
         ["Temurin"] = JavaBrandType.EclipseTemurin,
-        ["Bellsoft"] = JavaBrandType.Bellsoft,
+        ["Bellsoft"] = JavaBrandType.Liberica,
         ["Microsoft"] = JavaBrandType.Microsoft,
-        ["Amazon"] = JavaBrandType.AmazonCorretto,
-        ["Azul"] = JavaBrandType.AzulZulu,
+        ["Amazon"] = JavaBrandType.Corretto,
+        ["Azul"] = JavaBrandType.Zulu,
         ["IBM"] = JavaBrandType.IBMSemeru,
         ["Oracle"] = JavaBrandType.Oracle,
         ["Tencent"] = JavaBrandType.TencentKona,
