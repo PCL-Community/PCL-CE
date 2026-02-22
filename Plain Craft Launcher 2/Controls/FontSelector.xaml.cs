@@ -21,8 +21,8 @@ public partial class FontSelector
     public FontSelector()
     {
         InitializeComponent();
-        
         Loaded += FontSelector_Loaded;
+        ComboFont.SelectionChanged += ComboFont_SelectionChanged;
     }
 
 
