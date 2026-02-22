@@ -50,18 +50,17 @@ public partial class PageSetupLaunch
         try
         {
             // 启动参数
-            TextArgumentTitle.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentTitle"));
-            TextArgumentInfo.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentInfo"));
-            ComboArgumentIndieV2.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentIndieV2"));
-            ComboArgumentVisibie.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentVisible"));
-            ComboArgumentPriority.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentPriority"));
-            ComboArgumentWindowType.SelectedIndex =
-                Conversions.ToInteger(ModBase.Setup.Get("LaunchArgumentWindowType"));
-            TextArgumentWindowWidth.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentWindowWidth"));
-            TextArgumentWindowHeight.Text = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentWindowHeight"));
-            CheckArgumentRam.Checked = (bool?)ModBase.Setup.Get("LaunchArgumentRam");
-            ComboMsAuthType.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LoginMsAuthType"));
-            ComboPreferredIpStack.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchPreferredIpStack"));
+            TextArgumentTitle.Text = Config.Launch.Title;
+            TextArgumentInfo.Text = Config.Launch.TypeInfo;
+            ComboArgumentIndieV2.SelectedIndex = Config.Launch.IndieSolutionV2;
+            ComboArgumentVisibie.SelectedIndex = (int)Config.Launch.LauncherVisibility;
+            ComboArgumentPriority.SelectedIndex = (int)Config.Launch.ProcessPriority;
+            ComboArgumentWindowType.SelectedIndex = (int)Config.Launch.GameWindowMode;
+            TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
+            TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
+            CheckArgumentRam.Checked = Config.Launch.OptimizeMemory;
+            ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
+            ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
             // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
@@ -72,14 +71,14 @@ public partial class PageSetupLaunch
             SliderRamCustom.Value = Conversions.ToInteger(ModBase.Setup.Get("LaunchRamCustom"));
 
             // 高级设置
-            ComboAdvanceRenderer.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("LaunchAdvanceRenderer"));
-            TextAdvanceJvm.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceJvm"));
-            TextAdvanceGame.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceGame"));
-            TextAdvanceRun.Text = Conversions.ToString(ModBase.Setup.Get("LaunchAdvanceRun"));
-            CheckAdvanceRunWait.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceRunWait");
-            CheckAdvanceDisableRW.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceDisableRW");
-            CheckAdvanceGraphicCard.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceGraphicCard");
-            CheckAdvanceNoJavaw.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceNoJavaw");
+            ComboAdvanceRenderer.SelectedIndex = Config.Launch.Renderer;
+            TextAdvanceJvm.Text = Config.Launch.JvmArgs;
+            TextAdvanceGame.Text = Config.Launch.GameArgs;
+            TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
+            CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
+            CheckAdvanceDisableRW.Checked = Config.Launch.DisableRw;
+            CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
+            CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             if (ModBase.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -88,7 +87,7 @@ public partial class PageSetupLaunch
             }
             else
             {
-                CheckAdvanceDisableJLW.Checked = (bool?)ModBase.Setup.Get("LaunchAdvanceDisableJLW");
+                CheckAdvanceDisableJLW.Checked = Config.Launch.DisableJlw;
             }
         }
 
@@ -172,66 +171,58 @@ public partial class PageSetupLaunch
     /// <summary>
     ///     刷新 UI 上的 RAM 显示。
     /// </summary>
-    public void RefreshRam(bool ShowAnim)
+    public void RefreshRam(bool showAnim)
     {
         if (LabRamGame is null || LabRamUsed is null || ModMain.FrmMain.PageCurrent != FormMain.PageType.Setup ||
             ModMain.FrmSetupLeft.PageID != FormMain.PageSubType.SetupLaunch)
             return;
         // 获取内存情况
-        var RamGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
+        var ramGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        double RamTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
-        double RamAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
-        var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
-        var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
-        var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        double ramTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
+        double ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
+        var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
+        var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
+        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
         // 设置最大可用内存
-        if (RamTotal <= 1.5d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));
-        else if (RamTotal <= 8d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 1.5d) / 0.5d) + 12d);
-        else if (RamTotal <= 16d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 8d) / 1d) + 25d);
+        if (ramTotal <= 1.5d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
+        else if (ramTotal <= 8d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 1.5d) / 0.5d) + 12d);
+        else if (ramTotal <= 16d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 8d) / 1d) + 25d);
         else
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 16d) / 2d) + 33d);
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = Conversions.ToString(Operators.ConcatenateObject(
-            Operators.ConcatenateObject(RamGame == Math.Floor(RamGame) ? RamGame + ".0" : RamGame, " GB"),
-            RamGame != RamGameActual
-                ? Operators.ConcatenateObject(
-                    Operators.ConcatenateObject(" (可用 ",
-                        RamGameActual == Math.Floor(RamGameActual) ? RamGameActual + ".0" : RamGameActual), " GB)")
-                : ""));
-        LabRamUsed.Text =
-            Conversions.ToString(Operators.ConcatenateObject(RamUsed == Math.Floor(RamUsed) ? RamUsed + ".0" : RamUsed,
-                " GB"));
-        LabRamTotal.Text = Conversions.ToString(Operators.ConcatenateObject(
-            Operators.ConcatenateObject(" / ", RamTotal == Math.Floor(RamTotal) ? RamTotal + ".0" : RamTotal), " GB"));
+        LabRamGame.Text = (ramGame == Math.Floor(ramGame) ? ramGame + ".0" : ramGame.ToString()) + " GB" +
+                          (ramGame != ramGameActual ? " (可用 " + (ramGameActual == Math.Floor(ramGameActual) ? ramGameActual + ".0" : ramGameActual.ToString()) + " GB)" : "");
+        LabRamUsed.Text = (ramUsed == Math.Floor(ramUsed) ? ramUsed + ".0" : ramUsed.ToString()) + " GB";
+        LabRamTotal.Text = " / " + (ramTotal == Math.Floor(ramTotal) ? ramTotal + ".0" : ramTotal.ToString()) + " GB";
         LabRamWarn.Visibility =
-            RamGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-        HintRamTooHigh.Visibility = RamGame / RamTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
-        if (ShowAnim)
+        HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
+        if (showAnim)
         {
             // 宽度动画
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, RamUsed - ColumnRamUsed.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamGame, RamGameActual - ColumnRamGame.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamGame, ramGameActual - ColumnRamGame.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, RamEmpty - ColumnRamEmpty.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, ramEmpty - ColumnRamEmpty.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
                 }, "SetupLaunch Ram Grid");
         }
         else
         {
             // 宽度设置
-            ColumnRamUsed.Width = new GridLength(RamUsed, GridUnitType.Star);
-            ColumnRamGame.Width = new GridLength(RamGameActual, GridUnitType.Star);
-            ColumnRamEmpty.Width = new GridLength(RamEmpty, GridUnitType.Star);
+            ColumnRamUsed.Width = new GridLength(ramUsed, GridUnitType.Star);
+            ColumnRamGame.Width = new GridLength(ramGameActual, GridUnitType.Star);
+            ColumnRamEmpty.Width = new GridLength(ramEmpty, GridUnitType.Star);
         }
     }
 
