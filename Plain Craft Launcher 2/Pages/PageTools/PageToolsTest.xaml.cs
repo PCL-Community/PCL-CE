@@ -971,4 +971,16 @@ public partial class PageToolsTest
         public nuint PagesCombined;
         public uint Flags;
     }
+
+    private void TextDownloadFolder_OnValidatedTextChanged(object sender, RoutedEventArgs e)
+    {
+        SaveCacheDownloadFolder(sender, e);
+        TextDownloadName_ValidateChanged(sender, e);
+    }
+
+    private void TextUserAgent_OnValidatedTextChanged(object sender, RoutedEventArgs e)
+    {
+        SaveCustomUserAgent(sender, e);
+        TextDownloadFolder_ValidateChanged(sender, e);
+    }
 }

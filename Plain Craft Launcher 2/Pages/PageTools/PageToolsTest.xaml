@@ -56,12 +56,12 @@
 
                         <TextBlock Grid.Column="0" Grid.Row="1" Text="User-Agent" />
                         <local:MyTextBox x:Name="TextUserAgent" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" 
-                                         ValidatedTextChanged="SaveCustomUserAgent, TextDownloadFolder_ValidateChanged"
+                                         ValidatedTextChanged="TextUserAgent_OnValidatedTextChanged"
                                          Margin="0,10" />
 
                         <TextBlock Grid.Column="0" Grid.Row="2" Text="保存到" />
                         <local:MyTextBox x:Name="TextDownloadFolder" Grid.Column="1" Grid.Row="2" Margin="0,10" 
-                                         ValidatedTextChanged="SaveCacheDownloadFolder, TextDownloadName_ValidateChanged">
+                                         ValidatedTextChanged="TextDownloadFolder_OnValidatedTextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateFolderPath />
                             </local:MyTextBox.ValidateRules>
