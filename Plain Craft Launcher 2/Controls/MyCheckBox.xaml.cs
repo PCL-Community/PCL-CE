@@ -55,6 +55,8 @@ public partial class MyCheckBox
 
     public MyCheckBox()
     {
+        InitializeComponent();
+        
         MouseLeftButtonUp += (_, __) => Checkbox_MouseUp();
         MouseLeftButtonDown += (_, __) => Checkbox_MouseDown();
         MouseLeave += (_, __) => Checkbox_MouseLeave();

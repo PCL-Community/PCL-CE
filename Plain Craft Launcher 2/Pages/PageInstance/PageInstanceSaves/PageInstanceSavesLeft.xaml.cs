@@ -33,6 +33,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public PageInstanceSavesLeft()
     {
+        InitializeComponent();
         Loaded += Page_Loaded;
     }
 

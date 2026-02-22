@@ -28,6 +28,7 @@ public partial class PageLaunchLeft
 
     public PageLaunchLeft()
     {
+        InitializeComponent();
         Loaded += (_, __) => PageLaunchLeft_Loaded();
     }
 

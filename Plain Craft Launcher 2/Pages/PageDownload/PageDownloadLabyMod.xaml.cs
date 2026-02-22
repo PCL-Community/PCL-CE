@@ -6,6 +6,7 @@ public partial class PageDownloadLabyMod
 {
     public PageDownloadLabyMod()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

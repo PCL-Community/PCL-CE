@@ -16,6 +16,7 @@ public partial class PageSetupJava
 
     public PageSetupJava()
     {
+        InitializeComponent();
         Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }

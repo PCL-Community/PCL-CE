@@ -20,6 +20,7 @@ public partial class PageSetupLauncherMisc
 
     public PageSetupLauncherMisc()
     {
+        InitializeComponent();
         Loaded += PageSetupLink_Loaded;
         Loaded += (_, __) => Reload();
     }

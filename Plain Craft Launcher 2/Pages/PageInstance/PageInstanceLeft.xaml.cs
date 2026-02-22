@@ -13,6 +13,7 @@ public partial class PageInstanceLeft : IRefreshable
 
     public PageInstanceLeft()
     {
+        InitializeComponent();
         Loaded += (_, __) => RefreshModDisabled();
     }
 

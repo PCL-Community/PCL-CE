@@ -31,6 +31,7 @@ public partial class PageSelectRight
 
     public PageSelectRight()
     {
+        InitializeComponent();
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;
         Initialized += (_, __) => LoaderInit();

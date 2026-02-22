@@ -71,7 +71,11 @@ public class MyTextBox : TextBox
     public CornerRadius CornerRadius
     {
         get => (CornerRadius)GetValue(CornerRadiusProperty);
-        set => SetValue(CornerRadiusProperty, value);
+        set
+        {
+            if (value == null) return;
+            SetValue(CornerRadiusProperty, value);
+        }
     }
 
     private TextBlock labWrong

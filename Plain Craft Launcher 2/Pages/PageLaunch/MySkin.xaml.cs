@@ -25,6 +25,7 @@ public partial class MySkin
 
     public MySkin()
     {
+        InitializeComponent();
         MouseEnter += PanSkin_MouseEnter;
         MouseLeave += PanSkin_MouseLeave;
         MouseLeftButtonDown += PanSkin_MouseLeftButtonDown;

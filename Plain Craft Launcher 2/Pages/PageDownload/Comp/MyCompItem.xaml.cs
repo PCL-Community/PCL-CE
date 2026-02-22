@@ -148,6 +148,7 @@ public partial class MyCompItem
 
     public MyCompItem()
     {
+        InitializeComponent();
         Click += (sender, e) => MyCompItem_Click((MyCompItem)sender, e);
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;

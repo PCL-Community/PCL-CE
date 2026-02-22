@@ -9,6 +9,7 @@ public partial class PageDownloadOptiFine
 {
     public PageDownloadOptiFine()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

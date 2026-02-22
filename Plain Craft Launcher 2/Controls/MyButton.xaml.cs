@@ -52,6 +52,8 @@ public partial class MyButton
 
     public MyButton()
     {
+        InitializeComponent();
+        
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         Loaded += RefreshColor;

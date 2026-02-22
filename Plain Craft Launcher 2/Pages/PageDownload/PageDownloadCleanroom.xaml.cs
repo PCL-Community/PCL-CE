@@ -9,6 +9,7 @@ public partial class PageDownloadCleanroom
 {
     public PageDownloadCleanroom()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

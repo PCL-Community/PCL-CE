@@ -52,6 +52,8 @@ public partial class MyIconTextButton
 
     public MyIconTextButton()
     {
+        InitializeComponent();
+        
         MouseLeftButtonUp += (_, _) => MyIconTextButton_MouseUp();
         MouseLeftButtonDown += (_, _) => MyIconTextButton_MouseDown();
         MouseLeave += (_, _) => MyIconTextButton_MouseLeave();
@@ -65,7 +67,11 @@ public partial class MyIconTextButton
     public string Logo
     {
         get => ShapeLogo.Data.ToString();
-        set => ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        set
+        {
+            if (ShapeLogo == null) return;
+            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        }
     }
 
     public double LogoScale

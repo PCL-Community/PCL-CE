@@ -20,6 +20,7 @@ public partial class PageLoginAuth
 
     public PageLoginAuth()
     {
+        InitializeComponent();
         Loaded += (_, __) => Reload();
         Loaded += (_, __) => ReloadRegisterButton();
     }

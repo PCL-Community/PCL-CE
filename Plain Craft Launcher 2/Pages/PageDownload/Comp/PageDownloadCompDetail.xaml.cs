@@ -462,6 +462,7 @@ public partial class PageDownloadCompDetail
 
     public PageDownloadCompDetail()
     {
+        InitializeComponent();
         _compFileLoader = new ModLoader.LoaderTask<int, List<ModComp.CompFile>>("Comp File", task =>
         {
             LoadTargetFromAdditional();

@@ -15,6 +15,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
     public PageInstanceSavesInfo()
     {
+        InitializeComponent();
         Loaded += (_, __) => Init();
     }
 

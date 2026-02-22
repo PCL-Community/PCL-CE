@@ -23,6 +23,7 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     public PageInstanceScreenshot()
     {
+        InitializeComponent();
         Loaded += PageSetupLaunch_Loaded;
     }
 

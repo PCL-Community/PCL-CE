@@ -15,6 +15,7 @@ public partial class PageLogLeft
 
     public PageLogLeft()
     {
+        InitializeComponent();
         Loaded += PageLogLeft_Loaded;
         Unloaded += PageLogLeft_Unloaded;
     }

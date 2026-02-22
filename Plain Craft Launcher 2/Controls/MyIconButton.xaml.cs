@@ -43,6 +43,8 @@ public partial class MyIconButton
 
     public MyIconButton()
     {
+        InitializeComponent();
+        
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseLeftButtonUp += (_, __) => Button_MouseUp();
@@ -55,7 +57,11 @@ public partial class MyIconButton
     public string Logo
     {
         get => Path.Data.ToString();
-        set => Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        set
+        {
+            if (Path == null) return;
+            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        }
     }
 
     public double LogoScale

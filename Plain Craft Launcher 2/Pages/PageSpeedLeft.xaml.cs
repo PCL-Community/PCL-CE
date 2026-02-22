@@ -18,6 +18,7 @@ public partial class PageSpeedLeft
 
     public PageSpeedLeft()
     {
+        InitializeComponent();
         Loaded += Page_Loaded;
     }
 

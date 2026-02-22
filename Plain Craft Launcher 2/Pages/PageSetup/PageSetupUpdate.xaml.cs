@@ -16,6 +16,7 @@ public partial class PageSetupUpdate
 
     public PageSetupUpdate()
     {
+        InitializeComponent();
         Loaded += (_, __) => Init();
     }
 

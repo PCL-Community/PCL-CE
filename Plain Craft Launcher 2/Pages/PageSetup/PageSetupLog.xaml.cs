@@ -16,6 +16,7 @@ public partial class PageSetupLog
 {
     public PageSetupLog()
     {
+        InitializeComponent();
         Loaded += PageOtherLog_Loaded;
     }
 

@@ -27,6 +27,7 @@ public partial class PageInstanceOverall
 
     public PageInstanceOverall()
     {
+        InitializeComponent();
         Loaded += PageSetupLaunch_Loaded;
     }
 

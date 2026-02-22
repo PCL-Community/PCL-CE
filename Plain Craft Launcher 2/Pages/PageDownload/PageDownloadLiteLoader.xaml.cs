@@ -9,6 +9,7 @@ public partial class PageDownloadLiteLoader
 {
     public PageDownloadLiteLoader()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

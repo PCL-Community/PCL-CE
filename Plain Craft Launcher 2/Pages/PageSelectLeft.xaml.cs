@@ -17,6 +17,7 @@ public partial class PageSelectLeft : IRefreshable
 
     public PageSelectLeft()
     {
+        InitializeComponent();
         Initialized += PageSelectLeft_Initialized;
         Loaded += PageSelectLeft_Loaded;
     }

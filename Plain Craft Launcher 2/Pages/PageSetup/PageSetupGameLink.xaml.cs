@@ -15,6 +15,7 @@ public partial class PageSetupGameLink
 
     public PageSetupGameLink()
     {
+        InitializeComponent();
         Loaded += PageSetupLink_Loaded;
         Loaded += (_, __) => Reload();
     }

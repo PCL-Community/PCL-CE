@@ -21,6 +21,7 @@ public partial class PageInstanceSetup
 
     public PageInstanceSetup()
     {
+        InitializeComponent();
         Loaded += PageSetupSystem_Loaded;
     }
 

@@ -6,6 +6,7 @@ public partial class PageDownloadQuilt
 {
     public PageDownloadQuilt()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

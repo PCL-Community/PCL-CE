@@ -11,6 +11,7 @@ public partial class PageSetupGameManage
 
     public PageSetupGameManage()
     {
+        InitializeComponent();
         Loaded += PageSetupSystem_Loaded;
     }
 

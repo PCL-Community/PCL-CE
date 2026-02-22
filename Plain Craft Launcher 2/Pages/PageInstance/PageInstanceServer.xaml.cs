@@ -21,6 +21,7 @@ public partial class PageInstanceServer : MyPageRight
 
     public PageInstanceServer()
     {
+        InitializeComponent();
         Loaded += PageLoaded;
         IsVisibleChanged += PageInstanceServer_IsVisibleChanged;
     }

@@ -33,7 +33,7 @@ public partial class MyRadioButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyRadioButton)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is MyRadioButton rb && rb.LabText != null) rb.LabText.Text = Conversions.ToString(e.NewValue);
         }));
 
     private bool _Checked; // 是否选中
@@ -47,6 +47,14 @@ public partial class MyRadioButton
 
     public MyRadioButton()
     {
+        InitializeComponent();
+        
+        Loaded += (_, __) =>
+        {
+            if (LabText != null)
+                LabText.Text = Conversions.ToString(GetValue(TextProperty));
+        };
+        
         MouseLeftButtonUp += (_, __) => Radiobox_MouseUp();
         MouseLeftButtonDown += (_, __) => Radiobox_MouseDown();
         MouseLeave += (_, __) => Radiobox_MouseLeave();
@@ -60,7 +68,11 @@ public partial class MyRadioButton
     public string Logo
     {
         get => ShapeLogo.Data.ToString();
-        set => ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        set
+        {
+            if (ShapeLogo == null) return;
+            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        }
     }
 
     public double LogoScale

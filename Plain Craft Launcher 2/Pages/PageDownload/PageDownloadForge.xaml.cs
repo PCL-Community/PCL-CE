@@ -10,6 +10,7 @@ public partial class PageDownloadForge
 {
     public PageDownloadForge()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

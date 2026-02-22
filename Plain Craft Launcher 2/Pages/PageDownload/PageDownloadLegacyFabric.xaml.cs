@@ -6,6 +6,7 @@ public partial class PageDownloadLegacyFabric
 {
     public PageDownloadLegacyFabric()
     {
+        InitializeComponent();
         Initialized += (_, __) => LoaderInit();
         Loaded += (_, __) => Init();
     }

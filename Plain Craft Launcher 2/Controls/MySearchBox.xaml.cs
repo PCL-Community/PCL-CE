@@ -12,6 +12,8 @@ public partial class MySearchBox : MyCard
 
     public MySearchBox()
     {
+        InitializeComponent();
+        
         Loaded += MySearchBox_Loaded;
     }
 

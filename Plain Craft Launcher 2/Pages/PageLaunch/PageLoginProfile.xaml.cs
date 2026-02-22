@@ -13,6 +13,7 @@ public partial class PageLoginProfile
 {
     public PageLoginProfile()
     {
+        InitializeComponent();
         Loaded += (_, __) => Reload();
     }
 

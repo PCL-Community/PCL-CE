@@ -35,6 +35,7 @@ public partial class PageInstanceExport : IRefreshable
 
     public PageInstanceExport()
     {
+        InitializeComponent();
         Loaded += (_, __) => PageInstanceExport_Loaded();
     }
 

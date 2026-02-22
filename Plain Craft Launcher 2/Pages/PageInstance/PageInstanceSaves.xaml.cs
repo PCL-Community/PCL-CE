@@ -24,6 +24,7 @@ public partial class PageInstanceSaves : IRefreshable
 
     public PageInstanceSaves()
     {
+        InitializeComponent();
         fileSystemRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
         searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
         Loaded += PageSetupLaunch_Loaded;

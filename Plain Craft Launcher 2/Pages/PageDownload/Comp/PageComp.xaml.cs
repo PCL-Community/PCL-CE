@@ -236,6 +236,7 @@ public partial class PageComp
 
     public PageComp()
     {
+        InitializeComponent();
         Loader = new ModLoader.LoaderTask<ModComp.CompProjectRequest, int>("社区资源获取：XXX", ModComp.CompProjectsGet,
             LoaderInput) { ReloadTimeout = 60 * 1000 };
         Loaded += PageCompControls_Inited;

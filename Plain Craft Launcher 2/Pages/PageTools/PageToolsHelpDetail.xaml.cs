@@ -9,6 +9,7 @@ public partial class PageOtherHelpDetail : IRefreshable
 
     public PageOtherHelpDetail()
     {
+        InitializeComponent();
         Loaded += PageOtherHelpDetail_Loaded;
     }
 

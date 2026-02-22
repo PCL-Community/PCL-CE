@@ -15,6 +15,7 @@ public partial class PageSetupAbout
 
     public PageSetupAbout()
     {
+        InitializeComponent();
         Loaded += PageOtherAbout_Loaded;
     }
 
