@@ -47,18 +47,21 @@
 
                         <TextBlock Grid.Column="0" Grid.Row="0" Text="下载地址" />
                         <local:MyTextBox x:Name="TextDownloadUrl" Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
-                                         TextChanged="TextDownloadUrl_TextChanged">
+                                         TextChanged="TextDownloadUrl_TextChanged" 
+                                         ValidatedTextChanged="TextDownloadUrl_ValidateChanged">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateHttpOrUnc />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
 
                         <TextBlock Grid.Column="0" Grid.Row="1" Text="User-Agent" />
-                        <local:MyTextBox x:Name="TextUserAgent" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
+                        <local:MyTextBox x:Name="TextUserAgent" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" 
+                                         ValidatedTextChanged="SaveCustomUserAgent, TextDownloadFolder_ValidateChanged"
                                          Margin="0,10" />
 
                         <TextBlock Grid.Column="0" Grid.Row="2" Text="保存到" />
-                        <local:MyTextBox x:Name="TextDownloadFolder" Grid.Column="1" Grid.Row="2" Margin="0,10">
+                        <local:MyTextBox x:Name="TextDownloadFolder" Grid.Column="1" Grid.Row="2" Margin="0,10" 
+                                         ValidatedTextChanged="SaveCacheDownloadFolder, TextDownloadName_ValidateChanged">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateFolderPath />
                             </local:MyTextBox.ValidateRules>
@@ -108,7 +111,7 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
                             <local:MyButton x:Name="BtnSkinSave" Text="保存皮肤" MinWidth="140" Padding="13,0"
-                                            Margin="0,0,20,0" Grid.Row="1" />
+                                            Margin="0,0,20,0" Grid.Row="1" Click="BtnSkinSave_Click"/>
                         </Grid>
                     </Grid>
                 </StackPanel>

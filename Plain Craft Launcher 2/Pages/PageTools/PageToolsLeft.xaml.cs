@@ -74,8 +74,9 @@ public partial class PageToolsLeft
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(MyListItem sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
     {
+        dynamic sender = senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)

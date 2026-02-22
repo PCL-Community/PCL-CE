@@ -35,7 +35,7 @@ public partial class PageToolsTest
         InitializeComponent();
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
-        Loaded += (sender, e) => MeLoaded();
+        Loaded += (_, _) => MeLoaded();
     }
 
     private void MeLoaded()
@@ -70,13 +70,13 @@ public partial class PageToolsTest
                                        string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult);
     }
 
-    private void SaveCacheDownloadFolder()
+    private void SaveCacheDownloadFolder(object sender, RoutedEventArgs e)
     {
         ModBase.Setup.Set("CacheDownloadFolder", TextDownloadFolder.Text);
         TextDownloadName.Validate();
     }
 
-    private void SaveCustomUserAgent()
+    private void SaveCustomUserAgent(object sender, RoutedEventArgs e)
     {
         ModBase.Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text);
     }

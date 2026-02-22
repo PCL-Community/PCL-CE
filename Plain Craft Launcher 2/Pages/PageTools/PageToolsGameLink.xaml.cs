@@ -691,7 +691,7 @@ public partial class PageToolsGameLink
         }
     }
 
-    private void PasteLobbyId()
+    private void PasteLobbyId(object sender, MouseButtonEventArgs e)
     {
         string lobbyId;
         try
@@ -710,7 +710,7 @@ public partial class PageToolsGameLink
             ModMain.Hint("大厅编号不正确，请检查后重新输入");
     }
 
-    private void ClearLobbyId()
+    private void ClearLobbyId(object sender, MouseButtonEventArgs e)
     {
         TextJoinLobbyId.Text = string.Empty;
     }

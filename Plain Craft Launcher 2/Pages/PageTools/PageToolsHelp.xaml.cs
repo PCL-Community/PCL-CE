@@ -153,7 +153,7 @@ public partial class PageToolsHelp : IRefreshable
     /// <summary>
     ///     搜索帮助。
     /// </summary>
-    public void SearchRun()
+    public void SearchRun(object sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(SearchBox.Text))
         {

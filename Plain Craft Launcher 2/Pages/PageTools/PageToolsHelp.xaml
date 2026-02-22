@@ -9,7 +9,7 @@
         <local:MyScrollViewer Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
             <StackPanel x:Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
-                <local:MySearchBox Margin="0,0,0,15" HintText="搜索帮助" x:Name="SearchBox" />
+                <local:MySearchBox Margin="0,0,0,15" HintText="搜索帮助" x:Name="SearchBox" TextChanged="SearchRun" />
                 <Grid>
                     <local:MyCard x:Name="PanSearch" Visibility="Collapsed" VerticalAlignment="Top" Opacity="0"
                                   Margin="0,0,0,15" Title=" " MinHeight="40">
