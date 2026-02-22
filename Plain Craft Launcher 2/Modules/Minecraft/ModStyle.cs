@@ -70,7 +70,7 @@ internal static class ModStyle
                 _timer.Interval = UpdateInterval;
         }
 
-        public event TimerTickDelegate TimerTick;
+        public event TimerTickDelegate? TimerTick;
 
         private void _timerTick(object sender, EventArgs e)
         {

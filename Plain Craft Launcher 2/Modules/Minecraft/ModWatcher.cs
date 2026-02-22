@@ -328,7 +328,7 @@ public static class ModWatcher
         /// <summary>
         ///     游戏退出时触发。
         /// </summary>
-        public event GameExitEventHandler GameExit;
+        public event GameExitEventHandler? GameExit;
 
         private void LogReceived(object sender, DataReceivedEventArgs e)
         {
@@ -393,7 +393,7 @@ public static class ModWatcher
         /// <summary>
         ///     有新的日志输出，日志计数器发生改变时触发。
         /// </summary>
-        public event LogOutputEventHandler LogOutput;
+        public event LogOutputEventHandler? LogOutput;
 
         private void TimerLog()
         {

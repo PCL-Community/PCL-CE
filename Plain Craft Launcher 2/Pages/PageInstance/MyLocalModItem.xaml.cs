@@ -529,7 +529,7 @@ public partial class MyLocalCompItem
     #region 点击与勾选
 
     // 触发点击事件
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
@@ -654,11 +654,11 @@ public partial class MyLocalCompItem
     }
 
     // 勾选状态
-    public event CheckEventHandler Check;
+    public event CheckEventHandler? Check;
 
     public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
 
-    public event ChangedEventHandler Changed;
+    public event ChangedEventHandler? Changed;
 
     public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
 

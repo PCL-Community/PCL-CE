@@ -227,7 +227,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageEnterEventHandler PageEnter;
+    public event PageEnterEventHandler? PageEnter;
 
     public delegate void PageEnterEventHandler();
 
@@ -279,7 +279,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageExitEventHandler PageExit;
+    public event PageExitEventHandler? PageExit;
 
     public delegate void PageExitEventHandler();
 

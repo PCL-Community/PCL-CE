@@ -114,7 +114,7 @@ public partial class MyButton
     }
 
     // 声明
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     private void RefreshColor(object obj = null, object e = null)
     {

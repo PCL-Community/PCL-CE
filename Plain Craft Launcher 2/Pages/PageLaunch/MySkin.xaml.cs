@@ -56,7 +56,7 @@ public partial class MySkin
     }
 
     // 事件
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     // 控件动画
     private void PanSkin_MouseEnter(object sender, MouseEventArgs e)

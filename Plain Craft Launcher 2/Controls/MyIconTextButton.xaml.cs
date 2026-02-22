@@ -117,8 +117,8 @@ public partial class MyIconTextButton
         set => SetValue(EventDataProperty, value);
     }
 
-    public event CheckEventHandler Check;
-    public event ChangeEventHandler Change;
+    public event CheckEventHandler? Check;
+    public event ChangeEventHandler? Change;
 
     public void RaiseChange()
     {
@@ -127,7 +127,7 @@ public partial class MyIconTextButton
 
     // 点击事件
 
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     private void MyIconTextButton_MouseUp()
     {

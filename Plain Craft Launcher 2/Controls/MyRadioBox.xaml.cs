@@ -72,10 +72,10 @@ public partial class MyRadioBox : IMyRadio
         set => SetValue(TextProperty, value);
     } // 内容
 
-    public event IMyRadio.CheckEventHandler Check;
-    public event IMyRadio.ChangedEventHandler Changed;
-    public event PreviewCheckEventHandler PreviewCheck;
-    public event PreviewChangeEventHandler PreviewChange;
+    public event IMyRadio.CheckEventHandler? Check;
+    public event IMyRadio.ChangedEventHandler? Changed;
+    public event PreviewCheckEventHandler? PreviewCheck;
+    public event PreviewChangeEventHandler? PreviewChange;
 
     /// <summary>
     ///     手动设置 Checked 属性。

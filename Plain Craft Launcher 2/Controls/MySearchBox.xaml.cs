@@ -40,7 +40,7 @@ public partial class MySearchBox : MyCard
         }
     }
 
-    public event TextChangedEventHandler TextChanged;
+    public event TextChangedEventHandler? TextChanged;
 
     private void MySearchBox_Loaded(object sender, RoutedEventArgs e)
     {
@@ -71,7 +71,7 @@ public partial class MySearchBox : MyCard
         TextBox.Focus();
     }
 
-    public event SearchEventHandler Search;
+    public event SearchEventHandler? Search;
 
     private void BtnSearch_Click(object sender, EventArgs e)
     {

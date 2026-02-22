@@ -403,11 +403,11 @@ public class MyCard : AnimatedBackgroundGrid
 
     public bool SwapLogoRight { get; set; } = false;
     private bool IsMouseDown;
-    public event PreviewSwapEventHandler PreviewSwap;
+    public event PreviewSwapEventHandler? PreviewSwap;
 
     public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
 
-    public event SwapEventHandler Swap;
+    public event SwapEventHandler? Swap;
 
     public delegate void SwapEventHandler(object sender, ModBase.RouteEventArgs e);
 

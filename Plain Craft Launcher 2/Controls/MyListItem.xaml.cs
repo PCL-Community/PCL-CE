@@ -22,11 +22,11 @@ public partial class MyListItem : IMyRadio
     public bool IsMouseOverAnimationEnabled = true;
 
     private string StateLast;
-    public event IMyRadio.CheckEventHandler Check;
-    public event IMyRadio.ChangedEventHandler Changed;
+    public event IMyRadio.CheckEventHandler? Check;
+    public event IMyRadio.ChangedEventHandler? Changed;
 
-    public event ClickEventHandler Click;
-    public event LogoClickEventHandler LogoClick;
+    public event ClickEventHandler? Click;
+    public event LogoClickEventHandler? LogoClick;
 
     public object tag { get; set; }
 

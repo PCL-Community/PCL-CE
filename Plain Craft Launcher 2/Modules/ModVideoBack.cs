@@ -32,8 +32,8 @@ public static class ModVideoBack
         }
     }
 
-    public static event EventHandler<BooleanEventArgs> GamingStateChanged;
-    public static event EventHandler<BooleanEventArgs> ForcePlayChanged;
+    public static event EventHandler<BooleanEventArgs>? GamingStateChanged;
+    public static event EventHandler<BooleanEventArgs>? ForcePlayChanged;
 
     public static void OnGamingStateChanged(object sender, BooleanEventArgs e) // 用户是否在游戏中 事件
     {

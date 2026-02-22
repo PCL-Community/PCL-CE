@@ -130,8 +130,8 @@ public partial class MyExtraButton
     public bool CanRightClick { get; set; }
 
     // 声明
-    public event ClickEventHandler Click;
-    public event RightClickEventHandler RightClick;
+    public event ClickEventHandler? Click;
+    public event RightClickEventHandler? RightClick;
 
     public void ShowRefresh()
     {

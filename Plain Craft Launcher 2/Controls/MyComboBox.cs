@@ -86,7 +86,7 @@ public class MyComboBox : ComboBox
     public bool DropDownWidthSync { get; set; } = true;
 
     public ContentPresenter ContentPresenter => (ContentPresenter)Template.FindName("PART_Content", this);
-    public event TextChangedEventHandler TextChanged;
+    public event TextChangedEventHandler? TextChanged;
 
     public override void OnApplyTemplate()
     {

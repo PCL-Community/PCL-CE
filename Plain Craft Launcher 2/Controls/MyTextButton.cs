@@ -78,7 +78,7 @@ public class MyTextButton : Label
         set => SetValue(EventDataProperty, value);
     }
 
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     private void MyTextButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {

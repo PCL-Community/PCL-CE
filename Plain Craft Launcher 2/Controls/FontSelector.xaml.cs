@@ -85,7 +85,7 @@ public partial class FontSelector
         if (control is not null) control.ComboFont.ToolTip = e.NewValue;
     }
 
-    public event SelectionChangedEventHandler SelectionChanged;
+    public event SelectionChangedEventHandler? SelectionChanged;
 
     private void FontSelector_Loaded(object sender, RoutedEventArgs e)
     {

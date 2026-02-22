@@ -1688,7 +1688,7 @@ public static class ModLocalComp
         /// <summary>
         ///     当任何网络信息更新时触发。
         /// </summary>
-        public event OnCompUpdateEventHandler OnCompUpdate;
+        public event OnCompUpdateEventHandler? OnCompUpdate;
 
         public delegate void OnCompUpdateEventHandler(LocalCompFile sender);
 

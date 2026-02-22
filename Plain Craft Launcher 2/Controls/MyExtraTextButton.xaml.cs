@@ -120,7 +120,7 @@ public partial class MyExtraTextButton
     }
 
     // 声明
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     // 触发点击事件
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)

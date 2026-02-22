@@ -366,8 +366,8 @@ public static class ModLoader
             }
         }
 
-        public event ILoadingTrigger.LoadingStateChangedEventHandler LoadingStateChanged;
-        public event ILoadingTrigger.ProgressChangedEventHandler ProgressChanged;
+        public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
+        public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 
         public virtual void InitParent(LoaderBase Parent)
         {
@@ -379,17 +379,17 @@ public static class ModLoader
         /// <summary>
         ///     当状态改变时，在工作线程触发代码。在添加事件后，必须将 HasOnStateChangedThread 设为 True。
         /// </summary>
-        public event OnStateChangedThreadEventHandler OnStateChangedThread;
+        public event OnStateChangedThreadEventHandler? OnStateChangedThread;
 
         /// <summary>
         ///     当状态改变时，在 UI 线程触发代码。
         /// </summary>
-        public event OnStateChangedUiEventHandler OnStateChangedUi;
+        public event OnStateChangedUiEventHandler? OnStateChangedUi;
 
         /// <summary>
         ///     在加载器目标事件执行完成，加载器状态即将变为 Finish 时调用。可以视为扩展加载器目标事件。
         /// </summary>
-        public event PreviewFinishEventHandler PreviewFinish;
+        public event PreviewFinishEventHandler? PreviewFinish;
 
         protected void RaisePreviewFinish()
         {

@@ -90,9 +90,9 @@ public partial class MyCheckBox
     ///     复选框勾选状态改变。
     /// </summary>
     /// <param name="user">是否为用户手动改变的勾选状态。</param>
-    public event ChangeEventHandler Change;
+    public event ChangeEventHandler? Change;
 
-    public event PreviewChangeEventHandler PreviewChange;
+    public event PreviewChangeEventHandler? PreviewChange;
 
     public void RaiseChange()
     {

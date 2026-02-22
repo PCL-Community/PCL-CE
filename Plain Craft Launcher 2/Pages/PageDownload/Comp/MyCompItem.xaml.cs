@@ -238,7 +238,7 @@ public partial class MyCompItem
     #region 点击
 
     // 触发点击事件
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 

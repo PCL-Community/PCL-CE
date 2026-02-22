@@ -126,12 +126,12 @@ public partial class MySlider
     // 按键改变
 
     public uint ValueByKey { get; set; } = 1U;
-    public event ChangeEventHandler Change;
-    public event PreviewChangeEventHandler PreviewChange;
+    public event ChangeEventHandler? Change;
+    public event PreviewChangeEventHandler? PreviewChange;
 
-    private void RefreshWidth(object sender, SizeChangedEventArgs e)
+    private void RefreshWidth(object sender, SizeChangedEventArgs? e)
     {
-        if (!(e == null))
+        if (e != null)
             PanMain.Width = e.NewSize.Width;
         ModAnimation.AniStop("MySlider Progress " + Uuid);
         var NewWidth = _Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);

@@ -102,7 +102,7 @@ public partial class MyIconButton
     }
 
     // 自定义事件
-    public event ClickEventHandler Click;
+    public event ClickEventHandler? Click;
 
     // 触发点击事件
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)

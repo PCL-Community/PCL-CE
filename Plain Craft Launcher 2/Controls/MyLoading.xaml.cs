@@ -20,9 +20,9 @@ public partial class MyLoading
 
     public bool AutoRun { get; set; } = true;
 
-    public event IsErrorChangedEventHandler IsErrorChanged;
-    public event StateChangedEventHandler StateChanged;
-    public event ClickEventHandler Click;
+    public event IsErrorChangedEventHandler? IsErrorChanged;
+    public event StateChangedEventHandler? StateChanged;
+    public event ClickEventHandler? Click;
 
     #region 颜色
 
@@ -371,8 +371,8 @@ public interface ILoadingTrigger
 
     bool IsLoader { get; }
     MyLoadingState LoadingState { get; set; }
-    event LoadingStateChangedEventHandler LoadingStateChanged;
-    event ProgressChangedEventHandler ProgressChanged;
+    event LoadingStateChangedEventHandler? LoadingStateChanged;
+    event ProgressChangedEventHandler? ProgressChanged;
 }
 
 public class MyLoadingStateSimulator : ILoadingTrigger
@@ -394,6 +394,6 @@ public class MyLoadingStateSimulator : ILoadingTrigger
 
     public bool IsLoader { get; } = false;
 
-    public event ILoadingTrigger.LoadingStateChangedEventHandler LoadingStateChanged;
-    public event ILoadingTrigger.ProgressChangedEventHandler ProgressChanged;
+    public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
+    public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 }
