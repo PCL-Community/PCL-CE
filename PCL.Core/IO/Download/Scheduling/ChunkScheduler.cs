@@ -1,8 +1,8 @@
+using PCL.Core.IO.Download.Core;
 using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using PCL.Core.IO.Download.Core;
 
 namespace PCL.Core.IO.Download.Scheduling;
 
@@ -10,6 +10,8 @@ public class ChunkScheduler
 {
     private readonly Channel<ChunkInfo> _chunkChannel;
     private int _pendingChunks;
+
+    public bool HasPendingChunks => _pendingChunks > 0;
 
     public ChunkScheduler(long totalFileSize, long chunkSize)
     {

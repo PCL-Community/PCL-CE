@@ -27,7 +27,7 @@ public class RealFileDownloadTests
         downloader.StateChanged += (s, e) => { Console.WriteLine($"下载状态改变: {e.NewState}"); };
         var ct = CancellationToken.None;
         // Act
-        await downloader.StartAsync(ct);
+        await downloader.StartAsync();
         // Assert
         Assert.IsTrue(File.Exists(destinationPath), "下载完成后文件应该存在");
         var fileInfo = new FileInfo(destinationPath);

@@ -7,5 +7,6 @@ public enum DownloadState
     Waiting,
     Downloading,
     Completed,
-    Failed
+    Failed,
+    Canceled
 }

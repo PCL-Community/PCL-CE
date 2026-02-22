@@ -1,29 +1,30 @@
+using PCL.Core.App;
 using PCL.Core.IO.Download.Core;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 
 namespace PCL.Core.IO.Download;
 
-public static class DownloadManager
+public static class DownloadService
 {
-    /*
-     * TODO:
-     * - [] Global worker limit
-     * - [x] HttpClient cache keyed by options (dismiss download url)
-     * - [x] Global mirror health management (shared across downloads, maybe in a static class or singleton)
-     */
-
-    private static int _currentActiveWorker = 0;
+    // I think this is not a good design, because as long as the application running,
+    // the cache memory size will grow without limit (if there are many download job has different http options)
+    // But I found that CacheCow.Client nupkg is only applied on 'Plain Craft Launcher 2' project. I cannot use it in 'PCL.Core'
+    // So I give up designing a more complete cache. Maybe this is not a big problem?
     private static readonly Dictionary<int, HttpClient> _HttpClient = [];
+
+    // NOTE:
+    // This will make a problem, which is user's changing action cannot apply in runtime
+    // That mean if user want to apply their changing action, they should reboot this application
+    private static readonly SemaphoreSlim _GlobalThrottle =
+        new(Config.Download.ThreadLimit, Config.Download.ThreadLimit);
 
     public static DownloadClient CreateJob(DownloadOptions options)
     {
         var httpClient = _GetOrCreateHttpClient(options);
-        var downloadClient = new DownloadClient(options, httpClient);
-
-        // TODO: Consider adding the download client to a global registry for better management (e.g., for global worker limits, mirror health tracking, etc.)
-        // and limit StartAsync to only started by Manager
+        var downloadClient = new DownloadClient(options, httpClient, _GlobalThrottle);
 
         return downloadClient;
     }
