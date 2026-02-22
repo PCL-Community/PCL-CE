@@ -403,23 +403,26 @@ public class ModSetup : IConfigScope
         ModMain.FrmSetupUI.CardCustom.TriggerForceResize();
     }
 
-    /* TODO ERROR: Skipped IfDirectiveTrivia
-    #If False Then
-    */ /* TODO ERROR: Skipped DisabledTextTrivia
-        '颜色模式
-        Public Sub UiDarkMode(Value As Integer)
-            If Value = 0 Then
-                IsDarkMode = False
-            ElseIf Value = 1 Then
-                IsDarkMode = True
-            Else
-                IsDarkMode = SystemTheme.IsSystemInDarkMode()
-            End If
-            ThemeRefresh()
-        End Sub
-    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-    #End If
-    */ // 高级材质
+
+#if False
+    public static UiDarkMode(int value)
+    {
+        switch (value)
+        {
+            case 0:
+                IsDarkMode = false;
+                break;
+            case 1:
+                IsDarkMode = true;
+                break;
+            default:
+                IsDarkMode = SystemTheme.IsSystemInDarkMode();
+        }
+        ThemeRefresh();
+    }
+#endif
+
+    // 高级材质
     public void UiBlur(bool Value)
     {
         ModMain.FrmSetupUI.PanBlurValue.Visibility = Value ? Visibility.Visible : Visibility.Collapsed;

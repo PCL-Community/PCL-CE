@@ -107,7 +107,7 @@ public partial class MyMsgText
         }, "MyMsgBox " + Uuid);
     }
 
-    public void Btn1_Click()
+    public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited)
             return;
@@ -123,7 +123,7 @@ public partial class MyMsgText
         }
     }
 
-    public void Btn2_Click()
+    public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited)
             return;
@@ -139,7 +139,7 @@ public partial class MyMsgText
         }
     }
 
-    public void Btn3_Click()
+    public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited)
             return;

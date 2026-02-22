@@ -14,31 +14,26 @@ internal static class Program
     [STAThread]
     public static void Main()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia
-        #If DEBUG
-        */
+        #if DEBUG
         if (Basics.CommandLineArguments.Contains("--debug"))
             while (!Debugger.IsAttached)
                 Thread.Sleep(50);
-        /* TODO ERROR: Skipped EndIfDirectiveTrivia
-        #End If
-        */
+        #endif
         Console.WriteLine("Welcome to Plain Craft Launcher 2 Community Edition!");
         // Preloading tasks
-        ApplicationService.Loading = () =>
+        ApplicationService.Loading = static () =>
         {
             var app = new Application();
             app.InitializeComponent();
             return app;
         };
-        MainWindowService.Loading = () =>
+        MainWindowService.Loading = static () =>
         {
             var form = new FormMain();
             return form;
         };
         // From dotnet/wpf #2393: fix tablet devices broken on .NET Core 3.0+
-        // ReSharper disable once UnusedVariable
-        var vbSucks = Tablet.TabletDevices;
+        _ = Tablet.TabletDevices;
         // Start lifecycle
         Lifecycle.OnInitialize();
     }
