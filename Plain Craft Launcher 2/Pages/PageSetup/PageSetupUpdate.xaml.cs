@@ -149,7 +149,7 @@ public partial class PageSetupUpdate
         }
     }
 
-    private void BtnUpdate_Click(object sender, EventArgs e)
+    private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
         if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !ModBase
@@ -260,12 +260,12 @@ public partial class PageSetupUpdate
         Config.Update.MirrorChyanKey = TextMirrorCDK.Password;
     }
 
-    private void BtnGetMirrorCDK_Click(object sender, EventArgs e)
+    private void BtnGetMirrorCDK_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenWebsite("https://mirrorchyan.com/");
     }
 
-    private void BtnChangelog_Click(object sender, EventArgs e)
+    private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.VersionBaseName);
     }
