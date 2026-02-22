@@ -28,6 +28,8 @@ public partial class MyListItem : IMyRadio
     public event ClickEventHandler Click;
     public event LogoClickEventHandler LogoClick;
 
+    public object tag { get; set; }
+
     public void RefreshColor(object sender, EventArgs e)
     {
         // 菜单虚拟化检测
