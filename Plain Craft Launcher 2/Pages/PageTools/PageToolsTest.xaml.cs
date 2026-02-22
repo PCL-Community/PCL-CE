@@ -527,7 +527,7 @@ public partial class PageToolsTest
         StartButtonRefresh();
     }
 
-    private void TextDownloadUrl_ValidateChanged(object sender, EventArgs e)
+    private void TextDownloadUrl_ValidateChanged(object sender, RoutedEventArgs e)
     {
         StartButtonRefresh();
     }
@@ -553,7 +553,7 @@ public partial class PageToolsTest
     }
 
     // 下载正版玩家皮肤
-    private void BtnSkinSave_Click(object sender, EventArgs e)
+    private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
         var ID = TextSkinID.Text;
         ModMain.Hint("正在获取皮肤...");
