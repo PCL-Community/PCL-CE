@@ -42,6 +42,7 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="最大线程数"
                                    Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderDownloadThread" Grid.Row="4" Tag="ToolDownloadThread"
+                                        PreviewChange="SliderDownloadThread_PreviewChange"
                                         MaxValue="255" Value="63" Grid.Column="1" Change="SliderChange"
                                         ToolTip="线程数越多，限速的文件下载越快，但过高的线程数可能会造成下载时非常严重的卡顿。&#xa;一般而言，64 线程已可以保证足够的下载速度。" />
                         <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left" Text="速度限制"

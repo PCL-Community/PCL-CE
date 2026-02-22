@@ -102,6 +102,7 @@
                         <TextBlock x:Name="TextTcpNatType" Text="TCP NAT 类型: 尚未检测" Grid.Row="1" />
                         <TextBlock x:Name="TextIpv6Status" Text="IPv6: 尚未检测" Grid.Row="2" />
                         <local:MyButton x:Name="BtnNetTest" Text="开始测试" Grid.Row="4" ColorType="Highlight"
+                                        Click="BtnNetTest_Click"
                                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  />
                     </Grid>
                 </StackPanel>

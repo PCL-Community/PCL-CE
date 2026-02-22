@@ -134,9 +134,10 @@ public partial class PageLogRight
 
     #region 滑动条
 
-    private void SliderMaxLog_ValueChanged(MySlider sender, bool user)
+    private void SliderMaxLog_ValueChanged(object o, bool user)
     {
-        ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
+        var sender = (MySlider)o;
+        ModBase.Setup.Set(sender.Tag.ToString(), sender.Value);
         if (ModMain.FrmSetupLauncherMisc is null)
             return;
         ModMain.FrmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;

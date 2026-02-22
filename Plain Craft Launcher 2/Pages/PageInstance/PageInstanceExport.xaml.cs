@@ -73,7 +73,7 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     // 自动填写整合包名称
-    private void TextExportName_GotFocus()
+    private void TextExportName_GotFocus(object sender, RoutedEventArgs routedEventArgs)
     {
         if (string.IsNullOrEmpty(TextExportName.Text))
         {

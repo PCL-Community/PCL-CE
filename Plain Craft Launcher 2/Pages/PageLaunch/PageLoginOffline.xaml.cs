@@ -10,7 +10,7 @@ public partial class PageLoginOffline
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioCustomUuid_Checked()
+    private void RadioCustomUuid_Checked(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         if (RadioUuidCustom.Checked)
         {

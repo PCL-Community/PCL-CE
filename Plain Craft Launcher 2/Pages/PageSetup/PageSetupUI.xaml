@@ -310,9 +310,9 @@
                         <local:MyCheckBox Text="打开启动器自动开始播放" Margin="0,0,0,5" Height="22" x:Name="CheckMusicAuto"
                                           Tag="UiMusicAuto" Change="CheckBoxChange" />
                         <local:MyCheckBox Text="游戏启动后自动开始播放，游戏退出后自动暂停播放" Margin="0,0,0,5" Height="22"
-                                          x:Name="CheckMusicStart" Tag="UiMusicStart" Change="CheckBoxChange" />
+                                          x:Name="CheckMusicStart" Tag="UiMusicStart" Change="CheckMusicStart_OnChange" />
                         <local:MyCheckBox Text="游戏启动后自动暂停播放，游戏退出后自动开始播放" Margin="0,0,0,5" Height="22"
-                                          x:Name="CheckMusicStop" Tag="UiMusicStop" Change="CheckBoxChange" />
+                                          x:Name="CheckMusicStop" Tag="UiMusicStop" Change="CheckMusicStop_OnChange" />
                         <local:MyCheckBox Text="接入系统媒体传输控制 (SMTC) 控件" Margin="0,0,0,5" Height="22"
                                           x:Name="CheckMusicSMTC" Tag="UiMusicSMTC" Change="CheckBoxChange"
                                           ToolTip="启用此选项后，可以使用系统控制中心和快捷键等控制 PCL 的媒体播放。&#xa;可以与 Lyricify Lite 或 FluentFlyout 等软件搭配使用。" />
@@ -351,7 +351,7 @@
                         <local:MyRadioBox Text="文本" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2"
                                           Grid.Column="2" Check="RadioBoxChange" />
                         <local:MyRadioBox Text="图片" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3"
-                                          Grid.Column="3" Check="RadioBoxChange" />
+                                          Grid.Column="3" Check="RadioBoxChange" PreviewCheck="RadioLogoType3_Check" />
                     </Grid>
                     <local:MyCheckBox Text="标题栏居左" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft"
                                       Tag="UiLogoLeft" Visibility="Collapsed" Change="CheckBoxChange" />

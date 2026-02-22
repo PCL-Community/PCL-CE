@@ -79,7 +79,7 @@ public partial class PageInstanceInstall
 
     #region 安装
 
-    private void BtnSelectStart_Click()
+    private void BtnSelectStart_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
         // 确认版本隔离
         if (SelectedLoaderName is not null &&

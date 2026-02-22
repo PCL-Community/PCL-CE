@@ -625,8 +625,9 @@ public partial class PageSetupUI
             });
     }
 
-    private void CheckMusicStart_Change()
+    private void CheckMusicStart_Change(object sender, bool user)
     {
+        CheckBoxChange(sender, user);
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (CheckMusicStart.Checked == true)
@@ -1009,4 +1010,16 @@ public partial class PageSetupUI
     }
 
     #endregion
+
+    private void CheckMusicStart_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckMusicStart_Change(sender, user);
+    }
+
+    private void CheckMusicStop_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckMusicStop_Change();
+    }
 }

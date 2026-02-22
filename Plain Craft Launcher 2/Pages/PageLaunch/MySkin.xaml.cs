@@ -136,8 +136,9 @@ public partial class MySkin
         }
     }
 
-    private void BtnSkinSave_Checked(MyMenuItem sender, RoutedEventArgs e)
+    private void BtnSkinSave_Checked(object o, RoutedEventArgs e)
     {
+        var sender = (MyMenuItem)o;
         sender.IsEnabled = string.IsNullOrEmpty(Address);
     }
 

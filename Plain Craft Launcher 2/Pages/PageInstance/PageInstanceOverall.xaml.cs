@@ -463,7 +463,7 @@ public partial class PageInstanceOverall
     #region 卡片：快捷方式
 
     // 实例文件夹
-    private void BtnFolderVersion_Click()
+    private void BtnFolderVersion_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
         OpenVersionFolder(PageInstanceLeft.Instance);
     }
@@ -474,7 +474,7 @@ public partial class PageInstanceOverall
     }
 
     // 存档文件夹
-    private void BtnFolderSaves_Click()
+    private void BtnFolderSaves_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"saves\";
         Directory.CreateDirectory(FolderPath);
@@ -482,7 +482,7 @@ public partial class PageInstanceOverall
     }
 
     // Mod 文件夹
-    private void BtnFolderMods_Click()
+    private void BtnFolderMods_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"mods\";
         Directory.CreateDirectory(FolderPath);
@@ -494,7 +494,7 @@ public partial class PageInstanceOverall
     #region 卡片：管理
 
     // 导出启动脚本
-    private void BtnManageScript_Click()
+    private void BtnManageScript_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
         try
         {

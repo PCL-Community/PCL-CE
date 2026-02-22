@@ -339,7 +339,7 @@ public partial class PageToolsGameLink
             {
                 await Task.Delay(10000, waiterCancelToken);
             }
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
                 // 忽略取消任务的异常
             }
@@ -882,7 +882,7 @@ public partial class PageToolsGameLink
     }
 
     // 取消加载
-    private void CancelLoad()
+    private void CancelLoad(object sender, EventArgs eventArgs)
     {
         if (InitLoader.State == ModBase.LoadState.Loading)
         {
@@ -923,7 +923,7 @@ public partial class PageToolsGameLink
         }
     }
 
-    private void CardResized()
+    private void CardResized(object sender, SizeChangedEventArgs sizeChangedEventArgs)
     {
         RectProgressClip.Rect = new Rect(0d, 0d, CardLoad.ActualWidth, 12d);
     }

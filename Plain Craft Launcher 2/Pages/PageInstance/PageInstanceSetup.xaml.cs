@@ -162,15 +162,17 @@ public partial class PageInstanceSetup
     }
 
     // 将控件改变路由到设置改变
-    private static void RadioBoxChange(MyRadioBox sender, object e)
+    private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
+        var sender = (MyRadioBox)o;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
     }
 
-    private static void TextBoxChange(MyTextBox sender, object e)
+    private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
     {
+        var sender = (MyComboBox)o;
         if (ModAnimation.AniControlEnabled == 0)
             // #3194，不能删减 /
             // Dim HandledText As String = sender.Text
@@ -178,8 +180,9 @@ public partial class PageInstanceSetup
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text, instance: PageInstanceLeft.Instance);
     }
 
-    private static void SliderChange(MySlider sender, object e)
+    private void SliderChange(object o, bool user)
     {
+        var sender = (MySlider)o;
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
     }

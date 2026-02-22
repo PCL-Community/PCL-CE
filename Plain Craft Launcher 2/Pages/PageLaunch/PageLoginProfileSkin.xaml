@@ -57,7 +57,7 @@
                         </ContextMenu>
                     </local:MyIconButton.ContextMenu>
                 </local:MyIconButton>
-                <local:MyIconButton Height="24" x:Name="BtnSelect" Margin="0,0,0,0"
+                <local:MyIconButton Height="24" x:Name="BtnSelect" Margin="0,0,0,0" Click="ChangeProfile"
                                     ToolTip="选择档案" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
                                     ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
                                     LogoScale="1.15"

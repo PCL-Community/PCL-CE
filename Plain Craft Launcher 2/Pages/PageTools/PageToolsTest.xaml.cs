@@ -341,7 +341,7 @@ public partial class PageToolsTest
                 ModBase.Log("[Test] 没有管理员权限，将以命令行方式进行内存优化");
                 try
                 {
-                    num = (long)ProcessInterop.StartAsAdmin("--memory").ExitCode * 1024L;
+                    num = ProcessInterop.StartAsAdmin("--memory").ExitCode * 1024L;
                 }
                 catch (Exception ex2)
                 {
@@ -413,7 +413,7 @@ public partial class PageToolsTest
                 CloseHandle(hToken);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new Exception(string.Format("获取内存优化权限失败（错误代码：{0}）", Marshal.GetLastWin32Error()));
         }
@@ -462,7 +462,7 @@ public partial class PageToolsTest
             NtSetSystemInformation(130, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx));
             _gcHandle.Free();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new Exception(string.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType));
         }

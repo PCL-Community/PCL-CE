@@ -155,7 +155,7 @@ public partial class PageLoginAuth
     }
 
     // 链接处理
-    private void ComboName_TextChanged()
+    private void ComboName_TextChanged(object sender, TextChangedEventArgs textChangedEventArgs)
     {
         BtnLink.Content = string.IsNullOrEmpty(TextName.Text) ? "注册账号" : "找回密码";
     }

@@ -31,7 +31,7 @@
     </Border>
     <!-- 标题 -->
     <Grid Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center" Margin="0,1,0,0"
-          SnapsToDevicePixels="False" UseLayoutRounding="False" x:Name="PanTitle">
+          SnapsToDevicePixels="False" UseLayoutRounding="False" x:Name="PanTitle" SizeChanged="PanTitle_SizeChanged">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" x:Name="ColumnTitle" />
             <ColumnDefinition Width="Auto" x:Name="ColumnSubtitle" />
@@ -46,9 +46,9 @@
         <!-- 更新按钮 -->
         <local:MyIconButton Grid.Column="2"
                             Width="21" Height="21" Margin="-2,-1.6,0,0" x:Name="BtnUpdate" Theme="Black" Opacity="0.4"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" PreviewMouseRightButtonUp="BtnUpdate_PreviewMouseRightButtonUp"
                             ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="100"
-                            ToolTipService.VerticalOffset="-9"
+                            ToolTipService.VerticalOffset="-9" Click="BtnUpdate_Click"
                             Logo="M640 768H384l-32-32V509H213L190 454l298-298h45l298 298L810 509h-138v226z m-224-64h192V477l32-32h93L512 223 290 445H384l32 32zM352 831h320v64h-320z" />
     </Grid>
     <!-- Tag 与 详情 -->

@@ -39,7 +39,7 @@ public partial class ServerCard
     public event EventHandler? RemoveServer;
     public event EventHandler? EditServer;
 
-    private void BtnSkin_Click(object sender, RoutedEventArgs e)
+    private void BtnSkin_Click(object sender, EventArgs eventArgs)
     {
         BtnSetting.ContextMenu.IsOpen = true;
     }

@@ -490,7 +490,7 @@ public partial class PageSetupLaunch
     }
 
     // 可见性选择直接关闭的警告
-    private void ComboArgumentVisibie_SizeChanged(object sender, SelectionChangedEventArgs e)
+    private void ComboArgumentVisibie_SizeChanged(object sender, SizeChangedEventArgs sizeChangedEventArgs)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
@@ -498,7 +498,7 @@ public partial class PageSetupLaunch
             if (ModMain.MyMsgBox(
                     "若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。" + Constants.vbCrLf + "如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。",
                     "提醒", "继续", "取消") == 2)
-                ComboArgumentVisibie.SelectedItem = e.RemovedItems[0];
+                ComboArgumentVisibie.SelectedItem = ((dynamic)sender).RemovedItems[0];
     }
 
     // 开启自动内存优化的警告
@@ -535,7 +535,7 @@ public partial class PageSetupLaunch
     }
 
     // JVM 参数重设
-    private void TextAdvanceJvm_TextChanged()
+    private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnAdvanceJvmReset.Visibility =
             Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(TextAdvanceJvm.Text,
@@ -574,4 +574,22 @@ public partial class PageSetupLaunch
     }
 
     #endregion
+
+    private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange(sender, e);
+        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e);
+    }
+
+    private void ComboArgumentIndie_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange(sender, e);
+        ComboArgumentIndie_SelectionChanged(sender, e);
+    }
+
+    private void CheckArgumentRam_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckArgumentRam_Change();
+    }
 }

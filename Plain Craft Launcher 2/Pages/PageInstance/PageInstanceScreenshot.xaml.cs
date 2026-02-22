@@ -284,7 +284,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
     }
 
-    private void btnCopy_Click(MyIconTextButton sender, EventArgs e)
+    private void BtnCopy_Click(MyIconTextButton sender, EventArgs e)
     {
         var imagePath = GetPathFromSender(sender);
         if (File.Exists(imagePath))
