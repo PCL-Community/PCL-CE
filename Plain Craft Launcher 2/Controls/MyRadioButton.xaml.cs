@@ -12,9 +12,9 @@ namespace PCL;
 [ContentProperty("Inlines")]
 public partial class MyRadioButton
 {
-    public delegate void ChangeEventHandler(object sender, bool raiseByMouse);
+    public delegate void ChangeEventHandler(MyRadioButton sender, bool raiseByMouse);
 
-    public delegate void CheckEventHandler(object sender, bool raiseByMouse);
+    public delegate void CheckEventHandler(MyRadioButton sender, bool raiseByMouse);
 
     public delegate void PreviewClickEventHandler(object sender, ModBase.RouteEventArgs e);
 
@@ -96,7 +96,7 @@ public partial class MyRadioButton
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     } // 内容
 
@@ -110,8 +110,8 @@ public partial class MyRadioButton
         }
     } // 颜色类别
 
-    public event CheckEventHandler Check;
-    public event ChangeEventHandler Change;
+    public event CheckEventHandler? Check;
+    public event ChangeEventHandler? Change;
 
     public void RaiseChange()
     {
@@ -210,7 +210,7 @@ public partial class MyRadioButton
 
     // 点击事件
 
-    public event PreviewClickEventHandler PreviewClick;
+    public event PreviewClickEventHandler? PreviewClick;
 
     private void Radiobox_MouseUp()
     {

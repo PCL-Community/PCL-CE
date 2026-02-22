@@ -1763,6 +1763,11 @@ public partial class FormMain
         PageChangeActual((dynamic)ModBase.Val(sender.Tag), PageSubType.Default);
     }
 
+    private void BtnTitleInner_Click(object sender, EventArgs e)
+    {
+        PageBack();
+    }
+
     /// <summary>
     ///     通过点击返回按钮或手动触发返回来改变页面。
     /// </summary>
@@ -2104,6 +2109,11 @@ public partial class FormMain
             DragStop();
     }
 
+    private void PanBack_MouseMove(object sender, EventArgs e)
+    {
+        DragDoing();
+    }
+
     public void DragStop()
     {
         // 存在其他线程调用的可能性，因此需要确保在 UI 线程运行
@@ -2122,7 +2132,7 @@ public partial class FormMain
     #region 附加按钮
 
     // 更新重启
-    private void BtnExtraUpdateRestart_Click()
+    private void BtnExtraUpdateRestart_Click(object sender, EventArgs e)
     {
         ModSecret.UpdateRestart(true);
     }
@@ -2167,13 +2177,18 @@ public partial class FormMain
         }
     }
 
+    private void BtnExtraApril_Click(object sender, EventArgs e)
+    {
+        AprilGiveup();
+    }
+
     public bool BtnExtraApril_ShowCheck()
     {
         return ModMain.IsAprilEnabled && !ModMain.IsAprilGiveup && PageCurrent == PageType.Launch;
     }
 
     // 关闭 Minecraft
-    public void BtnExtraShutdown_Click()
+    private void BtnExtraShutdown_Click(object sender, EventArgs e)
     {
         try
         {
@@ -2195,7 +2210,7 @@ public partial class FormMain
     }
 
     // 游戏日志
-    public void BtnExtraLog_Click()
+    private void BtnExtraLog_Click(object sender, EventArgs e)
     {
         PageChange(PageType.GameLog);
     }
@@ -2219,6 +2234,11 @@ public partial class FormMain
             ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogLevel.Hint);
     }
 
+    private void BtnExtraBack_Click(object sender, EventArgs e)
+    {
+        BackToTop();
+    }
+
     private bool BtnExtraBack_ShowCheck()
     {
         var RealScroll = BtnExtraBack_GetRealChild();
@@ -2226,7 +2246,7 @@ public partial class FormMain
                RealScroll.VerticalOffset > Height + (BtnExtraBack.Show ? 0 : 700);
     }
 
-    private MyScrollViewer BtnExtraBack_GetRealChild()
+    private MyScrollViewer? BtnExtraBack_GetRealChild()
     {
         if (PanMainRight.Child is null || !(PanMainRight.Child is MyPageRight))
             return null;
@@ -2234,9 +2254,4 @@ public partial class FormMain
     }
 
     #endregion
-
-    private void FormMain_OnSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        throw new NotImplementedException();
-    }
 }

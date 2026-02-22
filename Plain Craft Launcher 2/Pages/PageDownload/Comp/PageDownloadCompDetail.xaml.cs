@@ -561,8 +561,8 @@ public partial class PageDownloadCompDetail
         }
     }
 
-    private string _instanceFilter;
-    private string _modLoaderFilter;
+    private string? _instanceFilter;
+    private string? _modLoaderFilter;
     private bool GroupedDrop; // 是否按 Drop 筛选（1.21 / 1.20 / 1.19 / ...）而非小版本号（1.21.1 / 1.21 / 1.20.4 / ...）
 
     private bool GroupedOld; // 是否折叠远古版本为一个选项
@@ -677,8 +677,7 @@ public partial class PageDownloadCompDetail
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
                 newButton.Check += (sender, raiseByMouse) =>
                 {
-                    var ss = (MyButton)sender;
-                    _instanceFilter = ss.Text == "全部" ? null : ss.Text;
+                    _instanceFilter = sender.Text == "全部" ? null : sender.Text;
                     UpdateFilterResult();
                 };
                 PanInstanceFilter.Children.Add(newButton);
@@ -696,8 +695,7 @@ public partial class PageDownloadCompDetail
                     newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
                     newButton.Check += (sender, raiseByMouse) =>
                     {
-                        var ss = (MyButton)sender;
-                        _modLoaderFilter = ss.Text == "全部" ? null : ss.Text;
+                        _modLoaderFilter = sender.Text == "全部" ? null : sender.Text;
                         UpdateFilterResult();
                     };
                     PanModLoaderFilter.Children.Add(newButton);

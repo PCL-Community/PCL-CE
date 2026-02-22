@@ -22,86 +22,86 @@ public static class ModMain
     /// <summary>
     ///     等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
     /// </summary>
-    private static ModBase.SafeList<HintMessage> HintWaiting = HintWaiting ?? new ModBase.SafeList<HintMessage>();
+    private static ModBase.SafeList<HintMessage> HintWaiting { get => field ??= new ModBase.SafeList<HintMessage>(); set; }
 
     /// <summary>
     ///     等待显示的弹窗。
     /// </summary>
-    public static List<MyMsgBoxConverter> WaitingMyMsgBox = WaitingMyMsgBox ?? new List<MyMsgBoxConverter>();
+    public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
 
-    public static FormMain FrmMain;
-    public static SplashScreen FrmStart;
-    public static PageLaunchLeft FrmLaunchLeft;
-    public static PageLaunchRight FrmLaunchRight;
-    public static PageLogLeft FrmLogLeft;
-    public static PageLogRight FrmLogRight;
-    public static PageSelectLeft FrmSelectLeft;
-    public static PageSelectRight FrmSelectRight;
-    public static PageSpeedLeft FrmSpeedLeft;
-    public static PageSpeedRight FrmSpeedRight;
-    public static PageToolsLeft FrmToolsLeft;
-    public static PageToolsGameLink FrmToolsGameLink;
-    public static PageToolsHelp FrmToolsHelp;
-    public static PageToolsTest FrmToolsTest;
-    public static PageDownloadLeft FrmDownloadLeft;
-    public static PageDownloadInstall FrmDownloadInstall;
-    public static PageDownloadClient FrmDownloadClient;
-    public static PageDownloadOptiFine FrmDownloadOptiFine;
-    public static PageDownloadLiteLoader FrmDownloadLiteLoader;
-    public static PageDownloadForge FrmDownloadForge;
-    public static PageDownloadNeoForge FrmDownloadNeoForge;
-    public static PageDownloadCleanroom FrmDownloadCleanroom;
-    public static PageDownloadFabric FrmDownloadFabric;
-    public static PageDownloadQuilt FrmDownloadQuilt;
-    public static PageDownloadLabyMod FrmDownloadLabyMod;
-    public static PageDownloadLegacyFabric FrmDownloadLegacyFabric;
-    public static PageDownloadMod FrmDownloadMod;
-    public static PageDownloadPack FrmDownloadPack;
-    public static PageDownloadDataPack FrmDownloadDataPack;
-    public static PageDownloadShader FrmDownloadShader;
-    public static PageDownloadResourcePack FrmDownloadResourcePack;
-    public static PageDownloadWorld FrmDownloadWorld;
-    public static PageDownloadCompFavorites FrmDownloadCompFavorites;
-    public static PageSetupLeft FrmSetupLeft;
-    public static PageSetupLaunch FrmSetupLaunch;
-    public static PageSetupUI FrmSetupUI;
-    public static PageSetupGameManage FrmSetupGameManage;
-    public static PageSetupUpdate FrmSetupUpdate;
-    public static PageSetupJava FrmSetupJava;
-    public static PageHomepageMarket FrmHomePageMarket;
-    public static PageSetupAbout FrmSetupAbout;
-    public static PageSetupLog FrmSetupLog;
-    public static PageSetupFeedback FrmSetupFeedback;
-    public static PageSetupGameLink FrmSetupGameLink;
-    public static PageSetupLauncherMisc FrmSetupLauncherMisc;
-    public static PageLoginAuth FrmLoginAuth;
-    public static PageLoginMs FrmLoginMs;
-    public static PageLoginProfile FrmLoginProfile;
-    public static PageLoginProfileSkin FrmLoginProfileSkin;
-    public static PageLoginOffline FrmLoginOffline;
-    public static PageInstanceLeft FrmInstanceLeft;
-    public static PageInstanceOverall FrmInstanceOverall;
-    public static PageInstanceCompResource FrmInstanceMod;
-    public static PageInstanceModDisabled FrmInstanceModDisabled;
-    public static PageInstanceScreenshot FrmInstanceScreenshot;
-    public static PageInstanceSaves FrmInstanceSaves;
-    public static PageInstanceCompResource FrmInstanceShader;
-    public static PageInstanceCompResource FrmInstanceSchematic;
-    public static PageInstanceCompResource FrmInstanceResourcePack;
-    public static PageInstanceSetup FrmInstanceSetup;
-    public static PageInstanceInstall FrmInstanceInstall;
-    public static PageInstanceExport FrmInstanceExport;
-    public static PageInstanceServer FrmInstanceServer;
-    public static PageInstanceSavesLeft FrmInstanceSavesLeft;
-    public static PageInstanceSavesInfo FrmInstanceSavesInfo;
-    public static PageInstanceSavesBackup FrmInstanceSavesBackup;
-    public static PageInstanceSavesDatapack FrmInstanceSavesDatapack;
-    public static PageDownloadCompDetail FrmDownloadCompDetail;
+    public static FormMain? FrmMain;
+    public static SplashScreen? FrmStart;
+    public static PageLaunchLeft? FrmLaunchLeft;
+    public static PageLaunchRight? FrmLaunchRight;
+    public static PageLogLeft? FrmLogLeft;
+    public static PageLogRight? FrmLogRight;
+    public static PageSelectLeft? FrmSelectLeft;
+    public static PageSelectRight? FrmSelectRight;
+    public static PageSpeedLeft? FrmSpeedLeft;
+    public static PageSpeedRight? FrmSpeedRight;
+    public static PageToolsLeft? FrmToolsLeft;
+    public static PageToolsGameLink? FrmToolsGameLink;
+    public static PageToolsHelp? FrmToolsHelp;
+    public static PageToolsTest? FrmToolsTest;
+    public static PageDownloadLeft? FrmDownloadLeft;
+    public static PageDownloadInstall? FrmDownloadInstall;
+    public static PageDownloadClient? FrmDownloadClient;
+    public static PageDownloadOptiFine? FrmDownloadOptiFine;
+    public static PageDownloadLiteLoader? FrmDownloadLiteLoader;
+    public static PageDownloadForge? FrmDownloadForge;
+    public static PageDownloadNeoForge? FrmDownloadNeoForge;
+    public static PageDownloadCleanroom? FrmDownloadCleanroom;
+    public static PageDownloadFabric? FrmDownloadFabric;
+    public static PageDownloadQuilt? FrmDownloadQuilt;
+    public static PageDownloadLabyMod? FrmDownloadLabyMod;
+    public static PageDownloadLegacyFabric? FrmDownloadLegacyFabric;
+    public static PageDownloadMod? FrmDownloadMod;
+    public static PageDownloadPack? FrmDownloadPack;
+    public static PageDownloadDataPack? FrmDownloadDataPack;
+    public static PageDownloadShader? FrmDownloadShader;
+    public static PageDownloadResourcePack? FrmDownloadResourcePack;
+    public static PageDownloadWorld? FrmDownloadWorld;
+    public static PageDownloadCompFavorites? FrmDownloadCompFavorites;
+    public static PageSetupLeft? FrmSetupLeft;
+    public static PageSetupLaunch? FrmSetupLaunch;
+    public static PageSetupUI? FrmSetupUI;
+    public static PageSetupGameManage? FrmSetupGameManage;
+    public static PageSetupUpdate? FrmSetupUpdate;
+    public static PageSetupJava? FrmSetupJava;
+    public static PageHomepageMarket? FrmHomePageMarket;
+    public static PageSetupAbout? FrmSetupAbout;
+    public static PageSetupLog? FrmSetupLog;
+    public static PageSetupFeedback? FrmSetupFeedback;
+    public static PageSetupGameLink? FrmSetupGameLink;
+    public static PageSetupLauncherMisc? FrmSetupLauncherMisc;
+    public static PageLoginAuth? FrmLoginAuth;
+    public static PageLoginMs? FrmLoginMs;
+    public static PageLoginProfile? FrmLoginProfile;
+    public static PageLoginProfileSkin? FrmLoginProfileSkin;
+    public static PageLoginOffline? FrmLoginOffline;
+    public static PageInstanceLeft? FrmInstanceLeft;
+    public static PageInstanceOverall? FrmInstanceOverall;
+    public static PageInstanceCompResource? FrmInstanceMod;
+    public static PageInstanceModDisabled? FrmInstanceModDisabled;
+    public static PageInstanceScreenshot? FrmInstanceScreenshot;
+    public static PageInstanceSaves? FrmInstanceSaves;
+    public static PageInstanceCompResource? FrmInstanceShader;
+    public static PageInstanceCompResource? FrmInstanceSchematic;
+    public static PageInstanceCompResource? FrmInstanceResourcePack;
+    public static PageInstanceSetup? FrmInstanceSetup;
+    public static PageInstanceInstall? FrmInstanceInstall;
+    public static PageInstanceExport? FrmInstanceExport;
+    public static PageInstanceServer? FrmInstanceServer;
+    public static PageInstanceSavesLeft? FrmInstanceSavesLeft;
+    public static PageInstanceSavesInfo? FrmInstanceSavesInfo;
+    public static PageInstanceSavesBackup? FrmInstanceSavesBackup;
+    public static PageInstanceSavesDatapack? FrmInstanceSavesDatapack;
+    public static PageDownloadCompDetail? FrmDownloadCompDetail;
 
     public static ModLoader.LoaderTask<int, List<HelpEntry>> HelpLoader = new("Help Page", HelpLoad, null,
         ThreadPriority.BelowNormal);
 
-    public static object DragControl = null;
+    public static object? DragControl = null;
     private static int Timer4Count;
     private static int Timer150Count;
 
@@ -113,7 +113,7 @@ public static class ModMain
 
             HintTick();
             MyMsgBoxTick();
-            FrmMain.DragTick();
+            FrmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
             if (ModSecret.ThemeDontClick == 2)
                 ModSecret.ThemeRefresh();
@@ -154,7 +154,7 @@ public static class ModMain
             {
                 #region 每 7.5s 执行一次的代码
 
-                if (FrmMain.BtnExtraApril_ShowCheck() && AprilDistance != 0)
+                if (FrmMain!.BtnExtraApril_ShowCheck() && AprilDistance != 0)
                     FrmMain.BtnExtraApril.Ribble();
                 // 以未知原因窗口被丢到一边去的修复（Top、Left = -25600），还有 #745
                 ModBase.RunInUi(() =>
@@ -255,10 +255,8 @@ public static class ModMain
     /// <summary>
     ///     在窗口左下角弹出提示文本。
     /// </summary>
-    public static void Hint(string Text, HintType Type = HintType.Info, bool Log = true)
+    public static void Hint(string? Text, HintType Type = HintType.Info, bool Log = true)
     {
-        if (HintWaiting is null)
-            HintWaiting = new ModBase.SafeList<HintMessage>();
         HintWaiting.Add(new HintMessage { Text = Text ?? "", Type = Type, Log = Log });
     }
 
@@ -286,10 +284,10 @@ public static class ModMain
                 CurrentHint.Text = CurrentHint.Text.Replace(Constants.vbCrLf, " ").Replace(Constants.vbCr, " ")
                     .Replace(Constants.vbLf, " ");
                 // 超量提示直接忽略
-                if (FrmMain.PanHint.Children.Count >= 20)
+                if (FrmMain!.PanHint.Children.Count >= 20)
                     goto EndHint;
                 // 检查是否有重复提示
-                Border DoubleStack = null;
+                Border? DoubleStack = null;
                 foreach (Border stack in FrmMain.PanHint.Children)
                     if (Conversions.ToBoolean(((dynamic)stack.Tag)[0] &&
                                               (((TextBlock)stack.Child).Text ?? "") == (CurrentHint.Text ?? "")))
@@ -320,13 +318,13 @@ public static class ModMain
                     }
                 }
 
-                if (!(DoubleStack == null))
+                if (DoubleStack != null)
                 {
                     // 有重复提示，且该提示的进入动画已播放
                     if (!ModAnimation.AniIsRun($"Hint Show {((dynamic)DoubleStack.Tag)[1]}"))
                     {
                         ModAnimation.AniStop($"Hint Hide {((dynamic)DoubleStack.Tag)[1]}");
-                        double Delay = (800d + ModBase.MathClamp(CurrentHint.Text.Length, 5d, 23d) * 180d) *
+                        double Delay = (800d + ModBase.MathClamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
                                     ModAnimation.AniSpeed;
                         ModAnimation.AniStart(new[]
                         {
@@ -337,7 +335,7 @@ public static class ModMain
                             ModAnimation.AaX(DoubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaDouble(i =>
                             {
-                                Percent += (dynamic)i;
+                                Percent += Conversions.ToDouble(i);
                                 var Gradient = (LinearGradientBrush)DoubleStack.Background;
                                 Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                                   new ModBase.MyColor(255d, 255d, 255d) *
@@ -363,18 +361,18 @@ public static class ModMain
                     {
                         Tag = new dynamic[] { true, ModBase.GetUuid() }, Margin = new Thickness(-70, 0d, 20d, 0d), Opacity = 0d,
                         Height = 0d, HorizontalAlignment = HorizontalAlignment.Left,
-                        CornerRadius = new CornerRadius(0d, 6d, 6d, 0d)
-                    };
-                    NewHintControl.Background = new LinearGradientBrush(
-                        new GradientStopCollection(new List<GradientStop>
+                        CornerRadius = new CornerRadius(0d, 6d, 6d, 0d),
+                        Background = new LinearGradientBrush(
+                            new GradientStopCollection(new List<GradientStop>
+                            {
+                                new(TargetColor0 * Percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent), 0d),
+                                new(TargetColor1 * Percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent), 1d)
+                            }), 90d),
+                        Child = new TextBlock
                         {
-                            new(TargetColor0 * Percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent), 0d),
-                            new(TargetColor1 * Percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent), 1d)
-                        }), 90d);
-                    NewHintControl.Child = new TextBlock
-                    {
-                        TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = CurrentHint.Text,
-                        Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
+                            TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = CurrentHint.Text,
+                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
+                        }
                     };
                     // AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
                     FrmMain.PanHint.Children.Add(NewHintControl);
@@ -388,25 +386,24 @@ public static class ModMain
                         // 是唯一提示
                         NewHintControl.Height = 26d;
                     // 开始动画
-                    Animations.AddRange(new[]
-                    {
+                    Animations.AddRange([
                         ModAnimation.AaX(NewHintControl, 30d,
                             Ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
                         ModAnimation.AaX(NewHintControl, 20d, 200, Ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaOpacity(NewHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
-                            Percent = Conversions.ToDouble(Percent + (dynamic)i);
+                            Percent += Conversions.ToDouble(i);
                             var Gradient = (LinearGradientBrush)NewHintControl.Background;
                             Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent);
                             Gradient.GradientStops[1].Color = TargetColor1 * Percent +
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent);
                         }, 0.7d, 250, 100)
-                    });
+                    ]);
                     ModAnimation.AniStart(Animations, $"Hint Show {((dynamic)NewHintControl.Tag)[1]}");
                     // 结束动画
-                    var Delay = (800d + ModBase.MathClamp(CurrentHint.Text.Length, 5d, 23d) * 180d) *
+                    var Delay = (800d + ModBase.MathClamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
                                 ModAnimation.AniSpeed;
                     ModAnimation.AniStart(
                         new[]
@@ -437,7 +434,7 @@ public static class ModMain
 
     private static void HideAllHint()
     {
-        foreach (Border Control in FrmMain.PanHint.Children)
+        foreach (Border Control in FrmMain!.PanHint.Children)
         {
             Control.IsHitTestVisible = false;
             ModAnimation.AniStart(
