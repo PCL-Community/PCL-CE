@@ -134,6 +134,13 @@ public partial class PageSetupLaunch
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
     }
+    
+    private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
+    {
+        dynamic sender = senderRaw;
+        if (ModAnimation.AniControlEnabled == 0)
+            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+    }
 
     private void SliderChange(object senderRaw, bool user)
     {

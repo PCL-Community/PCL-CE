@@ -296,12 +296,12 @@ public partial class PageSetupUI
     }
 
     // 背景图片
-    private void BtnUIBgOpen_Click(object sender, EventArgs e)
+    private void BtnUIBgOpen_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Pictures\");
     }
 
-    private void BtnBackgroundRefresh_Click(object sender, EventArgs e)
+    private void BtnBackgroundRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         BackgroundRefresh(true, true);
     }
@@ -332,7 +332,7 @@ public partial class PageSetupUI
         CardBackground.TriggerForceResize();
     }
 
-    private void BtnBackgroundClear_Click(object sender, EventArgs e)
+    private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox("即将删除背景内容文件夹中的所有文件。" + Constants.vbCrLf + "此操作不可撤销，是否确定？", "警告", Button2: "取消",
                 IsWarn: true) == 1)
@@ -458,7 +458,7 @@ public partial class PageSetupUI
     }
 
     // 顶部栏
-    private void BtnLogoChange_Click(object sender, EventArgs e)
+    private void BtnLogoChange_Click(object sender, MouseButtonEventArgs e)
     {
         string FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
         if (string.IsNullOrEmpty(FileName))
@@ -542,7 +542,7 @@ public partial class PageSetupUI
         }
     }
 
-    private void BtnLogoDelete_Click(object sender, EventArgs e)
+    private void BtnLogoDelete_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -557,12 +557,12 @@ public partial class PageSetupUI
     }
 
     // 背景音乐
-    private void BtnMusicOpen_Click(object sender, EventArgs e)
+    private void BtnMusicOpen_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Musics\");
     }
 
-    private void BtnMusicRefresh_Click(object sender, EventArgs e)
+    private void BtnMusicRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         ModMusic.MusicRefreshPlay(true);
     }
@@ -589,7 +589,7 @@ public partial class PageSetupUI
         CardMusic.TriggerForceResize();
     }
 
-    private void BtnMusicClear_Click(object sender, EventArgs e)
+    private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox("即将删除背景音乐文件夹中的所有文件。" + Constants.vbCrLf + "此操作不可撤销，是否确定？", "警告", Button2: "取消",
                 IsWarn: true) == 1)
@@ -642,7 +642,7 @@ public partial class PageSetupUI
     }
 
     // 主页
-    private void BtnCustomFile_Click(object sender, EventArgs e)
+    private void BtnCustomFile_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -665,7 +665,7 @@ public partial class PageSetupUI
         ModMain.Hint("已刷新主页！", ModMain.HintType.Finish);
     }
 
-    private void BtnCustomTutorial_Click(object sender, EventArgs e)
+    private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.MyMsgBox(
             "1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。" + Constants.vbCrLf + "2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。" +
@@ -724,7 +724,7 @@ public partial class PageSetupUI
     }
 
     // 赞助
-    private void BtnLauncherDonate_Click(object sender, EventArgs e)
+    private void BtnLauncherDonate_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenWebsite("https://afdian.com/a/LTCat");
     }
@@ -761,7 +761,7 @@ public partial class PageSetupUI
         SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
     }
 
-    private void BtnHomepageMarket_Click(object sender, EventArgs e)
+    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.HomePageMarket });
     }

@@ -224,6 +224,6 @@ public partial class PageSetupLauncherMisc
     private void ComboSystemActivity_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ComboChange(sender, e); 
-        ComboSystemActivity_SelectionChanged(sender, e); 
+        ComboSystemActivity_SelectionChanged(sender, e);
     }
 }
