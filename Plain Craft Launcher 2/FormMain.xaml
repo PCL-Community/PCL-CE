@@ -7,6 +7,8 @@
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
     mc:Ignorable="d"
     KeyDown="FormMain_KeyDown" MouseDown="FormMain_MouseDown" SizeChanged="FormMain_SizeChanged"
+    Closing="FormMain_Closing" Activated="FormMain_Activated" Drop="FrmMain_Drop" StateChanged="WindowStateChanged"
+    MouseMove="FormMain_MouseMove"
     x:Name="WindMain" x:Class="PCL.FormMain" Style="{StaticResource MyWindow}"
     AllowDrop="True" Topmost="True" Title="Plain Craft Launcher Community Edition " MinHeight="470" MinWidth="810"
     ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico"

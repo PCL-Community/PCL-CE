@@ -65,7 +65,6 @@
         <DefineConstants>BETA</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="Microsoft.VisualBasic"/>
         <PackageReference Include="CacheCow.Client" Version="2.13.1"/>
         <PackageReference Include="Dapper" Version="2.1.66"/>
         <PackageReference Include="fNbt" Version="1.0.0"/>

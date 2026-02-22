@@ -149,14 +149,6 @@ public partial class FormMain
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
-        Closing += FormMain_Closing;
-        SizeChanged += ((_, __)) => FormMain_SizeChanged();
-        KeyDown += FormMain_KeyDown;
-        MouseDown += FormMain_MouseDown;
-        Activated += (_, __) => FormMain_Activated();
-        Drop += FrmMain_Drop;
-        StateChanged += WindowStateChanged;
-        MouseMove += FormMain_MouseMove;
     }
 
     private void FormMain_Loaded() // (sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -708,7 +700,7 @@ public partial class FormMain
     /// </summary>
     public bool IsSizeSaveable;
 
-    private void FormMain_SizeChanged(object sender, EventArgs e)
+    private void FormMain_SizeChanged(object? sender = null, EventArgs? e = null)
     {
         if (IsSizeSaveable)
         {
@@ -869,7 +861,7 @@ public partial class FormMain
     }
 
     // 切回窗口
-    private void FormMain_Activated()
+    private void FormMain_Activated(object sender, EventArgs e)
     {
         try
         {
