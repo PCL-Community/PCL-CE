@@ -689,7 +689,7 @@ public partial class FormMain
         Lifecycle.Shutdown((int)ReturnCode, force);
     }
 
-    private void BtnTitleClose_Click(object sender, RoutedEventArgs e)
+    private void BtnTitleClose_Click(object sender, EventArgs e)
     {
         EndProgram(true);
     }
@@ -750,7 +750,7 @@ public partial class FormMain
     }
 
     // 最小化
-    private void BtnTitleMin_Click()
+    private void BtnTitleMin_Click(object sender, EventArgs e)
     {
         WindowState = WindowState.Minimized;
     }
