@@ -46,7 +46,9 @@
                         Grid.Column="1" Padding="20,0,0,0" HorizontalContentAlignment="Right" FontSize="13"
                         VerticalContentAlignment="Center" Visibility="Collapsed" />
     <local:MyButton x:Name="BtnBack" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,0,0,0" ColorType="Normal"
+                    Click="BtnBack_Click"
                     Text="返回" HorizontalAlignment="Center" />
     <local:MyButton x:Name="BtnLogin" Grid.Row="9" Grid.Column="1" Width="50" Margin="20,0,0,0" ColorType="Highlight"
+                    Click="BtnBack_Click"
                     Text="登录" HorizontalAlignment="Center" />
 </Grid>
