@@ -115,7 +115,8 @@ public class MyPageRight : AdornerDecorator
         {
             if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
             {
-                PageLoader.Start(((ModLoader.LoaderTask<bool, List<JavaEntry>>)PageLoader).StartGetInput(false, PageLoaderInputInvoke));
+                dynamic dynamicLoader = PageLoader;
+                PageLoader.Start(dynamicLoader.StartGetInput(false, PageLoaderInputInvoke));
             }
             else
             {

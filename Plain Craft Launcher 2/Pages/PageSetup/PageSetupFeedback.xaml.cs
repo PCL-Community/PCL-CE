@@ -24,12 +24,12 @@ public partial class PageSetupFeedback
 
     private new bool IsLoaded;
 
-    public ModLoader.LoaderTask<int, List<Feedback>> Loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<int, List<Feedback>>("FeedbackList", FeedbackListGet);
+        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
@@ -44,7 +44,7 @@ public partial class PageSetupFeedback
         IsLoaded = true;
     }
 
-    public void FeedbackListGet(ModLoader.LoaderTask<int, List<Feedback>> Task)
+    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
     {
         JArray list;
         list = (JArray)ModNet.NetGetCodeByRequestRetry(
