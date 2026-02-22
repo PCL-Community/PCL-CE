@@ -95,7 +95,7 @@
                 </Rectangle>
                 <Rectangle Grid.Column="1" Fill="{DynamicResource ColorBrush6}" Opacity="0.6" />
             </Grid>
-            <Grid HorizontalAlignment="Center" Name="PanLaunchingInfo" Width="PanLaunchingInfo_SizeChangedW">
+            <Grid HorizontalAlignment="Center" Name="PanLaunchingInfo" SizeChanged="PanLaunchingInfo_SizeChangedW">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto" />

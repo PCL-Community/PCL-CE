@@ -66,7 +66,7 @@ public partial class PageLoginProfileSkin
     }
 
     // 皮肤与披风子菜单
-    private void BtnSkin_Click(object sender, RoutedEventArgs e)
+    private void BtnSkin_Click(object sender, EventArgs e)
     {
         BtnSkin.ContextMenu.IsOpen = true;
     }

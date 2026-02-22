@@ -168,7 +168,7 @@ public partial class PageLaunchLeft
     }
 
     // 实例选择按钮
-    private void BtnInstance_Click(object sender, EventArgs e)
+    private void BtnInstance_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
             return;
@@ -300,7 +300,7 @@ public partial class PageLaunchLeft
     }
 
     // 取消按钮
-    private void BtnCancel_Click(object sender, EventArgs e)
+    private void BtnCancel_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModLaunch.McLaunchLoaderReal is not null)
         {
@@ -322,7 +322,7 @@ public partial class PageLaunchLeft
     }
 
     // 实例设置按钮
-    private void BtnMore_Click(object sender, EventArgs e)
+    private void BtnMore_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
             return;
@@ -964,5 +964,5 @@ public partial class PageLaunchLeft
     #endregion
 
     // 启动游戏按钮
-    private void BtnLaunch_Click(object sender, EventArgs e) => LaunchButtonClick();
+    private void BtnLaunch_Click(object sender, MouseButtonEventArgs e) => LaunchButtonClick();
 }
