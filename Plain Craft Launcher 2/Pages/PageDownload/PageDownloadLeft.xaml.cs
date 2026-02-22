@@ -230,7 +230,7 @@ public partial class PageDownloadLeft : IRefreshable
 
     public object PageGet(FormMain.PageSubType ID)
     {
-        if ((int)ID == -1)
+        if (ID == default)
             ID = PageID;
         switch (ID)
         {
