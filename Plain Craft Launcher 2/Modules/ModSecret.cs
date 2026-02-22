@@ -28,7 +28,7 @@ internal static class ModSecret
     #if DEBUG
         public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
     #else
-        public const string RegFolder = "PCLCE" 'PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
+        public const string RegFolder = "PCLCE"; // PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
     #endif
 
      // 用于微软登录的 ClientId
@@ -215,6 +215,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     private static readonly object CustomThemeHueDelta =
         EnvThemeHueDelta is null ? default(int?) : int.Parse((dynamic)EnvThemeHueDelta);
+    #else
+    public static readonly bool EnableCustomTheme = false;
     #endif
 
     public static bool IsDarkMode => ThemeService.IsDarkMode;

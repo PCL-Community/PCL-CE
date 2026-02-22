@@ -71,9 +71,8 @@ public class ModSetup : IConfigScope
     public object Load(string key, bool forceReload = false, ModMinecraft.McInstance instance = null)
     {
         var value = Get(key, instance);
-        var method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
-        if (method is not null)
-            method.Invoke(this, new[] { value });
+        MethodInfo method = _methodCache.GetOrAdd(key, (_) => typeof(ModSetup).GetMethod(key));
+        if (method != null) method.Invoke(this, new[] { value });
         return value;
     }
 
