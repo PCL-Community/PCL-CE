@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -64,7 +65,7 @@ public class MyPageRight : AdornerDecorator
     #region 加载器
 
     private ModLoader.LoaderBase PageLoader;
-    private object PageLoaderInputInvoke;
+    private Func<object> PageLoaderInputInvoke;
     private MyLoading PageLoaderUi;
     private FrameworkElement PanLoader;
     private FrameworkElement PanContent;
@@ -114,7 +115,7 @@ public class MyPageRight : AdornerDecorator
         {
             if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
             {
-                PageLoader.Start(((dynamic)PageLoader).StartGetInput((object)null, PageLoaderInputInvoke));
+                PageLoader.Start(((ModLoader.LoaderTask<bool, List<JavaEntry>>)PageLoader).StartGetInput(false, PageLoaderInputInvoke));
             }
             else
             {
