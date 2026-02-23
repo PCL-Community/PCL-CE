@@ -17,7 +17,15 @@ public record YggdrasilOptions:OpenIdOptions
     {
 
     }
-    public override async Task InitiateAsync(CancellationToken token)
+    
+    // 重写这个鬼方法是因为 Yggdrasil Connect 有要求（
+    
+    /// <summary>
+    /// 拉取 Yggdrasil 配置
+    /// </summary>
+    /// <param name="token"></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public override async Task InitializeAsync(CancellationToken token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, OpenIdDiscoveryAddress);
         if (Headers is not null)
@@ -31,10 +39,16 @@ public record YggdrasilOptions:OpenIdOptions
         if (Meta is null) throw new InvalidOperationException();
         if (_scopesRequired.Except(Meta.ScopesSupported).Any()) throw new InvalidOperationException();
     }
-
+    /// <summary>
+    /// 构建 OAuth 客户端选项
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidCastException"></exception>
     public override async Task<OAuthClientOptions> BuildOAuthOptionsAsync(CancellationToken token)
     {
-        await InitiateAsync(token);
         if (Meta is YggdrasilConnectMetaData meta)
         {
             var options = await base.BuildOAuthOptionsAsync(token);
@@ -45,9 +59,9 @@ public record YggdrasilOptions:OpenIdOptions
                 options.ClientId = meta.SharedClientId;
             }
 
-            throw new ArgumentException("ClientId");
+            throw new ArgumentException();
         }
 
-        throw new InvalidCastException($"Can not cast {Meta?.GetType().FullName} to YggdrasilConnectMetaData");
+        throw new InvalidCastException();
     }
 }

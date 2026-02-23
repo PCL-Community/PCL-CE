@@ -13,26 +13,51 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 
 public record OpenIdOptions(Func<HttpClient> GetHttpClient, string ConfigurationAddress)
 {
+    /// <summary>
+    /// OpenId Discovery 地址
+    /// </summary>
     public string OpenIdDiscoveryAddress => ConfigurationAddress;
+    /// <summary>
+    /// 客户端 ID（必须设置）
+    /// </summary>
     public required string ClientId
     {
         get;
         set;
     }
     
-    public bool OnlyDeviceAuthorize { get; set; }
-
-    public string? RedirectUri;
-
-    public Dictionary<string, string>? Headers { get; set; }
-
-    public bool EnablePkceSupport { get; set; } = true;
-    public Func<HttpClient> GetClient => GetHttpClient;
-    public OpenIdMetadata? Meta { get; set; }
+    // 为了让 YggdrasilConnect Client 复用代码做的逻辑
     
-
-
-    public virtual async Task InitiateAsync(CancellationToken token)
+    /// <summary>
+    /// 是否只使用设备代码流授权
+    /// </summary>
+    public bool OnlyDeviceAuthorize { get; set; }
+    /// <summary>
+    /// 回调 Uri
+    /// </summary>
+    public string? RedirectUri { get; set; }
+    /// <summary>
+    /// 发送 HTTP 请求时设置的请求头，仅适用于请求头（丢到 HttpRequestMessage 不会报错的那种）
+    /// </summary>
+    public Dictionary<string, string>? Headers { get; set; }
+    /// <summary>
+    /// 是否启用 PKCE 支持，默认启用
+    /// </summary>
+    public bool EnablePkceSupport { get; set; } = true;
+    /// <summary>
+    /// 获取 HttpClient，生命周期由调用方管理
+    /// </summary>
+    public Func<HttpClient> GetClient => GetHttpClient;
+    /// <summary>
+    /// OpenId 元数据，请勿自行设置此属性，而是应该调用 <see cref="InitializeAsync"/>
+    /// </summary>
+    public OpenIdMetadata? Meta { get; internal set; }
+    
+    /// <summary>
+    /// 从互联网拉取 OpenID 配置信息
+    /// </summary>
+    /// <param name="token"></param>
+    public virtual async Task InitializeAsync(CancellationToken token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, OpenIdDiscoveryAddress);
         if (Headers is not null)
@@ -46,7 +71,14 @@ public record OpenIdOptions(Func<HttpClient> GetHttpClient, string Configuration
         var task =  response.Content.ReadAsStringAsync(token);
         Meta = JsonSerializer.Deserialize<OpenIdMetadata>(await task);
     }
-
+    /// <summary>
+    /// 获取 Json Web Key
+    /// </summary>
+    /// <param name="kid">密钥 ID</param>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
+    /// <exception cref="FormatException">找不到 Jwk 或 Jwk 配置无效</exception>
     public async Task<JsonWebKey> GetSignatureKeyAsync(string kid,CancellationToken token)
     {
         if (Meta?.JwksUri is null) throw new InvalidOperationException();
@@ -61,10 +93,15 @@ public record OpenIdOptions(Func<HttpClient> GetHttpClient, string Configuration
         return result?.Keys.Single(k => k.Kid == kid) 
                ?? throw new FormatException();
     }
-
+    /// <summary>
+    /// 构建 OAuth 客户端配置
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
     public virtual async Task<OAuthClientOptions> BuildOAuthOptionsAsync(CancellationToken token)
     {
-        await InitiateAsync(token);
+        if (Meta is null) throw new InvalidOperationException();
         if(!OnlyDeviceAuthorize) ArgumentException.ThrowIfNullOrEmpty(RedirectUri);
         return new OAuthClientOptions
         {

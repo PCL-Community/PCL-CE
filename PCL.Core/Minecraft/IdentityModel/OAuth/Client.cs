@@ -37,7 +37,7 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     }
     
     /// <summary>
-    /// 使用授权代码获取 AccessToken
+    /// 使用授权代码获取令牌
     /// </summary>
     /// <param name="code">授权代码</param>
     /// <param name="extData">附加属性，不应该包含必须参数和预定义字段 (e.g. client_id、grant_type)</param>
