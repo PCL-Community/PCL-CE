@@ -510,7 +510,7 @@ public partial class PageSelectRight
         }
     }
 
-    private void BtnDownload_Click(object sender, EventArgs e)
+    private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
