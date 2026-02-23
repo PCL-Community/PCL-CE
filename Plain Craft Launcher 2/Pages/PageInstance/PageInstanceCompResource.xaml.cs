@@ -126,6 +126,37 @@ public partial class PageInstanceCompResource : IRefreshable
         Loaded += (_, __) => PageOther_Loaded();
         LoaderInit();
         PageExit += UnselectedAllWithAnimation;
+        // Handles
+        Load.Click += Load_Click;
+        BtnManageBack.Click += BtnManageBack_Click;
+        BtnHintBack.Click += BtnHintBack_Click;
+        BtnManageOpen.Click += BtnManageOpen_Click;
+        BtnHintOpen.Click += BtnManageOpen_Click;
+        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
+        BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnManageDownload.Click += BtnManageDownload_Click;
+        BtnHintDownload.Click += BtnManageDownload_Click;
+        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
+        BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
+        BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
+        BtnFilterAll.Check += ChangeFilter;
+        BtnFilterCanUpdate.Check += ChangeFilter;
+        BtnFilterDisabled.Check += ChangeFilter;
+        BtnFilterEnabled.Check += ChangeFilter;
+        BtnFilterError.Check += ChangeFilter;
+        BtnFilterDuplicate.Check += ChangeFilter;
+        BtnSort.Click += BtnSortClick;
+        BtnSelectEnable.Click += BtnSelectED_Click;
+        BtnSelectDisable.Click += BtnSelectED_Click;
+        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
+        BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectCancel.Click += BtnSelectCancel_Click;
+        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
+        BtnSelectShare.Click += BtnSelectShare_Click;
+        SearchBox.TextChanged += SearchRun;
     }
 
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
