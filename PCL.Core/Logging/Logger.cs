@@ -12,7 +12,7 @@ using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Logging;
 
-public sealed class Logger : IDisposable
+public sealed class Logger : IAsyncDisposable
 {
     public Logger(LoggerConfiguration configuration)
     {
@@ -180,17 +180,18 @@ public sealed class Logger : IDisposable
     }
 
     private bool _disposed;
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed) return;
         _disposed = true;
-        _cancelToken.Cancel();
-        _processingTask.Forget();
-        _processingTask.ContinueWith(_ =>
-        {
-            _logChannel.Writer.Complete();
-            _currentStream?.Dispose();
-            _currentFile?.Dispose();
-        }).Forget();
+
+        await _cancelToken.CancelAsync().ConfigureAwait(false);
+        _logChannel.Writer.Complete();
+        await _processingTask;
+
+        if (_currentStream != null)
+            await _currentStream.DisposeAsync().ConfigureAwait(false);
+        if (_currentFile != null)
+            await _currentFile.DisposeAsync().ConfigureAwait(false);
     }
 }
