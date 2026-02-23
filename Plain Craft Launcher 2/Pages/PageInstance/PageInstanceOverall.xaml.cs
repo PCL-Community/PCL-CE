@@ -176,7 +176,7 @@ public partial class PageInstanceOverall
                 });
             if (instanceInfo.HasLiteLoader)
                 items.Add(new MyListItem
-                    { Title = "LiteLoader", Info = "已安装", Logo = "pack://application:,,,/images/Blocks/Egg.png" });
+                { Title = "LiteLoader", Info = "已安装", Logo = "pack://application:,,,/images/Blocks/Egg.png" });
             if (instanceInfo.HasLegacyFabric)
                 items.Add(new MyListItem
                 {
@@ -245,7 +245,7 @@ public partial class PageInstanceOverall
             try
             {
                 if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("HintHide")))
-                {   
+                {
                     if (ModMain.MyMsgBox(
                             "确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。" + Constants.vbCrLf +
                             "此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。", "隐藏实例提示", Button2: "取消") != 1)
@@ -271,7 +271,7 @@ public partial class PageInstanceOverall
     }
 
     // 更改描述
-    private void BtnDisplayDesc_Click(object sender, EventArgs e)
+    private void BtnDisplayDesc_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -292,7 +292,7 @@ public partial class PageInstanceOverall
     }
 
     // 重命名实例
-    private void BtnDisplayRename_Click(object sender, EventArgs e)
+    private void BtnDisplayRename_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -441,7 +441,7 @@ public partial class PageInstanceOverall
     }
 
     // 收藏夹
-    private void BtnDisplayStar_Click(object sender, EventArgs e)
+    private void BtnDisplayStar_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -512,7 +512,7 @@ public partial class PageInstanceOverall
 
             // 生成脚本
             if (ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-                    { SaveBatch = SavePath, Instance = PageInstanceLeft.Instance }))
+            { SaveBatch = SavePath, Instance = PageInstanceLeft.Instance }))
             {
                 if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Legacy)
                     ModMain.Hint("正在导出启动脚本……");
@@ -527,7 +527,7 @@ public partial class PageInstanceOverall
     }
 
     // 补全文件
-    private void BtnManageCheck_Click(object sender, EventArgs e)
+    private void BtnManageCheck_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -556,20 +556,20 @@ public partial class PageInstanceOverall
                 switch (Loader.State)
                 {
                     case ModBase.LoadState.Finished:
-                    {
-                        ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
-                        break;
-                    }
+                        {
+                            ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
+                            break;
+                        }
                     case ModBase.LoadState.Failed:
-                    {
-                        ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
-                        break;
-                    }
+                        {
+                            ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
+                            break;
+                        }
                     case ModBase.LoadState.Aborted:
-                    {
-                        ModMain.Hint(Loader.Name + "已取消！");
-                        break;
-                    }
+                        {
+                            ModMain.Hint(Loader.Name + "已取消！");
+                            break;
+                        }
                 }
             };
             Loader.Start(PageInstanceLeft.Instance.Name);
@@ -584,7 +584,7 @@ public partial class PageInstanceOverall
     }
 
     // 重置
-    private void BtnManageRestore_Click(object sender, EventArgs e)
+    private void BtnManageRestore_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -624,7 +624,7 @@ public partial class PageInstanceOverall
                     : null,
                 ForgeEntry = CurrentVersion.HasForge
                     ? new ModDownload.DlForgeVersionEntry(CurrentVersion.Forge, null, CurrentVersion.VanillaName)
-                        { Category = "installer" }
+                    { Category = "installer" }
                     : null,
                 ForgeVersion = CurrentVersion.HasForge ? CurrentVersion.Forge : null,
                 NeoForgeVersion = CurrentVersion.HasNeoForge ? CurrentVersion.NeoForge : null,
@@ -653,7 +653,7 @@ public partial class PageInstanceOverall
         try
         {
             ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-                { Instance = PageInstanceLeft.Instance, IsTest = true });
+            { Instance = PageInstanceLeft.Instance, IsTest = true });
             ModMain.FrmMain.PageChange(FormMain.PageType.Launch);
         }
         catch (Exception ex)
@@ -664,7 +664,7 @@ public partial class PageInstanceOverall
 
     // 删除实例
     // 修改此代码时，同时修改 PageSelectRight 中的代码
-    private void BtnManageDelete_Click(object sender, EventArgs e)
+    private void BtnManageDelete_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -677,30 +677,30 @@ public partial class PageInstanceOverall
                             : ""), "实例删除确认", Button2: "取消", IsWarn: IsHintIndie || IsShiftPressed))
             {
                 case 1:
-                {
-                    var instancePath = PageInstanceLeft.Instance.PathInstance;
-                    var instanceName = PageInstanceLeft.Instance.Name;
-                    ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
-                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
-                        instancePath);
-                    if (IsShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instancePath);
-                        ModMain.Hint("实例 " + instanceName + " 已永久删除！", ModMain.HintType.Finish);
-                    }
-                    else
-                    {
-                        FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
-                            RecycleOption.SendToRecycleBin);
-                        ModMain.Hint("实例 " + instanceName + " 已删除到回收站！", ModMain.HintType.Finish);
-                    }
+                        var instancePath = PageInstanceLeft.Instance.PathInstance;
+                        var instanceName = PageInstanceLeft.Instance.Name;
+                        ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
+                            instancePath);
+                        if (IsShiftPressed)
+                        {
+                            ModBase.DeleteDirectory(instancePath);
+                            ModMain.Hint("实例 " + instanceName + " 已永久删除！", ModMain.HintType.Finish);
+                        }
+                        else
+                        {
+                            FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
+                                RecycleOption.SendToRecycleBin);
+                            ModMain.Hint("实例 " + instanceName + " 已删除到回收站！", ModMain.HintType.Finish);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 2:
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
             }
 
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -718,31 +718,31 @@ public partial class PageInstanceOverall
     }
 
     // 修补核心
-    private void BtnManagePatch_Click(object sender, EventArgs e)
+    private void BtnManagePatch_Click(object sender, MouseButtonEventArgs e)
     {
         switch (ModMain.MyMsgBox(
                     $"你确定要对 {PageInstanceLeft.Instance.Name} 的核心文件进行修补吗？ {Constants.vbCrLf}修补游戏核心可能导致游戏崩溃等问题。{Constants.vbCrLf}在修补核心后，文件校验会自动关闭。",
                     "修补提示", Button2: "取消"))
         {
             case 1:
-            {
-                string UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
-                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
-                    return;
-                ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
-                ModBase.RunInNewThread(() =>
                 {
-                    var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar");
-                    Core.AddToCore(UserInput);
-                    ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
-                    ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
-                });
-                break;
-            }
+                    string UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
+                    if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
+                        return;
+                    ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
+                    ModBase.RunInNewThread(() =>
+                    {
+                        var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar");
+                        Core.AddToCore(UserInput);
+                        ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
+                        ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
+                    });
+                    break;
+                }
             case 2:
-            {
-                return;
-            }
+                {
+                    return;
+                }
         }
     }
 
