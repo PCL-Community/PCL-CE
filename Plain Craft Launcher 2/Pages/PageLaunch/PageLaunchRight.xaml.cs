@@ -17,8 +17,6 @@ public partial class PageLaunchRight : IRefreshable
             { ReloadTimeout = 10 * 60 * 1000 };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
-        // Handles
-        BtnHintClose.Click += BtnHintClose_Click;
     }
 
     private void Init()
