@@ -47,7 +47,7 @@ public record OpenIdOptions
     /// <summary>
     /// 获取 HttpClient，生命周期由调用方管理
     /// </summary>
-    public Func<HttpClient> GetClient { get; set; }
+    public required Func<HttpClient> GetClient { get; set; }
     /// <summary>
     /// OpenId 元数据，请勿自行设置此属性，而是应该调用 <see cref="InitializeAsync"/>
     /// </summary>
@@ -116,4 +116,5 @@ public record OpenIdOptions
             }
         };
     }
+
 }
