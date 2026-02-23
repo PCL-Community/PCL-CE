@@ -244,8 +244,8 @@ public class ValidateExcept : ValidateType
     {
         this.Excepts = new Collection<string>();
         this.ErrorMessage = ErrorMessage;
-        foreach (string Data in Excepts)
-            this.Excepts.Add(Data);
+        foreach (var Data in Excepts)
+            this.Excepts.Add(Data?.ToString() ?? "");
     }
 
     public Collection<string> Excepts { get; set; } = new();
@@ -284,8 +284,8 @@ public class ValidateExceptSame : ValidateType
     public ValidateExceptSame(IEnumerable Excepts, string ErrorMessage = "输入内容不能为 %", bool IgnoreCase = false)
     {
         this.Excepts = new Collection<string>();
-        foreach (string Data in Excepts)
-            this.Excepts.Add(Data);
+        foreach (var Data in Excepts)        
+            this.Excepts.Add(Data?.ToString() ?? "");
         this.ErrorMessage = ErrorMessage;
         this.IgnoreCase = IgnoreCase;
     }
@@ -370,7 +370,7 @@ public class ValidateFolderName : ValidateType
                 return "文件夹名不能以小数点结尾！";
             // 检查特殊字符
             var CharactCheck =
-                new ValidateExcept(System.IO.Path.GetInvalidFileNameChars() + (UseMinecraftCharCheck ? "!;" : ""),
+                new ValidateExcept(new string(System.IO.Path.GetInvalidFileNameChars()) + (UseMinecraftCharCheck ? "!;" : ""),
                     "文件夹名不可包含 % 字符！").Validate(Str);
             if (!string.IsNullOrEmpty(CharactCheck))
                 return CharactCheck;
@@ -452,7 +452,7 @@ public class ValidateFileName : ValidateType
             if (Str.EndsWithF("."))
                 return "文件名不能以小数点结尾！";
             // 检查特殊字符
-            var CharactCheck = new ValidateExcept(Path.GetInvalidFileNameChars() + (UseMinecraftCharCheck ? "!;" : ""),
+            var CharactCheck = new ValidateExcept(new string(System.IO.Path.GetInvalidFileNameChars()) + (UseMinecraftCharCheck ? "!;" : ""),
                 "文件名不可包含 % 字符！").Validate(Str);
             if (!string.IsNullOrEmpty(CharactCheck))
                 return CharactCheck;
@@ -550,8 +550,8 @@ public class ValidateFolderPath : ValidateType
                 return "文件夹路径存在错误！";
             // 检查特殊字符
             var CharactCheck =
-                new ValidateExcept(Path.GetInvalidFileNameChars() + (UseMinecraftCharCheck ? "!;" : ""), "路径中存在无效字符！")
-                    .Validate(SubStr);
+    new ValidateExcept(new string(Path.GetInvalidFileNameChars()) + (UseMinecraftCharCheck ? "!;" : ""), "路径中存在无效字符！")
+        .Validate(SubStr);
             if (!string.IsNullOrEmpty(CharactCheck))
                 return CharactCheck;
             // 检查头部空格
