@@ -33,7 +33,6 @@ public sealed class Logger : IAsyncDisposable
     {
         SingleReader = true
     });
-    private readonly CancellationTokenSource _cancelToken = new();
 
     public ReadOnlyCollection<string> CurrentLogFiles => _files.AsReadOnly();
 
