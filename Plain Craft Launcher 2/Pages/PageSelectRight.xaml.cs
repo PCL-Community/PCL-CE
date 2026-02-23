@@ -34,7 +34,7 @@ public partial class PageSelectRight
         InitializeComponent();
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;
-        Initialized += (_, __) => LoaderInit();
+        LoaderInit();
     }
 
     // 窗口基础
