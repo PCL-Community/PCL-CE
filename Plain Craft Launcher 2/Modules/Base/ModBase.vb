@@ -11,7 +11,6 @@ Imports PCL.Core.App
 Imports PCL.Core.Logging
 Imports PCL.Core.Utils
 Imports System.Windows
-Imports PCL.Core.IO
 Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
 
@@ -98,7 +97,7 @@ Public Module ModBase
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = FileService.TempPath & "\"
+    Public PathTemp As String = Paths.Temp & "\"
     ''' <summary>
     ''' AppData 中的 PCL 文件夹路径，以 \ 结尾。
     ''' </summary>
@@ -978,7 +977,7 @@ Public Module ModBase
             Return False
         End Try
     End Function
-    
+
     ''' <summary>
     ''' 解码 Bytes。
     ''' </summary>
@@ -1008,6 +1007,11 @@ Public Module ModBase
         End If
     End Function
 
+    Public Function GetHexString(bytes As ReadOnlyMemory(Of Byte))
+        ' 神秘的 VB 遇到 Span ReadOnlySpan 就嗷嗷叫
+        Return Convert.ToHexString(bytes.Span).ToLower()
+    End Function
+
     '文件校验
     ''' <summary>
     ''' 获取文件 MD5，若失败则返回空字符串。
@@ -1018,7 +1022,7 @@ Re:
         Try
             '获取 MD5
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Hash.MD5Provider.Instance.ComputeHash(fs)
+                Return GetHexString(Hash.MD5Provider.Instance.ComputeHash(fs))
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -1043,7 +1047,7 @@ Re:
             'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             '获取 SHA512
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA512Provider.Instance.ComputeHash(fs)
+                Return GetHexString(Hash.SHA512Provider.Instance.ComputeHash(fs))
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -1068,7 +1072,7 @@ Re:
             'If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             '获取 SHA256
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA256Provider.Instance.ComputeHash(fs)
+                Return GetHexString(Hash.SHA256Provider.Instance.ComputeHash(fs))
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -1091,7 +1095,7 @@ Re:
         Try
             '获取 SHA1
             Using fs As New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return Core.Utils.Hash.SHA1Provider.Instance.ComputeHash(fs)
+                Return GetHexString(Hash.SHA1Provider.Instance.ComputeHash(fs))
             End Using
         Catch ex As Exception
             If Retry OrElse TypeOf ex Is FileNotFoundException Then
@@ -1110,7 +1114,7 @@ Re:
     ''' </summary>
     Public Function GetAuthSHA1(inputStream As Stream) As String
         Try
-            Return Core.Utils.Hash.SHA1Provider.Instance.ComputeHash(inputStream)
+            Return GetHexString(Hash.SHA1Provider.Instance.ComputeHash(inputStream))
         Catch ex As Exception
             Log(ex, "获取流 SHA1 失败")
             Return ""
@@ -1491,7 +1495,7 @@ RetryDir:
     ''' 获取字符串 MD5。
     ''' </summary>
     Public Function GetStringMD5(Str As String) As String
-        Return Core.Utils.Hash.MD5Provider.Instance.ComputeHash(Str)
+        Return GetHexString(Hash.MD5Provider.Instance.ComputeHash(Str))
     End Function
     ''' <summary>
     ''' 检查字符串中的字符是否均为 ASCII 字符。

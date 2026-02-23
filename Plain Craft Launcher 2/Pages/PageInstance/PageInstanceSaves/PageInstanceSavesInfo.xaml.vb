@@ -46,6 +46,10 @@ Class PageInstanceSavesInfo
                     gameVersion.TryGet(Of NbtString)("Name", versionName)
                     gameVersion.TryGet(Of NbtInt)("Id", versionId)
                 End If
+
+                Dim CurrentVersionId = If(versionId?.Value, Nothing)
+                FrmInstanceSavesLeft.ItemDatapack.Visibility = If(Not CurrentVersionId.HasValue OrElse CurrentVersionId < 1444, Visibility.Collapsed, Visibility.Visible)
+
                 Dim hasDifficulty = gameLevel.Contains("Difficulty")
                 Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 

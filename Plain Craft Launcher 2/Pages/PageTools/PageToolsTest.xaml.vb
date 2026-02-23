@@ -5,7 +5,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports PCL.Core.App
 Imports PCL.Core.IO
-Imports PCL.Core.Net
+Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
@@ -516,8 +516,8 @@ Public Class PageToolsTest
         Const shortcutName = "PCL 社区版.lnk"
         Const desktopName = "桌面"
         Const startName = "开始菜单"
-        Dim desktop = FileService.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
-        Dim start = FileService.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
+        Dim desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName)
+        Dim start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, "Programs\" & shortcutName)
         Dim choice = MyMsgBox(
             "这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。" & vbCrLf & vbCrLf &
             desktopName & "位置: " & desktop & vbCrLf & startName & "位置: " & start,
@@ -559,7 +559,7 @@ Public Class PageToolsTest
                         AchievementImage.Visibility = Visibility.Visible
                     End Sub)
                 End Using
-            ElseIf response.StatusCode = Net.HttpStatusCode.NotFound Then
+            ElseIf response.StatusCode = HttpStatusCode.NotFound Then
                 Dispatcher.Invoke(Sub()
                     Log("获取成就图片失败（404）")
                     Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)

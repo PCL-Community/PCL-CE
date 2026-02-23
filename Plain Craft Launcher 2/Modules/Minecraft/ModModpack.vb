@@ -844,7 +844,7 @@ Retry:
                         Dim PreLaunchCommand As String = ReadIni(MMCSetupFile, "PreLaunchCommand")
                         If PreLaunchCommand <> "" Then
                             PreLaunchCommand = PreLaunchCommand.Replace("\""", """").
-                                Replace("$INST_JAVA", "{java}javaw.exe").
+                                Replace("$INST_JAVA", "{java}\java.exe").
                                 Replace("$INST_MC_DIR\", "{minecraft}").Replace("$INST_MC_DIR", "{minecraft}").
                                 Replace("$INST_DIR\", "{verpath}").Replace("$INST_DIR", "{verpath}").
                                 Replace("$INST_ID", "{name}").Replace("$INST_NAME", "{name}")

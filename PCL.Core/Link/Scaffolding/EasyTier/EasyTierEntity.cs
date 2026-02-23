@@ -2,7 +2,6 @@ using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Logging;
-using PCL.Core.Net;
 using PCL.Core.Utils;
 using Polly;
 using System;
@@ -17,7 +16,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.Net.Http.Client;
+using PCL.Core.IO.Net;
+using PCL.Core.IO.Net.Http.Client;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -158,7 +158,7 @@ public class EasyTierEntity
             EnableRaisingEvents = true,
             StartInfo = new ProcessStartInfo
             {
-                FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-core.exe",
+                FileName = Path.Combine(EasyTierMetadata.EasyTierFilePath, "easytier-core.exe"),
                 WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
                 WindowStyle = ProcessWindowStyle.Hidden
             }
@@ -206,7 +206,9 @@ public class EasyTierEntity
                 .Add("l", "udp://0.0.0.0:0");
         }
 
-        foreach (var address in _fallbackNodeLinks)
+        foreach (var address in ETRelay.RelayList
+            .Select(static x => x.Url)
+            .Concat(_fallbackNodeLinks))
         {
             args.Add("p", address);
         }

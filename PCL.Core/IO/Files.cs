@@ -17,6 +17,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PCL.Core.App;
 
 namespace PCL.Core.IO;
 
@@ -560,10 +561,8 @@ public static class Files {
 
         for (var attempt = 0; attempt < 2; attempt++) {
             try {
-                return await Task.Run(() => {
-                    using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    return hashProvider.ComputeHash(fs);
-                }).ConfigureAwait(false);
+                using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                return (await hashProvider.ComputeHashAsync(fs).ConfigureAwait(false)).ToHexString();
             } catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException) {
                 LogWrapper.Warn(ex, $"计算文件哈希失败：{filePath}");
                 return string.Empty;
@@ -614,7 +613,7 @@ public static class Files {
     /// </summary>
     public static string GetFullPath(string filePath) {
         ArgumentNullException.ThrowIfNull(filePath);
-        return Path.IsPathRooted(filePath) ? filePath : Path.Combine(FileService.DefaultDirectory, filePath);
+        return Path.IsPathRooted(filePath) ? filePath : Path.Combine(Paths.DefaultDirectory, filePath);
     }
 
     /// <summary>

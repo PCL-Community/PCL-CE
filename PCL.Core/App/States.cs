@@ -116,6 +116,11 @@ public static partial class States
         /// 已显示的公告。
         /// </summary>
         [ConfigItem<string>("SystemSystemAnnouncement", "")] public partial string ShowedAnnouncements { get; set; }
+
+        /// <summary>
+        /// 数据包更新警告。
+        /// </summary>
+        [ConfigItem<bool>("HintDatapackUpdate",false)] public partial bool FunctionDatapackUpdate { get; set; }
     }
 
     /// <summary>

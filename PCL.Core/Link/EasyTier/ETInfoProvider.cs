@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 
@@ -58,7 +58,7 @@ public static class ETInfoProvider
     public const string ETNetworkNamePrefix = "PCLCELobby";
     public const string ETNetworkSecretPrefix = "PCLCEETLOBBY2025";
     public const string ETVersion = Scaffolding.EasyTier.EasyTierMetadata.CurrentEasyTierVer;
-    public static readonly string ETPath = Path.Combine(FileService.LocalDataPath, "EasyTier", ETVersion,
+    public static readonly string ETPath = Path.Combine(Paths.SharedLocalData, "EasyTier", ETVersion,
         "easytier-windows-" + (RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x86_64"));
 
     private static ETConnectionType _GetConnectionType(string cost)

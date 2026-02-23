@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Diagnostics;
 

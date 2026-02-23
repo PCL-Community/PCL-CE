@@ -1,6 +1,5 @@
 ﻿Imports System.Net.Http
-Imports PCL.Core.Net
-Imports PCL.Core.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Utils
 
 Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式

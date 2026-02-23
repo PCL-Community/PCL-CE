@@ -1,10 +1,10 @@
 ﻿{
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.2",
+    "base": "2.14.3",
     "upstream": "2.12.1",
-    "suffix": "",
-    "code": 507
+    "suffix": "beta.1",
+    "code": 508
   },
   "licenses": [
     {
@@ -114,6 +114,12 @@
       "info": "Copyright © 2022-2025 William Acton\nLicensed under the MIT license.",
       "website": "https://github.com/waacton/Unicolour",
       "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
+    },
+    {
+      "name": "protobuf-net",
+      "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/protobuf-net/protobuf-net",
+      "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
     }
   ]
 }

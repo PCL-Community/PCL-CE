@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace PCL.Core.App.Cli;
 
@@ -12,7 +13,7 @@ public class BoolArgument : CommandArgument<bool>
         return text is not ("0" or "false");
     }
 
-    public override bool TryCastValue<T>(out T value)
+    public override bool TryCastValue<T>([NotNullWhen(true)] out T value)
     {
         if (base.TryCastValue(out value)) return true;
         var type = typeof(T);
@@ -29,6 +30,8 @@ public class BoolArgument : CommandArgument<bool>
         // magic code
         var v = Value;
         Unsafe.As<T, byte>(ref value) = Unsafe.As<bool, byte>(ref v);
+#pragma warning disable CS8762 // The analyzer sucks.
         return true;
+#pragma warning restore CS8762
     }
 }

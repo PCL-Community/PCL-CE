@@ -366,7 +366,7 @@ Public Class PageInstanceInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop > 0 AndAlso VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
