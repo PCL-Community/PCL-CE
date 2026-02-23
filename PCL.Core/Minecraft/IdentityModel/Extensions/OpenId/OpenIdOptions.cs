@@ -11,12 +11,12 @@ using PCL.Core.Minecraft.IdentityModel.OAuth;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 
-public record OpenIdOptions(Func<HttpClient> GetHttpClient, string ConfigurationAddress)
+public record OpenIdOptions
 {
     /// <summary>
     /// OpenId Discovery 地址
     /// </summary>
-    public string OpenIdDiscoveryAddress => ConfigurationAddress;
+    public required string OpenIdDiscoveryAddress { get; set; }
     /// <summary>
     /// 客户端 ID（必须设置）
     /// </summary>
@@ -47,7 +47,7 @@ public record OpenIdOptions(Func<HttpClient> GetHttpClient, string Configuration
     /// <summary>
     /// 获取 HttpClient，生命周期由调用方管理
     /// </summary>
-    public Func<HttpClient> GetClient => GetHttpClient;
+    public Func<HttpClient> GetClient { get; set; }
     /// <summary>
     /// OpenId 元数据，请勿自行设置此属性，而是应该调用 <see cref="InitializeAsync"/>
     /// </summary>

@@ -13,10 +13,6 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 public record YggdrasilOptions:OpenIdOptions
 {
     private string[] _scopesRequired = ["openid", "Yggdrasil.PlayerProfiles.Select", "Yggdrasil.Server.Join"];
-    public YggdrasilOptions(Func<HttpClient> getClient, string configurationAddress):base(getClient,configurationAddress)
-    {
-
-    }
     
     // 重写这个鬼方法是因为 Yggdrasil Connect 有要求（
     

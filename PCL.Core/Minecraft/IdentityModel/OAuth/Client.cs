@@ -18,17 +18,16 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     /// 获取授权 Url
     /// </summary>
     /// <param name="scopes">访问权限列表</param>
-    /// <param name="redirectUri">重定向 Url</param>
     /// <param name="state"></param>
     /// <param name="extData"></param>
     /// <returns></returns>
-    public string GetAuthorizeUrl(string[] scopes,string redirectUri,string state,Dictionary<string,string>? extData = null)
+    public string GetAuthorizeUrl(string[] scopes,string state,Dictionary<string,string>? extData = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(options.Meta.AuthorizeEndpoint);
         var sb = new StringBuilder();
         sb.Append(options.Meta.AuthorizeEndpoint);
         sb.Append($"?response_type=code&scope={Uri.EscapeDataString(string.Join(" ", scopes))}");
-        sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+        sb.Append($"&redirect_uri={Uri.EscapeDataString(options.RedirectUri)}");
         sb.Append($"&client_id={options.ClientId}&state={state}");
         if (extData is null) return sb.ToString(); 
         foreach (var kvp in extData) 

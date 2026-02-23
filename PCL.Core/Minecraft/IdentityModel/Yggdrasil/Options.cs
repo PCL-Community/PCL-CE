@@ -26,5 +26,5 @@ public record YggdrasilLegacyAuthenticateOptions
     /// <summary>
     /// 请求头
     /// </summary>
-    public Dictionary<string,string>? RequestHeaders { get; set; }
+    public Dictionary<string,string>? Headers { get; set; }
 }

@@ -37,15 +37,14 @@ public class YggdrasilClient:IOAuthClient
     /// 获取授权端点地址
     /// </summary>
     /// <param name="scopes"></param>
-    /// <param name="redirectUri"></param>
     /// <param name="state"></param>
     /// <param name="extData"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
-    public string GetAuthorizeUrl(string[] scopes, string redirectUri, string state, Dictionary<string, string>? extData)
+    public string GetAuthorizeUrl(string[] scopes, string state, Dictionary<string, string>? extData)
     {
         if (_client is null) throw new InvalidOperationException();
-        return _client.GetAuthorizeUrl(scopes, redirectUri, state, extData);
+        return _client.GetAuthorizeUrl(scopes, state, extData);
     }
     /// <summary>
     /// 使用授权代码兑换令牌

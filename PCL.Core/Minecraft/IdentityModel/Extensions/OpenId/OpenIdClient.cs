@@ -33,15 +33,14 @@ public class OpenIdClient(OpenIdOptions options):IOAuthClient
     /// 获取授权代码流地址
     /// </summary>
     /// <param name="scopes">权限列表</param>
-    /// <param name="redirectUri">重定向 Uri</param>
     /// <param name="state"></param>
     /// <param name="extData">扩展数据</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException">未调用 </exception>
-    public string GetAuthorizeUrl(string[] scopes, string redirectUri, string state,Dictionary<string,string>? extData = null)
+    public string GetAuthorizeUrl(string[] scopes, string state,Dictionary<string,string>? extData = null)
     {
         if (_client is null) throw new InvalidOperationException();
-        return _client.GetAuthorizeUrl(scopes, redirectUri, state, extData);
+        return _client.GetAuthorizeUrl(scopes, state, extData);
     }
     /// <summary>
     /// 使用授权代码兑换 Token

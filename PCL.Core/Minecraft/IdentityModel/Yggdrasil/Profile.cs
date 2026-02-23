@@ -16,7 +16,7 @@ public record Profile
     /// <summary>
     /// 属性信息
     /// </summary>
-    [JsonPropertyName("properties")] public PlayerProperty[] Properties { get; init; }
+    [JsonPropertyName("properties")] public PlayerProperty[]? Properties { get; init; }
 }
 
 public record PlayerProperty

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -35,12 +33,12 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         };
         var address = $"{options.YggdrasilApiLocation}/authserver/authenticate";
         using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.RequestHeaders is not null)
-            foreach (var kvp in options.RequestHeaders)
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
         
         using var content = 
-            new StringContent(JsonSerializer.Serialize(options), Encoding.UTF8, "application/json");
+            new StringContent(JsonSerializer.Serialize(credential), Encoding.UTF8, "application/json");
         request.Content = content;
         using var response = await options.GetClient.Invoke().SendAsync(request,token);
         return 
@@ -65,8 +63,8 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         var address = $"{options.YggdrasilApiLocation}/authserver/refresh";
         
         using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.RequestHeaders is not null)
-            foreach (var kvp in options.RequestHeaders)
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
         using var content = new StringContent(
             JsonSerializer.Serialize(refreshData), Encoding.UTF8, "application/json");
@@ -90,8 +88,8 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         var address = $"{options.YggdrasilApiLocation}/authserver/invalidate";
         
         using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.RequestHeaders is not null)
-            foreach (var kvp in options.RequestHeaders)
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
         
         using var content = new StringContent(
@@ -116,8 +114,8 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         var address = $"{options.YggdrasilApiLocation}/authserver/invalidate";
         
         using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.RequestHeaders is not null)
-            foreach (var kvp in options.RequestHeaders)
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
         
         using var content = new StringContent(
@@ -142,8 +140,8 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         var address = $"{options.YggdrasilApiLocation}/authserver/signout";
         
         using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.RequestHeaders is not null)
-            foreach (var kvp in options.RequestHeaders)
+        if(options.Headers is not null)
+            foreach (var kvp in options.Headers)
                 _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
         using var content = new StringContent(signoutData, Encoding.UTF8, "application/json");
         request.Content = content;
