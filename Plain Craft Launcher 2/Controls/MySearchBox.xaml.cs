@@ -1,6 +1,7 @@
+using Microsoft.VisualBasic.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic.CompilerServices;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -73,7 +74,7 @@ public partial class MySearchBox : MyCard
 
     public event SearchEventHandler? Search;
 
-    private void BtnSearch_Click(object sender, EventArgs e)
+    private void BtnSearch_Click(object sender, MouseButtonEventArgs e)
     {
         Search?.Invoke(sender, e);
     }
