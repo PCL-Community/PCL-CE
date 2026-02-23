@@ -488,7 +488,7 @@ Public Class PageDownloadCompFavorites
                                                     Dim TargetProject As CompProject = ModComp.CompProjectCache(FinalChoices.First.ProjectId)
                                                     Dim FileName As String = CompFileNameGet(TargetProject, FinalChoices.First)
                                                     ' 选择最新版本进行下载
-                                                    Res.Add(FinalChoices.First.ToNetFile(SaveFolder & FileName))
+                                                    Res.Add(FinalChoices.First.ToNetFile(IO.Path.Combine(SaveFolder, FileName)))
                                                 Next
                                                 Ts.Output = Res
                                             End Sub) With {.ProgressWeight = 2})
