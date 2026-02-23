@@ -371,10 +371,6 @@ Public Class PageDownloadCompFavorites
 
     Private Sub Btn_FavoritesDownload_Clicked(sender As Object, e As RouteEventArgs) Handles Btn_FavoritesDownload.Click
         Try
-            If SelectedItemList.Count = 1 Then
-                Hint("要不……你直接进详情页里下载吧……")
-                Exit Sub
-            End If
             If 1 <> MyMsgBox($"批量下载功能仍旧处于测试状态{vbCrLf}使用此功能下载模组不会自动下载前置项。{vbCrLf}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。", "确定使用此功能？", Button1:="继续", Button2:="算了", IsWarn:=True) Then Exit Sub
             Dim SupportedModLoader As New List(Of CompLoaderType)
             Dim LoaderFirstSet As Boolean = True

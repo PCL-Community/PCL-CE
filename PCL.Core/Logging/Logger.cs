@@ -12,13 +12,13 @@ using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Logging;
 
-public sealed class Logger : IDisposable
+public sealed class Logger : IAsyncDisposable
 {
     public Logger(LoggerConfiguration configuration)
     {
         Configuration = configuration;
         _CreateNewFile();
-        _processingTask = _ProcessLogQueueAsync(_cancelToken.Token);
+        _processingTask = _ProcessLogQueueAsync();
     }
     // Data stream
     private StreamWriter? _currentStream;
@@ -33,7 +33,6 @@ public sealed class Logger : IDisposable
     {
         SingleReader = true
     });
-    private readonly CancellationTokenSource _cancelToken = new();
 
     public ReadOnlyCollection<string> CurrentLogFiles => _files.AsReadOnly();
 
@@ -102,7 +101,7 @@ public sealed class Logger : IDisposable
         }
     }
 
-    private async Task _ProcessLogQueueAsync(CancellationToken token)
+    private async Task _ProcessLogQueueAsync()
     {
         const int maxBatchLines = 198;
         var writeTimeout = TimeSpan.FromMilliseconds(325);
@@ -112,7 +111,7 @@ public sealed class Logger : IDisposable
 
         try
         {
-            while (!token.IsCancellationRequested || _logChannel.Reader.Count != 0)
+            while (!_disposed || _logChannel.Reader.TryPeek(out _))
             {
                 if (_logChannel.Reader.TryRead(out var message))
                 {
@@ -136,7 +135,7 @@ public sealed class Logger : IDisposable
                     {
                         await DoRefreshAsync().ConfigureAwait(false);
                     }
-                    await Task.Delay(80, token).ConfigureAwait(false);
+                    await Task.Delay(80).ConfigureAwait(false);
                 }
             }
 
@@ -147,11 +146,6 @@ public sealed class Logger : IDisposable
                 lineCount = 0;
                 lastFlush = Stopwatch.GetTimestamp();
             }
-        }
-        catch (OperationCanceledException)
-        {
-            if (lineCount > 0)
-                await _DoWriteAsync(batch).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -180,17 +174,17 @@ public sealed class Logger : IDisposable
     }
 
     private bool _disposed;
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed) return;
         _disposed = true;
-        _cancelToken.Cancel();
-        _processingTask.Forget();
-        _processingTask.ContinueWith(_ =>
-        {
-            _logChannel.Writer.Complete();
-            _currentStream?.Dispose();
-            _currentFile?.Dispose();
-        }).Forget();
+
+        _logChannel.Writer.Complete();
+        await _processingTask;
+
+        if (_currentStream != null)
+            await _currentStream.DisposeAsync().ConfigureAwait(false);
+        if (_currentFile != null)
+            await _currentFile.DisposeAsync().ConfigureAwait(false);
     }
 }

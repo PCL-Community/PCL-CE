@@ -667,11 +667,9 @@ Public Module ModLocalComp
                     Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                     If LogoItem IsNot Nothing Then
                         Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                        Logo = $"{PathTemp}MyImage\{md5}.png"
+                        Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                         Using EntryStream As Stream = LogoItem.Open()
-                            Using FileStream As FileStream = File.Create(Logo)
-                                EntryStream.CopyTo(FileStream)
-                            End Using
+                            WriteFile(Logo, EntryStream)
                         End Using
                     End If
                 End If
@@ -737,11 +735,9 @@ GotFabric:
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
                             Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                            Logo = $"{PathTemp}MyImage\{md5}.png"
+                            Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                             Using EntryStream As Stream = LogoItem.Open()
-                                Using FileStream As FileStream = File.Create(Logo)
-                                    EntryStream.CopyTo(FileStream)
-                                End Using
+                                WriteFile(Logo, EntryStream)
                             End Using
                         End If
                     End If
@@ -796,11 +792,9 @@ GotFabric:
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
                             Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                            Logo = $"{PathTemp}MyImage\{md5}.png"
+                            Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                             Using EntryStream As Stream = LogoItem.Open()
-                                Using FileStream As FileStream = File.Create(Logo)
-                                    EntryStream.CopyTo(FileStream)
-                                End Using
+                                WriteFile(Logo, EntryStream)
                             End Using
                         End If
                     End If
@@ -982,11 +976,10 @@ Got:
                 Dim packPngEntry = Jar.GetEntry("pack.png")
                 If packPngEntry IsNot Nothing Then
                     Try
-                        Logo = PathTemp & "MyImage\" & GetStringMD5(packPngEntry.Length.ToString & packPngEntry.CompressedLength.ToString & Path) & ".png"
+                        Dim md5 = GetStringMD5(packPngEntry.Length.ToString & packPngEntry.CompressedLength.ToString & Path)
+                        Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                         Using entryStream As Stream = packPngEntry.Open()
-                            Using fileStream As FileStream = File.Create(Logo)
-                                entryStream.CopyTo(fileStream)
-                            End Using
+                            WriteFile(Logo, entryStream)
                         End Using
                         Log("成功提取资源包图标：" & Path, LogLevel.Debug)
                     Catch logoEx As Exception
