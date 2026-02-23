@@ -1682,7 +1682,7 @@ public partial class FormMain
             // 切换到主页面
             PageChangeExit();
             IsChangingPage = true; // 防止下面的勾选直接触发了 PageChangeActual
-            ((MyRadioButton)PanTitleSelect.Children[(dynamic)Stack]).SetChecked(true, true,
+            ((MyRadioButton)PanTitleSelect.Children[(int)Stack.Page]).SetChecked(true, true,
                 string.IsNullOrEmpty(PageNameGet(PageCurrent)));
             IsChangingPage = false;
             switch (Stack.Page)
