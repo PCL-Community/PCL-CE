@@ -1019,7 +1019,7 @@ public static class ModNet
                             var targetUrl = GetSource().Url;
                             string[] restrictedDomains = { "pcl2-server", "bmclapi", "github.com", "optifine.net", "modrinth", "gitcode", "pysio.online", "mirrorchyan.com", "naids.com" };
                             
-                            if (AllowMuiltThread && !restrictedDomains.Any(d => targetUrl.Contains(d)))
+                            if (AllowMultiThread && !restrictedDomains.Any(d => targetUrl.Contains(d)))
                             {
                                 var filePieceMax = Threads;
                                 foreach (var thread in Threads)
@@ -1803,7 +1803,7 @@ public static class ModNet
         /// <summary>
         ///     是否允许多线程下载
         /// </summary>
-        public bool AllowMuiltThread = true;
+        public bool AllowMultiThread = true;
 
         /// <summary>
         ///     自定义User-Agent
