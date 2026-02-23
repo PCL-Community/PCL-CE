@@ -25,11 +25,11 @@ public partial class PageInstanceModDisabled
         ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
 
-    public void BtnDownload_Loaded(object sender, RoutedEventArgs e)
+    public void BtnDownload_Loaded(object? sender = null, RoutedEventArgs? e = null)
     {
         var NewVisibility =
             (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) ||
-            (ModMain.FrmSelectRight is null ? false : ModMain.FrmSelectRight.ShowHidden)
+            (ModMain.FrmSelectRight is not null && ModMain.FrmSelectRight.ShowHidden)
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         if (BtnDownload.Visibility != NewVisibility)
