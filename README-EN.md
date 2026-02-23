@@ -67,4 +67,4 @@ You can still try using the latest launcher version on unsupported platforms, bu
 **Views** (Total / Today): [![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE&web=true)
 ## ❤️ Contributors
 
-[![](https://contrib.rocks/image?repo=PCL-Community/PCL2-CE)](https://github.com/PCL-Community/PCL2-CE/graphs/contributors)
+[![](https://contrib.rocks/image?repo=PCL-Community/PCL-CE)](https://github.com/PCL-Community/PCL-CE/graphs/contributors)
