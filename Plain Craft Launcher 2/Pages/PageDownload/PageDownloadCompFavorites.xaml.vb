@@ -485,13 +485,7 @@ Public Class PageDownloadCompFavorites
                                                     ' 按照发布日期排序
                                                     FinalChoices.Sort(Function(a As CompFile, b As CompFile) a.ReleaseDate > b.ReleaseDate)
                                                     ' 获取文件名
-                                                    Dim TargetProject As CompProject = Nothing
-                                                    Dim ProjectId As String = FinalChoices.First.ProjectId
-                                                    If CompRequest.IsFromCurseForge(ProjectId) Then
-                                                        TargetProject = New CompProject(DlModRequest("https://api.curseforge.com/v1/mods/" & ProjectId, IsJson:=True)("data"))
-                                                    Else
-                                                        TargetProject = New CompProject(DlModRequest("https://api.modrinth.com/v2/project/" & ProjectId, IsJson:=True))
-                                                    End If
+                                                    Dim TargetProject As CompProject = ModComp.CompProjectCache(FinalChoices.First.ProjectId)
                                                     Dim FileName As String = CompFileNameGet(TargetProject, FinalChoices.First)
                                                     ' 选择最新版本进行下载
                                                     Res.Add(FinalChoices.First.ToNetFile(SaveFolder & FileName))
