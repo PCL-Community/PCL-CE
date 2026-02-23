@@ -60,7 +60,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         InitializeComponent();
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
-        Initialized += (_, _) => LoaderInit();
+        LoaderInit();
         PageExit += UnselectedAllWithAnimation;
         // Handles
         Load.Click += Load_Click;
