@@ -7,8 +7,9 @@ public partial class PageDownloadLabyMod
     public PageDownloadLabyMod()
     {
         InitializeComponent();
-        Initialized += (_, __) => LoaderInit();
-        Loaded += (_, __) => Init();
+        Initialized += (_, _) => LoaderInit();
+        Loaded += (_, _) => Init();
+        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()

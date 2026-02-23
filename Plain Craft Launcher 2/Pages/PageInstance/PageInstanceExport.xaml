@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceExport"
     PanScroll="{Binding ElementName=PanBack}">
-    <Grid x:Name="PanAllBack" AllowDrop="True" DragEnter="PanAllBack_DragEnter" Drop="PanAllBack_Drop">
+    <Grid x:Name="PanAllBack" AllowDrop="True">
         <Grid.Resources>
             <Style TargetType="local:MyCheckBox">
                 <Setter Property="Height" Value="26" />
@@ -29,7 +29,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="整合包名称" Margin="0,0,20,0" />
-                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" GotFocus="TextExportName_GotFocus" />
+                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" />
                         <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="整合包版本" Margin="30,0,20,0" />
                         <local:MyTextBox Grid.Row="0" Grid.Column="3" x:Name="TextExportVersion"

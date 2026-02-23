@@ -14,8 +14,8 @@ public partial class PageInstanceSavesBackup : IRefreshable
     {
         InitializeComponent();
         Loaded += (_, _) => Init();
-        BtnClean.Click += (_, _) => BtnClean_Click();
         BtnCreate.Click += (_, _) => BtnCreate_Click();
+        BtnClean.Click += (_, _) => BtnClean_Click();
     }
 
     void IRefreshable.Refresh()

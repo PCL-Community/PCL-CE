@@ -59,9 +59,35 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         InitializeComponent();
         Unloaded += Page_Unloaded;
-        Loaded += (_, __) => PageOther_Loaded();
-        Initialized += (_, __) => LoaderInit();
+        Loaded += (_, _) => PageOther_Loaded();
+        Initialized += (_, _) => LoaderInit();
         PageExit += UnselectedAllWithAnimation;
+        // Handles
+        Load.Click += Load_Click;
+        BtnManageOpen.Click += BtnManageOpen_Click;
+        BtnHintOpen.Click += BtnManageOpen_Click;
+        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
+        BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnManageDownload.Click += BtnManageDownload_Click;
+        BtnHintDownload.Click += BtnManageDownload_Click;
+        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
+        BtnFilterAll.Check += ChangeFilter;
+        BtnFilterCanUpdate.Check += ChangeFilter;
+        BtnFilterDisabled.Check += ChangeFilter;
+        BtnFilterEnabled.Check += ChangeFilter;
+        BtnFilterError.Check += ChangeFilter;
+        BtnSort.Click += BtnSortClick;
+        BtnSelectEnable.Click += BtnSelectEnable_Click;
+        BtnSelectDisable.Click += BtnSelectDisable_Click;
+        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
+        BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectCancel.Click += BtnSelectCancel_Click;
+        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
+        BtnSelectShare.Click += BtnSelectShare_Click;
+        SearchBox.TextChanged += SearchRun;
     }
 
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
@@ -1000,7 +1026,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region 下边栏
 
     // 启用
-    private void BtnSelectEnable_Click(MyIconTextButton sender, ModBase.RouteEventArgs e)
+    private void BtnSelectEnable_Click(object sender, ModBase.RouteEventArgs e)
     {
         ToggleDatapacks(
             ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)).ToList(),
@@ -1009,7 +1035,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 禁用
-    private void BtnSelectDisable_Click(MyIconTextButton sender, ModBase.RouteEventArgs e)
+    private void BtnSelectDisable_Click(object sender, ModBase.RouteEventArgs e)
     {
         ToggleDatapacks(
             ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)).ToList(),
@@ -1111,7 +1137,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 更新
-    private void BtnSelectUpdate_Click()
+    private void BtnSelectUpdate_Click(object sender, ModBase.RouteEventArgs e)
     {
         var UpdateList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
@@ -1285,7 +1311,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 删除
-    private void BtnSelectDelete_Click()
+    private void BtnSelectDelete_Click(object sender, ModBase.RouteEventArgs e)
     {
         DeleteDatapacks(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)));
         ChangeAllSelected(false);
@@ -1390,7 +1416,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 取消选择
-    private void BtnSelectCancel_Click()
+    private void BtnSelectCancel_Click(object sender, ModBase.RouteEventArgs e)
     {
         ChangeAllSelected(false);
     }
@@ -1404,7 +1430,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 分享
-    private void BtnSelectShare_Click()
+    private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
     {
         var ShareList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
@@ -1522,7 +1548,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     public bool IsSearching => !string.IsNullOrWhiteSpace(SearchBox.Text);
     private List<ModLocalComp.LocalCompFile> SearchResult;
 
-    public void SearchRun()
+    public void SearchRun(object sender, EventArgs e)
     {
         try
         {

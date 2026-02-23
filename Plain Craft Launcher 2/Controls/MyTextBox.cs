@@ -145,7 +145,7 @@ public class MyTextBox : TextBox
         labHint.Text = string.IsNullOrEmpty(Text) ? HintText : "";
     }
 
-    public static event ValidateChangedEventHandler? ValidateChanged;
+    public event ValidateChangedEventHandler? ValidateChanged;
 
     public event RoutedEventHandler ValidatedTextChanged
     {

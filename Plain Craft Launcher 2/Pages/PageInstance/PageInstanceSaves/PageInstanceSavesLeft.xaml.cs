@@ -35,6 +35,10 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         InitializeComponent();
         Loaded += Page_Loaded;
+        ItemBackup.Check += PageCheck;
+        ItemInfo.Check += PageCheck;
+        ItemDatapack.Check += PageCheck;
+        BtnOpenFolder.Click += BtnOpenFolder_Click;
     }
 
     /// <summary>

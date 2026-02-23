@@ -7,8 +7,9 @@ public partial class PageDownloadFabric
     public PageDownloadFabric()
     {
         InitializeComponent();
-        Initialized += (_, __) => LoaderInit();
-        Loaded += (_, __) => Init();
+        Initialized += (_, _) => LoaderInit();
+        Loaded += (_, _) => Init();
+        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -30,7 +31,8 @@ public partial class PageDownloadFabric
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(
-                    ModDownloadLib.FabricDownloadListItem((JObject)Version, (sender, e) => this.Fabric_Selected((MyListItem)sender, e)));
+                    ModDownloadLib.FabricDownloadListItem((JObject)Version,
+                        (sender, e) => this.Fabric_Selected((MyListItem)sender, e)));
             CardVersions.Title = "版本列表 (" + Versions.Count + ")";
         }
         catch (Exception ex)

@@ -31,6 +31,37 @@ public partial class PageInstanceCompResource : IRefreshable
         Loaded += (_, __) => PageOther_Loaded();
         Initialized += (_, __) => LoaderInit();
         PageExit += UnselectedAllWithAnimation;
+        Load.Click += Load_Click;
+        BtnManageBack.Click += BtnManageBack_Click;
+        BtnHintBack.Click += BtnHintBack_Click;
+        BtnManageOpen.Click += BtnManageOpen_Click;
+        BtnHintOpen.Click += BtnManageOpen_Click;
+        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
+        BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
+        BtnManageDownload.Click += BtnManageDownload_Click;
+        BtnHintDownload.Click += BtnManageDownload_Click;
+        BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
+        BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
+        BtnFilterAll.Check += ChangeFilter;
+        BtnFilterCanUpdate.Check += ChangeFilter;
+        BtnFilterDisabled.Check += ChangeFilter;
+        BtnFilterEnabled.Check += ChangeFilter;
+        BtnFilterError.Check += ChangeFilter;
+        BtnFilterDuplicate.Check += ChangeFilter;
+        BtnSort.Click += BtnSortClick;
+        BtnSelectEnable.Click += BtnSelectED_Click;
+        BtnSelectDisable.Click += BtnSelectED_Click;
+        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
+        BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectCancel.Click += BtnSelectCancel_Click;
+        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
+        BtnSelectShare.Click += BtnSelectShare_Click;
+        SearchBox.TextChanged += SearchRun;
+
     }
 
     // 获取模组信息（带缓存）
@@ -1784,7 +1815,7 @@ public partial class PageInstanceCompResource : IRefreshable
     #region 下边栏
 
     // 启用 / 禁用
-    private void BtnSelectED_Click(MyIconTextButton sender, ModBase.RouteEventArgs e)
+    private void BtnSelectED_Click(object sender, ModBase.RouteEventArgs e)
     {
         EDMods(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedMods.Contains(m.RawPath)).ToList(),
             !sender.Equals(BtnSelectDisable));
@@ -1895,7 +1926,7 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 更新
-    private void BtnSelectUpdate_Click()
+    private void BtnSelectUpdate_Click(object sender, ModBase.RouteEventArgs e)
     {
         var UpdateList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedMods.Contains(m.RawPath) && m.CanUpdate).ToList();
@@ -2108,7 +2139,7 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 删除
-    private void BtnSelectDelete_Click()
+    private void BtnSelectDelete_Click(object sender, ModBase.RouteEventArgs e)
     {
         DeleteMods(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedMods.Contains(m.RawPath)));
         ChangeAllSelected(false);
@@ -2234,7 +2265,7 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 取消选择
-    private void BtnSelectCancel_Click()
+    private void BtnSelectCancel_Click(object sender, ModBase.RouteEventArgs e)
     {
         ChangeAllSelected(false);
     }
@@ -2248,7 +2279,7 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 分享
-    private void BtnSelectShare_Click()
+    private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
     {
         var ShareList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedMods.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
@@ -2744,7 +2775,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private List<ModLocalComp.LocalCompFile> SearchResult;
     private CancellationTokenSource _cancelToken;
 
-    public void SearchRun()
+    public void SearchRun(object sender, EventArgs e)
     {
         var curToken = new CancellationTokenSource();
         var oldToken = Interlocked.Exchange(ref _cancelToken, curToken);

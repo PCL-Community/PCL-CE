@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
@@ -37,6 +38,14 @@ public partial class PageInstanceExport : IRefreshable
     {
         InitializeComponent();
         Loaded += (_, __) => PageInstanceExport_Loaded();
+        CardOptions.MouseLeftButtonDown += CardOptions_MouseLeftButtonDown;
+        BtnAdvancedExport.Click += ExportConfig;
+        BtnAdvancedImport.Click += ImportConfig;
+        BtnExport.Click += StartExport;
+        TextExportName.GotFocus += TextExportName_GotFocus;
+        CheckAdvancedModrinth.Change += CheckAdvancedModrinth_Change;
+        CheckAdvancedInclude.Change += CheckAdvancedInclude_Change;
+
     }
 
     void IRefreshable.Refresh()
@@ -448,7 +457,7 @@ public partial class PageInstanceExport : IRefreshable
         PanBack.ScrollToHome();
     }
 
-    private void CardOptions_MouseLeftButtonDown()
+    private void CardOptions_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (RulesOverrides is null)
             return;
@@ -458,7 +467,7 @@ public partial class PageInstanceExport : IRefreshable
     // ================ 保存 / 读取 ================
 
     // 保存配置文件
-    private void ExportConfig()
+    private void ExportConfig(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -581,7 +590,7 @@ public partial class PageInstanceExport : IRefreshable
     #endregion
 
     // 读取配置文件
-    private void ImportConfig()
+    private void ImportConfig(object sender, MouseButtonEventArgs e)
     {
         try
         {
@@ -660,7 +669,7 @@ public partial class PageInstanceExport : IRefreshable
     /// <summary>
     ///     开始导出。
     /// </summary>
-    private void StartExport()
+    private void StartExport(object sender, MouseButtonEventArgs e)
     {
         var PackName = string.IsNullOrEmpty(TextExportName.Text) ? TextExportName.HintText : TextExportName.Text;
         var PackVersion = string.IsNullOrEmpty(TextExportVersion.Text) ? "1.0.0" : TextExportVersion.Text;

@@ -11,12 +11,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
 {
     private bool _loaded;
 
-    private XElement levelData;
-
     public PageInstanceSavesInfo()
     {
         InitializeComponent();
-        Loaded += (_, __) => Init();
+        Loaded += (_, _) => Init();
     }
 
     void IRefreshable.Refresh()

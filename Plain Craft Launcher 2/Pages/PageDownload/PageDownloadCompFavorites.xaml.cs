@@ -29,6 +29,16 @@ public partial class PageDownloadCompFavorites
         Initialized += PageDownloadCompFavorites_Inited;
         Loaded += PageDownloadCompFavorites_Loaded;
         KeyDown += Page_KeyDown;
+        // Handles
+        Load.StateChanged += Load_State;
+        Btn_FavoritesCancel.Click += Btn_FavoritesCancel_Clicked;
+        Btn_SelectCancel.Click += Btn_SelectCancel_Clicked;
+        Btn_FavoritesShare.Click += Btn_FavoritesShare_Clicked;
+        Btn_FavoritesDownload.Click += Btn_FavoritesDownload_Clicked;
+        ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
+        HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
+        PanSearchBox.TextChanged += SearchRun;
+
     }
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
@@ -879,7 +889,7 @@ public partial class PageDownloadCompFavorites
     private bool AllowSearch = true;
     private List<MyListItem> SearchResult = new();
 
-    public void SearchRun()
+    public void SearchRun(object sender, EventArgs e)
     {
         if (!AllowSearch)
             return;

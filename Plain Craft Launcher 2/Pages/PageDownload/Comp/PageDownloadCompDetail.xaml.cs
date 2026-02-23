@@ -472,8 +472,16 @@ public partial class PageDownloadCompDetail
             task.Output = result;
         });
         Initialized += PageDownloadCompDetail_Inited;
-        Loaded += (_, __) => LoadTargetFromAdditional();
+        Loaded += (_, _) => LoadTargetFromAdditional();
         PageEnter += Init;
+        Load.StateChanged += Load_State;
+        BtnIntroWeb.Click += BtnIntroWeb_Click;
+        BtnIntroWiki.Click += BtnIntroWiki_Click;
+        BtnIntroCopy.Click += BtnIntroCopy_Click;
+        BtnFavorites.Click += BtnFavorites_Click;
+        BtnIntroLinkCopy.Click += BtnIntroLinkCopy_Click;
+        BtnTranslate.Click += BtnTranslate_Click;
+
     }
 
     // 初始化加载器信息

@@ -241,6 +241,16 @@ public partial class PageComp
             LoaderInput) { ReloadTimeout = 60 * 1000 };
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
+        Load.StateChanged += Load_State;
+        BtnPageFirst.Click += BtnPageFirst_Click;
+        BtnPageLeft.Click += BtnPageLeft_Click;
+        BtnPageRight.Click += BtnPageRight_Click;
+        PanSearchBox.Search += (_, _) => StartNewSearch();
+        PanSearchBox.KeyDown += EnterTrigger;
+        TextSearchVersion.KeyDown += EnterTrigger;
+        BtnSearchReset.Click += (_, _) => ResetFilter();
+        BtnSearchInstallModPack.Click += BtnSearchInstallModPack_Click;
+
     }
 
     private void PageCompControls_Inited(object sender, EventArgs e)

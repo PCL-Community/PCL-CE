@@ -544,12 +544,16 @@ public partial class MyLocalCompItem
         MouseEnter += Button_MouseSwipe;
         MouseLeave += Button_MouseSwipe;
         MouseLeftButtonUp += Button_MouseSwipe;
-        Loaded += (_, __) => Refresh();
+        Loaded += (_, _) => Refresh();
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         MouseLeftButtonDown += RefreshColor;
         MouseLeftButtonUp += RefreshColor;
         Changed += RefreshColor;
+        // Handles
+        BtnUpdate.PreviewMouseRightButtonUp += BtnUpdate_PreviewMouseRightButtonUp;
+        BtnUpdate.Click += BtnUpdate_Click;
+        PanTitle.SizeChanged += PanTitle_SizeChanged;
     }
 
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)

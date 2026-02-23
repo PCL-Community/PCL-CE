@@ -215,6 +215,24 @@ public partial class PageDownloadLeft : IRefreshable
     {
         InitializeComponent();
         AnimatedControl = PanItem;
+        ItemInstall.Check += PageCheck;
+        ItemMod.Check += PageCheck;
+        ItemPack.Check += PageCheck;
+        ItemDataPack.Check += PageCheck;
+        ItemResourcePack.Check += PageCheck;
+        ItemShader.Check += PageCheck;
+        ItemWorld.Check += PageCheck;
+        ItemFavorites.Check += PageCheck;
+        ItemClient.Check += PageCheck;
+        ItemOptiFine.Check += PageCheck;
+        ItemForge.Check += PageCheck;
+        ItemNeoForge.Check += PageCheck;
+        ItemLiteLoader.Check += PageCheck;
+        ItemFabric.Check += PageCheck;
+        ItemLegacyFabric.Check += PageCheck;
+        ItemQuilt.Check += PageCheck;
+        ItemLabyMod.Check += PageCheck;
+
     }
 
     /// <summary>

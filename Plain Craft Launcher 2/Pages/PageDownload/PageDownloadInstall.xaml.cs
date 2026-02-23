@@ -22,8 +22,74 @@ public partial class PageDownloadInstall
     {
         InitializeComponent();
         PanScroll = PanBack;
-        Initialized += (_, __) => LoaderInit();
-        Loaded += (_, __) => Init();
+        Initialized += (_, _) => LoaderInit();
+        Loaded += (_, _) => Init();
+        BtnBack.Click += (_, _) => ExitSelectPage();
+        CardOptiFine.Swap += (_, _) => ReloadSelected();
+        LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
+        CardForge.Swap += (_, _) => ReloadSelected();
+        LoadForge.StateChanged += (_, _, _) => ReloadSelected();
+        CardNeoForge.Swap += (_, _) => ReloadSelected();
+        LoadNeoForge.StateChanged += (_, _, _) => ReloadSelected();
+        CardFabric.Swap += (_, _) => ReloadSelected();
+        LoadFabric.StateChanged += (_, _, _) => ReloadSelected();
+        CardFabricApi.Swap += (_, _) => ReloadSelected();
+        LoadFabricApi.StateChanged += (_, _, _) => ReloadSelected();
+        CardOptiFabric.Swap += (_, _) => ReloadSelected();
+        LoadOptiFabric.StateChanged += (_, _, _) => ReloadSelected();
+        CardLiteLoader.Swap += (_, _) => ReloadSelected();
+        LoadLiteLoader.StateChanged += (_, _, _) => ReloadSelected();
+        LoadQuilt.StateChanged += (_, _, _) => ReloadSelected();
+        CardQuilt.Swap += (_, _) => ReloadSelected();
+        LoadQSL.StateChanged += (_, _, _) => ReloadSelected();
+        CardQSL.Swap += (_, _) => ReloadSelected();
+        LoadCleanroom.StateChanged += (_, _, _) => ReloadSelected();
+        CardCleanroom.Swap += (_, _) => ReloadSelected();
+        LoadLabyMod.StateChanged += (_, _, _) => ReloadSelected();
+        CardLabyMod.Swap += (_, _) => ReloadSelected();
+        TextSelectName.TextChanged += TextSelectName_TextChanged;
+        TextSelectName.ValidateChanged += TextSelectName_ValidateChanged;
+        CardOptiFine.PreviewSwap += CardOptiFine_PreviewSwap;
+        LoadOptiFine.StateChanged += (_, _, _) => OptiFine_Loaded();
+        BtnOptiFineClear.MouseLeftButtonUp += OptiFine_Clear;
+        CardLiteLoader.PreviewSwap += CardLiteLoader_PreviewSwap;
+        LoadLiteLoader.StateChanged += (_, _, _) => LiteLoader_Loaded();
+        BtnLiteLoaderClear.MouseLeftButtonUp += LiteLoader_Clear;
+        CardForge.PreviewSwap += CardForge_PreviewSwap;
+        LoadForge.StateChanged += (_, _, _) => Forge_Loaded();
+        BtnForgeClear.MouseLeftButtonUp += Forge_Clear;
+        CardNeoForge.PreviewSwap += CardNeoForge_PreviewSwap;
+        LoadNeoForge.StateChanged += (_, _, _) => NeoForge_Loaded();
+        BtnNeoForgeClear.MouseLeftButtonUp += NeoForge_Clear;
+        CardCleanroom.PreviewSwap += CardCleanroom_PreviewSwap;
+        LoadCleanroom.StateChanged += (_, _, _) => Cleanroom_Loaded();
+        BtnCleanroomClear.MouseLeftButtonUp += Cleanroom_Clear;
+        CardFabric.PreviewSwap += CardFabric_PreviewSwap;
+        LoadFabric.StateChanged += (_, _, _) => Fabric_Loaded();
+        BtnFabricClear.MouseLeftButtonUp += Fabric_Clear;
+        CardFabricApi.PreviewSwap += CardFabricApi_PreviewSwap;
+        LoadFabricApi.StateChanged += (_, _, _) => FabricApi_Loaded();
+        BtnFabricApiClear.MouseLeftButtonUp += FabricApi_Clear;
+        CardLegacyFabric.PreviewSwap += CardLegacyFabric_PreviewSwap;
+        LoadLegacyFabric.StateChanged += (_, _, _) => LegacyFabric_Loaded();
+        BtnLegacyFabricClear.MouseLeftButtonUp += LegacyFabric_Clear;
+        CardLegacyFabricApi.PreviewSwap += CardLegacyFabricApi_PreviewSwap;
+        LoadLegacyFabricApi.StateChanged += (_, _, _) => LegacyFabricApi_Loaded();
+        BtnLegacyFabricApiClear.MouseLeftButtonUp += LegacyFabricApi_Clear;
+        CardQuilt.PreviewSwap += CardQuilt_PreviewSwap;
+        LoadQuilt.StateChanged += (_, _, _) => Quilt_Loaded();
+        BtnQuiltClear.MouseLeftButtonUp += Quilt_Clear;
+        CardQSL.PreviewSwap += CardQSL_PreviewSwap;
+        LoadQSL.StateChanged += (_, _, _) => QSL_Loaded();
+        BtnQSLClear.MouseLeftButtonUp += QSL_Clear;
+        CardOptiFabric.PreviewSwap += CardOptiFabric_PreviewSwap;
+        LoadOptiFabric.StateChanged += (_, _, _) => OptiFabric_Loaded();
+        BtnOptiFabricClear.MouseLeftButtonUp += OptiFabric_Clear;
+        CardLabyMod.PreviewSwap += CardLabyMod_PreviewSwap;
+        LoadLabyMod.StateChanged += (_, _, _) => LabyMod_Loaded();
+        BtnLabyModClear.MouseLeftButtonUp += LabyMod_Clear;
+        TextSelectName.KeyDown += TextSelectName_KeyDown;
+        BtnStart.Click += (_, _) => BtnStart_Click();
     }
 
     private void LoaderInit()
@@ -1203,7 +1269,8 @@ public partial class PageDownloadInstall
             var Versions = new List<ModDownload.DlOptiFineListEntry>();
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
             {
-                if (Conversions.ToBoolean(SelectedForge is not null && !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
+                if (Conversions.ToBoolean(SelectedForge is not null &&
+                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
                     continue;
                 if (Version.DisplayName.StartsWith(_vanillaName + " "))
                     Versions.Add(Version);
@@ -1224,7 +1291,8 @@ public partial class PageDownloadInstall
             PanOptiFine.Children.Clear();
             foreach (var Version in Versions)
                 PanOptiFine.Children.Add(
-                    ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) => this.OptiFine_Selected((dynamic)a, b), false));
+                    ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) => this.OptiFine_Selected((dynamic)a, b),
+                        false));
         }
         catch (Exception ex)
         {
@@ -1393,11 +1461,13 @@ public partial class PageDownloadInstall
             {
                 if (v.Category == "universal" || v.Category == "client")
                     return false; // 跳过无法自动安装的版本
-                if (Conversions.ToBoolean(SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
+                if (Conversions.ToBoolean(SelectedOptiFine is not null &&
+                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
                     return false;
                 return true;
             }).OrderByDescending(v => v).ToList();
-            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions, (a, b) => this.Forge_Selected((dynamic)a, b), false);
+            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions,
+                (a, b) => this.Forge_Selected((dynamic)a, b), false);
             foreach (var Version in versions)
                 PanForge.Children.Add(
                     ModDownloadLib.ForgeDownloadListItem(Version, (a, b) => this.Forge_Selected((dynamic)a, b), false));
@@ -1476,11 +1546,13 @@ public partial class PageDownloadInstall
                 return;
             // 可视化
             PanNeoForge.Children.Clear();
-            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions, (a, b) => this.NeoForge_Selected((dynamic)a, b),
+            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions,
+                (a, b) => this.NeoForge_Selected((dynamic)a, b),
                 false);
             foreach (var Version in Versions)
                 PanNeoForge.Children.Add(
-                    ModDownloadLib.NeoForgeDownloadListItem(Version, (a, b) => this.NeoForge_Selected((dynamic)a, b), false));
+                    ModDownloadLib.NeoForgeDownloadListItem(Version, (a, b) => this.NeoForge_Selected((dynamic)a, b),
+                        false));
         }
         catch (Exception ex)
         {
@@ -1559,7 +1631,8 @@ public partial class PageDownloadInstall
                 (a, b) => this.Cleanroom_Selected((dynamic)a, b), false);
             foreach (var Version in Versions)
                 PanCleanroom.Children.Add(
-                    ModDownloadLib.CleanroomDownloadListItem(Version, (a, b) => this.Cleanroom_Selected((dynamic)a, b), false));
+                    ModDownloadLib.CleanroomDownloadListItem(Version, (a, b) => this.Cleanroom_Selected((dynamic)a, b),
+                        false));
         }
         catch (Exception ex)
         {
@@ -1643,7 +1716,8 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)stack.Tag)
                     stack.Children.Add(
-                        ModDownloadLib.FabricDownloadListItem((JObject)item, (a, b) => this.Fabric_Selected((dynamic)a, b)));
+                        ModDownloadLib.FabricDownloadListItem((JObject)item,
+                            (a, b) => this.Fabric_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2104,7 +2178,8 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JObject)item, (a, b) => this.Quilt_Selected((dynamic)a, b)));
+                        ModDownloadLib.QuiltDownloadListItem((JObject)item,
+                            (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2232,7 +2307,8 @@ public partial class PageDownloadInstall
             {
                 if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
                     continue;
-                PanQSL.Children.Add(ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
+                PanQSL.Children.Add(
+                    ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
             }
 
             // 自动选择 QSL
@@ -2363,7 +2439,8 @@ public partial class PageDownloadInstall
                 if (!IsOptiFabricCompatible(Version))
                     continue;
                 PanOptiFabric.Children.Add(
-                    ModDownloadLib.OptiFabricDownloadListItem(Version, (a, b) => this.OptiFabric_Selected((dynamic)a, b)));
+                    ModDownloadLib.OptiFabricDownloadListItem(Version,
+                        (a, b) => this.OptiFabric_Selected((dynamic)a, b)));
             }
 
             // 自动选择 OptiFabric
