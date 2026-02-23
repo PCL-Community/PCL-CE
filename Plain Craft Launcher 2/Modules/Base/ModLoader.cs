@@ -855,12 +855,12 @@ public static class ModLoader
                 if (loader.GetType().Name.StartsWithF("LoaderTask"))
                 {
                     var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                    var shouldInput = input != null && genericArg == input.GetType()
-                        ? input
-                        : null;
+                                object shouldInput = input != null && genericArg == input.GetType()
+                                    ? input
+                                    : null;
 
-                    if (((dynamic)loader).ShouldStart(shouldInput, IgnoreReloadTimeout: true))
-                    {
+                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                                {
                         ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
                         goto Restart;
                     }
@@ -879,12 +879,12 @@ public static class ModLoader
                 if (loader.GetType().Name.StartsWithF("LoaderTask"))
                 {
                     var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                    var shouldInput = input != null && genericArg == input.GetType()
-                        ? input
-                        : null;
+                                object shouldInput = input != null && genericArg == input.GetType()
+                                    ? input
+                                    : null;
 
-                    if (((dynamic)loader).ShouldStart(shouldInput, IgnoreReloadTimeout: true))
-                    {
+                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                                {
                         ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
                             + loader.Name,
                             ModBase.LogLevel.Developer);
