@@ -240,10 +240,17 @@ public sealed class Lifecycle : ILifecycleService
         removed?.MarkAsStopped();
     }
 
+    private static readonly ConcurrentBag<Task> _StoppingServiceTasks = [];
+
+    private static void _WaitStoppingServiceTasks()
+    {
+        Task.WaitAll(_StoppingServiceTasks.ToArray());
+    }
+
     private static void _StopService(ILifecycleService service, bool async, bool manual = false)
     {
         var name = _ServiceName(service, manual ? LifecycleState.Manual : CurrentState);
-        if (async) Task.Run(Stop);
+        if (async) _StoppingServiceTasks.Add(Task.Run(Stop));
         else Stop().Wait();
         return;
 
@@ -326,7 +333,7 @@ public sealed class Lifecycle : ILifecycleService
 
     private static void _RunCurrentExecutable(string? arguments)
     {
-        var fileName = Process.GetCurrentProcess().MainModule!.FileName;
+        var fileName = Environment.ProcessPath!;
         if (arguments == null) Process.Start(fileName);
         else Process.Start(fileName, arguments);
     }
@@ -335,10 +342,15 @@ public sealed class Lifecycle : ILifecycleService
     private static string? _requestRestartArguments;
     private static ILifecycleService? _requestRestartService;
 
+    private static readonly object _ExitLock = new();
+
     private static void _Exit(int statusCode = 0)
     {
-        if (HasShutdownStarted) return;
-        HasShutdownStarted = true;
+        lock (_ExitLock)
+        {
+            if (HasShutdownStarted) return;
+            HasShutdownStarted = true;
+        }
         // 结束 Running 计时
         if (_countRunningStart is { } start)
         {
@@ -364,6 +376,7 @@ public sealed class Lifecycle : ILifecycleService
             // 执行停止流程
             _StopService(service, service.SupportAsync);
         }
+        _WaitStoppingServiceTasks();
         if (logService != null)
         {
             Context.Trace("退出过程已结束，正在停止日志服务");

@@ -2,6 +2,7 @@ Imports System.Collections.ObjectModel
 Imports System.Collections.Specialized
 Imports PCL.Core.App
 Imports PCL.Core.Link
+Imports PCL.Core.Link.McPing
 Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
@@ -544,7 +545,7 @@ Public Class PageToolsGameLink
             Dim input = MyMsgBoxInput("请输入端口", ValidateRules:=New Collection(Of Validate) From {New ValidateInteger(1024, 65535)})
             Dim port As Integer
             If Integer.TryParse(input, port) Then
-                Using ping As New McPing("127.0.0.1", port, 5000)
+                Using ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000)
                     Dim res = Await ping.PingAsync()
                     If res IsNot Nothing AndAlso res.Version.Protocol <> 0 Then
                         Await CreateLobby(port)

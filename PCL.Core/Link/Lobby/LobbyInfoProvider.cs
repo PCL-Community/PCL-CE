@@ -17,7 +17,7 @@ public static class LobbyInfoProvider
     public static bool RequiresRealName { get; set; } = true;
     public static int ProtocolVersion { get; set; } = 6;
 
-    public static Broadcast? McBroadcast { get; internal set; }
+    public static BroadcastLocal? McBroadcast { get; internal set; }
     public static TcpForward? McForward { get; internal set; }
 
     public class LobbyInfo

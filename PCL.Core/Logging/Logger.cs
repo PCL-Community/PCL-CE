@@ -112,7 +112,7 @@ public sealed class Logger : IDisposable
 
         try
         {
-            while (!token.IsCancellationRequested)
+            while (!token.IsCancellationRequested || _logChannel.Reader.Count != 0)
             {
                 if (_logChannel.Reader.TryRead(out var message))
                 {
@@ -138,16 +138,14 @@ public sealed class Logger : IDisposable
                     }
                     await Task.Delay(80, token).ConfigureAwait(false);
                 }
+            }
 
-                if (_logChannel.Reader.Completion.IsCompleted) break;
-
-                async Task DoRefreshAsync()
-                {
-                    await _DoWriteAsync(batch).ConfigureAwait(false);
-                    batch.Clear();
-                    lineCount = 0;
-                    lastFlush = Stopwatch.GetTimestamp();
-                }
+            async Task DoRefreshAsync()
+            {
+                await _DoWriteAsync(batch).ConfigureAwait(false);
+                batch.Clear();
+                lineCount = 0;
+                lastFlush = Stopwatch.GetTimestamp();
             }
         }
         catch (OperationCanceledException)
@@ -172,6 +170,7 @@ public sealed class Logger : IDisposable
                 _CreateNewFile();
             }
             await _currentStream!.WriteAsync(ctx).ConfigureAwait(false);
+            await _currentStream.FlushAsync().ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -186,10 +185,10 @@ public sealed class Logger : IDisposable
         if (_disposed) return;
         _disposed = true;
         _cancelToken.Cancel();
-        _logChannel.Writer.Complete();
         _processingTask.Forget();
         _processingTask.ContinueWith(_ =>
         {
+            _logChannel.Writer.Complete();
             _currentStream?.Dispose();
             _currentFile?.Dispose();
         }).Forget();
