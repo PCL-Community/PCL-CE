@@ -18,7 +18,7 @@ public sealed class Logger : IAsyncDisposable
     {
         Configuration = configuration;
         _CreateNewFile();
-        _processingTask = _ProcessLogQueueAsync(_cancelToken.Token);
+        _processingTask = _ProcessLogQueueAsync();
     }
     // Data stream
     private StreamWriter? _currentStream;
@@ -102,7 +102,7 @@ public sealed class Logger : IAsyncDisposable
         }
     }
 
-    private async Task _ProcessLogQueueAsync(CancellationToken token)
+    private async Task _ProcessLogQueueAsync()
     {
         const int maxBatchLines = 198;
         var writeTimeout = TimeSpan.FromMilliseconds(325);
@@ -112,7 +112,7 @@ public sealed class Logger : IAsyncDisposable
 
         try
         {
-            while (!token.IsCancellationRequested || _logChannel.Reader.Count != 0)
+            while (!_disposed || _logChannel.Reader.TryPeek(out _))
             {
                 if (_logChannel.Reader.TryRead(out var message))
                 {
@@ -136,7 +136,7 @@ public sealed class Logger : IAsyncDisposable
                     {
                         await DoRefreshAsync().ConfigureAwait(false);
                     }
-                    await Task.Delay(80, token).ConfigureAwait(false);
+                    await Task.Delay(80).ConfigureAwait(false);
                 }
             }
 
@@ -147,11 +147,6 @@ public sealed class Logger : IAsyncDisposable
                 lineCount = 0;
                 lastFlush = Stopwatch.GetTimestamp();
             }
-        }
-        catch (OperationCanceledException)
-        {
-            if (lineCount > 0)
-                await _DoWriteAsync(batch).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -186,7 +181,6 @@ public sealed class Logger : IAsyncDisposable
         _disposed = true;
 
         _logChannel.Writer.Complete();
-        await _cancelToken.CancelAsync().ConfigureAwait(false);
         await _processingTask;
 
         if (_currentStream != null)
