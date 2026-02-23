@@ -185,8 +185,8 @@ public sealed class Logger : IAsyncDisposable
         if (_disposed) return;
         _disposed = true;
 
-        await _cancelToken.CancelAsync().ConfigureAwait(false);
         _logChannel.Writer.Complete();
+        await _cancelToken.CancelAsync().ConfigureAwait(false);
         await _processingTask;
 
         if (_currentStream != null)
