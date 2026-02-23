@@ -65,6 +65,11 @@ Public Class PageInstanceSetup
             TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
             TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
             CheckAdvanceRunWait.Checked = Setup.Get("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
+
+            ' 新增：读取实例自定义环境变量与 Classpath 头部
+            TextAdvanceEnv.Text = Setup.Get("VersionAdvanceEnv", instance:=PageInstanceLeft.Instance)
+            TextAdvanceClasspathHead.Text = Setup.Get("VersionAdvanceClasspathHead", instance:=PageInstanceLeft.Instance)
+
             If Setup.Get("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance) = 2 Then
                 Log("[Setup] 已迁移老版本的关闭文件校验设置")
                 Setup.Reset("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance)
@@ -116,6 +121,10 @@ Public Class PageInstanceSetup
 
             Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
 
+            ' 新增：重置实例自定义环境变量与 Classpath 头部
+            Setup.Reset("VersionAdvanceEnv", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceClasspathHead", instance:=PageInstanceLeft.Instance)
+
             Log("[Setup] 已初始化实例独立设置")
             Hint("已初始化实例独立设置！", HintType.Finish, False)
         Catch ex As Exception
@@ -130,7 +139,7 @@ Public Class PageInstanceSetup
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)), instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextArgumentTitle.TextChanged, TextAdvanceRun.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextArgumentTitle.TextChanged, TextAdvanceRun.ValidatedTextChanged, TextAdvanceEnv.ValidatedTextChanged, TextAdvanceClasspathHead.ValidatedTextChanged
         If AniControlEnabled = 0 Then
             '#3194，不能删减 /
             'Dim HandledText As String = sender.Text

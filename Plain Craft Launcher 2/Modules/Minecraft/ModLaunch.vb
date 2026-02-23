@@ -2313,6 +2313,55 @@ NextInstance:
         End If
 
     End Sub
+    Private Sub ApplyInstanceEnvVars(startInfo As ProcessStartInfo)
+        Try
+            Dim envText As String = Setup.Get("VersionAdvanceEnv", instance:=McInstanceSelected)
+            If String.IsNullOrWhiteSpace(envText) Then Return
+
+            Dim entries = envText.Split(","c, StringSplitOptions.RemoveEmptyEntries).
+                            Select(Function(s) s.Trim()).
+                            Where(Function(s) s.Length > 0)
+
+            For Each rawEntry As String In entries
+                Dim line = rawEntry.Trim()
+                If line.Length = 0 Then Continue For
+                If line.StartsWith("#") Then Continue For
+
+                Dim idx = line.IndexOf("="c)
+                If idx <= 0 Then Continue For
+
+                Dim key = line.Substring(0, idx).Trim()
+                Dim val = line.Substring(idx + 1).Trim()
+
+                Try
+                    val = ArgumentReplace(val, True)
+                Catch ex As Exception
+                    Log(ex, "ArgumentReplace 失败，继续使用原始值", LogLevel.Developer)
+                End Try
+
+                Try
+                    val = Environment.ExpandEnvironmentVariables(val)
+                Catch ex As Exception
+                    Log(ex, "Environment.ExpandEnvironmentVariables 失败，继续使用原始值", LogLevel.Developer)
+                End Try
+
+                If String.Equals(key, "PATH", StringComparison.OrdinalIgnoreCase) OrElse String.Equals(key, "Path", StringComparison.OrdinalIgnoreCase) Then
+                    Dim cur = If(startInfo.EnvironmentVariables("Path"), "")
+                    Dim merged = String.Join(";", {cur, val}.Where(Function(s) Not String.IsNullOrEmpty(s)))
+                    Dim parts = merged.Split(";"c).Select(Function(x) x.Trim()).Where(Function(x) x.Length > 0).Distinct().ToArray()
+                    startInfo.EnvironmentVariables("Path") = String.Join(";", parts)
+                    McLaunchLog($"合并 PATH，自定义追加：{val}")
+                Else
+                    startInfo.EnvironmentVariables(key) = val
+                    McLaunchLog($"设置自定义环境变量：{key} = {val}")
+                End If
+            Next
+        Catch ex As Exception
+            Log(ex, "应用实例自定义环境变量失败", LogLevel.Feedback)
+        End Try
+    End Sub
+
+    ' 替换：更清晰、可读的 McLaunchRun（替换原有实现）
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
         Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
@@ -2320,11 +2369,14 @@ NextInstance:
         Dim GameProcess = New Process()
         Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.Installation.JavaExePath, McLaunchJavaSelected.Installation.JavawExePath))
 
-        '设置环境变量
-        Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"))
+        '基础环境变量：先把 Java 文件夹加入 PATH，再设置 appdata 指向选定的 mc 文件夹
+        Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"c))
         Paths.Add(ShortenPath(McLaunchJavaSelected.Installation.JavaFolder))
-        StartInfo.EnvironmentVariables("Path") = Join(Paths.Distinct.ToList, ";")
+        StartInfo.EnvironmentVariables("Path") = String.Join(";", Paths.Distinct().ToList())
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
+
+        ' 应用实例级自定义环境变量（如果用户在实例高级设置中填写）
+        ApplyInstanceEnvVars(StartInfo)
 
         '设置其他参数
         StartInfo.WorkingDirectory = ShortenPath(McInstanceSelected.PathIndie)
@@ -2345,6 +2397,7 @@ NextInstance:
         End If
         Loader.Output = GameProcess
         McLaunchProcess = GameProcess
+
         '进程优先级处理
         Try
             GameProcess.PriorityBoostEnabled = True
@@ -2353,12 +2406,11 @@ NextInstance:
                     GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal
                 Case 2 '低
                     GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal
-                Case Else '中
+                Case Else '中（默认）
             End Select
         Catch ex As Exception
             Log(ex, "设置进程优先级失败", LogLevel.Feedback)
         End Try
-
     End Sub
     Private Sub McLaunchWait(Loader As LoaderTask(Of Process, Integer))
 
