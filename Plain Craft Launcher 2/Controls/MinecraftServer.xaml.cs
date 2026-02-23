@@ -18,6 +18,11 @@ public partial class MinecraftServer : Grid
     private static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address),
         typeof(string), typeof(MinecraftServer), new PropertyMetadata(string.Empty, OnAddressChanged));
 
+    public MinecraftServer()
+    {
+        InitializeComponent();
+    }
+
     public string Address
     {
         get => Conversions.ToString(GetValue(AddressProperty));
