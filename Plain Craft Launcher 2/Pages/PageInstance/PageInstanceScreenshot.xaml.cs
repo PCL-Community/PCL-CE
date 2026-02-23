@@ -25,6 +25,9 @@ public partial class PageInstanceScreenshot : IRefreshable
     {
         InitializeComponent();
         Loaded += PageSetupLaunch_Loaded;
+        PanBack.ScrollChanged += RequireAppend;
+        BtnOpenFolder.Click += BtnOpenFolder_Click;
+        BtnOpenFolderTop.Click += BtnOpenFolder_Click;
     }
 
     void IRefreshable.Refresh()
@@ -103,7 +106,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         await ListAppend(20, 0);
     }
 
-    private async void RequireAppend()
+    private async void RequireAppend(object sender, ScrollChangedEventArgs e)
     {
         if (!_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight) await ListAppend();
     }

@@ -8,6 +8,9 @@ public partial class PageInstanceModDisabled
     public PageInstanceModDisabled()
     {
         InitializeComponent();
+        BtnDownload.Click += BtnDownload_Click;
+        BtnVersion.Click += BtnVersion_Click;
+        BtnDownload.Loaded += BtnDownload_Loaded;
     }
 
     private void BtnDownload_Click(object sender, EventArgs e)
@@ -22,7 +25,7 @@ public partial class PageInstanceModDisabled
         ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
 
-    public void BtnDownload_Loaded()
+    public void BtnDownload_Loaded(object sender, RoutedEventArgs e)
     {
         var NewVisibility =
             (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) ||

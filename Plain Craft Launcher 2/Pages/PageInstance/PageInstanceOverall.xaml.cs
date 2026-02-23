@@ -29,6 +29,21 @@ public partial class PageInstanceOverall
     {
         InitializeComponent();
         Loaded += PageSetupLaunch_Loaded;
+        // Handles
+        ComboDisplayType.SelectionChanged += ComboDisplayType_SelectionChanged;
+        BtnDisplayDesc.Click += BtnDisplayDesc_Click;
+        BtnDisplayRename.Click += BtnDisplayRename_Click;
+        ComboDisplayLogo.SelectionChanged += ComboDisplayLogo_SelectionChanged;
+        BtnDisplayStar.Click += BtnDisplayStar_Click;
+        BtnFolderVersion.Click += BtnFolderVersion_Click;
+        BtnFolderSaves.Click += BtnFolderSaves_Click;
+        BtnFolderMods.Click += BtnFolderMods_Click;
+        BtnManageScript.Click += BtnManageScript_Click;
+        BtnManageCheck.Click += BtnManageCheck_Click;
+        BtnManageRestore.Click += BtnManageRestore_Click;
+        BtnManageTest.Click += BtnManageTest_Click;
+        BtnManageDelete.Click += BtnManageDelete_Click;
+        BtnManagePatch.Click += BtnManagePatch_Click;
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)

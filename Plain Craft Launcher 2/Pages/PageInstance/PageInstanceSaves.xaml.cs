@@ -31,6 +31,7 @@ public partial class PageInstanceSaves : IRefreshable
         Unloaded += Page_Unloaded;
         fileSystemRefreshTimer.Tick += FileSystemRefreshTimer_Tick;
         searchTimer.Tick += SearchTimer_Tick;
+        SearchBox.TextChanged += SearchRun;
     }
 
     void IRefreshable.Refresh()
@@ -464,7 +465,7 @@ public partial class PageInstanceSaves : IRefreshable
         body.IsOpen = true;
     }
 
-    private void SearchRun()
+    private void SearchRun(object sender, EventArgs e)
     {
         searchTimer.Stop();
         searchTimer.Start();
