@@ -944,164 +944,147 @@ public static class ModNet
         {
             try
             {
-                // 1. 基础状态拦截
+                // 1. Pre-check: status and limits
                 if (NetTaskThreadCount >= NetTaskThreadLimit || !HasAvailableSource()) return null;
-
-                // 小文件卡住检测与不分割逻辑
+        
+                // Stuck detection for single-thread / no-split mode
                 if (IsNoSplit && Threads != null &&
-                    Threads.State != NetState.Interrupted &&
-                    Threads.State != NetState.WaitingToDownload &&
+                    Threads.State is not (NetState.Interrupted or NetState.WaitingToDownload) &&
                     TimeUtils.GetTimeTick() - Threads.InitTime < 30000) return null;
-
+        
                 if (State >= NetState.Merging || State == NetState.WaitingToCheck) return null;
-
+        
                 lock (LockState)
                 {
                     if (State < NetState.Connecting) State = NetState.Connecting;
                 }
-
+        
                 long startPosition = 0;
                 NetSource? startSource = null;
-                NetThread? threadInfo = null;
-
+        
                 lock (LockChain)
                 {
-                    // 2. 核心调度算法：确定下载起点 (StartPosition) 和 源 (StartSource)
+                    // 2. Core scheduling logic
                     var shouldCapture = false;
-
                     if (IsNoSplit)
                     {
                         shouldCapture = true;
                     }
                     else if (!HasAvailableSource(false))
                     {
-                        // 单线程模式：检查是否有点可用
                         if (SourcesOnce[0].SingleThread != null &&
                             SourcesOnce[0].SingleThread.State != NetState.Interrupted)
                             return null;
                         shouldCapture = true;
                     }
-
+        
                     if (shouldCapture)
                     {
-                        // 执行 Capture 逻辑：清理旧线程与缓存
                         if (IsNoSplit && SmallFileCache != null && Threads != null &&
-                            Threads.State != NetState.Interrupted && Threads.State != NetState.Finished)
+                            Threads.State is not (NetState.Interrupted or NetState.Finished))
                             return null;
-
+        
                         SmallFileCache?.Dispose();
                         SmallFileCache = null;
                         Threads = null;
                         NetManager.DownloadDone -= DownloadDone;
-                        lock (LockDone)
-                        {
-                            DownloadDone = 0;
-                        }
-
+                        lock (LockDone) { DownloadDone = 0; }
                         SpeedLastDone = 0;
                         State = NetState.Reading;
                     }
-
-                    // 3. 寻找切入点
+        
+                    // 3. Coordinate Calculation
                     if (Threads == null)
                     {
-                        // 情况 1: 首个线程
                         startPosition = 0;
                         startSource = GetSource(FirstThreadSource);
                         FirstThreadSource = startSource.Id + 1;
                     }
                     else
                     {
-                        // 情况 2: 寻找之前失败/中断的碎片
-                        foreach (var thread in Threads) // 假设 Threads 实现了 IEnumerable
+                        // Find interrupted fragments
+                        foreach (var thread in Threads)
+                        {
                             if (thread.State == NetState.Interrupted && thread.DownloadUndone > 0)
                             {
                                 startPosition = thread.DownloadStart + thread.DownloadDone;
                                 startSource = GetSource(thread.Source.Id + 1);
                                 break;
                             }
-
-                        // 情况 3: 尝试开启多线程分段 (分段抢夺算法)
+                        }
+        
+                        // Try multi-thread splitting
                         if (startSource == null)
                         {
                             var targetUrl = GetSource().Url;
-                            // 过滤不支持/不建议多线程的源
-                            string[] restrictedDomains =
+                            string[] restrictedDomains = { "pcl2-server", "bmclapi", "github.com", "optifine.net", "modrinth", "gitcode", "pysio.online", "mirrorchyan.com", "naids.com" };
+                            
+                            if (AllowMuiltThread && !restrictedDomains.Any(d => targetUrl.Contains(d)))
                             {
-                                "pcl2-server", "bmclapi", "github.com", "optifine.net", "modrinth", "gitcode",
-                                "pysio.online", "mirrorchyan.com", "naids.com"
-                            };
-                            if (!AllowMuiltThread || restrictedDomains.Any(d => targetUrl.Contains(d))) return null;
-
-                            // 寻找最大的剩余碎片进行切割
-                            var filePieceMax = Threads;
-                            foreach (var thread in Threads)
-                                if (thread.DownloadUndone > filePieceMax.DownloadUndone)
-                                    filePieceMax = thread;
-
-                            if (filePieceMax == null || filePieceMax.DownloadUndone < FilePieceLimit) return null;
-
-                            // 从最大碎片的后 40% 处切入
-                            startPosition = (long)(filePieceMax.DownloadEnd - filePieceMax.DownloadUndone * 0.4);
-                            startSource = GetSource();
+                                var filePieceMax = Threads;
+                                foreach (var thread in Threads)
+                                    if (thread.DownloadUndone > filePieceMax.DownloadUndone)
+                                        filePieceMax = thread;
+        
+                                if (filePieceMax != null && filePieceMax.DownloadUndone >= FilePieceLimit)
+                                {
+                                    startPosition = (long)(filePieceMax.DownloadEnd - filePieceMax.DownloadUndone * 0.4);
+                                    startSource = GetSource();
+                                }
+                            }
                         }
                     }
-
-                    // 4. 构建并启动线程
-                    if ((startPosition > FileSize && FileSize >= 0 && !IsUnknownSize) || startPosition < 0 ||
-                        startSource == null) return null;
-                    if (!Tasks.Any()) return null;
-
+        
+                    // 4. Thread initialization and validation
+                    if (startSource == null || startPosition < 0 || (startPosition > FileSize && FileSize >= 0 && !IsUnknownSize) || !Tasks.Any()) return null;
+        
                     var threadUuid = ModBase.GetUuid();
-                    var th = new Thread(() => Thread(threadInfo))
-                    {
-                        Name = $"NetTask {Tasks[0].Uuid}/{Uuid} Download {threadUuid}#",
-                        Priority = ThreadPriority.BelowNormal
-                    };
-
-                    threadInfo = new NetThread
+                    var threadInfo = new NetThread
                     {
                         Uuid = threadUuid,
                         DownloadStart = startPosition,
-                        Thread = th,
                         Source = startSource,
                         Task = this,
                         State = NetState.WaitingToDownload
                     };
-
-                    // 5. 维护下载链表
+        
+                    // Fix: Use ParameterizedThreadStart and set IsBackground
+                    var th = new Thread(obj => Thread((NetThread)obj!))
+                    {
+                        Name = $"NetTask {Tasks[0].Uuid}/{Uuid} Download {threadUuid}#",
+                        Priority = ThreadPriority.BelowNormal,
+                        IsBackground = true
+                    };
+                    threadInfo.Thread = th;
+        
+                    // 5. Link-list Maintenance
                     if (threadInfo.IsFirstThread || Threads == null)
                     {
                         Threads = threadInfo;
                     }
                     else
                     {
-                        var currentChain = Threads;
-                        while (currentChain.DownloadEnd <= startPosition && currentChain.NextThread != null)
-                            currentChain = currentChain.NextThread;
-                        threadInfo.NextThread = currentChain.NextThread;
-                        currentChain.NextThread = threadInfo;
+                        var current = Threads;
+                        while (current.DownloadEnd <= startPosition && current.NextThread != null)
+                            current = current.NextThread;
+                        threadInfo.NextThread = current.NextThread;
+                        current.NextThread = threadInfo;
                     }
-
-                    // 6. 更新全局计数与源占用
-                    lock (NetTaskThreadCountLock)
-                    {
-                        NetTaskThreadCount++;
-                    }
-
+        
+                    // 6. Global Resource Accounting
+                    lock (NetTaskThreadCountLock) { NetTaskThreadCount++; }
                     lock (LockSource)
                     {
                         if (!HasAvailableSource(false)) SourcesOnce[0].SingleThread = threadInfo;
                     }
-
+        
                     th.Start(threadInfo);
+                    return threadInfo;
                 }
-
-                return threadInfo;
             }
             catch (Exception ex)
             {
-                LogWrapper.Warn(ex, $"尝试开始下载线程失败（{LocalName ?? "Nothing"}）");
+                LogWrapper.Warn(ex, $"Failed to try begin thread for {LocalName ?? "Unknown"}");
                 return null;
             }
         }
