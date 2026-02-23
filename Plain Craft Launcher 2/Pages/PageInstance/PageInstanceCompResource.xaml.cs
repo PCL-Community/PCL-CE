@@ -94,7 +94,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
         Unloaded += Page_Unloaded;
         Loaded += (_, __) => PageOther_Loaded();
-        Initialized += (_, __) => LoaderInit();
+        LoaderInit();
         PageExit += UnselectedAllWithAnimation;
     }
 
