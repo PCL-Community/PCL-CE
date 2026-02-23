@@ -3,7 +3,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using fNbt;
-using PCL.Core.Link;
+using PCL.Core.Link.McPing;
+using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 
 namespace PCL;
@@ -415,9 +416,9 @@ public partial class PageInstanceServer : MyPageRight
         try
         {
             var addr = await ServerAddressResolver.GetReachableAddressAsync(server.Address, token);
-            using (var query = new McPing(addr.Ip, addr.Port))
+            using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
             {
-                McPingResult result;
+                McPingResult? result;
                 ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);
                 result = await query.PingAsync(token); // 传递 token
                 ModBase.Log("Ping result: " + (result is not null ? "Success" : "Failed"));

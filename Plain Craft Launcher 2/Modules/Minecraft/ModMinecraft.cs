@@ -1785,7 +1785,7 @@ public static class ModMinecraft
         ///     尝试将版本字符串转换为 Drop 序数。
         ///     若无法转换则返回 0。
         /// </summary>
-        public static int VersionToDrop(string version, bool allowSnapshot = false)
+        public static int VersionToDrop(string? version, bool allowSnapshot = false)
         {
             if (!allowSnapshot && version.Contains("-"))
                 return 0;

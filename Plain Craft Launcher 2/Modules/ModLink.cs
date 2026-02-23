@@ -4,9 +4,10 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.Link;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
+using PCL.Core.Link.McPing;
+using PCL.Core.Link.McPing.Model;
 using PCL.Core.Link.Natayark;
 using PCL.Core.Logging;
 using PCL.Core.UI;
@@ -209,7 +210,7 @@ public static class ModLink
         var res = new List<Tuple<int, McPingResult, string>>();
         try
         {
-            if (!PIDLookupResult.Any())
+            if (PIDLookupResult.Count == 0)
                 return res;
             var lookupList = new List<Tuple<int, int>>();
             foreach (var pid in PIDLookupResult)
@@ -223,10 +224,60 @@ public static class ModLink
 
             ModBase.Log($"[MCDetect] 获取到端口数量 {lookupList.Count}");
             // 并行查找本地，超时 3s 自动放弃
-            var checkTasks = lookupList.Select(lookup => Task.Run(() =>
+            var checkTasks = lookupList.Select(
+            lookup => Task.Run(async () =>
             {
                 ModBase.Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}");
-                ;
+                using (var test = McPingServiceFactory.CreateService("127.0.0.1", lookup.Item1, 3000))
+                {
+                    try
+                    {
+                        var info = await test.PingAsync();
+                        var launcher = GetLauncherBrand(lookup.Item2);
+                        if (!string.IsNullOrWhiteSpace(info?.Version.Name))
+                        {
+                            ModBase.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
+                            res.Add(new Tuple<int, McPingResult, string>(lookup.Item1, info, launcher));
+                            return Task.CompletedTask;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.InnerException is ObjectDisposedException)
+                        {
+                            ModBase.Log($"[McDetect] {lookup} 验证超时，已强制断开连接，将尝试旧版检测");
+                        }
+                        else
+                        {
+                            ModBase.Log(ex, $"[McDetect] {lookup} 验证出错，将尝试旧版检测");
+                        }
+                    }
+                }
+                using (var test = McPingServiceFactory.CreateLegacyService("127.0.0.1", lookup.Item1, 3000))
+                {
+                    try
+                    {
+                        var info = await test.PingAsync();
+                        if (!string.IsNullOrWhiteSpace(info?.Version.Name))
+                        {
+                            ModBase.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
+                            res.Add(new Tuple<int, McPingResult, string>(lookup.Item1, info, string.Empty));
+                            return Task.CompletedTask;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.InnerException is ObjectDisposedException)
+                        {
+                            ModBase.Log($"[McDetect] {lookup} 验证超时，已强制断开连接");
+                        }
+                        else
+                        {
+                            ModBase.Log(ex, $"[McDetect] {lookup} 验证出错");
+                        }
+                    }
+                }
+                return Task.CompletedTask;
             })).ToArray();
             await Task.WhenAll(checkTasks);
         }

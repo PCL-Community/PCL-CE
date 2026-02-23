@@ -1272,7 +1272,7 @@ public static class ModBase
     /// <param name="FilePath">文件完整或相对路径。</param>
     /// <param name="Text">文件内容。</param>
     /// <param name="Append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
-    public static void WriteFile(string FilePath, string Text, bool Append = false, Encoding Encoding = null)
+    public static void WriteFile(string FilePath, string Text, bool Append = false, Encoding? Encoding = null)
     {
         // 处理相对路径
         if (!FilePath.Contains(@":\"))
@@ -1325,7 +1325,7 @@ public static class ModBase
             // 确保目录存在
             Directory.CreateDirectory(GetPathFromFullPath(FilePath));
             // 读取流
-            using (var fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write))
+            using (var fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
                 fs.SetLength(0L);
                 Stream.CopyTo(fs);

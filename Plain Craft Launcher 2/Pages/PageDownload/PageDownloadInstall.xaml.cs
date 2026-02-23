@@ -351,64 +351,63 @@ public partial class PageDownloadInstall
     #region 选择
 
     // Minecraft
-    private string _vanillaName;
-    private JObject _vanillaData;
-    private string _vanillaIcon;
+    private string? _vanillaName;
+    private JObject? _vanillaData;
+    private string? _vanillaIcon;
     private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
-    private ModDownload.DlOptiFineListEntry SelectedOptiFine;
+    private ModDownload.DlOptiFineListEntry? SelectedOptiFine;
 
     /// <summary>
     ///     选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod
     /// </summary>
-    private string SelectedLoaderName;
+    private string? SelectedLoaderName;
 
     /// <summary>
     ///     选定的 Mod Loader API 名称，内容应为 Fabric API 或 QFAPI / QSL
     /// </summary>
-    private string SelectedAPIName;
+    private string? SelectedAPIName;
 
     // LiteLoader
-    private ModDownload.DlLiteLoaderListEntry SelectedLiteLoader;
+    private ModDownload.DlLiteLoaderListEntry? SelectedLiteLoader;
 
     // Forge
-    private ModDownload.DlForgeVersionEntry SelectedForge;
+    private ModDownload.DlForgeVersionEntry? SelectedForge;
 
     // Cleanroom
-    private ModDownload.DlCleanroomListEntry SelectedCleanroom;
+    private ModDownload.DlCleanroomListEntry? SelectedCleanroom;
 
     // NeoForge
-    private ModDownload.DlNeoForgeListEntry SelectedNeoForge;
+    private ModDownload.DlNeoForgeListEntry? SelectedNeoForge;
 
     // Fabric
-    private string SelectedFabric;
+    private string? SelectedFabric;
 
     // FabricApi
-    private ModComp.CompFile SelectedFabricApi;
+    private ModComp.CompFile? SelectedFabricApi;
 
     // LegacyFabric
-    private string SelectedLegacyFabric;
+    private string? SelectedLegacyFabric;
 
     // Legacy FabricApi
-    private ModComp.CompFile SelectedLegacyFabricApi;
+    private ModComp.CompFile? SelectedLegacyFabricApi;
 
     // Quilt
-    private string SelectedQuilt;
+    private string? SelectedQuilt;
 
     // QSL
-    private ModComp.CompFile SelectedQSL;
+    private ModComp.CompFile? SelectedQSL;
 
     // LabyMod
-    private string SelectedLabyModChannel;
-    private string SelectedLabyModCommitRef;
-    private string SelectedLabyModVersion;
+    private string? SelectedLabyModChannel;
+    private string? SelectedLabyModCommitRef;
+    private string? SelectedLabyModVersion;
 
     // OptiFabric
-    private ModComp.CompFile SelectedOptiFabric;
+    private ModComp.CompFile? SelectedOptiFabric;
 
-    private bool
-        _ReloadSelected_Ongoing; // #3742 中，LoadOptiFineGetError 会初始化 LoadOptiFine，触发事件 LoadOptiFine.StateChanged，导致再次调用 SelectReload
+    private bool _ReloadSelected_Ongoing; // #3742 中，LoadOptiFineGetError 会初始化 LoadOptiFine，触发事件 LoadOptiFine.StateChanged，导致再次调用 SelectReload
 
     /// <summary>
     ///     重载已选择的项目的显示。
@@ -530,7 +529,7 @@ public partial class PageDownloadInstall
         }
 
         // NeoForge
-        if (VanillaDrop < 200) // 匹配 1.20.1+ 与一些愚人节版本
+        if (VanillaDrop is > 0 and < 200) // 匹配 1.20.1+ 与一些愚人节版本
         {
             CardNeoForge.Visibility = Visibility.Collapsed;
         }
@@ -1591,7 +1590,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 Cleanroom 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadCleanroomGetError()
+    private string? LoadCleanroomGetError()
     {
         if (!_vanillaName.StartsWith("1."))
             return "没有可用版本";
@@ -1600,10 +1599,10 @@ public partial class PageDownloadInstall
         if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "Cleanroom"))
             return $"与 {SelectedLoaderName} 不兼容";
         // 检查 Loader
-        if (GetLoaderError(LoadNeoForge) is not null)
+        if (GetLoaderError(LoadCleanroom) is not null)
             return GetLoaderError(LoadNeoForge);
         // 检查版本
-        return ModDownload.DlNeoForgeListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
+        return ModDownload.DlCleanroomListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
             ? null
             : "无可用版本";
     }

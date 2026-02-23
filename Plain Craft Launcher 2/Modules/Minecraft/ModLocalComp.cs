@@ -1166,13 +1166,10 @@ public static class ModLocalComp
                         if (LogoItem is not null)
                         {
                             var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = $@"{ModBase.PathTemp}MyImage\{md5}.png";
+                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
                             {
-                                using (var FileStream = File.Create(Logo))
-                                {
-                                    EntryStream.CopyTo(FileStream);
-                                }
+                                ModBase.WriteFile(Logo, EntryStream);
                             }
                         }
                     }
@@ -1262,11 +1259,10 @@ public static class ModLocalComp
                         if (LogoItem != null)
                         {
                             var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = $@"{ModBase.PathTemp}MyImage\{md5}.png";
+                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
-                            using (var FileStream = File.Create(Logo))
                             {
-                                EntryStream.CopyTo(FileStream);
+                                ModBase.WriteFile(Logo, EntryStream);
                             }
                         }
                     }
@@ -1328,13 +1324,10 @@ public static class ModLocalComp
                             if (LogoItem is not null)
                             {
                                 var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                                Logo = $@"{ModBase.PathTemp}MyImage\{md5}.png";
+                                Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                                 using (var EntryStream = LogoItem.Open())
                                 {
-                                    using (var FileStream = File.Create(Logo))
-                                    {
-                                        EntryStream.CopyTo(FileStream);
-                                    }
+                                    ModBase.WriteFile(Logo, EntryStream);
                                 }
                             }
                         }
@@ -1623,15 +1616,11 @@ public static class ModLocalComp
                 if (packPngEntry is not null)
                     try
                     {
-                        Logo = ModBase.PathTemp + @"MyImage\" +
-                               ModBase.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path) +
-                               ".png";
+                        var md5 = ModBase.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path);
+                        Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {
-                            using (var fileStream = File.Create(Logo))
-                            {
-                                entryStream.CopyTo(fileStream);
-                            }
+                            ModBase.WriteFile(Logo, entryStream);
                         }
 
                         ModBase.Log("成功提取资源包图标：" + Path, ModBase.LogLevel.Debug);

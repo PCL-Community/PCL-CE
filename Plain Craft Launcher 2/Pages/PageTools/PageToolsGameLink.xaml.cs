@@ -9,6 +9,7 @@ using PCL.Core.App;
 using PCL.Core.Link;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
+using PCL.Core.Link.McPing;
 using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
@@ -735,7 +736,7 @@ public partial class PageToolsGameLink
                 ValidateRules: new Collection<ValidateType> { new ValidateInteger(1024, 65535) });
             int port;
             if (int.TryParse(input, out port))
-                using (var ping = new McPing("127.0.0.1", port, 5000))
+                using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
                 {
                     var res = await ping.PingAsync();
                     if (res is not null && res.Version.Protocol != 0)

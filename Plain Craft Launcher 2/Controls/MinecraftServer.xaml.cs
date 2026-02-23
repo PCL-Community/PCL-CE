@@ -4,7 +4,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
-using PCL.Core.Link;
+using PCL.Core.Link.McPing;
+using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 
@@ -53,7 +54,7 @@ public partial class MinecraftServer : Grid
             var addr = await ServerAddressResolver.GetReachableAddressAsync(address);
 
             // Ping服务器
-            using (var query = new McPing(addr.Ip, addr.Port))
+            using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
             {
                 var ret = await query.PingAsync();
 
