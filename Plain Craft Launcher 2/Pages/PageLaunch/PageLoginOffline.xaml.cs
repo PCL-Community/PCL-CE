@@ -8,6 +8,7 @@ public partial class PageLoginOffline
     public PageLoginOffline()
     {
         // Handles
+        InitializeComponent();
         BtnBack.Click += BtnBack_Click;
         RadioUuidCustom.Check += RadioUuid_Checked;
         RadioUuidStandard.Check += RadioUuid_Checked;
