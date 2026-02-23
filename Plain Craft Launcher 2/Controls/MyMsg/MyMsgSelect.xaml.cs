@@ -68,6 +68,10 @@ public partial class MyMsgSelect
         }
 
         Loaded += Load;
+        Btn1.Click += Btn1_Click;
+        Btn2.Click += Btn2_Click;
+        LabTitle.MouseLeftButtonDown += Drag;
+        PanBorder.MouseLeftButtonDown += Drag;
     }
 
     private void Load(object sender, EventArgs e)
@@ -129,7 +133,7 @@ public partial class MyMsgSelect
         }, "MyMsgBox " + Uuid);
     }
 
-    public void Btn1_Click(object? sender = null,EventArgs? e = null)
+    public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited || SelectedIndex == -1)
             return;
@@ -138,7 +142,7 @@ public partial class MyMsgSelect
         Close();
     }
 
-    public void Btn2_Click(object? sender = null,EventArgs? e = null)
+    public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited)
             return;
