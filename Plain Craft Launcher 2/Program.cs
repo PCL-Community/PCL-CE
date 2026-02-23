@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
@@ -8,17 +9,21 @@ namespace PCL;
 
 internal static class Program
 {
+    [DllImport("kernel32.dll")]
+    static extern bool AllocConsole();
+
     /// <summary>
     ///     Program startup point
     /// </summary>
     [STAThread]
     public static void Main()
     {
-        #if DEBUG
+        if (Basics.CommandLineArguments.Contains("--console")) AllocConsole();
+#if DEBUG
         if (Basics.CommandLineArguments.Contains("--debug"))
             while (!Debugger.IsAttached)
                 Thread.Sleep(50);
-        #endif
+#endif
         Console.WriteLine("Welcome to Plain Craft Launcher 2 Community Edition!");
         // Preloading tasks
         ApplicationService.Loading = static () =>
