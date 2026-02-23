@@ -7,7 +7,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -23,8 +22,8 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using PCL.Core.App;
-using PCL.Core.Utils;
 using PCL.Core.Logging;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
@@ -1813,7 +1812,7 @@ public static class ModBase
         if (LongPath.Length <= ShortenThreshold)
             return LongPath;
         var ShortPath = new StringBuilder(260);
-        ModBase.GetShortPathName(LongPath, ShortPath, 260);
+        GetShortPathName(LongPath, ShortPath, 260);
         return ShortPath.ToString();
     }
 
@@ -2505,96 +2504,135 @@ public static class ModBase
     ///     线程安全的 List。
     ///     通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
     /// </summary>
-            public class SafeList<T> : IEnumerable<T>, IDisposable, ICollection<T>
+    public class SafeList<T> : IEnumerable<T>, IDisposable, ICollection<T>
+    {
+        private readonly List<T> _internalList;
+        private readonly ReaderWriterLockSlim _lock = new();
+
+        public SafeList()
         {
-            private readonly List<T> _internalList;
-            private readonly ReaderWriterLockSlim _lock = new();
+            _internalList = new List<T>();
+        }
 
-            public SafeList()
+        public SafeList(IEnumerable<T> data)
+        {
+            _internalList = new List<T>(data);
+        }
+
+        public T this[int index]
+        {
+            get => _internalList[index];
+            set => _internalList[index] = value;
+        }
+
+        public void Add(T item)
+        {
+            _lock.EnterWriteLock();
+            try
             {
-                _internalList = new List<T>();
+                _internalList.Add(item);
             }
-
-            public SafeList(IEnumerable<T> data)
+            finally
             {
-                _internalList = new List<T>(data);
-            }
-
-            public void Add(T item)
-            {
-                _lock.EnterWriteLock();
-                try { _internalList.Add(item); }
-                finally { _lock.ExitWriteLock(); }
-            }
-
-            public bool Remove(T item)
-            {
-                _lock.EnterWriteLock();
-                try { return _internalList.Remove(item); }
-                finally { _lock.ExitWriteLock(); }
-            }
-
-            public void Clear()
-            {
-                _lock.EnterWriteLock();
-                try { _internalList.Clear(); }
-                finally { _lock.ExitWriteLock(); }
-            }
-
-            public int Count
-            {
-                get
-                {
-                    _lock.EnterReadLock();
-                    try { return _internalList.Count; }
-                    finally { _lock.ExitReadLock(); }
-                }
-            }
-
-            public bool IsReadOnly => ((ICollection<T>)_internalList).IsReadOnly;
-
-            public List<T> ToList()
-            {
-                _lock.EnterReadLock();
-                try { return _internalList.ToList(); }
-                finally { _lock.ExitReadLock(); }
-            }
-
-            public void RemoveAt(int index)
-            {
-                _lock.EnterWriteLock();
-                try { _internalList.RemoveAt(index); }
-                finally { _lock.ExitWriteLock(); }
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                return ToList().GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-            public void Dispose()
-            {
-                _lock.Dispose();
-            }
-
-            public bool Contains(T item)
-            {
-                return ((ICollection<T>)_internalList).Contains(item);
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                ((ICollection<T>)_internalList).CopyTo(array, arrayIndex);
-            }
-
-            public T this[int index]
-            {
-                get => _internalList[index];
-                set => _internalList[index] = value;
+                _lock.ExitWriteLock();
             }
         }
+
+        public bool Remove(T item)
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                return _internalList.Remove(item);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public void Clear()
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                _internalList.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                _lock.EnterReadLock();
+                try
+                {
+                    return _internalList.Count;
+                }
+                finally
+                {
+                    _lock.ExitReadLock();
+                }
+            }
+        }
+
+        public bool IsReadOnly => ((ICollection<T>)_internalList).IsReadOnly;
+
+        public bool Contains(T item)
+        {
+            return ((ICollection<T>)_internalList).Contains(item);
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            ((ICollection<T>)_internalList).CopyTo(array, arrayIndex);
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ToList().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public List<T> ToList()
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                return _internalList.ToList();
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
+        public void RemoveAt(int index)
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                _internalList.RemoveAt(index);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+    }
 
     /// <summary>
     ///     线程安全的字典。
@@ -3990,23 +4028,23 @@ public static class ModBase
     /// </summary>
     public static void FeedbackInfo()
     {
-        try 
+        try
         {
             // Get system memory info
             var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        
+
             // Calculate memory and DPI scale
-            ulong availableMb = phyRam.Available / 1024 / 1024;
-            ulong totalMb = phyRam.Total / 1024 / 1024;
-            double dpiScale = Math.Round(DPI / 96.0, 2);
+            var availableMb = phyRam.Available / 1024 / 1024;
+            var totalMb = phyRam.Total / 1024 / 1024;
+            var dpiScale = Math.Round(DPI / 96.0, 2);
 
             // Build diagnostic information string
-            string info = $"[System] Diagnostic Information:{Environment.NewLine}" +
-                          $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){Environment.NewLine}" +
-                          $"Memory: {availableMb} MB / {totalMb} MB{Environment.NewLine}" +
-                          $"DPI: {DPI} ({dpiScale * 100}%){Environment.NewLine}" +
-                          $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{Environment.NewLine}" +
-                          $"Executable Path: {ExePath}";
+            var info = $"[System] Diagnostic Information:{Environment.NewLine}" +
+                       $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){Environment.NewLine}" +
+                       $"Memory: {availableMb} MB / {totalMb} MB{Environment.NewLine}" +
+                       $"DPI: {DPI} ({dpiScale * 100}%){Environment.NewLine}" +
+                       $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{Environment.NewLine}" +
+                       $"Executable Path: {ExePath}";
 
             LogWrapper.Info(info);
         }
@@ -4149,7 +4187,7 @@ public class InverseBooleanConverter : IValueConverter
     {
         if (value == null) return false;
 
-        if (bool.TryParse(value.ToString(), out bool result)) return !result;
+        if (bool.TryParse(value.ToString(), out var result)) return !result;
 
         return false;
     }

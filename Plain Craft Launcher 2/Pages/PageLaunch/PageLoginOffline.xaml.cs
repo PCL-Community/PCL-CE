@@ -15,6 +15,7 @@ public partial class PageLoginOffline
         RadioUuidLegacy.Check += RadioUuid_Checked;
         BtnLogin.Click += BtnLogin_Click;
     }
+
     private void BtnBack_Click(object sender, EventArgs e)
     {
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));

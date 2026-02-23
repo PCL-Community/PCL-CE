@@ -28,9 +28,11 @@
             <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
                        Text="你需要先安装 Forge、Fabric 等 Mod 加载器才能使用 Mod，请在下载页面安装这些实例。&#xa;如果你已经安装过了 Mod 加载器，那么你很可能选择了错误的实例，请点击实例选择按钮切换实例。"
                        TextWrapping="Wrap" />
-            <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload" Click="BtnDownload_Click"
+            <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload"
+                            Click="BtnDownload_Click"
                             MinWidth="140" Text="转到下载页面" Margin="10,10,10,0" Padding="13,0" ColorType="Highlight" />
-            <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion" Click="BtnVersion_Click"
+            <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion"
+                            Click="BtnVersion_Click"
                             MinWidth="140" Text="实例选择" Margin="10,10,10,0" Padding="13,0" />
         </Grid>
     </local:MyCard>

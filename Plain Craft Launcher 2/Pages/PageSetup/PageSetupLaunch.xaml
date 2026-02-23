@@ -62,7 +62,8 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义信息"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2"
-                                         Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1" ValidatedTextChanged="TextBoxChange"
+                                         Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1"
+                                         ValidatedTextChanged="TextBoxChange"
                                          ToolTip="该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角">
                             <local:MyTextBox.ValidateRules>
                                 <local:ValidateExcept>
@@ -179,7 +180,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <local:MyRadioBox Text="自动配置" Width="110" Checked="True" x:Name="RadioRamType0"
-                                          Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange" 
+                                          Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange"
                                           ToolTip="根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存" ToolTipService.Placement="Right"
                                           ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
                         <local:MyRadioBox Grid.Row="2" Text="自定义" x:Name="RadioRamType1" Tag="LaunchRamType/1"
@@ -254,7 +255,8 @@
                     <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="渲染器"
                                Margin="0,0,25,0" />
                     <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
-                                      Tag="LaunchAdvanceRenderer" SelectionChanged="ComboAdvanceRenderer_OnSelectionChanged">
+                                      Tag="LaunchAdvanceRenderer"
+                                      SelectionChanged="ComboAdvanceRenderer_OnSelectionChanged">
                         <local:MyComboBoxItem Content="游戏默认" IsSelected="True" />
                         <local:MyComboBoxItem Content="软渲染（llvmpipe）" />
                         <local:MyComboBoxItem Content="DirectX12（d3d12）" />

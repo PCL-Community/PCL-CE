@@ -32,7 +32,7 @@ public partial class PageDownloadFabric
             foreach (var Version in Versions)
                 PanVersions.Children.Add(
                     ModDownloadLib.FabricDownloadListItem((JObject)Version,
-                        (sender, e) => this.Fabric_Selected((MyListItem)sender, e)));
+                        (sender, e) => Fabric_Selected((MyListItem)sender, e)));
             CardVersions.Title = "版本列表 (" + Versions.Count + ")";
         }
         catch (Exception ex)

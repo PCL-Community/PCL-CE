@@ -69,8 +69,8 @@ public partial class PageInstanceOverall
         GetInstanceInfo();
         // 刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0;
-        string Logo = Config.Instance.LogoPath[instance.PathInstance];
-        bool LogoCustom = Config.Instance.IsLogoCustom[instance.PathInstance];
+        var Logo = Config.Instance.LogoPath[instance.PathInstance];
+        var LogoCustom = Config.Instance.IsLogoCustom[instance.PathInstance];
         if (LogoCustom)
             foreach (MyComboBoxItem Selection in ComboDisplayLogo.Items)
                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Selection.Tag, Logo, false)) ||
@@ -94,9 +94,9 @@ public partial class PageInstanceOverall
             PanInfo.Children.Add(new MyLoading { Text = "正在获取信息", Margin = new Thickness(0d, 0d, 0d, 10d) });
         });
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, int>("获取可能的整合包信息", (_) =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("获取可能的整合包信息", _ =>
         {
-            string modpackId = Config.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
+            var modpackId = Config.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
@@ -111,7 +111,7 @@ public partial class PageInstanceOverall
         {
             Block = true
         });
-        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", (_) => ModBase.RunInUi(() =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", _ => ModBase.RunInUi(() =>
         {
             var instance = PageInstanceLeft.Instance;
             var instanceInfo = instance.Info;
@@ -126,7 +126,7 @@ public partial class PageInstanceOverall
                 items.Add(new MyListItem
                 {
                     Title = "启动次数",
-                    Info = "已启动 " + Config.Instance.LaunchCount[instance.PathInstance].ToString() + " 次",
+                    Info = "已启动 " + Config.Instance.LaunchCount[instance.PathInstance] + " 次",
                     Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"
                 });
             if (!string.IsNullOrWhiteSpace(Config.Instance.ModpackVersion[instance.PathInstance]))
@@ -176,7 +176,7 @@ public partial class PageInstanceOverall
                 });
             if (instanceInfo.HasLiteLoader)
                 items.Add(new MyListItem
-                { Title = "LiteLoader", Info = "已安装", Logo = "pack://application:,,,/images/Blocks/Egg.png" });
+                    { Title = "LiteLoader", Info = "已安装", Logo = "pack://application:,,,/images/Blocks/Egg.png" });
             if (instanceInfo.HasLegacyFabric)
                 items.Add(new MyListItem
                 {
@@ -275,7 +275,7 @@ public partial class PageInstanceOverall
     {
         try
         {
-            string OldInfo = Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
+            var OldInfo = Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
             var NewInfo = ModMain.MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo,
                 new Collection<ValidateType>(), "默认描述");
             if (NewInfo is not null && (OldInfo ?? "") != (NewInfo ?? ""))
@@ -402,7 +402,7 @@ public partial class PageInstanceOverall
         {
             if (ReferenceEquals(ComboDisplayLogo.SelectedItem, ItemDisplayLogoCustom))
             {
-                string FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片");
+                var FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif", "选择图片");
                 if (string.IsNullOrEmpty(FileName))
                 {
                     Reload(); // 还原选项
@@ -499,7 +499,7 @@ public partial class PageInstanceOverall
         try
         {
             // 弹窗要求指定脚本的保存位置
-            string SavePath = SystemDialogs.SelectSaveFile("选择脚本保存位置", "启动 " + PageInstanceLeft.Instance.Name + ".bat",
+            var SavePath = SystemDialogs.SelectSaveFile("选择脚本保存位置", "启动 " + PageInstanceLeft.Instance.Name + ".bat",
                 "批处理文件(*.bat)|*.bat");
             if (string.IsNullOrEmpty(SavePath))
                 return;
@@ -512,7 +512,7 @@ public partial class PageInstanceOverall
 
             // 生成脚本
             if (ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-            { SaveBatch = SavePath, Instance = PageInstanceLeft.Instance }))
+                    { SaveBatch = SavePath, Instance = PageInstanceLeft.Instance }))
             {
                 if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Legacy)
                     ModMain.Hint("正在导出启动脚本……");
@@ -551,25 +551,25 @@ public partial class PageInstanceOverall
             var Loader = new ModLoader.LoaderCombo<string>(PageInstanceLeft.Instance.Name + " 文件补全",
                 ModDownload.DlClientFix(PageInstanceLeft.Instance, true,
                     ModDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
-            Loader.OnStateChanged = (_) =>
+            Loader.OnStateChanged = _ =>
             {
                 switch (Loader.State)
                 {
                     case ModBase.LoadState.Finished:
-                        {
-                            ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
-                            break;
-                        }
+                    {
+                        ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
+                        break;
+                    }
                     case ModBase.LoadState.Failed:
-                        {
-                            ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
-                            break;
-                        }
+                    {
+                        ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
+                        break;
+                    }
                     case ModBase.LoadState.Aborted:
-                        {
-                            ModMain.Hint(Loader.Name + "已取消！");
-                            break;
-                        }
+                    {
+                        ModMain.Hint(Loader.Name + "已取消！");
+                        break;
+                    }
                 }
             };
             Loader.Start(PageInstanceLeft.Instance.Name);
@@ -624,7 +624,7 @@ public partial class PageInstanceOverall
                     : null,
                 ForgeEntry = CurrentVersion.HasForge
                     ? new ModDownload.DlForgeVersionEntry(CurrentVersion.Forge, null, CurrentVersion.VanillaName)
-                    { Category = "installer" }
+                        { Category = "installer" }
                     : null,
                 ForgeVersion = CurrentVersion.HasForge ? CurrentVersion.Forge : null,
                 NeoForgeVersion = CurrentVersion.HasNeoForge ? CurrentVersion.NeoForge : null,
@@ -653,7 +653,7 @@ public partial class PageInstanceOverall
         try
         {
             ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-            { Instance = PageInstanceLeft.Instance, IsTest = true });
+                { Instance = PageInstanceLeft.Instance, IsTest = true });
             ModMain.FrmMain.PageChange(FormMain.PageType.Launch);
         }
         catch (Exception ex)
@@ -677,30 +677,30 @@ public partial class PageInstanceOverall
                             : ""), "实例删除确认", Button2: "取消", IsWarn: IsHintIndie || IsShiftPressed))
             {
                 case 1:
+                {
+                    var instancePath = PageInstanceLeft.Instance.PathInstance;
+                    var instanceName = PageInstanceLeft.Instance.Name;
+                    ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
+                        instancePath);
+                    if (IsShiftPressed)
                     {
-                        var instancePath = PageInstanceLeft.Instance.PathInstance;
-                        var instanceName = PageInstanceLeft.Instance.Name;
-                        ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
-                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
-                            instancePath);
-                        if (IsShiftPressed)
-                        {
-                            ModBase.DeleteDirectory(instancePath);
-                            ModMain.Hint("实例 " + instanceName + " 已永久删除！", ModMain.HintType.Finish);
-                        }
-                        else
-                        {
-                            FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
-                                RecycleOption.SendToRecycleBin);
-                            ModMain.Hint("实例 " + instanceName + " 已删除到回收站！", ModMain.HintType.Finish);
-                        }
+                        ModBase.DeleteDirectory(instancePath);
+                        ModMain.Hint("实例 " + instanceName + " 已永久删除！", ModMain.HintType.Finish);
+                    }
+                    else
+                    {
+                        FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
+                            RecycleOption.SendToRecycleBin);
+                        ModMain.Hint("实例 " + instanceName + " 已删除到回收站！", ModMain.HintType.Finish);
+                    }
 
-                        break;
-                    }
+                    break;
+                }
                 case 2:
-                    {
-                        return;
-                    }
+                {
+                    return;
+                }
             }
 
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -725,24 +725,25 @@ public partial class PageInstanceOverall
                     "修补提示", Button2: "取消"))
         {
             case 1:
-                {
-                    string UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
-                    if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
-                        return;
-                    ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
-                    ModBase.RunInNewThread(() =>
-                    {
-                        var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar");
-                        Core.AddToCore(UserInput);
-                        ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
-                        ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
-                    });
-                    break;
-                }
-            case 2:
-                {
+            {
+                var UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
+                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
                     return;
-                }
+                ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
+                ModBase.RunInNewThread(() =>
+                {
+                    var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name +
+                                            ".jar");
+                    Core.AddToCore(UserInput);
+                    ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
+                    ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
+                });
+                break;
+            }
+            case 2:
+            {
+                return;
+            }
         }
     }
 

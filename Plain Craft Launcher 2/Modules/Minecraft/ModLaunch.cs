@@ -115,8 +115,8 @@ public static class ModLaunch
 
         if (!string.IsNullOrEmpty(CheckResult))
             throw new ArgumentException(CheckResult);
-        
-        #if BETA
+
+#if BETA
         if (CurrentLaunchOptions?.SaveBatch == null) // 保存脚本时不提示
             {
                 RunInNewThread(() =>
@@ -161,8 +161,8 @@ public static class ModLaunch
                     }
                 }, "Donate");
             }
-        #endif
-        
+#endif
+
         // 正版购买提示
         if (!ModProfile.ProfileList.Any(x => x.Type == McLoginType.Ms))
         {
@@ -303,7 +303,7 @@ public static class ModLaunch
 
     // 启动状态切换
     public static ModLoader.LoaderTask<McLaunchOptions, object> McLaunchLoader = new("Loader Launch", McLaunchStart)
-        { OnStateChanged = (a) => ModLaunch.McLaunchState((dynamic)a) };
+        { OnStateChanged = a => McLaunchState((dynamic)a) };
 
     public static ModLoader.LoaderCombo<object> McLaunchLoaderReal;
     public static Process McLaunchProcess;
@@ -548,7 +548,7 @@ public static class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(UserName + Password + BaseUrl + ((int)Type)) %
+            return (int)Math.Round(ModBase.GetHash(UserName + Password + BaseUrl + (int)Type) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -616,7 +616,7 @@ public static class ModLaunch
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                ModBase.GetHash(UserName + SkinType + SkinName + ((int)Type)) % (decimal)int.MaxValue);
+                ModBase.GetHash(UserName + SkinType + SkinName + (int)Type) % (decimal)int.MaxValue);
         }
     }
 
@@ -687,7 +687,7 @@ public static class ModLaunch
 
         // 尝试加载
         Loader.WaitForExit(Data.Input, McLoginLoader, Data.IsForceRestarting);
-        Data.Output = (McLoginResult)((dynamic)((object)Loader)).Output;
+        Data.Output = (McLoginResult)((dynamic)Loader).Output;
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
         ModBase.Log("[Profile] 选定档案加载完成");
     }
@@ -712,8 +712,8 @@ public static class ModLaunch
     private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
         var input = data.Input;
-        string logUsername = input.UserName;
-        bool isNewProfile = true;
+        var logUsername = input.UserName;
+        var isNewProfile = true;
 
         ModProfile.ProfileLog($"验证方式：正版（{(string.IsNullOrEmpty(logUsername) ? "尚未登录" : logUsername)}）");
         data.Progress = 0.05d;
@@ -741,7 +741,7 @@ public static class ModLaunch
         data.Progress = 0.1d;
 
         // 尝试获取 OAuthToken
-        var oauthTokens = GetOAuthTokens(data, input, out bool skipAuth);
+        var oauthTokens = GetOAuthTokens(data, input, out var skipAuth);
         if (skipAuth)
         {
             data.Progress = 0.99d;
@@ -756,14 +756,14 @@ public static class ModLaunch
             return;
         }
 
-        string oauthAccessToken = oauthTokens[0];
-        string oauthRefreshToken = oauthTokens[1];
+        var oauthAccessToken = oauthTokens[0];
+        var oauthRefreshToken = oauthTokens[1];
         ThrowIfAborted(data);
 
         data.Progress = 0.25d;
 
         // Step 2: XBL Token
-        string xblToken = MsLoginStep2(oauthAccessToken);
+        var xblToken = MsLoginStep2(oauthAccessToken);
         if (string.IsNullOrEmpty(xblToken) || xblToken == "Ignore")
             goto SkipLogin;
 
@@ -771,7 +771,7 @@ public static class ModLaunch
         ThrowIfAborted(data);
 
         // Step 3: XSTS / Minecraft login
-        string[] tokens = MsLoginStep3(xblToken);
+        var tokens = MsLoginStep3(xblToken);
         if (tokens.Length < 2 || tokens[1] == "Ignore")
             goto SkipLogin;
 
@@ -779,7 +779,7 @@ public static class ModLaunch
         ThrowIfAborted(data);
 
         // Step 4: Final access token
-        string accessToken = MsLoginStep4(tokens);
+        var accessToken = MsLoginStep4(tokens);
         if (string.IsNullOrEmpty(accessToken) || accessToken == "Ignore")
             goto SkipLogin;
 
@@ -792,7 +792,7 @@ public static class ModLaunch
         ThrowIfAborted(data);
 
         // Step 6: Profile info
-        string[] result = MsLoginStep6(accessToken);
+        var result = MsLoginStep6(accessToken);
         if (result.Length < 3 || result[2] == "Ignore")
             goto SkipLogin;
 
@@ -800,7 +800,6 @@ public static class ModLaunch
 
         // 检查是否已有相同档案
         foreach (var profile in ModProfile.ProfileList)
-        {
             if (profile.Type == McLoginType.Ms &&
                 string.Equals(profile.Username, result[1], StringComparison.Ordinal) &&
                 string.Equals(profile.Uuid, result[0], StringComparison.Ordinal))
@@ -808,7 +807,7 @@ public static class ModLaunch
                 isNewProfile = false;
                 if (ModProfile.IsCreatingProfile)
                 {
-                    int index = ModProfile.ProfileList.IndexOf(profile);
+                    var index = ModProfile.ProfileList.IndexOf(profile);
                     ModProfile.ProfileList[index].Username = result[1];
                     ModProfile.ProfileList[index].AccessToken = accessToken;
                     ModProfile.ProfileList[index].RefreshToken = oauthRefreshToken;
@@ -816,7 +815,6 @@ public static class ModLaunch
                     goto SkipLogin;
                 }
             }
-        }
 
         // 输出登录结果
         if (isNewProfile)
@@ -838,7 +836,7 @@ public static class ModLaunch
         }
         else
         {
-            int index = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
+            var index = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
             ModProfile.ProfileList[index].Username = result[1];
             ModProfile.ProfileList[index].AccessToken = accessToken;
             ModProfile.ProfileList[index].RefreshToken = oauthRefreshToken;
@@ -856,15 +854,16 @@ public static class ModLaunch
             ProfileJson = result[2]
         };
 
-    SkipLogin:
+        SkipLogin:
         McLoginMsRefreshTime = TimeUtils.GetTimeTick();
         ModProfile.ProfileLog("正版验证完成");
     }
 
     /// <summary>
-    /// 获取 OAuth Tokens，处理刷新和重新登录逻辑
+    ///     获取 OAuth Tokens，处理刷新和重新登录逻辑
     /// </summary>
-    private static string[] GetOAuthTokens(ModLoader.LoaderTask<McLoginMs, McLoginResult> data, McLoginMs input, out bool skipAuth)
+    private static string[] GetOAuthTokens(ModLoader.LoaderTask<McLoginMs, McLoginResult> data, McLoginMs input,
+        out bool skipAuth)
     {
         skipAuth = false;
         string[] tokens;
@@ -893,7 +892,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    /// 检查是否被中断
+    ///     检查是否被中断
     /// </summary>
     private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
@@ -1363,8 +1362,8 @@ public static class ModLaunch
     private static void McLoginServerStart(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
         var input = data.Input;
-        bool needRefresh = false;
-        bool wasRefreshed = false;
+        var needRefresh = false;
+        var wasRefreshed = false;
 
         ModProfile.ProfileLog("验证方式：" + input.Description);
         data.Progress = 0.05d;
@@ -1450,7 +1449,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    /// 检查任务是否被中断
+    ///     检查任务是否被中断
     /// </summary>
     private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
@@ -1459,7 +1458,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    /// 统一处理 HttpWebException
+    ///     统一处理 HttpWebException
     /// </summary>
     private static void HandleHttpWebException(ModNet.HttpWebException ex, string logPrefix)
     {
@@ -1482,7 +1481,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    /// 统一处理普通异常
+    ///     统一处理普通异常
     /// </summary>
     private static void HandleException(Exception ex, string logPrefix)
     {
@@ -1492,7 +1491,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    /// 处理普通登录 HttpWebException
+    ///     处理普通登录 HttpWebException
     /// </summary>
     private static void HandleLoginHttpException(ModNet.HttpWebException ex)
     {
@@ -2008,7 +2007,7 @@ public static class ModLaunch
                 return;
             if (McLaunchJavaSelected is not null)
             {
-                McLaunchLog("选择的 Java：" + McLaunchJavaSelected.ToString());
+                McLaunchLog("选择的 Java：" + McLaunchJavaSelected);
             }
             else
             {
@@ -2372,7 +2371,8 @@ public static class ModLaunch
 
         // 添加 Java Wrapper 作为主 Jar
         if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
-                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
+                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW",
+                                      ModMinecraft.McInstanceSelected)))
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
@@ -2493,7 +2493,8 @@ public static class ModLaunch
             DataList.Add("-Dretrowrapper.doUpdateCheck=false");
         // 添加 Java Wrapper 作为主 Jar
         if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW") &&
-                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW", ModMinecraft.McInstanceSelected)))
+                                  !(bool)ModBase.Setup.Get("VersionAdvanceDisableJLW",
+                                      ModMinecraft.McInstanceSelected)))
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
@@ -2788,7 +2789,7 @@ public static class ModLaunch
                 CpStrings.Add(Library.LocalPath);
         }
 
-        foreach (string library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
+        foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
         {
             if (string.IsNullOrWhiteSpace(library))
                 continue;
@@ -3156,7 +3157,7 @@ public static class ModLaunch
                 CustomCommandGlobal + Constants.vbCrLf + CustomCommandVersion + Constants.vbCrLf +
                 $"\"{McLaunchJavaSelected.Installation.JavaExePath}\" {McLaunchArgument}" + Constants.vbCrLf +
                 "echo 游戏已退出。" + Constants.vbCrLf + "pause";
-                ModBase.WriteFile(CurrentLaunchOptions.SaveBatch ?? ModBase.ExePath + @"PCL\LatestLaunch.bat",
+            ModBase.WriteFile(CurrentLaunchOptions.SaveBatch ?? ModBase.ExePath + @"PCL\LatestLaunch.bat",
                 ModMinecraft.FilterAccessToken(CmdString, 'F'),
                 Encoding: McLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default);
             if (CurrentLaunchOptions.SaveBatch is not null)
@@ -3335,7 +3336,8 @@ public static class ModLaunch
 
         // 获取窗口标题
         var WindowTitle = (string?)ModBase.Setup.Get("VersionArgumentTitle", ModMinecraft.McInstanceSelected);
-        if (string.IsNullOrEmpty(WindowTitle) && !(bool)ModBase.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected))
+        if (string.IsNullOrEmpty(WindowTitle) &&
+            !(bool)ModBase.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected))
             WindowTitle = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentTitle"));
         WindowTitle = ArgumentReplace(WindowTitle, false);
 

@@ -65,9 +65,8 @@ public partial class PageDownloadLiteLoader
                 NewCard.IsSwapped = true;
                 NewCard.InstallMethod = Stack =>
                 {
-                    Stack.Tag = ModBase.Sort(
-                        (IList<ModDownload.DlLiteLoaderListEntry>)(List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag,
-                        (a, b) => ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                    Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));

@@ -53,7 +53,7 @@ public partial class MyIconTextButton
     public MyIconTextButton()
     {
         InitializeComponent();
-        
+
         MouseLeftButtonUp += (_, _) => MyIconTextButton_MouseUp();
         MouseLeftButtonDown += (_, _) => MyIconTextButton_MouseDown();
         MouseLeave += (_, _) => MyIconTextButton_MouseLeave();

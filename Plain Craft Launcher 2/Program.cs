@@ -10,7 +10,7 @@ namespace PCL;
 internal static class Program
 {
     [DllImport("kernel32.dll")]
-    static extern bool AllocConsole();
+    private static extern bool AllocConsole();
 
     /// <summary>
     ///     Program startup point

@@ -250,7 +250,6 @@ public partial class PageComp
         TextSearchVersion.KeyDown += EnterTrigger;
         BtnSearchReset.Click += (_, _) => ResetFilter();
         BtnSearchInstallModPack.Click += BtnSearchInstallModPack_Click;
-
     }
 
     private void PageCompControls_Inited(object sender, EventArgs e)

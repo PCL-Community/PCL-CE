@@ -36,7 +36,7 @@ public partial class MyExtraButton
     public MyExtraButton()
     {
         InitializeComponent();
-            
+
         Loaded += (_, __) => RefreshColor();
         IsEnabledChanged += (_, __) => RefreshColor();
     }

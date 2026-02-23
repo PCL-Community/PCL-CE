@@ -61,7 +61,6 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnSelectFavorites.Click += BtnSelectFavorites_Click;
         BtnSelectShare.Click += BtnSelectShare_Click;
         SearchBox.TextChanged += SearchRun;
-
     }
 
     // 获取模组信息（带缓存）
@@ -567,7 +566,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private void BuildLocalCompItemBtnHandler(MyLocalCompItem sender, EventArgs e)
     {
         // 点击事件
-        sender.Changed += (ss, ee) => this.CheckChanged((MyLocalCompItem)ss, ee);
+        sender.Changed += (ss, ee) => CheckChanged((MyLocalCompItem)ss, ee);
         if (sender.Entry.IsFolder)
         {
             // 文件夹项的点击事件：双击进入文件夹，单击切换选中状态
@@ -604,7 +603,7 @@ public partial class PageInstanceCompResource : IRefreshable
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
-        BtnOpen.Click += (ss, ee) => this.Open_Click((MyIconButton)ss, ee);
+        BtnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
         var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
@@ -617,7 +616,7 @@ public partial class PageInstanceCompResource : IRefreshable
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
         ToolTipService.SetHorizontalOffset(BtnDelete, 2d);
-        BtnDelete.Click += (ss, ee) => this.Delete_Click((MyIconButton)ss, ee);
+        BtnDelete.Click += (ss, ee) => Delete_Click((MyIconButton)ss, ee);
         if (CurrentCompType != ModComp.CompType.Mod ||
             sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
         {
@@ -637,7 +636,7 @@ public partial class PageInstanceCompResource : IRefreshable
             ToolTipService.SetPlacement(BtnED, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnED, 30d);
             ToolTipService.SetHorizontalOffset(BtnED, 2d);
-            BtnED.Click += (ss, ee) => this.ED_Click((MyIconButton)ss, ee);
+            BtnED.Click += (ss, ee) => ED_Click((MyIconButton)ss, ee);
             sender.Buttons = new[] { BtnCont, BtnOpen, BtnED, BtnDelete };
         }
     }
@@ -978,97 +977,93 @@ public partial class PageInstanceCompResource : IRefreshable
     public static bool InstallMods(IEnumerable<string> filePathList)
     {
         if (!filePathList.Any()) return false;
-    
+
         // 1. Check file extension
-        string firstFile = filePathList.First();
-        string extension = firstFile.Split('.').LastOrDefault()?.ToLower();
+        var firstFile = filePathList.First();
+        var extension = firstFile.Split('.').LastOrDefault()?.ToLower();
         string[] allowedExtensions = { "jar", "litemod", "disabled", "old" };
-    
+
         if (!allowedExtensions.Contains(extension)) return false;
-    
+
         LogWrapper.Info("[System] 文件格式为 jar/litemod，尝试安装为 Mod");
-    
+
         // 2. Check recycle bin
         if (firstFile.Contains(@":\$RECYCLE.BIN\"))
         {
             HintWrapper.Show("请先将文件从回收站还原，再尝试安装！", HintTheme.Error);
             return true;
         }
-    
+
         // 3. Determine target instance
-        ModMinecraft.McInstance targetInstance = ModMinecraft.McInstanceSelected;
-        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup)
-        {
-            targetInstance = PageInstanceLeft.Instance;
-        }
-    
+        var targetInstance = ModMinecraft.McInstanceSelected;
+        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup) targetInstance = PageInstanceLeft.Instance;
+
         // 4. Validate instance status
-        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSelect || targetInstance == null || !targetInstance.Modable)
+        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSelect || targetInstance == null ||
+            !targetInstance.Modable)
         {
             HintWrapper.Show("若要安装 Mod，请先选择一个可以安装 Mod 的实例！");
             return true;
         }
-    
+
         // 5. Check if user confirmation is required
-        bool isModPage = ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup && 
-                         ModMain.FrmMain.PageCurrentSub == FormMain.PageSubType.VersionMod;
-    
+        var isModPage = ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup &&
+                        ModMain.FrmMain.PageCurrentSub == FormMain.PageSubType.VersionMod;
+
         if (!isModPage)
         {
-            string countSuffix = filePathList.Count() == 1 ? "个" : "些";
-            if (ModMain.MyMsgBox($"是否要将这{countSuffix}文件作为 Mod 安装到 {targetInstance.Name}？", "Mod 安装确认", "确定", "取消") != 1)
-            {
-                return true;
-            }
+            var countSuffix = filePathList.Count() == 1 ? "个" : "些";
+            if (ModMain.MyMsgBox($"是否要将这{countSuffix}文件作为 Mod 安装到 {targetInstance.Name}？", "Mod 安装确认", "确定", "取消") !=
+                1) return true;
         }
-    
+
         // 6. Execution: Install Mods
         ExecuteModInstallation(targetInstance, filePathList, isModPage);
-    
+
         return true;
     }
-    
-    private static void ExecuteModInstallation(ModMinecraft.McInstance targetInstance, IEnumerable<string> filePathList, bool refreshList)
+
+    private static void ExecuteModInstallation(ModMinecraft.McInstance targetInstance, IEnumerable<string> filePathList,
+        bool refreshList)
     {
         // Path resolution logic
-        string modPathSuffix = targetInstance.Info.HasLabyMod 
-            ? $@"labymod-neo\fabric\{targetInstance.Info.VanillaName}\" 
+        var modPathSuffix = targetInstance.Info.HasLabyMod
+            ? $@"labymod-neo\fabric\{targetInstance.Info.VanillaName}\"
             : "";
-        string modFolder = $@"{targetInstance.PathIndie}{modPathSuffix}mods\";
-    
+        var modFolder = $@"{targetInstance.PathIndie}{modPathSuffix}mods\";
+
         try
         {
-            foreach (string modFile in filePathList)
+            foreach (var modFile in filePathList)
             {
-                string fileName = ModBase.GetFileNameFromPath(modFile)
+                var fileName = ModBase.GetFileNameFromPath(modFile)
                     .Replace(".disabled", "")
                     .Replace(".old", "");
-    
+
                 if (!fileName.Contains(".")) fileName += ".jar"; // Ensure extension (#4227)
-    
+
                 ModBase.CopyFile(modFile, Path.Combine(modFolder, fileName));
             }
-    
+
             // Success hint
             if (filePathList.Count() == 1)
             {
-                string installedName = ModBase.GetFileNameFromPath(filePathList.First()).Replace(".disabled", "").Replace(".old", "");
+                var installedName = ModBase.GetFileNameFromPath(filePathList.First()).Replace(".disabled", "")
+                    .Replace(".old", "");
                 HintWrapper.Show($"已安装 {installedName}！", HintTheme.Success);
             }
             else
             {
                 HintWrapper.Show($"已安装 {filePathList.Count()} 个 Mod！", HintTheme.Success);
             }
-    
+
             // 7. Refresh list if necessary
             if (refreshList)
-            {
                 ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader,
                     modFolder,
                     ModLoader.LoaderFolderRunType.ForceRun,
                     LoaderInput: ModMain.FrmInstanceMod.GetRequireLoaderData()
                 );
-            }
         }
         catch (Exception ex)
         {
@@ -2016,7 +2011,7 @@ public partial class PageInstanceCompResource : IRefreshable
             var FinishedFileNames = new List<string>();
             InstallLoaders.Add(new ModNet.LoaderDownload("下载新版资源文件", FileList)
                 { ProgressWeight = ModList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
-            InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", (_) =>
+            InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", _ =>
             {
                 try
                 {
@@ -2060,7 +2055,7 @@ public partial class PageInstanceCompResource : IRefreshable
                            (PageInstanceLeft.Instance.Info.HasLabyMod
                                ? @"labymod-neo\fabric\" + PageInstanceLeft.Instance.Info.VanillaName + @"\"
                                : "") + ModLocalComp.GetPathNameByCompType(CurrentCompType) + @"\";
-            Loader.OnStateChanged = (_) =>
+            Loader.OnStateChanged = _ =>
             {
                 // 结果提示
                 switch (Loader.State)

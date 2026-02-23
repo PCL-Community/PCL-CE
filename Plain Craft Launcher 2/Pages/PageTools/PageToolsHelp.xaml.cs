@@ -238,7 +238,7 @@ public partial class PageToolsHelp : IRefreshable
     // 初始化加载器信息
     private void PageOther_Inited(object sender, EventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.HelpLoader, (a) => this.HelpListLoad((dynamic)a));
+        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.HelpLoader, a => this.HelpListLoad((dynamic)a));
     }
 
     #endregion

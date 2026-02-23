@@ -80,7 +80,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
             var selfSha256 = ModBase.GetFileSHA256(ModBase.ExePathWithName);
-            string remoteUpdSha256 = deJsonData.sha256;
+            var remoteUpdSha256 = deJsonData.sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.patches.Contains(patchFileName))
             {
@@ -98,7 +98,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             }
         }));
         loaders.Add(new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile>()));
-        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", (_) =>
+        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", _ =>
         {
             if (patchUpdate)
             {
@@ -115,7 +115,8 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 {
                     // 尝试找到目标条目
                     var entry = zip.Entries
-                        .FirstOrDefault(x => x.Name.Contains("Plain Craft Launcher Community Edition.exe")) ?? zip.Entries
+                        .FirstOrDefault(x => x.Name.Contains("Plain Craft Launcher Community Edition.exe")) ?? zip
+                        .Entries
                         .FirstOrDefault(x => x.Name.Contains("Plain Craft Launcher"));
 
                     entry ??= zip.Entries
@@ -128,7 +129,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         throw new Exception("找不到更新文件");
 
                     // 解压到指定文件（覆盖已存在文件）
-                    entry.ExtractToFile(output, overwrite: true);
+                    entry.ExtractToFile(output, true);
                 }
             }
         }));

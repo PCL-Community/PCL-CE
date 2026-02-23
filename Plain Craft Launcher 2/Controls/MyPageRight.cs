@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -46,7 +45,7 @@ public class MyPageRight : AdornerDecorator
 
             return (MyScrollViewer)res;
         }
-        set => SetValue(((dynamic)PanScrollProperty), value);
+        set => SetValue((dynamic)PanScrollProperty, value);
     }
 
     public PageStates PageState
@@ -96,7 +95,7 @@ public class MyPageRight : AdornerDecorator
         PageLoaderAutoRun = AutoRun;
         // 添加结束 Invoke
         if (FinishedInvoke is not null)
-            RealLoader.PreviewFinish += (_) =>
+            RealLoader.PreviewFinish += _ =>
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置

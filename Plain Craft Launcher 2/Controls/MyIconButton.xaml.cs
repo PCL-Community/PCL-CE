@@ -44,7 +44,7 @@ public partial class MyIconButton
     public MyIconButton()
     {
         InitializeComponent();
-        
+
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseLeftButtonUp += (_, __) => Button_MouseUp();

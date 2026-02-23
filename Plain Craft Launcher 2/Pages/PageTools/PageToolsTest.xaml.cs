@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -117,7 +116,7 @@ public partial class PageToolsTest
         {
             if (string.IsNullOrWhiteSpace(Folder))
             {
-                Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName, default, default);
+                Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName);
                 if (!Folder.Contains(@"\")) return;
                 if (Folder.EndsWith(FileName)) Folder = Strings.Mid(Folder, 1, Folder.Length - FileName.Length);
             }
@@ -145,9 +144,9 @@ public partial class PageToolsTest
                 loaderdownload = new ModNet.LoaderDownloadUnc("自定义下载文件：" + FileName + " ",
                     new Tuple<string, string>(Url, Folder + FileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>("自定义下载 (" + uuid + ") ", new[] { loaderdownload })
-                { OnStateChanged = (a) => PageToolsTest.DownloadState((dynamic)a) };
+                { OnStateChanged = a => DownloadState((dynamic)a) };
             loaderCombo.Start();
-            ModLoader.LoaderTaskbarAdd<int>(loaderCombo);
+            ModLoader.LoaderTaskbarAdd(loaderCombo);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();
         }
@@ -395,10 +394,10 @@ public partial class PageToolsTest
             {
                 string arglpSystemName = null;
                 var arglpName = "SeProfileSingleProcessPrivilege";
-                PageToolsTest.LookupPrivilegeValue(arglpSystemName, arglpName, out luid1);
+                LookupPrivilegeValue(arglpSystemName, arglpName, out luid1);
                 string arglpSystemName1 = null;
                 var arglpName1 = "SeIncreaseQuotaPrivilege";
-                PageToolsTest.LookupPrivilegeValue(arglpSystemName1, arglpName1, out luid2);
+                LookupPrivilegeValue(arglpSystemName1, arglpName1, out luid2);
 
                 var tokenPrivileges1 = new TokenPrivileges();
                 tokenPrivileges1.Luid = luid1;
@@ -497,7 +496,7 @@ public partial class PageToolsTest
 
     private void MyTextButton_Click(object sender, EventArgs e)
     {
-        var text = SystemDialogs.SelectFolder("选择文件夹");
+        var text = SystemDialogs.SelectFolder();
         if (!string.IsNullOrEmpty(text)) TextDownloadFolder.Text = text;
     }
 
@@ -572,7 +571,7 @@ public partial class PageToolsTest
                     Result = ModMinecraft.McSkinDownload(Result);
                     ModBase.RunInUi(() =>
                     {
-                        string Path = SystemDialogs.SelectSaveFile("保存皮肤", ID + ".png", "皮肤图片文件(*.png)|*.png");
+                        var Path = SystemDialogs.SelectSaveFile("保存皮肤", ID + ".png", "皮肤图片文件(*.png)|*.png");
                         ModBase.CopyFile(Result, Path);
                         ModMain.Hint($"玩家 {ID} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
@@ -669,7 +668,7 @@ public partial class PageToolsTest
         var client = NetworkService.GetClient();
         try
         {
-            HttpResponseMessage response = await client.GetAsync(imageUrl);
+            var response = await client.GetAsync(imageUrl);
             if (response.IsSuccessStatusCode)
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 {
@@ -693,7 +692,7 @@ public partial class PageToolsTest
                     ModMain.Hint("获取成就图片失败，请检查文字是否包含特殊字符", ModMain.HintType.Critical);
                 });
             else
-                Dispatcher.Invoke(() => ModBase.Log("获取成就图片失败（" + ((int)response.StatusCode) + "）"));
+                Dispatcher.Invoke(() => ModBase.Log("获取成就图片失败（" + (int)response.StatusCode + "）"));
         }
 
         catch (Exception ex)
@@ -715,7 +714,7 @@ public partial class PageToolsTest
         try
         {
             // 异步发送 GET 请求
-            HttpResponseMessage response = await client.GetAsync(imageUrl);
+            var response = await client.GetAsync(imageUrl);
 
             // 如果响应状态码是成功的，则继续
             if (response.IsSuccessStatusCode)
@@ -726,7 +725,7 @@ public partial class PageToolsTest
                 // 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes);
 
-                string path =
+                var path =
                     SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text + ".png", "PNG 图片|*.png");
                 if (string.IsNullOrEmpty(path))
                 {
@@ -749,7 +748,7 @@ public partial class PageToolsTest
             else
             {
                 // 处理其他非成功状态码
-                ModBase.Log("获取成就图片失败（" + ((int)response.StatusCode) + "）");
+                ModBase.Log("获取成就图片失败（" + (int)response.StatusCode + "）");
             }
         }
 
@@ -936,6 +935,18 @@ public partial class PageToolsTest
         }
     }
 
+    private void TextDownloadFolder_OnValidatedTextChanged(object sender, RoutedEventArgs e)
+    {
+        SaveCacheDownloadFolder(sender, e);
+        TextDownloadName_ValidateChanged(sender, e);
+    }
+
+    private void TextUserAgent_OnValidatedTextChanged(object sender, RoutedEventArgs e)
+    {
+        SaveCustomUserAgent(sender, e);
+        TextDownloadFolder_ValidateChanged(sender, e);
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private class TokenPrivileges
     {
@@ -970,17 +981,5 @@ public partial class PageToolsTest
         public nint Handle;
         public nuint PagesCombined;
         public uint Flags;
-    }
-
-    private void TextDownloadFolder_OnValidatedTextChanged(object sender, RoutedEventArgs e)
-    {
-        SaveCacheDownloadFolder(sender, e);
-        TextDownloadName_ValidateChanged(sender, e);
-    }
-
-    private void TextUserAgent_OnValidatedTextChanged(object sender, RoutedEventArgs e)
-    {
-        SaveCustomUserAgent(sender, e);
-        TextDownloadFolder_ValidateChanged(sender, e);
     }
 }

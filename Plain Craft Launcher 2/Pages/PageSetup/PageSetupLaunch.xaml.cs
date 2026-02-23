@@ -6,7 +6,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
-using PCL.Core.Utils.OS; 
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -134,7 +134,7 @@ public partial class PageSetupLaunch
         if (ModAnimation.AniControlEnabled == 0)
             ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
     }
-    
+
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         dynamic sender = senderRaw;
@@ -171,6 +171,24 @@ public partial class PageSetupLaunch
         ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
+    private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange(sender, e);
+        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e);
+    }
+
+    private void ComboArgumentIndie_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange(sender, e);
+        ComboArgumentIndie_SelectionChanged(sender, e);
+    }
+
+    private void CheckArgumentRam_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckArgumentRam_Change();
+    }
+
     #region 游戏内存
 
     public void RamType(int Type)
@@ -191,8 +209,8 @@ public partial class PageSetupLaunch
         // 获取内存情况
         var ramGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        double ramTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
-        double ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
+        var ramTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
+        var ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
         var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
         var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
         var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
@@ -207,7 +225,11 @@ public partial class PageSetupLaunch
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
         LabRamGame.Text = (ramGame == Math.Floor(ramGame) ? ramGame + ".0" : ramGame.ToString()) + " GB" +
-                          (ramGame != ramGameActual ? " (可用 " + (ramGameActual == Math.Floor(ramGameActual) ? ramGameActual + ".0" : ramGameActual.ToString()) + " GB)" : "");
+                          (ramGame != ramGameActual
+                              ? " (可用 " + (ramGameActual == Math.Floor(ramGameActual)
+                                  ? ramGameActual + ".0"
+                                  : ramGameActual.ToString()) + " GB)"
+                              : "");
         LabRamUsed.Text = (ramUsed == Math.Floor(ramUsed) ? ramUsed + ".0" : ramUsed.ToString()) + " GB";
         LabRamTotal.Text = " / " + (ramTotal == Math.Floor(ramTotal) ? ramTotal + ".0" : ramTotal.ToString()) + " GB";
         LabRamWarn.Visibility =
@@ -380,7 +402,8 @@ public partial class PageSetupLaunch
                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchRamType"), 0, false)))
         {
             // 自动配置
-            double RamAvailable = Math.Round((double)KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
+            var RamAvailable =
+                Math.Round((double)KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
             // 确定需求的内存值
             double RamMininum; // 无论如何也需要保证的最低限度内存
             double RamTarget1; // 估计能勉强带动了的内存
@@ -574,22 +597,4 @@ public partial class PageSetupLaunch
     }
 
     #endregion
-
-    private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        ComboChange(sender, e);
-        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e);
-    }
-
-    private void ComboArgumentIndie_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        ComboChange(sender, e);
-        ComboArgumentIndie_SelectionChanged(sender, e);
-    }
-
-    private void CheckArgumentRam_OnChange(object sender, bool user)
-    {
-        CheckBoxChange(sender, user);
-        CheckArgumentRam_Change();
-    }
 }

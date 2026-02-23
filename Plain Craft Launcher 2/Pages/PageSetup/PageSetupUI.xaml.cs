@@ -411,7 +411,7 @@ public partial class PageSetupUI
             {
                 if (Refresh)
                 {
-                    string Address = RandomUtils.PickRandom(Pic);
+                    var Address = RandomUtils.PickRandom(Pic);
                     try
                     {
                         ModMain.FrmMain.ImgBack.Background = null;
@@ -460,7 +460,7 @@ public partial class PageSetupUI
     // 顶部栏
     private void BtnLogoChange_Click(object sender, MouseButtonEventArgs e)
     {
-        string FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
         if (string.IsNullOrEmpty(FileName))
             return;
         try
@@ -520,7 +520,7 @@ public partial class PageSetupUI
         }
 
         // 没有图片则要求选择
-        string FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
         if (string.IsNullOrEmpty(FileName))
         {
             ModMain.FrmMain.ImageTitleLogo.Source = null;
@@ -714,13 +714,13 @@ public partial class PageSetupUI
     {
         if (ModAnimation.AniControlEnabled != 0 || SliderLauncherSat is null || !SliderLauncherSat.IsLoaded)
             return;
-        #if False
+#if False
                 if (EnableCustomTheme) 
                 {
                     ColorHueTopbarDelta = SliderLauncherDelta.Value - 90
                     ColorLightAdjust = SliderLauncherLight.Value - 20
                 }
-        #endif
+#endif
         ModSecret.ThemeRefresh();
     }
 
@@ -765,6 +765,18 @@ public partial class PageSetupUI
     private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.HomePageMarket });
+    }
+
+    private void CheckMusicStart_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckMusicStart_Change(sender, user);
+    }
+
+    private void CheckMusicStop_OnChange(object sender, bool user)
+    {
+        CheckBoxChange(sender, user);
+        CheckMusicStop_Change();
     }
 
     #region 功能隐藏
@@ -1010,16 +1022,4 @@ public partial class PageSetupUI
     }
 
     #endregion
-
-    private void CheckMusicStart_OnChange(object sender, bool user)
-    {
-        CheckBoxChange(sender, user);
-        CheckMusicStart_Change(sender, user);
-    }
-
-    private void CheckMusicStop_OnChange(object sender, bool user)
-    {
-        CheckBoxChange(sender, user);
-        CheckMusicStop_Change();
-    }
 }

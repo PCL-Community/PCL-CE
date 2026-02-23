@@ -629,8 +629,7 @@ public static class ModNet
             var root = Path.GetPathRoot(path);
             // 仅接受 X:\ 格式（长度为3，第二个字符是冒号）
             if (((((root?.Length is { } arg2 ? arg2 == 3 : (bool?)null) is var arg3 && arg3.HasValue && !arg3.Value
-                    ?
-                    false
+                    ? false
                     : root[1] == ':'
                         ? arg3
                         : false) is var arg4 && !arg4.HasValue) || arg4.Value) && root[2] == '\\' &&
@@ -946,22 +945,22 @@ public static class ModNet
             {
                 // 1. Pre-check: status and limits
                 if (NetTaskThreadCount >= NetTaskThreadLimit || !HasAvailableSource()) return null;
-        
+
                 // Stuck detection for single-thread / no-split mode
                 if (IsNoSplit && Threads != null &&
                     Threads.State is not (NetState.Interrupted or NetState.WaitingToDownload) &&
                     TimeUtils.GetTimeTick() - Threads.InitTime < 30000) return null;
-        
+
                 if (State >= NetState.Merging || State == NetState.WaitingToCheck) return null;
-        
+
                 lock (LockState)
                 {
                     if (State < NetState.Connecting) State = NetState.Connecting;
                 }
-        
+
                 long startPosition = 0;
                 NetSource? startSource = null;
-        
+
                 lock (LockChain)
                 {
                     // 2. Core scheduling logic
@@ -977,22 +976,26 @@ public static class ModNet
                             return null;
                         shouldCapture = true;
                     }
-        
+
                     if (shouldCapture)
                     {
                         if (IsNoSplit && SmallFileCache != null && Threads != null &&
                             Threads.State is not (NetState.Interrupted or NetState.Finished))
                             return null;
-        
+
                         SmallFileCache?.Dispose();
                         SmallFileCache = null;
                         Threads = null;
                         NetManager.DownloadDone -= DownloadDone;
-                        lock (LockDone) { DownloadDone = 0; }
+                        lock (LockDone)
+                        {
+                            DownloadDone = 0;
+                        }
+
                         SpeedLastDone = 0;
                         State = NetState.Reading;
                     }
-        
+
                     // 3. Coordinate Calculation
                     if (Threads == null)
                     {
@@ -1004,40 +1007,44 @@ public static class ModNet
                     {
                         // Find interrupted fragments
                         foreach (var thread in Threads)
-                        {
                             if (thread.State == NetState.Interrupted && thread.DownloadUndone > 0)
                             {
                                 startPosition = thread.DownloadStart + thread.DownloadDone;
                                 startSource = GetSource(thread.Source.Id + 1);
                                 break;
                             }
-                        }
-        
+
                         // Try multi-thread splitting
                         if (startSource == null)
                         {
                             var targetUrl = GetSource().Url;
-                            string[] restrictedDomains = { "pcl2-server", "bmclapi", "github.com", "optifine.net", "modrinth", "gitcode", "pysio.online", "mirrorchyan.com", "naids.com" };
-                            
+                            string[] restrictedDomains =
+                            {
+                                "pcl2-server", "bmclapi", "github.com", "optifine.net", "modrinth", "gitcode",
+                                "pysio.online", "mirrorchyan.com", "naids.com"
+                            };
+
                             if (AllowMultiThread && !restrictedDomains.Any(d => targetUrl.Contains(d)))
                             {
                                 var filePieceMax = Threads;
                                 foreach (var thread in Threads)
                                     if (thread.DownloadUndone > filePieceMax.DownloadUndone)
                                         filePieceMax = thread;
-        
+
                                 if (filePieceMax != null && filePieceMax.DownloadUndone >= FilePieceLimit)
                                 {
-                                    startPosition = (long)(filePieceMax.DownloadEnd - filePieceMax.DownloadUndone * 0.4);
+                                    startPosition =
+                                        (long)(filePieceMax.DownloadEnd - filePieceMax.DownloadUndone * 0.4);
                                     startSource = GetSource();
                                 }
                             }
                         }
                     }
-        
+
                     // 4. Thread initialization and validation
-                    if (startSource == null || startPosition < 0 || (startPosition > FileSize && FileSize >= 0 && !IsUnknownSize) || !Tasks.Any()) return null;
-        
+                    if (startSource == null || startPosition < 0 ||
+                        (startPosition > FileSize && FileSize >= 0 && !IsUnknownSize) || !Tasks.Any()) return null;
+
                     var threadUuid = ModBase.GetUuid();
                     var threadInfo = new NetThread
                     {
@@ -1047,7 +1054,7 @@ public static class ModNet
                         Task = this,
                         State = NetState.WaitingToDownload
                     };
-        
+
                     // Fix: Use ParameterizedThreadStart and set IsBackground
                     var th = new Thread(obj => Thread((NetThread)obj!))
                     {
@@ -1056,7 +1063,7 @@ public static class ModNet
                         IsBackground = true
                     };
                     threadInfo.Thread = th;
-        
+
                     // 5. Link-list Maintenance
                     if (threadInfo.IsFirstThread || Threads == null)
                     {
@@ -1070,14 +1077,18 @@ public static class ModNet
                         threadInfo.NextThread = current.NextThread;
                         current.NextThread = threadInfo;
                     }
-        
+
                     // 6. Global Resource Accounting
-                    lock (NetTaskThreadCountLock) { NetTaskThreadCount++; }
+                    lock (NetTaskThreadCountLock)
+                    {
+                        NetTaskThreadCount++;
+                    }
+
                     lock (LockSource)
                     {
                         if (!HasAvailableSource(false)) SourcesOnce[0].SingleThread = threadInfo;
                     }
-        
+
                     th.Start(threadInfo);
                     return threadInfo;
                 }

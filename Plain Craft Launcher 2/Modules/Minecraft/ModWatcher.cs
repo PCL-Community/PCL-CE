@@ -288,7 +288,7 @@ public static class ModWatcher
                                 {
                                     var RealTitle = WindowTitle.Replace("{date}", DateTime.Now.ToString("yyyy'/'M'/'d"))
                                         .Replace("{time}", DateTime.Now.ToString("HH':'mm':'ss"));
-                                    Watcher.SetWindowText(WindowHandle, RealTitle);
+                                    SetWindowText(WindowHandle, RealTitle);
                                 }
 
                                 Thread.Sleep(64);

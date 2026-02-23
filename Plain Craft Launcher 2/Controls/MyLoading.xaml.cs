@@ -9,7 +9,6 @@ namespace PCL;
 
 public partial class MyLoading
 {
-    
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
     public delegate void IsErrorChangedEventHandler(object sender, bool isError);

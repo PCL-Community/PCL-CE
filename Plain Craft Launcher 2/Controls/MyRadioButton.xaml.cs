@@ -48,13 +48,13 @@ public partial class MyRadioButton
     public MyRadioButton()
     {
         InitializeComponent();
-        
+
         Loaded += (_, __) =>
         {
             if (LabText != null)
                 LabText.Text = Conversions.ToString(GetValue(TextProperty));
         };
-        
+
         MouseLeftButtonUp += (_, __) => Radiobox_MouseUp();
         MouseLeftButtonDown += (_, __) => Radiobox_MouseDown();
         MouseLeave += (_, __) => Radiobox_MouseLeave();

@@ -242,15 +242,15 @@ public static class ModModpack
         }
     }
 
-    private static void ExtractModpackFiles(string installTemp, string fileAddress, LoaderBase loader, double progressIncrement)
+    private static void ExtractModpackFiles(string installTemp, string fileAddress, LoaderBase loader,
+        double progressIncrement)
     {
         // 解压文件
-        int retryCount = 1;
-        Encoding encode = Encoding.GetEncoding("GB18030");
-        double initialProgress = loader.Progress;
+        var retryCount = 1;
+        var encode = Encoding.GetEncoding("GB18030");
+        var initialProgress = loader.Progress;
 
         while (retryCount <= 5)
-        {
             try
             {
                 loader.Progress = initialProgress;
@@ -284,16 +284,11 @@ public static class ModModpack
                 retryCount++;
 
                 if (retryCount <= 5)
-                {
                     // 等待一段时间再重试
                     Thread.Sleep((retryCount - 1) * 2000);
-                }
                 else
-                {
                     throw new Exception("解压整合包文件失败", ex);
-                }
             }
-        }
     }
 
     /// <summary>
@@ -377,7 +372,7 @@ public static class ModModpack
         string NeoForgeVersion = null;
         string FabricVersion = null;
         string QuiltVersion = null;
-        foreach (var Entry in  (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
+        foreach (var Entry in (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
         {
             var Id = (Entry["id"] ?? "").ToString().ToLower();
             if (Id.StartsWithF("forge-"))
@@ -468,8 +463,10 @@ public static class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest("https://api.curseforge.com/v1/mods/files",
-                        "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json", allowMirror)))["data"];
+                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                        "https://api.curseforge.com/v1/mods/files",
+                        "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json",
+                        allowMirror)))["data"];
                     if (ModList.Count <= ret.Count)
                     {
                         ModBase.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
@@ -1543,7 +1540,7 @@ public static class ModModpack
                         Lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                     }
 
-                    ModBase.WriteFile(MMCSetupFile, ModBase.Join(Lines, Constants.vbCrLf));
+                    ModBase.WriteFile(MMCSetupFile, Lines.Join(Constants.vbCrLf));
                     // 读取文件
                     if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideCommands",
                             Conversions.ToString(false))))

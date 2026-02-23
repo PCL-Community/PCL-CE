@@ -357,8 +357,8 @@ public partial class PageSpeedLeft
                     Card.Children.Add(Cancel);
                     Cancel.Click += (sender, e) =>
                     {
-                        ModAnimation.AniDispose(((dynamic)sender), false);
-                        ModAnimation.AniDispose(Card, true, (_) =>
+                        ModAnimation.AniDispose((dynamic)sender, false);
+                        ModAnimation.AniDispose(Card, true, _ =>
                         {
                             if (ModMain.FrmSpeedRight.PanMain.Children.Count == 0 &&
                                 ModMain.FrmMain.PageCurrent == FormMain.PageType.TaskManager)

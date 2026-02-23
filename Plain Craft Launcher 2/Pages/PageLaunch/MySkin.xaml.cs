@@ -117,7 +117,7 @@ public partial class MySkin
 
         try
         {
-            string FileAddress = SystemDialogs.SelectSaveFile("选取保存皮肤的位置", ModBase.GetFileNameFromPath(Address),
+            var FileAddress = SystemDialogs.SelectSaveFile("选取保存皮肤的位置", ModBase.GetFileNameFromPath(Address),
                 "皮肤图片文件(*.png)|*.png");
             if (FileAddress.Contains(@"\"))
             {

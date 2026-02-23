@@ -162,12 +162,11 @@ public partial class PageSetupJava
         if (ModJava.Javas.Exist(ret))
             ModMain.Hint("Java 已经存在，不用再次添加……");
         else
-        {
-            Dispatcher.BeginInvoke(new Action(async () => 
+            Dispatcher.BeginInvoke(new Action(async () =>
             {
                 await Task.Run(() =>
                 {
-                    ModJava.Javas.AddOrGet(ret); 
+                    ModJava.Javas.AddOrGet(ret);
                     ModJava.Javas.SaveConfig();
                 });
                 if (ModJava.Javas.Exist(ret))
@@ -180,6 +179,5 @@ public partial class PageSetupJava
                     ModMain.Hint("未能成功将 Java 加入列表中", ModMain.HintType.Critical);
                 }
             }));
-        }
     }
 }

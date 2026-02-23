@@ -36,7 +36,7 @@ public class ModSetup : IConfigScope
 
     public ModSetup()
     {
-        ConfigService.RegisterObserver(this, new ConfigObserver(Event: ConfigEvent.Changed, Handler: OnConfigChanged));
+        ConfigService.RegisterObserver(this, new ConfigObserver(ConfigEvent.Changed, OnConfigChanged));
     }
 
     private readonly ConcurrentDictionary<string, MethodInfo?> _methodCache = new();
@@ -55,8 +55,11 @@ public class ModSetup : IConfigScope
             if (valueType.IsEnum) value = (int)value;
             else if (value is string s) value = StringConvertExtension.Convert(s, paraType);
             else if (paraType == typeof(string)) value = value.ConvertToString();
-            else throw new InvalidCastException($"{key}: {valueType.FullName} cannot be converted to {paraType.FullName}");
+            else
+                throw new InvalidCastException(
+                    $"{key}: {valueType.FullName} cannot be converted to {paraType.FullName}");
         }
+
         method.Invoke(this, [value]);
     }
 
@@ -73,7 +76,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    /// 改变某个设置项的值。
+    ///     改变某个设置项的值。
     /// </summary>
     public void Set(string key, object value, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -81,7 +84,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    /// 应用某个设置项的值。
+    ///     应用某个设置项的值。
     /// </summary>
     public object Load(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -91,7 +94,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    /// 获取某个设置项的值。
+    ///     获取某个设置项的值。
     /// </summary>
     public object Get(string key, ModMinecraft.McInstance? instance = null)
     {
@@ -99,7 +102,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    /// 初始化某个设置项的值。
+    ///     初始化某个设置项的值。
     /// </summary>
     public void Reset(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -715,7 +718,7 @@ public class ModSetup : IConfigScope
         var mode = (HttpProxyManager.ProxyMode)value;
         HttpProxyManager.Instance.Mode = Enum.IsDefined(mode)
             ? mode
-            :  HttpProxyManager.Instance.Mode; 
+            : HttpProxyManager.Instance.Mode;
     }
 
     public void SystemHttpProxyCustomUsername(string value)

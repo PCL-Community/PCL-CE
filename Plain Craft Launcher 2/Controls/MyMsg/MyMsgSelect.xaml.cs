@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -36,12 +35,12 @@ public partial class MyMsgSelect
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
             // 添加选择控件
             Btn1.IsEnabled = false;
-            foreach (object rawContent in (IEnumerable)Converter.Content)
+            foreach (var rawContent in (IEnumerable)Converter.Content)
             {
                 // 1. Initialize and get the actual element
                 // Note: We use a new variable because 'foreach' variables are read-only
                 var content = MyVirtualizingElement.TryInit((FrameworkElement)rawContent);
-    
+
                 // 2. Interface casting and event subscription
                 if (content is IMyRadio selection)
                 {
@@ -120,7 +119,8 @@ public partial class MyMsgSelect
             ModAnimation.AaCode(() =>
             {
                 if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
+                        BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),

@@ -276,7 +276,7 @@ public partial class PageInstanceLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的实例设置子页面种类：" + ((int)ID));
+                throw new Exception("未知的实例设置子页面种类：" + (int)ID);
             }
         }
     }
@@ -296,7 +296,7 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + ((int)ID) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

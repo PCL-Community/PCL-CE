@@ -147,7 +147,7 @@ public partial class PageLaunchLeft
                 if (!ModMinecraft.McInstanceList.Any() ||
                     ModMinecraft.McInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
                 {
-                    Instance = (ModMinecraft.McInstance)null;
+                    Instance = null;
                     ModBase.Setup.Set("LaunchInstanceSelect", "");
                     ModBase.Log("[Launch] 无可用 Minecraft 实例");
                 }
@@ -506,6 +506,12 @@ public partial class PageLaunchLeft
         IsHeightAnimating = true;
         ActualUsedHeight = PanLaunchingInfo.Height;
         PanLaunchingInfo.Height = e.PreviousSize.Height;
+    }
+
+    // 启动游戏按钮
+    private void BtnLaunch_Click(object sender, MouseButtonEventArgs e)
+    {
+        LaunchButtonClick();
     }
 
     #region 切换大页面
@@ -970,7 +976,4 @@ public partial class PageLaunchLeft
         { SkinMs, SkinLegacy, SkinAuth };
 
     #endregion
-
-    // 启动游戏按钮
-    private void BtnLaunch_Click(object sender, MouseButtonEventArgs e) => LaunchButtonClick();
 }

@@ -132,8 +132,10 @@ public static partial class ModAnimation
                         {
                             // 如果是去向颜色资源的动画，设置引用
                             if (Conversions.ToBoolean(Anim.TypeMain == AniType.Color &&
-                                                      !Operators.ConditionalCompareObjectEqual(((dynamic)Anim.Obj)[2], "", false)))
-                                ((dynamic)Anim.Obj)[0].SetResourceReference(((dynamic)Anim.Obj)[1], ((dynamic)Anim.Obj)[2]);
+                                                      !Operators.ConditionalCompareObjectEqual(((dynamic)Anim.Obj)[2],
+                                                          "", false)))
+                                ((dynamic)Anim.Obj)[0]
+                                    .SetResourceReference(((dynamic)Anim.Obj)[1], ((dynamic)Anim.Obj)[2]);
                             // 删除
                             Entry.Data.RemoveAt(ii);
                             goto NextAni;
@@ -333,8 +335,11 @@ public static partial class ModAnimation
                 case AniType.TextAppear:
                 {
                     var TextCount = (int)Math.Round(
-                        (double)(Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? ((dynamic)Ani.Value)[0].ToString().Length : 0) + Math.Round(
-                            ((dynamic)Ani.Value)[0].ToString().Length * (Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? -1 : 1) *
+                        (double)(Conversions.ToBoolean(((dynamic)Ani.Value)[1])
+                            ? ((dynamic)Ani.Value)[0].ToString().Length
+                            : 0) + Math.Round(
+                            ((dynamic)Ani.Value)[0].ToString().Length *
+                            (Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? -1 : 1) *
                             Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, 0d)));
                     var NewText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), 1, TextCount);
                     // 添加乱码
@@ -342,8 +347,11 @@ public static partial class ModAnimation
                     {
                         var NextText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), TextCount + 1, 1);
                         if (Convert.ToInt32(Convert.ToChar(NextText)) >= Convert.ToInt32(Convert.ToChar(128)))
-                            NewText += Encoding.GetEncoding("GB18030").GetString(new byte[]
-                                { (byte)RandomUtils.NextInt(16 + 160, 87 + 160), (byte)RandomUtils.NextInt(1 + 160, 89 + 160) });
+                            NewText += Encoding.GetEncoding("GB18030").GetString(new[]
+                            {
+                                (byte)RandomUtils.NextInt(16 + 160, 87 + 160),
+                                (byte)RandomUtils.NextInt(1 + 160, 89 + 160)
+                            });
                         else
                             NewText += RandomUtils.PickRandom(
                                 @"0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
@@ -1460,7 +1468,8 @@ public static partial class ModAnimation
         if (RefreshTime)
             AniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
         // 添加到正在执行的动画组
-        var NewEntry = new AniGroupEntry { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
+        var NewEntry = new AniGroupEntry
+            { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(Name))
             Name = NewEntry.Uuid.ToString();
         else

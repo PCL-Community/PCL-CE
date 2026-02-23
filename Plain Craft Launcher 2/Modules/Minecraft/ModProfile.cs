@@ -923,9 +923,9 @@ public static class ModProfile
         var msb = 0L;
         var lsb = 0L;
         for (var i = 0; i <= 7; i++)
-            msb = (msb << 8) | bytes[i] & 0xFF;
+            msb = (msb << 8) | (bytes[i] & 0xFF);
         for (var i = 8; i <= 15; i++)
-            lsb = (lsb << 8) | bytes[i] & 0xFF;
+            lsb = (lsb << 8) | (bytes[i] & 0xFF);
         return Conversions.ToString(Operators.AddObject(
             Operators.AddObject(
                 Operators.AddObject(
@@ -1135,7 +1135,8 @@ public static class ModProfile
                 if (res.Contains("\"error\""))
                 {
                     ModMain.Hint(
-                        Conversions.ToString(Operators.ConcatenateObject("更改皮肤失败：", ((JObject)ModBase.GetJson(res))["error"])),
+                        Conversions.ToString(Operators.ConcatenateObject("更改皮肤失败：",
+                            ((JObject)ModBase.GetJson(res))["error"])),
                         ModMain.HintType.Critical);
                     return;
                 }

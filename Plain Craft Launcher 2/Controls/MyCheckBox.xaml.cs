@@ -56,7 +56,7 @@ public partial class MyCheckBox
     public MyCheckBox()
     {
         InitializeComponent();
-        
+
         MouseLeftButtonUp += (_, __) => Checkbox_MouseUp();
         MouseLeftButtonDown += (_, __) => Checkbox_MouseDown();
         MouseLeave += (_, __) => Checkbox_MouseLeave();
@@ -150,7 +150,7 @@ public partial class MyCheckBox
 
             var isChecked = GetFinalState(Checked, IsThreeState);
 
-            switch ((isChecked, _previousState))
+            switch (isChecked, _previousState)
             {
                 case (true, false):
                     AniBackgroundScale();
@@ -257,14 +257,14 @@ public partial class MyCheckBox
     {
         if (!MouseDowned)
             return;
-        ModBase.Log("[Control] 按下复选框（" + (!Checked) + "）：" + Text);
+        ModBase.Log("[Control] 按下复选框（" + !Checked + "）：" + Text);
         MouseDowned = false;
         if (IsThreeState)
         {
             switch (Checked)
             {
                 case true:
-                    SetChecked(null, true); 
+                    SetChecked(null, true);
                     break;
                 case false:
                     SetChecked(true, true);

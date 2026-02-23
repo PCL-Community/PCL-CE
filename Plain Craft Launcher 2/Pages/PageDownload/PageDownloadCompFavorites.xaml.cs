@@ -38,7 +38,6 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
-
     }
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
@@ -578,10 +577,7 @@ public partial class PageDownloadCompFavorites
                 Func<List<List<string>>, List<string>> GetAllVersionList = ls =>
                 {
                     var allVersionList = new List<string>();
-                    foreach (var i in ls)
-                    {
-                        allVersionList.AddRange(i);
-                    }
+                    foreach (var i in ls) allVersionList.AddRange(i);
 
                     return allVersionList.Distinct().ToList();
                 };
@@ -642,7 +638,7 @@ public partial class PageDownloadCompFavorites
                 });
                 string SelectedVersionStr = SuitVersion[(dynamic)SelectedVersion];
                 ModMain.Hint($"已选择 {SelectedVersionStr} 版本，下面请选择保存位置");
-                string SaveFolder = SystemDialogs.SelectFolder();
+                var SaveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(SaveFolder))
                 {
                     Ts.Abort();
@@ -655,8 +651,8 @@ public partial class PageDownloadCompFavorites
                 foreach (var Target in AllFiles)
                 {
                     // 按照发布日期排序
-                    var FinalChoices = Target.Where((i) => i.GameVersions.Contains((SelectedVersionStr))).ToList();
-                    FinalChoices.Sort((ModComp.CompFile a, ModComp.CompFile b) => a.ReleaseDate > b.ReleaseDate);
+                    var FinalChoices = Target.Where(i => i.GameVersions.Contains(SelectedVersionStr)).ToList();
+                    FinalChoices.Sort((a, b) => a.ReleaseDate > b.ReleaseDate);
                     // 选择最新版本进行下载
                     Res.Add(FinalChoices.First().ToNetFile(SaveFolder + FinalChoices.First().FileName));
                 }

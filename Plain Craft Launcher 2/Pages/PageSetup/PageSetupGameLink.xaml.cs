@@ -1,11 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
-using PCL.Core.Link;
-using PCL.Core.Link.Scaffolding;
 using PCL.Core.Link.Scaffolding.EasyTier;
-using System.Windows.Input;
 
 namespace PCL;
 
@@ -118,7 +116,7 @@ public partial class PageSetupGameLink
         if (ModAnimation.AniControlEnabled == 0)
             try
             {
-                LinkProtocolPreference selection = (LinkProtocolPreference)((dynamic)sender).SelectedIndex;
+                var selection = (LinkProtocolPreference)((dynamic)sender).SelectedIndex;
                 Config.Link.ProtocolPreference = selection;
             }
             catch (Exception ex)

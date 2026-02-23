@@ -105,7 +105,8 @@ public partial class PageSelectRight
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.McInstanceListLoader, (a) => this.McInstanceListUI((dynamic)a),
+        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.McInstanceListLoader,
+            a => this.McInstanceListUI((dynamic)a),
             AutoRun: false);
     }
 
@@ -243,7 +244,7 @@ public partial class PageSelectRight
 
                     default:
                     {
-                        throw new ArgumentException("未知的卡片种类（" + ((int)Card.Key) + "）");
+                        throw new ArgumentException("未知的卡片种类（" + (int)Card.Key + "）");
                     }
                 }
 
@@ -415,7 +416,7 @@ public partial class PageSelectRight
     {
         var Version = (ModMinecraft.McInstance)sender.Tag;
         // 注册点击事件
-        sender.Click += (a, b) => PageSelectRight.Item_Click((dynamic)a, b);
+        sender.Click += (a, b) => Item_Click((dynamic)a, b);
         // 图标按钮
         var BtnStar = new MyIconButton();
         if (Version.IsStar)

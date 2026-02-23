@@ -233,7 +233,7 @@ public partial class PageSetupLeft
     /// </summary>
     public object PageGet(FormMain.PageSubType? ID = null)
     {
-        FormMain.PageSubType targetID = ID ?? PageID;
+        var targetID = ID ?? PageID;
         switch (ID)
         {
             case FormMain.PageSubType.SetupLaunch:
@@ -299,7 +299,7 @@ public partial class PageSetupLeft
 
             default:
             {
-                throw new Exception("未知的设置子页面种类：" + ((int)ID));
+                throw new Exception("未知的设置子页面种类：" + (int)ID);
             }
         }
     }
@@ -320,7 +320,7 @@ public partial class PageSetupLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + ((int)ID) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

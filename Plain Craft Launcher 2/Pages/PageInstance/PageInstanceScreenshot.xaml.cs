@@ -6,8 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
-using SearchOption = System.IO.SearchOption;
 using PCL.Core.App;
+using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
 
@@ -204,7 +204,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonOpen,
                     Tag = i
                 };
-                btnOpen.Click += (s, ev) => this.btnOpen_Click((MyIconTextButton)s, ev);
+                btnOpen.Click += (s, ev) => btnOpen_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnOpen);
                 var btnDelete = new MyIconTextButton
                 {
@@ -214,7 +214,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonDelete,
                     Tag = i
                 };
-                btnDelete.Click += (s, ev) => this.btnDelete_Click((MyIconTextButton)s, ev);
+                btnDelete.Click += (s, ev) => btnDelete_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnDelete);
                 var btnCopy = new MyIconTextButton
                 {
@@ -224,7 +224,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonCopy,
                     Tag = i
                 };
-                btnDelete.Click += (s, ev) => this.btnDelete_Click((MyIconTextButton)s, ev);
+                btnDelete.Click += (s, ev) => btnDelete_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
                 myCard.Opacity = 0d;

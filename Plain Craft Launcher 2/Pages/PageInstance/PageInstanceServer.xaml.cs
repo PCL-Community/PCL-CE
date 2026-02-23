@@ -70,7 +70,7 @@ public partial class PageInstanceServer : MyPageRight
         }
 
         // Read NBT file
-        NbtList nbtData =
+        var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
                 Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
@@ -106,7 +106,7 @@ public partial class PageInstanceServer : MyPageRight
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
     {
         // Read NBT file
-        NbtList nbtData =
+        var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(PageInstanceLeft.Instance.PathIndie + "servers.dat",
                 "servers");
         if (nbtData is null)

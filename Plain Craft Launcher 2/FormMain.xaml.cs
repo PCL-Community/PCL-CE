@@ -51,7 +51,7 @@ public partial class FormMain
 
     // 窗口加载
     private bool IsWindowLoadFinished;
-    private DragHelper _helper = new DragHelper();
+    private readonly DragHelper _helper = new();
 
     public FormMain()
     {
@@ -60,13 +60,13 @@ public partial class FormMain
         // ThemeCheckAll(False)
         // ThemeRefreshColor()
         ThemeService.ColorModeChanged += (_, _) => ModSecret.ThemeRefresh();
-        ThemeService.ColorThemeChanged += (theme) => ModSecret.ThemeRefresh((int)theme);
+        ThemeService.ColorThemeChanged += theme => ModSecret.ThemeRefresh((int)theme);
         // 窗体参数初始化
         ModMain.FrmMain = this;
         ModMain.FrmLaunchLeft = new PageLaunchLeft();
         ModMain.FrmLaunchRight = new PageLaunchRight();
         // 版本号改变
-        int LastVersion = States.System.LastVersion;
+        var LastVersion = States.System.LastVersion;
         if (LastVersion < ModBase.VersionCode)
             // 触发升级
             UpgradeSub(LastVersion);
@@ -174,7 +174,7 @@ public partial class FormMain
         BtnExtraLog.ShowCheck = BtnExtraLog_ShowCheck;
         BtnExtraApril.ShowRefresh();
         // 初始化尺寸改变
-        if (!((dynamic)ModBase.Setup.Get("UiLockWindowSize")))
+        if (!(dynamic)ModBase.Setup.Get("UiLockWindowSize"))
             AddResizer();
         else
             RemoveResizer();
@@ -346,22 +346,22 @@ public partial class FormMain
         ModBase.Setup.Set("SystemLastVersionReg", ModBase.VersionCode);
         // 检查有记录的最高版本号
         int LowerVersionCode;
-        #if BETA
+#if BETA
                 LowerVersionCode = Setup.Get("SystemHighestBetaVersionReg")
                 If LowerVersionCode < VersionCode Then
                     Setup.Set("SystemHighestBetaVersionReg", VersionCode)
                     Log("[Start] 最高版本号从 " & LowerVersionCode & " 升高到 " & VersionCode)
                 End If
-        #else
-            LowerVersionCode = Conversions.ToInteger(ModBase.Setup.Get("SystemHighestAlphaVersionReg"));
-            if (LowerVersionCode < ModBase.VersionCode)
-            {
-                ModBase.Setup.Set("SystemHighestAlphaVersionReg", ModBase.VersionCode);
-                ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + ModBase.VersionCode);
-            }
-        #endif
+#else
+        LowerVersionCode = Conversions.ToInteger(ModBase.Setup.Get("SystemHighestAlphaVersionReg"));
+        if (LowerVersionCode < ModBase.VersionCode)
+        {
+            ModBase.Setup.Set("SystemHighestAlphaVersionReg", ModBase.VersionCode);
+            ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + ModBase.VersionCode);
+        }
+#endif
 
-         // 被移除的窗口设置选项
+        // 被移除的窗口设置选项
         if (Conversions.ToBoolean(
                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentWindowType"), 5, false)))
             ModBase.Setup.Set("LaunchArgumentWindowType", 1);
@@ -501,8 +501,8 @@ public partial class FormMain
         // 计算鼠标相对于窗口左上角的物理像素位置
         var relX = xMouse - windowRect.Left;
         var relY = yMouse - windowRect.Top;
-        int w = windowBounds.Width;
-        int h = windowBounds.Height;
+        var w = windowBounds.Width;
+        var h = windowBounds.Height;
 
         // 判定是否命中偏移后的热区
         var inLeft = relX >= offsetPxX && relX <= offsetPxX + hitWidthPxX;
@@ -1760,7 +1760,7 @@ public partial class FormMain
     {
         if (IsChangingPage)
             return;
-        PageType pageType =  (PageType)int.Parse(sender.Tag.ToString());
+        var pageType = (PageType)int.Parse(sender.Tag.ToString());
         PageChangeActual(pageType, PageSubType.Default);
     }
 
@@ -1932,7 +1932,7 @@ public partial class FormMain
                 case PageType.HomePageMarket: // 主页市场
                 {
                     ModMain.FrmHomePageMarket = ModMain.FrmHomePageMarket ?? new PageHomepageMarket();
-                    this.PageChangeAnim(new MyPageLeft(), ModMain.FrmHomePageMarket);
+                    PageChangeAnim(new MyPageLeft(), ModMain.FrmHomePageMarket);
                     break;
                 }
             }
@@ -1946,11 +1946,11 @@ public partial class FormMain
 
             #endregion
 
-            ModBase.Log("[Control] 切换主要页面：" + ModBase.GetStringFromEnum(Stack) + ", " + ((int)SubType));
+            ModBase.Log("[Control] 切换主要页面：" + ModBase.GetStringFromEnum(Stack) + ", " + (int)SubType);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换主要页面失败（ID " + ((int)PageCurrent.Page) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换主要页面失败（ID " + (int)PageCurrent.Page + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

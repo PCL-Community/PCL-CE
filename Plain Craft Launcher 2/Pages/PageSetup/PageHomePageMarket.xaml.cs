@@ -1,15 +1,21 @@
-using PCL.Core.IO.Net.Http.Client;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 using PCL;
+using PCL.Core.IO.Net.Http.Client;
 
 public class PageHomepageMarket : UserControl, IRefreshable
 {
     public StackPanel PanMain { get; }
     public StackPanel PanCustom { get; }
     public MyLoading Load { get; }
-    
+
+    public void Refresh()
+    {
+        Dispatcher.BeginInvoke(new Func<Task>(RefreshAsync));
+    }
+
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         InitLoading();
@@ -29,15 +35,7 @@ public class PageHomepageMarket : UserControl, IRefreshable
 
     private void OnRetryClick(object sender, MouseButtonEventArgs e)
     {
-        if (Load.State.LoadingState == MyLoading.MyLoadingState.Error)
-        {
-            InitLoading();
-        }
-    }
-
-    public void Refresh()
-    {
-        Dispatcher.BeginInvoke(new Func<Task>(RefreshAsync));
+        if (Load.State.LoadingState == MyLoading.MyLoadingState.Error) InitLoading();
     }
 
     private async Task RefreshAsync()
@@ -48,7 +46,7 @@ public class PageHomepageMarket : UserControl, IRefreshable
                 "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Homepage.Market/Custom.xaml";
 
             var response = await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(true);
-            string content = await response.AsStringAsync();
+            var content = await response.AsStringAsync();
 
             // 替换事件类型
             content = content.Replace(@"EventType=""刷新主页""", @"EventType=""刷新主页市场""");
@@ -76,6 +74,6 @@ public class PageHomepageMarket : UserControl, IRefreshable
     // 假设这是你原本的 VB 方法
     private UIElement GetObjectFromXML(string xaml)
     {
-        return (UIElement)System.Windows.Markup.XamlReader.Parse(xaml);
+        return (UIElement)XamlReader.Parse(xaml);
     }
 }

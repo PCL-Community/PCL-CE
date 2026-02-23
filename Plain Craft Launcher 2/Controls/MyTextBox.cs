@@ -27,7 +27,8 @@ public class MyTextBox : TextBox
     public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
-            if (((dynamic)t).labHint is not null) ((dynamic)t).labHint.Text = string.IsNullOrEmpty(((dynamic)t).Text) ? ((dynamic)t).HintText : "";
+            if (((dynamic)t).labHint is not null)
+                ((dynamic)t).labHint.Text = string.IsNullOrEmpty(((dynamic)t).Text) ? ((dynamic)t).HintText : "";
         }));
 
     private TextBlock _labHint;

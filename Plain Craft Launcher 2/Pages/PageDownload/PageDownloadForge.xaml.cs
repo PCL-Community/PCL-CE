@@ -55,7 +55,8 @@ public partial class PageDownloadForge
                             ModDownload.DlForgeVersionMain);
                     LoadingPickaxe.State = Loader;
                     Loader.Start(Stack.Tag);
-                    LoadingPickaxe.StateChanged += (a, b, c) => ModMain.FrmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
+                    LoadingPickaxe.StateChanged += (a, b, c) =>
+                        ModMain.FrmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
                     LoadingPickaxe.Click += (a, b) => ModMain.FrmDownloadForge.Forge_Click((MyLoading)a, b);
                     Stack.Children.Add(LoadingPickaxe);
                 };

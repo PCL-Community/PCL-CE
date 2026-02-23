@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Clipboard = System.Windows.Forms.Clipboard;
+
 // Author: uye (owner of the MaaAssistantArknights team)
 // Original Source: MaaAssistantArknights project - https://github.com/MaaAssistantArknights/MaaAssistantArknights
 // License: Apache License 2.0 (this file only)

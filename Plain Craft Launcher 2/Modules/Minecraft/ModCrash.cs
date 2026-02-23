@@ -1687,7 +1687,7 @@ public class CrashAnalyzer
 
                 default:
                 {
-                    Results.Add("PCL 获取到了没有详细信息的错误原因（" + ((int)CrashReasons.First().Key) + @"），请向 PCL 作者提交反馈以获取详情。\h");
+                    Results.Add("PCL 获取到了没有详细信息的错误原因（" + (int)CrashReasons.First().Key + @"），请向 PCL 作者提交反馈以获取详情。\h");
                     break;
                 }
             }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -86,7 +87,8 @@ public partial class Application
                     if (KernelInterop.GetAvailablePhysicalMemoryBytes() < Ram) // 避免 ULong 相减出现负数
                         Environment.Exit(0);
                     else
-                        Environment.Exit((int)((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) / 1024)); // 返回清理的内存量（K）
+                        Environment.Exit((int)((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) /
+                                               1024)); // 返回清理的内存量（K）
                     /* TODO ERROR: Skipped IfDirectiveTrivia
                     #If DEBUGRESERVED Then
                     */ /* TODO ERROR: Skipped DisabledTextTrivia
@@ -178,7 +180,10 @@ public partial class Application
             ModBase.Setup.Load("ToolDownloadSpeed");
             ModBase.Setup.Load("UiFont");
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
-            if (updateBranchCfg.IsDefault()) updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta") ? Core.App.UpdateChannel.Beta : Core.App.UpdateChannel.Release);
+            if (updateBranchCfg.IsDefault())
+                updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")
+                    ? Core.App.UpdateChannel.Beta
+                    : Core.App.UpdateChannel.Release);
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
@@ -202,7 +207,7 @@ public partial class Application
         }
         catch (Exception ex)
         {
-            string FilePath = ModBase.ExePathWithName;
+            var FilePath = ModBase.ExePathWithName;
 
             Interaction.MsgBox(
                 ex + Constants.vbCrLf + "PCL 所在路径：" + (string.IsNullOrEmpty(FilePath) ? "获取失败" : FilePath),
@@ -227,17 +232,21 @@ public partial class Application
 
             ModBase.FeedbackInfo();
 
-            string detail = e.Exception.ToString();
+            var detail = e.Exception.ToString();
 
             // Automatic error analysis for environment issues
-            if (detail.Contains("System.Windows.Threading.Dispatcher.Invoke") || 
-                detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") || 
+            if (detail.Contains("System.Windows.Threading.Dispatcher.Invoke") ||
+                detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
                 ModBase.OpenWebsite("https://get.dot.net/8");
-                LogWrapper.Error(e.Exception, "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
+                LogWrapper.Error(e.Exception,
+                    "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
             }
-            else LogWrapper.Error(e.Exception, "An unexpected error occurred");
+            else
+            {
+                LogWrapper.Error(e.Exception, "An unexpected error occurred");
+            }
         }
         catch
         {
@@ -246,7 +255,7 @@ public partial class Application
     }
 
     // Win32 API declaration for DLL directory configuration
-    [System.Runtime.InteropServices.DllImport("kernel32", EntryPoint = "SetDllDirectoryA", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    [DllImport("kernel32", EntryPoint = "SetDllDirectoryA", CharSet = CharSet.Ansi)]
     private static extern bool SetDllDirectory(string lpPathName);
     // 切换窗口
 

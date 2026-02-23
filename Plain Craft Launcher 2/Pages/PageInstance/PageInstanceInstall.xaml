@@ -44,7 +44,8 @@
                                                   Height="42" SnapsToDevicePixels="True" Type="None" />
                             </StackPanel>
                         </local:MyCard>
-                        <local:MyCard Title="Minecraft" Height="40" Margin="0,15,0,0" x:Name="CardMinecraft" PreviewSwap="CardMinecraft_PreviewSwap">
+                        <local:MyCard Title="Minecraft" Height="40" Margin="0,15,0,0" x:Name="CardMinecraft"
+                                      PreviewSwap="CardMinecraft_PreviewSwap">
                             <Grid x:Name="PanMinecraftInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top">
                                 <Grid.RenderTransform>
                                     <TranslateTransform />
@@ -69,7 +70,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Forge" Height="40" Margin="0,15,0,0" x:Name="CardForge" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap" >
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
                             <Grid x:Name="PanForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -96,7 +97,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Cleanroom" Height="40" Margin="0,15,0,0" x:Name="CardCleanroom"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardCleanroom_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardCleanroom_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
                             <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -123,7 +125,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="NeoForge" Height="40" Margin="0,15,0,0" x:Name="CardNeoForge"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardNeoForge_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardNeoForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanNeoForge" />
                             <Grid x:Name="PanNeoForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -150,7 +153,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Fabric" Height="40" Margin="0,15,0,0" x:Name="CardFabric" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap" >
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
                             <Grid x:Name="PanFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -177,7 +180,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Legacy Fabric" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLegacyFabric_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLegacyFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabric" />
                             <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -204,7 +208,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Fabric API" Height="40" Margin="0,15,0,0" x:Name="CardFabricApi"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabricApi_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardFabricApi_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanFabricApi" />
                             <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -231,7 +236,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Legacy Fabric API" Height="40" Margin="0,12,0,0"
-                                      x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLegacyFabricApi_PreviewSwap" >
+                                      x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLegacyFabricApi_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLegacyFabricApi" />
                             <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0"
                                   VerticalAlignment="Top" Tag="True">
@@ -258,7 +264,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="Quilt" Height="40" Margin="0,15,0,0" x:Name="CardQuilt" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQuilt_PreviewSwap" >
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQuilt_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQuilt" />
                             <Grid x:Name="PanQuiltInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -285,7 +291,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="QFAPI / QSL" Height="40" Margin="0,15,0,0" x:Name="CardQSL"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQSL_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardQSL_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQSL" />
                             <Grid x:Name="PanQSLInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -312,7 +319,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="LabyMod" Height="40" Margin="0,15,0,0" x:Name="CardLabyMod"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLabyMod_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLabyMod_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLabyMod" />
                             <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -329,7 +337,8 @@
                                 <TextBlock x:Name="LabLabyMod" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLabyModClear" Height="30" Width="30" HorizontalAlignment="Right" MouseLeftButtonUp="LabyMod_Clear"
+                            <Grid x:Name="BtnLabyModClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  MouseLeftButtonUp="LabyMod_Clear"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLabyModClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -338,7 +347,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="OptiFine" Height="40" Margin="0,15,0,0" x:Name="CardOptiFine" 
+                        <local:MyCard Title="OptiFine" Height="40" Margin="0,15,0,0" x:Name="CardOptiFine"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
@@ -358,7 +367,8 @@
                                 <TextBlock x:Name="LabOptiFine" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnOptiFineClear" Height="30" Width="30" HorizontalAlignment="Right" MouseLeftButtonUp="OptiFine_Clear"
+                            <Grid x:Name="BtnOptiFineClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  MouseLeftButtonUp="OptiFine_Clear"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnOptiFineClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -368,7 +378,8 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="OptiFabric" Height="40" Margin="0,15,0,0" x:Name="CardOptiFabric"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardOptiFabric_PreviewSwap" >
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardOptiFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanOptiFabric" />
                             <Grid x:Name="PanOptiFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -394,7 +405,8 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="LiteLoader" Height="40" Margin="0,15,0,0" x:Name="CardLiteLoader" PreviewSwap="CardLiteLoader_PreviewSwap"
+                        <local:MyCard Title="LiteLoader" Height="40" Margin="0,15,0,0" x:Name="CardLiteLoader"
+                                      PreviewSwap="CardLiteLoader_PreviewSwap"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLiteLoader" />
                             <Grid x:Name="PanLiteLoaderInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -412,7 +424,8 @@
                                 <TextBlock x:Name="LabLiteLoader" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLiteLoaderClear" Height="30" Width="30" HorizontalAlignment="Right" MouseLeftButtonUp="LiteLoader_Clear"
+                            <Grid x:Name="BtnLiteLoaderClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  MouseLeftButtonUp="LiteLoader_Clear"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLiteLoaderClearInner" Height="10" Width="10" Stretch="Uniform"

@@ -25,13 +25,13 @@ internal static class ModSecret
 {
     #region 杂项
 
-    #if DEBUG
-        public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
-    #else
+#if DEBUG
+    public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
+#else
         public const string RegFolder = "PCLCE"; // PCL 社区版的注册表与 PCL 的注册表隔离，以防数据冲突
-    #endif
+#endif
 
-     // 用于微软登录的 ClientId
+    // 用于微软登录的 ClientId
     public static readonly string OAuthClientId =
         EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true).ReplaceNullOrEmpty();
 
@@ -153,8 +153,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
 
         ModLaunch.McLaunchLog("当前剩余内存：" +
-                              Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes() 
-                                                  / 1024 / 1024 / 1024 * 10)) /
+                              Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes()
+                                  / 1024 / 1024 / 1024 * 10)) /
                               10 + "G");
         DataList.Add("-Xmn" + Math.Floor(PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d * 0.15d) +
                      "m");
@@ -186,10 +186,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Client.Headers.Add("x-api-key", CurseForgeAPIKey);
         var userAgent = !string.IsNullOrEmpty(CustomUserAgent)
             ? CustomUserAgent
-            :
-            UseBrowserUserAgent
-                ?
-                $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
+            : UseBrowserUserAgent
+                ? $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
                 : $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode}";
         Client.Headers.Add("User-Agent", userAgent);
 
@@ -200,7 +198,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     #region 主题
 
-    #if DEBUG
+#if DEBUG
     public static readonly bool EnableCustomTheme = Environment.GetEnvironmentVariable("PCL_CUSTOM_THEME") is not null;
     private static readonly object EnvThemeHue = Environment.GetEnvironmentVariable("PCL_THEME_HUE"); // 0 ~ 359
     private static readonly object EnvThemeSat = Environment.GetEnvironmentVariable("PCL_THEME_SAT"); // 0 ~ 100
@@ -209,15 +207,20 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     private static readonly object
         EnvThemeHueDelta = Environment.GetEnvironmentVariable("PCL_THEME_HUE_DELTA"); // -90 ~ 90
 
-    private static readonly object CustomThemeHue = EnvThemeHue is null ? default(int?) : int.Parse((dynamic)EnvThemeHue);
-    private static readonly object CustomThemeSat = EnvThemeSat is null ? default(int?) : int.Parse((dynamic)EnvThemeSat);
-    private static readonly object CustomThemeLight = EnvThemeLight is null ? default(int?) : int.Parse((dynamic)EnvThemeLight);
+    private static readonly object CustomThemeHue =
+        EnvThemeHue is null ? default(int?) : int.Parse((dynamic)EnvThemeHue);
+
+    private static readonly object CustomThemeSat =
+        EnvThemeSat is null ? default(int?) : int.Parse((dynamic)EnvThemeSat);
+
+    private static readonly object CustomThemeLight =
+        EnvThemeLight is null ? default(int?) : int.Parse((dynamic)EnvThemeLight);
 
     private static readonly object CustomThemeHueDelta =
         EnvThemeHueDelta is null ? default(int?) : int.Parse((dynamic)EnvThemeHueDelta);
-    #else
+#else
     public static readonly bool EnableCustomTheme = false;
-    #endif
+#endif
 
     public static bool IsDarkMode => ThemeService.IsDarkMode;
 
@@ -343,9 +346,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             */ // 主页面背景
             if (Conversions.ToBoolean(ModBase.Setup.Get("UiBackgroundColorful")))
             {
-                LinearGradientBrush brush = new(){
-                    EndPoint = new(0.1,1),
-                    StartPoint = new(0.9,0)
+                LinearGradientBrush brush = new()
+                {
+                    EndPoint = new Point(0.1, 1),
+                    StartPoint = new Point(0.9, 0)
                 };
 
                 var hue = ThemeService.GetCurrentThemeArgs().Hue;
@@ -480,11 +484,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         {
             try
             {
-
-                var version = ModSecret.RemoteServer.GetLatestVersion(
+                var version = RemoteServer.GetLatestVersion(
                     IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
-                    );
+                );
 
                 ModBase.WriteFile($"{ModBase.PathTemp}CEUpdateLog.md", version.Changelog);
                 ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.VersionBaseName}");
@@ -506,7 +509,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
                 var loaders = new List<ModLoader.LoaderBase>();
                 // 下载
-                loaders.AddRange((IEnumerable<ModLoader.LoaderBase>)RemoteServer.GetDownloadLoader(
+                loaders.AddRange(RemoteServer.GetDownloadLoader(
                     Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
@@ -516,7 +519,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                         throw new Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}");
                 }));
                 if (type == UpdateType.UpdateNow)
-                    loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", _ => UpdateRestart(true, true)));
+                    loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", _ => UpdateRestart(true)));
                 else if (type == UpdateType.Silent)
                     loaders.Add(new ModLoader.LoaderTask<int, int>("准备更新", _ => IsUpdateWaitingRestart = true));
                 else if (type == UpdateType.DownloadAndPrompt)
@@ -547,7 +550,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     Show = false
                 });
                 // 启动
-                UpdateLoader = new ModLoader.LoaderCombo<JObject>("启动器更新", (IEnumerable<ModLoader.LoaderBase>)loaders);
+                UpdateLoader = new ModLoader.LoaderCombo<JObject>("启动器更新", loaders);
                 UpdateLoader.Start();
                 if (type == UpdateType.UpdateNow)
                 {

@@ -22,13 +22,13 @@ public partial class MyListItem : IMyRadio
     public bool IsMouseOverAnimationEnabled = true;
 
     private string StateLast;
+
+    public object tag { get; set; }
     public event IMyRadio.CheckEventHandler? Check;
     public event IMyRadio.ChangedEventHandler? Changed;
 
     public event ClickEventHandler? Click;
     public event LogoClickEventHandler? LogoClick;
-
-    public object tag { get; set; }
 
     public void RefreshColor(object sender, EventArgs e)
     {
@@ -488,7 +488,7 @@ public partial class MyListItem : IMyRadio
     public MyListItem()
     {
         InitializeComponent();
-        
+
         SizeChanged += (_, __) => OnSizeChanged();
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;
@@ -960,7 +960,7 @@ public partial class MyListItem : IMyRadio
             }
             case CheckType.CheckBox:
             {
-                ModBase.Log("[Control] 按下复选列表项（" + (!Checked) + "）：" + Title);
+                ModBase.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
                 SetChecked(!Checked, true, true);
                 break;
             }

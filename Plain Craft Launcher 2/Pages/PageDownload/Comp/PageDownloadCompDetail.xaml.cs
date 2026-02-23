@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI;
+using Control = System.Windows.Forms.Control;
 
 namespace PCL;
 
@@ -72,9 +73,9 @@ public partial class PageDownloadCompDetail
             Loaders.Add(new ModNet.LoaderDownload("下载整合包文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
                 { ProgressWeight = 10d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("准备安装整合包",
-                (_) => ModModpack.ModpackInstall(Target, InstanceName,
+                _ => ModModpack.ModpackInstall(Target, InstanceName,
                     System.IO.File.Exists(LogoFileAddress) ? LogoFileAddress : null, File.ProjectId,
-                    isOnlineInstall: true)) { ProgressWeight = 0.1d });
+                    true)) { ProgressWeight = 0.1d });
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<string>(LoaderName, Loaders)
@@ -194,7 +195,7 @@ public partial class PageDownloadCompDetail
                 }
             }
 
-            string Target = SystemDialogs.SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" + "*.zip",
+            var Target = SystemDialogs.SelectSaveFile("选择世界安装位置 (saves 文件夹)", File.FileName, "世界文件|" + "*.zip",
                 DefaultFolder);
             if (string.IsNullOrEmpty(Target))
                 return;
@@ -206,9 +207,9 @@ public partial class PageDownloadCompDetail
             Loaders.Add(new ModNet.LoaderDownload("下载世界文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
                 { ProgressWeight = 10d, Block = true });
             Loaders.Add(
-                new ModLoader.LoaderTask<int, int>("安装世界", (_) => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
+                new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
                     { ProgressWeight = 0.1d, Block = true });
-            Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", (_) => System.IO.File.Delete(Target)));
+            Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", _ => System.IO.File.Delete(Target)));
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<int>(LoaderName, Loaders)
@@ -226,181 +227,183 @@ public partial class PageDownloadCompDetail
     }
 
     public void Save_Click(object sender, EventArgs e)
-{
-    // 获取点击项关联的文件对象
-    // 使用模式匹配 (Pattern Matching) 获取目标 Control/Item
-    object target = sender switch {
-        MyListItem item => item,
-        System.Windows.Forms.Control ctrl => ctrl.Parent,
-        _ => null
-    };
-
-    // 安全地访问 Tag 并转换
-    ModComp.CompFile File = (ModComp.CompFile)(target as dynamic)?.Tag;
-
-    ModBase.RunInNewThread(() =>
     {
-        try
+        // 获取点击项关联的文件对象
+        // 使用模式匹配 (Pattern Matching) 获取目标 Control/Item
+        object target = sender switch
         {
-            string Desc = "";
-            switch (File.Type)
-            {
-                case ModComp.CompType.ModPack: Desc = "整合包"; break;
-                case ModComp.CompType.Mod: Desc = "Mod "; break;
-                case ModComp.CompType.ResourcePack: Desc = "资源包"; break;
-                case ModComp.CompType.Shader: Desc = "光影包"; break;
-                case ModComp.CompType.DataPack: Desc = "数据包"; break;
-                case ModComp.CompType.World: Desc = "世界"; break;
-            }
+            MyListItem item => item,
+            Control ctrl => ctrl.Parent,
+            _ => null
+        };
 
-            // 确认默认保存位置
-            string DefaultFolder = null;
-            if (File.Type != ModComp.CompType.ModPack)
+        // 安全地访问 Tag 并转换
+        var File = (ModComp.CompFile)(target as dynamic)?.Tag;
+
+        ModBase.RunInNewThread(() =>
+        {
+            try
             {
-                string SubFolder = "";
+                var Desc = "";
                 switch (File.Type)
                 {
-                    case ModComp.CompType.Mod: SubFolder = "mods\\"; break;
-                    case ModComp.CompType.ResourcePack: SubFolder = "resourcepacks\\"; break;
-                    case ModComp.CompType.Shader: SubFolder = "shaderpacks\\"; break;
-                    case ModComp.CompType.World: SubFolder = "saves\\"; break;
-                    case ModComp.CompType.DataPack: SubFolder = ""; break; // 导航到版本根目录
+                    case ModComp.CompType.ModPack: Desc = "整合包"; break;
+                    case ModComp.CompType.Mod: Desc = "Mod "; break;
+                    case ModComp.CompType.ResourcePack: Desc = "资源包"; break;
+                    case ModComp.CompType.Shader: Desc = "光影包"; break;
+                    case ModComp.CompType.DataPack: Desc = "数据包"; break;
+                    case ModComp.CompType.World: Desc = "世界"; break;
                 }
 
-                // 获取资源所需的加载器
-                List<ModComp.CompLoaderType> AllowedLoaders = new List<ModComp.CompLoaderType>();
-                if (File.ModLoaders.Any())
+                // 确认默认保存位置
+                string DefaultFolder = null;
+                if (File.Type != ModComp.CompType.ModPack)
                 {
-                    AllowedLoaders = File.ModLoaders;
-                }
-                else if (_project.ModLoaders.Any())
-                {
-                    AllowedLoaders = _project.ModLoaders;
-                }
-                ModBase.Log($"[Comp] {Desc}要求的加载器种类：{(AllowedLoaders.Any() ? string.Join(" / ", AllowedLoaders) : "无要求")}");
-
-                // 判断某个版本是否符合资源要求 (局部函数)
-                Func<ModMinecraft.McInstance, bool> IsVersionSuitable = (Version) =>
-                {
-                    if (Version == null) return false;
-                    if (!Version.IsLoaded) Version.Load();
-
-                    // 只对 Mod 和数据包进行版本检测
-                    if (File.Type == ModComp.CompType.Mod || File.Type == ModComp.CompType.DataPack)
+                    var SubFolder = "";
+                    switch (File.Type)
                     {
-                        if (File.GameVersions.Any(v => v.Contains(".")) &&
-                            !File.GameVersions.Any(v => v.Contains(".") && v == Version.Info.VanillaName)) return false;
+                        case ModComp.CompType.Mod: SubFolder = "mods\\"; break;
+                        case ModComp.CompType.ResourcePack: SubFolder = "resourcepacks\\"; break;
+                        case ModComp.CompType.Shader: SubFolder = "shaderpacks\\"; break;
+                        case ModComp.CompType.World: SubFolder = "saves\\"; break;
+                        case ModComp.CompType.DataPack: SubFolder = ""; break; // 导航到版本根目录
                     }
 
-                    // 加载器判定
-                    if (!AllowedLoaders.Any()) return true; // 无要求
-                    if (AllowedLoaders.Contains(ModComp.CompLoaderType.Forge) && Version.Info.HasForge) return true;
-                    if (AllowedLoaders.Contains(ModComp.CompLoaderType.Fabric) && (Version.Info.HasFabric || Version.Info.HasLegacyFabric)) return true;
-                    if (AllowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && Version.Info.HasNeoForge) return true;
-                    if (AllowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && Version.Info.HasLiteLoader) return true;
-                    return false;
-                };
+                    // 获取资源所需的加载器
+                    var AllowedLoaders = new List<ModComp.CompLoaderType>();
+                    if (File.ModLoaders.Any())
+                        AllowedLoaders = File.ModLoaders;
+                    else if (_project.ModLoaders.Any()) AllowedLoaders = _project.ModLoaders;
+                    ModBase.Log(
+                        $"[Comp] {Desc}要求的加载器种类：{(AllowedLoaders.Any() ? string.Join(" / ", AllowedLoaders) : "无要求")}");
 
-                // 获取常规资源默认下载位置逻辑
-                if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
-                {
-                    DefaultFolder = CachedFolder.GetOrDefault(File.Type, ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
-                    ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
-                }
-                else if (ModMinecraft.McInstanceSelected != null && IsVersionSuitable(ModMinecraft.McInstanceSelected))
-                {
-                    DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";
-                    Directory.CreateDirectory(DefaultFolder);
-                    ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
-                }
-                else
-                {
-                    // 查找所有可能的实例
-                    bool NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
-                    if (NeedLoad)
+                    // 判断某个版本是否符合资源要求 (局部函数)
+                    Func<ModMinecraft.McInstance, bool> IsVersionSuitable = Version =>
                     {
-                        ModMain.Hint("正在查找适合的游戏实例……");
-                        ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected, ModLoader.LoaderFolderRunType.ForceRun, MaxDepth: 1, ExtraPath: "versions\\", WaitForExit: true);
+                        if (Version == null) return false;
+                        if (!Version.IsLoaded) Version.Load();
+
+                        // 只对 Mod 和数据包进行版本检测
+                        if (File.Type == ModComp.CompType.Mod || File.Type == ModComp.CompType.DataPack)
+                            if (File.GameVersions.Any(v => v.Contains(".")) &&
+                                !File.GameVersions.Any(v => v.Contains(".") && v == Version.Info.VanillaName))
+                                return false;
+
+                        // 加载器判定
+                        if (!AllowedLoaders.Any()) return true; // 无要求
+                        if (AllowedLoaders.Contains(ModComp.CompLoaderType.Forge) && Version.Info.HasForge) return true;
+                        if (AllowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
+                            (Version.Info.HasFabric || Version.Info.HasLegacyFabric)) return true;
+                        if (AllowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && Version.Info.HasNeoForge)
+                            return true;
+                        if (AllowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && Version.Info.HasLiteLoader)
+                            return true;
+                        return false;
+                    };
+
+                    // 获取常规资源默认下载位置逻辑
+                    if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
+                    {
+                        DefaultFolder = CachedFolder.GetOrDefault(File.Type,
+                            ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
+                        ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
-
-                    var SuitableVersions = ModMinecraft.McInstanceList.Values.SelectMany(l => l)
-                        .Where(v => IsVersionSuitable(v))
-                        .Select(v => new DirectoryInfo($"{v.PathIndie}{SubFolder}"));
-
-                    if (SuitableVersions.Any())
+                    else if (ModMinecraft.McInstanceSelected != null &&
+                             IsVersionSuitable(ModMinecraft.McInstanceSelected))
                     {
-                        var SelectedVersion = SuitableVersions
-                            .OrderByDescending(Dir => Dir.Exists ? Dir.LastWriteTimeUtc : DateTime.MinValue)
-                            .ThenByDescending(Dir => Dir.Exists ? Dir.GetFiles().Length : -1)
-                            .First();
-                        DefaultFolder = SelectedVersion.FullName;
+                        DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";
                         Directory.CreateDirectory(DefaultFolder);
-                        ModBase.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
+                        ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
                     }
                     else
                     {
-                        DefaultFolder = ModMinecraft.McFolderSelected;
+                        // 查找所有可能的实例
+                        var NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
                         if (NeedLoad)
                         {
-                            ModMain.Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！");
+                            ModMain.Hint("正在查找适合的游戏实例……");
+                            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                                ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
+                        }
+
+                        var SuitableVersions = ModMinecraft.McInstanceList.Values.SelectMany(l => l)
+                            .Where(v => IsVersionSuitable(v))
+                            .Select(v => new DirectoryInfo($"{v.PathIndie}{SubFolder}"));
+
+                        if (SuitableVersions.Any())
+                        {
+                            var SelectedVersion = SuitableVersions
+                                .OrderByDescending(Dir => Dir.Exists ? Dir.LastWriteTimeUtc : DateTime.MinValue)
+                                .ThenByDescending(Dir => Dir.Exists ? Dir.GetFiles().Length : -1)
+                                .First();
+                            DefaultFolder = SelectedVersion.FullName;
+                            Directory.CreateDirectory(DefaultFolder);
+                            ModBase.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
                         }
                         else
                         {
-                            ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
+                            DefaultFolder = ModMinecraft.McFolderSelected;
+                            if (NeedLoad)
+                                ModMain.Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！");
+                            else
+                                ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                         }
                     }
                 }
-            }
 
-            // 获取文件名并弹窗
-            string FileName = ModComp.CompFileNameGet(_project, File);
-            ModBase.RunInUi(() =>
-            {
-                string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName,
-                    $"{Desc}文件|" + (File.Type == ModComp.CompType.Mod ? 
-                        (File.FileName.EndsWith(".litemod") ? "*.litemod" : "*.jar") : 
-                        (File.FileName.EndsWith(".mrpack") ? "*.mrpack" : "*.zip")), 
-                    DefaultFolder);
-
-                if (!Target.Contains("\\")) return;
-
-                // 记录缓存路径
-                string targetDir = ModBase.GetPathFromFullPath(Target);
-                if (Target != DefaultFolder)
+                // 获取文件名并弹窗
+                var FileName = ModComp.CompFileNameGet(_project, File);
+                ModBase.RunInUi(() =>
                 {
-                    if (CachedFolder.ContainsKey(File.Type))
-                        CachedFolder[File.Type] = targetDir;
-                    else
-                        CachedFolder.Add(File.Type, targetDir);
-                }
+                    var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName,
+                        $"{Desc}文件|" + (File.Type == ModComp.CompType.Mod
+                            ?
+                            File.FileName.EndsWith(".litemod") ? "*.litemod" : "*.jar"
+                            :
+                            File.FileName.EndsWith(".mrpack")
+                                ? "*.mrpack"
+                                : "*.zip"),
+                        DefaultFolder);
 
-                // 构造下载任务
-                string LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
-                var Loaders = new List<ModLoader.LoaderBase>
-                {
-                    new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile> { File.ToNetFile(Target) }) 
-                    { 
-                        ProgressWeight = 6, 
-                        Block = true 
+                    if (!Target.Contains("\\")) return;
+
+                    // 记录缓存路径
+                    var targetDir = ModBase.GetPathFromFullPath(Target);
+                    if (Target != DefaultFolder)
+                    {
+                        if (CachedFolder.ContainsKey(File.Type))
+                            CachedFolder[File.Type] = targetDir;
+                        else
+                            CachedFolder.Add(File.Type, targetDir);
                     }
-                };
 
-                // 启动加载器
-                var Loader = new ModLoader.LoaderCombo<int>(LoaderName, Loaders);
-                Loader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
-                Loader.Start(1);
-                ModLoader.LoaderTaskbarAdd(Loader);
-                
-                ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-                ModMain.FrmMain.BtnExtraDownload.Ribble();
-            });
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
-        }
-    }, "Download CompDetail Save");
-}
+                    // 构造下载任务
+                    var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
+                    var Loaders = new List<ModLoader.LoaderBase>
+                    {
+                        new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
+                        {
+                            ProgressWeight = 6,
+                            Block = true
+                        }
+                    };
+
+                    // 启动加载器
+                    var Loader = new ModLoader.LoaderCombo<int>(LoaderName, Loaders);
+                    Loader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+                    Loader.Start(1);
+                    ModLoader.LoaderTaskbarAdd(Loader);
+
+                    ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
+                    ModMain.FrmMain.BtnExtraDownload.Ribble();
+                });
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+            }
+        }, "Download CompDetail Save");
+    }
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)
     {
@@ -481,7 +484,6 @@ public partial class PageDownloadCompDetail
         BtnFavorites.Click += BtnFavorites_Click;
         BtnIntroLinkCopy.Click += BtnIntroLinkCopy_Click;
         BtnTranslate.Click += BtnTranslate_Click;
-
     }
 
     // 初始化加载器信息
@@ -903,15 +905,16 @@ public partial class PageDownloadCompDetail
                             foreach (var item in list)
                                 stack.Children.Add(item.ToListItem(
                                     (sender, e) => ModMain.FrmDownloadCompDetail.Install_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName: badDisplayName));
+                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
                             break;
                         }
                         case ModComp.CompType.World:
                         {
                             foreach (var item in list)
                                 stack.Children.Add(item.ToListItem(
-                                    (sender, e) => ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName: badDisplayName));
+                                    (sender, e) =>
+                                        ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
+                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
                             break;
                         }
 

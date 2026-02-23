@@ -13,6 +13,7 @@ public partial class PageLoginMs
         BtnBack.Click += BtnBack_Click;
         BtnLogin.Click += BtnLogin_Click;
     }
+
     private void BtnBack_Click(object sender, EventArgs e)
     {
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));

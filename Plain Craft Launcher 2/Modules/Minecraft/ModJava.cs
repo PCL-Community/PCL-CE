@@ -56,7 +56,7 @@ public static class ModJava
                     {
                         case object _ when preference is ExistingJava: // "exist"
                         {
-                            ExistingJava existPref = (ExistingJava)preference;
+                            var existPref = (ExistingJava)preference;
                             var candidate = Javas.AddOrGet(existPref.JavaExePath);
 
                             if (candidate is not null && candidate.IsEnabled)
@@ -75,7 +75,7 @@ public static class ModJava
 
                         case object _ when preference is UseRelativePath: // "relative"
                         {
-                            UseRelativePath relPref = (UseRelativePath)preference;
+                            var relPref = (UseRelativePath)preference;
                             var absPath =
                                 Path.GetFullPath(Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath));
 
@@ -196,14 +196,14 @@ public static class ModJava
         {
             case object _ when preference is ExistingJava:
             {
-                ExistingJava m = (ExistingJava)preference;
+                var m = (ExistingJava)preference;
                 if (!Path.IsPathRooted(m.JavaExePath)) preference = new UseGlobalPreference();
 
                 break;
             }
             case object _ when preference is UseRelativePath:
             {
-                UseRelativePath m = (UseRelativePath)preference;
+                var m = (UseRelativePath)preference;
                 if (!Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory))
                     preference = new UseGlobalPreference();
 
@@ -241,13 +241,13 @@ public static class ModJava
                     }
                     case object _ when instancePreference is ExistingJava:
                     {
-                        ExistingJava m = (ExistingJava)instancePreference;
+                        var m = (ExistingJava)instancePreference;
                         var java = Javas.AddOrGet(m.JavaExePath);
                         return java is not null && java.Installation.Is64Bit;
                     }
                     case object _ when instancePreference is UseRelativePath:
                     {
-                        UseRelativePath m = (UseRelativePath)instancePreference;
+                        var m = (UseRelativePath)instancePreference;
                         var javaExePath = Path.GetFullPath(m.RelativePath);
                         if (Files.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory))
                         {
@@ -309,7 +309,7 @@ public static class ModJava
         var JavaDownloadLoader = new ModNet.LoaderDownload("下载 Java 文件", new List<ModNet.NetFile>())
             { ProgressWeight = 10d };
         var Loader = new ModLoader.LoaderCombo<string>("下载 Java",
-    new ModLoader.LoaderBase[]
+            new ModLoader.LoaderBase[]
             {
                 new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("获取 Java 下载信息", JavaFileList)
                     { ProgressWeight = 2d },

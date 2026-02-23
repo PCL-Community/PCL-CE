@@ -77,10 +77,10 @@ public partial class PageLaunchRight : IRefreshable
 
     private void RefreshReal()
     {
-        string content = "";
+        var content = "";
         string url = null;
 
-        int uiCustomType = (int)ModBase.Setup.Get("UiCustomType");
+        var uiCustomType = (int)ModBase.Setup.Get("UiCustomType");
 
         if (uiCustomType == 1)
         {
@@ -97,12 +97,12 @@ public partial class PageLaunchRight : IRefreshable
         else if (uiCustomType == 3)
         {
             // 预设主页
-            int preset = (int)ModBase.Setup.Get("UiCustomPreset");
+            var preset = (int)ModBase.Setup.Get("UiCustomPreset");
             switch (preset)
             {
                 case 0:
                     LogWrapper.Info("[Page] 主页预设：你知道吗");
-                    string hintText = PageLaunchRight.GetRandomHint(false);
+                    var hintText = GetRandomHint();
                     content = $@"
     <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
         <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
@@ -114,7 +114,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 1:
                     LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
-                    ModMain.MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页", "提示");
+                    ModMain.MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页");
                     return;
 
                 case 2:
@@ -201,7 +201,7 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     /// <summary>
-    /// 根据 URL 加载网络内容，优先使用缓存
+    ///     根据 URL 加载网络内容，优先使用缓存
     /// </summary>
     private string LoadFromNetwork(string url)
     {
@@ -217,15 +217,13 @@ public partial class PageLaunchRight : IRefreshable
             OnlineLoader.Start(url);
             return ModBase.ReadFile(cachePath);
         }
-        else
-        {
-            LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
-            HintWrapper.Show("正在加载主页……");
-            ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
-            ModBase.Setup.Set("CacheSavedPageVersion", "");
-            OnlineLoader.Start(url); // 下载完成后将会再次触发更新
-            return "";
-        }
+
+        LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
+        HintWrapper.Show("正在加载主页……");
+        ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
+        ModBase.Setup.Set("CacheSavedPageVersion", "");
+        OnlineLoader.Start(url); // 下载完成后将会再次触发更新
+        return "";
     }
 
     private readonly object RefreshLock = new();

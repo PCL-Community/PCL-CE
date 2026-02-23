@@ -215,7 +215,7 @@ public static class ModDownload
             {
                 if (_allDrops is null)
                 {
-                    string rawData = States.Game.Drops;
+                    var rawData = States.Game.Drops;
                     if (string.IsNullOrEmpty(rawData))
                         _allDrops = new List<int>();
                     else
@@ -321,7 +321,7 @@ public static class ModDownload
 
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
-        long StartTime = TimeUtils.GetTimeTick();
+        var StartTime = TimeUtils.GetTimeTick();
         var Json = (JObject)ModNet.NetGetCodeByRequestRetry(
             "https://launchermeta.mojang.com/mc/game/version_manifest.json", IsJson: true);
         try
@@ -631,7 +631,7 @@ public static class ModDownload
 
     private static void DlOptiFineListOfficialMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        string Result = HttpRequestBuilder.Create("https://optifine.net/downloads", HttpMethod.Get)
+        var Result = HttpRequestBuilder.Create("https://optifine.net/downloads", HttpMethod.Get)
             .WithHeader("Accept", "application/json, text/javascript, */*; q=0.01")
             .WithHeader("Accept-Language", "en-US,en;q=0.5").WithHeader("X-Requested-With", "XMLHttpRequest")
             .SendAsync(true).GetAwaiter().GetResult().AsStringContent();

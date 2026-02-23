@@ -321,9 +321,9 @@ public static class ModWebServer
                     return null;
                 }
 
-                
-                string code = parameters["code"];
-                
+
+                var code = parameters["code"];
+
                 try
                 {
                     NatayarkProfileManager.GetNaidDataAsync(code, port: ushort.Parse(parameters["Port"])).Wait();

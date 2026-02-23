@@ -8,7 +8,6 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.UI;
-using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -127,7 +126,7 @@ public partial class PageSetupLauncherMisc
         SliderDebugAnim.GetHintText = new Func<object, object>(v =>
             (int)v > 29
                 ? "关闭"
-                : (Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1)) + "x");
+                : Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1) + "x");
         SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Operators.AddObject(v, 1)} FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
@@ -183,32 +182,6 @@ public partial class PageSetupLauncherMisc
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
-    #region 导出 / 导入设置
-
-    private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
-    {
-        string savePath =
-            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
-        if (string.IsNullOrWhiteSpace(savePath))
-            return;
-        File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
-        ModBase.OpenExplorer(savePath);
-    }
-
-    private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
-    {
-        string sourcePath = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件");
-        if (string.IsNullOrWhiteSpace(sourcePath))
-            return;
-        File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
-        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
-        FormMain.EndProgramForce();
-    }
-
-    #endregion
-
     private void CheckDebugMode_OnChange(object sender, bool user)
     {
         CheckBoxChange(sender, user);
@@ -223,7 +196,33 @@ public partial class PageSetupLauncherMisc
 
     private void ComboSystemActivity_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ComboChange(sender, e); 
+        ComboChange(sender, e);
         ComboSystemActivity_SelectionChanged(sender, e);
     }
+
+    #region 导出 / 导入设置
+
+    private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
+    {
+        var savePath =
+            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
+        if (string.IsNullOrWhiteSpace(savePath))
+            return;
+        File.Copy(ConfigService.SharedConfigPath, savePath, true);
+        ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
+        ModBase.OpenExplorer(savePath);
+    }
+
+    private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
+    {
+        var sourcePath = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件");
+        if (string.IsNullOrWhiteSpace(sourcePath))
+            return;
+        File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
+        ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
+        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+        FormMain.EndProgramForce();
+    }
+
+    #endregion
 }

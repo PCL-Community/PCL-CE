@@ -45,7 +45,6 @@ public partial class PageInstanceExport : IRefreshable
         TextExportName.GotFocus += TextExportName_GotFocus;
         CheckAdvancedModrinth.Change += CheckAdvancedModrinth_Change;
         CheckAdvancedInclude.Change += CheckAdvancedInclude_Change;
-
     }
 
     void IRefreshable.Refresh()
@@ -471,7 +470,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            string ConfigPath = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt",
+            var ConfigPath = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt",
                 (string?)ModBase.Setup.Get("CacheExportConfig"));
             if (string.IsNullOrEmpty(ConfigPath))
                 return;
@@ -594,7 +593,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            string ConfigPath = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件",
+            var ConfigPath = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件",
                 (string?)ModBase.Setup.Get("CacheExportConfig"));
             if (string.IsNullOrEmpty(ConfigPath))
                 return;

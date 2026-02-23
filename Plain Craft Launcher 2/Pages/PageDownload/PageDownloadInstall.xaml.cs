@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.ComponentModel.Design;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -165,6 +164,11 @@ public partial class PageDownloadInstall
                 return null;
             }
         }
+    }
+
+    private void BtnBack_Click(object sender, EventArgs e)
+    {
+        ExitSelectPage();
     }
 
     #region 页面切换
@@ -337,7 +341,7 @@ public partial class PageDownloadInstall
     public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs e)
     {
         _vanillaName = sender.Title;
-        _vanillaData = (JObject)((dynamic)sender.Tag);
+        _vanillaData = (JObject)(dynamic)sender.Tag;
         _vanillaIcon = sender.Logo;
         EnterSelectPage();
     }
@@ -1303,7 +1307,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void OptiFine_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedOptiFine = (ModDownload.DlOptiFineListEntry)((dynamic)sender.Tag);
+        SelectedOptiFine = (ModDownload.DlOptiFineListEntry)(dynamic)sender.Tag;
         if (Conversions.ToBoolean(SelectedForge is not null &&
                                   !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
             SelectedForge = null;
@@ -1382,7 +1386,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void LiteLoader_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLiteLoader = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender.Tag);
+        SelectedLiteLoader = (ModDownload.DlLiteLoaderListEntry)(dynamic)sender.Tag;
         CardLiteLoader.IsSwapped = true;
         ReloadSelected();
     }
@@ -1481,7 +1485,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void Forge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedForge = (ModDownload.DlForgeVersionEntry)((dynamic)sender.Tag);
+        SelectedForge = (ModDownload.DlForgeVersionEntry)(dynamic)sender.Tag;
         SelectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
         if (Conversions.ToBoolean(SelectedOptiFine is not null &&
@@ -1563,7 +1567,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void NeoForge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedNeoForge = (ModDownload.DlNeoForgeListEntry)((dynamic)sender.Tag);
+        SelectedNeoForge = (ModDownload.DlNeoForgeListEntry)(dynamic)sender.Tag;
         SelectedLoaderName = "NeoForge";
         CardNeoForge.IsSwapped = true;
         OptiFine_Loaded();
@@ -1643,7 +1647,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void Cleanroom_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedCleanroom = (ModDownload.DlCleanroomListEntry)((dynamic)sender.Tag);
+        SelectedCleanroom = (ModDownload.DlCleanroomListEntry)(dynamic)sender.Tag;
         SelectedLoaderName = "Cleanroom";
         CardCleanroom.IsSwapped = true;
         OptiFine_Loaded();
@@ -1730,7 +1734,7 @@ public partial class PageDownloadInstall
     public void Fabric_Selected(MyListItem sender, EventArgs e)
     {
         ModBase.Log(((dynamic)sender.Tag).ToString());
-        SelectedFabric = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
+        SelectedFabric = ((dynamic)sender.Tag)["version"].ToString();
         SelectedLoaderName = "Fabric";
         FabricApi_Loaded();
         OptiFabric_Loaded();
@@ -1894,7 +1898,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void FabricApi_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedFabricApi = (ModComp.CompFile)((dynamic)sender.Tag);
+        SelectedFabricApi = (ModComp.CompFile)(dynamic)sender.Tag;
         SelectedAPIName = "Fabric API";
         CardFabricApi.IsSwapped = true;
         ReloadSelected();
@@ -1976,7 +1980,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLegacyFabric = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
+        SelectedLegacyFabric = ((dynamic)sender.Tag)["version"].ToString();
         SelectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;
@@ -2106,7 +2110,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void LegacyFabricApi_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLegacyFabricApi = (ModComp.CompFile)((dynamic)sender.Tag);
+        SelectedLegacyFabricApi = (ModComp.CompFile)(dynamic)sender.Tag;
         SelectedAPIName = "Legacy Fabric API";
         CardLegacyFabricApi.IsSwapped = true;
         ReloadSelected();
@@ -2191,7 +2195,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     public void Quilt_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedQuilt = ((dynamic)((dynamic)sender.Tag))["version"].ToString();
+        SelectedQuilt = ((dynamic)sender.Tag)["version"].ToString();
         SelectedLoaderName = "Quilt";
         FabricApi_Loaded();
         QSL_Loaded();
@@ -2328,7 +2332,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void QSL_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedQSL = (ModComp.CompFile)((dynamic)sender.Tag);
+        SelectedQSL = (ModComp.CompFile)(dynamic)sender.Tag;
         SelectedAPIName = "QFAPI / QSL";
         CardQSL.IsSwapped = true;
         ReloadSelected();
@@ -2459,7 +2463,7 @@ public partial class PageDownloadInstall
     // 选择与清除
     private void OptiFabric_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedOptiFabric = (ModComp.CompFile)((dynamic)sender.Tag);
+        SelectedOptiFabric = (ModComp.CompFile)(dynamic)sender.Tag;
         CardOptiFabric.IsSwapped = true;
         ReloadSelected();
     }
@@ -2638,9 +2642,4 @@ public partial class PageDownloadInstall
     }
 
     #endregion
-
-    private void BtnBack_Click(object sender, EventArgs e)
-    {
-        ExitSelectPage();
-    }
 }

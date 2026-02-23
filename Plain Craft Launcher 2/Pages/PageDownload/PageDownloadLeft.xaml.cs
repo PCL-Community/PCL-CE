@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -232,7 +231,6 @@ public partial class PageDownloadLeft : IRefreshable
         ItemLegacyFabric.Check += PageCheck;
         ItemQuilt.Check += PageCheck;
         ItemLabyMod.Check += PageCheck;
-
     }
 
     /// <summary>
@@ -361,7 +359,7 @@ public partial class PageDownloadLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的下载子页面种类：" + ((int)ID));
+                throw new Exception("未知的下载子页面种类：" + (int)ID);
             }
         }
     }
@@ -381,7 +379,7 @@ public partial class PageDownloadLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + ((int)ID) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

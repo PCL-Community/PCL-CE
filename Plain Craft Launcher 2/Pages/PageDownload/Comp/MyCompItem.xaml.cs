@@ -333,7 +333,8 @@ public partial class MyCompItem
             // 从详情页进入（查看前置）
             TargetType = ModComp.CompType.Any; // 允许任意类别
             TargetVersion = Conversions.ToString(((object[])ModMain.FrmMain.PageCurrent.Additional)[2]);
-            TargetLoader = (ModComp.CompLoaderType)Conversions.ToInteger(((object[])ModMain.FrmMain.PageCurrent.Additional)[3]);
+            TargetLoader =
+                (ModComp.CompLoaderType)Conversions.ToInteger(((object[])ModMain.FrmMain.PageCurrent.Additional)[3]);
         }
 
         ModMain.FrmMain.PageChange(new FormMain.PageStackData

@@ -22,10 +22,11 @@ public partial class MyHint
     public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
         typeof(MyHint),
         new PropertyMetadata(true,
-        (d, e) => {
-            var f =  (MyHint)d;
-            f.Theme = e.NewValue != null ? Themes.Red : Themes.Blue;
-        }));
+            (d, e) =>
+            {
+                var f = (MyHint)d;
+                f.Theme = e.NewValue != null ? Themes.Red : Themes.Blue;
+            }));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyHint), new PropertyMetadata("", (d, e) =>

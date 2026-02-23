@@ -272,7 +272,8 @@ public static class ModLoader
                 if (_State == value)
                     return;
                 var OldState = _State;
-                if (Conversions.ToBoolean(value == ModBase.LoadState.Finished && (bool)ModBase.Setup.Get("SystemDebugDelay")))
+                if (Conversions.ToBoolean(value == ModBase.LoadState.Finished &&
+                                          (bool)ModBase.Setup.Get("SystemDebugDelay")))
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 _State = value;
                 ModBase.Log("[Loader] 加载器 " + Name + " 状态改变：" + ModBase.GetStringFromEnum(value));
@@ -836,119 +837,117 @@ public static class ModLoader
         ///     触发一次更新，以启动新加载器或完成。
         /// </summary>
         private void Update()
-{
-    if (State == ModBase.LoadState.Finished
-        || State == ModBase.LoadState.Failed
-        || State == ModBase.LoadState.Aborted)
-        return;
-
-    bool isFinished = true;
-    bool blocked = false;
-    object input = this.Input;
-
-    foreach (var loader in Loaders)
-    {
-        switch (loader.State)
         {
-            case ModBase.LoadState.Finished:
+            if (State == ModBase.LoadState.Finished
+                || State == ModBase.LoadState.Failed
+                || State == ModBase.LoadState.Aborted)
+                return;
+
+            var isFinished = true;
+            var blocked = false;
+            object input = Input;
+
+            foreach (var loader in Loaders)
+                switch (loader.State)
+                {
+                    case ModBase.LoadState.Finished:
+                    {
+                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        {
+                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+                            var shouldInput = input != null && genericArg == input.GetType()
+                                ? input
+                                : null;
+
+                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            {
+                                ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
+                                goto Restart;
+                            }
+
+                            input = ((dynamic)loader).Output;
+                        }
+
+                        if (loader.Block && !isFinished)
+                            blocked = true;
+
+                        break;
+                    }
+
+                    case ModBase.LoadState.Loading:
+                    {
+                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        {
+                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+                            var shouldInput = input != null && genericArg == input.GetType()
+                                ? input
+                                : null;
+
+                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            {
+                                ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
+                                            + loader.Name,
+                                    ModBase.LogLevel.Developer);
+                                goto Restart;
+                            }
+                        }
+
+                        isFinished = false;
+                        blocked = true;
+                        break;
+                    }
+
+                    default:
+
+                        Restart:
+
+                        isFinished = false;
+
+                        if (blocked)
+                            continue;
+
+                        if (input != null)
+                        {
+                            var loaderType = loader.GetType().Name;
+
+                            if (loaderType.StartsWithF("LoaderTask")
+                                || loaderType.StartsWithF("LoaderCombo"))
+                            {
+                                var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+
+                                loader.Start(
+                                    genericArg == input.GetType() ? input : null,
+                                    IsForceRestarting);
+                            }
+                            else if (loaderType.StartsWithF("LoaderDownload"))
+                            {
+                                loader.Start(
+                                    input is List<ModNet.NetFile> ? input : null,
+                                    IsForceRestarting);
+                            }
+                            else
+                            {
+                                throw new Exception("未知的加载器类型（" + loaderType + "）");
+                            }
+                        }
+                        else
+                        {
+                            loader.Start(IsForceRestart: IsForceRestarting);
+                        }
+
+                        if (loader.Block)
+                            blocked = true;
+
+                        break;
+                }
+
+            if (isFinished)
             {
-                if (loader.GetType().Name.StartsWithF("LoaderTask"))
-                {
-                    var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                                object shouldInput = input != null && genericArg == input.GetType()
-                                    ? input
-                                    : null;
-
-                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
-                                {
-                        ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
-                        goto Restart;
-                    }
-
-                    input = ((dynamic)loader).Output;
-                }
-
-                if (loader.Block && !isFinished)
-                    blocked = true;
-
-                break;
+                RaisePreviewFinish();
+                State = ModBase.LoadState.Finished;
+                ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             }
-
-            case ModBase.LoadState.Loading:
-            {
-                if (loader.GetType().Name.StartsWithF("LoaderTask"))
-                {
-                    var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                                object shouldInput = input != null && genericArg == input.GetType()
-                                    ? input
-                                    : null;
-
-                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
-                                {
-                        ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
-                            + loader.Name,
-                            ModBase.LogLevel.Developer);
-                        goto Restart;
-                    }
-                }
-
-                isFinished = false;
-                blocked = true;
-                break;
-            }
-
-            default:
-
-            Restart:
-
-                isFinished = false;
-
-                if (blocked)
-                    continue;
-
-                if (input != null)
-                {
-                    var loaderType = loader.GetType().Name;
-
-                    if (loaderType.StartsWithF("LoaderTask")
-                        || loaderType.StartsWithF("LoaderCombo"))
-                    {
-                        var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-
-                        loader.Start(
-                            genericArg == input.GetType() ? input : null,
-                            IsForceRestarting);
-                    }
-                    else if (loaderType.StartsWithF("LoaderDownload"))
-                    {
-                        loader.Start(
-                            input is List<ModNet.NetFile> ? input : null,
-                            IsForceRestarting);
-                    }
-                    else
-                    {
-                        throw new Exception("未知的加载器类型（" + loaderType + "）");
-                    }
-                }
-                else
-                {
-                    loader.Start(IsForceRestart: IsForceRestarting);
-                }
-
-                if (loader.Block)
-                    blocked = true;
-
-                break;
         }
-    }
-
-    if (isFinished)
-    {
-        RaisePreviewFinish();
-        State = ModBase.LoadState.Finished;
-        ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-    }
-}
 
         /// <summary>
         ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。

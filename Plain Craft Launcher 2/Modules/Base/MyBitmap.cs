@@ -5,8 +5,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using PCL.Core.UI.Media;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
+
 // 一个万能的自动图片类型转换工具类
 
 namespace PCL;

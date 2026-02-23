@@ -75,7 +75,7 @@
                                           MaxDropDownHeight="240"
                                           ToolTip="若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL 会尽量优先选择它">
                             <ComboBoxItem Content="加载中……" IsSelected="True" />
-                            </local:MyComboBox>
+                        </local:MyComboBox>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -109,7 +109,7 @@
                         <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
                                         Change="SliderChange"
                                         Tag="VersionRamCustom" MaxValue="49" Value="13" />
-                        </Grid>
+                    </Grid>
                     <Grid Margin="0,5,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />

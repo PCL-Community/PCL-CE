@@ -38,7 +38,7 @@ public partial class MyExtraTextButton
     public MyExtraTextButton()
     {
         InitializeComponent();
-        
+
         Loaded += (_, __) => RefreshColor();
         IsEnabledChanged += (_, __) => RefreshColor();
     }
@@ -76,7 +76,7 @@ public partial class MyExtraTextButton
         {
             if (value == null) return;
             SetValue(TextProperty, value);
-        } 
+        }
     }
 
     public bool Show

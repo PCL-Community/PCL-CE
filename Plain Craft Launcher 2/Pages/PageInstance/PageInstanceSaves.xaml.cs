@@ -363,7 +363,7 @@ public partial class PageInstanceSaves : IRefreshable
     {
         var files = Clipboard.GetFileDropList();
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, int>("Copy saves", (_) =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("Copy saves", _ =>
         {
             var Copied = 0;
             foreach (var i in files)

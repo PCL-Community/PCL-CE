@@ -5,9 +5,9 @@ using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link;
+using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
 using PCL.Core.Link.Natayark;
-using PCL.Core.Link.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
@@ -43,7 +43,8 @@ public static class ModLink
 
             try
             {
-                NatayarkProfileManager.GetNaidDataAsync((string)ModBase.Setup.Get("LinkNaidRefreshToken"), true).GetAwaiter().GetResult();
+                NatayarkProfileManager.GetNaidDataAsync((string)ModBase.Setup.Get("LinkNaidRefreshToken"), true)
+                    .GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -90,7 +91,7 @@ public static class ModLink
         if (ETController.Precheck() == 1)
         {
             ModMain.Hint("正在下载联机依赖组件，请稍后...");
-            ModLink.DownloadEasyTier();
+            DownloadEasyTier();
             return false;
         }
 
@@ -261,66 +262,67 @@ public static class ModLink
     public static ModLoader.LoaderCombo<JObject> DlEasyTierLoader;
 
     public static int DownloadEasyTier()
-{
-    string dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
-
-    Basics.RunInNewThread(() =>
     {
-        try
+        var dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
+
+        Basics.RunInNewThread(() =>
         {
-            // Initialize loaders
-            var loaders = new List<ModLoader.LoaderBase>();
-
-            // Setup download addresses
-            string architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
-            var addresses = new List<string>
+            try
             {
-                $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",
-                $"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip"
-            };
+                // Initialize loaders
+                var loaders = new List<ModLoader.LoaderBase>();
 
-            // 1. Download EasyTier
-            loaders.Add(new ModNet.LoaderDownload("下载 EasyTier", new List<ModNet.NetFile> 
-            { 
-                new ModNet.NetFile(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(MinSize: 1024 * 64)) 
-            }) { ProgressWeight = 15 });
+                // Setup download addresses
+                var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
+                var addresses = new List<string>
+                {
+                    $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",
+                    $"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip"
+                };
 
-            // 2. Extract files
-            loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", (_) => 
-                ModBase.ExtractFile(dlTargetPath, Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
-            ) { Block = true });
+                // 1. Download EasyTier
+                loaders.Add(new ModNet.LoaderDownload("下载 EasyTier", new List<ModNet.NetFile>
+                {
+                    new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
+                }) { ProgressWeight = 15 });
 
-            // 3. Cleanup
-            loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", (_) =>
+                // 2. Extract files
+                loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
+                    ModBase.ExtractFile(dlTargetPath,
+                        Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
+                ) { Block = true });
+
+                // 3. Cleanup
+                loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", _ =>
+                {
+                    File.Delete(dlTargetPath);
+                    CleanupEasyTierCache();
+                }));
+
+                // 4. Update UI hint
+                loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", _ =>
+                    HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
+                ) { Show = false });
+
+                // Start loader combo
+                DlEasyTierLoader = new ModLoader.LoaderCombo<JObject>("大厅初始化", loaders);
+                DlEasyTierLoader.Start();
+
+                // Taskbar and UI notification
+                ModLoader.LoaderTaskbarAdd(DlEasyTierLoader);
+                ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
+                ModMain.FrmMain.BtnExtraDownload.Ribble();
+            }
+            catch (Exception ex)
             {
-                File.Delete(dlTargetPath);
-                CleanupEasyTierCache();
-            }));
+                // Error handling with concise English logs
+                LogWrapper.Warn(ex, "Failed to download EasyTier dependency files");
+                HintWrapper.Show("下载 EasyTier 依赖文件失败，请检查网络连接", HintTheme.Error);
+            }
+        });
 
-            // 4. Update UI hint
-            loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", (_) => 
-                HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
-            ) { Show = false });
-
-            // Start loader combo
-            DlEasyTierLoader = new ModLoader.LoaderCombo<JObject>("大厅初始化", loaders);
-            DlEasyTierLoader.Start();
-
-            // Taskbar and UI notification
-            ModLoader.LoaderTaskbarAdd(DlEasyTierLoader);
-            ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.FrmMain.BtnExtraDownload.Ribble();
-        }
-        catch (Exception ex)
-        {
-            // Error handling with concise English logs
-            LogWrapper.Warn(ex, "Failed to download EasyTier dependency files");
-            HintWrapper.Show("下载 EasyTier 依赖文件失败，请检查网络连接", HintTheme.Error);
-        }
-    });
-
-    return 0;
-}
+        return 0;
+    }
 
     private static void CleanupEasyTierCache()
     {

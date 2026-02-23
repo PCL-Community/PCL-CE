@@ -672,7 +672,7 @@ public static class ModMinecraft
                         if (JsonObject["arguments"]["jvm"] is not null)
                             foreach (var Argument in JsonObject["arguments"]["game"])
                             {
-                                string regexArgument = ModBase.RegexSeek(Argument.ToString(), RegexPatterns.LabyModVersion);
+                                var regexArgument = Argument.ToString().RegexSeek(RegexPatterns.LabyModVersion);
                                 if (regexArgument is not null)
                                 {
                                     _info.VanillaName = regexArgument;
@@ -691,8 +691,8 @@ public static class ModMinecraft
                     }
 
                     // 从下载地址中获取版本号
-                    string regex = ModBase.RegexSeek((JsonObject["downloads"] ?? "").ToString(),
-                        RegexPatterns.MinecraftDownloadUrlVersion);
+                    var regex = (JsonObject["downloads"] ?? "").ToString()
+                        .RegexSeek(RegexPatterns.MinecraftDownloadUrlVersion);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -701,7 +701,7 @@ public static class ModMinecraft
 
                     // 从 Forge 版本中获取版本号
                     var librariesString = JsonObject["libraries"].ToString();
-                    regex = ModBase.RegexSeek(librariesString, RegexPatterns.ForgeLibVersion);
+                    regex = librariesString.RegexSeek(RegexPatterns.ForgeLibVersion);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -709,7 +709,7 @@ public static class ModMinecraft
                     }
 
                     // 从 OptiFine 版本中获取版本号
-                    regex = ModBase.RegexSeek(librariesString, RegexPatterns.OptiFineLibVersion);
+                    regex = librariesString.RegexSeek(RegexPatterns.OptiFineLibVersion);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -717,7 +717,7 @@ public static class ModMinecraft
                     }
 
                     // 从 Fabric / Quilt / Legacy Fabric 版本中获取版本号
-                    regex = ModBase.RegexSeek(librariesString, RegexPatterns.FabricLikeLibVersion);
+                    regex = librariesString.RegexSeek(RegexPatterns.FabricLikeLibVersion);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -744,7 +744,8 @@ public static class ModMinecraft
                     }
 
                     // 从 JSON 的 ID 中获取
-                    regex = ModBase.RegexSeek((string)JsonObject["id"], RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
+                    regex = ((string)JsonObject["id"]).RegexSeek(RegexPatterns.MinecraftJsonVersion,
+                        RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -755,7 +756,7 @@ public static class ModMinecraft
                     ModBase.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
                     _info.Reliable = false;
                     // 从文件夹名中获取
-                    regex = ModBase.RegexSeek(Name, RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
+                    regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -766,7 +767,7 @@ public static class ModMinecraft
                     var JsonRaw = (JObject)JsonObject.DeepClone();
                     JsonRaw.Remove("libraries");
                     var JsonRawText = JsonRaw.ToString();
-                    regex = ModBase.RegexSeek(JsonRawText, RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
+                    regex = JsonRawText.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
                         _info.VanillaName = regex;
@@ -1160,7 +1161,7 @@ public static class ModMinecraft
 
                     default:
                     {
-                        var realJson = (JsonObject != null ? JsonObject.ToString() : JsonText);
+                        var realJson = JsonObject != null ? JsonObject.ToString() : JsonText;
                         // 愚人节与快照版本
                         if ((JsonObject["type"] ?? "").ToString() == "fool" ||
                             !string.IsNullOrEmpty(GetMcFoolName(Info.VanillaName)))
@@ -1171,7 +1172,7 @@ public static class ModMinecraft
                         {
                             State = McInstanceState.OptiFine;
                             Info.HasOptiFine = true;
-                            Info.OptiFine = ModBase.RegexSeek(realJson, RegexPatterns.OptiFineVersion) ?? "未知版本";
+                            Info.OptiFine = realJson.RegexSeek(RegexPatterns.OptiFineVersion) ?? "未知版本";
                         }
 
                         // LiteLoader
@@ -1193,7 +1194,7 @@ public static class ModMinecraft
                             State = McInstanceState.LegacyFabric;
                             Info.HasLegacyFabric = true;
                             Info.LegacyFabric =
-                                (ModBase.RegexSeek(realJson, RegexPatterns.LegacyFabricVersion) ?? "未知版本")
+                                (realJson.RegexSeek(RegexPatterns.LegacyFabricVersion) ?? "未知版本")
                                 .Replace("+build", "");
                         }
                         else if (realJson.Contains("net.fabricmc:fabric-loader"))
@@ -1201,29 +1202,29 @@ public static class ModMinecraft
                             State = McInstanceState.Fabric;
                             Info.HasFabric = true;
                             Info.Fabric =
-                                (ModBase.RegexSeek(realJson, RegexPatterns.FabricVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.FabricVersion) ?? "未知版本").Replace("+build", "");
                         }
                         else if (realJson.Contains("org.quiltmc:quilt-loader"))
                         {
                             State = McInstanceState.Quilt;
                             Info.HasQuilt = true;
                             Info.Quilt =
-                                (ModBase.RegexSeek(realJson, RegexPatterns.QuiltVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.QuiltVersion) ?? "未知版本").Replace("+build", "");
                         }
                         else if (realJson.Contains("com.cleanroommc:cleanroom:"))
                         {
                             State = McInstanceState.Cleanroom;
                             Info.HasCleanroom = true;
                             Info.Cleanroom =
-                                (ModBase.RegexSeek(realJson, RegexPatterns.CleanroomVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.CleanroomVersion) ?? "未知版本").Replace("+build", "");
                         }
                         else if (realJson.Contains("minecraftforge") && !realJson.Contains("net.neoforge"))
                         {
                             State = McInstanceState.Forge;
                             Info.HasForge = true;
-                            Info.Forge = ModBase.RegexSeek(realJson, RegexPatterns.ForgeMainVersion);
+                            Info.Forge = realJson.RegexSeek(RegexPatterns.ForgeMainVersion);
                             if (Info.Forge is null)
-                                Info.Forge = ModBase.RegexSeek(realJson, RegexPatterns.ForgeLibVersion) ?? "未知版本";
+                                Info.Forge = realJson.RegexSeek(RegexPatterns.ForgeLibVersion) ?? "未知版本";
                         }
                         else if (realJson.Contains("net.neoforge"))
                         {
@@ -1231,7 +1232,7 @@ public static class ModMinecraft
                             // 1.20.2+ JSON 范例："--fml.neoForgeVersion", "20.6.119-beta"
                             State = McInstanceState.NeoForge;
                             Info.HasNeoForge = true;
-                            Info.NeoForge = ModBase.RegexSeek(realJson, RegexPatterns.NeoForgeVersion) ?? "未知版本";
+                            Info.NeoForge = realJson.RegexSeek(RegexPatterns.NeoForgeVersion) ?? "未知版本";
                         }
 
                         break;
@@ -1667,8 +1668,9 @@ public static class ModMinecraft
                     if (ModBase.Val(Strings.Right(OptiFine, 1)) == 0d && Strings.Right(OptiFine, 1) != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
-                        result = 
-                            (int)Math.Round(result + ModBase.Val(OptiFine.ToLower().RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
+                        result =
+                            (int)Math.Round(result +
+                                            ModBase.Val(OptiFine.ToLower().RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
                 }
                 else
                 {
@@ -1886,7 +1888,6 @@ public static class ModMinecraft
 
             // 读取版本文件夹
             if (Directory.Exists(versionsPath))
-            {
                 try
                 {
                     foreach (var folder in new DirectoryInfo(versionsPath).GetDirectories())
@@ -1896,7 +1897,6 @@ public static class ModMinecraft
                 {
                     throw new Exception($"无法读取实例文件夹，可能是由于没有权限（{versionsPath}）", ex);
                 }
-            }
 
             // 如果没有可用实例，清空缓存并跳过后续处理
             if (!folderList.Any())
@@ -1910,23 +1910,20 @@ public static class ModMinecraft
 
             // 根据文件夹名列表生成辨识码
             var folderListHash = ModBase.GetHash(McInstanceCacheVersion + "#" + string.Join("#", folderList));
-            var folderListCheck = (int)(folderListHash % (long)(int.MaxValue - 1));
+            var folderListCheck = (int)(folderListHash % (int.MaxValue - 1));
 
             // 尝试使用缓存
-            bool useCache = !McInstanceListForceRefresh &&
-                            ModBase.Val(ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) == folderListCheck;
+            var useCache = !McInstanceListForceRefresh &&
+                           ModBase.Val(ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) ==
+                           folderListCheck;
 
             if (useCache)
             {
                 var cachedResult = InitMcInstanceListWithCache(path);
                 if (cachedResult != null)
-                {
                     McInstanceList = cachedResult;
-                }
                 else
-                {
                     useCache = false; // 缓存无效，需要重载
-                }
             }
 
             // 如果不能使用缓存，重新加载
@@ -1946,21 +1943,15 @@ public static class ModMinecraft
             // 尝试读取已储存的选择
             var savedSelection = ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
             if (!string.IsNullOrEmpty(savedSelection))
-            {
                 foreach (var card in McInstanceList)
-                {
-                    foreach (var instance in card.Value)
+                foreach (var instance in card.Value)
+                    if ((instance.Name ?? "") == savedSelection && instance.State != McInstanceState.Error)
                     {
-                        if ((instance.Name ?? "") == savedSelection && instance.State != McInstanceState.Error)
-                        {
-                            McInstanceSelected = instance;
-                            ModBase.Setup.Set("LaunchInstanceSelect", McInstanceSelected.Name);
-                            ModBase.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McInstanceSelected.PathInstance);
-                            return;
-                        }
+                        McInstanceSelected = instance;
+                        ModBase.Setup.Set("LaunchInstanceSelect", McInstanceSelected.Name);
+                        ModBase.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McInstanceSelected.PathInstance);
+                        return;
                     }
-                }
-            }
 
             // 自动选择第一项
             var firstInstance = McInstanceList
@@ -2088,7 +2079,7 @@ public static class ModMinecraft
                             instance.State = McInstanceState.Original;
                             instance.Check();
                             // 校验错误原因是否改变
-                            string CustomInfo = Config.Instance.CustomInfo[instance.PathInstance];
+                            var CustomInfo = Config.Instance.CustomInfo[instance.PathInstance];
                             if (instance.State == McInstanceState.Original || (string.IsNullOrEmpty(CustomInfo) &&
                                                                                !((OldDesc ?? "") ==
                                                                                    (instance.Desc ?? ""))))
@@ -2221,7 +2212,7 @@ public static class ModMinecraft
             McInstanceFilter(ref instanceList, new[] { McInstanceState.Old }, ref instanceRubbish);
 
             // 确认最新实例，若为快照则加入常用列表
-            McInstance latestInstance = instanceList
+            var latestInstance = instanceList
                 .Where(v => v.State == McInstanceState.Original || v.State == McInstanceState.Snapshot)
                 .MaxOrDefault(v => v.ReleaseTime);
             if (latestInstance is not null && latestInstance.State == McInstanceState.Snapshot)
@@ -2242,7 +2233,7 @@ public static class ModMinecraft
                     continue;
                 if (!existDrops.Contains(instance.Info.Drop))
                     existDrops.Add(instance.Info.Drop);
-                var key = instance.Info.Drop + "-" + ((int)instance.State);
+                var key = instance.Info.Drop + "-" + (int)instance.State;
                 if (!newerInstance.ContainsKey(key))
                 {
                     newerInstance.Add(key, instance);
@@ -2262,12 +2253,12 @@ public static class ModMinecraft
 
             // 将每个 Drop 下的最常规版本加入
             foreach (var drop in existDrops)
-                if (newerInstance.ContainsKey(drop + "-" + ((int)McInstanceState.OptiFine)) &&
-                    newerInstance.ContainsKey(drop + "-" + ((int)McInstanceState.Original)))
+                if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.OptiFine) &&
+                    newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.Original))
                 {
                     // 同时存在 OptiFine 与原版
-                    var vanillaInstance = newerInstance[drop + "-" + ((int)McInstanceState.Original)];
-                    var optiFineInstance = newerInstance[drop + "-" + ((int)McInstanceState.OptiFine)];
+                    var vanillaInstance = newerInstance[drop + "-" + (int)McInstanceState.Original];
+                    var optiFineInstance = newerInstance[drop + "-" + (int)McInstanceState.OptiFine];
                     if (vanillaInstance.Info.Drop > optiFineInstance.Info.Drop)
                     {
                         // 仅在原版比 OptiFine 更新时才加入原版
@@ -2278,17 +2269,17 @@ public static class ModMinecraft
                     instanceUseful.Add(optiFineInstance);
                     instanceList.Remove(optiFineInstance);
                 }
-                else if (newerInstance.ContainsKey(drop + "-" + ((int)McInstanceState.OptiFine)))
+                else if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.OptiFine))
                 {
                     // 没有原版，直接加入 OptiFine
-                    instanceUseful.Add(newerInstance[drop + "-" + ((int)McInstanceState.OptiFine)]);
-                    instanceList.Remove(newerInstance[drop + "-" + ((int)McInstanceState.OptiFine)]);
+                    instanceUseful.Add(newerInstance[drop + "-" + (int)McInstanceState.OptiFine]);
+                    instanceList.Remove(newerInstance[drop + "-" + (int)McInstanceState.OptiFine]);
                 }
-                else if (newerInstance.ContainsKey(drop + "-" + ((int)McInstanceState.Original)))
+                else if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.Original))
                 {
                     // 没有 OptiFine，直接加入原版
-                    instanceUseful.Add(newerInstance[drop + "-" + ((int)McInstanceState.Original)]);
-                    instanceList.Remove(newerInstance[drop + "-" + ((int)McInstanceState.Original)]);
+                    instanceUseful.Add(newerInstance[drop + "-" + (int)McInstanceState.Original]);
+                    instanceList.Remove(newerInstance[drop + "-" + (int)McInstanceState.Original]);
                 }
 
             // 将剩余的东西添加进去
@@ -2323,7 +2314,7 @@ public static class ModMinecraft
 
         // 卡片排序
         var sortedInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
-        foreach (McInstanceCardType sortRule in new[]
+        foreach (var sortRule in new[]
                  {
                      McInstanceCardType.Star, McInstanceCardType.API, McInstanceCardType.OriginalLike,
                      McInstanceCardType.Rubbish, McInstanceCardType.Fool, McInstanceCardType.Error,
@@ -2354,7 +2345,7 @@ public static class ModMinecraft
             }
 
             ;
-            results[cardType] = SortUtils.Sort(results[cardType], (McInstance left, McInstance right) =>
+            results[cardType] = SortUtils.Sort(results[cardType], (left, right) =>
             {
                 // 发布时间
                 if ((left.ReleaseTime.Year >= 2000 || right.ReleaseTime.Year >= 2000) &&
@@ -2468,7 +2459,7 @@ public static class ModMinecraft
     /// </summary>
     public static McSkinInfo McSkinSelect()
     {
-        string FileName = SystemDialogs.SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件");
+        var FileName = SystemDialogs.SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件");
 
         // 验证有效性
         if (string.IsNullOrEmpty(FileName))
@@ -2512,73 +2503,72 @@ public static class ModMinecraft
     ///     获取 Uuid 对应的皮肤文件地址，失败将抛出异常。
     /// </summary>
     public static string McSkinGetAddress(string uuid, string type)
-{
-    if (string.IsNullOrEmpty(uuid))
-        throw new Exception("Uuid 为空。");
-
-    if (uuid.StartsWith("00000"))
-        throw new Exception("离线 Uuid 无正版皮肤文件。");
-
-    // 尝试读取缓存
-    string cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
-    var cacheSkinAddress = ModBase.ReadIni(cachePath, uuid);
-    if (!string.IsNullOrEmpty(cacheSkinAddress))
-        return cacheSkinAddress;
-
-    // 获取皮肤地址
-    string url = type switch
     {
-        "Mojang" => "https://sessionserver.mojang.com/session/minecraft/profile/",
-        "Ms" => "https://sessionserver.mojang.com/session/minecraft/profile/",
-        "Auth" => ModProfile.SelectedProfile.Server.Replace("/authserver", "") + "/sessionserver/session/minecraft/profile/",
-        _ => throw new ArgumentException($"皮肤地址种类无效：{type ?? "null"}")
-    };
+        if (string.IsNullOrEmpty(uuid))
+            throw new Exception("Uuid 为空。");
 
-    var skinString = ModNet.NetGetCodeByRequestRetry(url + uuid);
-    if (string.IsNullOrEmpty((string?)skinString))
-        throw new Exception("皮肤返回值为空，可能是未设置自定义皮肤的用户");
+        if (uuid.StartsWith("00000"))
+            throw new Exception("离线 Uuid 无正版皮肤文件。");
 
-    // 解析皮肤 Property
-    string skinValue = null;
-    try
-    {
-        var json = (JObject)ModBase.GetJson((string)skinString);
-        foreach (var property in json["properties"])
+        // 尝试读取缓存
+        var cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
+        var cacheSkinAddress = ModBase.ReadIni(cachePath, uuid);
+        if (!string.IsNullOrEmpty(cacheSkinAddress))
+            return cacheSkinAddress;
+
+        // 获取皮肤地址
+        var url = type switch
         {
-            if (property["name"]?.ToString() == "textures")
-            {
-                skinValue = property["value"]?.ToString();
-                break;
-            }
+            "Mojang" => "https://sessionserver.mojang.com/session/minecraft/profile/",
+            "Ms" => "https://sessionserver.mojang.com/session/minecraft/profile/",
+            "Auth" => ModProfile.SelectedProfile.Server.Replace("/authserver", "") +
+                      "/sessionserver/session/minecraft/profile/",
+            _ => throw new ArgumentException($"皮肤地址种类无效：{type ?? "null"}")
+        };
+
+        var skinString = ModNet.NetGetCodeByRequestRetry(url + uuid);
+        if (string.IsNullOrEmpty((string?)skinString))
+            throw new Exception("皮肤返回值为空，可能是未设置自定义皮肤的用户");
+
+        // 解析皮肤 Property
+        string skinValue = null;
+        try
+        {
+            var json = (JObject)ModBase.GetJson((string)skinString);
+            foreach (var property in json["properties"])
+                if (property["name"]?.ToString() == "textures")
+                {
+                    skinValue = property["value"]?.ToString();
+                    break;
+                }
+
+            if (skinValue == null)
+                throw new Exception("未从皮肤返回值中找到符合条件的 Property");
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex,
+                $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
+                ModBase.LogLevel.Developer);
+            throw new Exception("皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户", ex);
         }
 
-        if (skinValue == null)
-            throw new Exception("未从皮肤返回值中找到符合条件的 Property");
+        // 解码 Base64 并解析 JSON
+        var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(skinValue));
+        var skinJson = (JObject)ModBase.GetJson(decoded.ToLowerInvariant());
+
+        if (skinJson["textures"]?["skin"]?["url"] == null)
+            throw new Exception("用户未设置自定义皮肤");
+
+        var skinUrl = skinJson["textures"]["skin"]["url"].ToString();
+        skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
+
+        // 保存缓存
+        ModBase.WriteIni(cachePath, uuid, skinUrl);
+        ModBase.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
+
+        return skinUrl;
     }
-    catch (Exception ex)
-    {
-        ModBase.Log(ex,
-            $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
-            ModBase.LogLevel.Developer);
-        throw new Exception("皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户", ex);
-    }
-
-    // 解码 Base64 并解析 JSON
-    var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(skinValue));
-    var skinJson = (JObject)ModBase.GetJson(decoded.ToLowerInvariant());
-
-    if (skinJson["textures"]?["skin"]?["url"] == null)
-        throw new Exception("用户未设置自定义皮肤");
-
-    var skinUrl = skinJson["textures"]["skin"]["url"].ToString();
-    skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
-
-    // 保存缓存
-    ModBase.WriteIni(cachePath, uuid, skinUrl);
-    ModBase.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
-
-    return skinUrl;
-}
 
     private static readonly object McSkinDownloadLock = new();
 

@@ -1465,7 +1465,8 @@ public partial class PageInstanceInstall
             var Versions = new List<ModDownload.DlOptiFineListEntry>();
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
             {
-                if (Conversions.ToBoolean(SelectedForge is not null && !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
+                if (Conversions.ToBoolean(SelectedForge is not null &&
+                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
                     continue;
                 if (Version.DisplayName.StartsWith(_vanillaName + " "))
                     Versions.Add(Version);
@@ -1486,8 +1487,8 @@ public partial class PageInstanceInstall
             PanOptiFine.Children.Clear();
             foreach (var Version in Versions)
                 PanOptiFine.Children.Add(
-                    ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) => 
-                                this.OptiFine_Selected((dynamic)a, b), false));
+                    ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) =>
+                        this.OptiFine_Selected((dynamic)a, b), false));
         }
         catch (Exception ex)
         {
@@ -1658,11 +1659,13 @@ public partial class PageInstanceInstall
             {
                 if (v.Category == "universal" || v.Category == "client")
                     return false; // 跳过无法自动安装的版本
-                if (Conversions.ToBoolean(SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
+                if (Conversions.ToBoolean(SelectedOptiFine is not null &&
+                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
                     return false;
                 return true;
             }).OrderByDescending(v => v).ToList();
-            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions, (a, b) => this.Forge_Selected((dynamic)a, b), false);
+            ModDownloadLib.ForgeDownloadListItemPreload(PanForge, versions,
+                (a, b) => this.Forge_Selected((dynamic)a, b), false);
             foreach (var Version in versions)
                 PanForge.Children.Add(
                     ModDownloadLib.ForgeDownloadListItem(Version, (a, b) => this.Forge_Selected((dynamic)a, b), false));
@@ -1741,11 +1744,13 @@ public partial class PageInstanceInstall
                 return;
             // 可视化
             PanNeoForge.Children.Clear();
-            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions, (a, b) => this.NeoForge_Selected((dynamic)a, b),
+            ModDownloadLib.NeoForgeDownloadListItemPreload(PanNeoForge, Versions,
+                (a, b) => this.NeoForge_Selected((dynamic)a, b),
                 false);
             foreach (var Version in Versions)
                 PanNeoForge.Children.Add(
-                    ModDownloadLib.NeoForgeDownloadListItem(Version, (a, b) => this.NeoForge_Selected((dynamic)a, b), false));
+                    ModDownloadLib.NeoForgeDownloadListItem(Version, (a, b) => this.NeoForge_Selected((dynamic)a, b),
+                        false));
         }
         catch (Exception ex)
         {
@@ -1824,7 +1829,8 @@ public partial class PageInstanceInstall
                 (a, b) => this.Cleanroom_Selected((dynamic)a, b), false);
             foreach (var Version in Versions)
                 PanCleanroom.Children.Add(
-                    ModDownloadLib.CleanroomDownloadListItem(Version, (a, b) => this.Cleanroom_Selected((dynamic)a, b), false));
+                    ModDownloadLib.CleanroomDownloadListItem(Version, (a, b) => this.Cleanroom_Selected((dynamic)a, b),
+                        false));
         }
         catch (Exception ex)
         {
@@ -1908,7 +1914,8 @@ public partial class PageInstanceInstall
             {
                 foreach (var item in (IEnumerable)stack.Tag)
                     stack.Children.Add(
-                        ModDownloadLib.FabricDownloadListItem((JObject)item, (a, b) => this.Fabric_Selected((dynamic)a, b)));
+                        ModDownloadLib.FabricDownloadListItem((JObject)item,
+                            (a, b) => this.Fabric_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2063,7 +2070,8 @@ public partial class PageInstanceInstall
                 if (!IsFabricApiCompatible(version))
                     continue;
                 PanFabricApi.Children.Add(
-                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.FabricApi_Selected((dynamic)a, b)));
+                    ModDownloadLib.FabricApiDownloadListItem(version,
+                        (a, b) => this.FabricApi_Selected((dynamic)a, b)));
             }
 
             // 自动选择 Fabric API
@@ -2368,7 +2376,8 @@ public partial class PageInstanceInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JObject)item, (a, b) => this.Quilt_Selected((dynamic)a, b)));
+                        ModDownloadLib.QuiltDownloadListItem((JObject)item,
+                            (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
         }
         catch (Exception ex)
@@ -2496,7 +2505,8 @@ public partial class PageInstanceInstall
             {
                 if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
                     continue;
-                PanQSL.Children.Add(ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
+                PanQSL.Children.Add(
+                    ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
             }
 
             // 自动选择 QSL
@@ -2627,7 +2637,8 @@ public partial class PageInstanceInstall
                 if (!IsOptiFabricCompatible(Version))
                     continue;
                 PanOptiFabric.Children.Add(
-                    ModDownloadLib.OptiFabricDownloadListItem(Version, (a, b) => this.OptiFabric_Selected((dynamic)a, b)));
+                    ModDownloadLib.OptiFabricDownloadListItem(Version,
+                        (a, b) => this.OptiFabric_Selected((dynamic)a, b)));
             }
 
             // 自动选择 OptiFabric

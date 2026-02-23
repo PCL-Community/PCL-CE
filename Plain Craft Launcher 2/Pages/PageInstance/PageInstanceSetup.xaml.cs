@@ -717,7 +717,7 @@ public partial class PageInstanceSetup
         MyComboBoxItem relativePathItem;
         if (preference is UseRelativePath)
         {
-            UseRelativePath relPref = (UseRelativePath)preference;
+            var relPref = (UseRelativePath)preference;
             var absPath = Path.GetFullPath(Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath));
             var javaEntry = ModJava.Javas.Get(absPath);
 
@@ -801,14 +801,14 @@ public partial class PageInstanceSetup
         }
         else if (preference is ExistingJava)
         {
-            ExistingJava existPref = (ExistingJava)preference;
+            var existPref = (ExistingJava)preference;
             // 在 Java 列表中查找匹配项（从索引 3 开始）
             for (int i = 3, loopTo = ComboArgumentJava.Items.Count - 1; i <= loopTo; i++)
             {
                 var item = ComboArgumentJava.Items[i] as MyComboBoxItem;
                 if (item is not null && item.Tag is JavaEntry)
                 {
-                    JavaEntry javaEntry = (JavaEntry)item.Tag;
+                    var javaEntry = (JavaEntry)item.Tag;
                     if (string.Equals(javaEntry.Installation.JavaExePath, existPref.JavaExePath,
                             StringComparison.OrdinalIgnoreCase))
                     {
@@ -914,7 +914,7 @@ public partial class PageInstanceSetup
         }
         else if (selectedItem.Tag is JavaEntry)
         {
-            JavaEntry javaEntry = (JavaEntry)selectedItem.Tag;
+            var javaEntry = (JavaEntry)selectedItem.Tag;
             preference = new ExistingJava(javaEntry.Installation.JavaExePath);
             logMessage = $"[Java] 修改实例 Java 选择设置：{javaEntry}";
         }

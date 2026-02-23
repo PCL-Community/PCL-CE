@@ -38,11 +38,14 @@
             <StackPanel Grid.Row="4" Name="PanBtn" VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="150,0,8,0" Orientation="Horizontal">
                 <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮1" x:Name="Btn1" Margin="12,0,0,0"
-                             Click="Btn1_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
+                             Click="Btn1_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
+                             UseLayoutRounding="False" />
                 <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮2" x:Name="Btn2" Margin="12,0,0,0"
-                             Click="Btn2_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
+                             Click="Btn2_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
+                             UseLayoutRounding="False" />
                 <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮3" x:Name="Btn3" Margin="12,0,0,0"
-                             Click="Btn3_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
+                             Click="Btn3_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
+                             UseLayoutRounding="False" />
             </StackPanel>
         </Grid>
     </Border>

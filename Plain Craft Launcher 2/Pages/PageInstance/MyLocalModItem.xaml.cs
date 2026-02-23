@@ -701,7 +701,7 @@ public partial class MyLocalCompItem
                 }
 
                 // 更改动画
-                if (UiExtension.IsVisibleInWindow(this, ModMain.FrmMain))
+                if (this.IsVisibleInWindow(ModMain.FrmMain))
                 {
                     var Anim = new List<ModAnimation.AniData>();
                     if (Checked)

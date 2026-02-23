@@ -15,7 +15,6 @@ using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
-using System.Text.Json.Nodes;
 
 namespace PCL;
 
@@ -45,7 +44,7 @@ public static class ModDownloadLib
         try
         {
             var versionFolder = ModMinecraft.McFolderSelected + @"versions\" + id + @"\";
-            
+
             // 重复任务检查
             foreach (var ongoingLoader in ModLoader.LoaderTaskbar.ToList())
             {
@@ -103,7 +102,7 @@ public static class ModDownloadLib
     {
         try
         {
-            string VersionFolder = SystemDialogs.SelectFolder();
+            var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
             VersionFolder = VersionFolder + Id + @"\";
@@ -304,7 +303,7 @@ public static class ModDownloadLib
         }
 
         // 建立控件
-        string FormattedVersion = McFormatter.FormatVersion(Entry["id"].ToString()).Replace("_", " ");
+        var FormattedVersion = McFormatter.FormatVersion(Entry["id"].ToString()).Replace("_", " ");
         var NewItem = new MyListItem
         {
             Logo = Logo, SnapsToDevicePixels = true, Title = FormattedVersion, Height = 42d,
@@ -345,12 +344,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (ss, ee) => ModDownloadLib.McDownloadMenuLog(ss, (dynamic)ee);
+        BtnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
         var BtnServer = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonServer, ToolTip = "下载服务端" };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
-        BtnServer.Click += (ss, ee) => ModDownloadLib.McDownloadMenuSaveServer(ss, (dynamic)ee);
+        BtnServer.Click += (ss, ee) => McDownloadMenuSaveServer(ss, (dynamic)ee);
         ((dynamic)sender).Buttons = new[] { BtnServer, BtnInfo };
     }
 
@@ -360,17 +359,17 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (a, b) => ModDownloadLib.McDownloadMenuSave(a, (dynamic)b); // dynamic!
+        BtnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (a, b) => ModDownloadLib.McDownloadMenuLog(a, (dynamic)b); // dynamic!
+        BtnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
         var BtnServer = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonServer, ToolTip = "下载服务端" };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
-        BtnServer.Click += (a, b) => ModDownloadLib.McDownloadMenuSaveServer(a, (dynamic)b); // dynamic!
+        BtnServer.Click += (a, b) => McDownloadMenuSaveServer(a, (dynamic)b); // dynamic!
         ((dynamic)sender).Buttons = new[] { BtnSave, BtnInfo, BtnServer };
     }
 
@@ -399,7 +398,7 @@ public static class ModDownloadLib
         {
             var Id = Version.Title;
             string JsonUrl = ((dynamic)Version.Tag)["url"].ToString();
-            string VersionFolder = SystemDialogs.SelectFolder();
+            var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
             VersionFolder = VersionFolder + Id + @"\";
@@ -497,7 +496,7 @@ pause";
         {
             var Id = Version.Title;
             string JsonUrl = ((dynamic)Version.Tag)("url").ToString();
-            string VersionFolder = SystemDialogs.SelectFolder();
+            var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
             VersionFolder = VersionFolder + Id + @"\";
@@ -614,7 +613,7 @@ pause";
         try
         {
             var Id = DownloadInfo.NameVersion;
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -681,7 +680,7 @@ pause";
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
         if (Conversions.ToBoolean(UseJavaWrapper &&
-                                  !((dynamic)ModBase.Setup.Get("LaunchAdvanceDisableJLW")))) // dynamic!
+                                  !(dynamic)ModBase.Setup.Get("LaunchAdvanceDisableJLW"))) // dynamic!
             Arguments =
                 $"-Doolloo.jlw.tmpdir=\"{ModBase.PathPure.TrimEnd('\\')}\" -Duser.home=\"{BaseMcFolderHome.TrimEnd('\\')}\" -cp \"{Target}\" -jar \"{ModLaunch.ExtractJavaWrapper()}\" optifine.Installer";
         else
@@ -749,8 +748,6 @@ pause";
                         catch
                         {
                         }
-
-                        return;
                     };
                     process.ErrorDataReceived += (sender, e) =>
                     {
@@ -788,8 +785,6 @@ pause";
                         catch
                         {
                         }
-
-                        return;
                     };
                     process.Start();
                     process.BeginOutputReadLine();
@@ -839,7 +834,7 @@ pause";
             }
 
             Task.Progress = 0.1d;
-            List<string> Sources = new List<string>();
+            var Sources = new List<string>();
             // BMCLAPI 源
             var BmclapiInherit = DownloadInfo.Inherit;
             if (BmclapiInherit == "1.8" || BmclapiInherit == "1.9")
@@ -1147,7 +1142,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += static (object sender, EventArgs e) => OptiFineSaveContMenuBuild(sender, e);
+        BtnInfo.Click += static (sender, e) => OptiFineSaveContMenuBuild(sender, e);
         ((dynamic)sender).Buttons = new[] { BtnInfo };
     }
 
@@ -1162,7 +1157,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (object sender, EventArgs e) => OptiFineLog_Click(sender,(RoutedEventArgs)e);
+        BtnInfo.Click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
         ((dynamic)sender).Buttons = new[] { btnSave, BtnInfo };
     }
 
@@ -1249,7 +1244,7 @@ pause";
         try
         {
             var Id = DownloadInfo.Inherit;
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""),
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""),
                 "LiteLoader 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
@@ -1344,7 +1339,7 @@ pause";
 
         // 启动依赖实例的下载
         if (ClientDownloadLoader is null)
-            Loaders.Add(new ModLoader.LoaderTask<string, string>("启动 LiteLoader 依赖实例下载", (_) =>
+            Loaders.Add(new ModLoader.LoaderTask<string, string>("启动 LiteLoader 依赖实例下载", _ =>
             {
                 if (IsCustomFolder)
                     throw new Exception("如果没有指定原版下载器，则不能指定 MC 安装文件夹");
@@ -1445,7 +1440,7 @@ pause";
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
-            BtnList.Click += (sender,e) => ModDownloadLib.LiteLoaderAll_Click(sender,(RoutedEventArgs)e);
+            BtnList.Click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
             sender.Buttons = new[] { BtnList };
         }
     }
@@ -1456,10 +1451,10 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (sender , e) => ModDownloadLib.LiteLoaderSave_Click(sender,(RoutedEventArgs)e);
+        BtnSave.Click += (sender, e) => LiteLoaderSave_Click(sender, (RoutedEventArgs)e);
         if (Conversions.ToBoolean(((dynamic)sender.Tag).IsLegacy))
         {
-            sender.Buttons = [ BtnSave ];
+            sender.Buttons = [BtnSave];
         }
         else
         {
@@ -1467,8 +1462,8 @@ pause";
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
-            BtnList.Click += (sender, e) => ModDownloadLib.LiteLoaderAll_Click(sender,(RoutedEventArgs)e);
-            sender.Buttons = [ BtnSave, BtnList ];
+            BtnList.Click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
+            sender.Buttons = [BtnSave, BtnList];
         }
     }
 
@@ -1501,7 +1496,7 @@ pause";
     {
         try
         {
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置",
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置",
                 $"{Info.LoaderName}-{Info.Inherit}-{Info.VersionName}.{Info.FileExtension}",
                 $"{Info.LoaderName} 安装器 (*.{Info.FileExtension})|*.{Info.FileExtension}");
             var DisplayName = $"{Info.LoaderName} {Info.Inherit} - {Info.VersionName}";
@@ -1658,8 +1653,6 @@ pause";
                         catch
                         {
                         }
-
-                        return;
                     };
                     process.ErrorDataReceived += (sender, e) =>
                     {
@@ -1696,8 +1689,6 @@ pause";
                         catch
                         {
                         }
-
-                        return;
                     };
                     process.Start();
                     process.BeginOutputReadLine();
@@ -2084,8 +2075,8 @@ pause";
                         // 解压并获取信息
                         var OldList = new DirectoryInfo(McFolder + "versions/")
                             .EnumerateDirectories().Select(i => i.FullName).ToList();
-                        
-                        
+
+
                         // 新建目标实例文件夹
                         var Json = ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
                         Directory.CreateDirectory(VersionFolder);
@@ -2095,7 +2086,7 @@ pause";
                         Task.Progress = 0.05d;
                         // 运行 Forge 安装器
                         var UseJavaWrapper = ModBase.IsUtf8CodePage();
-                        Retry: 
+                        Retry:
 
                         try
                         {
@@ -2122,11 +2113,12 @@ pause";
 
                         var DeltaList = new DirectoryInfo(McFolder + "versions/").EnumerateDirectories()
                             .SkipWhile(i => OldList.Contains(i.FullName)).ToList();
-                              
+
                         if (DeltaList.Count > 1)
                             // 它可能和 OptiFine 安装同时运行，导致增加的文件不止一个（这导致了 #151）
                             // 也可能是因为 Forge 安装器的 Bug，生成了一个名字错误的文件夹，所以需要检查文件夹是否为空
-                            DeltaList = DeltaList.Where(l => l.Name.ContainsF("forge", true) && l.EnumerateFiles().Any())
+                            DeltaList = DeltaList
+                                .Where(l => l.Name.ContainsF("forge", true) && l.EnumerateFiles().Any())
                                 .ToList();
                         // 如果没有新增文件夹，那么预测的文件夹名就是正确的
                         // 如果只新增 1 个文件夹，那么拷贝 Json 文件
@@ -2143,7 +2135,7 @@ pause";
                             // 新增了多个文件夹
                             //Enumerable.Select<string>((IEnumerable<DirectoryInfo>)DeltaList, d => d.Name).Join(";")
                             ModBase.Log(
-                                $"[Download] 有多个疑似的新增实例，无法确定：{string.Join(";",DeltaList.Select<DirectoryInfo,string>(d => d.Name))}");
+                                $"[Download] 有多个疑似的新增实例，无法确定：{string.Join(";", DeltaList.Select<DirectoryInfo, string>(d => d.Name))}");
                         }
                         else
                         {
@@ -2343,7 +2335,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (ss, ee) => ModDownloadLib.ForgeLog_Click(ss, (dynamic)ee);
+        BtnInfo.Click += (ss, ee) => ForgeLog_Click(ss, (dynamic)ee);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2353,7 +2345,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (ss, ee) => ModDownloadLib.ForgeLog_Click(ss, (dynamic)e);
+        BtnInfo.Click += (ss, ee) => ForgeLog_Click(ss, (dynamic)e);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2538,12 +2530,12 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (sender,e) => ModDownloadLib.NeoForgeSave_Click(sender,(RoutedEventArgs)e);
+        BtnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (sender, e) => ModDownloadLib.NeoForgeLog_Click(sender,(RoutedEventArgs)e);
+        BtnInfo.Click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2553,7 +2545,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (sender,e) => ModDownloadLib.NeoForgeLog_Click(sender,(RoutedEventArgs)e);
+        BtnInfo.Click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2646,12 +2638,12 @@ pause";
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
-        BtnSave.Click += (sender, _e) => ModDownloadLib.CleanroomSave_Click(sender,(RoutedEventArgs)e);
+        BtnSave.Click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
         var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (sender, e) => ModDownloadLib.CleanroomLog_Click(sender,(RoutedEventArgs)e);
+        BtnInfo.Click += (sender, e) => CleanroomLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { BtnSave, BtnInfo };
     }
 
@@ -2661,7 +2653,7 @@ pause";
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += (a, b) => ModDownloadLib.CleanroomLog_Click(a, (dynamic)b);
+        BtnInfo.Click += (a, b) => CleanroomLog_Click(a, (dynamic)b);
         sender.Buttons = new[] { BtnInfo };
     }
 
@@ -2700,7 +2692,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Fabric 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Fabric 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -2801,7 +2793,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -2917,7 +2909,7 @@ pause";
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (a, b) => ModDownloadLib.FabricLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => FabricLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3015,7 +3007,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Quilt 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Quilt 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3136,7 +3128,7 @@ pause";
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (a, b) => ModDownloadLib.QuiltLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => QuiltLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3173,7 +3165,7 @@ pause";
         {
             var Url = "https://releases.labymod.net/api/v1/installer/production/java";
             var FileName = "LabyMod4ProductionInstaller.jar";
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3214,7 +3206,7 @@ pause";
         {
             var Url = "https://releases.labymod.net/api/v1/installer/snapshot/java";
             var FileName = "LabyMod4SnapshotInstaller.jar";
-            string Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3410,12 +3402,12 @@ pause";
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.Click += (a, b) => ModDownloadLib.LabyModSave_Click(a, (dynamic)b);
+        btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.Click += (a, b) => ModDownloadLib.LabyModLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => LabyModLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -3848,7 +3840,7 @@ pause";
         var LoaderList = new List<ModLoader.LoaderBase>();
         // 添加忽略标识
         LoaderList.Add(new ModLoader.LoaderTask<int, int>("添加忽略标识",
-                (_) => ModBase.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
+                _ => ModBase.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
             { Show = false, Block = false });
         // Fabric API
         if (Request.FabricApi is not null)
@@ -4045,7 +4037,7 @@ pause";
         }
 
         // 删除忽略标识
-        LoaderList.Add(new ModLoader.LoaderTask<int, int>("删除忽略标识", (_) => File.Delete(InstanceFolder + ".pclignore"))
+        LoaderList.Add(new ModLoader.LoaderTask<int, int>("删除忽略标识", _ => File.Delete(InstanceFolder + ".pclignore"))
             { Show = false });
         // 总加载器
         return LoaderList;
@@ -4446,7 +4438,7 @@ pause";
 
             foreach (var Library in LabyModJson["libraries"])
             {
-                string RegexMatchResult = ModBase.RegexSeek(Library["name"].ToString(), RegexPatterns.CatchLwjglInLib);
+                var RegexMatchResult = Library["name"].ToString().RegexSeek(RegexPatterns.CatchLwjglInLib);
                 if (RegexMatchResult is null ||
                     !IsolatedLibraries.Contains(new KeyValuePair<string, bool>(RegexMatchResult, true)))
                     OutputLibraries.Add(Library);
