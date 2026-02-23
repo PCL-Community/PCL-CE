@@ -771,7 +771,7 @@ public partial class FormMain
         {
             if (e.Key == Key.Enter)
             {
-                ((dynamic)PanMsg.Children[0]).Btn1_Click();
+                ((MyMsgInput)PanMsg.Children[0]).Btn1_Click(sender, null);
                 return;
             }
 
