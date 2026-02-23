@@ -967,7 +967,7 @@ Public Module ModBase
             '确保目录存在
             Directory.CreateDirectory(GetPathFromFullPath(FilePath))
             '读取流
-            Using fs As New FileStream(FilePath, FileMode.Create, FileAccess.Write)
+            Using fs As New FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.Read)
                 fs.SetLength(0)
                 Stream.CopyTo(fs)
             End Using
