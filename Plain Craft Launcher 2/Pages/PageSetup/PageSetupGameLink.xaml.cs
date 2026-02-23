@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.Link;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Link.Scaffolding.EasyTier;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -127,7 +128,7 @@ public partial class PageSetupGameLink
     }
 
     // 网络测试
-    private void BtnNetTest_Click(object sender, RoutedEventArgs e)
+    private void BtnNetTest_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
