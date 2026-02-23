@@ -5,6 +5,11 @@ namespace PCL;
 
 public partial class PageInstanceModDisabled
 {
+    public PageInstanceModDisabled()
+    {
+        InitializeComponent();
+    }
+    
     private void BtnDownload_Click(object sender, EventArgs e)
     {
         ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);

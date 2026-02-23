@@ -9,6 +9,7 @@ public partial class PageLoginMs
     public PageLoginMs()
     {
         // Handles
+        InitializeComponent();
         BtnBack.Click += BtnBack_Click;
         BtnLogin.Click += BtnLogin_Click;
     }

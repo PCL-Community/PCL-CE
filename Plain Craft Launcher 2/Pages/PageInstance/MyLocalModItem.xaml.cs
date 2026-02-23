@@ -535,6 +535,7 @@ public partial class MyLocalCompItem
 
     public MyLocalCompItem()
     {
+        InitializeComponent();
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
