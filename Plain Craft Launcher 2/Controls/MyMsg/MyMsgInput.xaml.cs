@@ -107,7 +107,7 @@ public partial class MyMsgInput
         }, "MyMsgBox " + Uuid);
     }
 
-    public void Btn1_Click()
+    public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         TextArea.Validate(); // #5773
         if (MyConverter.IsExited || !TextArea.IsValidated)
@@ -117,7 +117,7 @@ public partial class MyMsgInput
         Close();
     }
 
-    public void Btn2_Click()
+    public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
         if (MyConverter.IsExited)
             return;
