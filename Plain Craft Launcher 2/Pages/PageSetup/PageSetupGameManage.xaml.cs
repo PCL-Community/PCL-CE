@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
@@ -35,26 +35,26 @@ public partial class PageSetupGameManage
     public void Reload()
     {
         // 下载
-        SliderDownloadThread.Value = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadThread"));
-        SliderDownloadSpeed.Value = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadSpeed"));
-        ComboDownloadSource.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadSource"));
-        ComboDownloadVersion.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadVersion"));
-        CheckDownloadAutoSelectVersion.Checked = (bool?)ModBase.Setup.Get("ToolDownloadAutoSelectVersion");
-        CheckFixAuthlib.Checked = (bool?)ModBase.Setup.Get("ToolFixAuthlib");
+        SliderDownloadThread.Value = Conversions.ToInteger(Config.Download.ThreadLimit);
+        SliderDownloadSpeed.Value = Conversions.ToInteger(Config.Download.SpeedLimit);
+        ComboDownloadSource.SelectedIndex = Conversions.ToInteger(Config.Download.FileSource);
+        ComboDownloadVersion.SelectedIndex = Conversions.ToInteger(Config.Download.VersionListSource);
+        CheckDownloadAutoSelectVersion.Checked = (bool?)Config.Download.AutoSelectInstance;
+        CheckFixAuthlib.Checked = (bool?)Config.Download.FixAuthLib;
 
         // Mod 与整合包
-        ComboDownloadTranslateV2.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadTranslateV2"));
-        ComboDownloadMod.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("ToolDownloadMod"));
-        ComboModLocalNameStyle.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("ToolModLocalNameStyle"));
-        CheckDownloadIgnoreQuilt.Checked = (bool?)ModBase.Setup.Get("ToolDownloadIgnoreQuilt");
-        CheckDownloadClipboard.Checked = (bool?)ModBase.Setup.Get("ToolDownloadClipboard");
+        ComboDownloadTranslateV2.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.NameFormatV2);
+        ComboDownloadMod.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.CompSourceSolution);
+        ComboModLocalNameStyle.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.UiCompNameSolution);
+        CheckDownloadIgnoreQuilt.Checked = (bool?)Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadClipboard.Checked = (bool?)Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
-        CheckUpdateRelease.Checked = (bool?)ModBase.Setup.Get("ToolUpdateRelease");
-        CheckUpdateSnapshot.Checked = (bool?)ModBase.Setup.Get("ToolUpdateSnapshot");
+        CheckUpdateRelease.Checked = (bool?)Config.Tool.ReleaseNotification;
+        CheckUpdateSnapshot.Checked = (bool?)Config.Tool.SnapshotNotification;
 
         // 辅助设置
-        CheckHelpChinese.Checked = (bool?)ModBase.Setup.Get("ToolHelpChinese");
+        CheckHelpChinese.Checked = (bool?)Config.Tool.AutoChangeLanguage;
     }
 
     // 初始化
@@ -129,9 +129,9 @@ public partial class PageSetupGameManage
     {
         if (SliderDownloadThread.Value < 100)
             return;
-        if (!(ModBase.Setup.Get("HintDownloadThread") as bool? ?? false))
+        if (!(States.Hint.LargeDownloadThread as bool? ?? false))
         {
-            ModBase.Setup.Set("HintDownloadThread", true);
+            States.Hint.LargeDownloadThread = true;
             ModMain.MyMsgBox(
                 "如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。" + Constants.vbCrLf + "一般设置 64 线程即可满足大多数下载需求，除非你知道你在干什么，否则不建议设置更多的线程数！",
                 "警告", "我知道了", IsWarn: true);

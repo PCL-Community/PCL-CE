@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -271,7 +271,7 @@ public static class ModDownload
 
     private static void DlClientListMain(ModLoader.LoaderTask<string, DlClientListResult> loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -370,32 +370,32 @@ public static class ModDownload
             string Version;
             // 快照版
             Version = (string)Json["latest"]["snapshot"];
-            if (Conversions.ToBoolean((bool)ModBase.Setup.Get("ToolUpdateSnapshot") &&
+            if (Conversions.ToBoolean((bool)Config.Tool.SnapshotNotification &&
                                       !Operators.ConditionalCompareObjectEqual(
-                                          ModBase.Setup.Get("ToolUpdateSnapshotLast"), "", false) &&
+                                          States.Tool.LastSnapshot, "", false) &&
                                       Operators.ConditionalCompareObjectNotEqual(
-                                          ModBase.Setup.Get("ToolUpdateSnapshotLast"), Version, false) &&
+                                          States.Tool.LastSnapshot, Version, false) &&
                                       !_DlClientListMojangMain_IsHinted))
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
             }
 
-            ModBase.Setup.Set("ToolUpdateSnapshotLast", Version ?? "Nothing");
+            States.Tool.LastSnapshot = Version ?? "Nothing";
             // 正式版
             Version = (string)Json["latest"]["release"];
-            if (Conversions.ToBoolean((bool)ModBase.Setup.Get("ToolUpdateRelease") &&
+            if (Conversions.ToBoolean((bool)Config.Tool.ReleaseNotification &&
                                       !Operators.ConditionalCompareObjectEqual(
-                                          ModBase.Setup.Get("ToolUpdateReleaseLast"), "", false) &&
+                                          States.Tool.LastRelease, "", false) &&
                                       Operators.ConditionalCompareObjectNotEqual(
-                                          ModBase.Setup.Get("ToolUpdateReleaseLast"), Version, false) &&
+                                          States.Tool.LastRelease, Version, false) &&
                                       !_DlClientListMojangMain_IsHinted))
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
             }
 
-            ModBase.Setup.Set("ToolUpdateReleaseLast", Version);
+            States.Tool.LastRelease = Version;
         }
         catch (Exception ex)
         {
@@ -593,7 +593,7 @@ public static class ModDownload
 
     private static void DlOptiFineListMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -753,7 +753,7 @@ public static class ModDownload
 
     private static void DlForgeListMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -963,7 +963,7 @@ public static class ModDownload
         var DlForgeVersionBmclapiLoader =
             new ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>("DlForgeVersion Bmclapi",
                 DlForgeVersionBmclapiMain);
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1269,7 +1269,7 @@ public static class ModDownload
 
     private static void DlNeoForgeListMain(ModLoader.LoaderTask<int, DlNeoForgeListResult> loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1440,7 +1440,7 @@ public static class ModDownload
 
     private static void DlCleanroomListMain(ModLoader.LoaderTask<int, DlCleanroomListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1582,7 +1582,7 @@ public static class ModDownload
 
     private static void DlLiteLoaderListMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1729,7 +1729,7 @@ public static class ModDownload
 
     private static void DlFabricListMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1846,7 +1846,7 @@ public static class ModDownload
 
     private static void DlQuiltListMain(ModLoader.LoaderTask<int, DlQuiltListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -1939,7 +1939,7 @@ public static class ModDownload
 
     private static void DlLabyModListMain(ModLoader.LoaderTask<int, DlLabyModListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -2023,7 +2023,7 @@ public static class ModDownload
         var Urls = new List<KeyValuePair<string, int>>();
         var McimUrl = DlSourceModGet(Url);
         if ((McimUrl ?? "") != (Url ?? ""))
-            switch (ModBase.Setup.Get("ToolDownloadMod"))
+            switch (Config.Download.Comp.CompSourceSolution)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
                 {
@@ -2076,7 +2076,7 @@ public static class ModDownload
         var Urls = new List<KeyValuePair<string, int>>();
         var McimUrl = DlSourceModGet(Url);
         if ((McimUrl ?? "") != (Url ?? ""))
-            switch (allowMirror ? ModBase.Setup.Get("ToolDownloadMod") : 2)
+            switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
                 {
@@ -2127,8 +2127,8 @@ public static class ModDownload
     ///     下载文件（而非获取版本列表）的时候，是否优先使用官方源。
     /// </summary>
     public static bool DlSourcePreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("ToolDownloadSource"), 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("ToolDownloadSource"), 1, false) && DlPreferMojang));
+        Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 2, false) ||
+        (Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 1, false) && DlPreferMojang));
 
     /// <summary>
     ///     下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
@@ -2142,8 +2142,8 @@ public static class ModDownload
     ///     获取版本列表（而非下载文件）的时候，是否优先使用官方源。
     /// </summary>
     public static bool DlVersionListPreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("ToolDownloadVersion"), 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("ToolDownloadVersion"), 1, false) &&
+        Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 2, false) ||
+        (Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 1, false) &&
          DlPreferMojang));
 
     /// <summary>
@@ -2253,7 +2253,7 @@ public static class ModDownload
             .Replace("https://edge.forgecdn.net",
                 "https://mod.mcimirror.top"); // like https://cdn.modrinth.com/data/P7dR8mSH/versions/X2hTodix/fabric-api-0.129.0%2B1.21.8.jar
         // like https://edge.forgecdn.net/files/6767/951/jei-1.21.5-neoforge-21.4.0.27.jar
-        switch (ModBase.Setup.Get("ToolDownloadMod"))
+        switch (Config.Download.Comp.CompSourceSolution)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 镜像源
             {
@@ -2411,7 +2411,7 @@ public static class ModDownload
 
     private static void DlLegacyFabricListMain(ModLoader.LoaderTask<int, DlLegacyFabricListResult> Loader)
     {
-        switch (ModBase.Setup.Get("ToolDownloadVersion"))
+        switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {

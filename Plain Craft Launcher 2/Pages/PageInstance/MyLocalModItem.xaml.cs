@@ -1,9 +1,10 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 
@@ -90,8 +91,7 @@ public partial class MyLocalCompItem
                 Title = Entry.Name;
                 NewDescription = Entry.Description;
             }
-            else if (Conversions.ToBoolean(
-                         Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("ToolModLocalNameStyle"), 1, false)))
+            else if (Config.Download.Comp.UiCompNameSolution == 1)
             {
                 // 标题显示文件名，详情显示译名
                 // 标题

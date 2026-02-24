@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -89,7 +89,7 @@ public partial class PageInstanceSetup
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
                 ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
-                ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
+                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance] = true;
             }
 
             CheckAdvanceAssetsV2.Checked =
@@ -661,7 +661,7 @@ public partial class PageInstanceSetup
                 $"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{Constants.vbCrLf}此功能可能会帮助一些服主吧。{Constants.vbCrLf}是否继续？",
                 "锁定验证方式确认", "确定", "取消", IsWarn: true) == 1)
         {
-            ModBase.Setup.Set("VersionServerLoginLock", true, instance: PageInstanceLeft.Instance);
+            Config.Instance.AuthTypeLucked[PageInstanceLeft.Instance] = true;
             Reload();
         }
     }
@@ -772,7 +772,7 @@ public partial class PageInstanceSetup
         }
         catch (Exception ex)
         {
-            ModBase.Setup.Set("VersionArgumentJavaSelect", "使用全局设置", instance: PageInstanceLeft.Instance);
+            Config.Instance.SelectedJava[PageInstanceLeft.Instance] = "使用全局设置";
             ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
@@ -977,7 +977,7 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("HintRenderer") && ComboAdvanceRenderer.SelectedIndex != 0))
+        if (Conversions.ToBoolean(!(bool)States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0))
         {
             if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf + "你确定要继续修改吗？", "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
@@ -988,7 +988,7 @@ public partial class PageInstanceSetup
             {
                 ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
                     instance: PageInstanceLeft.Instance);
-                ModBase.Setup.Set("HintRenderer", true);
+                States.Hint.Renderer = true;
             }
         }
         else

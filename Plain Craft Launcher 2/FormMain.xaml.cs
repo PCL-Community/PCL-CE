@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -79,17 +79,17 @@ public partial class FormMain
             if (!ModBase.Setup.IsUnset("LaunchArgumentIndie"))
             {
                 ModBase.Log("[Start] 从老 PCL 迁移版本隔离");
-                ModBase.Setup.Set("LaunchArgumentIndieV2", ModBase.Setup.Get("LaunchArgumentIndie"));
+                Config.Launch.IndieSolutionV2 = Config.Launch.IndieSolutionV1;
             }
             else if (!ModBase.Setup.IsUnset("WindowHeight"))
             {
                 ModBase.Log("[Start] 从老 PCL 升级，但此前未调整版本隔离，使用老的版本隔离默认值");
-                ModBase.Setup.Set("LaunchArgumentIndieV2", ModBase.Setup.GetDefault("LaunchArgumentIndie"));
+                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV1Config.DefaultValue);
             }
             else
             {
                 ModBase.Log("[Start] 全新的 PCL，使用新的版本隔离默认值");
-                ModBase.Setup.Set("LaunchArgumentIndieV2", ModBase.Setup.GetDefault("LaunchArgumentIndieV2"));
+                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV2Config.DefaultValue);
             }
         }
 
@@ -106,8 +106,8 @@ public partial class FormMain
         Opacity = 0d;
         try
         {
-            Height = Conversions.ToDouble(ModBase.Setup.Get("WindowHeight"));
-            Width = Conversions.ToDouble(ModBase.Setup.Get("WindowWidth"));
+            Height = Conversions.ToDouble(States.UI.WindowHeight);
+            Width = Conversions.ToDouble(States.UI.WindowWidth);
         }
         catch (Exception ex) // 修复 #2019
         {
@@ -174,7 +174,7 @@ public partial class FormMain
         BtnExtraLog.ShowCheck = BtnExtraLog_ShowCheck;
         BtnExtraApril.ShowRefresh();
         // 初始化尺寸改变
-        if (!(dynamic)ModBase.Setup.Get("UiLockWindowSize"))
+        if (!(dynamic)Config.Preference.LockWindowSize)
             AddResizer();
         else
             RemoveResizer();
@@ -187,12 +187,12 @@ public partial class FormMain
         ModSecret.ThemeRefresh();
 
         System.Windows.Application.Current.Resources["BlurSamplingRate"] =
-            Operators.MultiplyObject(ModBase.Setup.Get("UiBlurSamplingRate"), 0.01d);
+            Operators.MultiplyObject(Config.Preference.Blur.SamplingRate, 0.01d);
         System.Windows.Application.Current.Resources["BlurType"] =
-            (KernelType)Conversions.ToInteger(ModBase.Setup.Get("UiBlurType"));
-        if (Conversions.ToBoolean(ModBase.Setup.Get("UiBlur")))
+            (KernelType)Conversions.ToInteger(Config.Preference.Blur.KernelType);
+        if (Conversions.ToBoolean(Config.Preference.Blur.IsEnabled))
             System.Windows.Application.Current.Resources["BlurRadius"] =
-                Operators.MultiplyObject(ModBase.Setup.Get("UiBlurValue"), 1.0d);
+                Operators.MultiplyObject(Config.Preference.Blur.Radius, 1.0d);
         else
             System.Windows.Application.Current.Resources["BlurRadius"] = 0.0d;
 
@@ -215,7 +215,7 @@ public partial class FormMain
             ModAnimation.AaCode(() => ModAnimation.AniControlEnabled -= 1, 50),
             ModAnimation.AaOpacity(this,
                 Conversions.ToDouble(
-                    Operators.AddObject(Operators.DivideObject(ModBase.Setup.Get("UiLauncherTransparent"), 1000),
+                    Operators.AddObject(Operators.DivideObject(Config.Preference.Theme.WindowOpacity, 1000),
                         0.4d)), 250, 100),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 600,
                 100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
@@ -276,7 +276,7 @@ public partial class FormMain
                 {
                     case 1:
                     {
-                        ModBase.Setup.Set("SystemEula", true);
+                        States.System.LauncherEula = true;
                         break;
                     }
                     case 2:
@@ -299,12 +299,12 @@ public partial class FormMain
                 {
                     case 1:
                     {
-                        ModBase.Setup.Set("SystemTelemetry", true);
+                        Config.System.Telemetry = true;
                         break;
                     }
                     case 2:
                     {
-                        ModBase.Setup.Set("SystemTelemetry", false);
+                        Config.System.Telemetry = false;
                         break;
                     }
                 }
@@ -332,9 +332,9 @@ public partial class FormMain
     // 根据打开次数触发的事件
     private void RunCountSub()
     {
-        ModBase.Setup.Set("SystemCount", Operators.AddObject(ModBase.Setup.Get("SystemCount"), 1));
+        States.System.StartupCount += 1;
         if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectGreaterEqual(ModBase.Setup.Get("SystemCount"), 99, false)))
+                Operators.ConditionalCompareObjectGreaterEqual(States.System.StartupCount, 99, false)))
             if (ModSecret.ThemeUnlock(6, false))
                 ModMain.MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" + Constants.vbCrLf + "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！");
     }
@@ -343,7 +343,7 @@ public partial class FormMain
     private void UpgradeSub(int LastVersionCode)
     {
         ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 升高到 " + ModBase.VersionCode);
-        ModBase.Setup.Set("SystemLastVersionReg", ModBase.VersionCode);
+        States.System.LastVersion = ModBase.VersionCode;
         // 检查有记录的最高版本号
         int LowerVersionCode;
 #if BETA
@@ -353,42 +353,42 @@ public partial class FormMain
                     Log("[Start] 最高版本号从 " & LowerVersionCode & " 升高到 " & VersionCode)
                 End If
 #else
-        LowerVersionCode = Conversions.ToInteger(ModBase.Setup.Get("SystemHighestAlphaVersionReg"));
+        LowerVersionCode = Conversions.ToInteger(States.System.LastAlphaVersion);
         if (LowerVersionCode < ModBase.VersionCode)
         {
-            ModBase.Setup.Set("SystemHighestAlphaVersionReg", ModBase.VersionCode);
+            States.System.LastAlphaVersion = ModBase.VersionCode;
             ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + ModBase.VersionCode);
         }
 #endif
 
         // 被移除的窗口设置选项
         if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentWindowType"), 5, false)))
-            ModBase.Setup.Set("LaunchArgumentWindowType", 1);
+                Operators.ConditionalCompareObjectEqual(Config.Launch.GameWindowMode, 5, false)))
+            Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
         // 修改主题设置项名称
         if (LowerVersionCode <= 207)
         {
             var UnlockedTheme = new List<string> { "2" };
-            UnlockedTheme.AddRange(new List<string>(ModBase.Setup.Get("UiLauncherThemeHide").ToString().Split("|")));
-            UnlockedTheme.AddRange(new List<string>(ModBase.Setup.Get("UiLauncherThemeHide2").ToString().Split("|")));
-            ModBase.Setup.Set("UiLauncherThemeHide2", UnlockedTheme.Distinct().ToList().Join("|"));
+            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV1.ToString().Split("|")));
+            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|")));
+            States.UI.ThemeHiddenV2 = UnlockedTheme.Distinct().ToList().Join("|");
         }
 
         // 重置欧皇彩
-        if (LastVersionCode <= 115 && ModBase.Setup.Get("UiLauncherThemeHide2").ToString().Split("|").Contains("13"))
+        if (LastVersionCode <= 115 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("13"))
         {
-            var UnlockedTheme = new List<string>(ModBase.Setup.Get("UiLauncherThemeHide2").ToString().Split("|"));
+            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
             UnlockedTheme.Remove("13");
-            ModBase.Setup.Set("UiLauncherThemeHide2", UnlockedTheme.Join("|"));
+            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
             ModMain.MyMsgBox("由于新版 PCL 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" + Constants.vbCrLf + "多谢各位的理解啦！", "重新解锁提醒");
         }
 
         // 重置滑稽彩
-        if (LastVersionCode <= 152 && ModBase.Setup.Get("UiLauncherThemeHide2").ToString().Split("|").Contains("12"))
+        if (LastVersionCode <= 152 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("12"))
         {
-            var UnlockedTheme = new List<string>(ModBase.Setup.Get("UiLauncherThemeHide2").ToString().Split("|"));
+            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
             UnlockedTheme.Remove("12");
-            ModBase.Setup.Set("UiLauncherThemeHide2", UnlockedTheme.Join("|"));
+            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
             ModMain.MyMsgBox("由于新版 PCL 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" + Constants.vbCrLf + "多谢各位的理解啦！", "重新解锁提醒");
         }
 
@@ -419,8 +419,7 @@ public partial class FormMain
         // Mod 命名设置迁移
         if (!ModBase.Setup.IsUnset("ToolDownloadTranslate") && ModBase.Setup.IsUnset("ToolDownloadTranslateV2"))
         {
-            ModBase.Setup.Set("ToolDownloadTranslateV2",
-                Operators.AddObject(ModBase.Setup.Get("ToolDownloadTranslate"), 1));
+            Config.Download.Comp.NameFormatV2 += 1;
             ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");
         }
 
@@ -437,7 +436,7 @@ public partial class FormMain
     private void DowngradeSub(int LastVersionCode)
     {
         ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 降低到 " + ModBase.VersionCode);
-        ModBase.Setup.Set("SystemLastVersionReg", ModBase.VersionCode);
+        States.System.LastVersion = ModBase.VersionCode;
     }
 
     #endregion
@@ -537,7 +536,7 @@ public partial class FormMain
     protected override void OnSourceInitialized(EventArgs e)
     {
         // 硬件加速
-        if (Conversions.ToBoolean(ModBase.Setup.Get("SystemDisableHardwareAcceleration")))
+        if (Conversions.ToBoolean(Config.System.DisableHardwareAcceleration))
         {
             var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
             if (hwndSource is not null) hwndSource.CompositionTarget.RenderMode = RenderMode.SoftwareOnly;
@@ -865,7 +864,7 @@ public partial class FormMain
     {
         try
         {
-            if (Conversions.ToBoolean(ModBase.Setup.Get("ToolDownloadClipboard")))
+            if (Conversions.ToBoolean(Config.Download.Comp.ReadClipboard))
                 ModComp.CompClipboard.GetClipboardResource();
             if (PageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionMod)
             {
@@ -1077,7 +1076,7 @@ public partial class FormMain
                 ModBase.CopyFile(FilePath, ModBase.ExePath + @"PCL\Custom.xaml");
                 ModBase.RunInUi(() =>
                 {
-                    ModBase.Setup.Set("UiCustomType", 1);
+                    Config.Preference.Homepage.Type = 1;
                     ModMain.FrmLaunchRight.ForceRefresh();
                     ModMain.Hint("已加载主页自定义文件！", ModMain.HintType.Finish);
                 });
@@ -1276,7 +1275,7 @@ public partial class FormMain
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
-                if (Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("UiDarkMode"), 2, false) &
+                if (Operators.ConditionalCompareObjectEqual(Config.Preference.Theme.ColorMode, 2, false) &
                     (ModSecret.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }

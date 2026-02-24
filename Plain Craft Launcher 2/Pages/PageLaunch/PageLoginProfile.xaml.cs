@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -53,7 +54,7 @@ public partial class PageLoginProfile
 
         if (!ModProfile.ProfileList.Any())
         {
-            ModBase.Setup.Set("HintProfileSelect", true);
+            States.Hint.LaunchWithProfile = true;
             HintCreate.Visibility = Visibility.Visible;
         }
         else

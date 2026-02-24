@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -501,7 +501,7 @@ public partial class PageSelectRight
         {
             // 正常实例
             ModMinecraft.McInstanceSelected = instance;
-            ModBase.Setup.Set("LaunchInstanceSelect", ModMinecraft.McInstanceSelected.Name);
+            States.Game.SelectedInstance = ModMinecraft.McInstanceSelected.Name;
             ModMain.FrmMain.PageBack();
         }
         else

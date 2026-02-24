@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -259,7 +259,7 @@ public partial class PageInstanceOverall
             // 改为隐藏
             try
             {
-                if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("HintHide")))
+                if (Conversions.ToBoolean(!(bool)States.Hint.HideGameInstance))
                 {
                     if (ModMain.MyMsgBox(
                             "确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。" + Constants.vbCrLf +
@@ -269,7 +269,7 @@ public partial class PageInstanceOverall
                         return;
                     }
 
-                    ModBase.Setup.Set("HintHide", true);
+                    States.Hint.HideGameInstance = true;
                 }
 
                 Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
@@ -751,7 +751,7 @@ public partial class PageInstanceOverall
                                             ".jar");
                     Core.AddToCore(UserInput);
                     ModMain.Hint("修补游戏核心成功", ModMain.HintType.Finish);
-                    ModBase.Setup.Set("VersionAdvanceAssetsV2", true, instance: PageInstanceLeft.Instance);
+                    Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance] = true;
                 });
                 break;
             }

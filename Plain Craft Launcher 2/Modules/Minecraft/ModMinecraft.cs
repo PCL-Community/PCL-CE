@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -256,7 +256,7 @@ public static class ModMinecraft
             #region 读取自定义（Custom）文件夹，可能没有结果
 
             // 格式：TMZ 12>C://xxx/xx/|Test>D://xxx/xx/|名称>路径
-            foreach (string folder in (IEnumerable)((dynamic)ModBase.Setup.Get("LaunchFolders")).Split("|"))
+            foreach (string folder in (IEnumerable)((dynamic)States.Game.Folders).Split("|"))
             {
                 if (string.IsNullOrEmpty(folder))
                     continue;
@@ -340,12 +340,12 @@ public static class ModMinecraft
             #region 读取自定义文件夹情况并写入设置
 
             // 将自定义文件夹情况同步到设置
-            var Config = new List<string>();
+            var config = new List<string>();
             foreach (var Folder in cacheMcFolderList)
-                Config.Add(Folder.Name + ">" + Folder.Location);
-            if (!Config.Any())
-                Config.Add(""); // 防止 0 元素 Join 返回 Nothing
-            ModBase.Setup.Set("LaunchFolders", Config.Join("|"));
+                config.Add(Folder.Name + ">" + Folder.Location);
+            if (!config.Any())
+                config.Add(""); // 防止 0 元素 Join 返回 Nothing
+            States.Game.Folders = config.Join("|");
 
             #endregion
 
@@ -358,7 +358,7 @@ public static class ModMinecraft
             }
 
             foreach (var Folder in cacheMcFolderList) McFolderLauncherProfilesJsonCreate(Folder.Location);
-            if (Conversions.ToBoolean(ModBase.Setup.Get("SystemDebugDelay")))
+            if (Conversions.ToBoolean(Config.Debug.AddRandomDelay))
                 Thread.Sleep(RandomUtils.NextInt(200, 2000));
 
             // 回设
@@ -528,8 +528,8 @@ public static class ModMinecraft
                         var IsRelease = State != McInstanceState.Fool && State != McInstanceState.Old &&
                                         State != McInstanceState.Snapshot;
                         ModBase.Log(
-                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{ModBase.Setup.Get("LaunchArgumentIndieV2")}）判断，State {ModBase.GetStringFromEnum(State)}，IsRelease {IsRelease}，Modable {Modable}");
-                        switch (ModBase.Setup.Get("LaunchArgumentIndieV2"))
+                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {ModBase.GetStringFromEnum(State)}，IsRelease {IsRelease}，Modable {Modable}");
+                        switch (Config.Launch.IndieSolutionV2)
                         {
                             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 关闭
                             {
@@ -558,7 +558,7 @@ public static class ModMinecraft
                     }
 
                     ;
-                    ModBase.Setup.Set("VersionArgumentIndieV2", ShouldBeIndie(), instance: this);
+                    Config.Instance.IndieV2[this] = ShouldBeIndie();
                 }
 
                 return Conversions.ToBoolean(ModBase.Setup.Get("VersionArgumentIndieV2", this))
@@ -1903,7 +1903,7 @@ public static class ModMinecraft
             {
                 ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
                 McInstanceSelected = null;
-                ModBase.Setup.Set("LaunchInstanceSelect", "");
+                States.Game.SelectedInstance = "";
                 ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
                 return;
             }
@@ -1948,7 +1948,7 @@ public static class ModMinecraft
                     if ((instance.Name ?? "") == savedSelection && instance.State != McInstanceState.Error)
                     {
                         McInstanceSelected = instance;
-                        ModBase.Setup.Set("LaunchInstanceSelect", McInstanceSelected.Name);
+                        States.Game.SelectedInstance = McInstanceSelected.Name;
                         ModBase.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McInstanceSelected.PathInstance);
                         return;
                     }
@@ -1961,18 +1961,18 @@ public static class ModMinecraft
             if (firstInstance != null)
             {
                 McInstanceSelected = firstInstance;
-                ModBase.Setup.Set("LaunchInstanceSelect", McInstanceSelected.Name);
+                States.Game.SelectedInstance = McInstanceSelected.Name;
                 ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + McInstanceSelected.PathInstance);
             }
             else
             {
                 McInstanceSelected = null;
-                ModBase.Setup.Set("LaunchInstanceSelect", "");
+                States.Game.SelectedInstance = "";
                 ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
             }
 
             // 调试延迟
-            if (ModBase.Setup.Get("SystemDebugDelay") is bool debugDelay && debugDelay)
+            if (Config.Debug.AddRandomDelay is bool debugDelay && debugDelay)
                 Thread.Sleep(RandomUtils.NextInt(200, 3000));
         }
         catch (ThreadInterruptedException)
@@ -3067,7 +3067,7 @@ public static class ModMinecraft
         if (McInstanceSelected is not null)
             renderer = Conversions.ToInteger(
                 Operators.SubtractObject(ModBase.Setup.Get("VersionAdvanceRenderer", McInstanceSelected), 1));
-        if (renderer == -1) renderer = Conversions.ToInteger(ModBase.Setup.Get("LaunchAdvanceRenderer"));
+        if (renderer == -1) renderer = Conversions.ToInteger(Config.Launch.Renderer);
 
         if (renderer != 0 && !File.Exists(mesaLoaderWindowsTargetFile))
         {

@@ -1,10 +1,11 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -30,7 +31,7 @@ public static partial class ModAnimation
         AniFPSTimer = AniLastTick;
         AniRunning = true; // 标记动画执行开始
 
-        var MinFrameGap = 1000d / ((ModBase.Val(ModBase.Setup.Get("UiAniFPS")) + 1d) * 2d);
+        var MinFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
 
 
         ModBase.RunInNewThread(() =>

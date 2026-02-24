@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -134,9 +134,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", ModMinecraft.McInstanceSelected));
         DataList.Insert(0,
             Conversions.ToString(string.IsNullOrEmpty(DataJvmCustom)
-                ? ModBase.Setup.Get("LaunchAdvanceJvm")
+                ? Config.Launch.JvmArgs
                 : DataJvmCustom)); // 可变 JVM 参数
-        switch (ModBase.Setup.Get("LaunchPreferredIpStack"))
+        switch (Config.Launch.PreferredIpStack)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
             {
@@ -344,7 +344,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
             #End If
             */ // 主页面背景
-            if (Conversions.ToBoolean(ModBase.Setup.Get("UiBackgroundColorful")))
+            if (Conversions.ToBoolean(Config.Preference.Background.BackgroundColorful))
             {
                 LinearGradientBrush brush = new()
                 {
@@ -642,8 +642,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     private static void LoadOnlineInfo()
     {
-        var updateDesire = ModBase.Setup.Get("SystemSystemUpdate");
-        var AnnouncementDesire = ModBase.Setup.Get("SystemSystemActivity");
+        var updateDesire = Config.Update.UpdateMode;
+        var AnnouncementDesire = States.System.AnnounceSolution;
         switch (updateDesire)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 静默更新
@@ -675,7 +675,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
         if (Conversions.ToBoolean(Operators.ConditionalCompareObjectLessEqual(AnnouncementDesire, 1, false)))
         {
-            var ShowedAnnounced = ModBase.Setup.Get("SystemSystemAnnouncement").ToString()
+            var ShowedAnnounced = States.Hint.ShowedAnnouncements.ToString()
                 .Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
             var ShowAnnounce = RemoteServer.GetAnnouncementList().content.Where(x => !ShowedAnnounced.Contains(x.id))
                 .ToList();
@@ -692,7 +692,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             });
             ShowedAnnounced.AddRange(ShowAnnounce.Select(x => x.id).ToList());
             ShowedAnnounced = ShowedAnnounced.Distinct().ToList();
-            ModBase.Setup.Set("SystemSystemAnnouncement", ShowedAnnounced.Join("|"));
+            States.Hint.ShowedAnnouncements = ShowedAnnounced.Join("|");
         }
     }
 

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -68,7 +68,7 @@ public partial class PageSetupLaunch
                     Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
                         ModBase.Setup.Load("LaunchRamType")))))
                 .Checked = true;
-            SliderRamCustom.Value = Conversions.ToInteger(ModBase.Setup.Get("LaunchRamCustom"));
+            SliderRamCustom.Value = Conversions.ToInteger(Config.Launch.CustomMemorySize);
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Launch.Renderer;
@@ -399,7 +399,7 @@ public partial class PageSetupLaunch
 
         var RamGive = default(double);
         if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchRamType"), 0, false)))
+                Operators.ConditionalCompareObjectEqual(Config.Launch.MemoryAllocationMode, 0, false)))
         {
             // 自动配置
             var RamAvailable =
@@ -471,7 +471,7 @@ public partial class PageSetupLaunch
         else
         {
             // 手动配置
-            var Value = Conversions.ToInteger(ModBase.Setup.Get("LaunchRamCustom"));
+            var Value = Conversions.ToInteger(Config.Launch.CustomMemorySize);
             if (Value <= 12)
                 RamGive = Value * 0.1d + 0.3d;
             else if (Value <= 25)
@@ -577,7 +577,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (!Conversions.ToBoolean(ModBase.Setup.Get("HintRenderer")) && ComboAdvanceRenderer.SelectedIndex != 0)
+        if (!Conversions.ToBoolean(States.Hint.Renderer) && ComboAdvanceRenderer.SelectedIndex != 0)
         {
             if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + Constants.vbCrLf + "你确定要继续修改吗？", "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
@@ -587,7 +587,7 @@ public partial class PageSetupLaunch
             else
             {
                 ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
-                ModBase.Setup.Set("HintRenderer", true);
+                States.Hint.Renderer = true;
             }
         }
         else

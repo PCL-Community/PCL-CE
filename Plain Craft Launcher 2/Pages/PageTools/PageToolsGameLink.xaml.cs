@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -570,7 +570,7 @@ public partial class PageToolsGameLink
                 var expireTime = Convert.ToDateTime(States.Link.NaidRefreshExpireTime);
                 if (expireTime.CompareTo(DateTime.Now) < 0)
                 {
-                    ModBase.Setup.Set("LinkNaidRefreshToken", "");
+                    States.Link.NaidRefreshToken = "";
                     ModMain.Hint("Natayark ID token expired, please login again", ModMain.HintType.Critical);
                     return;
                 }

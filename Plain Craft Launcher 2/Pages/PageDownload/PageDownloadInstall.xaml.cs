@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -211,7 +211,7 @@ public partial class PageDownloadInstall
 
         if (!States.Hint.InstallPageBack)
         {
-            ModBase.Setup.Set("HintInstallBack", true);
+            States.Hint.InstallPageBack = true;
             ModMain.Hint("点击 Minecraft 项即可返回游戏主版本选择页面！");
         }
 
@@ -2603,9 +2603,9 @@ public partial class PageDownloadInstall
         // 确认版本隔离
         if (SelectedLoaderName is not null &&
             (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentIndieV2"), 0, false)) ||
+                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 0, false)) ||
              Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentIndieV2"), 2, false))))
+                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 2, false))))
             if (ModMain.MyMsgBox(
                     "你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。" + Constants.vbCrLf + "因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。" +
                     Constants.vbCrLf + "推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！", "版本隔离提示", "取消下载", "继续") == 1)

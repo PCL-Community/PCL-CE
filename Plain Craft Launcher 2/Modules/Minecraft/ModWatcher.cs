@@ -1,10 +1,11 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.Logging;
 
 namespace PCL;
@@ -54,12 +55,12 @@ public static class ModWatcher
         HasRunningMinecraft = false;
         ModMain.FrmMain.BtnExtraShutdown.ShowRefresh();
         // 音乐播放
-        if (Conversions.ToBoolean(ModBase.Setup.Get("UiMusicStop")))
+        if (Conversions.ToBoolean(Config.Preference.Music.StopInGame))
             ModBase.RunInUi(() =>
             {
                 if (ModMusic.MusicResume()) ModBase.Log("[Music] 已根据设置，在结束后开始音乐播放");
             });
-        else if (Conversions.ToBoolean(ModBase.Setup.Get("UiMusicStart")))
+        else if (Conversions.ToBoolean(Config.Preference.Music.StartInGame))
             ModBase.RunInUi(() =>
             {
                 if (ModMusic.MusicPause()) ModBase.Log("[Music] 已根据设置，在结束后暂停音乐播放");
@@ -68,7 +69,7 @@ public static class ModWatcher
         ModVideoBack.IsGaming = false;
         ModVideoBack.VideoPlay();
         // 启动器可见性
-        switch (ModBase.Setup.Get("LaunchArgumentVisible"))
+        switch (Config.Launch.LauncherVisibility)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 2, false):
             {
@@ -593,7 +594,7 @@ public static class ModWatcher
                     IsWindowFinished = true;
                     // 最大化
                     if (Conversions.ToBoolean(
-                            Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentWindowType"), 4,
+                            Operators.ConditionalCompareObjectEqual(Config.Launch.GameWindowMode, 4,
                                 false)))
                         // 如果最大化导致屏幕渲染大小不对，那是 MC 的 Bug，不是我的 Bug
                         // ……虽然我很想这样说，但总有人反馈，算了

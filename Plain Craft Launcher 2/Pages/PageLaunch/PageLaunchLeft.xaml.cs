@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -77,7 +77,7 @@ public partial class PageLaunchLeft
             if (PackInstallPath is not null)
             {
                 ModBase.Log("[Launch] 需自动安装整合包：" + PackInstallPath, ModBase.LogLevel.Debug);
-                ModBase.Setup.Set("LaunchFolderSelect", @"$.minecraft\");
+                States.Game.SelectedFolder = @"$.minecraft\";
                 if (!Directory.Exists(ModBase.ExePath + @".minecraft\"))
                 {
                     Directory.CreateDirectory(ModBase.ExePath + @".minecraft\");
@@ -92,7 +92,7 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 文件夹存在
             ModMinecraft.McFolderSelected =
-                ModBase.Setup.Get("LaunchFolderSelect").ToString().Replace("$", ModBase.ExePath);
+                States.Game.SelectedFolder.ToString().Replace("$", ModBase.ExePath);
             if (string.IsNullOrEmpty(ModMinecraft.McFolderSelected) || !Directory.Exists(ModMinecraft.McFolderSelected))
             {
                 // 无效的文件夹
@@ -102,12 +102,11 @@ public partial class PageLaunchLeft
                     ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModMinecraft.McFolderSelected,
                         ModBase.LogLevel.Debug);
                 ModMinecraft.McFolderListLoader.WaitForExit(IsForceRestart: true);
-                ModBase.Setup.Set("LaunchFolderSelect",
-                    ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$"));
+                States.Game.SelectedFolder = ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$");
             }
 
             ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.McFolderSelected);
-            if (Conversions.ToBoolean(ModBase.Setup.Get("SystemDebugDelay")))
+            if (Conversions.ToBoolean(Config.Debug.AddRandomDelay))
                 Thread.Sleep(RandomUtils.NextInt(500, 3000));
             // 自动整合包安装
             if (PackInstallPath is not null)
@@ -133,7 +132,7 @@ public partial class PageLaunchLeft
                 }
 
             // 确认 Minecraft 版本实例
-            var Selection = Conversions.ToString(ModBase.Setup.Get("LaunchInstanceSelect"));
+            var Selection = Conversions.ToString(States.Game.SelectedInstance);
             var Instance = Selection == "" ? null : new ModMinecraft.McInstance(Selection);
             if (Instance is null || !Instance.PathInstance.StartsWithF(ModMinecraft.McFolderSelected) ||
                 !Instance.Check())
@@ -148,13 +147,13 @@ public partial class PageLaunchLeft
                     ModMinecraft.McInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
                 {
                     Instance = null;
-                    ModBase.Setup.Set("LaunchInstanceSelect", "");
+                    States.Game.SelectedInstance = "";
                     ModBase.Log("[Launch] 无可用 Minecraft 实例");
                 }
                 else
                 {
                     Instance = ModMinecraft.McInstanceList.First().Value[0];
-                    ModBase.Setup.Set("LaunchInstanceSelect", Instance.Name);
+                    States.Game.SelectedInstance = Instance.Name;
                     ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + Instance.PathInstance);
                 }
             }
@@ -409,7 +408,7 @@ public partial class PageLaunchLeft
             }
 
             LabLaunchingDownload.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
-            var ShouldShowHint = Conversions.ToBoolean(ModBase.Setup.Get("UiShowLaunchingHint"));
+            var ShouldShowHint = Conversions.ToBoolean(Config.Preference.ShowLaunchingHint);
             // 进度改变动画
             var AnimList = new List<ModAnimation.AniData>
             {
@@ -573,7 +572,7 @@ public partial class PageLaunchLeft
         ModLaunch.McLaunchProcess = null;
         ModLaunch.McLaunchWatcher = null;
 
-        var ShouldShowHint = Conversions.ToBoolean(ModBase.Setup.Get("UiShowLaunchingHint"));
+        var ShouldShowHint = Conversions.ToBoolean(Config.Preference.ShowLaunchingHint);
         if (ShouldShowHint)
             LabLaunchingHint.Text = GetRandomHint();
         else

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -3467,7 +3467,7 @@ public static class ModComp
             var ChineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
                 .Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞")
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
-            switch (ModBase.Setup.Get("ToolDownloadTranslateV2"))
+            switch (Config.Download.Comp.NameFormatV2)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
                 {

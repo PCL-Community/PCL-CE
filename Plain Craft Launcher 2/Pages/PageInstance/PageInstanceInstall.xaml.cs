@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -84,9 +85,9 @@ public partial class PageInstanceInstall
         // 确认版本隔离
         if (SelectedLoaderName is not null &&
             (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentIndieV2"), 0, false)) ||
+                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 0, false)) ||
              Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LaunchArgumentIndieV2"), 2, false))))
+                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 2, false))))
             if (ModMain.MyMsgBox(
                     "你尚未开启版本隔离，这会导致多个 MC 共用同一个 Mod 文件夹。" + Constants.vbCrLf +
                     "因此在切换 MC 实例时，MC 会因为读取到与当前实例不符的 Mod 而崩溃。" + Constants.vbCrLf +
@@ -228,9 +229,9 @@ public partial class PageInstanceInstall
         CardLegacyFabric.IsSwapped = true;
         CardLegacyFabricApi.IsSwapped = true;
 
-        if (!(bool)ModBase.Setup.Get("HintInstallBack"))
+        if (!(bool)States.Hint.InstallPageBack)
         {
-            ModBase.Setup.Set("HintInstallBack", true);
+            States.Hint.InstallPageBack = true;
             ModMain.Hint("点击 Minecraft 项即可返回游戏主版本选择页面！");
         }
 

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -108,35 +108,35 @@ public partial class PageSetupUI
         try
         {
             // 启动器
-            SliderLauncherOpacity.Value = Conversions.ToInteger(ModBase.Setup.Get("UiLauncherTransparent"));
-            SliderLauncherHue.Value = Conversions.ToInteger(ModBase.Setup.Get("UiLauncherHue"));
-            SliderLauncherSat.Value = Conversions.ToInteger(ModBase.Setup.Get("UiLauncherSat"));
-            SliderLauncherDelta.Value = Conversions.ToInteger(ModBase.Setup.Get("UiLauncherDelta"));
-            SliderLauncherLight.Value = Conversions.ToInteger(ModBase.Setup.Get("UiLauncherLight"));
+            SliderLauncherOpacity.Value = Conversions.ToInteger(Config.Preference.Theme.WindowOpacity);
+            SliderLauncherHue.Value = Conversions.ToInteger(Config.Preference.Theme.WindowHue);
+            SliderLauncherSat.Value = Conversions.ToInteger(Config.Preference.Theme.WindowSat);
+            SliderLauncherDelta.Value = Conversions.ToInteger(Config.Preference.Theme.WindowDelta);
+            SliderLauncherLight.Value = Conversions.ToInteger(Config.Preference.Theme.WindowLight);
             // If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
-            CheckLauncherLogo.Checked = (bool?)ModBase.Setup.Get("UiLauncherLogo");
-            ComboDarkMode.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiDarkMode"));
-            ComboDarkColor.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiDarkColor"));
-            ComboLightColor.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiLightColor"));
-            CheckShowLaunchingHint.Checked = (bool?)ModBase.Setup.Get("UiShowLaunchingHint");
+            CheckLauncherLogo.Checked = (bool?)Config.Preference.ShowStartupLogo;
+            ComboDarkMode.SelectedIndex = Conversions.ToInteger(Config.Preference.Theme.ColorMode);
+            ComboDarkColor.SelectedIndex = Conversions.ToInteger(Config.Preference.Theme.DarkColor);
+            ComboLightColor.SelectedIndex = Conversions.ToInteger(Config.Preference.Theme.LightColor);
+            CheckShowLaunchingHint.Checked = (bool?)Config.Preference.ShowLaunchingHint;
 
             // 字体设置
-            ComboUiFont.SelectedFontTag = Conversions.ToString(ModBase.Setup.Get("UiFont"));
-            ComboUiMotdFont.SelectedFontTag = Conversions.ToString(ModBase.Setup.Get("UiMotdFont"));
+            ComboUiFont.SelectedFontTag = Conversions.ToString(Config.Preference.Font);
+            ComboUiMotdFont.SelectedFontTag = Conversions.ToString(Config.Preference.MotdFont);
 
-            CheckBlur.Checked = (bool?)ModBase.Setup.Get("UiBlur");
-            SliderBlurValue.Value = Conversions.ToInteger(ModBase.Setup.Get("UiBlurValue"));
-            SliderBlurSamplingRate.Value = Conversions.ToInteger(ModBase.Setup.Get("UiBlurSamplingRate"));
-            ComboBlurType.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiBlurType"));
+            CheckBlur.Checked = (bool?)Config.Preference.Blur.IsEnabled;
+            SliderBlurValue.Value = Conversions.ToInteger(Config.Preference.Blur.Radius);
+            SliderBlurSamplingRate.Value = Conversions.ToInteger(Config.Preference.Blur.SamplingRate);
+            ComboBlurType.SelectedIndex = Conversions.ToInteger(Config.Preference.Blur.KernelType);
             PanBlurValue.Visibility = CheckBlur.Checked == true ? Visibility.Visible : Visibility.Collapsed;
-            CheckLockWindowSize.Checked = (bool?)ModBase.Setup.Get("UiLockWindowSize");
+            CheckLockWindowSize.Checked = (bool?)Config.Preference.LockWindowSize;
 
             // 背景图片
-            SliderBackgroundOpacity.Value = Conversions.ToInteger(ModBase.Setup.Get("UiBackgroundOpacity"));
-            SliderBackgroundBlur.Value = Conversions.ToInteger(ModBase.Setup.Get("UiBackgroundBlur"));
-            ComboBackgroundSuit.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiBackgroundSuit"));
-            CheckBackgroundColorful.Checked = (bool?)ModBase.Setup.Get("UiBackgroundColorful");
-            var autoPauseVideo = ModBase.Setup.Get("UiAutoPauseVideo");
+            SliderBackgroundOpacity.Value = Conversions.ToInteger(Config.Preference.Background.WallpaperOpacity);
+            SliderBackgroundBlur.Value = Conversions.ToInteger(Config.Preference.Background.WallpaperBlurRadius);
+            ComboBackgroundSuit.SelectedIndex = Conversions.ToInteger(Config.Preference.Background.WallpaperSuitMode);
+            CheckBackgroundColorful.Checked = (bool?)Config.Preference.Background.BackgroundColorful;
+            var autoPauseVideo = Config.Preference.Background.AutoPauseVideo;
             CheckAutoPauseVideo.Checked = (bool?)autoPauseVideo;
             if (ModVideoBack.IsGaming)
                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(autoPauseVideo, true, false)))
@@ -147,27 +147,27 @@ public partial class PageSetupUI
             // 标题栏
             ((MyRadioBox)FindName(
                     Conversions.ToString(Operators.ConcatenateObject("RadioLogoType",
-                        ModBase.Setup.Get("UiLogoType")))))
+                        Config.Preference.WindowTitleType))))
                 .Checked = true;
             CheckLogoLeft.Visibility = RadioLogoType0.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoText.Visibility = RadioLogoType2.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoChange.Visibility = RadioLogoType3.Checked ? Visibility.Visible : Visibility.Collapsed;
-            TextLogoText.Text = Conversions.ToString(ModBase.Setup.Get("UiLogoText"));
-            CheckLogoLeft.Checked = (bool?)ModBase.Setup.Get("UiLogoLeft");
+            TextLogoText.Text = Conversions.ToString(Config.Preference.LogoCustomText);
+            CheckLogoLeft.Checked = (bool?)Config.Preference.TopBarLeftAlign;
 
             // 背景音乐
-            CheckMusicRandom.Checked = (bool?)ModBase.Setup.Get("UiMusicRandom");
-            CheckMusicAuto.Checked = (bool?)ModBase.Setup.Get("UiMusicAuto");
-            CheckMusicStop.Checked = (bool?)ModBase.Setup.Get("UiMusicStop");
-            CheckMusicStart.Checked = (bool?)ModBase.Setup.Get("UiMusicStart");
-            CheckMusicSMTC.Checked = (bool?)ModBase.Setup.Get("UiMusicSMTC");
-            SliderMusicVolume.Value = Conversions.ToInteger(ModBase.Setup.Get("UiMusicVolume"));
+            CheckMusicRandom.Checked = (bool?)Config.Preference.Music.ShufflePlayback;
+            CheckMusicAuto.Checked = (bool?)Config.Preference.Music.StartOnStartup;
+            CheckMusicStop.Checked = (bool?)Config.Preference.Music.StopInGame;
+            CheckMusicStart.Checked = (bool?)Config.Preference.Music.StartInGame;
+            CheckMusicSMTC.Checked = (bool?)Config.Preference.Music.EnableSMTC;
+            SliderMusicVolume.Value = Conversions.ToInteger(Config.Preference.Music.Volume);
             MusicRefreshUI();
 
             // 主页
             try
             {
-                ComboCustomPreset.SelectedIndex = Conversions.ToInteger(ModBase.Setup.Get("UiCustomPreset"));
+                ComboCustomPreset.SelectedIndex = Conversions.ToInteger(Config.Preference.Homepage.SelectedPreset);
             }
             catch
             {
@@ -176,7 +176,7 @@ public partial class PageSetupUI
 
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioCustomType",
                 ModBase.Setup.Load("UiCustomType", true))))).Checked = true;
-            TextCustomNet.Text = Conversions.ToString(ModBase.Setup.Get("UiCustomNet"));
+            TextCustomNet.Text = Conversions.ToString(Config.Preference.Homepage.CustomUrl);
 
             // 功能隐藏
             // 获取配置组引用
@@ -287,12 +287,12 @@ public partial class PageSetupUI
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set("UiFont", ComboUiFont.SelectedFontTag);
+        if (ModAnimation.AniControlEnabled == 0) Config.Preference.Font = ComboUiFont.SelectedFontTag;
     }
 
     private void ComboMotdFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set("UiMotdFont", ComboUiMotdFont.SelectedFontTag);
+        if (ModAnimation.AniControlEnabled == 0) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
     }
 
     // 背景图片
@@ -384,7 +384,7 @@ public partial class PageSetupUI
             ModVideoBack.GamingStateChanged += ModVideoBack.OnGamingStateChanged;
             ModVideoBack.ForcePlayChanged += ModVideoBack.OnForcePlayChanged;
             if (Conversions.ToBoolean(
-                    Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("UiAutoPauseVideo"), false, false)))
+                    Operators.ConditionalCompareObjectEqual(Config.Preference.Background.AutoPauseVideo, false, false)))
                 ModVideoBack.ForcePlay = true;
             // 加载
             if (Pic.Count == 0)

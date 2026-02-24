@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -8,6 +8,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.IO.Net;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
@@ -54,9 +55,9 @@ public static class ModProfile
         var profileCount = 0;
         // 正版档案
         if (Conversions.ToBoolean(
-                !Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("LoginMsJson"), "{}", false)))
+                !Operators.ConditionalCompareObjectEqual(States.Game.LegacyProfile.LoginMsJson, "{}", false)))
         {
-            var oldMsJson = (JObject)ModBase.GetJson(Conversions.ToString(ModBase.Setup.Get("LoginMsJson")));
+            var oldMsJson = (JObject)ModBase.GetJson(Conversions.ToString(States.Game.LegacyProfile.LoginMsJson));
             ProfileLog($"找到 {oldMsJson.Count} 个旧版正版档案信息");
             foreach (var Profile in oldMsJson)
             {
@@ -79,9 +80,9 @@ public static class ModProfile
         }
 
         // 离线档案
-        if (!string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("LoginLegacyName"))))
+        if (!string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.LoginLegacyName)))
         {
-            var oldOfflineInfo = (string[])((dynamic)ModBase.Setup.Get("LoginLegacyName")).Split("¨");
+            var oldOfflineInfo = (string[])((dynamic)States.Game.LegacyProfile.LoginLegacyName).Split("¨");
             ProfileLog($"找到 {oldOfflineInfo.Count()} 个旧版离线档案信息");
             foreach (var OfflineId in oldOfflineInfo)
             {
@@ -104,20 +105,20 @@ public static class ModProfile
         }
 
         // 第三方验证档案
-        if (!(string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("CacheAuthName"))) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("CacheAuthUuid"))) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("CacheAuthServerServer"))) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("CacheAuthUsername"))) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("CacheAuthPass")))))
+        if (!(string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthUserName)) ||
+              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthUuid)) ||
+              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthServerAddress)) ||
+              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthThirdPartyUserName)) ||
+              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthPassword))))
         {
             ProfileLog("找到旧版第三方验证档案信息");
             var newProfile = new McProfile
             {
-                Username = Conversions.ToString(ModBase.Setup.Get("CacheAuthName")),
-                Uuid = Conversions.ToString(ModBase.Setup.Get("CacheAuthUuid")),
-                Name = Conversions.ToString(ModBase.Setup.Get("CacheAuthUsername")),
-                Password = Conversions.ToString(ModBase.Setup.Get("CacheAuthPass")),
-                Server = Conversions.ToString(Operators.ConcatenateObject(ModBase.Setup.Get("CacheAuthServerServer"),
+                Username = Conversions.ToString(States.Game.LegacyProfile.AuthUserName),
+                Uuid = Conversions.ToString(States.Game.LegacyProfile.AuthUuid),
+                Name = Conversions.ToString(States.Game.LegacyProfile.AuthThirdPartyUserName),
+                Password = Conversions.ToString(States.Game.LegacyProfile.AuthPassword),
+                Server = Conversions.ToString(Operators.ConcatenateObject(States.Game.LegacyProfile.AuthServerAddress,
                     "/authserver")),
                 Type = ModLaunch.McLoginType.Auth
             };

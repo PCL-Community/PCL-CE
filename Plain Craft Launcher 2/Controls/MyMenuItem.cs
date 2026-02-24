@@ -1,8 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -37,7 +38,7 @@ public class MyMenuItem : MenuItem
         }
 
         ((ContextMenu)Parent).Opacity = Conversions.ToDouble(
-            Operators.AddObject(Operators.DivideObject(ModBase.Setup.Get("UiLauncherTransparent"), 1000), 0.4d));
+            Operators.AddObject(Operators.DivideObject(Config.Preference.Theme.WindowOpacity, 1000), 0.4d));
     }
 
     private void RefreshColor()

@@ -1,7 +1,8 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows.Shell;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -273,7 +274,7 @@ public static class ModLoader
                     return;
                 var OldState = _State;
                 if (Conversions.ToBoolean(value == ModBase.LoadState.Finished &&
-                                          (bool)ModBase.Setup.Get("SystemDebugDelay")))
+                                          (bool)Config.Debug.AddRandomDelay))
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 _State = value;
                 ModBase.Log("[Loader] 加载器 " + Name + " 状态改变：" + ModBase.GetStringFromEnum(value));

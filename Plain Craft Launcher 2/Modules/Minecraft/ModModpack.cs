@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -1598,7 +1598,7 @@ public static class ModModpack
                         {
                             JvmArgs = Conversions.ToString(JvmArgs +
                                                            Operators.ConcatenateObject(" ",
-                                                               ModBase.Setup.Get("LaunchAdvanceJvm")));
+                                                               Config.Launch.JvmArgs));
                             Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + JvmArgs);
                         }

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
@@ -222,12 +222,12 @@ public static class ModJava
         try
         {
             // 检查强制指定
-            var UserSetup = Conversions.ToString(ModBase.Setup.Get("LaunchArgumentJavaSelect"));
+            var UserSetup = Conversions.ToString(Config.Launch.SelectedJava);
             if (UserSetup.StartsWith("{")) // 旧版本 Json 格式
             {
                 var js = JToken.Parse(UserSetup);
                 UserSetup = $"{js["Path"]}java.exe";
-                ModBase.Setup.Set("LaunchArgumentJavaSelect", UserSetup);
+                Config.Launch.SelectedJava = UserSetup;
             }
 
             if (RelatedVersion is not null)
@@ -262,7 +262,7 @@ public static class ModJava
 
             if (!string.IsNullOrEmpty(UserSetup) && !File.Exists(UserSetup))
             {
-                ModBase.Setup.Set("LaunchArgumentJavaSelect", "");
+                Config.Launch.SelectedJava = "";
                 UserSetup = string.Empty;
             }
 
@@ -275,7 +275,7 @@ public static class ModJava
             ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
             if (RelatedVersion is not null)
                 ModBase.Setup.Reset("VersionArgumentJavaSelect", instance: RelatedVersion);
-            ModBase.Setup.Set("LaunchArgumentJavaSelect", "");
+            Config.Launch.SelectedJava = "";
         }
 
         return true;

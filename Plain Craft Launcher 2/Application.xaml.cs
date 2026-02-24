@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -148,7 +148,7 @@ public partial class Application
             ToolTipService.VerticalOffsetProperty.OverrideMetadata(typeof(DependencyObject),
                 new FrameworkPropertyMetadata(4.0d));
             // 设置初始窗口
-            if (Conversions.ToBoolean(ModBase.Setup.Get("UiLauncherLogo")))
+            if (Conversions.ToBoolean(Config.Preference.ShowStartupLogo))
             {
                 ModMain.FrmStart = new SplashScreen(@"Images\icon.ico");
                 ModMain.FrmStart.Show(false, true);

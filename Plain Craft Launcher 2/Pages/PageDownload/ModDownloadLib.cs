@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -680,7 +680,7 @@ pause";
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
         if (Conversions.ToBoolean(UseJavaWrapper &&
-                                  !(dynamic)ModBase.Setup.Get("LaunchAdvanceDisableJLW"))) // dynamic!
+                                  !(dynamic)Config.Launch.DisableJlw)) // dynamic!
             Arguments =
                 $"-Doolloo.jlw.tmpdir=\"{ModBase.PathPure.TrimEnd('\\')}\" -Duser.home=\"{BaseMcFolderHome.TrimEnd('\\')}\" -cp \"{Target}\" -jar \"{ModLaunch.ExtractJavaWrapper()}\" optifine.Installer";
         else
@@ -1590,7 +1590,7 @@ pause";
 
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
-        if (Conversions.ToBoolean(UseJavaWrapper && !(bool)ModBase.Setup.Get("LaunchAdvanceDisableJLW")))
+        if (Conversions.ToBoolean(UseJavaWrapper && !(bool)Config.Launch.DisableJlw))
             Arguments =
                 $@"-Doolloo.jlw.tmpdir=""{ModBase.PathPure.TrimEnd('\\')}"" -cp ""{ModBase.PathTemp}Cache\forge_installer.jar;{Target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{McFolder}";
         else
@@ -1939,7 +1939,7 @@ pause";
                     var Json2 = (JObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
-                    if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)ModBase.Setup.Get("ToolFixAuthlib")))
+                    if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib))
                         Json = JObject.Parse(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
@@ -3600,7 +3600,7 @@ pause";
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, ModBase.LoadState.Finished, false):
             {
-                if (Conversions.ToBoolean(ModBase.Setup.Get("ToolDownloadAutoSelectVersion")))
+                if (Conversions.ToBoolean(Config.Download.AutoSelectInstance))
                 {
                     string VersionName = ((dynamic)Loader).Name.ToString();
                     ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",

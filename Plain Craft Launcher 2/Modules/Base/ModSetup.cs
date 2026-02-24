@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Windows;
@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Utils.Exts;
@@ -367,7 +368,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmSetupUI.PanCustomNet.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.HintCustom.Visibility = Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustomWarn.Visibility =
-                    Conversions.ToBoolean(ModBase.Setup.Get("HintCustomWarn"))
+                    Conversions.ToBoolean(States.Hint.UntrustedHomepage)
                         ? Visibility.Collapsed
                         : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
@@ -383,7 +384,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmSetupUI.PanCustomNet.Visibility = Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Visibility = Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustomWarn.Visibility =
-                    Conversions.ToBoolean(ModBase.Setup.Get("HintCustomWarn"))
+                    Conversions.ToBoolean(States.Hint.UntrustedHomepage)
                         ? Visibility.Collapsed
                         : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
@@ -430,7 +431,7 @@ public class ModSetup : IConfigScope
     {
         ModMain.FrmSetupUI.PanBlurValue.Visibility = Value ? Visibility.Visible : Visibility.Collapsed;
         if (Value)
-            UiBlurValue(Conversions.ToInteger(ModBase.Setup.Get("UiBlurValue")));
+            UiBlurValue(Conversions.ToInteger(Config.Preference.Blur.Radius));
         else
             UiBlurValue(0);
     }
@@ -541,7 +542,7 @@ public class ModSetup : IConfigScope
     public void UiLogoLeft(bool Value)
     {
         ModMain.FrmMain.PanTitleMain.ColumnDefinitions[0].Width = new GridLength(
-            Value && Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("UiLogoType"), 0, false) ? 0 : 1,
+            Value && Operators.ConditionalCompareObjectEqual(Config.Preference.WindowTitleType, 0, false) ? 0 : 1,
             GridUnitType.Star);
     }
 
@@ -725,7 +726,7 @@ public class ModSetup : IConfigScope
     {
         if (!string.IsNullOrEmpty(value))
         {
-            var password = Conversions.ToString(ModBase.Setup.Get("SystemHttpProxyCustomPassword"));
+            var password = Conversions.ToString(Config.Network.HttpProxy.CustomPassword);
             HttpProxyManager.Instance.Credentials = new NetworkCredential(value, password);
         }
         else
@@ -736,7 +737,7 @@ public class ModSetup : IConfigScope
 
     public void SystemHttpProxyCustomPassword(string value)
     {
-        var username = Conversions.ToString(ModBase.Setup.Get("SystemHttpProxyCustomUsername"));
+        var username = Conversions.ToString(Config.Network.HttpProxy.CustomUsername);
         if (!string.IsNullOrEmpty(username))
             HttpProxyManager.Instance.Credentials = new NetworkCredential(username, value);
         else

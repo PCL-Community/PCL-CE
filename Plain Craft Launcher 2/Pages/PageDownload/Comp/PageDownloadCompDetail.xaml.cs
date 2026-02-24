@@ -1,10 +1,11 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.UI;
 using Control = System.Windows.Forms.Control;
 
@@ -783,7 +784,7 @@ public partial class PageDownloadCompDetail
         var supportedLoaders =
             new HashSet<ModComp.CompLoaderType>(Enum.GetValues(typeof(ModComp.CompLoaderType))
                 .Cast<ModComp.CompLoaderType>());
-        var ignoreQuilt = Conversions.ToBoolean(ModBase.Setup.Get("ToolDownloadIgnoreQuilt"));
+        var ignoreQuilt = Conversions.ToBoolean(Config.Download.Comp.IgnoreQuilt);
         var hasMultipleLoaders = _project.ModLoaders.Count > 1;
 
         // 2. 核心数据归类 (使用 Dictionary 配合 HashSet 去重)

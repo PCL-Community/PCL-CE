@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic.CompilerServices;
@@ -36,7 +36,7 @@ public static class ModLink
 
         if (LobbyInfoProvider.RequiresLogin)
         {
-            if (string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("LinkNaidRefreshToken"))))
+            if (string.IsNullOrWhiteSpace(Conversions.ToString(States.Link.NaidRefreshToken)))
             {
                 ModMain.Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
                 return false;
@@ -44,7 +44,7 @@ public static class ModLink
 
             try
             {
-                NatayarkProfileManager.GetNaidDataAsync((string)ModBase.Setup.Get("LinkNaidRefreshToken"), true)
+                NatayarkProfileManager.GetNaidDataAsync((string)States.Link.NaidRefreshToken, true)
                     .GetAwaiter().GetResult();
             }
             catch (Exception ex)
@@ -82,7 +82,7 @@ public static class ModLink
             }
         }
 
-        if (string.IsNullOrWhiteSpace(Conversions.ToString(ModBase.Setup.Get("LinkUsername"))) &&
+        if (string.IsNullOrWhiteSpace(Conversions.ToString(Config.Link.Username)) &&
             string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
             ModMain.Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);

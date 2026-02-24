@@ -1,8 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 
@@ -59,7 +60,7 @@ public partial class PageSetupJava
             {
                 if (J.IsEnabled)
                 {
-                    ModBase.Setup.Set("LaunchArgumentJavaSelect", J.Installation.JavaExePath);
+                    Config.Launch.SelectedJava = J.Installation.JavaExePath;
                 }
                 else
                 {
@@ -110,7 +111,7 @@ public partial class PageSetupJava
                 {
                     var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
                     if (target.IsEnabled && Operators.ConditionalCompareObjectEqual(
-                            ModBase.Setup.Get("LaunchArgumentJavaSelect"), target.Installation.JavaExePath, false))
+                            Config.Launch.SelectedJava, target.Installation.JavaExePath, false))
                     {
                         ModMain.Hint("请先取消选择此 Java 作为默认 Java 后再禁用");
                         return;
@@ -138,9 +139,9 @@ public partial class PageSetupJava
             Title = "自动选择",
             Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
         };
-        ItemAuto.Check += (sender, e) => ModBase.Setup.Set("LaunchArgumentJavaSelect", "");
+        ItemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(ItemAuto);
-        var CurrentSetJava = ModBase.Setup.Get("LaunchArgumentJavaSelect");
+        var CurrentSetJava = Config.Launch.SelectedJava;
         foreach (var J in ModJava.Javas.GetSortedJavaList())
         {
             var item = ItemBuilder(J);

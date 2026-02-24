@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualBasic;
 using PCL.Core.App;
@@ -67,7 +67,7 @@ public static class ModEvent
                                     {
                                         case 2:
                                         {
-                                            ModBase.Setup.Set("HintCustomCommand", true);
+                                            States.Hint.HomepageCommand = true;
                                             break;
                                         }
                                         case 3:

@@ -1,7 +1,8 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -74,9 +75,9 @@ public partial class PageLogLeft
 
             // 通知日志保留设置
             // TODO(i18n): 文本 @ PageLog 左侧 - 日志保留设置通知
-            if (!(bool)ModBase.Setup.Get("HintMaxLog"))
+            if (!States.Hint.MaxGameLog)
             {
-                ModBase.Setup.Set("HintMaxLog", true);
+                States.Hint.MaxGameLog = true;
                 ModMain.Hint("实时日志默认只保留 500 行，你可以在 实时日志行数 设置中修改！");
             }
 
@@ -103,7 +104,7 @@ public partial class PageLogLeft
                 {
                     var Paragraph = new Paragraph(new Run(e.LogText)) { Foreground = e.Color, Margin = Margin };
                     FlowDocuments[Uuid].Blocks.Add(Paragraph);
-                    var MaxLog = Conversions.ToULong(ModBase.Setup.Get("SystemMaxLog"));
+                    var MaxLog = Conversions.ToULong(Config.System.MaxGameLog);
                     switch (MaxLog)
                     {
                         case var @case when @case <= 5UL:

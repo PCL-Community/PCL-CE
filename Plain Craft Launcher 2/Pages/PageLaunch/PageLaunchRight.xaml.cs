@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
@@ -25,7 +25,7 @@ public partial class PageLaunchRight : IRefreshable
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
         PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
-        PanHint.Visibility = Conversions.ToBoolean(ModBase.Setup.Get("UiLauncherCEHint"))
+        PanHint.Visibility = Conversions.ToBoolean(States.Hint.CEMessage)
             ? Visibility.Visible
             : Visibility.Collapsed;
         LabHint1.Text =
@@ -80,7 +80,7 @@ public partial class PageLaunchRight : IRefreshable
         var content = "";
         string url = null;
 
-        var uiCustomType = (int)ModBase.Setup.Get("UiCustomType");
+        var uiCustomType = (int)Config.Preference.Homepage.Type;
 
         if (uiCustomType == 1)
         {
@@ -91,13 +91,13 @@ public partial class PageLaunchRight : IRefreshable
         else if (uiCustomType == 2)
         {
             // 网络文件
-            url = (string)ModBase.Setup.Get("UiCustomNet");
+            url = (string)Config.Preference.Homepage.CustomUrl;
             content = LoadFromNetwork(url);
         }
         else if (uiCustomType == 3)
         {
             // 预设主页
-            var preset = (int)ModBase.Setup.Get("UiCustomPreset");
+            var preset = (int)Config.Preference.Homepage.SelectedPreset;
             switch (preset)
             {
                 case 0:
@@ -208,7 +208,7 @@ public partial class PageLaunchRight : IRefreshable
         if (string.IsNullOrWhiteSpace(url)) return "";
 
         var cachePath = Path.Combine(ModBase.PathTemp, "Cache", "Custom.xaml");
-        var cachedUrl = (string)ModBase.Setup.Get("CacheSavedPageUrl");
+        var cachedUrl = (string)States.UI.SavedHomepageUrl;
 
         if (url == cachedUrl && File.Exists(cachePath))
         {
@@ -221,7 +221,7 @@ public partial class PageLaunchRight : IRefreshable
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
         HintWrapper.Show("正在加载主页……");
         ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
-        ModBase.Setup.Set("CacheSavedPageVersion", "");
+        States.UI.SavedHomepageVersion = "";
         OnlineLoader.Start(url); // 下载完成后将会再次触发更新
         return "";
     }
@@ -319,7 +319,7 @@ public partial class PageLaunchRight : IRefreshable
                 Version = Conversions.ToString(ModNet.NetGetCodeByRequestOnce(VersionAddress, Timeout: 10000));
                 if (Version.Length > 1000)
                     throw new Exception($"获取的主页版本过长（{Version.Length} 字符）");
-                var CurrentVersion = Conversions.ToString(ModBase.Setup.Get("CacheSavedPageVersion"));
+                var CurrentVersion = Conversions.ToString(States.UI.SavedHomepageVersion);
                 if (!string.IsNullOrEmpty(Version) && !string.IsNullOrEmpty(CurrentVersion) &&
                     (Version ?? "") == (CurrentVersion ?? ""))
                 {
@@ -342,8 +342,8 @@ public partial class PageLaunchRight : IRefreshable
             {
                 var FileContent = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Address));
                 ModBase.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
-                ModBase.Setup.Set("CacheSavedPageUrl", Address);
-                ModBase.Setup.Set("CacheSavedPageVersion", Version);
+                States.UI.SavedHomepageUrl = Address;
+                States.UI.SavedHomepageVersion = Version;
                 ModBase.WriteFile(ModBase.PathTemp + @"Cache\Custom.xaml", FileContent);
             }
 
@@ -388,8 +388,8 @@ public partial class PageLaunchRight : IRefreshable
     {
         LoadedContentHash = -1;
         OnlineLoader.Input = "";
-        ModBase.Setup.Set("CacheSavedPageUrl", "");
-        ModBase.Setup.Set("CacheSavedPageVersion", "");
+        States.UI.SavedHomepageUrl = "";
+        States.UI.SavedHomepageVersion = "";
         ModBase.Log("[Page] 已清空主页缓存");
     }
 

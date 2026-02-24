@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -228,7 +228,7 @@ public partial class PageInstanceCompResource : IRefreshable
             ModBase.RunInUi(() =>
             {
                 ModMain.MyMsgBox("现改为双击文件夹进入子文件夹。", "操作提示", "我知道了");
-                ModBase.Setup.Set("UiSchematicFirstTimeHintShown", true);
+                States.Hint.SchematicFirstTime = true;
             }, true);
 
         ModMain.FrmMain.KeyDown += FrmMain_KeyDown;
@@ -1976,7 +1976,7 @@ public partial class PageInstanceCompResource : IRefreshable
             if (ModMain.MyMsgBox(
                     $"新版本 Mod 可能不兼容旧存档或者其他 Mod，这可能导致游戏崩溃，甚至永久损坏存档！{Constants.vbCrLf}如果你在游玩整合包，请千万不要自行更新 Mod！{Constants.vbCrLf}{Constants.vbCrLf}在更新前，请先备份存档，并检查 Mod 的更新日志。{Constants.vbCrLf}如果更新后出现问题，你也可以在回收站找回更新前的 Mod。",
                     "Mod 更新警告", "我已了解风险，继续更新", "取消", IsWarn: true) == 1)
-                ModBase.Setup.Set("HintUpdateMod", true);
+                States.Hint.UpdateMod = true;
             else
                 return;
         }

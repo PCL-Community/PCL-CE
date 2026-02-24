@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
 using System.IO;
 using System.Net;
@@ -2047,7 +2047,7 @@ public static class ModNet
 
                     NetManager.Start(this);
                     var FilesToCheck = new List<NetFile>();
-                    var DisabledCopy = Conversions.ToBoolean(ModBase.Setup.Get("SystemDebugSkipCopy"));
+                    var DisabledCopy = Conversions.ToBoolean(Config.Debug.DontCopy);
                     foreach (var File in Files)
                         if (!DisabledCopy && (File.Check?.CanUseExistsFile).GetValueOrDefault())
                             FilesToCheck.Add(File);

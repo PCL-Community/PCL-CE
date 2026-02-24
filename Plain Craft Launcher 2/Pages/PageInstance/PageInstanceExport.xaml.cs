@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +8,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -471,10 +472,10 @@ public partial class PageInstanceExport : IRefreshable
         try
         {
             var ConfigPath = SystemDialogs.SelectSaveFile("选择文件位置", "export_config.txt", "整合包导出配置(*.txt)|*.txt",
-                (string?)ModBase.Setup.Get("CacheExportConfig"));
+                (string?)States.System.ExportConfigPath);
             if (string.IsNullOrEmpty(ConfigPath))
                 return;
-            ModBase.Setup.Set("CacheExportConfig", ConfigPath);
+            States.System.ExportConfigPath = ConfigPath;
             var ConfigLines = new List<string>();
             // ini 段
             ConfigLines.Add("Name:" + TextExportName.Text);
@@ -529,7 +530,7 @@ public partial class PageInstanceExport : IRefreshable
         try
         {
             // 保存配置文件路径到缓存
-            ModBase.Setup.Set("CacheExportConfig", configPath);
+            States.System.ExportConfigPath = configPath;
 
             var fileContent = ModBase.ReadFile(configPath);
             var Segments = fileContent.Split(Sperator);
@@ -594,7 +595,7 @@ public partial class PageInstanceExport : IRefreshable
         try
         {
             var ConfigPath = SystemDialogs.SelectFile("整合包导出配置(*.txt)|*.txt", "选择配置文件",
-                (string?)ModBase.Setup.Get("CacheExportConfig"));
+                (string?)States.System.ExportConfigPath);
             if (string.IsNullOrEmpty(ConfigPath))
                 return;
 

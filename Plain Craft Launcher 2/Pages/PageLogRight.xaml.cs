@@ -1,8 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -75,7 +76,7 @@ public partial class PageLogRight
         BtnOperationKill.IsEnabled = !ModMain.FrmLogLeft.CurrentLog.GameProcess.HasExited;
         BtnOperationExportStackDump.IsEnabled = !ModMain.FrmLogLeft.CurrentLog.GameProcess.HasExited &
                                                 !string.IsNullOrWhiteSpace(ModMain.FrmLogLeft.CurrentLog.JStackPath);
-        SliderMaxLog.Value = Conversions.ToInteger(ModBase.Setup.Get("SystemMaxLog"));
+        SliderMaxLog.Value = Conversions.ToInteger(Config.System.MaxGameLog);
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -41,7 +41,7 @@ public partial class PageToolsTest
     {
         BtnDownloadStart.IsEnabled = false;
 
-        TextDownloadFolder.Text = Conversions.ToString(ModBase.Setup.Get("CacheDownloadFolder"));
+        TextDownloadFolder.Text = Conversions.ToString(States.Tool.DownloadFolder);
         TextDownloadFolder.Validate();
 
         if (!string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) || string.IsNullOrEmpty(TextDownloadFolder.Text))
@@ -49,7 +49,7 @@ public partial class PageToolsTest
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
-        TextUserAgent.Text = Conversions.ToString(ModBase.Setup.Get("ToolDownloadCustomUserAgent"));
+        TextUserAgent.Text = Conversions.ToString(States.Tool.DownloadUserAgent);
     }
 
     private void StartButtonRefresh()
@@ -71,13 +71,13 @@ public partial class PageToolsTest
 
     private void SaveCacheDownloadFolder(object sender, RoutedEventArgs e)
     {
-        ModBase.Setup.Set("CacheDownloadFolder", TextDownloadFolder.Text);
+        States.Tool.DownloadFolder = TextDownloadFolder.Text;
         TextDownloadName.Validate();
     }
 
     private void SaveCustomUserAgent(object sender, RoutedEventArgs e)
     {
-        ModBase.Setup.Set("ToolDownloadCustomUserAgent", TextUserAgent.Text);
+        States.Tool.DownloadUserAgent = TextUserAgent.Text;
     }
 
     private static void DownloadState(ModLoader.LoaderCombo<int> Loader)
@@ -207,15 +207,14 @@ public partial class PageToolsTest
 
                     if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.Start();
                     if (Conversions.ToBoolean(
-                            Operators.ConditionalCompareObjectLessEqual(ModBase.Setup.Get("HintClearRubbish"), 2,
+                            Operators.ConditionalCompareObjectLessEqual(States.Hint.CleanJunkFile, 2,
                                 false)))
                     {
                         if (ModMain.MyMsgBox(
                                 "即将清理游戏日志、错误报告、缓存等文件。" + Constants.vbCrLf + "虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？" +
                                 Constants.vbCrLf + Constants.vbCrLf + "在完成清理后，PCL 将自动重启。", "清理确认", "确定", "取消") ==
                             2) return;
-                        ModBase.Setup.Set("HintClearRubbish",
-                            Operators.AddObject(ModBase.Setup.Get("HintClearRubbish"), 1));
+                        States.Hint.CleanJunkFile += 1;
                     }
 
                     var num = 0;
@@ -652,7 +651,7 @@ public partial class PageToolsTest
     // 启动计数显示
     private void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
     {
-        var launchCount = Conversions.ToInteger(ModBase.Setup.Get("SystemLaunchCount"));
+        var launchCount = Conversions.ToInteger(States.System.LaunchCount);
         ModMain.MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数");
     }
 
