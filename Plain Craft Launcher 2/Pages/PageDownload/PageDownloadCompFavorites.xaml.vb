@@ -371,7 +371,7 @@ Public Class PageDownloadCompFavorites
 
     Private Sub Btn_FavoritesDownload_Clicked(sender As Object, e As RouteEventArgs) Handles Btn_FavoritesDownload.Click
         Try
-            If 1 <> MyMsgBox($"批量下载功能仍旧处于测试状态{vbCrLf}使用此功能下载模组不会自动下载前置项。{vbCrLf}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。", "确定使用此功能？", Button1:="继续", Button2:="算了", IsWarn:=True) Then Exit Sub
+            If 1 <> MyMsgBox($"批量下载功能仍旧处于测试状态。{vbCrLf}使用此功能下载模组不会自动下载前置项。{vbCrLf}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。", "确定使用此功能？", Button1:="继续", Button2:="算了", IsWarn:=True) Then Exit Sub
             Dim SupportedModLoader As New List(Of CompLoaderType)
             Dim LoaderFirstSet As Boolean = True
             Dim HasMod As Boolean = False
@@ -480,8 +480,11 @@ Public Class PageDownloadCompFavorites
                                                     Dim FinalChoices = Target.Where(Function(i) i.GameVersions.Contains(SelectedVersionStr)).ToList()
                                                     ' 按照发布日期排序
                                                     FinalChoices.Sort(Function(a As CompFile, b As CompFile) a.ReleaseDate > b.ReleaseDate)
+                                                    ' 获取文件名
+                                                    Dim TargetProject As CompProject = ModComp.CompProjectCache(FinalChoices.First.ProjectId)
+                                                    Dim FileName As String = CompFileNameGet(TargetProject, FinalChoices.First)
                                                     ' 选择最新版本进行下载
-                                                    Res.Add(FinalChoices.First.ToNetFile(SaveFolder & FinalChoices.First.FileName))
+                                                    Res.Add(FinalChoices.First.ToNetFile(IO.Path.Combine(SaveFolder, FileName)))
                                                 Next
                                                 Ts.Output = Res
                                             End Sub) With {.ProgressWeight = 2})
