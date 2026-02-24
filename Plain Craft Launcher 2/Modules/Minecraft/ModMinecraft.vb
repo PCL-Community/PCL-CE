@@ -44,7 +44,7 @@ Public Module ModMinecraft
     ''' <summary>
     ''' 加载 Minecraft 文件夹列表。
     ''' </summary>
-    Public McFolderListLoader As New LoaderTask(Of Integer, Integer)("Minecraft Folder List", AddressOf McFolderListLoadSub)
+    Public McFolderListLoader As New LoaderTask(Of Integer, Integer)("Minecraft Folder List", AddressOf McFolderListLoadSub, Priority:=ThreadPriority.AboveNormal)
     Private Sub McFolderListLoadSub()
         Try
             '初始化

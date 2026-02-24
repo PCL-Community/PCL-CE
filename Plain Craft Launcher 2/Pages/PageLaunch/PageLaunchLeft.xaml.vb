@@ -308,7 +308,7 @@ Public Class PageLaunchLeft
 #Region "皮肤"
 
     '正版皮肤
-    Public Shared SkinMs As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Ms", AddressOf SkinMsLoad, AddressOf SkinMsInput)
+    Public Shared SkinMs As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Ms", AddressOf SkinMsLoad, AddressOf SkinMsInput, ThreadPriority.AboveNormal)
     Private Shared Function SkinMsInput() As EqualableList(Of String)
         '获取名称
         Return New EqualableList(Of String) From {SelectedProfile.Username, SelectedProfile.Uuid}
@@ -361,7 +361,7 @@ Finish:
     End Sub
 
     '离线皮肤
-    Public Shared SkinLegacy As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Legacy", AddressOf SkinLegacyLoad, AddressOf SkinLegacyInput)
+    Public Shared SkinLegacy As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Legacy", AddressOf SkinLegacyLoad, AddressOf SkinLegacyInput, ThreadPriority.AboveNormal)
     Private Shared Function SkinLegacyInput() As EqualableList(Of String)
         Return New EqualableList(Of String) From {SelectedProfile.Username, SelectedProfile.Uuid}
     End Function
@@ -378,7 +378,7 @@ Finish:
     End Sub
 
     'Authlib-Injector 皮肤
-    Public Shared SkinAuth As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Auth", AddressOf SkinAuthLoad, AddressOf SkinAuthInput)
+    Public Shared SkinAuth As New LoaderTask(Of EqualableList(Of String), String)("Loader Skin Auth", AddressOf SkinAuthLoad, AddressOf SkinAuthInput, ThreadPriority.AboveNormal)
     Private Shared Function SkinAuthInput() As EqualableList(Of String)
         '获取名称
         Return New EqualableList(Of String) From {SelectedProfile.Username, SelectedProfile.Uuid}

@@ -698,7 +698,7 @@ EndHint:
 
     End Class
 
-    Public HelpLoader As New LoaderTask(Of Integer, List(Of HelpEntry))("Help Page", AddressOf HelpLoad)
+    Public HelpLoader As New LoaderTask(Of Integer, List(Of HelpEntry))("Help Page", AddressOf HelpLoad,, ThreadPriority.BelowNormal)
     Private ReadOnly HelpLoadLock As New Object
     ''' <summary>
     ''' 初始化帮助列表对象。
