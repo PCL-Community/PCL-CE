@@ -84,7 +84,7 @@ commit_parsers = [
     { message = "^chore\\(pr\\)", skip = true },
     { message = "^chore\\(pull\\)", skip = true },
     { message = "^wip|^temp|^tmp|^todo", skip = true },
-    { message = "^chore|^ci", group = "<!-- 7 -->⚙️ 其他改动" },
+    { message = "^chore", group = "<!-- 7 -->⚙️ 其他改动" },
     { message = "^revert", group = "<!-- 9 -->◀️ 回退改动" },
 ] # An array of regex based parsers for extracting data from the commit message.
 # Assigns commits to groups.
