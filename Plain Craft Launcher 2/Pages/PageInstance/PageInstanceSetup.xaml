@@ -230,8 +230,7 @@
 
                     <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义环境变量" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceEnv" Grid.Row="6" Grid.ColumnSpan="2" Tag="VersionAdvanceEnv" Grid.Column="1"
-                         ToolTip="使用英文逗号分隔多条变量，格式： KEY=VALUE，例如：PATH={java};%PATH%,MY_VAR=hello"
-                         HintText="例如：PATH={java};%PATH%,MY_VAR=hello"
+                         ToolTip="使用空格分隔多条变量，格式：KEY=VALUE，例如：MY_VAR=hello"
                          AcceptsReturn="False" TextWrapping="NoWrap" Padding="0,5" VerticalContentAlignment="Center" />
 
                     <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="Classpath 头部附加" Margin="0,0,25,0" />

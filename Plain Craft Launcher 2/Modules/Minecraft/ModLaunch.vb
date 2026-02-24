@@ -2313,17 +2313,33 @@ NextInstance:
         End If
 
     End Sub
-    Private Sub ApplyInstanceEnvVars(startInfo As ProcessStartInfo)
+    Private Sub ApplyInstanceEnvVars(startInfo As ProcessStartInfo) '自定义环境变量处理
         Try
             Dim envText As String = Setup.Get("VersionAdvanceEnv", instance:=McInstanceSelected)
             If String.IsNullOrWhiteSpace(envText) Then Return
 
-            Dim entries = envText.Split(","c, StringSplitOptions.RemoveEmptyEntries).
-                            Select(Function(s) s.Trim()).
-                            Where(Function(s) s.Length > 0)
+            Dim tokens As New List(Of String)
+            Dim sb As New System.Text.StringBuilder()
+            Dim inQuotes As Boolean = False
 
-            For Each rawEntry As String In entries
-                Dim line = rawEntry.Trim()
+            For i As Integer = 0 To envText.Length - 1
+                Dim ch As Char = envText(i)
+                If ch = """"c Then
+                    inQuotes = Not inQuotes
+                    sb.Append(ch)
+                ElseIf Char.IsWhiteSpace(ch) AndAlso Not inQuotes Then
+                    If sb.Length > 0 Then
+                        tokens.Add(sb.ToString())
+                        sb.Clear()
+                    End If
+                Else
+                    sb.Append(ch)
+                End If
+            Next
+            If sb.Length > 0 Then tokens.Add(sb.ToString())
+
+            For Each token As String In tokens
+                Dim line = token.Trim()
                 If line.Length = 0 Then Continue For
                 If line.StartsWith("#") Then Continue For
 
@@ -2332,6 +2348,10 @@ NextInstance:
 
                 Dim key = line.Substring(0, idx).Trim()
                 Dim val = line.Substring(idx + 1).Trim()
+
+                If val.Length >= 2 AndAlso val.StartsWith("""") AndAlso val.EndsWith("""") Then
+                    val = val.Substring(1, val.Length - 2)
+                End If
 
                 Try
                     val = ArgumentReplace(val, True)
@@ -2361,7 +2381,7 @@ NextInstance:
         End Try
     End Sub
 
-    ' 替换：更清晰、可读的 McLaunchRun（替换原有实现）
+    ' 启动
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
         Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
@@ -2369,13 +2389,13 @@ NextInstance:
         Dim GameProcess = New Process()
         Dim StartInfo As New ProcessStartInfo(If(noJavaw, McLaunchJavaSelected.Installation.JavaExePath, McLaunchJavaSelected.Installation.JavawExePath))
 
-        '基础环境变量：先把 Java 文件夹加入 PATH，再设置 appdata 指向选定的 mc 文件夹
+        '基础环境变量
         Dim Paths As New List(Of String)(StartInfo.EnvironmentVariables("Path").Split(";"c))
         Paths.Add(ShortenPath(McLaunchJavaSelected.Installation.JavaFolder))
         StartInfo.EnvironmentVariables("Path") = String.Join(";", Paths.Distinct().ToList())
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
 
-        ' 应用实例级自定义环境变量（如果用户在实例高级设置中填写）
+        ' 应用自定义环境变量
         ApplyInstanceEnvVars(StartInfo)
 
         '设置其他参数
