@@ -513,14 +513,8 @@ public partial class PageDownloadCompFavorites
     {
         try
         {
-            if (SelectedItemList.Count == 1)
-            {
-                ModMain.Hint("要不……你直接进详情页里下载吧……");
-                return;
-            }
-
             if (1 != ModMain.MyMsgBox(
-                    $"批量下载功能仍旧处于测试状态{Constants.vbCrLf}使用此功能下载模组不会自动下载前置项。{Constants.vbCrLf}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。",
+                    $"批量下载功能仍旧处于测试状态。{Constants.vbCrLf}使用此功能下载模组不会自动下载前置项。{Constants.vbCrLf}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。",
                     "确定使用此功能？", "继续", "算了", IsWarn: true))
                 return;
             var SupportedModLoader = new List<ModComp.CompLoaderType>();
@@ -653,8 +647,11 @@ public partial class PageDownloadCompFavorites
                     // 按照发布日期排序
                     var FinalChoices = Target.Where(i => i.GameVersions.Contains(SelectedVersionStr)).ToList();
                     FinalChoices.Sort((a, b) => a.ReleaseDate > b.ReleaseDate);
+                    // 获取文件名
+                    var TargetProject = ModComp.CompProjectCache[FinalChoices.First().ProjectId];
+                    var FileName = ModComp.CompFileNameGet(TargetProject, FinalChoices.First());
                     // 选择最新版本进行下载
-                    Res.Add(FinalChoices.First().ToNetFile(SaveFolder + FinalChoices.First().FileName));
+                    Res.Add(FinalChoices.First().ToNetFile(System.IO.Path.Combine(SaveFolder, FileName)));
                 }
 
                 Ts.Output = Res;
