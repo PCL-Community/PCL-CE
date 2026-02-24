@@ -26,7 +26,7 @@ public partial class PageLoginAuth
         // Handles
         BtnBack.Click += BtnBack_Click;
         BtnLogin.Click += BtnLogin_Click;
-        TextServer.TextChanged += ComboName_TextChanged;
+        TextServer.TextChanged += TextServer_TextChanged;
         BtnLink.Click += Btn_Click;
     }
 
