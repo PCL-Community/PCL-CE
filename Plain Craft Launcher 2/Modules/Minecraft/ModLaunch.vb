@@ -2313,7 +2313,7 @@ NextInstance:
         End If
 
     End Sub
-    Private Sub ApplyInstanceEnvVars(startInfo As ProcessStartInfo) '自定义环境变量处理
+    Private Sub _ApplyInstanceEnvVars(startInfo As ProcessStartInfo) '自定义环境变量处理
         Try
             Dim envText As String = Setup.Get("VersionAdvanceEnv", instance:=McInstanceSelected)
             If String.IsNullOrWhiteSpace(envText) Then Return
@@ -2396,7 +2396,7 @@ NextInstance:
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
 
         ' 应用自定义环境变量
-        ApplyInstanceEnvVars(StartInfo)
+        _ApplyInstanceEnvVars(StartInfo)
 
         '设置其他参数
         StartInfo.WorkingDirectory = ShortenPath(McInstanceSelected.PathIndie)
