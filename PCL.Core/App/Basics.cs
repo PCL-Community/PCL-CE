@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -154,6 +155,19 @@ public static class Basics
             CreateNoWindow = true
         };
         Process.Start(psi);
+    }
+
+    /// <summary>
+    /// 以默认程序打开 Uri
+    /// </summary>
+    /// <param name="uri">Uri 地址</param>
+    public static void OpenUri(string uri)
+    {
+        var psi = new ProcessStartInfo(uri)
+        {
+            UseShellExecute = true,
+        };
+        _ = Task.Run(() => Process.Start(psi));
     }
     #endregion
 
