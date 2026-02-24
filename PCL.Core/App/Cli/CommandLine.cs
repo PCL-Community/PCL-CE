@@ -99,8 +99,8 @@ file static class CommandLineParser
             return (new BoolArgument { Key = key, ValueText = string.Empty }, false);
         if (possibleValueText.ToLowerInvariant() is "true" or "false")
             return (new BoolArgument { Key = key, ValueText = possibleValueText }, true);
-        if (decimal.TryParse(possibleValueText, out var d))
-            return (new DecimalArgument { Key = key, ValueText = possibleValueText, Value = d }, true);
+        if (decimal.TryParse(possibleValueText, out _))
+            return (new DecimalArgument { Key = key, ValueText = possibleValueText }, true);
         return (new TextArgument { Key = key, ValueText = possibleValueText }, true);
     }
 

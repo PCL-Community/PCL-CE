@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace PCL.Core.App.Cli;
@@ -28,8 +29,7 @@ public class BoolArgument : CommandArgument<bool>
             type != typeof(nint) &&
             type != typeof(nuint)) return false;
         // magic code
-        var v = Value;
-        Unsafe.As<T, byte>(ref value) = Unsafe.As<bool, byte>(ref v);
+        Unsafe.As<T, byte>(ref value) = Convert.ToByte(Value);
 #pragma warning disable CS8762 // The analyzer sucks.
         return true;
 #pragma warning restore CS8762

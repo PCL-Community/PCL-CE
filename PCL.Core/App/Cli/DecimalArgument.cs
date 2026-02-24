@@ -10,12 +10,6 @@ public class DecimalArgument : CommandArgument<decimal>
 
     protected override decimal ParseValueText() => decimal.Parse(ValueText);
 
-    public new decimal Value
-    {
-        get => base.Value;
-        init => base.Value = value;
-    }
-
     public override bool TryCastValue<T>([NotNullWhen(true)] out T value)
     {
         if (base.TryCastValue(out value)) return true;
