@@ -234,7 +234,7 @@ Public Class FormMain
                                              "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
                                              "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" & vbCrLf &
                                              "你可以随时在启动器设置中调整这项设置。", "参与 PCL CE 软硬件调查", "同意", "拒绝")
-                        Config.System.TelemetryConfig.SetValue(selection = 1, bypassCache:=True)
+                        Config.System.TelemetryConfig.SetValue(selection = 1, forceNewValue:=True)
                     End If
                 Catch ex As Exception
                     Log(ex, "初始弹窗提示运行失败", LogLevel.Feedback)
