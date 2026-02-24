@@ -2313,6 +2313,25 @@ NextInstance:
         End If
 
     End Sub
+    Private Sub _ApplyInstanceEnvVariables(startInfo As ProcessStartInfo, instance As McInstance) '自定义环境变量列表处理
+        Try
+            Dim envRaw As String = Setup.Get("VersionAdvanceEnv", instance:=instance)
+            If String.IsNullOrWhiteSpace(envRaw) Then Return
+
+            Dim parts As String() = envRaw.Split({" "c}, StringSplitOptions.RemoveEmptyEntries)
+            For Each part In parts
+                Dim eq As Integer = part.IndexOf("="c)
+                If eq > 0 Then
+                    Dim k As String = part.Substring(0, eq)
+                    Dim v As String = part.Substring(eq + 1)
+                    ' 覆盖或新增环境变量
+                    startInfo.EnvironmentVariables(k) = v
+                End If
+            Next
+        Catch ex As Exception
+            Log(ex, "解析/注入自定义环境变量失败", LogLevel.Feedback)
+        End Try
+    End Sub
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))
         Dim noJavaw As Boolean = Setup.Get("LaunchAdvanceNoJavaw") AndAlso McLaunchJavaSelected.Installation.JavawExePath IsNot Nothing
 
@@ -2325,6 +2344,7 @@ NextInstance:
         Paths.Add(ShortenPath(McLaunchJavaSelected.Installation.JavaFolder))
         StartInfo.EnvironmentVariables("Path") = Join(Paths.Distinct.ToList, ";")
         StartInfo.EnvironmentVariables("appdata") = ShortenPath(McFolderSelected)
+        _ApplyInstanceEnvVariables(StartInfo, McInstanceSelected)
 
         '设置其他参数
         StartInfo.WorkingDirectory = ShortenPath(McInstanceSelected.PathIndie)

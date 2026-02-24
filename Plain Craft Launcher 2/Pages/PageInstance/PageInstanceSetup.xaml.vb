@@ -64,6 +64,7 @@ Public Class PageInstanceSetup
             TextAdvanceJvm.Text = Setup.Get("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
             TextAdvanceGame.Text = Setup.Get("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
             TextAdvanceRun.Text = Setup.Get("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
+            TextAdvanceEnv.Text = Setup.Get("VersionAdvanceEnv", instance:=PageInstanceLeft.Instance)
             CheckAdvanceRunWait.Checked = Setup.Get("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
             If Setup.Get("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance) = 2 Then
                 Log("[Setup] 已迁移老版本的关闭文件校验设置")
@@ -115,6 +116,7 @@ Public Class PageInstanceSetup
             Setup.Reset("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
 
             Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
+            Setup.Reset("VersionAdvanceEnv", instance:=PageInstanceLeft.Instance)
 
             Log("[Setup] 已初始化实例独立设置")
             Hint("已初始化实例独立设置！", HintType.Finish, False)
@@ -130,7 +132,7 @@ Public Class PageInstanceSetup
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)), instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextArgumentTitle.TextChanged, TextAdvanceRun.ValidatedTextChanged
+    Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextServerEnter.ValidatedTextChanged, TextArgumentInfo.ValidatedTextChanged, TextAdvanceGame.ValidatedTextChanged, TextAdvanceJvm.ValidatedTextChanged, TextServerAuthName.ValidatedTextChanged, TextServerAuthRegister.ValidatedTextChanged, TextServerAuthServer.ValidatedTextChanged, TextArgumentTitle.TextChanged, TextAdvanceRun.ValidatedTextChanged, TextAdvanceEnv.ValidatedTextChanged
         If AniControlEnabled = 0 Then
             '#3194，不能删减 /
             'Dim HandledText As String = sender.Text

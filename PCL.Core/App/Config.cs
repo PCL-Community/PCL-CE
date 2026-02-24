@@ -626,5 +626,6 @@ public static partial class Config
         [ConfigItem<string>("VersionModpackVersion", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackVersion { get; }
         [ConfigItem<string>("VersionModpackSource", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackSource { get; }
         [ConfigItem<string>("VersionModpackId", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackId { get; }
+        [ConfigItem<string>("VersionAdvanceEnv", "", ConfigSource.GameInstance)] public partial ArgConfig<string> EnvVariables { get; }
     }
 }
