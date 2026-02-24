@@ -365,13 +365,7 @@ Public Module ModLoader
         Public Sub New()
             '仅仅是为了避免一些智障报错（继承类必须重写 New 的情况）
         End Sub
-        <Obsolete("Priority 参数已弃用，请删除")>
         Public Sub New(Name As String, LoadDelegate As Action(Of LoaderTask(Of InputType, OutputType)), Optional InputDelegate As Func(Of InputType) = Nothing, Optional Priority As ThreadPriority = ThreadPriority.Normal)
-            Me.Name = Name
-            Me.LoadDelegate = LoadDelegate
-            Me.InputDelegate = InputDelegate
-        End Sub
-        Public Sub New(Name As String, LoadDelegate As Action(Of LoaderTask(Of InputType, OutputType)), Optional InputDelegate As Func(Of InputType) = Nothing)
             Me.Name = Name
             Me.LoadDelegate = LoadDelegate
             Me.InputDelegate = InputDelegate
