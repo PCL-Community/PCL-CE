@@ -6,12 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Download.Network;
 
-public class MetadataProber(TimeSpan timeout)
+public class MetadataProber
 {
     public async Task<(long FileSize, bool SupportRange, List<MirrorInfo> SortedMirrors)>
         ProbeAsync(List<string> urls, HttpClient client)
@@ -73,12 +72,11 @@ public class MetadataProber(TimeSpan timeout)
         }
 
         var sw = Stopwatch.StartNew();
-        using var ctx = new CancellationTokenSource(timeout);
 
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Head, url);
-            var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.Token)
+            var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                 .ConfigureAwait(false);
 
             if (response is
@@ -90,7 +88,7 @@ public class MetadataProber(TimeSpan timeout)
                 request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Range = new RangeHeaderValue(0, 0);
 
-                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.Token)
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
 

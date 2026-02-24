@@ -22,7 +22,7 @@ public class RealFileDownloadTests
             ["https://dldir1.qq.com/qqfile/qq/PCQQ9.7.17/QQ9.7.17.29225.exe"],
             destinationPath
         );
-        var downloader = new DownloadClient(options);
+        var downloader = DownloadService.CreateJob(options);
         downloader.ProgressChanged += (s, e) => { Console.WriteLine($"下载进度: {e.ProgressPercentage}%"); };
         downloader.StateChanged += (s, e) => { Console.WriteLine($"下载状态改变: {e.NewState}"); };
         var ct = CancellationToken.None;

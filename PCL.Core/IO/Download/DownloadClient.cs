@@ -21,7 +21,7 @@ namespace PCL.Core.IO.Download;
 // because 'DownloadClient' is only used for only one download job (like a file)
 // If you want to decrease 'DownloadClient' entity creating, you should apply a cache system for it
 // but which means a large refactoring and it is too hard to realize
-public class DownloadClient
+public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottle, HttpClient client)
 {
     #region Events
 
@@ -31,8 +31,6 @@ public class DownloadClient
 
     #endregion
 
-    private readonly HttpClient _httpClient;
-    private readonly DownloadOptions _options;
     private long _totalFileSize;
     private long _totalDownloadedBytes;
     private readonly object _progressLock = new();
@@ -42,62 +40,32 @@ public class DownloadClient
     private List<MirrorInfo>? _mirrors;
     private readonly CancellationTokenSource _globalTokenSource = new();
     private int _activeExecutingWorkers;
-    private readonly SemaphoreSlim _globalThrottle;
 
     public int ActiveWorkers { get; private set; }
-
-    public DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottle)
-    {
-        _options = options;
-        _globalThrottle = globalThrottle;
-
-        var handler = new SocketsHttpHandler
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            MaxConnectionsPerServer = options.MaxConcurrentWorkers * 2,
-            ConnectTimeout = options.TimeOut
-        };
-
-        _httpClient = new HttpClient(handler) { Timeout = options.TimeOut };
-    }
-
-    public DownloadClient(DownloadOptions options, HttpClient client, SemaphoreSlim globalThrottle)
-    {
-        _options = options;
-        _httpClient = client;
-        _globalThrottle = globalThrottle;
-    }
-
-    public DownloadClient(DownloadOptions options, SocketsHttpHandler handler, SemaphoreSlim globalThrottle)
-    {
-        _options = options;
-        _globalThrottle = globalThrottle;
-
-        _httpClient = new HttpClient(handler) { Timeout = options.TimeOut };
-    }
 
 
     public async Task StartAsync()
     {
         _ChangeState(DownloadState.Probing);
 
-        var prober = new MetadataProber(_options.TimeOut);
-        var (fileSize, supprotRange, mirrors) = await prober.ProbeAsync(_options.MirrorUrls, _httpClient).ConfigureAwait(false);
+        var prober = new MetadataProber();
+        var (fileSize, supprotRange, mirrors) =
+            await prober.ProbeAsync(options.MirrorUrls, client).ConfigureAwait(false);
         _totalFileSize = fileSize;
         _mirrors = mirrors;
 
         _ChangeState(DownloadState.Waiting);
 
-        var actualWorkers = (supprotRange && fileSize > _options.ChunkSizeBytes) ? _options.MaxConcurrentWorkers : 1;
+        var actualWorkers = (supprotRange && fileSize > options.ChunkSizeBytes) ? options.MaxConcurrentWorkers : 1;
         ActiveWorkers = actualWorkers;
 
         _ChangeState(DownloadState.Downloading);
 
-        var scheduler = new ChunkScheduler(_totalFileSize, _options.ChunkSizeBytes);
-        using var storage = new FileStorage(_options.DestinationFilePath, _totalFileSize);
+        var scheduler = new ChunkScheduler(_totalFileSize, options.ChunkSizeBytes);
+        using var storage = new FileStorage(options.DestinationFilePath, _totalFileSize);
 
         var workerTasks = new List<Task>();
-        for (int i = 0; i < ActiveWorkers; i++)
+        for (var i = 0; i < ActiveWorkers; i++)
         {
             workerTasks.Add(_WorkerLoopAsync(scheduler, storage, _mirrors!, _globalTokenSource.Token));
         }
@@ -149,7 +117,7 @@ public class DownloadClient
 
             // global throttle
             // limited by <see cref="Config.Download.ThreadLimit">
-            await _globalThrottle.WaitAsync(globalToken).ConfigureAwait(false);
+            await globalThrottle.WaitAsync(globalToken).ConfigureAwait(false);
 
             var currentRunning = Interlocked.Increment(ref _activeExecutingWorkers);
             if (currentRunning == 1) // only change state on first worker
@@ -167,7 +135,7 @@ public class DownloadClient
                 }
 
                 using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
-                connectCts.CancelAfter(_options.TimeOut);
+                connectCts.CancelAfter(options.TimeOut);
 
                 using var streamReadCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
                 var bytesDownloadedInThisChunk = 0;
@@ -179,21 +147,21 @@ public class DownloadClient
                     request.Headers.Range =
                         new RangeHeaderValue(chunk.StartOffset, chunk.StartOffset + chunk.Length - 1);
 
-                    using var response = await _httpClient
+                    using var response = await client
                         .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, connectCts.Token)
                         .ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
 
                     await using var stream =
                         await response.Content.ReadAsStreamAsync(streamReadCts.Token).ConfigureAwait(false);
-                    using var bufferOwner = MemoryPool<byte>.Shared.Rent(_options.MemoryBufferSizeBytes);
+                    using var bufferOwner = MemoryPool<byte>.Shared.Rent(options.MemoryBufferSizeBytes);
                     var buffer = bufferOwner.Memory;
 
                     // perpar stream to write data
                     await using var speedMonitor = new SpeedMonitor(
                         streamReadCts,
-                        _options.MinSpeedThresholdBps,
-                        _options.SpeedCheckInterval);
+                        options.MinSpeedThresholdBps,
+                        options.SpeedCheckInterval);
 
                     // write data
                     int readBytes;
@@ -251,7 +219,7 @@ public class DownloadClient
                 }
                 finally
                 {
-                    _globalThrottle.Release();
+                    globalThrottle.Release();
 
                     // release resource and check state
                     var remainingRunning = Interlocked.Decrement(ref _activeExecutingWorkers);
@@ -287,7 +255,7 @@ public class DownloadClient
             _bytesSinceLastReport += downloadedBytes;
 
             var now = DateTime.UtcNow;
-            var intervalSeconds = _options.SpeedCheckInterval.TotalSeconds;
+            var intervalSeconds = options.SpeedCheckInterval.TotalSeconds;
 
             if (_lastProgressReport == DateTime.MinValue ||
                 (now - _lastProgressReport).TotalSeconds >= intervalSeconds)

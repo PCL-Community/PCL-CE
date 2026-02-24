@@ -1,6 +1,3 @@
-using PCL.Core.App;
-using PCL.Core.Logging;
-using PCL.Core.Utils.Exts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +8,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.IO.Net.Http.Client;
 
