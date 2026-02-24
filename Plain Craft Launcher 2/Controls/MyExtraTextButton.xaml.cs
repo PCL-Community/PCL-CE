@@ -41,6 +41,11 @@ public partial class MyExtraTextButton
 
         Loaded += (_, __) => RefreshColor();
         IsEnabledChanged += (_, __) => RefreshColor();
+        PanClick.MouseLeftButtonDown += Button_LeftMouseDown;
+        PanClick.MouseLeftButtonUp += Button_LeftMouseUp;
+        PanClick.MouseLeave += Button_MouseLeave;
+        PanClick.MouseRightButtonUp += Button_RightMouseUp;
+        PanClick.MouseEnter += (sender, e) => RefreshColor();
     }
 
     public string Logo
@@ -160,7 +165,7 @@ public partial class MyExtraTextButton
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
-    private void Button_RightMouseUp()
+    private void Button_RightMouseUp(object sender, MouseEventArgs e)
     {
         if (!IsLeftMouseHeld)
             ModAnimation.AniStart(
@@ -172,7 +177,7 @@ public partial class MyExtraTextButton
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
-    private void Button_MouseLeave()
+    private void Button_MouseLeave(object sender, MouseEventArgs e)
     {
         IsLeftMouseHeld = false;
         ModAnimation.AniStart(
