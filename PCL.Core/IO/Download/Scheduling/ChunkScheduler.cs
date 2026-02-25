@@ -6,13 +6,24 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Download.Scheduling;
 
+/// <summary>
+/// 分块管理器
+/// </summary>
 public class ChunkScheduler
 {
     private readonly Channel<ChunkInfo> _chunkChannel;
     private int _pendingChunks;
 
+    /// <summary>
+    /// 是否仍有分块未完成
+    /// </summary>
     public bool HasPendingChunks => _pendingChunks > 0;
 
+    /// <summary>
+    /// 分块管理器
+    /// </summary>
+    /// <param name="totalFileSize">总文件大小（字节）</param>
+    /// <param name="chunkSize">分块大小</param>
     public ChunkScheduler(long totalFileSize, long chunkSize)
     {
         _chunkChannel = Channel.CreateUnbounded<ChunkInfo>();
@@ -34,6 +45,11 @@ public class ChunkScheduler
         }
     }
 
+    /// <summary>
+    /// 获取下一个分块
+    /// </summary>
+    /// <param name="token">取消令牌</param>
+    /// <returns>下一个分块（如果没有，则为null）</returns>
     public async ValueTask<ChunkInfo?> GetNextChunkAsync(CancellationToken token = default)
     {
         try
@@ -50,6 +66,12 @@ public class ChunkScheduler
         }
     }
 
+    /// <summary>
+    /// 将完成部分的分块的未完成部分添加到队列中
+    /// </summary>
+    /// <param name="newStartOffset">偏移</param>
+    /// <param name="remainingLength">剩余长度</param>
+    /// <param name="originalIndex">原始索引</param>
     public void ReturnIncompleteChunk(long newStartOffset, long remainingLength, int originalIndex)
     {
         if (remainingLength > 0)
@@ -63,6 +85,9 @@ public class ChunkScheduler
         }
     }
 
+    /// <summary>
+    /// 标记完成一个区块
+    /// </summary>
     public void MarkChunkCompleted()
     {
         if (Interlocked.Decrement(ref _pendingChunks) == 0)

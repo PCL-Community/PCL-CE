@@ -21,12 +21,30 @@ namespace PCL.Core.IO.Download;
 // because 'DownloadClient' is only used for only one download job (like a file)
 // If you want to decrease 'DownloadClient' entity creating, you should apply a cache system for it
 // but which means a large refactoring and it is too hard to realize
+
+/// <summary>
+/// 下载器
+/// </summary>
+/// <param name="options">下载信息</param>
+/// <param name="globalThrottle">限速栅栏</param>
+/// <param name="client">HTTP客户端</param>
 public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottle, HttpClient client)
 {
     #region Events
 
+    /// <summary>
+    /// 状态改变
+    /// </summary>
     public event DownloadStateChangeEventHandler? StateChanged;
+
+    /// <summary>
+    /// 下载镜像改变
+    /// </summary>
     public event MirrorSwitchedEventHandler? MirrorSwitched;
+
+    /// <summary>
+    /// 下载进度改变
+    /// </summary>
     public event DownloadProgressEventHandler? ProgressChanged;
 
     #endregion
@@ -41,9 +59,15 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
     private readonly CancellationTokenSource _globalTokenSource = new();
     private int _activeExecutingWorkers;
 
-    public int ActiveWorkers { get; private set; }
+    /// <summary>
+    /// 实际并发数量（可能无法达到）
+    /// </summary>
+    public int ActuealWorkers { get; private set; }
 
 
+    /// <summary>
+    /// 开始下载
+    /// </summary>
     public async Task StartAsync()
     {
         _ChangeState(DownloadState.Probing);
@@ -57,7 +81,7 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
         _ChangeState(DownloadState.Waiting);
 
         var actualWorkers = (supprotRange && fileSize > options.ChunkSizeBytes) ? options.MaxConcurrentWorkers : 1;
-        ActiveWorkers = actualWorkers;
+        ActuealWorkers = actualWorkers;
 
         _ChangeState(DownloadState.Downloading);
 
@@ -65,7 +89,7 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
         using var storage = new FileStorage(options.DestinationFilePath, _totalFileSize);
 
         var workerTasks = new List<Task>();
-        for (var i = 0; i < ActiveWorkers; i++)
+        for (var i = 0; i < ActuealWorkers; i++)
         {
             workerTasks.Add(_WorkerLoopAsync(scheduler, storage, _mirrors!, _globalTokenSource.Token));
         }
@@ -88,6 +112,9 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
         _ChangeState(DownloadState.Completed);
     }
 
+    /// <summary>
+    /// 取消下载操作
+    /// </summary>
     public void Cancel()
     {
         if (_globalTokenSource.IsCancellationRequested)
@@ -134,9 +161,6 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
                     throw new FailedOperationException("All mirros have been un-usable");
                 }
 
-                using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
-                connectCts.CancelAfter(options.TimeOut);
-
                 using var streamReadCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
                 var bytesDownloadedInThisChunk = 0;
 
@@ -148,7 +172,7 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
                         new RangeHeaderValue(chunk.StartOffset, chunk.StartOffset + chunk.Length - 1);
 
                     using var response = await client
-                        .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, connectCts.Token)
+                        .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, globalToken)
                         .ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
 
@@ -165,7 +189,7 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
 
                     // write data
                     int readBytes;
-                    while ((readBytes = await stream.ReadAsync(buffer, connectCts.Token).ConfigureAwait(false)) > 0)
+                    while ((readBytes = await stream.ReadAsync(buffer, streamReadCts.Token).ConfigureAwait(false)) > 0)
                     {
                         await storage.WriteChunkAsync(
                             chunk.StartOffset + bytesDownloadedInThisChunk,
@@ -185,7 +209,7 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
                 {
                     // SppedMonitor is angry
                     // change mirror
-                    var reason = connectCts.IsCancellationRequested ? "Timeout" : "Speed too low";
+                    var reason = streamReadCts.IsCancellationRequested ? "Timeout" : "Speed too low";
 
                     currentMirror.HealthScore -= 20;
                     MirrorSwitched?.Invoke(this, new MirrorSwitchedEventArgs

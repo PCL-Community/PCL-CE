@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Download.Network;
 
+/// <summary>
+/// 下载速率监视器
+/// </summary>
 public class SpeedMonitor : IAsyncDisposable
 {
     private readonly CancellationTokenSource _targetCts;
@@ -16,6 +19,13 @@ public class SpeedMonitor : IAsyncDisposable
     private readonly Task _monitorTask;
     private readonly CancellationTokenSource _internalCts;
 
+    /// <summary>
+    /// 下载速率监视器
+    /// </summary>
+    /// <param name="targetCts">取消令牌</param>
+    /// <param name="minSpeedBytesPerSec">最小速率</param>
+    /// <param name="checkInterval">检查间隔</param>
+    /// <param name="gracePeriod">预等待延迟</param>
     public SpeedMonitor(
         CancellationTokenSource targetCts,
         double minSpeedBytesPerSec,
@@ -32,6 +42,10 @@ public class SpeedMonitor : IAsyncDisposable
         _monitorTask = Task.Run(_MonitorLoopAsync);
     }
 
+    /// <summary>
+    /// 告知读取的字节数
+    /// </summary>
+    /// <param name="bytesRead"></param>
     public void ReportBytesRead(int bytesRead)
     {
         Interlocked.Add(ref _bytesReadInCurrentInterval, bytesRead);

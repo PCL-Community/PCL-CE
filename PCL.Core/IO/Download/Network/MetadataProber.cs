@@ -10,8 +10,18 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Download.Network;
 
+/// <summary>
+/// HTTP元数据获取器
+/// </summary>
 public class MetadataProber
 {
+    /// <summary>
+    /// 获取元数据
+    /// </summary>
+    /// <param name="urls">镜像源（包括主链接）</param>
+    /// <param name="client">HTTP客户端</param>
+    /// <returns></returns>
+    /// <exception cref="FailedOperationException">无法获取到元信息</exception>
     public async Task<(long FileSize, bool SupportRange, List<MirrorInfo> SortedMirrors)>
         ProbeAsync(List<string> urls, HttpClient client)
     {
@@ -33,7 +43,7 @@ public class MetadataProber
 
         if (consensusGroup.Count < successfulResults.Count)
         {
-            // Log warning about inconsistent metadata among mirrors
+            // TODO:Log warning about inconsistent metadata among mirrors or do nothing?
         }
 
         var finalFileSize = consensusGroup[0].FileSize;
@@ -64,7 +74,7 @@ public class MetadataProber
 
     private static readonly Dictionary<string, ProbeResult> _ProbeCache = [];
 
-    private async Task<ProbeResult> _ProbeSingleUrlAsync(string url, HttpClient client)
+    private static async Task<ProbeResult> _ProbeSingleUrlAsync(string url, HttpClient client)
     {
         if (_ProbeCache.TryGetValue(url, out var cache))
         {
@@ -95,6 +105,7 @@ public class MetadataProber
             response.EnsureSuccessStatusCode();
             sw.Stop();
 
+            // get fileSize
             var fileSize = response.Content.Headers.ContentLength ?? 0L;
 
             if (response is
@@ -106,11 +117,12 @@ public class MetadataProber
                 fileSize = response.Content.Headers.ContentRange.Length ?? fileSize;
             }
 
+            // checkout is support range
             var supportRange = response.Headers.AcceptRanges.Contains("bytes") ||
                                response.StatusCode == HttpStatusCode.PartialContent;
 
+            // set eTag
             var eTag = response.Headers.ETag?.Tag?.Trim('"') ?? "NO_ETAG";
-
 
             var result = new ProbeResult(url, true, sw.ElapsedMilliseconds, fileSize, supportRange, eTag);
             _ProbeCache.Add(url, result);

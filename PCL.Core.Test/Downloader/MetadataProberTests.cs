@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.IO.Download.Network;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -6,7 +7,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.IO.Download.Network;
 
 namespace PCL.Core.Test.Downloader;
 
@@ -51,8 +51,8 @@ public class MetadataProberTests
     {
         // Arrange
         var mockHandler = new MockHttpMessageHandler();
-        var httpClient = new HttpClient(mockHandler);
-        var prober = new MetadataProber(TimeSpan.FromSeconds(5));
+        var httpClient = new HttpClient(mockHandler) { Timeout = TimeSpan.FromSeconds(5) };
+        var prober = new MetadataProber();
 
         var urls = new List<string>
         {
