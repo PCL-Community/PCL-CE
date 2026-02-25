@@ -232,99 +232,94 @@ public partial class FormMain
         // Timer 启动
         ModAnimation.AniStart();
         ModMain.TimerMainStart();
-        // 加载池
+        // 特殊版本提示
         ModBase.RunInNewThread(() =>
         {
             // 特殊版本提示
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If DEBUG Or DEBUGCI Then
-            */
-            if (Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") is null)
-            {
-                /* TODO ERROR: Skipped IfDirectiveTrivia
-                #If DEBUG Then
-                */
-                const string hint = "当前运行的 PCL 社区版为 Debug 版本。" + Constants.vbCrLf +
-                                    "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" + Constants.vbCrLf + Constants.vbCrLf +
-                                    "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" + Constants.vbCrLf +
-                                    "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。";
-                /* TODO ERROR: Skipped ElseDirectiveTrivia
-                #Else
-                */ /* TODO ERROR: Skipped DisabledTextTrivia
-                                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
-                                             "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
-                                             vbCrLf &
-                                             "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
-                */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                #End If
-                */
-                ModMain.MyMsgBox(
-                    $"{hint}{Constants.vbCrLf}{Constants.vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
-                    "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn: true, Button2Action: () =>
-                    {
-                        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
-                        EndProgram(false);
-                    });
-            }
-
-            /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */ // EULA 提示
-            if (!States.System.LauncherEula)
-                switch (ModMain.MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
-                            Button3Action: () => ModBase.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
-                {
-                    case 1:
-                    {
-                        States.System.LauncherEula = true;
-                        break;
-                    }
-                    case 2:
-                    {
-                        EndProgram(false);
-                        break;
-                    }
-                }
-
-            // 遥测提示
-            if (ModBase.Setup.IsUnset("SystemTelemetry"))
-                switch (ModMain.MyMsgBox(
-                            "这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" + Constants.vbCrLf +
-                            "如果选择参与调查，我们将会收集以下信息：" + Constants.vbCrLf + Constants.vbCrLf + "- 启动器版本信息与识别码" +
-                            Constants.vbCrLf + "- Windows 系统版本与架构" + Constants.vbCrLf + "- 已安装的物理内存大小" +
-                            Constants.vbCrLf + "- NAT 与 IPv6 支持情况" + Constants.vbCrLf + "- 是否使用过官方版 PCL、HMCL 或 BakaXL" +
-                            Constants.vbCrLf + Constants.vbCrLf + "这些数据均不与你关联，我们也绝不会向第三方出售数据。" + Constants.vbCrLf +
-                            "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" + Constants.vbCrLf + "你可以随时在启动器设置中调整这项设置。",
-                            "参与 PCL CE 软硬件调查", "同意", "拒绝"))
-                {
-                    case 1:
-                    {
-                        Config.System.Telemetry = true;
-                        break;
-                    }
-                    case 2:
-                    {
-                        Config.System.Telemetry = false;
-                        break;
-                    }
-                }
-
-            // 启动加载器池
             try
             {
-                Thread.Sleep(100);
-                ModDownload.DlClientListMojangLoader.Start(1); // PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
-                RunCountSub();
-                ModSecret.ServerLoader.Start(1);
-                ModBase.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
+
+
+#if DEBUG || DEBUGCI
+
+                if (Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") is null)
+                {
+
+#if DEBUG
+
+                    const string hint = "当前运行的 PCL 社区版为 Debug 版本。" + Constants.vbCrLf +
+                                        "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" + Constants.vbCrLf + Constants.vbCrLf +
+                                        "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" + Constants.vbCrLf +
+                                        "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。";
+
+#else
+                    const string hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" + Constants.vbCrLf +
+                                    "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" + Constants.vbCrLf +
+                                    Constants.vbCrLf +
+                                    "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
+#endif
+
+                    ModMain.MyMsgBox(
+                        $"{hint}{Constants.vbCrLf}{Constants.vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
+                        "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn: true, Button2Action: () =>
+                        {
+                            ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
+                            EndProgram(false);
+                        });
+                }
+
+
+#endif
+                // EULA 提示
+                if (!States.System.LauncherEula)
+                    switch (ModMain.MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
+                                Button3Action: () => ModBase.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
+                    {
+                        case 1:
+                            {
+                                States.System.LauncherEula = true;
+                                break;
+                            }
+                        case 2:
+                            {
+                                EndProgram(false);
+                                break;
+                            }
+                    }
+
+                // 遥测提示
+                if (Config.System.TelemetryConfig.IsDefault())
+                {
+                    var selection = ModMain.MyMsgBox(
+                                "这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" + Constants.vbCrLf +
+                                "如果选择参与调查，我们将会收集以下信息：" + Constants.vbCrLf + Constants.vbCrLf + "- 启动器版本信息与识别码" +
+                                Constants.vbCrLf + "- Windows 系统版本与架构" + Constants.vbCrLf + "- 已安装的物理内存大小" +
+                                Constants.vbCrLf + "- NAT 与 IPv6 支持情况" + Constants.vbCrLf + "- 是否使用过官方版 PCL、HMCL 或 BakaXL" +
+                                Constants.vbCrLf + Constants.vbCrLf + "这些数据均不与你关联，我们也绝不会向第三方出售数据。" + Constants.vbCrLf +
+                                "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" + Constants.vbCrLf + "你可以随时在启动器设置中调整这项设置。",
+                                "参与 PCL CE 软硬件调查", "同意", "拒绝");
+                    Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
+                }
+                // 启动加载器池
+                try
+                {
+                    ModDownload.DlClientListMojangLoader.Start(1); // PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
+                    RunCountSub();
+                    ModSecret.ServerLoader.Start(1);
+                    ModBase.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
+                }
+
+                ModSecret.GetSystemInfo();
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "初始弹窗提示运行失败", ModBase.LogLevel.Feedback);
             }
-
-            ModSecret.GetSystemInfo();
-        }, "Start Loader", ThreadPriority.Lowest);
+        }, "Start Loader", ThreadPriority.BelowNormal);
 
         ModBase.Log("[Start] 第三阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
     }

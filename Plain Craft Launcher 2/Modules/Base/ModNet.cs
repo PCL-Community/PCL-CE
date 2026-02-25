@@ -1637,8 +1637,15 @@ public static class ModNet
         private void InterruptAndDelete()
         {
             // On Error Resume Next
-            if (File.Exists(LocalPath))
-                File.Delete(LocalPath);
+            try
+            {
+                if (File.Exists(LocalPath))
+                    File.Delete(LocalPath);
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, $"[Download] 尝试删除文件 {LocalPath} 失败，忽略错误", ModBase.LogLevel.Normal);
+            }
             lock (NetManager.LockRemain)
             {
                 NetManager.FileRemain -= 1;

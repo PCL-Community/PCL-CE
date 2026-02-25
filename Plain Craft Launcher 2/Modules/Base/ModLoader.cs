@@ -1,9 +1,10 @@
-﻿using System.Collections;
-using System.IO;
-using System.Windows.Shell;
-using Microsoft.VisualBasic.CompilerServices;
+﻿using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using System.Collections;
+using System.IO;
+using System.Windows.Shell;
+using YamlDotNet.Serialization;
 
 namespace PCL;
 
@@ -494,7 +495,9 @@ public static class ModLoader
         /// <summary>
         ///     最后一次运行加载器的线程。可能为 Nothing，或线程已结束。
         /// </summary>
-        public Thread LastRunningThread;
+        public Task LastRunningTask;
+
+        private CancellationTokenSource CancelToken;
 
         // 执行事件
         protected internal Action<LoaderTask<InputType, OutputType>> LoadDelegate;
@@ -519,21 +522,20 @@ public static class ModLoader
             this.Name = Name;
             this.LoadDelegate = LoadDelegate;
             this.InputDelegate = (dynamic)InputDelegate;
-            ThreadPriority = Priority;
         }
 
         // 状态指示
         /// <summary>
         ///     当前执行线程是否应当中断。只应用在加载器的工作线程中判断，不可跨线程调用。
         /// </summary>
-        public bool IsAborted => IsAbortedWithThread(Thread.CurrentThread);
+        public bool IsAborted => IsAbortedWithThread(Task.CurrentId ?? -1);
 
         /// <summary>
         ///     当前执行线程是否应当中断。需要手动提供加载器线程，用于需要跨线程检查的情况。
         /// </summary>
-        public bool IsAbortedWithThread(Thread Thread)
+        public bool IsAbortedWithThread(int compareTaskId)
         {
-            return LastRunningThread is null || !ReferenceEquals(Thread, LastRunningThread) ||
+            return LastRunningTask is null || compareTaskId != LastRunningTask.Id ||
                    State == ModBase.LoadState.Aborted;
         }
 
@@ -604,25 +606,25 @@ public static class ModLoader
 
             // 如果线程是因为判断到 IsAborted 而提前中止，则代表已有新线程被重启，此时不应当改为 Aborted
             // 如果线程是在没有 IsAborted 时手动引发了 ThreadInterruptedException，则代表没有重启线程，这通常代表用户手动取消，应当改为 Aborted
-            LastRunningThread = new Thread(() =>
+            LastRunningTask = new Task(() =>
             {
                 try
                 {
                     IsForceRestarting = IsForceRestart;
                     if (ModBase.ModeDebug)
                         ModBase.Log(
-                            $"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已{(IsForceRestarting ? "强制" : "")}启动");
+                            $"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已{(IsForceRestarting ? "强制" : "")}启动");
                     LoadDelegate(this);
                     if (IsAborted)
                     {
                         ModBase.Log(
-                            $"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{(LastRunningThread is null ? -1 : LastRunningThread.ManagedThreadId)}）",
+                            $"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{(LastRunningTask is null ? -1 : LastRunningTask.Id)}）",
                             ModBase.LogLevel.Developer);
                         return;
                     }
 
                     if (ModBase.ModeDebug)
-                        ModBase.Log($"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已完成");
+                        ModBase.Log($"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已完成");
                     RaisePreviewFinish();
                     State = ModBase.LoadState.Finished;
                     LastFinishedTime = TimeUtils.GetTimeTick();
@@ -631,27 +633,27 @@ public static class ModLoader
                 {
                     if (ModBase.ModeDebug)
                         ModBase.Log(ex,
-                            $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已触发取消中断，已完成 {Math.Round(Progress * 100d)}%");
+                            $"加载线程 {Name} ({Task.CurrentId}) 已触发取消中断，已完成 {Math.Round(Progress * 100d)}%");
                     if (!IsAborted) State = ModBase.LoadState.Aborted;
                 }
                 catch (ThreadInterruptedException ex)
                 {
                     if (ModBase.ModeDebug)
                         ModBase.Log(ex,
-                            $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已触发线程中断，已完成 {Math.Round(Progress * 100d)}%");
+                            $"加载线程 {Name} ({Task.CurrentId}) 已触发线程中断，已完成 {Math.Round(Progress * 100d)}%");
                     if (!IsAborted) State = ModBase.LoadState.Aborted;
                 }
                 catch (Exception ex)
                 {
                     if (IsAborted) return;
                     ModBase.Log(ex,
-                        $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 出错，已完成 {Math.Round(Progress * 100d)}%",
+                        $"加载线程 {Name} ({Task.CurrentId}) 出错，已完成 {Math.Round(Progress * 100d)}%",
                         ModBase.LogLevel.Developer);
                     Error = ex;
                     State = ModBase.LoadState.Failed;
                 }
-            }) { Name = Name, Priority = ThreadPriority }; // 未中断，本次输出有效
-            LastRunningThread.Start(); // 不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
+            }, CancelToken.Token); // 未中断，本次输出有效
+            LastRunningTask.Start(); // 不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
         }
 
         public override void Abort()
@@ -668,13 +670,14 @@ public static class ModLoader
 
         private void TriggerThreadAbort()
         {
-            if (LastRunningThread is null)
+            if (LastRunningTask is null)
                 return;
             if (ModBase.ModeDebug)
-                ModBase.Log($"[Loader] 加载线程 {Name} ({LastRunningThread.ManagedThreadId}) 已中断");
-            if (LastRunningThread.IsAlive)
-                LastRunningThread.Interrupt();
-            LastRunningThread = null;
+                ModBase.Log($"[Loader] 加载线程 {Name} ({LastRunningTask.Id}) 已中断");
+            if (!LastRunningTask.IsCompleted)
+                CancelToken.Cancel();
+            LastRunningTask = null;
+            CancelToken = null;
         }
     }
 

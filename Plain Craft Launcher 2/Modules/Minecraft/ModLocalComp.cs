@@ -2163,7 +2163,7 @@ public static class ModLocalComp
         ModBase.Log($"[Mod] 目标加载器：{string.Join("/", ModLoaders)}，版本：{McInstance}");
         var EndedThreadCount = 0;
         var IsFailed = false;
-        var CurrentThread = Thread.CurrentThread;
+        var CurrentTaskId = Task.CurrentId ?? -1;
 
         // 从 Modrinth 获取信息
         ModBase.RunInNewThread(() =>
@@ -2201,7 +2201,7 @@ public static class ModLocalComp
                         Entry.CompFile = FileInfo;
                 }
 
-                if (Loader.IsAbortedWithThread(CurrentThread)) return;
+                if (Loader.IsAbortedWithThread(CurrentTaskId)) return;
                 ModBase.Log($"[Mod] 需要从 Modrinth 获取 {ModrinthMapping.Count} 个本地 Mod 的工程信息");
 
                 // 步骤 3：获取工程信息
