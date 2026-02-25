@@ -2322,10 +2322,10 @@ NextInstance:
             For Each part In parts
                 Dim eq As Integer = part.IndexOf("="c)
                 If eq > 0 Then
-                    Dim k As String = part.Substring(0, eq)
-                    Dim v As String = part.Substring(eq + 1)
+                    Dim tempK As String = part.Substring(0, eq)
+                    Dim tempV As String = part.Substring(eq + 1)
                     ' 覆盖或新增环境变量
-                    startInfo.EnvironmentVariables(k) = v
+                    startInfo.EnvironmentVariables(tempK) = tempV
                 End If
             Next
         Catch ex As Exception
