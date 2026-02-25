@@ -71,6 +71,8 @@
         <!-- 日志支持 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+        <!-- 身份认证 -->
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     </ItemGroup>
     <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
     <PropertyGroup>

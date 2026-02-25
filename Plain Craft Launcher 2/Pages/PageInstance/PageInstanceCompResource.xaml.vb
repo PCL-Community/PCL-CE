@@ -1051,7 +1051,7 @@ Install:
                 Return CheckingMod.State = LocalCompFile.LocalFileStatus.Unavailable
             Case FilterType.Duplicate
                 Dim ItemSource = If(IsSearching, SearchResult, If(CompResourceListLoader.Output, New List(Of LocalCompFile)))
-                Return ItemSource IsNot Nothing AndAlso ItemSource.Where(Function(m) CheckingMod.Comp IsNot Nothing AndAlso m.Comp IsNot Nothing AndAlso CheckingMod.Comp.Id = m.Comp.Id).Count > 1
+                Return ItemSource IsNot Nothing AndAlso ItemSource.Where(Function(m) CheckingMod.Comp IsNot Nothing AndAlso m.Comp IsNot Nothing AndAlso CheckingMod.Comp.Id = m.Comp.Id).Any()
             Case Else
                 Return False
         End Select
