@@ -169,6 +169,7 @@ public sealed class Logger : IAsyncDisposable
         catch (Exception e)
         {
             Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occured while writing log file: {e.Message}");
+            await File.AppendAllTextAsync(Path.Combine(Configuration.StoreFolder, "Error.log"), $"[{_GetTimeFormatted}] LogCycle Error: {e}\n");
             throw;
         }
     }
