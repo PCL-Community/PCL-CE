@@ -132,7 +132,7 @@ public unsafe partial class DragHelper
                 var len = DragQueryFile(hDrop, i, IntPtr.Zero, 0);
                 if (len > maxPath) continue;
                 _ = DragQueryFile(hDrop, i, buffer, len + 1);
-                filePaths[i] = Marshal.PtrToStringUni(buffer) ?? "";
+                filePaths[i] = Marshal.PtrToStringUni(buffer, (int)len) ?? "";
             }
         }
         finally
