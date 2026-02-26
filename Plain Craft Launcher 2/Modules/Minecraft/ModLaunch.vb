@@ -2318,7 +2318,34 @@ NextInstance:
             Dim envRaw As String = Setup.Get("VersionAdvanceEnv", instance:=instance)
             If String.IsNullOrWhiteSpace(envRaw) Then Return
 
-            Dim parts As String() = envRaw.Split({" "c}, StringSplitOptions.RemoveEmptyEntries)
+
+            Dim parts As New List(Of String)
+            Dim current As New Text.StringBuilder()
+            Dim inQuotes As Boolean = False
+            Dim i As Integer = 0
+
+            While i < envRaw.Length
+                Dim c As Char = envRaw(i)
+                If c = """"c Then
+                    inQuotes = Not inQuotes
+                ElseIf c = " "c AndAlso Not inQuotes Then
+                    ' 环境变量值字符串结束判断
+                    If current.Length > 0 Then
+                        parts.Add(current.ToString())
+                        current.Clear()
+                    End If
+                Else
+                    ' 其他字符处理
+                    current.Append(c)
+                End If
+                i += 1
+            End While
+
+            ' 添加最后一个环境变量
+            If current.Length > 0 Then
+                parts.Add(current.ToString())
+            End If
+
             For Each part In parts
                 Dim eq As Integer = part.IndexOf("="c)
                 If eq > 0 Then
