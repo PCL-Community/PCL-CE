@@ -667,11 +667,9 @@ Public Module ModLocalComp
                     Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                     If LogoItem IsNot Nothing Then
                         Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                        Logo = $"{PathTemp}MyImage\{md5}.png"
+                        Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                         Using EntryStream As Stream = LogoItem.Open()
-                            Using FileStream As FileStream = File.Create(Logo)
-                                EntryStream.CopyTo(FileStream)
-                            End Using
+                            WriteFile(Logo, EntryStream)
                         End Using
                     End If
                 End If
@@ -737,11 +735,9 @@ GotFabric:
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
                             Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                            Logo = $"{PathTemp}MyImage\{md5}.png"
+                            Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                             Using EntryStream As Stream = LogoItem.Open()
-                                Using FileStream As FileStream = File.Create(Logo)
-                                    EntryStream.CopyTo(FileStream)
-                                End Using
+                                WriteFile(Logo, EntryStream)
                             End Using
                         End If
                     End If
@@ -796,11 +792,9 @@ GotFabric:
                         Dim LogoItem As ZipArchiveEntry = Jar.GetEntry(LogoFile)
                         If LogoItem IsNot Nothing Then
                             Dim md5 = GetStringMD5(LogoItem.Length.ToString & LogoItem.CompressedLength.ToString & Path)
-                            Logo = $"{PathTemp}MyImage\{md5}.png"
+                            Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                             Using EntryStream As Stream = LogoItem.Open()
-                                Using FileStream As FileStream = File.Create(Logo)
-                                    EntryStream.CopyTo(FileStream)
-                                End Using
+                                WriteFile(Logo, EntryStream)
                             End Using
                         End If
                     End If
@@ -982,11 +976,10 @@ Got:
                 Dim packPngEntry = Jar.GetEntry("pack.png")
                 If packPngEntry IsNot Nothing Then
                     Try
-                        Logo = PathTemp & "MyImage\" & GetStringMD5(packPngEntry.Length.ToString & packPngEntry.CompressedLength.ToString & Path) & ".png"
+                        Dim md5 = GetStringMD5(packPngEntry.Length.ToString & packPngEntry.CompressedLength.ToString & Path)
+                        Logo = IO.Path.Combine(PathTemp, "Cache", "Images", $"{md5}.png")
                         Using entryStream As Stream = packPngEntry.Open()
-                            Using fileStream As FileStream = File.Create(Logo)
-                                entryStream.CopyTo(fileStream)
-                            End Using
+                            WriteFile(Logo, entryStream)
                         End Using
                         Log("成功提取资源包图标：" & Path, LogLevel.Debug)
                     Catch logoEx As Exception
@@ -1691,7 +1684,7 @@ Finished:
         '开始网络获取
         Log($"[Mod] 目标加载器：{ModLoaders.Join("/")}，版本：{McInstance}")
         Dim EndedThreadCount As Integer = 0, IsFailed As Boolean = False
-        Dim CurrentThread As Thread = Thread.CurrentThread
+        Dim CurrentTaskId As Integer = If(Task.CurrentId, -1)
         '从 Modrinth 获取信息
         RunInNewThread(
             Sub()
@@ -1715,7 +1708,7 @@ Finished:
                         Dim File As New CompFile(ModrinthVersion(Entry.ModrinthHash), CompType.Mod)
                         If Entry.CompFile Is Nothing OrElse Entry.CompFile.ReleaseDate < File.ReleaseDate Then Entry.CompFile = File
                     Next
-                    If Loader.IsAbortedWithThread(CurrentThread) Then Exit Sub
+                    If Loader.IsAbortedWithThread(CurrentTaskId) Then Exit Sub
                     Log($"[Mod] 需要从 Modrinth 获取 {ModrinthMapping.Count} 个本地 Mod 的工程信息")
                     '步骤 3：获取工程信息
                     If Not ModrinthMapping.Any() Then Exit Sub
@@ -1766,7 +1759,7 @@ Finished:
                     Dim CurseForgeHashes As New List(Of UInteger)
                     For Each Entry In Mods
                         CurseForgeHashes.Add(Entry.CurseForgeHash)
-                        If Loader.IsAbortedWithThread(CurrentThread) Then Exit Sub
+                        If Loader.IsAbortedWithThread(CurrentTaskId) Then Exit Sub
                     Next
                     Dim CurseForgeRaw = CType(CType(GetJson(DlModRequest("https://api.curseforge.com/v1/fingerprints/432", "POST",
                         $"{{""fingerprints"": [{CurseForgeHashes.Join(",")}]}}", "application/json")), JObject)("data")("exactMatches"), JContainer)
@@ -1787,7 +1780,7 @@ Finished:
                             If Entry.CompFile Is Nothing OrElse Entry.CompFile.ReleaseDate < File.ReleaseDate Then Entry.CompFile = File
                         Next
                     Next
-                    If Loader.IsAbortedWithThread(CurrentThread) Then Exit Sub
+                    If Loader.IsAbortedWithThread(CurrentTaskId) Then Exit Sub
                     Log($"[Mod] 需要从 CurseForge 获取 {CurseForgeMapping.Count} 个本地 Mod 的工程信息")
                     '步骤 3：获取工程信息
                     If Not CurseForgeMapping.Any() Then Exit Sub

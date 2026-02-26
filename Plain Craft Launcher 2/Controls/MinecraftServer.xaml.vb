@@ -1,5 +1,5 @@
-﻿Imports System.Threading.Tasks
-Imports PCL.Core.Link
+﻿Imports PCL.Core.Link.McPing
+Imports PCL.Core.Link.McPing.Model
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 
@@ -44,7 +44,7 @@ Class MinecraftServer
             Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(address)
 
             ' Ping服务器
-            Using query = New McPing(addr.Ip, addr.Port)
+            Using query = McPingServiceFactory.CreateService(addr.Ip, addr.Port)
                 Dim ret = Await query.PingAsync()
 
                 If ret Is Nothing Then
@@ -71,12 +71,12 @@ Class MinecraftServer
 
         ' 更新描述
         LabServerDesc.Text = "Minecraft 服务器"
-        MotdRenderer.RenderMotd(ret.Description, false, 2, 14)
+        MotdRenderer.RenderMotd(ret.Description, False, 2, 14)
         MotdRenderer.RenderCanvas()
 
         ' 更新玩家信息
         Dim playerText = $"{ret.Players.Online}/{ret.Players.Max}{vbCrLf}§{latencyColor}{ret.Latency}ms"
-        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false)
+        MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, False)
 
         ' 玩家列表提示
         If ret.Players.Samples?.Any() Then

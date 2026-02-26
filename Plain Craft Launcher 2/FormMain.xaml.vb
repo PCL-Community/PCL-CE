@@ -96,6 +96,7 @@ Public Class FormMain
                     helper.HwndSource = HwndSource.FromHwnd(windowInterop.Handle)
                     helper.AddHook()
                 End Sub
+
             AddHandler Me.Closing,Sub() helper.RemoveHook()
             AddHandler Helper.DragDrop, Sub() FileDrag(helper.DropFilePaths)
         End If
@@ -187,63 +188,65 @@ Public Class FormMain
         'Timer 启动
         AniStart()
         TimerMainStart()
+        RunInNewThread(
+            Sub()
+                Try
+                    '特殊版本提示
+#If DEBUG Or DEBUGCI Then
+                    If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
+#If DEBUG Then
+                        Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
+                                     "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
+                                     vbCrLf &
+                                     "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
+                                     "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
+#Else
+                        Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
+                                     "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
+                                     vbCrLf &
+                                     "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
+#End If
+                        MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
+                                 "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
+                                 Button2Action:=Sub()
+                                                    OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
+                                                    EndProgram(False)
+                                                End Sub)
+                    End If
+#End If
+                    'EULA 提示
+                    If Not Setup.Get("SystemEula") Then
+                        Select Case MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
+                                Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
+                            Case 1
+                                Setup.Set("SystemEula", True)
+                            Case 2
+                                EndProgram(False)
+                        End Select
+                    End If
+                    '遥测提示
+                    If Config.System.TelemetryConfig.IsDefault() Then
+                        Dim selection = MyMsgBox("这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" & vbCrLf &
+                                             "如果选择参与调查，我们将会收集以下信息：" & vbCrLf & vbCrLf &
+                                             "- 启动器版本信息与识别码" & vbCrLf &
+                                             "- Windows 系统版本与架构" & vbCrLf &
+                                             "- 已安装的物理内存大小" & vbCrLf &
+                                             "- NAT 与 IPv6 支持情况" & vbCrLf &
+                                             "- 是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
+                                             "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
+                                             "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" & vbCrLf &
+                                             "你可以随时在启动器设置中调整这项设置。", "参与 PCL CE 软硬件调查", "同意", "拒绝")
+                        Config.System.TelemetryConfig.SetValue(selection = 1, forceNewValue:=True)
+                    End If
+                Catch ex As Exception
+                    Log(ex, "初始弹窗提示运行失败", LogLevel.Feedback)
+                End Try
+            End Sub, "Start MsgBox", ThreadPriority.Lowest)
         '加载池
         RunInNewThread(
         Sub()
-            '特殊版本提示
-#If DEBUG Or DEBUGCI Then
-            If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
-#If DEBUG Then
-                Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
-                             "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
-                             vbCrLf &
-                             "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
-                             "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
-#Else
-                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
-                             "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
-                             vbCrLf &
-                             "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
-#End If
-                MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
-                         "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
-                         Button2Action:=Sub()
-                                            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
-                                            EndProgram(False)
-                                        End Sub)
-            End If
-#End If
-            'EULA 提示
-            If Not Setup.Get("SystemEula") Then
-                Select Case MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
-                        Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
-                    Case 1
-                        Setup.Set("SystemEula", True)
-                    Case 2
-                        EndProgram(False)
-                End Select
-            End If
-            '遥测提示
-            If Setup.IsUnset("SystemTelemetry") Then
-                Select Case MyMsgBox("这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" & vbCrLf &
-                                     "如果选择参与调查，我们将会收集以下信息：" & vbCrLf & vbCrLf &
-                                     "- 启动器版本信息与识别码" & vbCrLf &
-                                     "- Windows 系统版本与架构" & vbCrLf &
-                                     "- 已安装的物理内存大小" & vbCrLf &
-                                     "- NAT 与 IPv6 支持情况" & vbCrLf &
-                                     "- 是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
-                                     "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
-                                     "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" & vbCrLf &
-                                     "你可以随时在启动器设置中调整这项设置。", "参与 PCL CE 软硬件调查", "同意", "拒绝")
-                    Case 1
-                        Setup.Set("SystemTelemetry", True)
-                    Case 2
-                        Setup.Set("SystemTelemetry", False)
-                End Select
-            End If
             '启动加载器池
             Try
-                Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
                 ServerLoader.Start(1)
@@ -252,7 +255,7 @@ Public Class FormMain
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
             GetSystemInfo()
-        End Sub, "Start Loader", ThreadPriority.Lowest)
+        End Sub, "Start Loader", ThreadPriority.BelowNormal)
 
         Log("[Start] 第三阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
     End Sub

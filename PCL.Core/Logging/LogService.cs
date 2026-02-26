@@ -36,11 +36,11 @@ public class LogService : ILifecycleLogService
         return Task.CompletedTask;
     }
 
-    public Task StopAsync()
+    public async Task StopAsync()
     {
         if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
-        _logger?.Dispose();
-        return Task.CompletedTask;
+        if (_logger != null)
+            await _logger.DisposeAsync();
     }
 
     private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
