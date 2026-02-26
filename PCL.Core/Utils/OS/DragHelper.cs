@@ -5,6 +5,7 @@ using System;
 using System.Buffers;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Interop;
 
 namespace PCL.Core.Utils.OS;
@@ -119,14 +120,24 @@ public unsafe partial class DragHelper
         if (msg != WM_DROPFILES)
             return false;
 
-        var count = DragQueryFile(hDrop, uint.MaxValue, out _, 0);
+        var count = DragQueryFile(hDrop, uint.MaxValue, IntPtr.Zero, 0);
         filePaths = new string[count];
-        
-        for (uint i = 0; i < count; i++)
+
+        const int maxPath = 32768;
+        var buffer = Marshal.AllocHGlobal((int)(maxPath * sizeof(char)));
+        try
         {
-            var len = DragQueryFile(hDrop, i, out _, 0);
-            DragQueryFile(hDrop, i, out var pathPtr, len + 1);
-            filePaths[i] = Marshal.PtrToStringUTF8(pathPtr) ?? "";
+            for (uint i = 0; i < count; i++)
+            {
+                var len = DragQueryFile(hDrop, i, IntPtr.Zero, 0);
+                if (len > maxPath) continue;
+                _ = DragQueryFile(hDrop, i, buffer, len + 1);
+                filePaths[i] = Marshal.PtrToStringUni(buffer) ?? "";
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
         }
 
         DragFinish(hDrop);
@@ -167,7 +178,7 @@ public unsafe partial class DragHelper
     private static partial uint DragQueryFile(
         IntPtr hDrop,
         uint iFile,
-        out IntPtr lpszFile,
+        IntPtr lpszFile,
         uint cch);
 
     [LibraryImport("shell32.dll")]

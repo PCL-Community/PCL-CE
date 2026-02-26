@@ -95,6 +95,7 @@ Public Class FormMain
                     helper.HwndSource = HwndSource.FromHwnd(windowInterop.Handle)
                     helper.AddHook()
                 End Sub
+
             AddHandler Me.Closing,Sub() helper.RemoveHook()
             AddHandler Helper.DragDrop, Sub() FileDrag(helper.DropFilePaths)
         End If
