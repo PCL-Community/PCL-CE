@@ -122,7 +122,7 @@ public partial class DragHelper
         filePaths = new string[count];
 
         const int maxPath = 32768;
-        var buffer = Marshal.AllocHGlobal((int)(maxPath * sizeof(char)));
+        var buffer = Marshal.AllocHGlobal(maxPath * sizeof(char));
         try
         {
             for (uint i = 0; i < count; i++)
