@@ -1,8 +1,6 @@
 ﻿Imports System.IO.Compression
-Imports FluentValidation
 Imports PCL.Core.App
 Imports PCL.Core.UI
-Imports PCL.Core.Utils.Validate
 
 Public Module ModModpack
 
@@ -187,9 +185,9 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
-            If Validate.Validate(InstanceName).IsValid <> True Then InstanceName = ""
-            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
+            If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
+            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         End If
 
@@ -435,9 +433,9 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
-            If Validate.Validate(InstanceName).IsValid <> True Then InstanceName = ""
-            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
+            If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
+            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         End If
         '解压
@@ -565,9 +563,9 @@ Retry:
         End Try
         '获取实例名
         Dim InstanceName As String = If(Json("name"), "")
-        Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
-        If Validate.Validate(InstanceName).IsValid <> True Then InstanceName = ""
-        If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
+        Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
+        If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
+        If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
         If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         '解压
         Dim InstallTemp As String = RequestTaskTempFolder()
@@ -809,9 +807,9 @@ Retry:
         End Try
         '获取实例名
         Dim InstanceName As String = If(RegexSeek(PackInstance, "(?<=\nname\=)[^\n]+"), "")
-        Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
-        If Validate.Validate(InstanceName).IsValid <> True Then InstanceName = ""
-        If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
+        Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
+        If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
+        If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
         If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         '解压
         Dim InstallTemp As String = RequestTaskTempFolder()
@@ -951,9 +949,9 @@ Retry:
         '获取实例名
         If InstanceName Is Nothing Then
             InstanceName = If(Json("name"), "")
-            Dim Validate As New FolderNameValidator(McFolderSelected & "versions")
-            If Validate.Validate(InstanceName).IsValid <> True Then InstanceName = ""
-            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of IValidator(Of String)) From {Validate})
+            Dim Validate As New ValidateFolderName(McFolderSelected & "versions")
+            If Validate.Validate(InstanceName) <> "" Then InstanceName = ""
+            If InstanceName = "" Then InstanceName = MyMsgBoxInput("输入实例名称", "", "", New ObjectModel.Collection(Of Validate) From {Validate})
             If String.IsNullOrEmpty(InstanceName) Then Throw New CancelledException
         End If
         '解压

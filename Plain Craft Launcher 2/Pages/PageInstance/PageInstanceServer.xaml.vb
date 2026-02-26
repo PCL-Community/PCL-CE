@@ -1,13 +1,11 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Threading.Tasks
-Imports FluentValidation
 Imports fNbt
 Imports PCL.Core.Link
 Imports PCL.Core.Link.McPing
 Imports PCL.Core.Link.McPing.Model
 Imports PCL.Core.Minecraft
-Imports PCL.Core.Utils.Validate
 
 Public Class PageInstanceServer
     Inherits MyPageRight
@@ -205,14 +203,14 @@ Public Class PageInstanceServer
 
     Public Shared Function GetServerInfo(server As MinecraftServerInfo) As (Name As String, Address As String, Success As Boolean)
         Dim newName As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name, 
-                                              New Collection(Of IValidator(Of String)) From {New NullOrWhiteSpaceValidator()})
+                                              New Collection(Of Validate) From {New ValidateNullOrWhiteSpace()})
         
         If String.IsNullOrEmpty(newName) Then 
             Return (String.Empty, String.Empty, False)
         End If
 
         Dim newAddress As String = MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address,
-                                                 New Collection(Of IValidator(Of String)) From {New NullOrWhiteSpaceValidator()})
+                                                 New Collection(Of Validate) From {New ValidateNullOrWhiteSpace()})
         If String.IsNullOrEmpty(newAddress) Then 
             Return (String.Empty, String.Empty, False)
         End If
