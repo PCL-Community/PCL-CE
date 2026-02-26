@@ -71,7 +71,7 @@ public partial class DragHelper
 
     #region Message filter (UAC)
 
-    private unsafe static void ChangeMessageFilter(IntPtr hwnd)
+    private static void ChangeMessageFilter(IntPtr hwnd)
     {
         Version ver = Environment.OSVersion.Version;
         if (ver < new Version(6, 0))
@@ -81,7 +81,7 @@ public partial class DragHelper
 
         var filter = new CHANGEFILTERSTRUCT
         {
-            cbSize = (uint)sizeof(CHANGEFILTERSTRUCT)
+            cbSize = (uint)Marshal.SizeOf<CHANGEFILTERSTRUCT>()
         };
 
         uint[] messages =
