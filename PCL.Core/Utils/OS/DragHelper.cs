@@ -8,7 +8,7 @@ using System.Windows.Interop;
 
 namespace PCL.Core.Utils.OS;
 
-public unsafe partial class DragHelper
+public partial class DragHelper
 {
     public event EventHandler? DragDrop;
 
@@ -71,7 +71,7 @@ public unsafe partial class DragHelper
 
     #region Message filter (UAC)
 
-    private static void ChangeMessageFilter(IntPtr hwnd)
+    private unsafe static void ChangeMessageFilter(IntPtr hwnd)
     {
         Version ver = Environment.OSVersion.Version;
         if (ver < new Version(6, 0))
