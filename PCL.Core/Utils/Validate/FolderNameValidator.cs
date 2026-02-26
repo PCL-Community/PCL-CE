@@ -10,11 +10,16 @@ public class FolderNameValidator : FileSystemValidator
 {
     public bool UseMinecraftCharCheck { get; set; }
     public bool IgnoreCase { get; set; }
+    public bool IgnoreSameNameInParentFolder { get; set; }
+    public string? ParentFolder { get; set; }
     
-    public FolderNameValidator(bool useMinecraftCharCheck = true, bool ignoreCase = true)
+    public FolderNameValidator(string? parentFolder = null, bool useMinecraftCharCheck = true, bool ignoreCase = true,
+        bool ignoreSameNameInParentFolder = true)
     {
         UseMinecraftCharCheck = useMinecraftCharCheck;
         IgnoreCase = ignoreCase;
+        IgnoreSameNameInParentFolder = ignoreSameNameInParentFolder;
+        ParentFolder = parentFolder;
         
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
@@ -40,14 +45,15 @@ public class FolderNameValidator : FileSystemValidator
             .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName)).WithMessage("文件名不能包含这一特殊格式！")
             .Must(x =>
             {
-                var dirInfo = new DirectoryInfo(x);
-                if (dirInfo.Exists)
-                {
-                    return !dirInfo.EnumerateFiles().Select(f => f.Name).Contains(x,
-                        IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
-                }
+                if (ParentFolder is null) return true;
+                
+                var dirInfo = new DirectoryInfo(ParentFolder);
+                if (!dirInfo.Exists) return true;
+                if (IgnoreSameNameInParentFolder) return true;
+                    
+                return !dirInfo.EnumerateFiles().Select(f => f.Name).Contains(x,
+                    IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
-                return true;
-            }).WithMessage("不可与现有文件重名！");
+            }).WithMessage("不可与现有文件夹重名！");
     }
 }
