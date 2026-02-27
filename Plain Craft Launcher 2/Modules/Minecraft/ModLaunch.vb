@@ -2313,50 +2313,103 @@ NextInstance:
         End If
 
     End Sub
-    Private Sub _ApplyInstanceEnvVariables(startInfo As ProcessStartInfo, instance As McInstance) '自定义环境变量列表处理
+    Private Sub _ApplyInstanceEnvVariables(startInfo As ProcessStartInfo, instance As McInstance)
+        ' 自定义环境变量列表处理（增强版：支持跨行值，值需用双引号包裹）
         Try
             Dim envRaw As String = Setup.Get("VersionAdvanceEnv", instance:=instance)
             If String.IsNullOrWhiteSpace(envRaw) Then Return
 
-
-            Dim parts As New List(Of String)
-            Dim current As New Text.StringBuilder()
-            Dim inQuotes As Boolean = False
             Dim i As Integer = 0
-
             While i < envRaw.Length
-                Dim c As Char = envRaw(i)
-                If c = """"c Then
-                    inQuotes = Not inQuotes
-                ElseIf c = " "c AndAlso Not inQuotes Then
-                    ' 环境变量值字符串结束判断
-                    If current.Length > 0 Then
-                        parts.Add(current.ToString())
-                        current.Clear()
-                    End If
-                Else
-                    ' 其他字符处理
-                    current.Append(c)
+                ' 跳过空白字符（空格、制表符等，但不包括换行，因为换行作为分隔符由后续逻辑处理）
+                While i < envRaw.Length AndAlso Char.IsWhiteSpace(envRaw(i)) AndAlso envRaw(i) <> ControlChars.Cr AndAlso envRaw(i) <> ControlChars.Lf
+                    i += 1
+                End While
+                If i >= envRaw.Length Then Exit While
+
+                ' 跳过注释行（以 # 开头）
+                If envRaw(i) = "#"c Then
+                    While i < envRaw.Length AndAlso envRaw(i) <> ControlChars.Cr AndAlso envRaw(i) <> ControlChars.Lf
+                        i += 1
+                    End While
+                    ' 跳过换行符
+                    If i < envRaw.Length AndAlso envRaw(i) = ControlChars.Cr Then i += 1
+                    If i < envRaw.Length AndAlso envRaw(i) = ControlChars.Lf Then i += 1
+                    Continue While
                 End If
-                i += 1
+
+                ' 解析键名（直到遇到 = 或行尾）
+                Dim keyStart As Integer = i
+                While i < envRaw.Length AndAlso envRaw(i) <> "="c
+                    i += 1
+                End While
+                If i >= envRaw.Length Then Exit While ' 没有等号，终止
+                Dim key As String = envRaw.Substring(keyStart, i - keyStart).Trim()
+                i += 1 ' 跳过 '='
+
+                ' 解析值（可能跨行，引号内保留所有字符）
+                Dim valueStart As Integer = i
+                Dim inQuotes As Boolean = False
+                While i < envRaw.Length
+                    If envRaw(i) = """"c Then
+                        inQuotes = Not inQuotes
+                    ElseIf Not inQuotes AndAlso (envRaw(i) = ControlChars.Cr OrElse envRaw(i) = ControlChars.Lf) Then
+                        ' 不在引号内遇到换行，值结束
+                        Exit While
+                    End If
+                    i += 1
+                End While
+                Dim value As String = envRaw.Substring(valueStart, i - valueStart)
+
+                ' 去除值首尾的引号（如果存在），否则仅去除首尾空白
+                If value.Length >= 2 AndAlso value(0) = """"c AndAlso value(value.Length - 1) = """"c Then
+                    value = value.Substring(1, value.Length - 2)
+                Else
+                    value = value.Trim()
+                End If
+
+                ' 键名合法性检查
+                If String.IsNullOrEmpty(key) Then
+                    Log($"环境变量键名为空，跳过", LogLevel.Debug)
+                    McLaunchLog("环境变量键名为空，跳过")
+                ElseIf key.Contains(" "c) OrElse key.Contains("="c) Then
+                    Log($"环境变量键名包含非法字符（空格或等号），跳过: {key}", LogLevel.Debug)
+                    McLaunchLog($"环境变量键名包含非法字符（空格或等号），跳过: {key}")
+                Else
+                    ' 追加 PATH
+                    If key.Equals("PATH", StringComparison.OrdinalIgnoreCase) Then
+                        Dim existingPath = startInfo.EnvironmentVariables("PATH")
+                        If String.IsNullOrEmpty(existingPath) Then
+                            startInfo.EnvironmentVariables("PATH") = value
+                        Else
+                            ' 确保分号分隔
+                            If existingPath.EndsWith(";") Then
+                                startInfo.EnvironmentVariables("PATH") = existingPath & value
+                            Else
+                                startInfo.EnvironmentVariables("PATH") = existingPath & ";" & value
+                            End If
+                        End If
+                        Log($"追加或覆盖环境变量 PATH: {value}", LogLevel.Debug)
+                        McLaunchLog($"追加或覆盖环境变量 PATH: {value}")
+                    Else
+                        ' 覆盖或新增其他变量
+                        startInfo.EnvironmentVariables(key) = value
+                        ' 值脱敏记录（防止敏感信息泄露）
+                        Dim safeValue = If(value.Length > 20, value.Substring(0, 20) & "...", value)
+                        Log($"设置环境变量 {key} = {safeValue}", LogLevel.Debug)
+                        McLaunchLog($"已设置环境变量： {key} = {safeValue}")
+                    End If
+                End If
+
+                ' 跳过值后空白字符
+                While i < envRaw.Length AndAlso (Char.IsWhiteSpace(envRaw(i)) OrElse envRaw(i) = ControlChars.Cr OrElse envRaw(i) = ControlChars.Lf)
+                    i += 1
+                End While
             End While
 
-            ' 添加最后一个环境变量
-            If current.Length > 0 Then
-                parts.Add(current.ToString())
-            End If
-
-            For Each part In parts
-                Dim eq As Integer = part.IndexOf("="c)
-                If eq > 0 Then
-                    Dim tempK As String = part.Substring(0, eq)
-                    Dim tempV As String = part.Substring(eq + 1)
-                    ' 覆盖或新增环境变量
-                    startInfo.EnvironmentVariables(tempK) = tempV
-                End If
-            Next
         Catch ex As Exception
             Log(ex, "解析/注入自定义环境变量失败", LogLevel.Feedback)
+            McLaunchLog("解析/注入自定义环境变量失败")
         End Try
     End Sub
     Private Sub McLaunchRun(Loader As LoaderTask(Of Integer, Process))

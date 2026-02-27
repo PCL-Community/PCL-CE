@@ -204,7 +204,7 @@
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="10" />
@@ -228,9 +228,10 @@
                     <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏参数尾部" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="VersionAdvanceGame" Grid.Column="1" ToolTip="文本框中的内容将会被直接拼合在启动参数的末尾。&#xa;例如，输入 --demo 则会以试玩模式启动游戏。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#xa;&#xa;若留空，则跟随全局设置的值。" HintText="跟随全局设置" />
 
-                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义环境变量" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextAdvanceEnv" Grid.Row="6" Grid.ColumnSpan="2" Tag="VersionAdvanceEnv" Grid.Column="1" ToolTip="以空格分隔的 KEY=VALUE 列表，例如：JAVA_HOME=C:\Java PATH=C:\Temp。" />
-
+                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"  Text="自定义环境变量" Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceEnv" Grid.Row="6" Grid.ColumnSpan="2" Tag="VersionAdvanceEnv" Grid.Column="1" Height="100" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto"
+                        ToolTip="每行一个环境变量，格式为 KEY=VALUE，值包含换行时请使用引号将值括起。以 # 开头的行将被忽略。&#xa;示例：&#xa;JAVA_HOME=C:\Program Files\Java\jdk-21&#xa;MAVEN_OPTS=-Xmx2G" />
+                    
                     <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="Classpath 头部附加" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceClasspathHead" Grid.Row="8" Grid.ColumnSpan="2" Tag="VersionAdvanceClasspathHead" Grid.Column="1" ToolTip="文本框中的内容将被作为 Classpath 添加到该实例的启动参数中的 Classpath 头部。&#xa;需要使用绝对路径。若有多个，请以半角 (英文) 分号分隔。" />
 
