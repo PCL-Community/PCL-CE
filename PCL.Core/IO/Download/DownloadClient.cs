@@ -5,7 +5,7 @@ using PCL.Core.IO.Download.Scheduling;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -15,36 +15,18 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Download;
 
-// NOTE:
-// Someone said I should reuse existing 'DownloadClient', but that is impossible
-// This class cannot use cache (without HttpClient, because I've applied cache on it) (or 'reuseing')
-// because 'DownloadClient' is only used for only one download job (like a file)
-// If you want to decrease 'DownloadClient' entity creating, you should apply a cache system for it
-// but which means a large refactoring and it is too hard to realize
-
 /// <summary>
-/// 下载器
+/// 下载器 - 支持多镜像智能选择、分块并发下载
 /// </summary>
-/// <param name="options">下载信息</param>
-/// <param name="globalThrottle">限速栅栏</param>
+/// <param name="options">下载配置</param>
+/// <param name="globalThrottle">全局并发限制</param>
 /// <param name="client">HTTP客户端</param>
 public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottle, HttpClient client)
 {
     #region Events
 
-    /// <summary>
-    /// 状态改变
-    /// </summary>
     public event DownloadStateChangeEventHandler? StateChanged;
-
-    /// <summary>
-    /// 下载镜像改变
-    /// </summary>
     public event MirrorSwitchedEventHandler? MirrorSwitched;
-
-    /// <summary>
-    /// 下载进度改变
-    /// </summary>
     public event DownloadProgressEventHandler? ProgressChanged;
 
     #endregion
@@ -55,15 +37,14 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
     private volatile DownloadState _currentState = DownloadState.Preparing;
     private DateTime _lastProgressReport = DateTime.MinValue;
     private long _bytesSinceLastReport;
-    private List<MirrorInfo>? _mirrors;
+    private MirrorSelector? _mirrorSelector;
     private readonly CancellationTokenSource _globalTokenSource = new();
     private int _activeExecutingWorkers;
 
     /// <summary>
-    /// 实际并发数量（可能无法达到）
+    /// 实际工作线程数
     /// </summary>
     public int ActuealWorkers { get; private set; }
-
 
     /// <summary>
     /// 开始下载
@@ -73,25 +54,25 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
         _ChangeState(DownloadState.Probing);
 
         var prober = new MetadataProber();
-        var (fileSize, supprotRange, mirrors) =
-            await prober.ProbeAsync(options.MirrorUrls, client).ConfigureAwait(false);
+        var (fileSize, supportRange, mirrors) =
+            await prober.ProbeAsync(options.MirrorUrls, client, _globalTokenSource.Token).ConfigureAwait(false);
+
         _totalFileSize = fileSize;
-        _mirrors = mirrors;
+        _mirrorSelector = new MirrorSelector(mirrors);
 
         _ChangeState(DownloadState.Waiting);
 
-        var actualWorkers = (supprotRange && fileSize > options.ChunkSizeBytes) ? options.MaxConcurrentWorkers : 1;
-        ActuealWorkers = actualWorkers;
+        ActuealWorkers = (supportRange && fileSize > options.ChunkSizeBytes) ? options.MaxConcurrentWorkers : 1;
 
         _ChangeState(DownloadState.Downloading);
 
         var scheduler = new ChunkScheduler(_totalFileSize, options.ChunkSizeBytes);
         using var storage = new FileStorage(options.DestinationFilePath, _totalFileSize);
 
-        var workerTasks = new List<Task>();
+        var workerTasks = new Task[ActuealWorkers];
         for (var i = 0; i < ActuealWorkers; i++)
         {
-            workerTasks.Add(_WorkerLoopAsync(scheduler, storage, _mirrors!, _globalTokenSource.Token));
+            workerTasks[i] = _WorkerLoopAsync(scheduler, storage, _globalTokenSource.Token);
         }
 
         try
@@ -113,147 +94,134 @@ public class DownloadClient(DownloadOptions options, SemaphoreSlim globalThrottl
     }
 
     /// <summary>
-    /// 取消下载操作
+    /// 取消下载
     /// </summary>
     public void Cancel()
     {
-        if (_globalTokenSource.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _globalTokenSource.Cancel();
+        if (!_globalTokenSource.IsCancellationRequested)
+            _globalTokenSource.Cancel();
     }
 
-    private async Task _WorkerLoopAsync(ChunkScheduler scheduler,
-        FileStorage storage,
-        List<MirrorInfo> mirrors,
-        CancellationToken globalToken)
+    private async Task _WorkerLoopAsync(ChunkScheduler scheduler, FileStorage storage, CancellationToken globalToken)
     {
         while (!globalToken.IsCancellationRequested)
         {
-            // get chunk
             var chunkInfo = await scheduler.GetNextChunkAsync(globalToken).ConfigureAwait(false);
-            if (chunkInfo is null)
-            {
-                break;
-            }
+            if (chunkInfo is null) break;
 
-            var chunk = (ChunkInfo)chunkInfo;
-            var chunkSuccessFully = false;
+            var chunk = chunkInfo.Value;
+            var chunkCompleted = false;
 
-            // global throttle
-            // limited by <see cref="Config.Download.ThreadLimit">
             await globalThrottle.WaitAsync(globalToken).ConfigureAwait(false);
 
-            var currentRunning = Interlocked.Increment(ref _activeExecutingWorkers);
-            if (currentRunning == 1) // only change state on first worker
+            var runningCount = Interlocked.Increment(ref _activeExecutingWorkers);
+            if (runningCount == 1) _ChangeState(DownloadState.Downloading);
+
+            while (!chunkCompleted && !globalToken.IsCancellationRequested)
             {
-                _ChangeState(DownloadState.Downloading);
-            }
+                var mirrorState = _mirrorSelector!.SelectBest();
+                if (mirrorState is null)
+                    throw new FailedOperationException("No available mirrors");
 
-            while (!(chunkSuccessFully || globalToken.IsCancellationRequested))
-            {
-                var currentMirror = mirrors.OrderByDescending(m => m.HealthScore).FirstOrDefault(m => m.IsAlive);
-
-                if (currentMirror is null)
-                {
-                    throw new FailedOperationException("All mirros have been un-usable");
-                }
-
-                using var streamReadCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
-                var bytesDownloadedInThisChunk = 0;
+                var previousMirrorUrl = mirrorState.BaseInfo.Url;
+                using var chunkCts = CancellationTokenSource.CreateLinkedTokenSource(globalToken);
+                var bytesDownloaded = 0;
+                var chunkSw = Stopwatch.StartNew();
 
                 try
                 {
-                    // send request
-                    var request = new HttpRequestMessage(HttpMethod.Get, currentMirror.Url);
-                    request.Headers.Range =
-                        new RangeHeaderValue(chunk.StartOffset, chunk.StartOffset + chunk.Length - 1);
+                    var request = new HttpRequestMessage(HttpMethod.Get, mirrorState.BaseInfo.Url);
+                    request.Headers.Range = new RangeHeaderValue(chunk.StartOffset, chunk.StartOffset + chunk.Length - 1);
 
                     using var response = await client
                         .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, globalToken)
                         .ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
 
-                    await using var stream =
-                        await response.Content.ReadAsStreamAsync(streamReadCts.Token).ConfigureAwait(false);
+                    await using var stream = await response.Content.ReadAsStreamAsync(chunkCts.Token).ConfigureAwait(false);
                     using var bufferOwner = MemoryPool<byte>.Shared.Rent(options.MemoryBufferSizeBytes);
                     var buffer = bufferOwner.Memory;
 
-                    // perpar stream to write data
                     await using var speedMonitor = new SpeedMonitor(
-                        streamReadCts,
+                        chunkCts,
                         options.MinSpeedThresholdBps,
                         options.SpeedCheckInterval);
 
-                    // write data
                     int readBytes;
-                    while ((readBytes = await stream.ReadAsync(buffer, streamReadCts.Token).ConfigureAwait(false)) > 0)
+                    while ((readBytes = await stream.ReadAsync(buffer, chunkCts.Token).ConfigureAwait(false)) > 0)
                     {
                         await storage.WriteChunkAsync(
-                            chunk.StartOffset + bytesDownloadedInThisChunk,
-                            buffer.Slice(0, readBytes),
+                            chunk.StartOffset + bytesDownloaded,
+                            buffer[..readBytes],
                             globalToken).ConfigureAwait(false);
 
-                        bytesDownloadedInThisChunk += readBytes;
+                        bytesDownloaded += readBytes;
+                        speedMonitor.ReportBytesRead(readBytes);
                         Interlocked.Add(ref _totalDownloadedBytes, readBytes);
-
-                        _ReportProgress(bytesDownloadedInThisChunk);
+                        _ReportProgress(readBytes);
                     }
 
-                    chunkSuccessFully = true;
+                    chunkSw.Stop();
+                    var speedBps = chunkSw.ElapsedMilliseconds > 0
+                        ? bytesDownloaded * 1000.0 / chunkSw.ElapsedMilliseconds
+                        : bytesDownloaded;
+
+                    mirrorState.ReportSuccess(speedBps, bytesDownloaded);
+                    chunkCompleted = true;
                     scheduler.MarkChunkCompleted();
                 }
                 catch (OperationCanceledException) when (!globalToken.IsCancellationRequested)
                 {
-                    // SppedMonitor is angry
-                    // change mirror
-                    var reason = streamReadCts.IsCancellationRequested ? "Timeout" : "Speed too low";
-
-                    currentMirror.HealthScore -= 20;
-                    MirrorSwitched?.Invoke(this, new MirrorSwitchedEventArgs
-                    {
-                        OldMirrorUrl = currentMirror.Url,
-                        NewMirrorUrl = "Will be selected in next interaction",
-                        Reason = reason
-                    });
-
-                    scheduler.ReturnIncompleteChunk(
-                        chunk.StartOffset + bytesDownloadedInThisChunk,
-                        chunk.Length - bytesDownloadedInThisChunk,
-                        chunk.ChunkIndex);
-
+                    chunkSw.Stop();
+                    mirrorState.ReportFailure(FailureType.SlowSpeed);
+                    _NotifyMirrorSwitch(previousMirrorUrl, "Speed below threshold");
+                    _ReturnChunk(scheduler, chunk, bytesDownloaded);
                     break;
                 }
-                catch
+                catch (HttpRequestException)
                 {
-                    // mirror dead
-                    currentMirror.HealthScore -= 50;
-                    if (currentMirror.HealthScore < 0)
-                    {
-                        currentMirror.IsAlive = false;
-                    }
-
-                    scheduler.ReturnIncompleteChunk(
-                        chunk.StartOffset + bytesDownloadedInThisChunk,
-                        chunk.Length - bytesDownloadedInThisChunk,
-                        chunk.ChunkIndex);
+                    mirrorState.ReportFailure(FailureType.HttpError);
+                    _NotifyMirrorSwitch(previousMirrorUrl, "HTTP error");
+                    _ReturnChunk(scheduler, chunk, bytesDownloaded);
+                    break;
+                }
+                catch (Exception)
+                {
+                    mirrorState.ReportFailure(FailureType.ConnectionError);
+                    _NotifyMirrorSwitch(previousMirrorUrl, "Connection error");
+                    _ReturnChunk(scheduler, chunk, bytesDownloaded);
                     break;
                 }
                 finally
                 {
                     globalThrottle.Release();
-
-                    // release resource and check state
-                    var remainingRunning = Interlocked.Decrement(ref _activeExecutingWorkers);
-                    if (remainingRunning == 0 && scheduler.HasPendingChunks)
-                    {
+                    var remaining = Interlocked.Decrement(ref _activeExecutingWorkers);
+                    if (remaining == 0 && scheduler.HasPendingChunks)
                         _ChangeState(DownloadState.Waiting);
-                    }
                 }
             }
         }
+    }
+
+    private void _ReturnChunk(ChunkScheduler scheduler, ChunkInfo chunk, int bytesDownloaded)
+    {
+        if (bytesDownloaded < chunk.Length)
+        {
+            scheduler.ReturnIncompleteChunk(
+                chunk.StartOffset + bytesDownloaded,
+                chunk.Length - bytesDownloaded,
+                chunk.ChunkIndex);
+        }
+    }
+
+    private void _NotifyMirrorSwitch(string oldUrl, string reason)
+    {
+        MirrorSwitched?.Invoke(this, new MirrorSwitchedEventArgs
+        {
+            OldMirrorUrl = oldUrl,
+            NewMirrorUrl = "(auto-select)",
+            Reason = reason
+        });
     }
 
     private void _ChangeState(DownloadState newState)

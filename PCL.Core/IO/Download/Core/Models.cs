@@ -13,27 +13,32 @@ public record struct ChunkInfo(
 );
 
 /// <summary>
-/// 镜像信息
+/// 镜像信息 - 存储镜像源的静态属性和初始评估结果
 /// </summary>
 public record MirrorInfo
 {
     /// <summary>
-    /// 链接
+    /// 镜像URL
     /// </summary>
     public required string Url { get; init; }
 
     /// <summary>
-    /// 是否存活（能够连接）
+    /// 是否存活
     /// </summary>
     public bool IsAlive { get; set; } = true;
 
     /// <summary>
-    /// 延迟（毫秒）
+    /// 探测延迟 (ms)
     /// </summary>
     public long LatencyMilliseconds { get; set; }
 
     /// <summary>
-    /// 健康度
+    /// 估算带宽 (bytes/s)，基于探测阶段的小数据传输测量
+    /// </summary>
+    public double EstimatedBandwidthBps { get; set; }
+
+    /// <summary>
+    /// 动态健康分数 [0-100]，运行时根据表现调整
     /// </summary>
     public int HealthScore { get; set; } = 100;
 }
