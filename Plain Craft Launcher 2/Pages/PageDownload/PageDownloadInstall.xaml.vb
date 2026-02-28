@@ -1915,7 +1915,7 @@ Public Class PageDownloadInstall
         Dim request As New McInstallRequest With {
             .TargetInstanceName = instanceName,
             .TargetInstanceFolder = $"{McFolderSelected}versions\{instanceName}\",
-            .MinecraftJson = _vanillaData("url").ToString(),
+            .MinecraftJson = _vanillaData?("url").ToString(),
             .MinecraftName = _vanillaName,
             .OptiFineEntry = SelectedOptiFine,
             .ForgeEntry = SelectedForge,
