@@ -66,13 +66,21 @@ public static partial class KernelInterop
         public ulong ullAvailExtendedVirtual;
     }
 
-    [LibraryImport("kernel32.dll")]
+    private const int ERROR_ACCESS_DENIED = 5;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "AllocConsole")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool AllocConsole();
+    private static partial bool _AllocConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "FreeConsole")]
+    private static partial void _FreeConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetConsoleWindow")]
+    private static partial nint _GetConsoleWindow();
 
     // ReSharper restore InconsistentNaming, UnusedMember.Local
 
-    private static void _ThrowLastWin32Error() => throw new Win32Exception(Marshal.GetLastWin32Error());
+    private static void _ThrowLastWin32Error(int? errorCode = null) => throw new Win32Exception(errorCode ?? Marshal.GetLastWin32Error());
 
     /// <summary>
     /// 获取当前线程的 Win32 Thread ID。若无特殊情况请用 <see cref="Thread.ManagedThreadId"/> 而不是这个方法。
@@ -253,10 +261,26 @@ public static partial class KernelInterop
     }
 
     /// <summary>
-    /// 为当前进程启用终端窗口
+    /// 为当前进程新建终端窗口。<br/>
+    /// 若进程已拥有终端窗口，该方法将无任何作用。若有需要，可在调用前使用
+    /// <see cref="GetConsoleWindow"/> 来确认进程是否存在关联的终端窗口。
     /// </summary>
     public static void AllocateConsole()
     {
-        if (!AllocConsole()) _ThrowLastWin32Error();
+        if (_AllocConsole()) return;
+        var lastError = Marshal.GetLastWin32Error();
+        if (lastError != ERROR_ACCESS_DENIED) _ThrowLastWin32Error(lastError);
     }
+
+    /// <summary>
+    /// 释放当前进程的终端窗口。<br/>
+    /// 若进程不存在关联的终端窗口，该方法将无任何作用。
+    /// </summary>
+    public static void FreeConsole() => _FreeConsole();
+
+    /// <summary>
+    /// 获取当前进程关联的终端窗口句柄。
+    /// </summary>
+    /// <returns>代表终端窗口的 HWND，若当前进程无关联的终端窗口，则该值为 <see cref="nint.Zero"/></returns>
+    public static nint GetConsoleWindow() => _GetConsoleWindow();
 }
