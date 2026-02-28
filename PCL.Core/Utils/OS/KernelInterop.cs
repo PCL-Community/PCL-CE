@@ -35,17 +35,6 @@ public static partial class KernelInterop
         out int major,
         out int minor,
         out int build);
-    /// <summary>
-    /// Retrieve the kernel version number of the current operating system (unaffected by compatibility settings)
-    /// </summary>
-    /// <returns>A <see cref="Version"/> instance, used to represent the current operating system kernel version number.</returns>
-    public static Version GetCurrentOSVersion()
-    {
-        RtlGetNtVersionNumbers(out var major, out var minor, out var build);
-        build &= 0xFFFF;
-        return new Version(major, minor, build);
-    }
-
 
     private enum LOGICAL_PROCESSOR_RELATIONSHIP : uint
     {
@@ -56,7 +45,7 @@ public static partial class KernelInterop
         RelationGroup            = 4,
         RelationAll              = 0xffff
     }
-    
+
     private static MEMORYSTATUSEX CreateStatus() => new() { dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>() };
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
@@ -77,9 +66,21 @@ public static partial class KernelInterop
         public ulong ullAvailExtendedVirtual;
     }
 
+    private const int ERROR_ACCESS_DENIED = 5;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "AllocConsole")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool _AllocConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "FreeConsole")]
+    private static partial void _FreeConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetConsoleWindow")]
+    private static partial nint _GetConsoleWindow();
+
     // ReSharper restore InconsistentNaming, UnusedMember.Local
 
-    private static void _ThrowLastWin32Error() => throw new Win32Exception(Marshal.GetLastWin32Error());
+    private static void _ThrowLastWin32Error(int? errorCode = null) => throw new Win32Exception(errorCode ?? Marshal.GetLastWin32Error());
 
     /// <summary>
     /// 获取当前线程的 Win32 Thread ID。若无特殊情况请用 <see cref="Thread.ManagedThreadId"/> 而不是这个方法。
@@ -96,9 +97,12 @@ public static partial class KernelInterop
     /// 获取指定命名管道当前连接的客户端进程 ID
     /// </summary>
     /// <param name="pipeHandle">命名管道句柄</param>
-    /// <param name="clientProcessId">获取到的进程 ID</param>
-    /// <returns>是否成功执行</returns>
-    public static bool GetNamedPipeClientProcessId(IntPtr pipeHandle, out uint clientProcessId) => _GetNamedPipeClientProcessId(pipeHandle, out clientProcessId);
+    /// <returns>获取到的进程 ID</returns>
+    public static uint GetNamedPipeClientProcessId(IntPtr pipeHandle)
+    {
+        if (!_GetNamedPipeClientProcessId(pipeHandle, out var clientProcessId)) _ThrowLastWin32Error();
+        return clientProcessId;
+    }
 
     /// <summary>
     /// 获取仅包含性能核（P-core）的逻辑处理器数量。
@@ -244,4 +248,39 @@ public static partial class KernelInterop
         if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
         return status.dwMemoryLoad;
     }
+
+    /// <summary>
+    /// Retrieve the kernel version number of the current operating system (unaffected by compatibility settings)
+    /// </summary>
+    /// <returns>A <see cref="Version"/> instance, used to represent the current operating system kernel version number.</returns>
+    public static Version GetCurrentOsVersion()
+    {
+        RtlGetNtVersionNumbers(out var major, out var minor, out var build);
+        build &= 0xFFFF;
+        return new Version(major, minor, build);
+    }
+
+    /// <summary>
+    /// 为当前进程新建终端窗口。<br/>
+    /// 若进程已拥有终端窗口，该方法将无任何作用。若有需要，可在调用前使用
+    /// <see cref="GetConsoleWindow"/> 来确认进程是否存在关联的终端窗口。
+    /// </summary>
+    public static void AllocateConsole()
+    {
+        if (_AllocConsole()) return;
+        var lastError = Marshal.GetLastWin32Error();
+        if (lastError != ERROR_ACCESS_DENIED) _ThrowLastWin32Error(lastError);
+    }
+
+    /// <summary>
+    /// 释放当前进程的终端窗口。<br/>
+    /// 若进程不存在关联的终端窗口，该方法将无任何作用。
+    /// </summary>
+    public static void FreeConsole() => _FreeConsole();
+
+    /// <summary>
+    /// 获取当前进程关联的终端窗口句柄。
+    /// </summary>
+    /// <returns>代表终端窗口的 HWND，若当前进程无关联的终端窗口，则该值为 <see cref="nint.Zero"/></returns>
+    public static nint GetConsoleWindow() => _GetConsoleWindow();
 }
