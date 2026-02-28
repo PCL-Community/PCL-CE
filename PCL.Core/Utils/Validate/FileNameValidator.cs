@@ -2,27 +2,31 @@
 using System.IO;
 using System.Linq;
 using FluentValidation;
+using FluentValidation.Results;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
 
-public class FileNameValidator : FileSystemValidator
+public class FileNameValidator(
+    string? parentFolder = null,
+    bool ignoreCase = true,
+    bool useMinecraftCharCheck = true,
+    bool requireParentFolderExists = true)
+    : FileSystemValidator
 {
-    public bool UseMinecraftCharCheck { get; set; }
-    public bool IgnoreCase { get; set; }
-    public string? ParentFolder { get; set; }
-    public bool RequireParentFolderExists { get; set; }
-    
+    public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
+    public bool IgnoreCase { get; set; } = ignoreCase;
+    public string? ParentFolder { get; set; } = parentFolder;
+    public bool RequireParentFolderExists { get; set; } = requireParentFolderExists;
+
     private bool? _isParentFolderExists;
 
-    public FileNameValidator(string? parentFolder = null, bool ignoreCase = true, bool useMinecraftCharCheck = true,
-        bool requireParentFolderExists = true)
+    public FileNameValidator() : this(null)
     {
-        ParentFolder = parentFolder;
-        IgnoreCase = ignoreCase;
-        UseMinecraftCharCheck = useMinecraftCharCheck;
-        RequireParentFolderExists = requireParentFolderExists;
-        
+    }
+
+    private void BuildRules()
+    {
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
             .Must(x => !x.StartsWith(' ')).WithMessage("文件名不能以空格开头！")
@@ -60,5 +64,11 @@ public class FileNameValidator : FileSystemValidator
                 return !RequireParentFolderExists;
 
             }).WithMessage(_isParentFolderExists is not null ? $"父文件夹不存在：{ParentFolder}" : "不可与现有文件重名！");
+    }
+
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        BuildRules();
+        return base.PreValidate(context, result);
     }
 }

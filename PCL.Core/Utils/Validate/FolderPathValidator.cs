@@ -1,18 +1,21 @@
 ﻿using System;
 using System.IO;
 using FluentValidation;
+using FluentValidation.Results;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
 
-public class FolderPathValidator : FileSystemValidator
+public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidator
 {
-    public bool UseMinecraftCharCheck { get; set; }
+    public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
 
-    public FolderPathValidator(bool useMinecraftCharCheck = true)
+    public FolderPathValidator() : this(true)
     {
-        UseMinecraftCharCheck = useMinecraftCharCheck;
-        
+    }
+
+    private void BuildRules()
+    {
         RuleFor(x => x)
             .NotEmpty().WithMessage("输入内容不能为空！")
             .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
@@ -42,7 +45,13 @@ public class FolderPathValidator : FileSystemValidator
             .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName)).WithMessage("文件夹名不能包含这一特殊格式！")
             .OverridePropertyName("PathSegments");
     }
-
+    
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        BuildRules();
+        return base.PreValidate(context, result);
+    }
+    
     private static string[] GetSubPaths(string path)
     {
         var fullPath = new DirectoryInfo(path).FullName;

@@ -1,16 +1,19 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
 
-public class HttpValidator : AbstractValidator<string>
+public class HttpValidator(bool allowNullOrEmpty) : AbstractValidator<string>
 {
-    public bool AllowsNullOrEmpty { get; set; }
-    
-    public HttpValidator(bool allowNullOrEmpty = false)
-    {
-        AllowsNullOrEmpty = allowNullOrEmpty;
+    public bool AllowsNullOrEmpty { get; set; } = allowNullOrEmpty;
 
+    public HttpValidator() : this(false)
+    {
+    }
+
+    private void BuildRules()
+    {
         RuleFor(x => x)
             .Must(x =>
             {
@@ -21,6 +24,11 @@ public class HttpValidator : AbstractValidator<string>
 
                 return x.IsMatch(RegexPatterns.HttpUri);
             }).WithMessage("输入的网址无效！");
+    }
 
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        BuildRules();
+        return base.PreValidate(context, result);
     }
 }

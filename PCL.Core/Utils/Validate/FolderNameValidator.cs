@@ -2,25 +2,29 @@
 using System.IO;
 using System.Linq;
 using FluentValidation;
+using FluentValidation.Results;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
 
-public class FolderNameValidator : FileSystemValidator
+public class FolderNameValidator(
+    string? parentFolder = null,
+    bool useMinecraftCharCheck = true,
+    bool ignoreCase = true,
+    bool ignoreSameNameInParentFolder = true)
+    : FileSystemValidator
 {
-    public bool UseMinecraftCharCheck { get; set; }
-    public bool IgnoreCase { get; set; }
-    public bool IgnoreSameNameInParentFolder { get; set; }
-    public string? ParentFolder { get; set; }
-    
-    public FolderNameValidator(string? parentFolder = null, bool useMinecraftCharCheck = true, bool ignoreCase = true,
-        bool ignoreSameNameInParentFolder = true)
+    public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
+    public bool IgnoreCase { get; set; } = ignoreCase;
+    public bool IgnoreSameNameInParentFolder { get; set; } = ignoreSameNameInParentFolder;
+    public string? ParentFolder { get; set; } = parentFolder;
+
+    public FolderNameValidator() : this(null)
     {
-        UseMinecraftCharCheck = useMinecraftCharCheck;
-        IgnoreCase = ignoreCase;
-        IgnoreSameNameInParentFolder = ignoreSameNameInParentFolder;
-        ParentFolder = parentFolder;
-        
+    }
+
+    private void BuildRules()
+    {
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
             .Must(x => !x.StartsWith(' ')).WithMessage("文件名不能以空格开头！")
@@ -55,5 +59,11 @@ public class FolderNameValidator : FileSystemValidator
                     IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             }).WithMessage("不可与现有文件夹重名！");
+    }
+
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        BuildRules();
+        return base.PreValidate(context, result);
     }
 }

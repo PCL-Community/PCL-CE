@@ -1,16 +1,19 @@
 ﻿using System.Collections.Generic;
 using FluentValidation;
+using FluentValidation.Results;
 
 namespace PCL.Core.Utils.Validate;
 
-public class BlacklistValidator : AbstractValidator<string>
+public class BlacklistValidator(List<string> contains) : AbstractValidator<string>
 {
-    public List<string> Blacklist { get; set; }
-    
-    public BlacklistValidator(List<string>? contains = null)
+    public List<string> Blacklist { get; set; } = contains;
+
+    public BlacklistValidator() : this([])
     {
-        Blacklist = contains ?? [];
-        
+    }
+
+    private void BuildRules()
+    {
         RuleFor(x => x)
             .Custom((input, context) =>
             {
@@ -22,5 +25,11 @@ public class BlacklistValidator : AbstractValidator<string>
                     }
                 }
             });
+    }
+
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        BuildRules();
+        return base.PreValidate(context, result);
     }
 }
