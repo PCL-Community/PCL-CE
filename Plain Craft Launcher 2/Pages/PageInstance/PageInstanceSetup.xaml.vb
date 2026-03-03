@@ -1,5 +1,6 @@
 Imports PCL.Core.App
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Exts
@@ -399,21 +400,32 @@ PreFin:
     End Sub
     Private Sub TextServerAuthServer_MouseLeave() Handles TextServerAuthServer.LostFocus
         If String.IsNullOrWhiteSpace(TextServerAuthServer.Text) Then Exit Sub
-        If Not (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") OrElse TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")) Then
-            If TextServerAuthServer.Text.EndsWithF("/") Then
-                TextServerAuthServer.Text = TextServerAuthServer.Text & "api/yggdrasil"
-                Hint("已自动格式化验证服务器地址！")
-            Else
-                TextServerAuthServer.Text = TextServerAuthServer.Text & "/api/yggdrasil"
-                Hint("已自动格式化验证服务器地址！")
-            End If
-        End If
-        If TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") Then
-            TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/")
-            Hint("已自动格式化验证服务器地址！")
-        End If
-        ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex
-        ComboChange(ComboServerLoginRequire, Nothing)
+        Hint("正在检查 API 地址信息，请稍后！")
+
+        '写这个的拉出去炖了
+        '
+        'If Not (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") OrElse TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")) Then
+        '    If TextServerAuthServer.Text.EndsWithF("/") Then
+        '        TextServerAuthServer.Text = TextServerAuthServer.Text & "api/yggdrasil"
+        '        Hint("已自动格式化验证服务器地址！")
+        '    Else
+        '        TextServerAuthServer.Text = TextServerAuthServer.Text & "/api/yggdrasil"
+        '        Hint("已自动格式化验证服务器地址！")
+        '    End If
+        'End If
+
+        Dispatcher.BeginInvoke(Async Function() As Task
+            Dim originAddress = TextServerAuthServer.Text
+            Try
+                TextServerAuthServer.Text = Await ApiLocation.TryRequestAsync(TextServerAuthServer.Text)
+                Hint("检查 API 地址信息成功，验证服务器地址已更新", HintType.Finish)
+                ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex
+                ComboChange(ComboServerLoginRequire, Nothing)
+            Catch ex As Exception
+                Log(ex,"检查验证服务器地址失败",LogLevel.Hint)
+                TextServerAuthServer.Text = originAddress
+            End Try
+        End Function)
     End Sub
     Public Sub ServerLogin(Type As Integer)
         LabServerAuthName.Visibility = If(Type = 2 OrElse Type = 3, Visibility.Visible, Visibility.Collapsed)
