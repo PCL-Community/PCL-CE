@@ -54,6 +54,11 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
     
     private static string[] GetSubPaths(string path)
     {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return [];
+        }
+        
         var fullPath = new DirectoryInfo(path).FullName;
         return fullPath[Path.GetPathRoot(fullPath)!.Length..]
             .TrimEnd(Path.DirectorySeparatorChar)
