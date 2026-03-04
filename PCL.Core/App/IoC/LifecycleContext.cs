@@ -1,7 +1,73 @@
 ﻿using System;
+using System.Threading.Tasks;
 using PCL.Core.Logging;
 
 namespace PCL.Core.App.IoC;
+
+partial class Lifecycle
+{
+    private class SystemLifecycleService : ILifecycleService
+    {
+        public string Name => "系统";
+        public string Identifier => "system";
+        public bool SupportAsync => false;
+        public Task StartAsync() => Task.CompletedTask;
+        public Task StopAsync() => Task.CompletedTask;
+    }
+
+    private static readonly ILifecycleService _SystemService = new SystemLifecycleService();
+    private static readonly LifecycleServiceInfo _SystemServiceInfo = new(_SystemService, LifecycleState.BeforeLoading);
+
+    /// <summary>
+    /// 系统默认上下文，无特殊需求请勿使用。
+    /// </summary>
+    internal static readonly LifecycleContext SystemContext = GetContext(_SystemService);
+
+    /// <summary>
+    /// 获取指定服务项对应的上下文实例用于日志输出、多任务通信等。一般情况下只推荐获取自身上下文。
+    /// </summary>
+    /// <param name="self">服务项实例</param>
+    /// <returns>上下文实例</returns>
+    public static LifecycleContext GetContext(ILifecycleService self) => new(
+        service: self,
+        onLog: item =>
+        {
+            lock (_PendingLogs)
+            {
+                if (_logService == null) _PendingLogs.Add(item);
+                else _PushLog(item, _logService);
+            }
+            if (item.ActionLevel == ActionLevel.MsgBoxFatal) _FatalExit();
+        },
+        onRequestExit: statusCode =>
+        {
+            if (CurrentState != LifecycleState.BeforeLoading)
+                throw new InvalidOperationException("只能在 BeforeLoading 时请求退出");
+            Context.Info($"{_ServiceName(self)} 已请求退出程序");
+            _Exit(statusCode);
+        },
+        onRequestRestart: args =>
+        {
+            _hasRequestedRestart = true;
+            _requestRestartService = self;
+            _requestRestartArguments = args;
+        },
+        onDeclareStopped: () =>
+        {
+            var identifier = self.Identifier;
+            if (GetServiceInfo(identifier)?.Identifier == identifier)
+                throw new InvalidOperationException("只能在服务启动阶段调用");
+            _DeclaredStoppedServices.Add(self);
+        },
+        onRequestStopLoading: () =>
+        {
+            if (CurrentState != LifecycleState.BeforeLoading)
+                throw new InvalidOperationException("只能在 BeforeLoading 时请求停止加载");
+            Context.Info($"{_ServiceName(self)} 已请求停止继续加载");
+            _hasRequestedStopLoading = true;
+        }
+    );
+}
 
 /// <summary>
 /// 若要获取服务项自身的上下文实例，请使用 <see cref="Lifecycle.GetContext"/> 。
