@@ -831,6 +831,7 @@ Public Module ModAnimation
                                                    End If
                                                End Sub)
                                Loop
+                           Catch ignore As OperationCanceledException
                            Catch ex As Exception
                                Log(ex, "动画帧执行失败", LogLevel.Hint)
                            End Try
