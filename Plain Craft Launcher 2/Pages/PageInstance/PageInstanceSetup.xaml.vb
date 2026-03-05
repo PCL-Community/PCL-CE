@@ -81,6 +81,7 @@ Public Class PageInstanceSetup
             Else
                 CheckAdvanceDisableJLW.Checked = Setup.Get("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             End If
+            CheckAdvanceDisableRW.Checked = Setup.Get("VersionAdvanceDisableRW", instance:=PageInstanceLeft.Instance)
 
         Catch ex As Exception
             Log(ex, "重载实例独立设置时出错", LogLevel.Feedback)
