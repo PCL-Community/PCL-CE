@@ -140,7 +140,7 @@ Public Module ModJava
     End Function
 
     Public Function GetInstanceJavaPreference(instance As McInstance) As JavaPreference
-        Dim rawPreference = Config.Instance.SelectedJava(instance.PathInstance)
+        Dim rawPreference = If(Config.Instance.SelectedJava(instance.PathInstance), "")
 
         Dim preference As JavaPreference = Nothing
 
