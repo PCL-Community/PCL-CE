@@ -783,8 +783,8 @@ Recheck:
 #End Region
 ExitDataLoad:
                 '确定实例图标
-                Logo = Config.Instance.LogoPath(PathInstance)
-                If Logo = "" OrElse Not Config.Instance.IsLogoCustom(PathInstance) Then
+                Logo = States.Instance.LogoPath(PathInstance)
+                If Logo = "" OrElse Not States.Instance.IsLogoCustom(PathInstance) Then
                     Select Case State
                         Case McInstanceState.Original
                             Logo = PathImage & "Blocks/Grass.png"
@@ -820,32 +820,32 @@ ExitDataLoad:
                 If State = McInstanceState.Error Then
                     Desc = Me.Desc
                 Else
-                    Desc = Config.Instance.CustomInfo(PathInstance)
+                    Desc = States.Instance.CustomInfo(PathInstance)
                     If Desc = GetDefaultDescription() Then Desc = ""
                 End If
                 '确定实例收藏状态
-                IsStar = Config.Instance.Starred(PathInstance)
+                IsStar = States.Instance.Starred(PathInstance)
                 '确定实例显示种类
-                DisplayType = Config.Instance.CardType(PathInstance)
+                DisplayType = States.Instance.CardType(PathInstance)
                 '写入缓存
                 If Directory.Exists(PathInstance) Then
-                    Config.Instance.State(PathInstance) = State
-                    Config.Instance.Info(PathInstance) = Desc
-                    Config.Instance.LogoPath(PathInstance) = Logo
+                    States.Instance.State(PathInstance) = State
+                    States.Instance.Info(PathInstance) = Desc
+                    States.Instance.LogoPath(PathInstance) = Logo
                 End If
                 If State <> McInstanceState.Error Then
-                    Config.Instance.ReleaseTime(PathInstance) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
-                    Config.Instance.FabricVersion(PathInstance) = Info.Fabric
-                    Config.Instance.LegacyFabricVersion(PathInstance) = Info.LegacyFabric
-                    Config.Instance.QuiltVersion(PathInstance) = Info.Quilt
-                    Config.Instance.LabyModVersion(PathInstance) = Info.LabyMod
-                    Config.Instance.OptiFineVersion(PathInstance) = Info.OptiFine
-                    Config.Instance.HasLiteLoader(PathInstance) = Info.HasLiteLoader
-                    Config.Instance.ForgeVersion(PathInstance) = Info.Forge
-                    Config.Instance.NeoForgeVersion(PathInstance) = Info.NeoForge
-                    Config.Instance.CleanroomVersion(PathInstance) = Info.Cleanroom
-                    Config.Instance.VanillaVersionName(PathInstance) = Info.VanillaName
-                    Config.Instance.VanillaVersion(PathInstance) = Info.Vanilla.ToString()
+                    States.Instance.ReleaseTime(PathInstance) = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm")
+                    States.Instance.FabricVersion(PathInstance) = Info.Fabric
+                    States.Instance.LegacyFabricVersion(PathInstance) = Info.LegacyFabric
+                    States.Instance.QuiltVersion(PathInstance) = Info.Quilt
+                    States.Instance.LabyModVersion(PathInstance) = Info.LabyMod
+                    States.Instance.OptiFineVersion(PathInstance) = Info.OptiFine
+                    States.Instance.HasLiteLoader(PathInstance) = Info.HasLiteLoader
+                    States.Instance.ForgeVersion(PathInstance) = Info.Forge
+                    States.Instance.NeoForgeVersion(PathInstance) = Info.NeoForge
+                    States.Instance.CleanroomVersion(PathInstance) = Info.Cleanroom
+                    States.Instance.VanillaVersionName(PathInstance) = Info.VanillaName
+                    States.Instance.VanillaVersion(PathInstance) = Info.Vanilla.ToString()
                 End If
             Catch ex As Exception
                 Desc = "未知错误：" & ex.ToString()
@@ -1382,9 +1382,8 @@ OnLoaded:
                         '读取单个实例
                         Dim instance As New McInstance(versionFolder)
                         instanceList.Add(instance)
-                        instance.Desc = Config.Instance.CustomInfo(instance.PathInstance)
-
-                        Dim instanceCfg = Config.Instance
+                        Dim instanceCfg = States.Instance
+                        instance.Desc = instanceCfg.CustomInfo(instance.PathInstance)
                         If instance.Desc = "" Then instance.Desc = instanceCfg.Info(instance.PathInstance)
                         If Not instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance) Then _
                             instance.Logo = instanceCfg.LogoPath(instance.PathInstance)
@@ -1427,7 +1426,7 @@ OnLoaded:
                             instance.State = McInstanceState.Original
                             instance.Check()
                             '校验错误原因是否改变
-                            Dim CustomInfo As String = Config.Instance.CustomInfo(instance.PathInstance)
+                            Dim CustomInfo As String = instanceCfg.CustomInfo(instance.PathInstance)
                             If instance.State = McInstanceState.Original OrElse (CustomInfo = "" AndAlso Not OldDesc = instance.Desc) Then
                                 Log("[Minecraft] 实例 " & instance.Name & " 的错误状态已变更，新的状态为：" & instance.Desc)
                                 Return Nothing

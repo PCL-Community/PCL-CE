@@ -572,59 +572,43 @@ public static partial class Config
     /// 实例独立配置。<br/>
     /// 懒得写注释了，自己理解吧。
     /// </summary>
-    [ConfigGroup("Instance")] partial class InstanceConfigGroup
+    [ConfigGroup("Instance", ConfigSource.GameInstance)] partial class InstanceConfigGroup
     {
-        [ConfigItem<string>("VersionAdvanceJvm", "", ConfigSource.GameInstance)] public partial ArgConfig<string> JvmArgs { get; }
-        [ConfigItem<string>("VersionAdvanceGame", "", ConfigSource.GameInstance)] public partial ArgConfig<string> GameArgs { get; }
-        [ConfigItem<int>("VersionAdvanceRenderer", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> Renderer { get; }
-        [ConfigItem<int>("VersionAdvanceAssets", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> AssetVerifySolutionV1 { get; }
-        [ConfigItem<bool>("VersionAdvanceAssetsV2", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> DisableAssetVerifyV2 { get; }
-        [ConfigItem<bool>("VersionAdvanceJava", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> IgnoreJavaCompatibility { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableJlw", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> DisableJlwObsolete { get; }
-        [ConfigItem<string>("VersionAdvanceRun", "", ConfigSource.GameInstance)] public partial ArgConfig<string> PreLaunchCommand { get; }
-        [ConfigItem<string>("VersionAdvanceClasspathHead", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ClasspathHead { get; }
-        [ConfigItem<bool>("VersionAdvanceRunWait", true, ConfigSource.GameInstance)] public partial ArgConfig<bool> PreLaunchCommandWait { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableJLW", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> DisableJlw { get; }
-        [ConfigItem<bool>("VersionAdvanceUseProxyV2", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> UseProxy { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableRW", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> DisableRw { get; }
-        [ConfigItem<bool>("VersionUseDebugLog4j2Config", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
-        [ConfigItem<int>("VersionRamType", 2, ConfigSource.GameInstance)] public partial ArgConfig<int> MemorySolution { get; }
-        [ConfigItem<int>("VersionRamCustom", 15, ConfigSource.GameInstance)] public partial ArgConfig<int> CustomMemorySize { get; }
-        [ConfigItem<int>("VersionRamOptimize", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> OptimizeMemoryResolution { get; }
-        [ConfigItem<string>("VersionArgumentTitle", "", ConfigSource.GameInstance)] public partial ArgConfig<string> Title { get; }
-        [ConfigItem<bool>("VersionArgumentTitleEmpty", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> UseGlobalTitle { get; }
-        [ConfigItem<string>("VersionArgumentInfo", "", ConfigSource.GameInstance)] public partial ArgConfig<string> TypeInfo { get; }
-        [ConfigItem<int>("VersionArgumentIndie", -1, ConfigSource.GameInstance)] public partial ArgConfig<int> IndieV1 { get; }
-        [ConfigItem<bool>("VersionArgumentIndieV2", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> IndieV2 { get; }
-        [ConfigItem<string>("VersionArgumentJavaSelect", "使用全局设置", ConfigSource.GameInstance)] public partial ArgConfig<string> SelectedJava { get; }
-        [ConfigItem<string>("VersionServerEnter", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ServerToEnter { get; }
-        [ConfigItem<int>("VersionServerLoginRequire", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> LoginRequirementSolution { get; }
-        [ConfigItem<string>("VersionServerAuthRegister", "", ConfigSource.GameInstance)] public partial ArgConfig<string> AuthRegisterAddress { get; }
-        [ConfigItem<string>("VersionServerAuthName", "", ConfigSource.GameInstance)] public partial ArgConfig<string> AuthServerDisplayName { get; }
-        [ConfigItem<string>("VersionServerAuthServer", "", ConfigSource.GameInstance)] public partial ArgConfig<string> AuthServerAddress { get; }
-        [ConfigItem<bool>("VersionServerLoginLock", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> AuthTypeLucked { get; }
-        [ConfigItem<int>("VersionLaunchCount", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> LaunchCount { get; }
-        [ConfigItem<bool>("IsStar", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> Starred { get; }
-        [ConfigItem<int>("DisplayType", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> CardType { get; }
-        [ConfigItem<string>("Logo", "", ConfigSource.GameInstance)] public partial ArgConfig<string> LogoPath { get; }
-        [ConfigItem<bool>("LogoCustom", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> IsLogoCustom { get; }
-        [ConfigItem<string>("CustomInfo", "", ConfigSource.GameInstance)] public partial ArgConfig<string> CustomInfo { get; }
-        [ConfigItem<string>("Info", "", ConfigSource.GameInstance)] public partial ArgConfig<string> Info { get; }
-        [ConfigItem<string>("ReleaseTime", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ReleaseTime { get; }
-        [ConfigItem<int>("State", 0, ConfigSource.GameInstance)] public partial ArgConfig<int> State { get; }
-        [ConfigItem<string>("VersionFabric", "", ConfigSource.GameInstance)] public partial ArgConfig<string> FabricVersion { get; }
-        [ConfigItem<string>("VersionLegacyFabric", "", ConfigSource.GameInstance)] public partial ArgConfig<string> LegacyFabricVersion { get; }
-        [ConfigItem<string>("VersionQuilt", "", ConfigSource.GameInstance)] public partial ArgConfig<string> QuiltVersion { get; }
-        [ConfigItem<string>("VersionLabyMod", "", ConfigSource.GameInstance)] public partial ArgConfig<string> LabyModVersion { get; }
-        [ConfigItem<string>("VersionOptiFine", "", ConfigSource.GameInstance)] public partial ArgConfig<string> OptiFineVersion { get; }
-        [ConfigItem<bool>("VersionLiteLoader", false, ConfigSource.GameInstance)] public partial ArgConfig<bool> HasLiteLoader { get; }
-        [ConfigItem<string>("VersionForge", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ForgeVersion { get; }
-        [ConfigItem<string>("VersionNeoForge", "", ConfigSource.GameInstance)] public partial ArgConfig<string> NeoForgeVersion { get; }
-        [ConfigItem<string>("VersionCleanroom", "", ConfigSource.GameInstance)] public partial ArgConfig<string> CleanroomVersion { get; }
-        [ConfigItem<string>("VersionVanillaName", "Unknown", ConfigSource.GameInstance)] public partial ArgConfig<string> VanillaVersionName { get; }
-        [ConfigItem<string>("VersionVanilla", "0.0.0", ConfigSource.GameInstance)] public partial ArgConfig<string> VanillaVersion { get; }
-        [ConfigItem<string>("VersionModpackVersion", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackVersion { get; }
-        [ConfigItem<string>("VersionModpackSource", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackSource { get; }
-        [ConfigItem<string>("VersionModpackId", "", ConfigSource.GameInstance)] public partial ArgConfig<string> ModpackId { get; }
+        [ConfigItem<string>("VersionAdvanceJvm", "")] public partial ArgConfig<string> JvmArgs { get; }
+        [ConfigItem<string>("VersionAdvanceGame", "")] public partial ArgConfig<string> GameArgs { get; }
+        [ConfigItem<int>("VersionAdvanceRenderer", 0)] public partial ArgConfig<int> Renderer { get; }
+        [ConfigItem<int>("VersionAdvanceAssets", 0)] public partial ArgConfig<int> AssetVerifySolutionV1 { get; }
+        [ConfigItem<bool>("VersionAdvanceAssetsV2", false)] public partial ArgConfig<bool> DisableAssetVerifyV2 { get; }
+        [ConfigItem<bool>("VersionAdvanceJava", false)] public partial ArgConfig<bool> IgnoreJavaCompatibility { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableJlw", false)] public partial ArgConfig<bool> DisableJlwObsolete { get; }
+        [ConfigItem<string>("VersionAdvanceRun", "")] public partial ArgConfig<string> PreLaunchCommand { get; }
+        [ConfigItem<string>("VersionAdvanceClasspathHead", "")] public partial ArgConfig<string> ClasspathHead { get; }
+        [ConfigItem<bool>("VersionAdvanceRunWait", true)] public partial ArgConfig<bool> PreLaunchCommandWait { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
+        [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
+        [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
+        [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
+        [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }
+        [ConfigItem<int>("VersionRamOptimize", 0)] public partial ArgConfig<int> OptimizeMemoryResolution { get; }
+        [ConfigItem<string>("VersionArgumentTitle", "")] public partial ArgConfig<string> Title { get; }
+        [ConfigItem<bool>("VersionArgumentTitleEmpty", false)] public partial ArgConfig<bool> UseGlobalTitle { get; }
+        [ConfigItem<string>("VersionArgumentInfo", "")] public partial ArgConfig<string> TypeInfo { get; }
+        [ConfigItem<int>("VersionArgumentIndie", -1)] public partial ArgConfig<int> IndieV1 { get; }
+        [ConfigItem<bool>("VersionArgumentIndieV2", false)] public partial ArgConfig<bool> IndieV2 { get; }
+        [ConfigItem<string>("VersionArgumentJavaSelect", "使用全局设置")] public partial ArgConfig<string> SelectedJava { get; }
+        [ConfigItem<string>("VersionServerEnter", "")] public partial ArgConfig<string> ServerToEnter { get; }
+    }
+
+    /// <summary>
+    /// 实例独立配置的认证部分
+    /// </summary>
+    [ConfigGroup("InstanceAuth", ConfigSource.GameInstance)] partial class InstanceAuthConfigGroup
+    {
+        [ConfigItem<int>("VersionServerLoginRequire", 0)] public partial ArgConfig<int> LoginRequirementSolution { get; }
+        [ConfigItem<string>("VersionServerAuthRegister", "")] public partial ArgConfig<string> AuthRegisterAddress { get; }
+        [ConfigItem<string>("VersionServerAuthName", "")] public partial ArgConfig<string> AuthServerDisplayName { get; }
+        [ConfigItem<string>("VersionServerAuthServer", "")] public partial ArgConfig<string> AuthServerAddress { get; }
+        [ConfigItem<bool>("VersionServerLoginLock", false)] public partial ArgConfig<bool> AuthLocked { get; }
     }
 }

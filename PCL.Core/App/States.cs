@@ -379,4 +379,32 @@ public static partial class States
         [ConfigItem<bool>("LinkFirstTimeNetTest", true, ConfigSource.SharedEncrypt)] public partial bool DoFirstTimeNetTest { get; set; }
 
     }
+
+    [ConfigGroup("Instance", ConfigSource.GameInstance)]
+    partial class InstanceStatesGroup
+    {
+        [ConfigItem<int>("VersionLaunchCount", 0)] public partial ArgConfig<int> LaunchCount { get; }
+        [ConfigItem<bool>("IsStar", false)] public partial ArgConfig<bool> Starred { get; }
+        [ConfigItem<int>("DisplayType", 0)] public partial ArgConfig<int> CardType { get; }
+        [ConfigItem<string>("Logo", "")] public partial ArgConfig<string> LogoPath { get; }
+        [ConfigItem<bool>("LogoCustom", false)] public partial ArgConfig<bool> IsLogoCustom { get; }
+        [ConfigItem<string>("CustomInfo", "")] public partial ArgConfig<string> CustomInfo { get; }
+        [ConfigItem<string>("Info", "")] public partial ArgConfig<string> Info { get; }
+        [ConfigItem<string>("ReleaseTime", "")] public partial ArgConfig<string> ReleaseTime { get; }
+        [ConfigItem<int>("State", 0)] public partial ArgConfig<int> State { get; }
+        [ConfigItem<string>("VersionFabric", "")] public partial ArgConfig<string> FabricVersion { get; }
+        [ConfigItem<string>("VersionLegacyFabric", "")] public partial ArgConfig<string> LegacyFabricVersion { get; }
+        [ConfigItem<string>("VersionQuilt", "")] public partial ArgConfig<string> QuiltVersion { get; }
+        [ConfigItem<string>("VersionLabyMod", "")] public partial ArgConfig<string> LabyModVersion { get; }
+        [ConfigItem<string>("VersionOptiFine", "")] public partial ArgConfig<string> OptiFineVersion { get; }
+        [ConfigItem<bool>("VersionLiteLoader", false)] public partial ArgConfig<bool> HasLiteLoader { get; }
+        [ConfigItem<string>("VersionForge", "")] public partial ArgConfig<string> ForgeVersion { get; }
+        [ConfigItem<string>("VersionNeoForge", "")] public partial ArgConfig<string> NeoForgeVersion { get; }
+        [ConfigItem<string>("VersionCleanroom", "")] public partial ArgConfig<string> CleanroomVersion { get; }
+        [ConfigItem<string>("VersionVanillaName", "Unknown")] public partial ArgConfig<string> VanillaVersionName { get; }
+        [ConfigItem<string>("VersionVanilla", "0.0.0")] public partial ArgConfig<string> VanillaVersion { get; }
+        [ConfigItem<string>("VersionModpackVersion", "")] public partial ArgConfig<string> ModpackVersion { get; }
+        [ConfigItem<string>("VersionModpackSource", "")] public partial ArgConfig<string> ModpackSource { get; }
+        [ConfigItem<string>("VersionModpackId", "")] public partial ArgConfig<string> ModpackId { get; }
+    }
 }

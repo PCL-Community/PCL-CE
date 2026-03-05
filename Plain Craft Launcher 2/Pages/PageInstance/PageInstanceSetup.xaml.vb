@@ -90,32 +90,10 @@ Public Class PageInstanceSetup
     '初始化
     Public Sub Reset()
         Try
-            If Not Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance) Then
-                Setup.Reset("VersionServerLoginRequire", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthServer", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthName", instance:=PageInstanceLeft.Instance)
-            End If
-            Setup.Reset("VersionServerEnter", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentInfo", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentIndieV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamType", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamCustom", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamOptimize", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssetsV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJava", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJlw", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
+            If Not Config.InstanceAuth.AuthLocked(PageInstanceLeft.Instance.PathInstance) Then _
+                Config.InstanceAuth.Reset(PageInstanceLeft.Instance.PathInstance)
 
-            Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
+            Config.Instance.Reset(PageInstanceLeft.Instance.PathInstance)
 
             Log("[Setup] 已初始化实例独立设置")
             Hint("已初始化实例独立设置！", HintType.Finish, False)
