@@ -222,16 +222,6 @@ Public Class PageToolsTest
             End Sub, "Rubbish Clear")
     End Sub
     <StructLayout(LayoutKind.Sequential)>
-    Private Class TokenPrivileges
-        Public PrivilegeCount As Integer = 1
-        Public Luid As LUID
-        Public Attributes As Integer
-    End Class
-    Private Structure LUID
-        Public LowPart As Integer
-        Public HighPart As Integer
-    End Structure
-    <StructLayout(LayoutKind.Sequential)>
     Public Structure SYSTEM_FILECACHE_INFORMATION
         Public CurrentSize As UIntPtr
         Public PeakSize As UIntPtr
@@ -249,11 +239,6 @@ Public Class PageToolsTest
         Public PagesCombined As UIntPtr
         Public Flags As UInteger
     End Structure
-    Private Declare Ansi Function GetCurrentProcess Lib "kernel32.dll" () As IntPtr
-    Private Declare Auto Function CloseHandle Lib "kernel32.dll" (handle As IntPtr) As Boolean
-    Private Declare Auto Function OpenProcessToken Lib "advapi32.dll" (ProcessHandle As HandleRef, DesiredAccess As Integer, <System.Runtime.InteropServices.OutAttribute()> ByRef TokenHandle As IntPtr) As Boolean
-    Private Declare Auto Function LookupPrivilegeValue Lib "advapi32.dll" (<MarshalAs(UnmanagedType.LPTStr)> lpSystemName As String, <MarshalAs(UnmanagedType.LPTStr)> lpName As String, <System.Runtime.InteropServices.OutAttribute()> ByRef lpLuid As LUID) As Boolean
-    Private Declare Auto Function AdjustTokenPrivileges Lib "advapi32.dll" (TokenHandle As HandleRef, DisableAllPrivileges As Boolean, NewState As TokenPrivileges, BufferLength As Integer, PreviousState As IntPtr, ReturnLength As IntPtr) As Boolean
     Private Declare Ansi Function NtSetSystemInformation Lib "ntdll.dll" (SystemInformationClass As Integer, SystemInformation As IntPtr, SystemInformationLength As Integer) As UInteger
     Private Shared IsMemoryOptimizing
     Public Shared Sub MemoryOptimize(ShowHint As Boolean)
@@ -313,26 +298,8 @@ Public Class PageToolsTest
 
         '提权部分
         Try
-            Dim processId As IntPtr = GetCurrentProcess()
-            Dim luid1 As LUID = Nothing
-            Dim luid2 As LUID = Nothing
-            Dim hToken As IntPtr = CType(0, IntPtr)
-            If OpenProcessToken(New HandleRef(Nothing, processId), 32, hToken) Then
-                LookupPrivilegeValue(Nothing, "SeProfileSingleProcessPrivilege", luid1)
-                LookupPrivilegeValue(Nothing, "SeIncreaseQuotaPrivilege", luid2)
-
-                Dim tokenPrivileges1 = New TokenPrivileges
-                tokenPrivileges1.Luid = luid1
-                tokenPrivileges1.Attributes = 2
-                Dim tokenPrivileges2 = New TokenPrivileges
-                tokenPrivileges2.Luid = luid2
-                tokenPrivileges2.Attributes = 2
-
-                AdjustTokenPrivileges(New HandleRef(Nothing, hToken), False, tokenPrivileges1, 0, IntPtr.Zero, IntPtr.Zero)
-                AdjustTokenPrivileges(New HandleRef(Nothing, hToken), False, tokenPrivileges2, 0, IntPtr.Zero, IntPtr.Zero)
-
-                CloseHandle(hToken)
-            End If
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, True)
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, True)
         Catch ex As Exception
             Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", Marshal.GetLastWin32Error()))
         End Try
@@ -342,7 +309,7 @@ Public Class PageToolsTest
         End If
 
         '内存优化部分
-        Dim NowType As String = "None"
+        Dim NowType = "None"
         Try
             Dim info As Integer
             Dim scfi As SYSTEM_FILECACHE_INFORMATION
@@ -352,34 +319,41 @@ Public Class PageToolsTest
             NowType = "MemoryEmptyWorkingSets"
             info = 2
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
             _gcHandle.Free()
             NowType = "SystemFileCacheInformation"
             scfi.MaximumWorkingSet = UInteger.MaxValue
             scfi.MinimumWorkingSet = UInteger.MaxValue
             _gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned)
-            NtSetSystemInformation(81, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
             _gcHandle.Free()
             NowType = "MemoryFlushModifiedList"
             info = 3
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
             _gcHandle.Free()
             NowType = "MemoryPurgeStandbyList"
             info = 4
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
             _gcHandle.Free()
             NowType = "MemoryPurgeLowPriorityStandbyList"
             info = 5
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
             _gcHandle.Free()
             NowType = "SystemRegistryReconciliationInformation"
-            NtSetSystemInformation(155, New IntPtr(Nothing), 0)
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemRegistryReconciliationInformation,
+                                           New IntPtr(Nothing), 0)
             NowType = "SystemCombinePhysicalMemoryInformation"
             _gcHandle = GCHandle.Alloc(combineInfoEx, GCHandleType.Pinned)
-            NtSetSystemInformation(130, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemCombinePhysicalMemoryInformation,
+                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
             _gcHandle.Free()
         Catch ex As Exception
             Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType))

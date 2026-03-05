@@ -29,13 +29,7 @@ public static partial class KernelInterop
         ref uint returnLength);
 
     private const int ERROR_INSUFFICIENT_BUFFER = 122;
-
-    [LibraryImport("ntdll.dll")]
-    private static partial void RtlGetNtVersionNumbers(
-        out int major,
-        out int minor,
-        out int build);
-
+    
     private enum LOGICAL_PROCESSOR_RELATIONSHIP : uint
     {
         RelationProcessorCore    = 0,
@@ -247,17 +241,6 @@ public static partial class KernelInterop
         var status = CreateStatus();
         if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
         return status.dwMemoryLoad;
-    }
-
-    /// <summary>
-    /// Retrieve the kernel version number of the current operating system (unaffected by compatibility settings)
-    /// </summary>
-    /// <returns>A <see cref="Version"/> instance, used to represent the current operating system kernel version number.</returns>
-    public static Version GetCurrentOsVersion()
-    {
-        RtlGetNtVersionNumbers(out var major, out var minor, out var build);
-        build &= 0xFFFF;
-        return new Version(major, minor, build);
     }
 
     /// <summary>

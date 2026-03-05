@@ -108,7 +108,7 @@ WaitRetry:
             End If
             '检测异常环境
             Dim problemList As New List(Of String)
-            Dim currentOSVersion = KernelInterop.GetCurrentOsVersion()
+            Dim currentOSVersion = NtInterop.GetCurrentOsVersion()
             If currentOSVersion.Build < 17763 Then problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统")
             If Is32BitSystem then problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏")
             If ExePath.Contains(IO.Path.GetTempPath()) OrElse ExePath.Contains("AppData\Local\Temp\") Then problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失")
