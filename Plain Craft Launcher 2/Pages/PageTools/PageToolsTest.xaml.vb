@@ -301,7 +301,7 @@ Public Class PageToolsTest
             NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, True)
             NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, True)
         Catch ex As Exception
-            Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", Marshal.GetLastWin32Error()))
+            Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
         End Try
 
         If ShowHint Then
