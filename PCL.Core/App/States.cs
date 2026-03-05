@@ -380,8 +380,10 @@ public static partial class States
 
     }
 
-    [ConfigGroup("Instance", ConfigSource.GameInstance)]
-    partial class InstanceStatesGroup
+    /// <summary>
+    /// 实例独立状态
+    /// </summary>
+    [ConfigGroup("Instance", ConfigSource.GameInstance)] partial class InstanceStatesGroup
     {
         [ConfigItem<int>("VersionLaunchCount", 0)] public partial ArgConfig<int> LaunchCount { get; }
         [ConfigItem<bool>("IsStar", false)] public partial ArgConfig<bool> Starred { get; }
