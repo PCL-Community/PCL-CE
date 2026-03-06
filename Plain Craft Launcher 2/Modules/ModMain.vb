@@ -491,6 +491,7 @@ EndHint:
     Public FrmToolsGameLink As PageToolsGameLink
     Public FrmToolsHelp As PageToolsHelp
     Public FrmToolsTest As PageToolsTest
+    Public FrmToolsNews As PageToolsNewsView
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft

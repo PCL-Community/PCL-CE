@@ -1,4 +1,4 @@
-﻿<local:MyPageLeft x:Class="PageToolsLeft"
+<local:MyPageLeft x:Class="PageToolsLeft"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -31,6 +31,8 @@
             </local:MyListItem.Buttons>
         </local:MyListItem>
 
+        <local:MyListItem x:Name="ItemNews" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="4" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="新闻"
+                          LogoScale="0.9" Logo="M768 131.2 259.2 131.2c-54.4 0-96 41.6-96 96L163.2 864c0 54.4 41.6 96 96 96 6.4 0 12.8-3.2 16-3.2l236.8-147.2 240 147.2c6.4 3.2 9.6 3.2 16 3.2 54.4 0 96-41.6 96-96L864 227.2C864 172.8 822.4 131.2 768 131.2zM800 864c0 16-9.6 28.8-25.6 32l-246.4-150.4c-6.4-3.2-9.6-3.2-16-3.2-6.4 0-12.8 0-16 3.2l-243.2 150.4c-12.8-3.2-25.6-16-25.6-32L227.2 227.2c0-19.2 12.8-32 32-32L768 195.2c19.2 0 32 12.8 32 32L800 864z M672 320 352 320c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 320 672 320z M672 448 352 448c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 448 672 448z M672 576 352 576c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 576 672 576z" />
 
     </StackPanel>
 </local:MyPageLeft>
