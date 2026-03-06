@@ -21,7 +21,7 @@
             CornerRadius="12"
             GlassFrameThickness="0"/>
     </WindowChrome.WindowChrome>
-    <Grid x:Name="PanBack" SnapsToDevicePixels="True" UseLayoutRounding="True">
+    <Grid SnapsToDevicePixels="True" UseLayoutRounding="True">
         <Grid.RenderTransform>
             <TransformGroup>
                 <RotateTransform x:Name="TransformRotate" Angle="-4" />
@@ -96,7 +96,7 @@
                 </RadialGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Border Margin="10">
+        <Border x:Name="PanBack" Margin="10">
             <Border.Clip>
                 <RectangleGeometry x:Name="RectForm" RadiusX="6" RadiusY="6" />
             </Border.Clip>
