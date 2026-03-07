@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -181,7 +181,7 @@ public sealed class Logger : IAsyncDisposable
         _disposed = true;
 
         _logChannel.Writer.Complete();
-        await _processingTask;
+        await _processingTask.ConfigureAwait(false);
 
         if (_currentStream != null)
             await _currentStream.DisposeAsync().ConfigureAwait(false);

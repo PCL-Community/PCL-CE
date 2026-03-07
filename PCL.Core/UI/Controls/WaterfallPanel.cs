@@ -6,10 +6,44 @@ using System.Windows.Controls;
 
 namespace PCL.Core.UI.Controls;
 
-public class WaterfallPanel : Panel
+/// <summary>
+/// 瀑布流布局模式
+/// </summary>
+public enum WaterfallLayoutMode
 {
     /// <summary>
-    /// 列数（可依赖属性，支持动态变化）
+    /// 固定列数模式，使用 ColumnCount 属性指定列数
+    /// </summary>
+    FixedColumns,
+
+    /// <summary>
+    /// 自适应模式，根据可用宽度和 MaxItemWidth 自动计算列数
+    /// </summary>
+    AutoFit
+}
+
+public class WaterfallPanel : Panel
+{
+    // 私有字段，存储 Measure 阶段计算出的实际列数（用于 Arrange 阶段）
+    private int _computedColumnCount;
+
+    #region 依赖属性
+
+    /// <summary>
+    /// 布局模式（固定列数 / 自适应）
+    /// </summary>
+    public WaterfallLayoutMode LayoutMode
+    {
+        get { return (WaterfallLayoutMode)GetValue(LayoutModeProperty); }
+        set { SetValue(LayoutModeProperty, value); }
+    }
+
+    public static readonly DependencyProperty LayoutModeProperty =
+        DependencyProperty.Register(nameof(LayoutMode), typeof(WaterfallLayoutMode), typeof(WaterfallPanel),
+            new FrameworkPropertyMetadata(WaterfallLayoutMode.FixedColumns, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+    /// <summary>
+    /// 固定列数（仅在 LayoutMode = FixedColumns 时生效）
     /// </summary>
     public int ColumnCount
     {
@@ -34,16 +68,66 @@ public class WaterfallPanel : Panel
         DependencyProperty.Register(nameof(ColumnSpacing), typeof(double), typeof(WaterfallPanel),
             new FrameworkPropertyMetadata(5.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
+    /// <summary>
+    /// 行间距
+    /// </summary>
+    public double RowSpacing
+    {
+        get { return (double)GetValue(RowSpacingProperty); }
+        set { SetValue(RowSpacingProperty, value); }
+    }
+
+    public static readonly DependencyProperty RowSpacingProperty =
+        DependencyProperty.Register(nameof(RowSpacing), typeof(double), typeof(WaterfallPanel),
+            new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+    /// <summary>
+    /// 项的最大宽度（仅在 LayoutMode = AutoFit 时生效）
+    /// </summary>
+    public double MaxItemWidth
+    {
+        get { return (double)GetValue(MaxItemWidthProperty); }
+        set { SetValue(MaxItemWidthProperty, value); }
+    }
+
+    public static readonly DependencyProperty MaxItemWidthProperty =
+        DependencyProperty.Register(nameof(MaxItemWidth), typeof(double), typeof(WaterfallPanel),
+            new FrameworkPropertyMetadata(100.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+    #endregion
+
     protected override Size MeasureOverride(Size availableSize)
     {
-        // 计算每列的实际宽度（考虑列间距）
-        double colWidth = (availableSize.Width - (ColumnCount - 1) * ColumnSpacing) / ColumnCount;
-        colWidth = Math.Max(0, colWidth);
+        // 1. 确定列数
+        int columnCount;
+        if (LayoutMode == WaterfallLayoutMode.FixedColumns)
+        {
+            columnCount = ColumnCount;
+        }
+        else // AutoFit
+        {
+            if (double.IsInfinity(availableSize.Width) || double.IsNaN(availableSize.Width))
+            {
+                // 宽度无限时，回退到固定列数模式（使用 ColumnCount 作为后备）
+                columnCount = ColumnCount;
+            }
+            else
+            {
+                double effectiveMaxWidth = MaxItemWidth > 0 ? MaxItemWidth : 100; // 防御性处理
+                double slotWidth = effectiveMaxWidth + ColumnSpacing;
+                columnCount = Math.Max(1, (int)Math.Floor((availableSize.Width + ColumnSpacing) / slotWidth));
+            }
+        }
+        _computedColumnCount = columnCount;
 
-        // 存储每列当前的高度（用于后续布局）
-        double[] colHeights = new double[ColumnCount];
+        // 2. 计算每列的实际宽度
+        double colWidth = (availableSize.Width - (columnCount - 1) * ColumnSpacing) / columnCount;
+        colWidth = Math.Max(0, colWidth); // 避免负宽度
 
-        // 对每个子元素进行测量
+        // 3. 记录每列的当前高度（用于测量时决定元素放入哪一列）
+        double[] colHeights = new double[columnCount];
+
+        // 4. 测量所有子元素
         foreach (UIElement child in InternalChildren)
         {
             // 约束子元素宽度为列宽，高度不限
@@ -52,45 +136,53 @@ public class WaterfallPanel : Panel
 
             // 找到当前高度最小的列
             int minColIndex = _GetMinHeightColumnIndex(colHeights);
-            colHeights[minColIndex] += desiredSize.Height;
-            // 如果是非第一项，加上行间距（这里简单处理，可添加 RowSpacing 属性）
-            // 此处省略行间距，您可以根据需要添加
+            double y = colHeights[minColIndex]; // 当前列已占高度，即新元素的 Y 坐标
+
+            // 更新该列高度：加上元素高度和行间距（为下一个元素预留）
+            colHeights[minColIndex] += desiredSize.Height + RowSpacing;
         }
 
-        // 返回面板所需的总高度 = 最高列的高度
+        // 5. 计算面板所需总高度（取最高列的实际内容高度，需减去最后一个多余的行间距）
         double totalHeight = 0;
-        foreach (double h in colHeights)
+        for (int i = 0; i < colHeights.Length; i++)
         {
-            totalHeight = Math.Max(totalHeight, h);
+            if (colHeights[i] > 0)
+                totalHeight = Math.Max(totalHeight, colHeights[i] - RowSpacing);
+            else
+                totalHeight = Math.Max(totalHeight, colHeights[i]);
         }
+
         return new Size(availableSize.Width, totalHeight);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        double colWidth = (finalSize.Width - (ColumnCount - 1) * ColumnSpacing) / ColumnCount;
+        if (_computedColumnCount <= 0) return finalSize;
+
+        // 使用 Measure 阶段确定的列数，但根据 finalSize 重新计算列宽（保证填满可用宽度）
+        double colWidth = (finalSize.Width - (_computedColumnCount - 1) * ColumnSpacing) / _computedColumnCount;
         colWidth = Math.Max(0, colWidth);
 
-        double[] colHeights = new double[ColumnCount]; // 记录每列当前已占用的高度
+        double[] colHeights = new double[_computedColumnCount];
 
         foreach (UIElement child in InternalChildren)
         {
-            // 找到当前高度最小的列
             int colIndex = _GetMinHeightColumnIndex(colHeights);
             double x = colIndex * (colWidth + ColumnSpacing);
             double y = colHeights[colIndex];
 
-            // 安排子元素位置
             child.Arrange(new Rect(new Point(x, y), new Size(colWidth, child.DesiredSize.Height)));
 
-            // 更新该列高度
-            colHeights[colIndex] += child.DesiredSize.Height;
-            // 如果需要行间距，可以在此处添加：colHeights[colIndex] += RowSpacing;
+            // 更新该列高度：加上元素高度和行间距（为下一个元素定位）
+            colHeights[colIndex] += child.DesiredSize.Height + RowSpacing;
         }
 
         return finalSize;
     }
 
+    /// <summary>
+    /// 获取当前高度最小的列索引
+    /// </summary>
     private int _GetMinHeightColumnIndex(double[] colHeights)
     {
         int minIndex = 0;

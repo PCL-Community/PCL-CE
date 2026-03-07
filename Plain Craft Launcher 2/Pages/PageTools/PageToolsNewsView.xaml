@@ -25,8 +25,8 @@
                         <ItemsPanelTemplate>
                             <core:WaterfallPanel
                                 Margin="0,0,0,10"
-                                ColumnCount="2"
-                                ColumnSpacing="10"
+                                LayoutMode="AutoFit"
+                                MaxItemWidth="240"
                                 VirtualizingPanel.CacheLengthUnit="Item"
                                 VirtualizingPanel.IsVirtualizing="True"
                                 VirtualizingPanel.VirtualizationMode="Recycling" />
@@ -47,17 +47,14 @@
                                         <!-- 简介行 -->
                                     </Grid.RowDefinitions>
 
-                                    <Border
-                                        Grid.Row="0"
-                                        ClipToBounds="True"
-                                        CornerRadius="6">
-                                        <local:MyImage
-                                            Height="120"
-                                            HorizontalAlignment="Stretch"
-                                            Source="{Binding Image}"
-                                            Stretch="UniformToFill"
-                                            ToolTip="{Binding ImageAltText}" />
-                                    </Border>
+                                    <local:MyImage
+                                        HorizontalAlignment="Stretch"
+                                        CornerRadius="6"
+                                        SnapsToDevicePixels="True"
+                                        Source="{Binding Image}"
+                                        Stretch="UniformToFill"
+                                        ToolTip="{Binding ImageAltText}"
+                                        UseLayoutRounding="True" />
 
                                     <!-- 标题 -->
                                     <Border

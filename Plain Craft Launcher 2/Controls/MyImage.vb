@@ -76,6 +76,36 @@ Public Class MyImage
     End Property
     Private _LoadingSource As String = "pack://application:,,,/images/Icons/NoIcon.png"
 
+    Public Property CornerRadius As CornerRadius
+        Get
+            Return GetValue(CornerRadiusProperty)
+        End Get
+        Set(value As CornerRadius)
+            SetValue(CornerRadiusProperty, value)
+        End Set
+    End Property
+    Private Shared ReadOnly CornerRadiusProperty As DependencyProperty = DependencyProperty.Register(
+        "CornerRadius",
+        GetType(CornerRadius),
+        GetType(MyImage),
+        New FrameworkPropertyMetadata(
+            New CornerRadius(0),
+            AddressOf OnCornerRadiusChanged)
+        )
+
+    Private Shared Sub OnCornerRadiusChanged(d As DependencyObject, e As DependencyPropertyChangedEventArgs)
+        DirectCast(d, MyImage).UpdateClip()
+    End Sub
+
+    Private Sub UpdateClip() Handles Me.SizeChanged
+        If (ActualWidth > 0 AndAlso ActualHeight > 0) Then
+            Clip = New RectangleGeometry(
+                New Rect(0, 0, ActualWidth, ActualHeight),
+                CornerRadius.TopLeft,
+                CornerRadius.TopRight)
+        End If
+    End Sub
+
 #End Region
 
     ''' <summary>

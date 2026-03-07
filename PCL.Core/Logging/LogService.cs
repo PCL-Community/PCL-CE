@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +40,7 @@ public class LogService : ILifecycleLogService
     {
         if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
         if (_logger != null)
-            await _logger.DisposeAsync();
+            await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
     private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
