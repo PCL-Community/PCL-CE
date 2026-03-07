@@ -38,7 +38,6 @@ public partial class NewsViewModel : ObservableObject
         if (IsLoading) return;
 
         IsLoading = true;
-        ErrorMessage = string.Empty;
 
         try
         {

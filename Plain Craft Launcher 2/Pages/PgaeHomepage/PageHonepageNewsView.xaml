@@ -17,16 +17,14 @@
     <local:MyScrollViewer>
         <Grid>
             <StackPanel Grid.Row="1">
-                <TextBlock
-                    Foreground="{DynamicResource ColorBrushRedLight}"
-                    Text="{Binding ErrorMessage}"
-                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}" />
                 <ItemsControl ItemsSource="{Binding NewsItems}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <core:WaterfallPanel
                                 Margin="0,0,0,10"
                                 LayoutMode="AutoFit"
+                                RowSpacing="14"
+                                ColumnSpacing="14"
                                 MaxItemWidth="240"
                                 VirtualizingPanel.CacheLengthUnit="Item"
                                 VirtualizingPanel.IsVirtualizing="True"
@@ -35,8 +33,8 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:MyCard Margin="5">
-                                <Grid Margin="7">
+                            <local:MyCard>
+                                <Grid Margin="12">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <!-- 图片行 -->
@@ -119,12 +117,18 @@
                 </ItemsControl>
             </StackPanel>
 
+            <TextBlock
+                    Foreground="{DynamicResource ColorBrushRedLight}"
+                    Text="{Binding ErrorMessage}"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}" />
+
+
             <local:MyCard
                 Margin="32"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <local:MyLoading Margin="16" Text="加载中……" />
+                <local:MyLoading Margin="20,20,20,17" Text="加载中……" />
             </local:MyCard>
         </Grid>
     </local:MyScrollViewer>
