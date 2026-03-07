@@ -355,7 +355,9 @@ Public Class PageToolsTest
             NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemCombinePhysicalMemoryInformation,
                                            _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
             _gcHandle.Free()
-        Catch ex As Exception
+        Catch ex As System.ComponentModel.Win32Exception
+            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.NativeErrorCode))
+       Catch ex As Exception
             Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.Message))
         End Try
 
