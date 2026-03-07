@@ -144,6 +144,7 @@ Download:
                         RunInUiWait(
                             Sub()
                                 If FrmHomepageNews Is Nothing Then FrmHomepageNews = New PageHonepageNewsView()
+                                PanCustom.Children.Clear()
                                 PanCustom.Children.Add(FrmHomepageNews)
                             End Sub)
                         Return
