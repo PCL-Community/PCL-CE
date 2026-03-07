@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Model.Tools.News;
 using System;
@@ -9,7 +10,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace PCL.Core.ViewModel.Tools;
+namespace PCL.Core.ViewModel.Homepage;
 
 public partial class NewsViewModel : ObservableObject
 {
@@ -37,7 +38,9 @@ public partial class NewsViewModel : ObservableObject
 
     // 异步加载命令：方法名 LoadData，自动生成 ICommand 属性 LoadDataCommand
     [RelayCommand]
-    public async Task LoadDataAsync()
+#pragma warning disable IDE1006 // 命名样式
+    private async Task LoadDataAsync()
+#pragma warning restore IDE1006 // 命名样式
     {
         if (IsLoading) return;
 
@@ -78,4 +81,13 @@ public partial class NewsViewModel : ObservableObject
             IsLoading = false;
         }
     }
+
+    [RelayCommand]
+#pragma warning disable IDE1006 // 命名样式
+    private void OpenRead(string url)
+#pragma warning restore IDE1006 // 命名样式
+    {
+        Basics.OpenPath(url);
+    }
+
 }

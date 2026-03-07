@@ -1139,7 +1139,6 @@ Public Class FormMain
         ToolsGameLink = 1
         ToolsLauncherHelp = 2
         ToolsTest = 3
-        ToolsNews = 4
 
         VersionOverall = 0
         VersionSetup = 1

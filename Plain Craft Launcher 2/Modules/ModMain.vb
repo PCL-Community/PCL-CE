@@ -491,7 +491,6 @@ EndHint:
     Public FrmToolsGameLink As PageToolsGameLink
     Public FrmToolsHelp As PageToolsHelp
     Public FrmToolsTest As PageToolsTest
-    Public FrmToolsNews As PageToolsNewsView
 
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft
@@ -558,6 +557,9 @@ EndHint:
 
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail
+
+    '主页缓存
+    Public FrmHomepageNews As PageHonepageNewsView
 
 #End Region
 

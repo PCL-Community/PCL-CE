@@ -119,9 +119,4 @@
   <ItemGroup>
     <Content Include="LICENCE" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Pages\PageTools\PageToolsNewsView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
 </Project>

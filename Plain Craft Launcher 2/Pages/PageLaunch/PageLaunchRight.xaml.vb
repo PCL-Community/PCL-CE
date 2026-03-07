@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.Utils.Exts
+Imports PCL.Core.Utils.Exts
 Imports PCL.Core.App
 Public Class PageLaunchRight
     Implements IRefreshable
@@ -139,6 +139,14 @@ Download:
                         Log("[Page] 主页预设：PCL CE 公告栏")
                         Url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"
                         GoTo Download
+                    Case 15
+                        Log("[Page] 主页预设：Minecraft 信息流")
+                        RunInUiWait(
+                            Sub()
+                                If FrmHomepageNews Is Nothing Then FrmHomepageNews = New PageHonepageNewsView()
+                                PanCustom.Children.Add(FrmHomepageNews)
+                            End Sub)
+                        Return
                 End Select
         End Select
         RunInUi(Sub() LoadContent(Content))
