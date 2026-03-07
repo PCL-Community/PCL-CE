@@ -21,17 +21,82 @@
             CornerRadius="12"
             GlassFrameThickness="0"/>
     </WindowChrome.WindowChrome>
-    <Grid x:Name="PanBack" SnapsToDevicePixels="True" UseLayoutRounding="True" Margin="10">
+    <Grid SnapsToDevicePixels="True" UseLayoutRounding="True">
         <Grid.RenderTransform>
             <TransformGroup>
                 <RotateTransform x:Name="TransformRotate" Angle="-4" />
                 <TranslateTransform x:Name="TransformPos" X="0" Y="60" />
             </TransformGroup>
         </Grid.RenderTransform>
-        <Grid.Effect>
-            <DropShadowEffect BlurRadius="20" Opacity=".2" ShadowDepth="0" RenderingBias="Performance"/>
-        </Grid.Effect>
-        <Border>
+        <Rectangle Stroke="{x:Null}" StrokeThickness="0.0001" IsHitTestVisible="False" Height="10" VerticalAlignment="Top" Margin="16,0">
+            <Rectangle.Fill>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#21000000" Offset="1" />
+                    <GradientStop Color="#11000000" Offset="0.7" />
+                    <GradientStop Color="#00000000" Offset="0" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle Stroke="{x:Null}" StrokeThickness="0.0001" IsHitTestVisible="False" Height="10" VerticalAlignment="Bottom" Margin="16,0">
+            <Rectangle.Fill>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#21000000" Offset="0" />
+                    <GradientStop Color="#11000000" Offset="0.3" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Right" Margin="0,16" IsHitTestVisible="False" Stroke="{x:Null}" StrokeThickness="0.0001" Width="10">
+            <Rectangle.Fill>
+                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                    <GradientStop Color="#21000000" Offset="0" />
+                    <GradientStop Color="#11000000" Offset="0.3" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="10" Margin="0,16" StrokeThickness="0.0001">
+            <Rectangle.Fill>
+                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                    <GradientStop Color="#21000000" Offset="1" />
+                    <GradientStop Color="#11000000" Offset="0.7" />
+                    <GradientStop Color="#00000000" Offset="0" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Top" Height="16">
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="1,1" GradientOrigin="1,1" RadiusX="1" RadiusY="1">
+                    <GradientStop Color="#21000000" Offset="0.2" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="16">
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="1,0" GradientOrigin="1,0" RadiusX="1" RadiusY="1">
+                    <GradientStop Color="#21000000" Offset="0.2" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Right" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="16">
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="0,0" GradientOrigin="0,0" RadiusX="1" RadiusY="1">
+                    <GradientStop Color="#21000000" Offset="0.2" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle HorizontalAlignment="Right" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Top" Height="16">
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="0,1" GradientOrigin="0,1" RadiusX="1" RadiusY="1">
+                    <GradientStop Color="#21000000" Offset="0.2" />
+                    <GradientStop Color="#00000000" Offset="1" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Border x:Name="PanBack" Margin="10">
             <Border.Clip>
                 <RectangleGeometry x:Name="RectForm" RadiusX="6" RadiusY="6" />
             </Border.Clip>
