@@ -2,12 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Logging;
 using PCL.Core.Model.Tools.News;
 using System;
 using System.Collections.ObjectModel;
 using System.Net;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace PCL.Core.ViewModel.Homepage;
@@ -18,25 +17,19 @@ public partial class NewsViewModel : ObservableObject
     private const int PageSize = 24;
     private int _currentPage = 1;
 
-    // ObservableCollection 会自动通知 UI 更新
     public ObservableCollection<NewsItem> NewsItems { get; } = new();
 
-    // 使用 [ObservableProperty] 自动生成 IsLoading 属性及其 OnPropertyChanged
     [ObservableProperty]
     private bool _isLoading;
 
-    // 使用 [ObservableProperty] 自动生成 ErrorMessage 属性
     [ObservableProperty]
     private string? _errorMessage;
 
-    // 构造函数可以留空，或在此立即加载第一页数据
     public NewsViewModel()
     {
-        // 可以在构造时触发加载，但建议通过命令触发以避免构造中执行异步操作
         LoadDataCommand.Execute(null);
     }
 
-    // 异步加载命令：方法名 LoadData，自动生成 ICommand 属性 LoadDataCommand
     [RelayCommand]
 #pragma warning disable IDE1006 // 命名样式
     private async Task LoadDataAsync()
@@ -64,17 +57,10 @@ public partial class NewsViewModel : ObservableObject
                 }
             }
         }
-        catch (HttpRequestException ex)
-        {
-            ErrorMessage = $"网络请求失败: {ex.Message}";
-        }
-        catch (JsonException ex)
-        {
-            ErrorMessage = $"数据解析失败: {ex.Message}";
-        }
         catch (Exception ex)
         {
-            ErrorMessage = $"未知错误: {ex.Message}";
+            ErrorMessage = $"加载错误: {ex.Message}";
+            LogWrapper.Error(ex, "Minecrft 信息流主页加载失败");
         }
         finally
         {
