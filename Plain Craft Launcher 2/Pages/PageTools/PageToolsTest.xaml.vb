@@ -356,7 +356,7 @@ Public Class PageToolsTest
                                            _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
             _gcHandle.Free()
         Catch ex As Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType))
+            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.Message))
         End Try
 
     End Sub
