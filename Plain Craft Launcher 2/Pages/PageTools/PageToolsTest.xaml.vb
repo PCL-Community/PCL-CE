@@ -300,7 +300,7 @@ Public Class PageToolsTest
         Try
             NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, True)
             NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, True)
-       Catch ex As System.ComponentModel.Win32Exception
+        Catch ex As System.ComponentModel.Win32Exception
             Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
         End Try
 
@@ -357,8 +357,8 @@ Public Class PageToolsTest
             _gcHandle.Free()
         Catch ex As System.ComponentModel.Win32Exception
             Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.NativeErrorCode))
-       Catch ex As Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.Message))
+        Catch ex As Exception
+            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误信息：{1}）", NowType, ex.Message))
         End Try
 
     End Sub
