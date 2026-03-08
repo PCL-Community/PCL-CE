@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Controls.Primitives
+Imports System.Windows.Controls.Primitives
 Imports PCL.Core.UI
 Imports PCL.Core.UI.Theme
 
@@ -110,7 +110,10 @@ Public Class ServerCard
     ''' </summary>
     Private Sub BtnConnect_Click(sender As Object, e As EventArgs)
         Try
-            Dim launchOptions As New McLaunchOptions With {.ServerIp = Server.Address}
+            Dim launchOptions As New McLaunchOptions With {
+                .ServerIp = Server.Address,
+                .Instance = PageInstanceLeft.Instance
+            }
             McLaunchStart(LaunchOptions)
             FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
             Hint($"正在连接到服务器 {Server.Name}...", HintType.Info)
