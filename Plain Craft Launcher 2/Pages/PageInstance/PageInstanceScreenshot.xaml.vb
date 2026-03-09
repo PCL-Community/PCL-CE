@@ -67,8 +67,8 @@ Public Class PageInstanceScreenshot
 
         PanList.Children.Clear()
         RefreshTip()
-        FileList = FileList.Where(Function(e) Not e.ContainsF("\debug\")).ToList() ' 排除资源包调试输出
-        FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
+        'FileList = FileList.Where(Function(e) Not e.ContainsF("\debug\")).ToList() ' 排除资源包调试输出
+        'FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
         Log("[Screenshot] 共发现 " & FileList.Count & " 个截图文件")
         If FileList.Count = 0 Then Return
         ListAppend(20, 0)
