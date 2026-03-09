@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.App
+Imports PCL.Core.App
 Imports PCL.Core.App.Basics
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Exts.StringExtension
@@ -229,7 +229,9 @@ Public Class CustomEvent
                     PageToolsTest.Jrrp()
 
                 Case EventType.内存优化
-                    RunInThread(Sub() PageToolsTest.MemoryOptimize(True))
+                    If PageToolsTest.AskTrulyWantMemoryOptimize() Then
+                        RunInThread(Sub() PageToolsTest.MemoryOptimize(True))
+                    End If
 
                 Case EventType.清理垃圾
                     RunInThread(Sub() PageToolsTest.RubbishClear())

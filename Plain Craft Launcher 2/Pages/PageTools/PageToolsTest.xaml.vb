@@ -239,7 +239,28 @@ Public Class PageToolsTest
         Public PagesCombined As UIntPtr
         Public Flags As UInteger
     End Structure
-    Private Declare Ansi Function NtSetSystemInformation Lib "ntdll.dll" (SystemInformationClass As Integer, SystemInformation As IntPtr, SystemInformationLength As Integer) As UInteger
+
+    Public Shared Function AskTrulyWantMemoryOptimize()
+        Dim memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024 / 1024  'GB
+        Dim memLoad = KernelInterop.GetMemoryLoadPercent()
+        If memLoad > 90 Then Return True ' 情况不太妙啊，先别问了
+
+        Dim prompt = String.Empty
+        If memTotal >= 32 Then
+            prompt = "当前总内存充足，建议关闭不必要的程序来腾出内存而不是尝试使用内存优化。"
+        ElseIf memTotal >= 16 AndAlso memTotal < 32 Then
+            prompt = "当前内存比较充足，建议优先考虑让系统自动管理内存。"
+        ElseIf memTotal >= 6 AndAlso memTotal < 16 Then
+            prompt = "建议在使用后静置一分钟等待系统响应完毕。"
+        ElseIf memTotal >= 2 AndAlso memTotal < 6 Then
+            prompt = "内存资源比较紧张，建议通过加装内存以避免频繁使用内存优化功能，防止内存优化对硬盘造成过大压力。"
+        ElseIf memTotal < 2 Then
+            prompt = "嗯……？"
+        End If
+
+        Dim s = MyMsgBox(prompt, "确认内存优化？", "继续", "取消")
+        Return s = 1
+    End Function
     Private Shared IsMemoryOptimizing
     Public Shared Sub MemoryOptimize(ShowHint As Boolean)
         If IsMemoryOptimizing Then
@@ -428,7 +449,9 @@ Public Class PageToolsTest
         RubbishClear()
     End Sub
     Private Sub BtnMemory_Click(sender As Object, e As MouseButtonEventArgs)
-        RunInThread(Sub() MemoryOptimize(True))
+        If AskTrulyWantMemoryOptimize() Then
+            RunInThread(Sub() MemoryOptimize(True))
+        End If
     End Sub
 
     '下载正版玩家皮肤
