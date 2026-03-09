@@ -57,15 +57,6 @@ Public Class Application
                     Else
                         Environment.Exit((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) / 1024) '返回清理的内存量（K）
                     End If
-#If DEBUGRESERVED Then
-                    '制作更新包
-                ElseIf args(0) = "--edit1" Then
-                    ExeEdit(args(1), True)
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf args(0) = "--edit2" Then
-                    ExeEdit(args(1), False)
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-#End If
                 End If
             End If
             '初始化文件结构

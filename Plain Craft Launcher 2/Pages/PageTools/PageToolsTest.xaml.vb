@@ -260,11 +260,14 @@ Public Class PageToolsTest
                 Finally
                     IsMemoryOptimizing = False
                 End Try
+
                 num = Convert.ToInt64(Decimal.Subtract(New Decimal(KernelInterop.GetAvailablePhysicalMemoryBytes()), New Decimal(num)))
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
-                    num = CLng(ProcessInterop.StartAsAdmin("--memory").ExitCode) * 1024L
+                    Dim callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "--memory")
+                    callProcess.WaitForExit()
+                    num = CLng(callProcess.ExitCode) * 1024L
                 Catch ex2 As Exception
                     Log(ex2, "命令行形式内存优化失败")
                     If ShowHint Then
@@ -274,10 +277,12 @@ Public Class PageToolsTest
                 Finally
                     IsMemoryOptimizing = False
                 End Try
+
                 If num < 0L Then
                     Return
                 End If
             End If
+
             Dim MemAfter As String = GetString(CLng(KernelInterop.GetAvailablePhysicalMemoryBytes()))
             Log(String.Format("[Test] 内存优化完成，可用内存改变量：{0}，大致剩余内存：{1}", GetString(num), MemAfter))
             If num > 0L Then
