@@ -5,13 +5,13 @@ Imports PCL.Core.App
 Public Class PageInstanceScreenshot
     Implements IRefreshable
     Private Sub RefreshSelf() Implements IRefreshable.Refresh
-        Refresh()
+        Dim ignore = Refresh()
     End Sub
-    Public Shared Sub Refresh()
-        If FrmInstanceScreenshot IsNot Nothing Then FrmInstanceScreenshot.Reload()
+    Public Shared Async Function Refresh() As Task
+        If FrmInstanceScreenshot IsNot Nothing Then Await FrmInstanceScreenshot.Reload()
         FrmInstanceLeft.ItemScreenshot.Checked = True
         Hint("正在刷新……", Log:=False)
-    End Sub
+    End Function
 
     Private IsLoad As Boolean = False
     Private Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -20,7 +20,10 @@ Public Class PageInstanceScreenshot
         PanBack.ScrollToHome()
         ScreenshotPath = PageInstanceLeft.Instance.PathIndie + "screenshots\"
         If Not Directory.Exists(ScreenshotPath) Then Directory.CreateDirectory(ScreenshotPath)
-        Reload()
+        Dispatcher.BeginInvoke(
+            Async Function() As Task
+                Await Reload()
+            End Function)
 
         '非重复加载部分
         If IsLoad Then Return
@@ -34,12 +37,12 @@ Public Class PageInstanceScreenshot
     ''' <summary>
     ''' 确保当前页面上的信息已正确显示。
     ''' </summary>
-    Public Sub Reload()
+    Public Async Function Reload() As Task
         AniControlEnabled += 1
         PanBack.ScrollToHome()
-        LoadFileList()
+        Await LoadFileList()
         AniControlEnabled -= 1
-    End Sub
+    End Function
 
     Private Sub RefreshTip()
         If FileList.Count.Equals(0) Then
@@ -50,12 +53,12 @@ Public Class PageInstanceScreenshot
             PanContent.Visibility = Visibility.Visible
         End If
     End Sub
+    Private Shared AllowedSuffix As String() = {"*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"}
 
-    Private Sub LoadFileList()
+    Private Async Function LoadFileList() As Task
         Log("[Screenshot] 刷新截图文件")
         FileList.Clear()
         If Directory.Exists(ScreenshotPath) Then
-            Static Dim AllowedSuffix As String() = {"*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"}
             Dim enu = Directory.EnumerateFiles(ScreenshotPath, AllowedSuffix(0), IO.SearchOption.TopDirectoryOnly)
             For Each suffix In AllowedSuffix.Skip(1)
                 enu = enu.Concat(
@@ -71,18 +74,21 @@ Public Class PageInstanceScreenshot
         'FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
         Log("[Screenshot] 共发现 " & FileList.Count & " 个截图文件")
         If FileList.Count = 0 Then Return
-        ListAppend(20, 0)
-    End Sub
+        Await ListAppend(20, 0)
+    End Function
 
     Private Sub RequireAppend() Handles PanBack.ScrollChanged
-        If (Not _AppendLock) AndAlso PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight Then
-            ListAppend()
+        If FileList.Count <> 0 AndAlso (Not _AppendLock) AndAlso PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight Then
+            Dispatcher.BeginInvoke(
+            Async Function() As Task
+                Await ListAppend()
+            End Function)
         End If
     End Sub
 
     Private _AppendLock As Boolean = False
     Private _Offset As Integer = 0
-    Private Sub ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1)
+    Private Async Function ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1) As Task
         _AppendLock = True
         If Offset = -1 Then
             If _Offset * Count > FileList.Count Then Return
@@ -113,28 +119,31 @@ Public Class PageInstanceScreenshot
 
                 '图片
                 Dim image As New Image
-                Dim bitmapImage As New BitmapImage()
-                Dim loadSource As String = i
-                Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
-                    bitmapImage.BeginInit()
-                    bitmapImage.DecodePixelHeight = 200
-                    bitmapImage.DecodePixelWidth = 400
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad
-                    bitmapImage.StreamSource = fs
-                    bitmapImage.EndInit()
-                    bitmapImage.Freeze()
-                End Using
-                image.Source = bitmapImage
-
+                image.Source = Await Task.Run(
+                    Function()
+                        Dim bitmapImage As New BitmapImage()
+                        Dim loadSource As String = i
+                        Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
+                            bitmapImage.BeginInit()
+                            bitmapImage.DecodePixelHeight = 200
+                            bitmapImage.DecodePixelWidth = 400
+                            bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+                            bitmapImage.StreamSource = fs
+                            bitmapImage.EndInit()
+                            bitmapImage.Freeze()
+                        End Using
+                        Return bitmapImage
+                    End Function)
                 image.Stretch = Stretch.Uniform ' 使图片自适应控件大小
                 image.Cursor = Cursors.Hand
-                AddHandler image.MouseLeftButtonDown, Sub(sender, e)
-                                                          Try
-                                                              Basics.OpenPath(i) ' 使用系统默认程序打开
-                                                          Catch ex As Exception
-                                                              Log(ex, "打开截图失败！", LogLevel.Hint)
-                                                          End Try
-                                                      End Sub
+                AddHandler image.MouseLeftButtonDown,
+                    Sub(sender, e)
+                        Try
+                            Basics.OpenPath(i) ' 使用系统默认程序打开
+                        Catch ex As Exception
+                            Log(ex, "打开截图失败！", LogLevel.Hint)
+                        End Try
+                    End Sub
                 Grid.SetRow(image, 1)
                 grid.Children.Add(image)
 
@@ -153,7 +162,7 @@ Public Class PageInstanceScreenshot
                     .Logo = Logo.IconButtonOpen,
                     .Tag = i
                 }
-                AddHandler btnOpen.Click, AddressOf btnOpen_Click
+                AddHandler btnOpen.Click, AddressOf BtnOpen_Click
                 stackPanel.Children.Add(btnOpen)
                 Dim btnDelete As New MyIconTextButton With {
                     .Name = "BtnDelete",
@@ -162,7 +171,7 @@ Public Class PageInstanceScreenshot
                     .Logo = Logo.IconButtonDelete,
                     .Tag = i
                 }
-                AddHandler btnDelete.Click, AddressOf btnDelete_Click
+                AddHandler btnDelete.Click, AddressOf BtnDelete_Click
                 stackPanel.Children.Add(btnDelete)
                 Dim btnCopy As New MyIconTextButton With {
                 .Name = "BtnCopy",
@@ -171,7 +180,7 @@ Public Class PageInstanceScreenshot
                 .Logo = Logo.IconButtonCopy,
                     .Tag = i
                 }
-                AddHandler btnCopy.Click, AddressOf btnCopy_Click
+                AddHandler btnCopy.Click, AddressOf BtnCopy_Click
                 stackPanel.Children.Add(btnCopy)
                 PanList.Children.Add(myCard)
                 myCard.Opacity = 0
@@ -183,7 +192,7 @@ Public Class PageInstanceScreenshot
             End Try
         Next
         _AppendLock = False
-    End Sub
+    End Function
 
     Private Sub RemoveItem(Path As String)
         Try
@@ -203,11 +212,11 @@ Public Class PageInstanceScreenshot
         Return sender.Tag
     End Function
 
-    Private Sub btnOpen_Click(sender As MyIconTextButton, e As EventArgs)
+    Private Sub BtnOpen_Click(sender As MyIconTextButton, e As EventArgs)
         OpenExplorer(GetPathFromSender(sender))
     End Sub
 
-    Private Sub btnDelete_Click(sender As MyIconTextButton, e As EventArgs)
+    Private Sub BtnDelete_Click(sender As MyIconTextButton, e As EventArgs)
         Dim path = GetPathFromSender(sender)
         Try
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin)
@@ -219,7 +228,7 @@ Public Class PageInstanceScreenshot
         End Try
     End Sub
 
-    Private Sub btnCopy_Click(sender As MyIconTextButton, e As EventArgs)
+    Private Sub BtnCopy_Click(sender As MyIconTextButton, e As EventArgs)
         Dim imagePath As String = GetPathFromSender(sender)
         If File.Exists(imagePath) Then
             Dim TryTime = 0
