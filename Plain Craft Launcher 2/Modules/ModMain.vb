@@ -1146,6 +1146,7 @@ NextFile:
                     RunInUiWait(AddressOf TimerMain)
                     Thread.Sleep(50 * 0.98)
                 Loop
+            Catch ignore As OperationCanceledException
             Catch ex As Exception
                 Log(ex, "程序主时钟出错", LogLevel.Feedback)
             End Try
