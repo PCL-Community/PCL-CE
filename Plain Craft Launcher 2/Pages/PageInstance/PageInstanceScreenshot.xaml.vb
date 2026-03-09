@@ -1,4 +1,4 @@
-﻿
+
 Imports Microsoft.VisualBasic.FileIO
 Imports PCL.Core.App
 
@@ -7,20 +7,20 @@ Public Class PageInstanceScreenshot
     Private Sub RefreshSelf() Implements IRefreshable.Refresh
         Refresh()
     End Sub
-    Public Shared Async Sub Refresh()
-        If FrmInstanceScreenshot IsNot Nothing Then Await FrmInstanceScreenshot.Reload()
+    Public Shared Sub Refresh()
+        If FrmInstanceScreenshot IsNot Nothing Then FrmInstanceScreenshot.Reload()
         FrmInstanceLeft.ItemScreenshot.Checked = True
         Hint("正在刷新……", Log:=False)
     End Sub
 
     Private IsLoad As Boolean = False
-    Private Async Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+    Private Sub PageSetupLaunch_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 
         '重复加载部分
         PanBack.ScrollToHome()
         ScreenshotPath = PageInstanceLeft.Instance.PathIndie + "screenshots\"
         If Not Directory.Exists(ScreenshotPath) Then Directory.CreateDirectory(ScreenshotPath)
-        Await Reload()
+        Reload()
 
         '非重复加载部分
         If IsLoad Then Return
@@ -34,12 +34,12 @@ Public Class PageInstanceScreenshot
     ''' <summary>
     ''' 确保当前页面上的信息已正确显示。
     ''' </summary>
-    Public Async Function Reload() As Task
+    Public Sub Reload()
         AniControlEnabled += 1
         PanBack.ScrollToHome()
-        Await LoadFileList()
+        LoadFileList()
         AniControlEnabled -= 1
-    End Function
+    End Sub
 
     Private Sub RefreshTip()
         If FileList.Count.Equals(0) Then
@@ -51,30 +51,38 @@ Public Class PageInstanceScreenshot
         End If
     End Sub
 
-    Private Async Function LoadFileList() As Task
+    Private Sub LoadFileList()
         Log("[Screenshot] 刷新截图文件")
         FileList.Clear()
-        If Directory.Exists(ScreenshotPath) Then FileList = Directory.EnumerateFiles(ScreenshotPath, "*", IO.SearchOption.TopDirectoryOnly).ToList()
-        Dim AllowedSuffix As String() = {".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff"}
-        FileList = FileList.Where(Function(e) AllowedSuffix.Contains(New FileInfo(e).Extension.ToLower())).ToList()
+        If Directory.Exists(ScreenshotPath) Then
+            Static Dim AllowedSuffix As String() = {"*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"}
+            Dim enu = Directory.EnumerateFiles(ScreenshotPath, AllowedSuffix(0), IO.SearchOption.TopDirectoryOnly)
+            For Each suffix In AllowedSuffix.Skip(1)
+                enu = enu.Concat(
+                    Directory.EnumerateFiles(ScreenshotPath, suffix, IO.SearchOption.TopDirectoryOnly)
+                    )
+            Next
+            FileList = enu.OrderByDescending(AddressOf File.GetCreationTime).ToList()
+        End If
+
         PanList.Children.Clear()
         RefreshTip()
         FileList = FileList.Where(Function(e) Not e.ContainsF("\debug\")).ToList() ' 排除资源包调试输出
         FileList.Sort(Function(a, b) New FileInfo(a).CreationTime > New FileInfo(b).CreationTime)
         Log("[Screenshot] 共发现 " & FileList.Count & " 个截图文件")
         If FileList.Count = 0 Then Return
-        Await ListAppend(20, 0)
-    End Function
+        ListAppend(20, 0)
+    End Sub
 
-    Private Async Sub RequireAppend() Handles PanBack.ScrollChanged
+    Private Sub RequireAppend() Handles PanBack.ScrollChanged
         If (Not _AppendLock) AndAlso PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight Then
-            Await ListAppend()
+            ListAppend()
         End If
     End Sub
 
     Private _AppendLock As Boolean = False
     Private _Offset As Integer = 0
-    Private Async Function ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1) As Task
+    Private Sub ListAppend(Optional Count As Integer = 20, Optional Offset As Integer = -1)
         _AppendLock = True
         If Offset = -1 Then
             If _Offset * Count > FileList.Count Then Return
@@ -92,11 +100,9 @@ Public Class PageInstanceScreenshot
                 If File.GetAttributes(i).HasFlag(FileAttributes.Hidden) Then Continue For ' 隐藏文件
                 If New FileInfo(i).Length = 0 Then Continue For ' 空文件
                 Dim myCard As New MyCard With {
-                .Height = Double.NaN, ' 允许高度自适应
-                .Width = Double.NaN,  ' 允许宽度自适应
-                .Margin = New Thickness(7),
-                .Tag = i,
-                .ToolTip = i.Replace(ScreenshotPath, "") '适配高清截图模组
+                    .Margin = New Thickness(7),
+                    .Tag = i,
+                    .ToolTip = i.Replace(ScreenshotPath, "") '适配高清截图模组
                 }
                 Dim grid As New Grid
                 myCard.Children.Add(grid)
@@ -107,29 +113,28 @@ Public Class PageInstanceScreenshot
 
                 '图片
                 Dim image As New Image
-                image.Source = Await Task.Run(Function()
-                    Dim bitmapImage As New BitmapImage()
-                    Dim loadSource As String = i
-                    Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
-                        bitmapImage.BeginInit()
-                        bitmapImage.DecodePixelHeight = 200
-                        bitmapImage.DecodePixelWidth = 400
-                        bitmapImage.CacheOption = BitmapCacheOption.OnLoad
-                        bitmapImage.StreamSource = fs
-                        bitmapImage.EndInit()
-                        bitmapImage.Freeze()
-                    End Using
-                    Return bitmapImage
-                End Function)
+                Dim bitmapImage As New BitmapImage()
+                Dim loadSource As String = i
+                Using fs As New FileStream(loadSource, FileMode.Open, FileAccess.Read)
+                    bitmapImage.BeginInit()
+                    bitmapImage.DecodePixelHeight = 200
+                    bitmapImage.DecodePixelWidth = 400
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad
+                    bitmapImage.StreamSource = fs
+                    bitmapImage.EndInit()
+                    bitmapImage.Freeze()
+                End Using
+                image.Source = bitmapImage
+
                 image.Stretch = Stretch.Uniform ' 使图片自适应控件大小
                 image.Cursor = Cursors.Hand
                 AddHandler image.MouseLeftButtonDown, Sub(sender, e)
-                    Try
-                        Basics.OpenPath(i) ' 使用系统默认程序打开
-                    Catch ex As Exception
-                        Log(ex, "打开截图失败！", LogLevel.Hint)
-                    End Try
-                End Sub
+                                                          Try
+                                                              Basics.OpenPath(i) ' 使用系统默认程序打开
+                                                          Catch ex As Exception
+                                                              Log(ex, "打开截图失败！", LogLevel.Hint)
+                                                          End Try
+                                                      End Sub
                 Grid.SetRow(image, 1)
                 grid.Children.Add(image)
 
@@ -178,7 +183,7 @@ Public Class PageInstanceScreenshot
             End Try
         Next
         _AppendLock = False
-    End Function
+    End Sub
 
     Private Sub RemoveItem(Path As String)
         Try
