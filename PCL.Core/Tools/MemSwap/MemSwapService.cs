@@ -11,51 +11,44 @@ namespace PCL.Core.App.Essentials.MemSwap;
 [LifecycleScope("mem-swap", "内存交换", false)]
 public partial class MemSwapService
 {
-    [LifecycleStart]
+    [LifecycleCommandHandler("memory")]
     private static void _CheckRequest()
     {
-        var args = Basics.CommandLineArguments;
+        Context.Info("检测到内存交换请求，开始处理");
 
-        if (args is ["memory"])
+        if (!ProcessInterop.IsAdmin())
         {
-            Context.Info("检测到内存交换请求，开始处理");
+            Context.Error("缺少管理员权限，退出内存处理");
+            Context.RequestExit(-1);
+            return;
+        }
 
-            if (!ProcessInterop.IsAdmin())
+        try
+        {
+            var before = KernelInterop.GetPhysicalMemoryBytes().Available;
+            Context.Info($"处理前内存量 {ByteStream.GetReadableLength((long)before)}");
+            AcquirePrivileges();
+            if (!MemorySwap(SwapScope.All))
             {
-                Context.Error("缺少管理员权限，退出内存处理");
-                Context.RequestExit(-1);
+                Context.Error("请求无法处理，返回");
                 return;
             }
 
-            try
-            {
-                var before = KernelInterop.GetPhysicalMemoryBytes().Available;
-                Context.Info($"处理前内存量 {ByteStream.GetReadableLength((long)before)}");
-                AcquirePrivileges();
-                if (!MemorySwap(SwapScope.All))
-                {
-                    Context.Error("请求无法处理，返回");
-                    return;
-                }
+            var after = KernelInterop.GetPhysicalMemoryBytes().Available;
+            Context.Info($"处理后内存量 {ByteStream.GetReadableLength((long)after)}");
+            var diff = Math.Max(0, after - before);
+            Context.Info($"处理结束，总共处理 {ByteStream.GetReadableLength((long)diff)}");
+            diff /= 1024;
+            if (diff > int.MaxValue) diff = int.MaxValue;
 
-                var after = KernelInterop.GetPhysicalMemoryBytes().Available;
-                Context.Info($"处理后内存量 {ByteStream.GetReadableLength((long)after)}");
-                var diff = Math.Max(0, after - before);
-                Context.Info($"处理结束，总共处理 {ByteStream.GetReadableLength((long)diff)}");
-                diff /= 1024;
-                if (diff > int.MaxValue) diff = int.MaxValue;
-
-                Context.RequestExit((int)diff);
-            }
-            catch (Exception ex)
-            {
-                Context.Error("内存处理失败", ex);
-                Context.RequestExit(-1);
-            }
+            Context.RequestExit((int)diff);
+        }
+        catch (Exception ex)
+        {
+            Context.Error("内存处理失败", ex);
+            Context.RequestExit(-1);
         }
     }
-
-    
 
     private static SemaphoreSlim _memSwapLock = new(1, 1);
     public static bool MemorySwap(SwapScope scope = SwapScope.All)
@@ -95,7 +88,7 @@ public partial class MemSwapService
     public static void AcquirePrivileges()
     {
         Context.Info("获取权限……");
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, false);
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, false);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, true);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, true);
     }
 }
