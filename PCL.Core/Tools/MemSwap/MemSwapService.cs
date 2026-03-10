@@ -1,5 +1,6 @@
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Tools.MemSwap;
 using PCL.Core.Utils.OS;
 using System;
 using System.Threading;

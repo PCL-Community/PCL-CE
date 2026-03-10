@@ -1,6 +1,6 @@
 using System;
 
-namespace PCL.Core.App.Essentials.MemSwap;
+namespace PCL.Core.Tools.MemSwap;
 
 [Flags]
 public enum SwapScope
