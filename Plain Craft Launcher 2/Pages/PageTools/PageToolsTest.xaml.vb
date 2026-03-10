@@ -484,7 +484,7 @@ Public Class PageToolsTest
         Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
-    
+
     ' 启动计数显示
     Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
@@ -496,9 +496,9 @@ Public Class PageToolsTest
         Log("[Net] 获取网络结果" & url)
         Await LoadImageAsync(url)
     End Sub
-    
+
     Private Async Function LoadImageAsync(imageUrl As String) As Task
-        Dim client = NetworkService.GetClient() 
+        Dim client = NetworkService.GetClient()
         Try
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
             If response.IsSuccessStatusCode Then
@@ -511,50 +511,50 @@ Public Class PageToolsTest
                     bitmapImage.Freeze()
 
                     Dispatcher.Invoke(Sub()
-                        AchievementImage.Source = bitmapImage
-                        AchievementImage.Visibility = Visibility.Visible
-                    End Sub)
+                                          AchievementImage.Source = bitmapImage
+                                          AchievementImage.Visibility = Visibility.Visible
+                                      End Sub)
                 End Using
             ElseIf response.StatusCode = HttpStatusCode.NotFound Then
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（404）")
-                    Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
-                End Sub)
+                                      Log("获取成就图片失败（404）")
+                                      Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+                                  End Sub)
             Else
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（" & response.StatusCode & "）")
-                End Sub)
+                                      Log("获取成就图片失败（" & response.StatusCode & "）")
+                                  End Sub)
             End If
 
         Catch ex As Exception
             Dispatcher.Invoke(Sub()
-                Log(ex, "获取成就图片失败")
-            End Sub)
+                                  Log(ex, "获取成就图片失败")
+                              End Sub)
         End Try
     End Function
 
     Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
         Dim url = GetAchievementUrl()
-        await DownloadImageToLocalAsync(url)
+        Await DownloadImageToLocalAsync(url)
     End Sub
-    
+
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
         Dim client = NetworkService.GetClient()
         Try
             ' 异步发送 GET 请求
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
-            
+
             ' 如果响应状态码是成功的，则继续
             If response.IsSuccessStatusCode Then
                 ' 异步读取响应内容为字节流
                 Dim imageBytes As Byte() = Await response.Content.ReadAsByteArrayAsync()
-                
+
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
-                
+
                 Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
-                If(path = "") Then
+                If (path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
                     Return
@@ -571,13 +571,13 @@ Public Class PageToolsTest
                 ' 处理其他非成功状态码
                 Log("获取成就图片失败（" & response.StatusCode & "）")
             End If
-            
+
         Catch ex As Exception
             ' 捕获所有其他异常（如网络连接问题）
             Log(ex, "获取成就图片失败")
         End Try
     End Function
-    
+
     Private Function GetAchievementUrl() As String
         Dim block = AchievementBlockTextBox.Text.Trim()
         Dim title = AchievementTitleTextBox.Text.Replace(" ", "..")
@@ -591,7 +591,7 @@ Public Class PageToolsTest
     End Function
 
     Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)
-        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText := """sURe"".ToUpper()", IsWarn := True) = "SURE" Then
+        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText:="""sURe"".ToUpper()", IsWarn:=True) = "SURE" Then
             Throw New Exception("手动崩溃")
         End If
     End Sub
