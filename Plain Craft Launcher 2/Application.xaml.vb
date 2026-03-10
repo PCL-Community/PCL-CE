@@ -43,20 +43,6 @@ Public Class Application
                     Catch ex As Exception
                         Environment.Exit(ProcessReturnValues.Fail)
                     End Try
-                ElseIf args(0).StartsWithF("--memory") Then
-                    '内存优化
-                    Dim Ram = KernelInterop.GetAvailablePhysicalMemoryBytes()
-                    Try
-                        PageToolsTest.MemoryOptimizeInternal(False)
-                    Catch ex As Exception
-                        MsgBox(ex.Message, MsgBoxStyle.Critical, "内存优化失败")
-                        Environment.Exit(-1)
-                    End Try
-                    If KernelInterop.GetAvailablePhysicalMemoryBytes() < Ram Then '避免 ULong 相减出现负数
-                        Environment.Exit(0)
-                    Else
-                        Environment.Exit((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) / 1024) '返回清理的内存量（K）
-                    End If
                 End If
             End If
             '初始化文件结构

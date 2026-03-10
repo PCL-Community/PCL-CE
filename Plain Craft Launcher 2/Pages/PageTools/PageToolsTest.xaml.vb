@@ -9,6 +9,7 @@ Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
+Imports PCL.Core.App.Essentials
 
 Public Class PageToolsTest
     Public Sub New()
@@ -286,7 +287,7 @@ Public Class PageToolsTest
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
-                    Dim callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "--memory")
+                    Dim callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "memory")
                     callProcess.WaitForExit()
                     num = CLng(callProcess.ExitCode) * 1024L
                 Catch ex2 As Exception
@@ -320,12 +321,12 @@ Public Class PageToolsTest
         If Not ProcessInterop.IsAdmin() Then
             Throw New Exception("内存优化功能需要管理员权限！" & vbCrLf & "如果需要自动以管理员身份启动 PCL，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")
         End If
+
         Log("[Test] 获取内存优化权限")
 
         '提权部分
         Try
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, True)
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, True)
+            MemSwap.MemSwapService.AcquirePrivileges()
         Catch ex As System.ComponentModel.Win32Exception
             Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
         End Try
@@ -334,58 +335,9 @@ Public Class PageToolsTest
             Hint("正在进行内存优化……", ModMain.HintType.Info, True)
         End If
 
-        '内存优化部分
-        Dim NowType = "None"
-        Try
-            Dim info As Integer
-            Dim scfi As SYSTEM_FILECACHE_INFORMATION
-            Dim combineInfoEx As MEMORY_COMBINE_INFORMATION_EX
-            Dim _gcHandle As GCHandle
-
-            NowType = "MemoryEmptyWorkingSets"
-            info = 2
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "SystemFileCacheInformation"
-            scfi.MaximumWorkingSet = UInteger.MaxValue
-            scfi.MinimumWorkingSet = UInteger.MaxValue
-            _gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
-            _gcHandle.Free()
-            NowType = "MemoryFlushModifiedList"
-            info = 3
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "MemoryPurgeStandbyList"
-            info = 4
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "MemoryPurgeLowPriorityStandbyList"
-            info = 5
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "SystemRegistryReconciliationInformation"
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemRegistryReconciliationInformation,
-                                           New IntPtr(Nothing), 0)
-            NowType = "SystemCombinePhysicalMemoryInformation"
-            _gcHandle = GCHandle.Alloc(combineInfoEx, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemCombinePhysicalMemoryInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
-            _gcHandle.Free()
-        Catch ex As System.ComponentModel.Win32Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.NativeErrorCode))
-        Catch ex As Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误信息：{1}）", NowType, ex.Message))
-        End Try
+        If Not MemSwap.MemSwapService.MemorySwap() Then
+            Hint("内存优化失败")
+        End If
 
     End Sub
     Public Shared Function GetRandomCave() As String

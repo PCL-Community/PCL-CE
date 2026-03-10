@@ -13,6 +13,7 @@ Imports PCL.Core.Utils
 Imports System.Windows
 Imports PCL.Core.Utils.Codecs
 Imports PCL.Core.Utils.OS
+Imports PCL.Core.IO
 
 Public Module ModBase
 
@@ -1390,24 +1391,7 @@ RetryDir:
     ''' </summary>
     ''' <param name="FileSize">以字节为单位的大小表示。</param>
     Public Function GetString(FileSize As Long) As String
-        Dim IsNegative = FileSize < 0
-        If IsNegative Then FileSize *= -1
-        If FileSize < 1000 Then
-            'B 级
-            Return If(IsNegative, "-", "") & FileSize & " B"
-        ElseIf FileSize < 1024 * 1000 Then
-            'K 级
-            Dim RoundResult As String = Math.Round(FileSize / 1024)
-            Return If(IsNegative, "-", "") & Math.Round(FileSize / 1024, CInt(MathClamp(3 - RoundResult.Length, 0, 2))) & " K"
-        ElseIf FileSize < 1024 * 1024 * 1000 Then
-            'M 级
-            Dim RoundResult As String = Math.Round(FileSize / 1024 / 1024)
-            Return If(IsNegative, "-", "") & Math.Round(FileSize / 1024 / 1024, CInt(MathClamp(3 - RoundResult.Length, 0, 2))) & " M"
-        Else
-            'G 级
-            Dim RoundResult As String = Math.Round(FileSize / 1024 / 1024 / 1024)
-            Return If(IsNegative, "-", "") & Math.Round(FileSize / 1024 / 1024 / 1024, CInt(MathClamp(3 - RoundResult.Length, 0, 2))) & " G"
-        End If
+        Return ByteStream.GetReadableLength(FileSize)
     End Function
 
     ''' <summary>
