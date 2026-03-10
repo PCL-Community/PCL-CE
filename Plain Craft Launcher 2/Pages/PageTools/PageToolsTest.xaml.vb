@@ -105,7 +105,7 @@ Public Class PageToolsTest
             Else 'UNC 路径
                 loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))
             End If
-            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
+            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderdownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)
             FrmMain.BtnExtraDownload.ShowRefresh()
@@ -336,7 +336,7 @@ Public Class PageToolsTest
         End If
 
         If Not MemSwap.MemSwapService.MemorySwap() Then
-            Hint("内存优化失败")
+            If ShowHint Then Hint("内存优化失败")
         End If
 
     End Sub

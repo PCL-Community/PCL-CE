@@ -56,7 +56,7 @@ public partial class MemSwapService
 
     
 
-    private static SemaphoreSlim _memSwapLock = new(0, 1);
+    private static SemaphoreSlim _memSwapLock = new(1, 1);
     public static bool MemorySwap(SwapScope scope = SwapScope.All)
     {
         if (!_memSwapLock.Wait(0))
@@ -71,7 +71,7 @@ public partial class MemSwapService
 
             Context.Info($"开始处理，区域请求：{(int)scope}");
             if (scope.HasFlag(SwapScope.EmptyWorkingSets)) SwapWorks.EmptyWorkingSets();
-            if (scope.HasFlag(SwapScope.FlushFileCache)) SwapWorks.FlushFileCache();
+            //if (scope.HasFlag(SwapScope.FlushFileCache)) SwapWorks.FlushFileCache();
             if (scope.HasFlag(SwapScope.FlushModifiedList)) SwapWorks.FlushModifiedList();
             if (scope.HasFlag(SwapScope.PurgeStandbyList)) SwapWorks.PurgeStandbyList();
             if (scope.HasFlag(SwapScope.PurgeLowPriorityStandbyList)) SwapWorks.PurgeLowPriorityStandbyList();
@@ -94,7 +94,7 @@ public partial class MemSwapService
     public static void AcquirePrivileges()
     {
         Context.Info("获取权限……");
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true);
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, false);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, false);
     }
 }
