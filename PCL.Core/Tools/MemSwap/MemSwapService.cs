@@ -88,7 +88,7 @@ public partial class MemSwapService
     public static void AcquirePrivileges()
     {
         Context.Info("获取权限……");
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, true);
-        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, true);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, false);
+        NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, false);
     }
 }
