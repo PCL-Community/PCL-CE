@@ -64,7 +64,7 @@ public static partial class NtInterop
     /// <returns>返回原来相应特权的状态。</returns>
     public static bool SetPrivilege(SePrivilege privilege, bool state, bool currentThread = true)
     {
-        var result = RtlAdjustPrivilege(privilege, false, currentThread, out var enabled);
+        var result = RtlAdjustPrivilege(privilege, state, currentThread, out var enabled);
         if (result != 0) _ThrowLastWin32Error((int)RtlNtStatusToDosError(result));
         return enabled;
     }
