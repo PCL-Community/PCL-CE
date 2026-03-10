@@ -71,7 +71,7 @@ public partial class MemSwapService
 
             Context.Info($"开始处理，区域请求：{(int)scope}");
             if (scope.HasFlag(SwapScope.EmptyWorkingSets)) SwapWorks.EmptyWorkingSets();
-            //if (scope.HasFlag(SwapScope.FlushFileCache)) SwapWorks.FlushFileCache();
+            if (scope.HasFlag(SwapScope.FlushFileCache)) SwapWorks.FlushFileCache();
             if (scope.HasFlag(SwapScope.FlushModifiedList)) SwapWorks.FlushModifiedList();
             if (scope.HasFlag(SwapScope.PurgeStandbyList)) SwapWorks.PurgeStandbyList();
             if (scope.HasFlag(SwapScope.PurgeLowPriorityStandbyList)) SwapWorks.PurgeLowPriorityStandbyList();
