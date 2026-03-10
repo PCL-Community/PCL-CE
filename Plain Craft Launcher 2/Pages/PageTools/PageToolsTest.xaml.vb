@@ -338,7 +338,6 @@ Public Class PageToolsTest
         Dim NowType = "None"
         Try
             Dim info As Integer
-            Dim scfi As SYSTEM_FILECACHE_INFORMATION
             Dim combineInfoEx As MEMORY_COMBINE_INFORMATION_EX
             Dim _gcHandle As GCHandle
 
