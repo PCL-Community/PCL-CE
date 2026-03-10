@@ -1,8 +1,5 @@
 Imports System.Drawing
-Imports System.Net
 Imports System.Net.Http
-Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports PCL.Core.App
 Imports PCL.Core.IO
 Imports PCL.Core.IO.Net
@@ -222,25 +219,6 @@ Public Class PageToolsTest
                 End Try
             End Sub, "Rubbish Clear")
     End Sub
-    <StructLayout(LayoutKind.Sequential)>
-    Public Structure SYSTEM_FILECACHE_INFORMATION
-        Public CurrentSize As UIntPtr
-        Public PeakSize As UIntPtr
-        Public PageFaultCount As UInteger
-        Public MinimumWorkingSet As UIntPtr
-        Public MaximumWorkingSet As UIntPtr
-        Public CurrentSizeIncludingTransitionInPages As UIntPtr
-        Public PeakSizeIncludingTransitionInPages As UIntPtr
-        Public TransitionRePurposeCount As UInteger
-        Public Flags As UInteger
-    End Structure
-    <StructLayout(LayoutKind.Sequential)>
-    Public Structure MEMORY_COMBINE_INFORMATION_EX
-        Public Handle As IntPtr
-        Public PagesCombined As UIntPtr
-        Public Flags As UInteger
-    End Structure
-
     Public Shared Function AskTrulyWantMemoryOptimize()
         Dim memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024 / 1024  'GB
         Dim memLoad = KernelInterop.GetMemoryLoadPercent()

@@ -76,6 +76,7 @@ internal static class SwapWorks
             IntPtr.Zero,
             0);
 
+    [StructLayout(LayoutKind.Sequential)]
     private struct MEMORY_COMBINE_INFORMATION_EX
     {
         public IntPtr Handle;
