@@ -348,13 +348,13 @@ Public Class PageToolsTest
             NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
                                            _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
             _gcHandle.Free()
-            NowType = "SystemFileCacheInformation"
-            scfi.MaximumWorkingSet = UInteger.MaxValue
-            scfi.MinimumWorkingSet = UInteger.MaxValue
-            _gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
-            _gcHandle.Free()
+            'NowType = "SystemFileCacheInformation"
+            'scfi.MaximumWorkingSet = UInteger.MaxValue
+            'scfi.MinimumWorkingSet = UInteger.MaxValue
+            '_gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned)
+            'NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
+            '                               _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
+            '_gcHandle.Free()
             NowType = "MemoryFlushModifiedList"
             info = 3
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
