@@ -15,9 +15,9 @@ public static partial class NtInterop
     [LibraryImport("ntdll.dll")]
     private static partial uint RtlAdjustPrivilege(
         SePrivilege privilege,
-        [MarshalAs(UnmanagedType.Bool)] bool enable,
-        [MarshalAs(UnmanagedType.Bool)] bool currentThread,
-        [MarshalAs(UnmanagedType.Bool)] out bool enabled);
+        [MarshalAs(UnmanagedType.U1)] bool enable,
+        [MarshalAs(UnmanagedType.U1)] bool currentThread,
+        [MarshalAs(UnmanagedType.U1)] out bool enabled);
     
     [LibraryImport("ntdll.dll")]
     private static partial ulong RtlNtStatusToDosError(uint status);
