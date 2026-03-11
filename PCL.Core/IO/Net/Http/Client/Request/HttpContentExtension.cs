@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace PCL.Core.IO.Net.Http.Client.Request;
 
-public static class HttpContentHandler
+public static class HttpContentExtension
 {
     extension (HttpRequestMessage requestMessage)
     {

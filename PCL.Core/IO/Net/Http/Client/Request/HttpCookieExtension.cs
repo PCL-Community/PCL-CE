@@ -4,7 +4,7 @@ using System.Net.Http;
 
 namespace PCL.Core.IO.Net.Http.Client.Request;
 
-public static class HttpCookieHandler
+public static class HttpCookieExtension
 {
     extension (HttpRequestMessage requestMessage)
     {

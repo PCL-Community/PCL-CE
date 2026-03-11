@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace PCL.Core.IO.Net.Http.Client.Request;
 
-public static class HttpBasicHandler
+public static class HttpBasicExtension
 {
     extension(HttpRequestMessage requestMessage)
     {
