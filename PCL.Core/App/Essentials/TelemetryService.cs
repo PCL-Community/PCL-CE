@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -10,7 +10,7 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 
@@ -93,7 +93,7 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequestBuilder
+        using var response = await HttpRequestCreator
             .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
             .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
             .SendAsync().ConfigureAwait(false);

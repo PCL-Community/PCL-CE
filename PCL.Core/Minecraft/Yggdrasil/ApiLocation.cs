@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL.Core.Minecraft.Yggdrasil;
 
@@ -12,7 +12,7 @@ public static class ApiLocation
     {
         var originAddr = address.StartsWith("http") ? address : $"https://{address}";
         var originUri = new Uri(originAddr);
-        using var response = await HttpRequestBuilder.Create(originAddr, HttpMethod.Head).SendAsync();
+        using var response = await HttpRequestCreator.Create(originAddr, HttpMethod.Head).SendAsync();
         response.TryGetHeader("X-Authlib-Injector-Api-Location", out var responses);
         if (responses.Length == 0) return originAddr;
         var resultAddr = responses.First();

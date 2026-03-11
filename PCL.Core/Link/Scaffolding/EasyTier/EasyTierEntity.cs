@@ -17,7 +17,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -285,7 +285,7 @@ public class EasyTierEntity
     private async Task<IReadOnlyList<string>> _GetPublicNodeAsync()
     {
         var rep = await Policy.Handle<HttpRequestException>()
-            .OrResult<HttpResponseHandler>(msg => !msg.IsSuccess)
+            .OrResult<HttpResponseExtension>(msg => !msg.IsSuccess)
             .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
             .ExecuteAsync(_SendPublicNodeGetReqAsync).ConfigureAwait(false);
 
@@ -305,8 +305,8 @@ public class EasyTierEntity
         return result;
     }
 
-    private Task<HttpResponseHandler> _SendPublicNodeGetReqAsync() =>
-        HttpRequestBuilder
+    private Task<HttpResponseExtension> _SendPublicNodeGetReqAsync() =>
+        HttpRequestCreator
             .Create("https://uptime.easytier.cn/api/nodes?page=1&per_page=50&is_active=true", HttpMethod.Get)
             .SendAsync();
 

@@ -1,5 +1,5 @@
-﻿Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports System.Net.Http
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts

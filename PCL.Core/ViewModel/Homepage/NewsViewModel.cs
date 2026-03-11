@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Logging;
 using PCL.Core.Model.Tools.News;
 using System;
@@ -42,7 +42,7 @@ public partial class NewsViewModel : ObservableObject
         try
         {
             var url = $"{BaseApiUrl}?pageSize={PageSize}&sortType=Recent&category=News&newsOnly=true&page={_currentPage}";
-            using var resp = await HttpRequestBuilder
+            using var resp = await HttpRequestCreator
                 .Create(url)
                 .SendAsync(true);
             var json = await resp.AsJsonAsync<ApiResponse>();

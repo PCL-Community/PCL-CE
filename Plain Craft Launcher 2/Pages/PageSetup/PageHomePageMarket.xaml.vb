@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 
 Public Class PageHomepageMarket
     Implements IRefreshable

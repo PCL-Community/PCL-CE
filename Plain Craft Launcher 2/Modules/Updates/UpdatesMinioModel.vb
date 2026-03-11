@@ -1,6 +1,6 @@
-﻿Imports System.IO.Compression
+Imports System.IO.Compression
 Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Diff
 
