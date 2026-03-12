@@ -57,7 +57,7 @@ public sealed partial class TelemetryService
     }
 
     // 错误上报
-    public static void ReportException(Exception ex, string? message = null)
+    public static void ReportException(Exception ex)
     {
         SentrySdk.CaptureException(ex);
     }
