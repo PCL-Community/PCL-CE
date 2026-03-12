@@ -39,7 +39,7 @@ public sealed partial class TelemetryService
 #if DEBUG
         var environment = "Debug";
 #else
-        var environment = "Production"
+        var environment = "Production";
 #endif
         
         SentrySdk.Init(options =>
