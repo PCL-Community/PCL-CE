@@ -41,8 +41,8 @@ public sealed partial class TelemetryService
         SentrySdk.Init(options =>
         {
             options.Dsn = dsn;
-            options.Debug = true;
-            options.SendDefaultPii = true;
+            options.Debug = false;
+            options.SendDefaultPii = false;
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = true;
             options.Release = release;
