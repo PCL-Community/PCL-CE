@@ -60,14 +60,23 @@ public sealed partial class TelemetryService
     // 错误上报
     public static void ReportException(Exception ex, ActionLevel? level = null)
     {
-        SentrySdk.ConfigureScope(scope =>
+        if (level is not null)
         {
-            scope.Level = level switch
+            SentrySdk.ConfigureScope(scope =>
             {
-                ActionLevel.MsgBoxFatal => SentryLevel.Fatal,
-                ActionLevel.MsgBoxErr => SentryLevel.Error
-            };
-        });
+                scope.Level = level switch
+                {
+                    ActionLevel.MsgBoxFatal => SentryLevel.Fatal,
+                    ActionLevel.MsgBoxErr => SentryLevel.Error,
+                    ActionLevel.MsgBox => SentryLevel.Warning,
+                    ActionLevel.HintErr => SentryLevel.Warning,
+                    ActionLevel.Hint => SentryLevel.Warning,
+                    ActionLevel.NormalLog => SentryLevel.Info,
+                    _ => SentryLevel.Error
+                };
+            });
+        }
+        
         SentrySdk.CaptureException(ex);
     }
 
