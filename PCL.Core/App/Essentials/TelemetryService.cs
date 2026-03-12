@@ -59,11 +59,9 @@ public sealed partial class TelemetryService
     }
 
     // 设备环境上报
-    private static void _ReportDeviceEnvironment(dynamic content)
+    private static void _ReportDeviceEnvironment(TelemetryDeviceEnvironment content)
     {
         Context.Info("正在上报设备环境调查数据");
-        
-        var telemetryData = content;
         
         SentrySdk.ConfigureScope(scope =>
         {
@@ -71,7 +69,7 @@ public sealed partial class TelemetryService
             {
                 Id = Utils.Secret.Identify.LauncherId
             };
-            scope.Contexts["Telemetry"] = telemetryData;
+            scope.Contexts["Telemetry"] = content;
         });
 
         try
