@@ -42,7 +42,7 @@ public partial class NewsViewModel : ObservableObject
         try
         {
             var url = $"{BaseApiUrl}?pageSize={PageSize}&sortType=Recent&category=News&newsOnly=true&page={_currentPage}";
-            using var resp = await HttpRequestBuilder
+            using var resp = await HttpRequestCreator
                 .Create(url)
                 .SendAsync(true);
             var json = await resp.AsJsonAsync<ApiResponse>();

@@ -235,7 +235,7 @@ public sealed class LobbyController
             }
             else
             {
-                using var response = await HttpRequestBuilder
+                using var response = await HttpRequestCreator
                     .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
                     .WithContent(httpContent)
                     .WithAuthentication(key)
