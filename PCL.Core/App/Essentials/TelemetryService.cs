@@ -115,6 +115,8 @@ public sealed partial class TelemetryService
     private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
+        _InitSentry();
+        
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         // stun test
@@ -132,8 +134,6 @@ public sealed partial class TelemetryService
             await natTest.QueryAsync().ConfigureAwait(false);
         }
 
-        _InitSentry();
-        
         var telemetry = new TelemetryDeviceEnvironment
         {
             Tag = "Telemetry",
