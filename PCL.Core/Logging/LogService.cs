@@ -48,7 +48,7 @@ public class LogService : ILifecycleLogService
     {
         if (ex is not null && level is ActionLevel.MsgBoxErr or ActionLevel.MsgBoxFatal)
         {
-            ReportException(ex);
+            ReportException(ex, level);
         }
         // log
 #if !TRACE

@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
+using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 using Sentry;
@@ -57,8 +58,16 @@ public sealed partial class TelemetryService
     }
 
     // 错误上报
-    public static void ReportException(Exception ex)
+    public static void ReportException(Exception ex, ActionLevel? level = null)
     {
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.Level = level switch
+            {
+                ActionLevel.MsgBoxFatal => SentryLevel.Fatal,
+                ActionLevel.MsgBoxErr => SentryLevel.Error
+            };
+        });
         SentrySdk.CaptureException(ex);
     }
 
