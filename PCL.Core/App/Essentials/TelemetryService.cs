@@ -1,9 +1,7 @@
 ﻿using System;
-// using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-// using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -11,8 +9,6 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
-using PCL.Core.Logging;
-// using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 using Sentry;
