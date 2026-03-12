@@ -122,8 +122,6 @@ public sealed partial class TelemetryService
     private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
-        // var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");
-        // if (string.IsNullOrWhiteSpace(telemetryKey)) return;
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         // stun test
@@ -170,15 +168,6 @@ public sealed partial class TelemetryService
         };
         
         ReportDeviceEnvironment(telemetry);
-        
-        // using var response = await HttpRequestBuilder
-        //     .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
-        //     .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
-        //     .SendAsync().ConfigureAwait(false);
-        // if (response.IsSuccess)
-        //     Context.Info("已发送设备环境调查数据");
-        // else
-        //     Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
     }
     
     [LifecycleStop]
