@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App;
+using static PCL.Core.App.Essentials.TelemetryService;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 
@@ -45,6 +46,7 @@ public class LogService : ILifecycleLogService
 
     private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
     {
+        if (ex is not null) ReportException(ex);
         // log
 #if !TRACE
         if (level != ActionLevel.TraceLog)

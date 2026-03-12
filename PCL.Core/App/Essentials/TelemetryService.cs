@@ -1,8 +1,9 @@
 ﻿using System;
+// using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
+// using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -10,9 +11,11 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Logging;
+// using PCL.Core.IO.Net.Http.Client;
 using PCL.Core.Utils.OS;
 using STUN.Client;
+using Sentry;
 
 namespace PCL.Core.App.Essentials;
 
@@ -20,6 +23,76 @@ namespace PCL.Core.App.Essentials;
 [LifecycleService(LifecycleState.Running)]
 public sealed partial class TelemetryService
 {
+    private static void _initSentry()
+    {
+        Context.Info("开始初始化 Sentry SDK");
+        var dsn = EnvironmentInterop.GetSecret("SENTRY_DSN");
+        if (dsn is null)
+        {
+            Context.Debug("未找到 Sentry DSN");
+            return;
+        };
+        
+        var release = $"{Basics.VersionName} ({Basics.VersionCode})";
+        
+        // 大概是这样用的吧？
+#if DEBUG
+        var environment = "Debug";
+#else
+        var environment = "Production"
+#endif
+        
+        SentrySdk.Init(options =>
+        {
+            options.Dsn = dsn;
+            options.Debug = true;
+            options.SendDefaultPii = true;
+            options.IsGlobalModeEnabled = true;
+            options.AutoSessionTracking = true;
+            options.Release = release;
+            options.Environment = environment;
+        });
+        
+        Context.Info("Sentry SDK 初始化完成");
+    }
+    
+    private static async Task Initialize()
+    {
+        await Task.Run(_initSentry);
+    }
+
+    // 错误上报
+    public static void ReportException(Exception ex, string? message = null)
+    {
+        SentrySdk.CaptureException(ex);
+    }
+
+    // 设备环境上报
+    private static void ReportDeviceEnvironment(dynamic content)
+    {
+        Context.Info("正在上报设备环境调查数据");
+        
+        var telemetryData = content;
+        
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.User = new User
+            {
+                Id = Utils.Secret.Identify.LauncherId
+            };
+            scope.Contexts["telemetry"] = telemetryData;
+        });
+
+        try
+        {
+            SentrySdk.CaptureMessage("设备环境调查");
+            Context.Info("已发送设备环境调查数据");
+        }
+        catch
+        {
+            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
+        }
+    }
 
     // ReSharper disable UnusedAutoPropertyAccessor.Local
 
@@ -49,8 +122,8 @@ public sealed partial class TelemetryService
     private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
-        var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");
-        if (string.IsNullOrWhiteSpace(telemetryKey)) return;
+        // var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");
+        // if (string.IsNullOrWhiteSpace(telemetryKey)) return;
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         // stun test
@@ -68,6 +141,8 @@ public sealed partial class TelemetryService
             await natTest.QueryAsync().ConfigureAwait(false);
         }
 
+        await Initialize();
+        
         var telemetry = new TelemetryDeviceEnvironment
         {
             Tag = "Telemetry",
@@ -93,14 +168,22 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequestBuilder
-            .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
-            .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
-            .SendAsync().ConfigureAwait(false);
-        if (response.IsSuccess)
-            Context.Info("已发送设备环境调查数据");
-        else
-            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
-        Context.DeclareStopped();
+        
+        ReportDeviceEnvironment(telemetry);
+        
+        // using var response = await HttpRequestBuilder
+        //     .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
+        //     .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
+        //     .SendAsync().ConfigureAwait(false);
+        // if (response.IsSuccess)
+        //     Context.Info("已发送设备环境调查数据");
+        // else
+        //     Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
+    }
+    
+    [LifecycleStop]
+    private static async Task _StopAsync()
+    {
+        SentrySdk.Close();
     }
 }
