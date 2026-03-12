@@ -71,7 +71,7 @@ public sealed partial class TelemetryService
             {
                 Id = Utils.Secret.Identify.LauncherId
             };
-            scope.Contexts["telemetry"] = telemetryData;
+            scope.Contexts["Telemetry"] = telemetryData;
         });
 
         try
