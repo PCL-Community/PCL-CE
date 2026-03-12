@@ -306,7 +306,7 @@ public class EasyTierEntity
     }
 
     private Task<HttpResponseHandler> _SendPublicNodeGetReqAsync() =>
-        HttpRequestBuilder
+        HttpRequestCreator
             .Create("https://uptime.easytier.cn/api/nodes?page=1&per_page=50&is_active=true", HttpMethod.Get)
             .SendAsync();
 

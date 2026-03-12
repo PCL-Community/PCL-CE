@@ -56,7 +56,7 @@ public static class NatayarkProfileManager
 
                 var httpContent = new StringContent(requestData, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                using var oauthResponse = await HttpRequestBuilder
+                using var oauthResponse = await HttpRequestCreator
                     .Create("https://account.naids.com/api/oauth2/token", HttpMethod.Post)
                     .WithContent(httpContent)
                     .SendAsync(true).ConfigureAwait(false);
@@ -78,7 +78,7 @@ public static class NatayarkProfileManager
                 var expiresAt = data["refresh_token_expires_at"]!.ToString();
 
                 // 获取用户信息
-                using var userDataResponse = await HttpRequestBuilder
+                using var userDataResponse = await HttpRequestCreator
                     .Create("https://account.naids.com/api/api/user/data", HttpMethod.Get)
                     .WithBearerToken(NaidProfile.AccessToken)
                     .SendAsync(true).ConfigureAwait(false);

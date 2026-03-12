@@ -14,7 +14,7 @@ using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.IO.Net.Http.Client;
 
-public class HttpRequestBuilder
+public class HttpRequestCreator
 {
     private readonly HttpRequestMessage _request;
     private readonly Dictionary<string, string> _cookies = [];
@@ -25,38 +25,38 @@ public class HttpRequestBuilder
     private TimeSpan _timeOutMillisec = TimeSpan.FromMilliseconds(30 * 1000);
     private bool _isEndOfLife = false;
 
-    private HttpRequestBuilder(Uri uri, HttpMethod? method = null)
+    private HttpRequestCreator(Uri uri, HttpMethod? method = null)
     {
         _request = new HttpRequestMessage(method ?? HttpMethod.Get, uri);
     }
 
     /// <summary>
-    /// 创建一个 HttpRequestBuilder 对象
+    /// 创建一个 HttpRequestCreator 对象
     /// </summary>
-    public static HttpRequestBuilder Create(string url, HttpMethod? method = null)
+    public static HttpRequestCreator Create(string url, HttpMethod? method = null)
     {
-        return new HttpRequestBuilder(new Uri(url), method);
+        return new HttpRequestCreator(new Uri(url), method);
     }
 
     /// <summary>
-    /// 创建一个 HttpRequestBuilder 对象
+    /// 创建一个 HttpRequestCreator 对象
     /// </summary>
-    public static HttpRequestBuilder Create(Uri uri, HttpMethod? method = null)
+    public static HttpRequestCreator Create(Uri uri, HttpMethod? method = null)
     {
-        return new HttpRequestBuilder(uri, method);
+        return new HttpRequestCreator(uri, method);
     }
 
     /// <summary>
     /// 设置请求载荷
     /// </summary>
-    public HttpRequestBuilder WithContent(HttpContent content, string? contentType = null)
+    public HttpRequestCreator WithContent(HttpContent content, string? contentType = null)
     {
         _request.Content = content;
         if (contentType is not null) WithHeader("Content-Type", contentType);
         return this;
     }
 
-    public HttpRequestBuilder WithContent(string content, string? contentType = null)
+    public HttpRequestCreator WithContent(string content, string? contentType = null)
     {
         _request.Content = contentType is null
             ? new StringContent(content, Encoding.UTF8)
@@ -64,7 +64,7 @@ public class HttpRequestBuilder
         return this;
     }
 
-    public HttpRequestBuilder WithJsonContent(dynamic content)
+    public HttpRequestCreator WithJsonContent(dynamic content)
     {
         _request.Content = new StringContent(JsonSerializer.Serialize(content), Encoding.UTF8, "application/json");
         return this;
@@ -73,7 +73,7 @@ public class HttpRequestBuilder
     /// <summary>
     /// 设置一个请求所用的 Cookie，如果已设置过对应的键，旧的则会被覆盖
     /// </summary>
-    public HttpRequestBuilder WithCookie(string key, string value)
+    public HttpRequestCreator WithCookie(string key, string value)
     {
         _cookies[key] = value;
         return this;
@@ -82,7 +82,7 @@ public class HttpRequestBuilder
     /// <summary>
     /// 设置多个请求所用的 Cookie，如果已设置过对应的键，旧的则会被覆盖
     /// </summary>
-    public HttpRequestBuilder WithCookie(IDictionary<string, string> cookies)
+    public HttpRequestCreator WithCookie(IDictionary<string, string> cookies)
     {
         foreach (var cookie in cookies) _cookies[cookie.Key] = cookie.Value;
         return this;
@@ -91,7 +91,7 @@ public class HttpRequestBuilder
     /// <summary>
     /// 设置多个 Header
     /// </summary>
-    public HttpRequestBuilder WithHeader(IDictionary<string, string> headers)
+    public HttpRequestCreator WithHeader(IDictionary<string, string> headers)
     {
         foreach (var header in headers) WithHeader(header.Key, header.Value);
         return this;
@@ -100,7 +100,7 @@ public class HttpRequestBuilder
     /// <summary>
     /// 设置一个 Header
     /// </summary>
-    public HttpRequestBuilder WithHeader(string key, string value)
+    public HttpRequestCreator WithHeader(string key, string value)
     {
         if (key.StartsWith("Content-", StringComparison.OrdinalIgnoreCase) && _request.Content is not null)
             _request.Content.Headers.TryAddWithoutValidation(key, value);
@@ -109,9 +109,9 @@ public class HttpRequestBuilder
         return this;
     }
 
-    public HttpRequestBuilder WithHeader(KeyValuePair<string, string> header) => WithHeader(header.Key, header.Value);
+    public HttpRequestCreator WithHeader(KeyValuePair<string, string> header) => WithHeader(header.Key, header.Value);
 
-    public HttpRequestBuilder WithAuthentication(string scheme, string token)
+    public HttpRequestCreator WithAuthentication(string scheme, string token)
     {
         ArgumentException.ThrowIfNullOrEmpty(scheme);
         ArgumentException.ThrowIfNullOrEmpty(token);
@@ -119,46 +119,46 @@ public class HttpRequestBuilder
         return this;
     }
 
-    public HttpRequestBuilder WithAuthentication(string token)
+    public HttpRequestCreator WithAuthentication(string token)
     {
         ArgumentException.ThrowIfNullOrEmpty(token);
         _request.Headers.Authorization = new AuthenticationHeaderValue(token);
         return this;
     }
 
-    public HttpRequestBuilder WithBearerToken(string token) => WithAuthentication("Bearer", token);
+    public HttpRequestCreator WithBearerToken(string token) => WithAuthentication("Bearer", token);
 
-    public HttpRequestBuilder WithDefaultHeaderOption(bool hasDefaultHeader = true)
+    public HttpRequestCreator WithDefaultHeaderOption(bool hasDefaultHeader = true)
     {
         _addLauncherHeader = hasDefaultHeader;
         return this;
     }
 
-    public HttpRequestBuilder WithHttpVersionOption(Version httpVersion)
+    public HttpRequestCreator WithHttpVersionOption(Version httpVersion)
     {
         _requestVersion = httpVersion;
         return this;
     }
 
-    public HttpRequestBuilder WithLoggingOptions(bool doLog)
+    public HttpRequestCreator WithLoggingOptions(bool doLog)
     {
         _doLog = doLog;
         return this;
     }
 
-    public HttpRequestBuilder WithCompletionOption(HttpCompletionOption option)
+    public HttpRequestCreator WithCompletionOption(HttpCompletionOption option)
     {
         _completionOption = option;
         return this;
     }
 
-    public HttpRequestBuilder WithTimeOut(uint millisec)
+    public HttpRequestCreator WithTimeOut(uint millisec)
     {
         _timeOutMillisec = TimeSpan.FromMilliseconds(millisec);
         return this;
     }
 
-    public HttpRequestBuilder WithTimeOut(TimeSpan timeSpan)
+    public HttpRequestCreator WithTimeOut(TimeSpan timeSpan)
     {
         _timeOutMillisec = timeSpan;
         return this;
@@ -177,7 +177,7 @@ public class HttpRequestBuilder
         CancellationToken ct = default,
         Func<int, TimeSpan>? retryPolicy = null)
     {
-        if (_isEndOfLife) throw new ObjectDisposedException(nameof(HttpRequestBuilder));
+        if (_isEndOfLife) throw new ObjectDisposedException(nameof(HttpRequestCreator));
 
         _PrepareRequestParameters();
 

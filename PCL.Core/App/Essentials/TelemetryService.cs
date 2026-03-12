@@ -93,7 +93,7 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequestBuilder
+        using var response = await HttpRequestCreator
             .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
             .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
             .SendAsync().ConfigureAwait(false);
