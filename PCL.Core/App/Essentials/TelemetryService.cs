@@ -23,7 +23,7 @@ namespace PCL.Core.App.Essentials;
 [LifecycleService(LifecycleState.Running)]
 public sealed partial class TelemetryService
 {
-    private static void _initSentry()
+    private static void _InitSentry()
     {
         Context.Info("开始初始化 Sentry SDK");
         var dsn = EnvironmentInterop.GetSecret("SENTRY_DSN");
@@ -55,11 +55,6 @@ public sealed partial class TelemetryService
         
         Context.Info("Sentry SDK 初始化完成");
     }
-    
-    private static async Task Initialize()
-    {
-        await Task.Run(_initSentry);
-    }
 
     // 错误上报
     public static void ReportException(Exception ex, string? message = null)
@@ -68,7 +63,7 @@ public sealed partial class TelemetryService
     }
 
     // 设备环境上报
-    private static void ReportDeviceEnvironment(dynamic content)
+    private static void _ReportDeviceEnvironment(dynamic content)
     {
         Context.Info("正在上报设备环境调查数据");
         
@@ -139,7 +134,7 @@ public sealed partial class TelemetryService
             await natTest.QueryAsync().ConfigureAwait(false);
         }
 
-        await Initialize();
+        _InitSentry();
         
         var telemetry = new TelemetryDeviceEnvironment
         {
@@ -167,7 +162,7 @@ public sealed partial class TelemetryService
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
         
-        ReportDeviceEnvironment(telemetry);
+        _ReportDeviceEnvironment(telemetry);
     }
     
     [LifecycleStop]
