@@ -10,6 +10,8 @@ public static class HttpSender
     {
         public async Task<HttpResponseMessage> SendAsync(bool withLauncherMetadata = true)
         {
+            using var resq = requestMessage;
+
             if (withLauncherMetadata)
             {
                 requestMessage.Headers.TryAddWithoutValidation("User-Agent", $"PCL-Community/PCL2-CE/{Basics.VersionName} (pclc.cc)");
