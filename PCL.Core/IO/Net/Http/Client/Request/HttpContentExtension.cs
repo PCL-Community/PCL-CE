@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -36,6 +37,19 @@ public static class HttpContentExtension
                 JsonSerializer.Serialize(content),
                 Encoding.UTF8,
                 contentType ?? "application/json");
+            return requestMessage;
+        }
+
+        public HttpRequestMessage WithFormContent(string form)
+        {
+            return requestMessage.WithContent(
+                new ByteArrayContent(Encoding.UTF8.GetBytes(form)),
+                "application/x-www-form-urlencoded");
+        }
+
+        public HttpRequestMessage WithFormContent(IEnumerable<KeyValuePair<string, string>> pairs)
+        {
+            requestMessage.Content = new FormUrlEncodedContent(pairs);
             return requestMessage;
         }
     }

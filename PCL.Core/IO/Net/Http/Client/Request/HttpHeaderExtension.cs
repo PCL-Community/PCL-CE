@@ -21,6 +21,8 @@ public static class HttpHeaderHandler
 
         public HttpRequestMessage WithHeaders(IDictionary<string, string> pairs)
         {
+            ArgumentNullException.ThrowIfNull(pairs);
+
             foreach (var item in pairs)
             {
                 requestMessage.WithHeader(item.Key, item.Value);
@@ -36,6 +38,7 @@ public static class HttpHeaderHandler
         {
             ArgumentException.ThrowIfNullOrEmpty(scheme);
             ArgumentException.ThrowIfNullOrEmpty(token);
+
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue(scheme, token);
             return requestMessage;
         }
@@ -43,6 +46,7 @@ public static class HttpHeaderHandler
         public HttpRequestMessage WithAuthentication(string token)
         {
             ArgumentException.ThrowIfNullOrEmpty(token);
+
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue(token);
             return requestMessage;
         }

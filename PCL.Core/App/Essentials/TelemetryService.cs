@@ -93,10 +93,12 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequestCreator
-            .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
-            .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
-            .SendAsync().ConfigureAwait(false);
+        using var response = await HttpRequest
+            .CreatePost("https://pcl2ce.pysio.online/post")
+            .WithAuthentication(telemetryKey)
+            .WithJsonContent(telemetry)
+            .SendAsync()
+            .ConfigureAwait(false);
         if (response.IsSuccess)
             Context.Info("已发送设备环境调查数据");
         else

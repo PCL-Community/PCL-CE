@@ -15,7 +15,7 @@ public static class HttpResponseExtension
     {
         public bool IsSuccess => responseMessage.IsSuccessStatusCode;
 
-        public string AsStringContent() { return responseMessage.AsStringAsync().GetAwaiter().GetResult(); }
+        public string AsString() { return responseMessage.AsStringAsync().GetAwaiter().GetResult(); }
 
         public async Task<string> AsStringAsync(CancellationToken ct = default)
         {
@@ -131,7 +131,10 @@ public static class HttpResponseExtension
         {
             if(!responseMessage.IsSuccess)
             {
-                var content = await responseMessage.AsStringAsync(ct).ConfigureAwait(false);
+                var content = await responseMessage
+                    .AsStringAsync(ct)
+                    .ConfigureAwait(false);
+
                 throw new HttpRequestException(
                     $"HTTP request failed with status code {responseMessage.StatusCode}: {responseMessage.ReasonPhrase}. Response content: {content}");
             }

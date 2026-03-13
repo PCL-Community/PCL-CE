@@ -235,11 +235,12 @@ public sealed class LobbyController
             }
             else
             {
-                using var response = await HttpRequestCreator
-                    .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
+                using var response = await HttpRequest
+                    .CreatePost("https://pcl2ce.pysio.online/post")
                     .WithContent(httpContent)
                     .WithAuthentication(key)
-                    .SendAsync().ConfigureAwait(false);
+                    .SendAsync()
+                    .ConfigureAwait(false);
 
                 if (!response.IsSuccess)
                 {

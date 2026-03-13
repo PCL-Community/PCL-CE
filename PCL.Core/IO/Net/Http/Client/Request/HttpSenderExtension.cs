@@ -10,9 +10,10 @@ public static class HttpSenderExtension
 {
     extension (HttpRequestMessage requestMessage)
     {
-        public async Task<HttpResponseMessage> SendAsync(bool withLauncherMetadata = true, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead, int retryTimes = 3, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> SendAsync(HttpClient? httpClient = null, bool withLauncherMetadata = true, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead, int retryTimes = 3, CancellationToken cancellationToken = default)
         {
-            using var resq = requestMessage;
+            using var request = requestMessage;
+            httpClient ??= NetworkService.GetClient();
 
             if (withLauncherMetadata)
             {
@@ -23,11 +24,10 @@ public static class HttpSenderExtension
             return await NetworkService.GetRetryPolicy(retryTimes)
                 .ExecuteAsync(async token =>
                 {
-                    using var requestCopy = await resq
+                    using var requestCopy = await request
                         .CloneAsync()
                         .ConfigureAwait(false);
-                    return await NetworkService
-                        .GetClient()
+                    return await httpClient
                         .SendAsync(requestCopy, httpCompletionOption, token)
                         .ConfigureAwait(false);
                 }, cancellationToken)
