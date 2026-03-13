@@ -193,6 +193,7 @@ Public Class PageInstanceServer
                 Dim server = New NbtCompound()
                 server("name") = New NbtString("name", result.Name)
                 server("ip") = New NbtString("ip", result.Address)
+                If nbtData.Count = 0 Then nbtData.ListType = NbtTagType.Compound
                 nbtData.Add(server)
                 Dim clonedNbtData = CType(nbtData.Clone(), NbtList)
                 Await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData, serversDatPath)
