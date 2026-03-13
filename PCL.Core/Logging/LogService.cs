@@ -86,6 +86,9 @@ public class LogService : ILifecycleLogService
 
     private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
     {
+        if (ex is not null) {
+            ReportException(ex, level);
+        }
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
         if (module != null) module = $"[{module}] ";
         var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
