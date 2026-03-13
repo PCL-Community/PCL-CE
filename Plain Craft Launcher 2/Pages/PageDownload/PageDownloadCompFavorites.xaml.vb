@@ -704,3 +704,19 @@ Public Class PageDownloadCompFavorites
 #End Region
 
 End Class
+
+' Issue #2539: 收藏夹版本筛选
+Private _currentVersionFilter As String = "all"
+
+Private Sub VersionFilter_Changed(sender As MyListBox, e As EventArgs) Handles ItemAllVersions.Change, ItemVersion119.Change, ItemVersion120.Change, ItemVersion121.Change, ItemVersion122.Change, ItemVersion123.Change
+    Dim selectedTag As String = If(sender IsNot Nothing, sender.Tag?.ToString(), "all")
+    _currentVersionFilter = selectedTag
+    RefreshFavoritesList()
+End Sub
+
+Private Sub RefreshFavoritesList()
+    ' 根据 _currentVersionFilter 筛选收藏内容
+    ' TODO: 实现实际的筛选逻辑
+    PanContentList.Children.Clear()
+    ' 显示筛选后的内容
+End Sub

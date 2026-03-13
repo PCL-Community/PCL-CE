@@ -22,7 +22,21 @@
                                 </StackPanel>
                             </local:MyCard>
                         </Grid>
-                        <local:MyHint Text="部分资源在线信息获取失败，点此查看详情" Theme="Yellow" Margin="0,0,0,15" x:Name="HintGetFail" Visibility="Collapsed"/>
+                        <local:MyHint Text="部分资源在线信息获取失败，点此查看详情"
+                        <!-- Version Filter for Issue #2539 -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="版本筛选" Margin="0,0,0,5" Opacity="0.6" FontSize="12"/>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                <StackPanel Orientation="Horizontal" x:Name="PanVersionFilter">
+                                    <local:MyListItem x:Name="ItemAllVersions" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="all" Title="全部版本" MinWidth="80"/>
+                                    <local:MyListItem x:Name="ItemVersion119" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1.19" Title="1.19" MinWidth="60"/>
+                                    <local:MyListItem x:Name="ItemVersion120" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1.20" Title="1.20" MinWidth="60"/>
+                                    <local:MyListItem x:Name="ItemVersion121" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1.21" Title="1.21" MinWidth="60"/>
+                                    <local:MyListItem x:Name="ItemVersion122" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1.22" Title="1.22" MinWidth="60"/>
+                                    <local:MyListItem x:Name="ItemVersion123" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1.23" Title="1.23" MinWidth="60"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </StackPanel> Theme="Yellow" Margin="0,0,0,15" x:Name="HintGetFail" Visibility="Collapsed"/>
                         <StackPanel  x:Name="PanContentList">
                             
                         </StackPanel>
