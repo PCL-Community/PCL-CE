@@ -52,6 +52,14 @@ public sealed partial class TelemetryService
             options.AutoSessionTracking = true;
             options.Release = release;
             options.Environment = environment;
+            options.SetBeforeSend(@event =>
+            {
+                return @event.Exception switch
+                {
+                    TimeoutException => null,
+                    _ => @event
+                };
+            });
         });
         
         Context.Info("Sentry SDK 初始化完成");
