@@ -28,7 +28,7 @@ public sealed partial class TelemetryService
         {
             Context.Debug("未找到 Sentry DSN");
             return;
-        };
+        }
         
         var release = $"{Basics.VersionName} ({Basics.VersionCode})";
         
