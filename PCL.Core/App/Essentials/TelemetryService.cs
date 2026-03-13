@@ -58,7 +58,7 @@ public sealed partial class TelemetryService
     }
 
     // 错误上报
-    public static void ReportException(Exception ex, ActionLevel? level = null)
+    public static void ReportException(Exception ex, LogLevel? level = null)
     {
         if (level is not null)
         {
@@ -66,12 +66,10 @@ public sealed partial class TelemetryService
             {
                 scope.Level = level switch
                 {
-                    ActionLevel.MsgBoxFatal => SentryLevel.Fatal,
-                    ActionLevel.MsgBoxErr => SentryLevel.Error,
-                    ActionLevel.MsgBox => SentryLevel.Warning,
-                    ActionLevel.HintErr => SentryLevel.Warning,
-                    ActionLevel.Hint => SentryLevel.Warning,
-                    ActionLevel.NormalLog => SentryLevel.Info,
+                    LogLevel.Fatal => SentryLevel.Fatal,
+                    LogLevel.Error => SentryLevel.Error,
+                    LogLevel.Warning => SentryLevel.Warning,
+                    LogLevel.Info => SentryLevel.Info,
                     _ => SentryLevel.Error
                 };
             });

@@ -46,11 +46,6 @@ public class LogService : ILifecycleLogService
 
     private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
     {
-        if (ex is not null)
-        {
-            ReportException(ex, level);
-        }
-        
         // log
 #if !TRACE
         if (level != ActionLevel.TraceLog)
@@ -97,6 +92,11 @@ public class LogService : ILifecycleLogService
         _LogAction(level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
     }
 
-    public void OnLog(LifecycleLogItem item) =>
+    public void OnLog(LifecycleLogItem item)
+    {
+        if (item.Exception is not null) {
+            ReportException(item.Exception, item.Level);
+        }
         _LogAction(item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
+    }
 }
