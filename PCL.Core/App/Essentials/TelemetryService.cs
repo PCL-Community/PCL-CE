@@ -30,7 +30,7 @@ public sealed partial class TelemetryService
             return;
         }
         
-        var release = $"{Basics.VersionName} ({Basics.VersionCode})";
+        var release = $"{Basics.VersionName}";
         
         // 大概是这样用的吧？
 #if DEBUG
