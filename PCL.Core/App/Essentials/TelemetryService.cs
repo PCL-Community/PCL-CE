@@ -185,7 +185,7 @@ public sealed partial class TelemetryService
     }
     
     [LifecycleStop]
-    private static async Task _StopAsync()
+    private static void _StopAsync()
     {
         SentrySdk.Close();
     }
