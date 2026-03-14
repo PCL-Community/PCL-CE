@@ -16,7 +16,7 @@ using Sentry;
 
 namespace PCL.Core.App.Essentials;
 
-[LifecycleScope("Telemetry", "遥测")]
+[LifecycleScope("telemetry", "遥测")]
 [LifecycleService(LifecycleState.Running)]
 public sealed partial class TelemetryService
 {
