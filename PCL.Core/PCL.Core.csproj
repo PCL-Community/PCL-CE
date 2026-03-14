@@ -48,7 +48,6 @@
         <!-- UI -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-        <PackageReference Include="Sentry" Version="3.34.0" />
         <PackageReference Include="Wacton.Unicolour" Version="6.4.0" />
         <!-- 语言和系统特性 -->
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -69,9 +68,10 @@
         <PackageReference Include="Polly" Version="8.6.5" />
         <!-- 本地化 -->
         <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
-        <!-- 日志支持 -->
+        <!-- 日志与遥测 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+        <PackageReference Include="Sentry" Version="3.34.0" />
         <!-- 身份认证 -->
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
         <!-- 验证 -->
