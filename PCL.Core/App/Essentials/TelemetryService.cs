@@ -64,20 +64,19 @@ public sealed partial class TelemetryService
     // 错误上报
     public static void ReportException(Exception ex, LogLevel? level = null)
     {
+        var sentryEvent = new SentryEvent(ex);
+        
         if (level is not null)
         {
-            SentrySdk.ConfigureScope(scope =>
+            sentryEvent.Level = level switch
             {
-                scope.Level = level switch
-                {
-                    LogLevel.Fatal => SentryLevel.Fatal,
-                    LogLevel.Error => SentryLevel.Error,
-                    LogLevel.Warning => SentryLevel.Warning,
-                    LogLevel.Info => SentryLevel.Info,
-                    LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
-                    _ => SentryLevel.Error
-                };
-            });
+                LogLevel.Fatal => SentryLevel.Fatal,
+                LogLevel.Error => SentryLevel.Error,
+                LogLevel.Warning => SentryLevel.Warning,
+                LogLevel.Info => SentryLevel.Info,
+                LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
+                _ => SentryLevel.Error
+            };
         }
         
         SentrySdk.CaptureException(ex);
