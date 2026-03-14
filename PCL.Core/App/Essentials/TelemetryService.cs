@@ -97,9 +97,9 @@ public sealed partial class TelemetryService
             SentrySdk.CaptureMessage("设备环境调查");
             Context.Info("已发送设备环境调查数据");
         }
-        catch
+        catch(Exception ex)
         {
-            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
+            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本", ex);
         }
     }
 
