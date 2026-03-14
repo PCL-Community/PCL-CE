@@ -79,7 +79,7 @@ public sealed partial class TelemetryService
             };
         }
         
-        SentrySdk.CaptureException(ex);
+        SentrySdk.CaptureEvent(sentryEvent);
     }
 
     // 设备环境上报
