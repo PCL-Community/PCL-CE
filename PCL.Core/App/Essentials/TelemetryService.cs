@@ -26,7 +26,7 @@ public sealed partial class TelemetryService
         var dsn = EnvironmentInterop.GetSecret("SENTRY_DSN");
         if (dsn is null)
         {
-            Context.Debug("未找到 Sentry DSN");
+            Context.Warn("未找到 Sentry DSN");
             return;
         }
         
