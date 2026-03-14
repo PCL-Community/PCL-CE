@@ -238,7 +238,7 @@ public sealed class LobbyController
                 using var response = await HttpRequest
                     .CreatePost("https://pcl2ce.pysio.online/post")
                     .WithContent(httpContent)
-                    .WithAuthentication(key)
+                    .WithBearerToken(key)
                     .SendAsync()
                     .ConfigureAwait(false);
 

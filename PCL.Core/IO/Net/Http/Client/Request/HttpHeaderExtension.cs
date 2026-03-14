@@ -43,14 +43,6 @@ public static class HttpHeaderHandler
             return requestMessage;
         }
 
-        public HttpRequestMessage WithAuthentication(string token)
-        {
-            ArgumentException.ThrowIfNullOrEmpty(token);
-
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue(token);
-            return requestMessage;
-        }
-
         public HttpRequestMessage WithBearerToken(string token) => 
             requestMessage.WithAuthentication("Bearer", token);
     }

@@ -95,7 +95,7 @@ public sealed partial class TelemetryService
         };
         using var response = await HttpRequest
             .CreatePost("https://pcl2ce.pysio.online/post")
-            .WithAuthentication(telemetryKey)
+            .WithHeader("Authorization", telemetryKey)
             .WithJsonContent(telemetry)
             .SendAsync()
             .ConfigureAwait(false);
