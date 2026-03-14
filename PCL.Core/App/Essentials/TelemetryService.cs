@@ -32,7 +32,6 @@ public sealed partial class TelemetryService
         
         var release = $"{Basics.VersionName}";
         
-        // 大概是这样用的吧？
 #if DEBUG
         var environment = "Debug";
 #else
