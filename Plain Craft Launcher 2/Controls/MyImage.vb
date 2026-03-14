@@ -165,7 +165,7 @@ Public Class MyImage
             Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
                 Using response = Await HttpRequest.Create(Url).
                         WithHttpVersionOption(HttpVersion.Version30).
-                        SendAsync(withLauncherMetadata:=False).
+                        SendAsync(addMetedata:=False).
                         ConfigureAwait(False)
                     If response.IsSuccessStatusCode Then
                         Using nfs = Await response.AsStreamAsync()
@@ -176,7 +176,7 @@ Public Class MyImage
                         Using fallbackResponse = Await HttpRequest.
                             Create(FallbackSource).
                             WithHttpVersionOption(HttpVersion.Version30).
-                            SendAsync(withLauncherMetadata:=False).
+                            SendAsync(addMetedata:=False).
                             ConfigureAwait(False)
                             If fallbackResponse.IsSuccessStatusCode Then
                                 Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
