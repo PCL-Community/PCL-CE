@@ -53,11 +53,8 @@ public sealed partial class TelemetryService
             options.Environment = environment;
             options.SetBeforeSend(@event =>
             {
-                return @event.Exception switch
-                {
-                    TimeoutException => null,
-                    _ => @event
-                };
+                if (@event.Exception is TimeoutException) return null;
+                return @event.Level is SentryLevel.Debug ? null : @event;
             });
         });
         
