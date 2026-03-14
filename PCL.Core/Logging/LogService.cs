@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App;
-using static PCL.Core.App.Essentials.TelemetryService;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 
@@ -87,7 +87,7 @@ public class LogService : ILifecycleLogService
     private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
     {
         if (ex is not null) {
-            ReportException(ex, level);
+            TelemetryService.ReportException(ex, level);
         }
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
         if (module != null) module = $"[{module}] ";
@@ -98,7 +98,7 @@ public class LogService : ILifecycleLogService
     public void OnLog(LifecycleLogItem item)
     {
         if (item.Exception is not null) {
-            ReportException(item.Exception, item.Level);
+            TelemetryService.ReportException(item.Exception, item.Level);
         }
         _LogAction(item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
     }
