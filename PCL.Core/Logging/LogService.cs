@@ -44,8 +44,12 @@ public class LogService : ILifecycleLogService
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
+    private static void _LogAction(LogLevel reportLevel, ActionLevel level, string formatted, string plain, Exception? ex)
     {
+        if (ex is not null) {
+            TelemetryService.ReportException(ex, plain, reportLevel);
+        }
+        
         // log
 #if !TRACE
         if (level != ActionLevel.TraceLog)
@@ -86,20 +90,14 @@ public class LogService : ILifecycleLogService
 
     private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
     {
-        if (ex is not null) {
-            TelemetryService.ReportException(ex, level);
-        }
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
         if (module != null) module = $"[{module}] ";
         var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
+        _LogAction(level, level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
     }
 
     public void OnLog(LifecycleLogItem item)
     {
-        if (item.Exception is not null) {
-            TelemetryService.ReportException(item.Exception, item.Level);
-        }
-        _LogAction(item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
+        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
     }
 }

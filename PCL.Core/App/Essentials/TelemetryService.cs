@@ -62,7 +62,7 @@ public sealed partial class TelemetryService
     }
 
     // 错误上报
-    public static void ReportException(Exception ex, LogLevel? level = null)
+    public static void ReportException(Exception ex, string plain, LogLevel? level = null)
     {
         var sentryEvent = new SentryEvent(ex);
         
@@ -77,6 +77,11 @@ public sealed partial class TelemetryService
                 LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
                 _ => SentryLevel.Error
             };
+        }
+
+        if (!string.IsNullOrWhiteSpace(plain))
+        {
+            sentryEvent.Message = new SentryMessage { Formatted = plain };
         }
         
         SentrySdk.CaptureEvent(sentryEvent);
