@@ -605,10 +605,10 @@ SkipLogin:
 Retry:
         McLaunchLog("开始正版验证 Step 1/6（原始登录）")
         Dim PrepareJson As JObject
-        Dim parameters = {
-            New KeyValuePair(Of String, String)("client_id", OAuthClientId),
-            New KeyValuePair(Of String, String)("tenant", "/consumers"),
-            New KeyValuePair(Of String, String)("scope", "XboxLive.signin offline_access")
+        Dim parameters As New Dictionary(Of String, String) From {
+            {"client_id", OAuthClientId},
+            {"tenant", "/consumers"},
+            {"scope", "XboxLive.signin offline_access"}
         }
         Using response = HttpRequest.
             CreatePost("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode").
@@ -653,11 +653,11 @@ Retry:
         If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
         Dim Result As String = Nothing
         Try
-            Dim parameters = {
-                New KeyValuePair(Of String, String)("client_id", OAuthClientId),
-                New KeyValuePair(Of String, String)("refresh_token", Code),
-                New KeyValuePair(Of String, String)("grant_type", "refresh_token"),
-                New KeyValuePair(Of String, String)("scope", "XboxLive.signin offline_access")
+            Dim parameters As New Dictionary(Of String, String) From {
+                {"client_id", OAuthClientId},
+                {"refresh_token", Code},
+                {"grant_type", "refresh_token"},
+                {"scope", "XboxLive.signin offline_access"}
             }
             Using response = HttpRequest.
                 CreatePost("https://login.live.com/oauth20_token.srf").
