@@ -166,10 +166,12 @@ Public Class MyImage
                     Dim resp = Await _downloadTasks.GetOrAdd(
                     Url,
                     Function(key)
-                        Return DownloadImage(key).ContinueWith(
+                        Dim t = DownloadImage(key)
+                        t.ContinueWith(
                                 Sub()
                                     _downloadTasks.Remove(FallbackSource, Nothing)
                                 End Sub)
+                        Return t
                     End Function)
 
                     If Not String.IsNullOrEmpty(resp) Then
@@ -180,10 +182,12 @@ Public Class MyImage
                     resp = Await _downloadTasks.GetOrAdd(
                     FallbackSource,
                     Function(key)
-                        Return DownloadImage(key).ContinueWith(
-                        Sub()
-                            _downloadTasks.Remove(FallbackSource, Nothing)
-                        End Sub)
+                        Dim t = DownloadImage(key)
+                        t.ContinueWith(
+                                Sub()
+                                    _downloadTasks.Remove(FallbackSource, Nothing)
+                                End Sub)
+                        Return t
                     End Function)
 
                     If Not String.IsNullOrEmpty(resp) Then
