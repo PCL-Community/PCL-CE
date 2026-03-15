@@ -163,16 +163,28 @@ Public Class MyImage
                     '下载
                     ActualSource = LoadingSource '显示加载中图片
 
-                    Dim resp = Await _downloadTasks.GetOrAdd(Url, Function(key) DownloadImage(key))
-                    _downloadTasks.Remove(Url, Nothing)
+                    Dim resp = Await _downloadTasks.GetOrAdd(
+                    Url,
+                    Function(key)
+                        Return DownloadImage(key).ContinueWith(
+                                Sub()
+                                    _downloadTasks.Remove(FallbackSource, Nothing)
+                                End Sub)
+                    End Function)
 
                     If Not String.IsNullOrEmpty(resp) Then
                         ActualSource = resp
                         Return
                     End If
 
-                    resp = Await _downloadTasks.GetOrAdd(FallbackSource, Function(key) DownloadImage(key))
-                    _downloadTasks.Remove(FallbackSource, Nothing)
+                    resp = Await _downloadTasks.GetOrAdd(
+                    FallbackSource,
+                    Function(key)
+                        Return DownloadImage(key).ContinueWith(
+                        Sub()
+                            _downloadTasks.Remove(FallbackSource, Nothing)
+                        End Sub)
+                    End Function)
 
                     If Not String.IsNullOrEmpty(resp) Then
                         ActualSource = resp
