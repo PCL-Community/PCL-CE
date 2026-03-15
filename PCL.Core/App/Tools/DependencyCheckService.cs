@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace PCL.Core.Tools;
+namespace PCL.Core.App.Tools;
 
 [LifecycleScope("dependency-check", "依赖检查")]
 [LifecycleService(LifecycleState.Running)]
