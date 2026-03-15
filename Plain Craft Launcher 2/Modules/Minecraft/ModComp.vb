@@ -844,7 +844,9 @@ Public Module ModComp
                 .Tag = Me
             }
 
-            DirectCast(result.PathLogo, MyImage).CornerRadius = New CornerRadius(6)
+            Dim img = DirectCast(result.PathLogo, MyImage)
+            img.CornerRadius = New CornerRadius(6)
+            img.SnapsToDevicePixels = True
             Return result
         End Function
         Public Sub ApplyLogoToMyImage(img As MyImage)
