@@ -62,11 +62,11 @@ public record OpenIdOptions
         using var response = await HttpRequest
             .Create(OpenIdDiscoveryAddress)
             .WithHeaders(Headers ?? [])
-            .SendAsync(GetClient.Invoke())
+            .SendAsync(GetClient.Invoke(), cancellationToken: token)
             .ConfigureAwait(false);
 
         Meta = await response
-            .AsJsonAsync<OpenIdMetadata>()
+            .AsJsonAsync<OpenIdMetadata>(cancellationToken: token)
             .ConfigureAwait(false);
     }
     /// <summary>

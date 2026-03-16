@@ -67,7 +67,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
             .ConfigureAwait(false);
 
         return await response
-            .AsJsonAsync<YggdrasilAuthenticateResult>()
+            .AsJsonAsync<YggdrasilAuthenticateResult>(cancellationToken: token)
             .ConfigureAwait(false);
     }
     /// <summary>
@@ -129,7 +129,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         {
             ["username"] = options.Username,
             ["password"] = options.Password
-        }.ToJsonString();
+        };
         var address = $"{options.YggdrasilApiLocation}/authserver/signout";
 
         using var response = await HttpRequest
