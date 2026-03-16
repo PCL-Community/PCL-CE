@@ -19,22 +19,20 @@ public sealed partial class DependencyCheckService
         Context.Info("开始环境检查……");
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
-            await _CheckAndAsk("Microsoft.D3DMappingLayers", " OpenGL 兼容包", "9nqpsl29bfff")
+            await _CheckAndAsk("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
                 .ConfigureAwait(false);
 
-        await _CheckAndAsk("Microsoft.WebpImageExtension", " WebP 组件包", "9pg2dk419drg")
+        await _CheckAndAsk("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
             .ConfigureAwait(false);
-
-        Context.DeclareStopped();
     }
 
     private static async Task _CheckAndAsk(string packageId, string packageName, string storeId)
     {
         if (!await _CheckPakcageAsync(packageId))
         {
-            Context.Info($"检测到包 {packageId} 缺失，请求用户安装");
+            Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
-                $"当前系统缺失{packageName}，点击确定打开微软应用商店安装",
+                $"当前系统环境缺失软件运行所需依赖“{packageName}”\n\n点击确定打开微软应用商店安装",
                 buttons: ["确定", "稍后"]);
             if (selection == 1) _LaunchMsStore(storeId);
         }
