@@ -2,7 +2,7 @@ using PCL.Core.Utils.OS;
 using System;
 using System.Runtime.InteropServices;
 
-namespace PCL.Core.Tools.MemSwap;
+namespace PCL.Core.App.Tools.MemSwap;
 
 internal static class SwapWorks
 {

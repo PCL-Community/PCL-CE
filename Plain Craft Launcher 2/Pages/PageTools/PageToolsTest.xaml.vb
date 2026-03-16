@@ -6,7 +6,6 @@ Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Secret
-Imports PCL.Core.App.Essentials
 
 Public Class PageToolsTest
     Public Sub New()
@@ -265,14 +264,16 @@ Public Class PageToolsTest
             Else
                 Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
                 Try
-                    Dim callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "memory")
-                    callProcess.WaitForExit()
-                    num = CLng(callProcess.ExitCode) * 1024L
+                    Using callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "memory")
+                        callProcess.WaitForExit()
+                        num = CLng(callProcess.ExitCode) * 1024L
+                    End Using
                 Catch ex2 As Exception
                     Log(ex2, "命令行形式内存优化失败")
                     If ShowHint Then
                         Hint(String.Concat(New String() {"获取管理员权限失败，请尝试右键 PCL，选择 ", vbLQ, "以管理员身份运行", vbRQ, "！"}), HintType.Critical, True)
                     End If
+
                     Return
                 Finally
                     IsMemoryOptimizing = False
@@ -285,7 +286,7 @@ Public Class PageToolsTest
 
             Dim MemAfter As String = GetString(CLng(KernelInterop.GetAvailablePhysicalMemoryBytes()))
             Log(String.Format("[Test] 内存优化完成，可用内存改变量：{0}，大致剩余内存：{1}", GetString(num), MemAfter))
-            If num > 0L Then
+            If num > 1024L Then
                 If ShowHint Then
                     Hint(String.Format("内存优化完成，可用内存增加了 {0}，目前剩余内存 {1}！", GetString(CLng(Math.Round(CDbl(num) * 0.8))), MemAfter), HintType.Finish, True)
                     Return
@@ -304,7 +305,7 @@ Public Class PageToolsTest
 
         '提权部分
         Try
-            MemSwap.MemSwapService.AcquirePrivileges()
+            Tools.MemSwap.MemSwapService.AcquirePrivileges()
         Catch ex As System.ComponentModel.Win32Exception
             Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
         End Try
@@ -313,7 +314,7 @@ Public Class PageToolsTest
             Hint("正在进行内存优化……", ModMain.HintType.Info, True)
         End If
 
-        If Not MemSwap.MemSwapService.MemorySwap() Then
+        If Not Tools.MemSwap.MemSwapService.MemorySwap() Then
             If ShowHint Then Hint("内存优化失败")
         End If
 

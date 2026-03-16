@@ -1,19 +1,22 @@
+using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
-using PCL.Core.Tools.MemSwap;
 using PCL.Core.Utils.OS;
 using System;
 using System.Threading;
 
-namespace PCL.Core.App.Essentials.MemSwap;
+namespace PCL.Core.App.Tools.MemSwap;
 
-[LifecycleService(LifecycleState.BeforeLoading, Priority = 10)]
-[LifecycleScope("mem-swap", "内存交换", false)]
-public partial class MemSwapService
+[LifecycleService(LifecycleState.BeforeLoading, Priority = 128)]
+[LifecycleScope("mem-swap", "内存交换")]
+public sealed partial class MemSwapService
 {
-    [LifecycleCommandHandler("memory")]
+    [LifecycleStart]
     private static void _CheckRequest()
     {
+        var args = Basics.CommandLineArguments;
+        if (args is not ["memory"]) return;
+
         Context.Info("检测到内存交换请求，开始处理");
 
         if (!ProcessInterop.IsAdmin())

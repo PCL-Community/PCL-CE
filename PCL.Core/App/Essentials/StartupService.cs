@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +125,8 @@ public sealed partial class StartupService
         {
             _UnhandledCommandMap[prefix.ToString()] = c;
             if (c.Subcommand == null) break;
-            prefix.Append('.').Append(c.Subcommand.CommandText);
+            if (prefix.Length != 0) prefix.Append('.');
+            prefix.Append(c.Subcommand.CommandText);
             c = c.Subcommand;
         }
         _UnhandledCommandMap.Remove("", out c!);

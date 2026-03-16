@@ -169,6 +169,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
+        sb.AppendLine("using PCL.Core.App.Essentials;");
         sb.AppendLine($"using {LifecycleNamespace};");
         sb.AppendLine();
         sb.AppendLine("#nullable enable");
