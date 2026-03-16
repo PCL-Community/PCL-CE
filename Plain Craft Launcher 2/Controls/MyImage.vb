@@ -163,33 +163,13 @@ Public Class MyImage
                     '下载
                     ActualSource = LoadingSource '显示加载中图片
 
-                    Dim resp = Await _downloadTasks.GetOrAdd(
-                    Url,
-                    Function(key)
-                        Dim t = DownloadImage(key)
-                        t.ContinueWith(
-                                Sub()
-                                    _downloadTasks.Remove(FallbackSource, Nothing)
-                                End Sub)
-                        Return t
-                    End Function)
-
+                    Dim resp = Await DownloadImageAsync(Url)
                     If Not String.IsNullOrEmpty(resp) Then
                         ActualSource = resp
                         Return
                     End If
 
-                    resp = Await _downloadTasks.GetOrAdd(
-                    FallbackSource,
-                    Function(key)
-                        Dim t = DownloadImage(key)
-                        t.ContinueWith(
-                                Sub()
-                                    _downloadTasks.Remove(FallbackSource, Nothing)
-                                End Sub)
-                        Return t
-                    End Function)
-
+                    resp = Await DownloadImageAsync(FallbackSource)
                     If Not String.IsNullOrEmpty(resp) Then
                         ActualSource = resp
                         Return
@@ -208,12 +188,24 @@ Public Class MyImage
                 End Try
             End Function)
     End Sub
+    Public Shared Async Function DownloadImageAsync(url As String) As Task(Of String)
+        Return Await _downloadTasks.GetOrAdd(
+                    url,
+                    Function(key)
+                        Dim t = DownloadImageInternelAsync(key)
+                        t.ContinueWith(
+                                Sub()
+                                    _downloadTasks.Remove(url, Nothing)
+                                End Sub)
+                        Return t
+                    End Function)
+    End Function
     Public Shared Function GetTempPath(Url As String) As String
         Return IO.Path.Combine(PathTemp, "Cache", "Images", $"{GetStringMD5(Url)}.png")
     End Function
 
     Private Shared ReadOnly _downloadTasks As New Concurrent.ConcurrentDictionary(Of String, Task(Of String))
-    Private Shared Async Function DownloadImage(url As String) As Task(Of String)
+    Private Shared Async Function DownloadImageInternelAsync(url As String) As Task(Of String)
         Dim tempPath = GetTempPath(url)
         Dim TempDownloadingPath = tempPath & RandomUtils.NextInt(0, 1000000)
 
@@ -233,7 +225,7 @@ Public Class MyImage
                 End Using
             End Using
 
-            File.Move(TempDownloadingPath, tempPath)
+            File.Move(TempDownloadingPath, tempPath, True)
             Return tempPath
         Catch ex As Exception
             If File.Exists(tempPath) Then File.Delete(tempPath)
