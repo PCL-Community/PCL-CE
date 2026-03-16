@@ -244,7 +244,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         {
             var actionParamModel = argModel.HasCommandModelArg ? "model" : "_";
             var actionParamIsCallback = argModel.HasIsCallbackArg ? "isCallback" : "_";
-            yield return $"StartupService.TryHandleCommand({argModel.Command.ToLiteral()}, ({actionParamModel}, {actionParamIsCallback}) => {{";
+            yield return $"Essentials.StartupService.TryHandleCommand(" +
+                $"{argModel.Command.ToLiteral()}, ({actionParamModel}, {actionParamIsCallback}) => {{";
             var argTexts = new List<string>();
             if (argModel.HasCommandModelArg) argTexts.Add(actionParamModel);
             if (argModel.HasIsCallbackArg) argTexts.Add(actionParamIsCallback);
