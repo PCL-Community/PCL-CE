@@ -28,7 +28,7 @@ public sealed partial class DependencyCheckService
 
     private static async Task _CheckAndAsk(string packageId, string packageName, string storeId)
     {
-        if (!await _CheckPakcageAsync(packageId))
+        if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
@@ -50,7 +50,7 @@ public sealed partial class DependencyCheckService
         ps.Start();
     }
 
-    private static async Task<bool> _CheckPakcageAsync(string id)
+    private static async Task<bool> _CheckPackageAsync(string id)
     {
         var command = $"Get-AppxPackage -Name *{id}* | ConvertTo-Json";
 
@@ -84,7 +84,7 @@ public sealed partial class DependencyCheckService
             var hasPack = false;
             foreach (var node in jnode.AsArray())
             {
-                if (CheckPackSuit(jnode, id))
+                if (node != null && CheckPackSuit(node, id))
                 {
                     hasPack = true;
                     break;
