@@ -122,13 +122,17 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                     if (awaitable) return null;
                     var command = attr.ConstructorArguments[0].Value!.ToString();
                     var paraArray = method.Parameters;
-                    var hasCommandModelArg = paraArray.Length > 0 && paraArray[0].Type.GetSimplifiedTypeName() == "PCL.Core.App.Cli.CommandLine";
+                    var skip = 0;
+                    var hasCommandModelArg = paraArray.Length > 0
+                        && paraArray[0].Type.GetSimplifiedTypeName() == "PCL.Core.App.Cli.CommandLine";
+                    if (hasCommandModelArg) skip++;
                     var hasIsCallbackArgIndex = hasCommandModelArg ? 1 : 0;
                     var hasIsCallbackArg = paraArray.Length > hasIsCallbackArgIndex
                         && paraArray[hasIsCallbackArgIndex].Type.SpecialType == SpecialType.System_Boolean
                         && paraArray[hasIsCallbackArgIndex].Name == "isCallback";
+                    if (hasIsCallbackArg) skip++;
                     var splitArgs = (
-                        from para in hasCommandModelArg ? paraArray.Skip(1) : paraArray
+                        from para in paraArray.Skip(skip)
                         let name = para.Name
                         let typeName = para.Type.GetFullyQualifiedName()
                         let hasDefaultValue = para.HasExplicitDefaultValue
