@@ -38,6 +38,7 @@ Public Class FormMain
         '刷新主题
         'ThemeCheckAll(False)
         'ThemeRefreshColor()
+        InitializeFoolTheme()
         AddHandler ThemeService.ColorModeChanged, Sub(mode, theme) ThemeRefresh()
         AddHandler ThemeService.ColorThemeChanged, AddressOf ThemeRefresh
         '窗体参数初始化
@@ -1669,4 +1670,14 @@ Public Class FormMain
         lastMouseArg = e
     End Sub
 
+    '愚人节主题处理
+    Public Shared Function IsAprilFool() As Boolean
+        Return DateTime.Now.Month = 4 AndAlso DateTime.Now.Day = 1
+    End Function
+    Private Sub InitializeFoolTheme()
+        If Not FormMain.IsAprilFool() Then
+            Config.Preference.Theme.LightColorFoolConfig.Reset()
+            Config.Preference.Theme.DarkColorFoolConfig.Reset()
+        End If
+    End Sub
 End Class

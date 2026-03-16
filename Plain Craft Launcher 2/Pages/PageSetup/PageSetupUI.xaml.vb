@@ -6,7 +6,15 @@ Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
 
-    Public ReadOnly ThemeColors As String() = {"天空蓝", "龙猫蓝", "死机蓝"}
+    Public ReadOnly ThemeColors As String() = GetThemeColors()
+
+    Private Shared Function GetThemeColors() As String()
+        Dim colors As New List(Of String) From {"天空蓝", "龙猫蓝", "死机蓝"}
+        If FormMain.IsAprilFool Then
+            colors.Add("HMCL")
+        End If
+        Return colors.ToArray()
+    End Function
 
     Public Sub New()
         InitializeComponent()
@@ -82,14 +90,25 @@ Public Class PageSetupUI
             'If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
-            ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
-            ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
+
+            If FormMain.IsAprilFool Then
+                ComboDarkColor.Tag = "UiDarkColorFool"
+                ComboLightColor.Tag = "UiLightColorFool"
+                ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColorFool")
+                ComboLightColor.SelectedIndex = Setup.Get("UiLightColorFool")
+            Else
+                ComboDarkColor.Tag = "UiDarkColor"
+                ComboLightColor.Tag = "UiLightColor"
+                ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
+                ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
+            End If
+
             CheckShowLaunchingHint.Checked = Setup.Get("UiShowLaunchingHint")
 
             '字体设置
             ComboUiFont.SelectedFontTag = Setup.Get("UiFont")
             ComboUiMotdFont.SelectedFontTag = Setup.Get("UiMotdFont")
-            
+
             CheckBlur.Checked = Setup.Get("UiBlur")
             SliderBlurValue.Value = Setup.Get("UiBlurValue")
             SliderBlurSamplingRate.Value = Setup.Get("UiBlurSamplingRate")
@@ -134,7 +153,7 @@ Public Class PageSetupUI
             Catch
                 Setup.Reset("UiCustomPreset")
             End Try
-            CType(FindName("RadioCustomType" & Setup.Load("UiCustomType", ForceReload:=True)), MyRadioBox).Checked = True
+            CType(FindName("RadioCustomType" & Setup.Load("UiCustomType", forceReload:=True)), MyRadioBox).Checked = True
             TextCustomNet.Text = Setup.Get("UiCustomNet")
 
             '功能隐藏
@@ -238,7 +257,7 @@ Public Class PageSetupUI
             Setup.Set("UiFont", ComboUiFont.SelectedFontTag)
         End If
     End Sub
-    
+
     Private Sub ComboMotdFontChange(sender As Object, e As SelectionChangedEventArgs) Handles ComboUiMotdFont.SelectionChanged
         If AniControlEnabled = 0 Then
             Setup.Set("UiMotdFont", ComboUiMotdFont.SelectedFontTag)
@@ -289,19 +308,19 @@ Public Class PageSetupUI
             '获取可用的图片文件
             Directory.CreateDirectory(ExePath & "PCL\Pictures\")
             Dim Pic As List(Of String) = EnumerateFiles(ExePath & "PCL\Pictures\").
-                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse 
+                    Where(Function(file) Not (file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) OrElse
                                        file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).
                     Select(Function(file) file.FullName).
-                    ToList() 
+                    ToList()
             '视频加载异常处理
 
-            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) = 
+            Dim videoHandler As EventHandler(Of ExceptionRoutedEventArgs) =
                     Sub(sender, e)
                         Dim videoEx = e.ErrorException
                         Dim videoAddress As String = FrmMain.VideoBack.Source.ToString()
                         If FrmMain.VideoBack.Source IsNot Nothing Then
                             VideoStop()
-                            
+
                             If videoEx.Message.Contains("0xC00D109B") Then
                                 Log("刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。" & vbCrLf &
                                     "你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。" & vbCrLf &
@@ -342,14 +361,14 @@ Public Class PageSetupUI
                     Catch ex As Exception
                         Try
                             AddHandler FrmMain.VideoBack.MediaFailed, videoHandler
-                            Log(ex,"[UI] 加载背景图片失败" & Address)
+                            Log(ex, "[UI] 加载背景图片失败" & Address)
                             If ModeDebug Then Hint("图片加载失败，尝试将文件作为视频播放：" & Address)
                             FrmMain.ImgBack.Visibility = Visibility.Visible
                             FrmMain.VideoBack.Source = New Uri(Address, UriKind.Absolute)
                             VideoPlay()
                             If IsHint Then Hint("背景内容已刷新：" & GetFileNameFromPath(Address), HintType.Finish, False)
                         Catch playEx As Exception
-                            Log(playEx,"播放背景内容时出现未知错误：")
+                            Log(playEx, "播放背景内容时出现未知错误：")
                         End Try
                     End Try
                 End If
