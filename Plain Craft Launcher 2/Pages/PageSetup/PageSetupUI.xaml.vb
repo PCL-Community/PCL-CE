@@ -6,15 +6,9 @@ Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
 
-    Public ReadOnly ThemeColors As String() = GetThemeColors()
-
-    Private Shared Function GetThemeColors() As String()
-        Dim colors As New List(Of String) From {"天空蓝", "龙猫蓝", "死机蓝"}
-        If FormMain.IsAprilFool Then
-            colors.Add("HMCL")
-        End If
-        Return colors.ToArray()
-    End Function
+    Public ReadOnly ThemeColors As String() = If(FormMain.IsAprilFool,
+    {"天空蓝", "龙猫蓝", "死机蓝", "HMCL"},
+    {"天空蓝", "龙猫蓝", "死机蓝"})
 
     Public Sub New()
         InitializeComponent()
