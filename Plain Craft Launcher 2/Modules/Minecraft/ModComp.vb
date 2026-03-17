@@ -228,7 +228,8 @@ Public Module ModComp
                 Dim rowCount = conn.ExecuteScalar(Of Integer)("SELECT COUNT(*) FROM ModTranslation")
                 Return rowCount > 0
             End Using
-        Catch
+        Catch ex As Exception
+            Log(ex, "检查模组翻译数据库有效性失败")
             Return False
         End Try
     End Function
