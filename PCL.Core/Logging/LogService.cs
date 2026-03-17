@@ -96,8 +96,6 @@ public class LogService : ILifecycleLogService
         _LogAction(level, level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
     }
 
-    public void OnLog(LifecycleLogItem item)
-    {
+    public void OnLog(LifecycleLogItem item) =>
         _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
-    }
 }
