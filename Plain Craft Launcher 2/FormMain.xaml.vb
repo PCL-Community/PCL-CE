@@ -87,7 +87,7 @@ Public Class FormMain
             Width = MinWidth + 100
         End Try
         '管理员权限下文件拖拽
-        If ProcessInterop.IsAdmin() Then
+        If ProcessInterop.IsAdmin() Then 
             Log("[Start] PCL 当前正以管理员权限运行")
             Static helper As New DragHelper()
             AddHandler Me.SourceInitialized,
@@ -351,9 +351,9 @@ Public Class FormMain
 #End Region
 
 #Region "自定义窗口"
-
+    
     Private CanResize As Boolean = True
-
+    
     ' 重写窗口边缘判定以使 DWM 自带的 resizer 行为看起来比较正常
     Private Function _SizeWndProc(hWnd As IntPtr, msg As Integer, wParam As IntPtr, lParam As IntPtr, ByRef handled As Boolean) As IntPtr
         ' 窗口活动常量
@@ -367,20 +367,20 @@ Public Class FormMain
         Const HTBOTTOM = 15
         Const HTBOTTOMLEFT = 16
         Const HTBOTTOMRIGHT = 17
-
+        
         ' WPF 尺寸的 offset
         Const offsetWpf = 6
         Const hitWidthWpf = 5
-
+        
         ' 过滤非 WM_NCHITTEST 事件
         If msg <> WM_NCHITTEST Then Return IntPtr.Zero
-
+        
         ' 提取鼠标坐标
         ' 没妈的 VB 强转还得检查一下幻想的妈是不是还活着
         Dim mouseBytes As Byte() = BitConverter.GetBytes(lParam.ToInt64())
         Dim xMouse As Short = BitConverter.ToInt16(mouseBytes, 0)
         Dim yMouse As Short = BitConverter.ToInt16(mouseBytes, 2)
-
+        
         ' 获取窗口参数
         Dim windowRect = WindowInterop.GetWindowRectangle(hWnd)
         Dim windowBounds = windowRect.ToWindowBounds()
@@ -529,7 +529,7 @@ Public Class FormMain
     End Sub
     Private Shared IsLogShown As Boolean = False
     Public Shared Sub EndProgramForce(
-                                            Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success,
+                                            Optional ReturnCode As ProcessReturnValues = ProcessReturnValues.Success, 
                                             Optional force As Boolean = True,
                                             Optional isUpdating As Boolean = False)
         'On Error Resume Next
@@ -1586,7 +1586,7 @@ Public Class FormMain
     Private Function BtnExtraUpdateRestart_ShowCheck() As Boolean
         Return IsUpdateWaitingRestart
     End Function
-
+    
     '音乐
     Private Sub BtnExtraMusic_Click(sender As Object, e As EventArgs) Handles BtnExtraMusic.Click
         MusicControlPause()
