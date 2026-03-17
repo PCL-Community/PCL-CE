@@ -1,4 +1,5 @@
-﻿Imports System.Collections.Concurrent
+Imports System.Collections.Concurrent
+Imports System.IO.Compression
 Imports System.Net.Http
 Imports System.Text.Json
 Imports System.Text.Json.Serialization
@@ -147,49 +148,92 @@ Public Module ModComp
     End Property
 
     Private Function InitializeModDbAndGetConnectionString() As String
-        Log($"[DB] 解压 ModData (SQLite) 中")
+        Log("[DB] 解压 ModData (SQLite) 中")
+
         Using compressedDbData As Stream = GetResourceStream("Resources/mcmod.buf")
-            Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
+            Using trueDbFile As New GZipStream(compressedDbData, CompressionMode.Decompress)
                 Using ms As New MemoryStream()
+                    ' 这里提取文件资源
                     trueDbFile.CopyTo(ms)
                     ms.Seek(0, SeekOrigin.Begin)
                     Dim fileHash = GetHexString(SHA1Provider.Instance.ComputeHash(ms))
+                    Dim dbDir = IO.Path.Combine(PathTemp, "Cache")
+                    Dim dbPath = IO.Path.Combine(dbDir, $"ModData{fileHash}.sqlite")
 
-                    Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, $"Cache\ModData{fileHash}.sqlite"))
+                    ' 检查数据库是否有效
+                    If File.Exists(dbPath) AndAlso Not IsDatabaseValid(dbPath) Then
+                        File.Delete(dbPath)
+                    End If
+
                     If Not File.Exists(dbPath) Then
                         ms.Seek(0, SeekOrigin.Begin)
                         Dim entries = ProtoBuf.Serializer.Deserialize(Of List(Of CompDatabaseEntry))(ms)
-                        Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
-                        Using buildDbConnection As New SqliteConnection($"Data Source=""{dbPath}"";Pooling=False")
+
+                        Directory.CreateDirectory(dbDir)
+
+                        Dim tempPath = dbPath & ".tmp"
+                        If File.Exists(tempPath) Then File.Delete(tempPath)
+
+                        Using buildDbConnection As New SqliteConnection($"Data Source=""{tempPath}"";Pooling=False")
                             buildDbConnection.Open()
-                            buildDbConnection.Execute("
-                                CREATE TABLE ModTranslation (
-                                    WikiId INTEGER,
-                                    ChineseName TEXT,
-                                    CurseForgeSlug TEXT,
-                                    ModrinthSlug TEXT
-                                );
-                                CREATE INDEX idx_curseforge ON ModTranslation (CurseForgeSlug);
-                                CREATE INDEX idx_modrinth ON ModTranslation (ModrinthSlug);
-                                CREATE INDEX idx_chinesename ON ModTranslation (ChineseName);
-                            ")
 
-                            Using tran = buildDbConnection.BeginTransaction()
+                            ' 不用事务的话构建会非常慢
+                            Using transaction = buildDbConnection.BeginTransaction()
+                                buildDbConnection.Execute("
+                                    CREATE TABLE ModTranslation (
+                                        WikiId INTEGER,
+                                        ChineseName TEXT,
+                                        CurseForgeSlug TEXT,
+                                        ModrinthSlug TEXT
+                                    );
+                                    CREATE INDEX idx_curseforge ON ModTranslation (CurseForgeSlug);
+                                    CREATE INDEX idx_modrinth ON ModTranslation (ModrinthSlug);
+                                    CREATE INDEX idx_chinesename ON ModTranslation (ChineseName);
+                                ")
+
                                 Dim insertSql = "INSERT INTO ModTranslation (WikiId, ChineseName, CurseForgeSlug, ModrinthSlug) 
-                                VALUES (@WikiId, @ChineseName, @CurseForgeSlug, @ModrinthSlug)"
-
+                                             VALUES (@WikiId, @ChineseName, @CurseForgeSlug, @ModrinthSlug)"
                                 For Each entry In entries
-                                    buildDbConnection.Execute(insertSql, entry, tran)
+                                    buildDbConnection.Execute(insertSql, entry, transaction)
                                 Next
 
-                                tran.Commit()
+                                transaction.Commit()
                             End Using
                         End Using
+
+                        ' 构建完成的文件移入缓存位
+                        If File.Exists(dbPath) Then
+                            File.Delete(dbPath)
+                        End If
+                        File.Move(tempPath, dbPath)
                     End If
+
                     Return $"Data Source=""{dbPath}"""
                 End Using
             End Using
         End Using
+    End Function
+
+    ''' <summary>
+    ''' 验证 SQLite 数据库文件是否包含预期的表且非空
+    ''' </summary>
+    Private Function IsDatabaseValid(dbPath As String) As Boolean
+        Try
+            Using conn As New SqliteConnection($"Data Source=""{dbPath}"";Pooling=False;Mode=ReadOnly")
+                conn.Open()
+                ' 检查表是否存在
+                Dim tableCheck = conn.ExecuteScalar(Of Integer)("
+                SELECT count(*) FROM sqlite_master 
+                WHERE type='table' AND name='ModTranslation'")
+                If tableCheck = 0 Then Return False
+
+                ' 检查表中是否有数据
+                Dim rowCount = conn.ExecuteScalar(Of Integer)("SELECT COUNT(*) FROM ModTranslation")
+                Return rowCount > 0
+            End Using
+        Catch
+            Return False
+        End Try
     End Function
 
     Private ReadOnly Property CompDB As SqliteConnection
