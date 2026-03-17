@@ -202,10 +202,7 @@ Public Module ModComp
                         End Using
 
                         ' 构建完成的文件移入缓存位
-                        If File.Exists(dbPath) Then
-                            File.Delete(dbPath)
-                        End If
-                        File.Move(tempPath, dbPath)
+                        File.Move(tempPath, dbPath, True)
                     End If
 
                     Return $"Data Source=""{dbPath}"""
