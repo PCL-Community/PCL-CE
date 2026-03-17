@@ -44,10 +44,10 @@ public class LogService : ILifecycleLogService
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    private static void _LogAction(LogLevel reportLevel, ActionLevel level, string formatted, string plain, Exception? ex)
+    private static void _LogAction(LogLevel level, ActionLevel actionLevel, string formatted, string plain, Exception? ex)
     {
         if (ex is not null) {
-            TelemetryService.ReportException(ex, plain, reportLevel);
+            TelemetryService.ReportException(ex, plain, level);
         }
         
         // log
@@ -56,30 +56,30 @@ public class LogService : ILifecycleLogService
 #endif
         Logger.Log(formatted);
 
-        if (level <= ActionLevel.NormalLog) return;
+        if (actionLevel <= ActionLevel.NormalLog) return;
 
         // hint
-        if (level is ActionLevel.Hint or ActionLevel.HintErr)
+        if (actionLevel is ActionLevel.Hint or ActionLevel.HintErr)
         {
-            HintWrapper.Show(plain, (level == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
+            HintWrapper.Show(plain, (actionLevel == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
         }
 
         // message box
-        else if (level is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
+        else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
         {
             var caption = (ex == null) ? "提示" : "出现异常";
-            var theme = (level == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
+            var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
             var message = plain;
             if (ex != null)
                 message += $"\n\n详细信息:\n{ex}";
-            if (level == ActionLevel.MsgBoxErr)
+            if (actionLevel == ActionLevel.MsgBoxErr)
                 message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
                            "然后发送导出的日志压缩包，只发送这个窗口的截图通常无助于解决问题。";
             MsgBoxWrapper.Show(message, caption, theme, false);
         }
 
         // fatal message box
-        else if (level == ActionLevel.MsgBoxFatal)
+        else if (actionLevel == ActionLevel.MsgBoxFatal)
         {
             var message = plain;
             if (ex != null) message += $"\n\n相关异常信息:\n{ex}";
