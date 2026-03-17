@@ -1675,9 +1675,9 @@ Public Class FormMain
         Return DateTime.Now.Month = 4 AndAlso DateTime.Now.Day = 1
     End Function
     Private Sub InitializeFoolTheme()
-        If Not FormMain.IsAprilFool() Then
-            Config.Preference.Theme.LightColorFoolConfig.Reset()
-            Config.Preference.Theme.DarkColorFoolConfig.Reset()
+        If Not FormMain.IsAprilFool() AndAlso (Config.Preference.Theme.LightColorConfig.GetValue = 3 OrElse Config.Preference.Theme.DarkColorConfig.GetValue = 3) Then
+            Config.Preference.Theme.LightColorConfig.SetValue(1)
+            Config.Preference.Theme.DarkColorConfig.SetValue(1)
         End If
     End Sub
 End Class

@@ -90,19 +90,8 @@ Public Class PageSetupUI
             'If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
-
-            If FormMain.IsAprilFool Then
-                ComboDarkColor.Tag = "UiDarkColorFool"
-                ComboLightColor.Tag = "UiLightColorFool"
-                ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColorFool")
-                ComboLightColor.SelectedIndex = Setup.Get("UiLightColorFool")
-            Else
-                ComboDarkColor.Tag = "UiDarkColor"
-                ComboLightColor.Tag = "UiLightColor"
-                ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
-                ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
-            End If
-
+            ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
+            ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
             CheckShowLaunchingHint.Checked = Setup.Get("UiShowLaunchingHint")
 
             '字体设置

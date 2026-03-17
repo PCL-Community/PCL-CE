@@ -34,38 +34,23 @@ public sealed partial class ThemeService
 
     [RegisterConfigEvent]
     public static ConfigEventRegistry OnColorThemeConfigChanged => new(
-    scope: [
-        Config.Preference.Theme.DarkColorConfig,
-        Config.Preference.Theme.LightColorConfig,
-        Config.Preference.Theme.DarkColorFoolConfig,
-        Config.Preference.Theme.LightColorFoolConfig
-    ],
-    trigger: ConfigEvent.Update,
-    handler: e =>
-    {
-        if (e.OldValue == e.Value) return;
-
-        if (IsAprilFool())
+        scope: [Config.Preference.Theme.DarkColorConfig, Config.Preference.Theme.LightColorConfig],
+        trigger: ConfigEvent.Update,
+        handler: e =>
         {
-            if (IsDarkMode) { if (e.Item == Config.Preference.Theme.LightColorFoolConfig) return; }
-            else { if (e.Item == Config.Preference.Theme.DarkColorFoolConfig) return; }
-        }
-        else
-        {
+            if (e.OldValue == e.Value) return;
             if (IsDarkMode) { if (e.Item == Config.Preference.Theme.LightColorConfig) return; }
             else { if (e.Item == Config.Preference.Theme.DarkColorConfig) return; }
-        }
-
-        if (Lifecycle.CurrentState > LifecycleState.Loading)
-        {
-            Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(() =>
+            if (Lifecycle.CurrentState > LifecycleState.Loading)
             {
-                ApplyColorResources();
-                ColorThemeChanged?.Invoke(CurrentTheme);
-            });
+                Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(() =>
+                {
+                    ApplyColorResources();
+                    ColorThemeChanged?.Invoke(CurrentTheme);
+                });
+            }
         }
-    }
-);
+    );
 
     [LifecycleStart]
     private static void _Start()
@@ -139,15 +124,7 @@ public sealed partial class ThemeService
         get
         {
             var theme = Config.Preference.Theme;
-
-            if (IsAprilFool())
-            {
-                return IsDarkMode ? theme.DarkColorFool: theme.LightColorFool;
-            }
-            else
-            {
-                return IsDarkMode ? theme.DarkColor : theme.LightColor;
-            }
+            return IsDarkMode ? theme.DarkColor : theme.LightColor;
         }
     }
 
@@ -248,10 +225,5 @@ public sealed partial class ThemeService
     {
         var colors = _CalculateColors(CurrentTone, GetCurrentThemeArgs());
         foreach (var c in colors) c.Apply();
-    }
-
-    public static bool IsAprilFool()
-    {
-        return DateTime.Now.Month == 4 && DateTime.Now.Day == 1;
     }
 }
