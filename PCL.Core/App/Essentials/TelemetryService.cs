@@ -75,7 +75,6 @@ public sealed partial class TelemetryService
                 LogLevel.Warning => SentryLevel.Warning,
                 LogLevel.Info => SentryLevel.Info,
                 LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
-                _ => SentryLevel.Error
             };
         }
 
