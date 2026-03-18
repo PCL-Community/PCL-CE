@@ -11,12 +11,9 @@ namespace PCL.Core.App.Tools.MemSwap;
 [LifecycleScope("mem-swap", "内存交换")]
 public sealed partial class MemSwapService
 {
-    [LifecycleStart]
+    [LifecycleCommandHandler("memory")]
     private static void _CheckRequest()
     {
-        var args = Basics.CommandLineArguments;
-        if (args is not ["memory"]) return;
-
         Context.Info("检测到内存交换请求，开始处理");
 
         if (!ProcessInterop.IsAdmin())
