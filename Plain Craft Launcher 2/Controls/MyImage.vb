@@ -1,5 +1,5 @@
 Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 
@@ -212,10 +212,9 @@ Public Class MyImage
         Try
             Directory.CreateDirectory(GetPathFromFullPath(tempPath)) '重新实现下载，以避免携带 Header（#5072）
             Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                Using response = Await HttpRequestBuilder.Create(url, HttpMethod.Get).
+                Using response = Await HttpRequest.Create(url).
                         WithHttpVersionOption(HttpVersion.Version30).
-                        WithDefaultHeaderOption(False).
-                        SendAsync()
+                        SendAsync(addMetedata:=False)
                     response.EnsureSuccessStatusCode()
 
                     Using nfs = Await response.AsStreamAsync()
