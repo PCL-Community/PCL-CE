@@ -67,7 +67,11 @@ Public Class FormMain
             End If
         End If
         Setup.Load("UiLauncherTheme")
-        Setup.Load("UiLauncherFoolTheme")
+        '愚人节主题处理
+        If Not FormMain.IsAprilFool() AndAlso (Config.Preference.Theme.LightColorConfig.GetValue = 3 OrElse Config.Preference.Theme.DarkColorConfig.GetValue = 3) Then
+            Config.Preference.Theme.LightColorConfig.SetValue(1)
+            Config.Preference.Theme.DarkColorConfig.SetValue(1)
+        End If
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)

@@ -164,12 +164,6 @@ Public Class ModSetup
     Public Sub UiBackgroundColorful(Value As Boolean)
         ThemeRefresh()
     End Sub
-    Public Sub UiLauncherFoolTheme(Value As Integer)
-        If Not FormMain.IsAprilFool() AndAlso (Config.Preference.Theme.LightColorConfig.GetValue = 3 OrElse Config.Preference.Theme.DarkColorConfig.GetValue = 3) Then
-            Config.Preference.Theme.LightColorConfig.SetValue(1)
-            Config.Preference.Theme.DarkColorConfig.SetValue(1)
-        End If
-    End Sub
 
     Public Sub UiLockWindowSize(Value As Boolean)
         If Value Then

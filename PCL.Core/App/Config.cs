@@ -247,11 +247,6 @@ public static partial class Config
             [ConfigItem<ColorTheme>("UiLightColor", ColorTheme.CatBlue)] public partial ColorTheme LightColor { get; set; }
 
             /// <summary>
-            /// 愚人节主题处理。
-            /// </summary>
-            [ConfigItem<int>("UiLauncherFoolTheme", 0, ConfigSource.Local)] public partial int FoolTheme { get; set; }
-
-            /// <summary>
             /// 窗口透明度。
             /// </summary>
             [ConfigItem<int>("UiLauncherTransparent", 600, ConfigSource.Local)] public partial int WindowOpacity { get; set; }
