@@ -188,17 +188,17 @@ Public Class MyImage
                 End Try
             End Function)
     End Sub
-    Public Shared Async Function DownloadImageAsync(url As String) As Task(Of String)
-        Return Await _downloadTasks.GetOrAdd(
-                    url,
-                    Function(key)
-                        Dim t = DownloadImageInternelAsync(key)
-                        t.ContinueWith(
-                                Sub()
-                                    _downloadTasks.Remove(url, Nothing)
-                                End Sub)
-                        Return t
-                    End Function)
+    Public Shared Function DownloadImageAsync(url As String) As Task(Of String)
+        Return _downloadTasks.GetOrAdd(
+            url,
+            Function(key)
+                Dim t = DownloadImageInternelAsync(key)
+                t.ContinueWith(
+                        Sub()
+                            _downloadTasks.Remove(url, Nothing)
+                        End Sub)
+                Return t
+            End Function)
     End Function
     Public Shared Function GetTempPath(Url As String) As String
         Return IO.Path.Combine(PathTemp, "Cache", "Images", $"{GetStringMD5(Url)}.png")
