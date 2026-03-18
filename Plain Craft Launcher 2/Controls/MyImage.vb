@@ -1,5 +1,5 @@
 Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
 
@@ -163,22 +163,22 @@ Public Class MyImage
             TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 1000000)
             Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
             Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                Using response = Await HttpRequestBuilder.Create(Url, HttpMethod.Get).
+                Using response = Await HttpRequest.Create(Url).
                         WithHttpVersionOption(HttpVersion.Version30).
-                        WithDefaultHeaderOption(False).
-                        SendAsync()
-                    If response.IsSuccess Then
+                        SendAsync(addMetedata:=False).
+                        ConfigureAwait(False)
+                    If response.IsSuccessStatusCode Then
                         Using nfs = Await response.AsStreamAsync()
                             fs.SetLength(0)
                             Await nfs.CopyToAsync(fs)
                         End Using
                     ElseIf Not FallbackSource.IsNullOrWhiteSpace() Then
-                        Using fallbackResponse = Await HttpRequestBuilder.
-                            Create(FallbackSource, HttpMethod.Get).
+                        Using fallbackResponse = Await HttpRequest.
+                            Create(FallbackSource).
                             WithHttpVersionOption(HttpVersion.Version30).
-                            WithDefaultHeaderOption(False).
-                            SendAsync(True)
-                            If fallbackResponse.IsSuccess Then
+                            SendAsync(addMetedata:=False).
+                            ConfigureAwait(False)
+                            If fallbackResponse.IsSuccessStatusCode Then
                                 Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
                                     fs.SetLength(0)
                                     Await fallbackNfs.CopyToAsync(fs)

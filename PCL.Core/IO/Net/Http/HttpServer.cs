@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.IO.Net.Http.Server;
+namespace PCL.Core.IO.Net.Http;
 
 public abstract class HttpServer : IDisposable
 {
