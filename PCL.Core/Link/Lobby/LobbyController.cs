@@ -15,11 +15,11 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http.Client;
 using static PCL.Core.Link.Lobby.LobbyInfoProvider;
 using static PCL.Core.Link.Natayark.NatayarkProfileManager;
 using LobbyType = PCL.Core.Link.Scaffolding.Client.Models.LobbyType;
 using PCL.Core.Link.McPing;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL.Core.Link.Lobby;
 
@@ -235,11 +235,12 @@ public sealed class LobbyController
             }
             else
             {
-                using var response = await HttpRequestBuilder
-                    .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
+                using var response = await HttpRequest
+                    .CreatePost("https://pcl2ce.pysio.online/post")
                     .WithContent(httpContent)
-                    .WithAuthentication(key)
-                    .SendAsync().ConfigureAwait(false);
+                    .WithBearerToken(key)
+                    .SendAsync()
+                    .ConfigureAwait(false);
 
                 if (!response.IsSuccess)
                 {

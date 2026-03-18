@@ -1,6 +1,6 @@
 Imports System.IO.Compression
 Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Minecraft
 Imports PCL.Core.UI
 Imports PCL.Core.Utils
@@ -612,13 +612,19 @@ pause"
             '官方源
             Dim PageData As String
             Try
-                PageData = HttpRequestBuilder.
-                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, HttpMethod.Get).
+                Using resp = HttpRequest.
+                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile).
                     WithHeader("Accept", "text/html").
                     WithHeader("Accept-Language", "en-US,en;q=0.5").
                     WithHeader("X-Requested-With", "XMLHttpRequest").
-                    SendAsync(True).GetAwaiter().GetResult().
-                    AsStringContent()
+                    SendAsync().
+                    GetAwaiter().
+                    GetResult()
+
+                    resp.EnsureSuccessStatusCode()
+                    PageData = resp.AsString()
+                End Using
+
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))
                 Log("[Download] OptiFine " & DownloadInfo.DisplayName & " 官方下载地址：" & Sources.Last)
@@ -781,13 +787,16 @@ Retry:
             '官方源
             Dim PageData As String
             Try
-                PageData = HttpRequestBuilder.
-                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile, HttpMethod.Get).
+                Using resp = HttpRequest.
+                    Create("https://optifine.net/adloadx?f=" & DownloadInfo.NameFile).
                     WithHeader("Accept", "text/html").
                     WithHeader("Accept-Language", "en-US,en;q=0.5").
                     WithHeader("X-Requested-With", "XMLHttpRequest").
-                    SendAsync(True).GetAwaiter().GetResult().
-                    AsStringContent()
+                    SendAsync().GetAwaiter().GetResult()
+
+                    resp.EnsureSuccessStatusCode()
+                    PageData = resp.AsString()
+                End Using
                 Task.Progress = 0.8
                 Sources.Add("https://optifine.net/" & RegexSearch(PageData, "downloadx\?f=[^""']+")(0))
                 Log("[Download] OptiFine " & DownloadInfo.DisplayName & " 官方下载地址：" & Sources.Last)

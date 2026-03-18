@@ -1,7 +1,7 @@
 
 Imports System.Net.Http
 Imports PCL.Core.App
-Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Utils
 
 Public Module ModDownload
@@ -458,15 +458,20 @@ Public Module ModDownload
     ''' </summary>
     Public DlOptiFineListOfficialLoader As New LoaderTask(Of Integer, DlOptiFineListResult)("DlOptiFineList Official", AddressOf DlOptiFineListOfficialMain)
     Private Sub DlOptiFineListOfficialMain(Loader As LoaderTask(Of Integer, DlOptiFineListResult))
-        Dim Result As String = HttpRequestBuilder.
-            Create("https://optifine.net/downloads", HttpMethod.Get).
+        Dim Result As String = ""
+        Using resp = HttpRequest.
+            Create("https://optifine.net/downloads").
             WithHeader("Accept", "application/json, text/javascript, */*; q=0.01").
             WithHeader("Accept-Language", "en-US,en;q=0.5").
             WithHeader("X-Requested-With", "XMLHttpRequest").
-            SendAsync(True).
+            SendAsync().
             GetAwaiter().
-            GetResult().
-            AsStringContent()
+            GetResult()
+            resp.EnsureSuccessStatusCode()
+
+            Result = resp.AsString()
+        End Using
+
         If Result.Length < 200 Then Throw New Exception("获取到的版本列表长度不足（" & Result & "）")
         Try
             '获取所有版本信息
@@ -600,7 +605,7 @@ Public Module ModDownload
 
     Public MustInherit Class DlForgelikeEntry
         Implements IComparable(Of DlForgelikeEntry)
-        
+
         ''' <summary>
         ''' Forgelike 种类。Forge、NeoForge、Cleanroom。
         ''' </summary>
@@ -664,7 +669,7 @@ Public Module ModDownload
         ''' 对应的 Minecraft 版本，如“1.12.2”。
         ''' </summary>
         Public Inherit As String
-        
+
         Public Function CompareTo(other As DlForgelikeEntry) As Integer Implements IComparable(Of DlForgelikeEntry).CompareTo
             If Version <> other.Version Then
                 Return Version.CompareTo(other.Version)
@@ -747,7 +752,7 @@ Public Module ModDownload
         Catch ex As HttpRequestFailedException
             If ex.StatusCode = HttpStatusCode.NotFound Then
                 Throw New Exception("无可用版本")
-            Else 
+            Else
                 Throw
             End If
         Catch ex As Exception
@@ -939,20 +944,20 @@ Public Module ModDownload
     Private Sub DlNeoForgeListMain(loader As LoaderTask(Of Integer, DlNeoForgeListResult))
         Select Case Setup.Get("ToolDownloadVersion")
             Case 0
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListBmclapiLoader, 30),
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListOfficialLoader, 30 + 60)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
             Case 1
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListOfficialLoader, 5),
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListBmclapiLoader, 5 + 30)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
             Case Else
-                DlSourceLoader(Loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
+                DlSourceLoader(loader, New List(Of KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)) From {
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListOfficialLoader, 60),
                     New KeyValuePair(Of LoaderTask(Of Integer, DlNeoForgeListResult), Integer)(DlNeoForgeListBmclapiLoader, 60 + 60)
-                }, Loader.IsForceRestarting)
+                }, loader.IsForceRestarting)
         End Select
     End Sub
 
@@ -1438,17 +1443,29 @@ Public Module ModDownload
     Public DlLabyModListOfficialLoader As New LoaderTask(Of Integer, DlLabyModListResult)("DlLabyModList Official", AddressOf DlLabyModListOfficialMain)
     Private Sub DlLabyModListOfficialMain(Loader As LoaderTask(Of Integer, DlLabyModListResult))
         Dim ResultProduction As JObject
-        Using productionResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", HttpMethod.Get).
+        Using productionResponse = HttpRequest.
+            Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json").
             WithHttpVersionOption(HttpVersion.Version20).
-            SendAsync(True).GetAwaiter().GetResult()
-            ResultProduction = GetJson(productionResponse.AsStringContent())
+            SendAsync().
+            GetAwaiter().
+            GetResult().
+            EnsureSuccessStatusCode()
+
+            ResultProduction = GetJson(productionResponse.AsString())
         End Using
+
         Dim ResultSnapshot As JObject
-        Using snapshotResponse = HttpRequestBuilder.Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json", HttpMethod.Get).
+        Using snapshotResponse = HttpRequest.
+            Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json").
             WithHttpVersionOption(HttpVersion.Version20).
-            SendAsync(True).GetAwaiter().GetResult()
-            ResultSnapshot = GetJson(snapshotResponse.AsStringContent())
+            SendAsync().
+            GetAwaiter().
+            GetResult()
+
+            snapshotResponse.EnsureSuccessStatusCode()
+            ResultSnapshot = GetJson(snapshotResponse.AsString())
         End Using
+
         Dim Result As New JObject
         Result.Add("production", ResultProduction)
         Result.Add("snapshot", ResultSnapshot)

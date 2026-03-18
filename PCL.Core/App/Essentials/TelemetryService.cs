@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -10,7 +10,7 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 
@@ -93,10 +93,12 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequestBuilder
-            .Create("https://pcl2ce.pysio.online/post", HttpMethod.Post)
-            .WithAuthentication(telemetryKey).WithJsonContent(telemetry)
-            .SendAsync().ConfigureAwait(false);
+        using var response = await HttpRequest
+            .CreatePost("https://pcl2ce.pysio.online/post")
+            .WithHeader("Authorization", telemetryKey)
+            .WithJsonContent(telemetry)
+            .SendAsync()
+            .ConfigureAwait(false);
         if (response.IsSuccess)
             Context.Info("已发送设备环境调查数据");
         else

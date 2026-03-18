@@ -1,8 +1,6 @@
-﻿using System;
+using PCL.Core.IO.Net.Http.Client.Request;
+using System;
 using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,18 +30,17 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
             Password = options.Password,
         };
         var address = $"{options.YggdrasilApiLocation}/authserver/authenticate";
-        using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-        
-        using var content = 
-            new StringContent(JsonSerializer.Serialize(credential), Encoding.UTF8, "application/json");
-        request.Content = content;
-        using var response = await options.GetClient.Invoke().SendAsync(request,token);
-        return 
-            JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(await response.Content.ReadAsStringAsync(token));
-        
+
+        using var response = await HttpRequest
+            .CreatePost(address)
+            .WithHeaders(options.Headers ?? [])
+            .WithJsonContent(credential)
+            .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return await response
+            .AsJsonAsync<YggdrasilAuthenticateResult>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 异步向服务器发送一次刷新请求
@@ -61,16 +58,17 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         if (seleectedProfile is not null) refreshData.SelectedProfile = seleectedProfile;
         
         var address = $"{options.YggdrasilApiLocation}/authserver/refresh";
-        
-        using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-        using var content = new StringContent(
-            JsonSerializer.Serialize(refreshData), Encoding.UTF8, "application/json");
-        request.Content = content;
-        using var response = await options.GetClient.Invoke().SendAsync(request, token);
-        return JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(await response.Content.ReadAsStringAsync(token));
+
+        using var response = await HttpRequest
+            .CreatePost(address)
+            .WithJsonContent(refreshData)
+            .WithHeaders(options.Headers ?? [])
+            .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return await response
+            .AsJsonAsync<YggdrasilAuthenticateResult>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 异步向服务器发送一次验证请求
@@ -86,16 +84,14 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
             AccessToken = options.AccessToken
         };
         var address = $"{options.YggdrasilApiLocation}/authserver/invalidate";
-        
-        using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-        
-        using var content = new StringContent(
-            JsonSerializer.Serialize(validateData), Encoding.UTF8, "application/json");
-        request.Content = content;
-        using var response = await options.GetClient.Invoke().SendAsync(request, token);
+
+        using var response = await HttpRequest
+            .CreatePost(address)
+            .WithHeaders(options.Headers ?? [])
+            .WithJsonContent(validateData)
+            .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
+
         return response.StatusCode == HttpStatusCode.NoContent;
     }
     
@@ -112,16 +108,13 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
             AccessToken = options.AccessToken
         };
         var address = $"{options.YggdrasilApiLocation}/authserver/invalidate";
-        
-        using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-        
-        using var content = new StringContent(
-            JsonSerializer.Serialize(validateData), Encoding.UTF8, "application/json");
-        request.Content = content;
-        await options.GetClient.Invoke().SendAsync(request, token);
+
+        using var _ = await HttpRequest
+            .CreatePost(address)
+            .WithHeaders(options.Headers ?? [])
+            .WithJsonContent(validateData)
+            .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 异步向服务器发送登出请求 <br/>
@@ -136,17 +129,17 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         {
             ["username"] = options.Username,
             ["password"] = options.Password
-        }.ToJsonString();
+        };
         var address = $"{options.YggdrasilApiLocation}/authserver/signout";
-        
-        using var request = new HttpRequestMessage(HttpMethod.Post, address);
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-        using var content = new StringContent(signoutData, Encoding.UTF8, "application/json");
-        request.Content = content;
-        using var response = await options.GetClient.Invoke().SendAsync(request, token);
-        var data = JsonNode.Parse(await response.Content.ReadAsStringAsync(token));
+
+        using var response = await HttpRequest
+            .CreatePost(address)
+            .WithHeaders(options.Headers ?? [])
+            .WithJsonContent(signoutData)
+            .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
+
+        var data = JsonNode.Parse(await response.AsStringAsync(token));
         return (response.StatusCode == HttpStatusCode.NoContent, data?["errorMessage"]?.ToString()!);
     }
 }

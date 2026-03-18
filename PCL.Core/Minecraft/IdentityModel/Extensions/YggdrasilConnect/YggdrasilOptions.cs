@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils.Exts;
@@ -23,16 +22,14 @@ public record YggdrasilOptions:OpenIdOptions
     /// <exception cref="InvalidOperationException"></exception>
     public override async Task InitializeAsync(CancellationToken token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, OpenIdDiscoveryAddress);
-        if (Headers is not null)
-            foreach (var kvp in Headers)
-            {
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-            }
+        using var response = await HttpRequest
+            .Create(OpenIdDiscoveryAddress)
+            .WithHeaders(Headers ?? [])
+            .SendAsync(GetClient.Invoke())
+            .ConfigureAwait(false);
 
-        using var response = await GetClient.Invoke().SendAsync(request, token);
-        Meta = JsonSerializer.Deserialize<YggdrasilConnectMetaData>(await response.Content.ReadAsStringAsync(token));
-        if (Meta is null) throw new InvalidOperationException();
+        Meta = (await response.AsJsonAsync<YggdrasilConnectMetaData>().ConfigureAwait(false))
+            ?? throw new InvalidOperationException();
         if (_scopesRequired.Except(Meta.ScopesSupported).Any()) throw new InvalidOperationException();
     }
     /// <summary>

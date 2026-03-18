@@ -11,13 +11,14 @@ namespace PCL.Core.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public class LifecycleScopeGenerator : IIncrementalGenerator
 {
-    private const string LifecycleNamespace = "PCL.Core.App.IoC";
-    private const string ScopeAttributeType = $"{LifecycleNamespace}.LifecycleScopeAttribute";
+    private const string AppNamespace = "PCL.Core.App";
+    private const string IocNamespace = $"{AppNamespace}.IoC";
+    private const string ScopeAttributeType = $"{IocNamespace}.LifecycleScopeAttribute";
 
-    private const string StartMethodAttributeType = $"{LifecycleNamespace}.LifecycleStartAttribute";
-    private const string StopMethodAttributeType = $"{LifecycleNamespace}.LifecycleStopAttribute";
-    private const string CommandHandlerMethodAttributeType = $"{LifecycleNamespace}.LifecycleCommandHandlerAttribute";
-    private const string DependencyInjectionMethodAttributeType = $"{LifecycleNamespace}.LifecycleDependencyInjectionAttribute";
+    private const string StartMethodAttributeType = $"{IocNamespace}.LifecycleStartAttribute";
+    private const string StopMethodAttributeType = $"{IocNamespace}.LifecycleStopAttribute";
+    private const string CommandHandlerMethodAttributeType = $"{IocNamespace}.LifecycleCommandHandlerAttribute";
+    private const string DependencyInjectionMethodAttributeType = $"{IocNamespace}.LifecycleDependencyInjectionAttribute";
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
@@ -37,6 +38,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
     private record CommandHandlerMethodModel(
         string Command,
         bool HasCommandModelArg,
+        bool HasIsCallbackArg,
         (string Name, string TypeName, bool hasDefaultValue, object? DefaultValue)[] SplitArgs
     ) : ScopeMethodModel;
 
@@ -120,15 +122,23 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                     if (awaitable) return null;
                     var command = attr.ConstructorArguments[0].Value!.ToString();
                     var paraArray = method.Parameters;
-                    var hasCommandModelArg = paraArray.Length > 0 && paraArray[0].Type.GetSimplifiedTypeName() == "PCL.Core.App.Cli.CommandLine";
+                    var skip = 0;
+                    var hasCommandModelArg = paraArray.Length > 0
+                        && paraArray[0].Type.GetSimplifiedTypeName() == "PCL.Core.App.Cli.CommandLine";
+                    if (hasCommandModelArg) skip++;
+                    var hasIsCallbackArgIndex = hasCommandModelArg ? 1 : 0;
+                    var hasIsCallbackArg = paraArray.Length > hasIsCallbackArgIndex
+                        && paraArray[hasIsCallbackArgIndex].Type.SpecialType == SpecialType.System_Boolean
+                        && paraArray[hasIsCallbackArgIndex].Name == "isCallback";
+                    if (hasIsCallbackArg) skip++;
                     var splitArgs = (
-                        from para in hasCommandModelArg ? paraArray.Skip(1) : paraArray
+                        from para in paraArray.Skip(skip)
                         let name = para.Name
                         let typeName = para.Type.GetFullyQualifiedName()
                         let hasDefaultValue = para.HasExplicitDefaultValue
                         select (name, typeName, hasDefaultValue, hasDefaultValue ? para.ExplicitDefaultValue : null)
                     ).ToArray();
-                    return new CommandHandlerMethodModel(command, hasCommandModelArg, splitArgs)
+                    return new CommandHandlerMethodModel(command, hasCommandModelArg, hasIsCallbackArg, splitArgs)
                     {
                         MethodName = methodName,
                         Awaitable = false
@@ -169,7 +179,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine($"using {LifecycleNamespace};");
+        sb.AppendLine($"using {AppNamespace};");
+        sb.AppendLine($"using {IocNamespace};");
         sb.AppendLine();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();
@@ -231,9 +242,13 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         }
         else if (model is CommandHandlerMethodModel argModel)
         {
-            yield return $"StartupService.TryHandleCommand({argModel.Command.ToLiteral()}, (model, _) => {{";
+            var actionParamModel = argModel.HasCommandModelArg ? "model" : "_";
+            var actionParamIsCallback = argModel.HasIsCallbackArg ? "isCallback" : "_";
+            yield return $"Essentials.StartupService.TryHandleCommand(" +
+                $"{argModel.Command.ToLiteral()}, ({actionParamModel}, {actionParamIsCallback}) => {{";
             var argTexts = new List<string>();
-            if (argModel.HasCommandModelArg) argTexts.Add("model");
+            if (argModel.HasCommandModelArg) argTexts.Add(actionParamModel);
+            if (argModel.HasIsCallbackArg) argTexts.Add(actionParamIsCallback);
             foreach (var (name, typeName, hasDefaultValue, defaultValue) in argModel.SplitArgs)
             {
                 var existsText = "exists_" + name;
@@ -254,7 +269,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
             if (awaitable) yield return $"{indentStr}Func<{diModel.ParameterType}, Task>";
             else yield return $"{indentStr}Action<{diModel.ParameterType}>";
             yield return $"{indentStr}    action = {diModel.MethodName};";
-            yield return $"{indentStr}var result = IoC.DependencyGroups.InvokeInjection(action, " +
+            yield return $"{indentStr}var result = DependencyGroups.InvokeInjection(action, " +
                          $"{diModel.Identifier.ToLiteral()}, " +
                          $"(AttributeTargets){diModel.Targets});";
             var logStr = diModel.Identifier + "@" + diModel.Targets;
