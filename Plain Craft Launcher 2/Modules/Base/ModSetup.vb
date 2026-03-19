@@ -354,6 +354,7 @@ Public Class ModSetup
                 FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Collapsed
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible
@@ -366,6 +367,7 @@ Public Class ModSetup
                 FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -378,6 +380,7 @@ Public Class ModSetup
                 FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Visible
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -391,6 +394,7 @@ Public Class ModSetup
                 FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -407,12 +411,9 @@ Public Class ModSetup
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.BtnTitleHelp.Visibility = Visibility.Visible
-                FrmMain.ImageTitleLogo.Width = 24.5
-                FrmMain.ImageTitleLogo.Height = 24.5
-                FrmMain.ImageTitleLogo.Margin = New Thickness(10, 0, 0, 0)
-                FrmMain.ImageTitleLogo.Source = PathImage & "Icons/HMCL.png"
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
                     FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
