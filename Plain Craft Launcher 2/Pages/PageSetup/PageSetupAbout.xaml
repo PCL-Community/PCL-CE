@@ -84,7 +84,7 @@
                         Grid.Row="0"
                         Grid.Column="2"
                         Height="35"
-                        local:CustomEventService.EventData="https://afdian.com/a/LTCat"
+                        local:CustomEventService.EventData="https://ifdian.net/a/LTCat"
                         local:CustomEventService.EventType="打开网页"
                         Text="赞助原作者" />
                     <local:MyButton
