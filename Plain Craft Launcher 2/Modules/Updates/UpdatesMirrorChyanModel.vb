@@ -1,5 +1,5 @@
-﻿Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports System.Net.Http
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Utils
 
 Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式
@@ -13,8 +13,12 @@ Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式
         Return Not String.IsNullOrWhiteSpace(Setup.Get("SystemMirrorChyanKey"))
     End Function
     Public Function GetLatestVersion(channel As UpdateChannel, arch As UpdateArch) As VersionDataModel Implements IUpdateSource.GetLatestVersion
-        Dim response = HttpRequestBuilder.Create(GetUrl(channel, arch), HttpMethod.Get).SendAsync().GetAwaiter().GetResult()
-        Dim ret As JObject = GetJson(response.AsStringContent())
+        Using response = HttpRequest.Create(GetUrl(channel, arch)).
+            SendAsync().
+            GetAwaiter().
+            GetResult()
+            Dim ret As JObject = GetJson(response.AsString())
+
             If CType(ret("code"), Integer) <> 0 Then Throw New Exception("Mirror 酱获取数据不成功")
             Dim data = ret("data")
             Dim upd_url = data("url")?.ToString()
@@ -25,7 +29,7 @@ Public Class UpdatesMirrorChyanModel 'Mirror 酱的更新格式
                 .VersionName = data("version_name"),
                 .SHA256 = data("sha256"),
                 .Changelog = data("release_note")}
-            
+        End Using
     End Function
 
     Public Function RefreshCache() As Boolean Implements IUpdateSource.RefreshCache

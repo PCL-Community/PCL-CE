@@ -845,22 +845,22 @@ Public Module ModComp
                 NewItem.Tags = Tags
                 NewItem.Description = Description.Replace(vbCr, "").Replace(vbLf, "")
                 '下边栏
-                If Not ShowMcVersionDesc AndAlso Not ShowLoaderDesc Then
+                If Not showMcVersionDesc AndAlso Not showLoaderDesc Then
                     '全部隐藏
                     CType(NewItem.PathVersion.Parent, Grid).Children.Remove(NewItem.PathVersion)
                     CType(NewItem.LabVersion.Parent, Grid).Children.Remove(NewItem.LabVersion)
                     NewItem.ColumnVersion1.Width = New GridLength(0)
                     NewItem.ColumnVersion2.MaxWidth = 0
                     NewItem.ColumnVersion3.Width = New GridLength(0)
-                ElseIf ShowMcVersionDesc AndAlso ShowLoaderDesc Then
+                ElseIf showMcVersionDesc AndAlso showLoaderDesc Then
                     '全部显示
-                    NewItem.LabVersion.Text = If(ModLoaderDescriptionPart = "", "", ModLoaderDescriptionPart & " ") & GameVersionDescription
-                ElseIf ShowMcVersionDesc Then
+                    NewItem.LabVersion.Text = If(modLoaderDescriptionPart = "", "", modLoaderDescriptionPart & " ") & gameVersionDescription
+                ElseIf showMcVersionDesc Then
                     '仅显示版本
-                    NewItem.LabVersion.Text = GameVersionDescription
+                    NewItem.LabVersion.Text = gameVersionDescription
                 Else
                     '仅显示 Mod 加载器
-                    NewItem.LabVersion.Text = ModLoaderDescriptionFull
+                    NewItem.LabVersion.Text = modLoaderDescriptionFull
                 End If
                 NewItem.LabSource.Text = If(FromCurseForge, "CurseForge", "Modrinth")
                 If LastUpdate IsNot Nothing Then
@@ -878,12 +878,17 @@ Public Module ModComp
             End Function) With {.Height = 64}
         End Function
         Public Function ToListItem() As MyListItem
-            Dim result As New MyListItem()
-            result.Title = TranslatedName
-            result.Info = Description.Replace(vbCr, "").Replace(vbLf, "")
-            result.Logo = LogoUrl
-            result.Tags = Tags
-            result.Tag = Me
+            Dim result As New MyListItem With {
+                .Title = TranslatedName,
+                .Info = Description.Replace(vbCr, "").Replace(vbLf, ""),
+                .Logo = LogoUrl,
+                .Tags = Tags,
+                .Tag = Me
+            }
+
+            Dim img = DirectCast(result.PathLogo, MyImage)
+            img.CornerRadius = New CornerRadius(6)
+            img.SnapsToDevicePixels = True
             Return result
         End Function
         Public Sub ApplyLogoToMyImage(img As MyImage)
@@ -2108,8 +2113,8 @@ Retry:
                 Body.Items.Add(Item)
             Next
             AddHandler Body.Closed, Sub()
-                                      ClosedCallBack?.Invoke()
-                                  End Sub
+                                        ClosedCallBack?.Invoke()
+                                    End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True
@@ -2139,8 +2144,8 @@ Retry:
                 Body.Items.Add(Item)
             Next
             AddHandler Body.Closed, Sub()
-                                      ClosedCallBack?.Invoke()
-                                  End Sub
+                                        ClosedCallBack?.Invoke()
+                                    End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True
@@ -2352,8 +2357,8 @@ Retry:
         Public Shared Sub GetClipboardResource()
             Dim Text As String = Nothing
             RunInUiWait(Sub()
-                Text = Clipboard.GetText()
-            End Sub)
+                            Text = Clipboard.GetText()
+                        End Sub)
             If Text = CurrentText Then Exit Sub
             CurrentText = Text
 
@@ -2416,18 +2421,18 @@ Retry:
                         Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
 
                         Application.Current.Dispatcher.BeginInvoke(Async Function() As Task
-                            If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
-                                Hint("正在获取资源信息，请稍等...")
-                                Dim Ids As New List(Of String)({ProjectId})
-                                Dim CompProjects = Await CompRequest.GetCompProjectsByIdsAsync(Ids)
-                                If CompProjects.Count = 0 Then
-                                    Hint("剪贴板中的资源内容无效", HintType.Critical)
-                                    Return
-                                End If
-                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
-                                .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
-                            End If
-                        End Function)
+                                                                       If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
+                                                                           Hint("正在获取资源信息，请稍等...")
+                                                                           Dim Ids As New List(Of String)({ProjectId})
+                                                                           Dim CompProjects = Await CompRequest.GetCompProjectsByIdsAsync(Ids)
+                                                                           If CompProjects.Count = 0 Then
+                                                                               Hint("剪贴板中的资源内容无效", HintType.Critical)
+                                                                               Return
+                                                                           End If
+                                                                           FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
+                                                                           .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
+                                                                       End If
+                                                                   End Function)
                     Catch ex As Exception
                         Log("[Clipboard] 处理剪贴板资源时发生错误: " + ex.ToString(), LogLevel.Normal)
                     End Try

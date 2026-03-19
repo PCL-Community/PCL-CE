@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 
@@ -59,17 +59,15 @@ public record OpenIdOptions
     /// <param name="token"></param>
     public virtual async Task InitializeAsync(CancellationToken token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, OpenIdDiscoveryAddress);
-        if (Headers is not null)
-            foreach (var kvp in Headers)
-            {
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-            }
+        using var response = await HttpRequest
+            .Create(OpenIdDiscoveryAddress)
+            .WithHeaders(Headers ?? [])
+            .SendAsync(GetClient.Invoke(), cancellationToken: token)
+            .ConfigureAwait(false);
 
-        var requestTask = GetClient.Invoke().SendAsync(request, token);
-        using var response = await requestTask;
-        var task =  response.Content.ReadAsStringAsync(token);
-        Meta = JsonSerializer.Deserialize<OpenIdMetadata>(await task);
+        Meta = await response
+            .AsJsonAsync<OpenIdMetadata>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 获取 Json Web Key
@@ -82,14 +80,14 @@ public record OpenIdOptions
     public async Task<JsonWebKey> GetSignatureKeyAsync(string kid,CancellationToken token)
     {
         if (Meta?.JwksUri is null) throw new InvalidOperationException();
-        using var request = new HttpRequestMessage(HttpMethod.Get, Meta.JwksUri);
-        if (Headers is not null)
-            foreach (var kvp in Headers)
-            {
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-            }
-        using var response = await GetClient.Invoke().SendAsync(request, token);
-        var result = JsonSerializer.Deserialize<JsonWebKeys>(await response.Content.ReadAsStringAsync(token));
+        using var response = await HttpRequest.Create(Meta.JwksUri)
+            .WithHeaders(Headers ?? [])
+            .SendAsync(GetClient.Invoke())
+            .ConfigureAwait(false);
+
+        var result = await response
+            .AsJsonAsync<JsonWebKeys>(cancellationToken: token)
+            .ConfigureAwait(false);
         return result?.Keys.Single(k => k.Kid == kid) 
                ?? throw new FormatException();
     }

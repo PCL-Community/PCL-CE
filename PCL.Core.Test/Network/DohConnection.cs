@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -18,8 +18,10 @@ public class DohConnection
                 ConnectCallback = HostConnectionHandler.Instance.GetConnectionAsync
             }
         );
-        var request = new HttpRequestMessage(HttpMethod.Get, "https://www.cloudflare.com/cdn-cgi/trace");
-        request.Version = HttpVersion.Version30;
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://www.cloudflare.com/cdn-cgi/trace")
+        {
+            Version = HttpVersion.Version30
+        };
         using var response = await client.SendAsync(request, TestContext.CancellationTokenSource.Token);
         Assert.IsTrue(response.IsSuccessStatusCode);
         Assert.IsTrue(response.Content.Headers.ContentLength > 0);

@@ -1,5 +1,5 @@
 Imports System.Threading.Tasks
-Imports PCL.Core.IO.Net.Http.Server
+Imports PCL.Core.IO.Net.Http
 Imports PCL.Core.Link.Natayark
 
 Public Module ModWebServer

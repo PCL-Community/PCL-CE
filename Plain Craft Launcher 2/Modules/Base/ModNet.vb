@@ -1006,7 +1006,6 @@ StartThread:
             Try
                 Dim httpDataCount As Integer = 0
                 If SourcesOnce.Contains(th.Source) AndAlso Not th.Equals(th.Source.SingleThread) Then GoTo SourceBreak
-                ' 使用 HttpClient 替代 HttpWebRequest
                 Dim request As New HttpRequestMessage(HttpMethod.Get, th.Source.Url)
                 SecretHeadersSign(th.Source.Url, request, UseBrowserUserAgent, Me.CustomUserAgent)
                 If Not th.IsFirstThread OrElse th.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(th.DownloadStart, Nothing)
