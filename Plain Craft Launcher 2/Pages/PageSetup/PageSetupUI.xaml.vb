@@ -6,18 +6,11 @@ Public Class PageSetupUI
 
     Public Shadows IsLoaded As Boolean = False
 
-    Public ReadOnly ThemeColors As String() = If(FormMain.IsAprilFool,
-    {"天空蓝", "龙猫蓝", "死机蓝", "HMCL"},
-    {"天空蓝", "龙猫蓝", "死机蓝"})
+    Public ReadOnly Property ThemeColors As String() =
+        If(Basics.IsAprilFool, {"天空蓝", "龙猫蓝", "死机蓝", "HMCL"}, {"天空蓝", "龙猫蓝", "死机蓝"})
 
     Public Sub New()
         InitializeComponent()
-        '还是石山控件，不支持 ItemsSource Binding，虽然龙猫确实就没考虑 MVVM
-        '或者说，支持了一半（内容用了原生的 ComboBoxItem 而不是自定义的 MyComboBoxItem）
-        For Each color In ThemeColors
-            ComboLightColor.Items.Add(New MyComboBoxItem With {.Content = color})
-            ComboDarkColor.Items.Add(New MyComboBoxItem With {.Content = color})
-        Next
     End Sub
 
     Private Sub PageSetupUI_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -84,6 +77,11 @@ Public Class PageSetupUI
             'If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = Setup.Get("UiLauncherLogo")
             ComboDarkMode.SelectedIndex = Setup.Get("UiDarkMode")
+            If Not Basics.IsAprilFool Then
+                'fix ui state error
+                If Setup.Get("UiDarkColor") = ColorTheme.HmclBlue Then Setup.Set("UiDarkColor", ColorTheme.CatBlue)
+                If Setup.Get("UiLightColor") = ColorTheme.HmclBlue Then Setup.Set("UiLightColor", ColorTheme.CatBlue)
+            End If
             ComboDarkColor.SelectedIndex = Setup.Get("UiDarkColor")
             ComboLightColor.SelectedIndex = Setup.Get("UiLightColor")
             CheckShowLaunchingHint.Checked = Setup.Get("UiShowLaunchingHint")
@@ -118,8 +116,6 @@ Public Class PageSetupUI
             CheckLogoLeft.Visibility = If(RadioLogoType0.Checked, Visibility.Visible, Visibility.Collapsed)
             PanLogoText.Visibility = If(RadioLogoType2.Checked, Visibility.Visible, Visibility.Collapsed)
             PanLogoChange.Visibility = If(RadioLogoType3.Checked, Visibility.Visible, Visibility.Collapsed)
-            RadioLogoType4.Visibility = If (FormMain.IsAprilFool, Visibility.Visible, Visibility.Collapsed)
-            ColLogoType4.Width = If(FormMain.IsAprilFool(), New GridLength(1, GridUnitType.Star), New GridLength(0))
             TextLogoText.Text = Setup.Get("UiLogoText")
             CheckLogoLeft.Checked = Setup.Get("UiLogoLeft")
 
@@ -232,7 +228,7 @@ Public Class PageSetupUI
     Private Shared Sub TextBoxChange(sender As MyTextBox, e As Object) Handles TextLogoText.ValidatedTextChanged, TextCustomNet.ValidatedTextChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Text)
     End Sub
-    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLogoType3.Check, RadioLogoType4.Check, RadioLauncherTheme0.Check, RadioLauncherTheme1.Check, RadioLauncherTheme2.Check, RadioLauncherTheme3.Check, RadioLauncherTheme4.Check, RadioLauncherTheme5.Check, RadioLauncherTheme6.Check, RadioLauncherTheme7.Check, RadioLauncherTheme8.Check, RadioLauncherTheme9.Check, RadioLauncherTheme10.Check, RadioLauncherTheme11.Check, RadioLauncherTheme12.Check, RadioLauncherTheme13.Check, RadioLauncherTheme14.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
+    Private Shared Sub RadioBoxChange(sender As MyRadioBox, e As Object) Handles RadioLogoType0.Check, RadioLogoType1.Check, RadioLogoType2.Check, RadioLogoType3.Check, RadioLauncherTheme0.Check, RadioLauncherTheme1.Check, RadioLauncherTheme2.Check, RadioLauncherTheme3.Check, RadioLauncherTheme4.Check, RadioLauncherTheme5.Check, RadioLauncherTheme6.Check, RadioLauncherTheme7.Check, RadioLauncherTheme8.Check, RadioLauncherTheme9.Check, RadioLauncherTheme10.Check, RadioLauncherTheme11.Check, RadioLauncherTheme12.Check, RadioLauncherTheme13.Check, RadioLauncherTheme14.Check, RadioCustomType0.Check, RadioCustomType1.Check, RadioCustomType2.Check, RadioCustomType3.Check
         Dim gotCfg = sender.Tag.ToString.Split("/")
         If AniControlEnabled = 0 Then Setup.Set(gotCfg(0), Integer.Parse(gotCfg(1)))
     End Sub

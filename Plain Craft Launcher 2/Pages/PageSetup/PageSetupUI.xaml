@@ -96,10 +96,10 @@
                             </local:MyComboBox>
 
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="浅色配色"/>
-                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor"/>
+                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}"/>
 
                             <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="深色配色"/>
-                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor"/>
+                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}"/>
 
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />
@@ -242,14 +242,12 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" x:Name="ColLogoType4" />
                             <ColumnDefinition Width="0.2*" />
                         </Grid.ColumnDefinitions>
                         <local:MyRadioBox Text="无" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0" Grid.Column="0" />
                         <local:MyRadioBox Text="默认" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1" Grid.Column="1" />
                         <local:MyRadioBox Text="文本" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2" Grid.Column="2" />
                         <local:MyRadioBox Text="图片" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3" Grid.Column="3" />
-                        <local:MyRadioBox Text="HMCL" x:Name="RadioLogoType4" Height="22" Tag="UiLogoType/4" Grid.Column="4" />
                     </Grid>
                     <local:MyCheckBox Text="标题栏居左" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft" Tag="UiLogoLeft" Visibility="Collapsed" />
                     <Grid x:Name="PanLogoText" Margin="0,14,0,5" Visibility="Collapsed">

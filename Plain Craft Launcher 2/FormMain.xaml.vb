@@ -67,11 +67,6 @@ Public Class FormMain
             End If
         End If
         Setup.Load("UiLauncherTheme")
-        '愚人节主题处理
-        If Not FormMain.IsAprilFool() AndAlso (Config.Preference.Theme.LightColorConfig.GetValue = 3 OrElse Config.Preference.Theme.DarkColorConfig.GetValue = 3) Then
-            Config.Preference.Theme.LightColorConfig.SetValue(1)
-            Config.Preference.Theme.DarkColorConfig.SetValue(1)
-        End If
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
@@ -131,9 +126,6 @@ Public Class FormMain
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
         Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
-        If Not IsAprilFool() AndAlso Config.Preference.WindowTitleTypeConfig.GetValue = 4 Then
-             Config.Preference.WindowTitleTypeConfig.SetValue(1)
-        End If
         PageSetupUI.HiddenRefresh()
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
@@ -1681,10 +1673,5 @@ Public Class FormMain
     Private Sub FormMain_MouseMove(sender As Object, e As MouseEventArgs) Handles Me.MouseMove
         lastMouseArg = e
     End Sub
-
-    '愚人节主题处理
-    Public Shared Function IsAprilFool() As Boolean
-        Return DateTime.Now.Month = 4 AndAlso DateTime.Now.Day = 1
-    End Function
 
 End Class
