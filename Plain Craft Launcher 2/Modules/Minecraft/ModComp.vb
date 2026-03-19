@@ -2420,19 +2420,20 @@ Retry:
 
                         Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
 
-                        Application.Current.Dispatcher.BeginInvoke(Async Function() As Task
-                                                                       If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
-                                                                           Hint("正在获取资源信息，请稍等...")
-                                                                           Dim Ids As New List(Of String)({ProjectId})
-                                                                           Dim CompProjects = Await CompRequest.GetCompProjectsByIdsAsync(Ids)
-                                                                           If CompProjects.Count = 0 Then
-                                                                               Hint("剪贴板中的资源内容无效", HintType.Critical)
-                                                                               Return
-                                                                           End If
-                                                                           FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
+                        Application.Current.Dispatcher.BeginInvoke(
+                        Async Function() As Task
+                            If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
+                                Hint("正在获取资源信息，请稍等...")
+                                Dim Ids As New List(Of String)({ProjectId})
+                                Dim CompProjects = Await CompRequest.GetCompProjectsByIdsAsync(Ids)
+                                If CompProjects.Count = 0 Then
+                                    Hint("剪贴板中的资源内容无效", HintType.Critical)
+                                    Return
+                                End If
+                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
                                                                            .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
-                                                                       End If
-                                                                   End Function)
+                            End If
+                        End Function)
                     Catch ex As Exception
                         Log("[Clipboard] 处理剪贴板资源时发生错误: " + ex.ToString(), LogLevel.Normal)
                     End Try
