@@ -143,7 +143,7 @@ Download:
                         Log("[Page] 主页预设：Minecraft 信息流")
                         RunInUiWait(
                             Sub()
-                                If FrmHomepageNews Is Nothing Then FrmHomepageNews = New PageHonepageNewsView()
+                                If FrmHomepageNews Is Nothing Then FrmHomepageNews = New PageHomepageNewsView()
                                 PanCustom.Children.Clear()
                                 PanCustom.Children.Add(FrmHomepageNews)
                             End Sub)
