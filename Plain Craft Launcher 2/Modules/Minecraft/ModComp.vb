@@ -2430,8 +2430,9 @@ Retry:
                                     Hint("剪贴板中的资源内容无效", HintType.Critical)
                                     Return
                                 End If
-                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
-                                                                           .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
+                                FrmMain.PageChange(New FormMain.PageStackData With {
+                                                    .Page = FormMain.PageType.CompDetail,
+                                                    .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
                             End If
                         End Function)
                     Catch ex As Exception
