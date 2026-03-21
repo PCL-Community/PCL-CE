@@ -7,7 +7,7 @@
       mc:Ignorable="d" MinWidth="150">
     <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
         
-        <TextBlock Text="联机" Margin="13,6,5,4" Opacity="0.6" FontSize="12" />
+        <TextBlock Text="联机" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameLinkCategory"/>
 
         <local:MyListItem x:Name="ItemGameLink" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="大厅"
                           LogoScale="0.85" Logo="M554.496 170.496c141.312 0 256 114.688 256 256s-114.688 256-256 256H402.432c-22.016-1.536-39.424-19.968-39.424-42.496a42.391 42.391 0 0 1 42.496-42.496h149.504c94.208 0 170.496-76.288 170.496-170.496S648.704 256 554.496 256h-256C204.288 256 128 332.288 128 426.496c0 38.4 12.8 73.728 33.792 102.4 5.632 7.168 8.704 15.872 8.704 25.6A42.391 42.391 0 0 1 128 596.992c-11.264 0-20.992-4.096-28.672-11.264l-0.512 0.512c-35.328-44.032-56.32-99.328-56.32-159.744 0-141.312 114.688-256 256-256h256z m64 192h3.072c22.016 1.536 39.424 19.968 39.424 42.496a42.391 42.391 0 0 1-42.496 42.496H469.504c-94.208 0-170.496 76.288-170.496 170.496S375.296 788.48 469.504 788.48h256C819.712 788.48 896 712.192 896 617.984c0-38.4-12.8-73.728-33.792-102.4-5.632-7.168-8.704-15.872-8.704-25.6A42.391 42.391 0 0 1 896 447.488c11.264 0 20.992 4.096 28.672 11.264l0.512-0.512c35.328 44.032 56.32 99.328 56.32 159.744 0 141.312-114.688 256-256 256h-256c-141.312 0-256-114.688-256-256s114.688-256 256-256h148.992z">
@@ -18,7 +18,7 @@
             </local:MyListItem.Buttons>
         </local:MyListItem>
         
-        <TextBlock Text="奇妙小工具" Margin="13,18,5,4" Opacity="0.6" FontSize="12" />
+        <TextBlock Text="奇妙小工具" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextToolsCategory"/>
         <local:MyListItem x:Name="ItemTest" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="3" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="百宝箱"
                           LogoScale="0.9" Logo="M511 995a128 128 0 0 1-57-13L70 791a126 126 0 0 1-70-113V311a126 126 0 0 1 15-60V248c1-2 3-5 5-8a127 127 0 0 1 49-42L454 13a128 128 0 0 1 112 0l383 190a126 126 0 0 1 72 113v360a126 126 0 0 1-70 115L568 984c-17 7-37 11-57 11z m42-470v370l360-178c14-7 23-21 23-38v-335L554 524zM85 330v347a42 42 0 0 0 23 38l360 178V523L85 330zM135 260l375 189 137-65L286 188 135 260z m245-118l363 197 150-71-365-180a42 42 0 0 0-37 0l-111 53z" />
 
