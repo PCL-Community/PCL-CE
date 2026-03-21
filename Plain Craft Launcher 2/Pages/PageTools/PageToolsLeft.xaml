@@ -1,10 +1,8 @@
 <local:MyPageLeft x:Class="PageToolsLeft"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:PCL"
-      mc:Ignorable="d" MinWidth="150">
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+                  d:DesignWidth="152">
     <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
         
         <TextBlock Text="联机" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameLinkCategory"/>
