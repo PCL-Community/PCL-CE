@@ -41,9 +41,6 @@ Public Class PageToolsLeft
             Case 0, FormMain.PageSubType.ToolsGameLink
                 If FrmToolsGameLink Is Nothing Then FrmToolsGameLink = New PageToolsGameLink
                 Return FrmToolsGameLink
-            Case FormMain.PageSubType.SetupGameLink
-                If FrmSetupGameLink Is Nothing Then FrmSetupGameLink = New PageSetupGameLink
-                Return FrmSetupGameLink
             Case FormMain.PageSubType.ToolsTest
                 If FrmToolsTest Is Nothing Then FrmToolsTest = New PageToolsTest
                 Return FrmToolsTest
