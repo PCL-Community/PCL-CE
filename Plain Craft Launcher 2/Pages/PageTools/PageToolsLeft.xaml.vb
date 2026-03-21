@@ -5,6 +5,7 @@ Public Class PageToolsLeft
     Private Sub PageLinkLeft_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         If IsLoad Then Return
         IsLoad = True
+        PageSetupUI.HiddenRefresh()
         '切换默认页面
         If IsPageSwitched Then Exit Sub
         ItemGameLink.SetChecked(True, False, False)
