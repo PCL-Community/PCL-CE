@@ -1,17 +1,47 @@
+Imports PCL.Core.App
+
 Public Class PageToolsLeft
 
     Private IsLoad As Boolean = False
     Private IsPageSwitched As Boolean = False '如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
     Private Sub PageLinkLeft_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-        If IsLoad Then Return
-        IsLoad = True
+        Dim IsHiddenPage As Boolean = False
+        Dim hide = Config.Preference.Hide
+        
+        If ItemGameLink.Checked AndAlso hide.ToolsGameLink Then IsHiddenPage = True
+        If ItemTest.Checked AndAlso hide.ToolsTest Then IsHiddenPage = True
+        If ItemLauncherHelp.Checked AndAlso hide.ToolsHelp Then IsHiddenPage = True
+        If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         PageSetupUI.HiddenRefresh()
-        '切换默认页面
-        If IsPageSwitched Then Exit Sub
-        ItemGameLink.SetChecked(True, False, False)
+        '若页面错误，或尚未加载，则继续
+        If IsLoad AndAlso Not IsHiddenPage Then Return
+        IsLoad = True
+        '选择第一个未被禁用的子页面
+        If IsPageSwitched Then Return
+        Dim hideCfg = Config.Preference.Hide
+        If Not hideCfg.ToolsGameLink Then
+            ItemGameLink.SetChecked(True, False, False)
+        ElseIf Not hideCfg.ToolsTest Then
+            ItemTest.SetChecked(True, False, False)            
+        ElseIf Not hideCfg.ToolsHelp Then
+            ItemLauncherHelp.SetChecked(True, False, False)    
+        Else
+            ItemGameLink.SetChecked(True, False, False)
+        End If
     End Sub
     Public Sub New()
         InitializeComponent()
+        '选择第一个未被禁用的子页面
+        Dim hideCfg = Config.Preference.Hide
+        If Not hideCfg.ToolsGameLink Then
+            PageID = FormMain.PageSubType.ToolsGameLink
+        ElseIf Not hideCfg.ToolsTest Then
+            PageID = FormMain.PageSubType.ToolsTest
+        ElseIf Not hideCfg.ToolsHelp Then
+            PageID = FormMain.PageSubType.ToolsLauncherHelp
+        Else
+            PageID = FormMain.PageSubType.ToolsGameLink
+        End If
         AnimatedControl = Me.PanItem
     End Sub
 
@@ -38,7 +68,7 @@ Public Class PageToolsLeft
     Public Function PageGet(Optional ID As FormMain.PageSubType = -1)
         If ID = -1 Then ID = PageID
         Select Case ID
-            Case 0, FormMain.PageSubType.ToolsGameLink
+            Case FormMain.PageSubType.ToolsGameLink
                 If FrmToolsGameLink Is Nothing Then FrmToolsGameLink = New PageToolsGameLink
                 Return FrmToolsGameLink
             Case FormMain.PageSubType.ToolsTest
