@@ -24,22 +24,22 @@ Public Class PageSetupLeft
         Dim hideCfg = Config.Preference.Hide
         If Not hideCfg.SetupLaunch Then
             ItemLaunch.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupJava Then
+            ItemJava.SetChecked(True, False, False)            
+        ElseIf Not hideCfg.SetupGameManage Then
+            ItemGameManage.SetChecked(True, False, False)    
+        ElseIf Not hideCfg.SetupGameLink Then
+            ItemGameLink.SetChecked(True, False, False)            
         ElseIf Not hideCfg.SetupUi Then
             ItemUI.SetChecked(True, False, False)
-        ElseIf Not hideCfg.SetupGameManage Then
-            ItemGameManage.SetChecked(True, False, False)
         ElseIf Not hideCfg.SetupLauncherMisc Then
             ItemLauncherMisc.SetChecked(True, False, False)
+        ElseIf Not hideCfg.SetupAbout Then
+            ItemAbout.SetChecked(True, False, False)            
         ElseIf Not hideCfg.SetupUpdate Then
             ItemUpdate.SetChecked(True, False, False)
-        ElseIf Not hideCfg.SetupAbout Then
-            ItemAbout.SetChecked(True, False, False)
         ElseIf Not hideCfg.SetupFeedback Then
             ItemFeedback.SetChecked(True, False, False)
-        ElseIf Not hideCfg.SetupGameLink Then
-            ItemGameLink.SetChecked(True, False, False)
-        ElseIf Not hideCfg.SetupJava Then
-            ItemJava.SetChecked(True, False, False)
         ElseIf Not hideCfg.SetupLog Then
             ItemLog.SetChecked(True, False, False)
         Else
@@ -62,22 +62,22 @@ Public Class PageSetupLeft
         Dim hideCfg = Config.Preference.Hide
         If Not hideCfg.SetupLaunch Then
             PageID = FormMain.PageSubType.SetupLaunch
-        ElseIf Not hideCfg.SetupUi Then
-            PageID = FormMain.PageSubType.SetupUI
-        ElseIf Not hideCfg.SetupGameManage Then
-            PageID = FormMain.PageSubType.SetupGameManage
-        ElseIf Not hideCfg.SetupLauncherMisc Then
-            PageID = FormMain.PageSubType.SetupLauncherMisc
-        ElseIf Not hideCfg.SetupUpdate Then
-            PageID = FormMain.PageSubType.SetupUpdate
-        ElseIf Not hideCfg.SetupAbout Then
-            PageID = FormMain.PageSubType.SetupAbout
-        ElseIf Not hideCfg.SetupFeedback Then
-            PageID = FormMain.PageSubType.SetupFeedback
-        ElseIf Not hideCfg.SetupGameLink Then
-            PageID = FormMain.PageSubType.SetupGameLink
         ElseIf Not hideCfg.SetupJava Then
             PageID = FormMain.PageSubType.SetupJava
+        ElseIf Not hideCfg.SetupGameManage Then
+            PageID = FormMain.PageSubType.SetupGameManage     
+        ElseIf Not hideCfg.SetupGameLink Then
+            PageID = FormMain.PageSubType.SetupGameLink            
+        ElseIf Not hideCfg.SetupUi Then
+            PageID = FormMain.PageSubType.SetupUI
+        ElseIf Not hideCfg.SetupLauncherMisc Then
+            PageID = FormMain.PageSubType.SetupLauncherMisc
+        ElseIf Not hideCfg.SetupAbout Then
+            PageID = FormMain.PageSubType.SetupAbout            
+        ElseIf Not hideCfg.SetupUpdate Then
+            PageID = FormMain.PageSubType.SetupUpdate
+        ElseIf Not hideCfg.SetupFeedback Then
+            PageID = FormMain.PageSubType.SetupFeedback
         ElseIf Not hideCfg.SetupLog Then
             PageID = FormMain.PageSubType.SetupLog
         Else
