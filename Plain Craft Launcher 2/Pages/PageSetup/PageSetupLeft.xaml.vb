@@ -10,9 +10,15 @@ Public Class PageSetupLeft
         Dim hide = Config.Preference.Hide
 
         If ItemLaunch.Checked AndAlso hide.SetupLaunch Then IsHiddenPage = True
-        If ItemUI.Checked AndAlso hide.SetupUi Then IsHiddenPage = True
+        If ItemJava.Checked AndAlso hide.SetupJava Then IsHiddenPage = True
         If ItemGameManage.Checked AndAlso hide.SetupGameManage Then IsHiddenPage = True
+        If ItemGameLink.Checked AndAlso hide.SetupGameLink Then IsHiddenPage = True
+        If ItemUI.Checked AndAlso hide.SetupUi Then IsHiddenPage = True
+        If ItemLauncherMisc.Checked AndAlso hide.SetupLauncherMisc Then IsHiddenPage = True
         If ItemAbout.Checked AndAlso Config.Preference.Hide.SetupAbout Then IsHiddenPage = True
+        If ItemUpdate.Checked AndAlso Config.Preference.Hide.SetupUpdate Then IsHiddenPage = True
+        If ItemFeedback.Checked AndAlso Config.Preference.Hide.SetupFeedback Then IsHiddenPage = True
+        If ItemLog.Checked AndAlso Config.Preference.Hide.SetupLog Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
         If IsLoad AndAlso Not IsHiddenPage Then Return
