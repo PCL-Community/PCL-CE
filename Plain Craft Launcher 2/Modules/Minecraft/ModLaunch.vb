@@ -1639,6 +1639,15 @@ LoginFinish:
         DataList.Insert(0, ArgumentJvm) '可变 JVM 参数
         DataList.Add("-Xmn" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024 * 0.15) & "m")
         DataList.Add("-Xmx" & Math.Floor(PageInstanceSetup.GetRam(McInstanceSelected, Not McLaunchJavaSelected.Installation.Is64Bit) * 1024) & "m")
+        If McLaunchJavaSelected.Installation.MajorVersion <= 7 Then
+            If Not DataList.Any(Function(d) d.Contains("-XX:PermSize=") OrElse d.Contains("-XX:MaxPermSize=")) Then
+                DataList.Add("-XX:PermSize=128m")
+                DataList.Add("-XX:MaxPermSize=256m")
+                McLaunchLog("检测到 Java " & McLaunchJavaSelected.Installation.MajorVersion & "，已自动添加永久代内存参数")
+            Else
+                McLaunchLog("检测到 Java " & McLaunchJavaSelected.Installation.MajorVersion & "，用户已自定义永久代参数，跳过自动添加")
+            End If
+        End If
         DataList.Add("""-Djava.library.path=" & GetNativesFolder() & """")
         DataList.Add("-cp ${classpath}") '把支持库添加进启动参数表
 
