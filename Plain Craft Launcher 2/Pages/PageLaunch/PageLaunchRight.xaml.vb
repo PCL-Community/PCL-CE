@@ -181,7 +181,7 @@ Download:
         End If
     
         '随机返回
-        Dim hint = lines(New Random().Next(lines.Length))
+        Dim hint = lines(Random.Shared.Next(lines.Length))
         Return If(raw, hint, hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;"))
     End Function
 
