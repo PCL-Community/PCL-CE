@@ -8,8 +8,8 @@ namespace PCL.Core.UI.Controls.Dialog;
 public class DialogBase : Grid
 {
     protected DialogManager? DManager;
-    protected void Close()
+    protected void Close(object result)
     {
-        DManager.
+        DManager.SetResult(result);
     }
 }

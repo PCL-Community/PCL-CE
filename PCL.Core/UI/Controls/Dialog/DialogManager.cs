@@ -24,7 +24,7 @@ public class DialogManager(IDialogPresent dialogPresent)
         _dialogs.Enqueue(ui);
         await _dialogPresent.PresentAsync(ui).ConfigureAwait(false);
 
-        return (TResult)(await handler.TaskCallback.Task.ConfigureAwait(false));
+        return (TResult)await handler.TaskCallback.Task.ConfigureAwait(false);
     }
 
     public async Task SetResult<TResult>(TResult result)
