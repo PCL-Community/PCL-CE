@@ -606,6 +606,11 @@ Public Class FormMain
     Private Sub BtnTitleMin_Click() Handles BtnTitleMin.Click
         WindowState = WindowState.Minimized
     End Sub
+
+    '“帮助”
+    Private Sub BtnTitleHelp_Click() Handles BtnTitleHelp.Click
+        OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX")
+    End Sub
 #End Region
 
 #Region "窗体事件"

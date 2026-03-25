@@ -96,10 +96,10 @@
                             </local:MyComboBox>
 
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="浅色配色"/>
-                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor"/>
+                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}"/>
 
                             <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="深色配色"/>
-                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor"/>
+                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}"/>
 
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22" x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" />

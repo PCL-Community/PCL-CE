@@ -154,45 +154,35 @@ Download:
     End Sub
     Private RefreshLock As New Object
 
-    Public Shared Function GetRandomHint(Optional enableLengthLimit As Boolean = False) As String
-        '优先尝试外部文件
-        Dim externalPath As String = ExePath & "PCL\hints.txt"
+    Public Shared Function GetRandomHint(Optional enableLengthLimit As Boolean = False, Optional raw As Boolean = False) As String
+        Dim lines As String() = Nothing
+        
+        '外部文件
+        Dim externalPath = ExePath & "PCL\hints.txt"
         If File.Exists(externalPath) Then
             Try
-                Dim lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
-                If lines.Length > 0 Then
-                    Dim validHints As String() = lines
-                    If enableLengthLimit Then
-                        validHints = lines.Where(Function(l) l.Length < 50).ToArray()
-                        If validHints.Length = 0 Then
-                            validHints = lines
-                            Log("[Page] 外部 hints.txt 中没有字数小于50的提示，已取消字数限制", LogLevel.Debug)
-                        End If
-                    End If
-
-                    Dim hint = validHints(New Random().Next(validHints.Length))
-                    hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
-                    Return hint
-                End If
-                Log("[Page] 外部 hints.txt 文件为空", LogLevel.Debug)
-                Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
-            Catch ex As Exception
-                Log(ex, "[Page] 读取外部 hints.txt 失败", LogLevel.Hint)
+                lines = File.ReadAllLines(externalPath).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
+            Catch
+                Log($"[Page] 读取外部文件失败：{externalPath}", LogLevel.Hint)
             End Try
         End If
-        '回退到嵌入式资源
-        Try
-            Using reader As New System.IO.StreamReader(Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream)
-                Dim lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
-                Dim validHints = If(enableLengthLimit, lines.Where(Function(l) l.Length < 50).ToArray(), lines)
-                Dim hint = validHints(New Random().Next(validHints.Length))
-                hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;")
-                Return hint
+    
+        '嵌入式资源
+        If lines Is Nothing OrElse lines.Length = 0 Then
+            Using reader As New StreamReader(Application.GetResourceStream(New Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream)
+                lines = reader.ReadToEnd().Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(l) Not String.IsNullOrWhiteSpace(l)).Select(Function(l) l.Trim()).ToArray()
             End Using
-        Catch ex As Exception
-            Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", LogLevel.Hint)
-            Return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本"
-        End Try
+        End If
+    
+        '长度限制
+        If enableLengthLimit Then
+            Dim shortLines = lines.Where(Function(l) l.Length < 50).ToArray()
+            If shortLines.Length > 0 Then lines = shortLines
+        End If
+    
+        '随机返回
+        Dim hint = lines(Random.Shared.Next(lines.Length))
+        Return If(raw, hint, hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("""", "&quot;"))
     End Function
 
     '联网获取主页文件
