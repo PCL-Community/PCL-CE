@@ -559,7 +559,7 @@ EndHint:
     Public FrmDownloadCompDetail As PageDownloadCompDetail
 
     '主页缓存
-    Public FrmHomepageNews As PageHonepageNewsView
+    Public FrmHomepageNews As PageHomepageNewsView
 
 #End Region
 

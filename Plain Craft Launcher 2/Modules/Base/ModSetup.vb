@@ -1,7 +1,9 @@
 Imports System.Reflection
 Imports System.Windows.Media.Effects
+Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.UI.Theme
 
 Public Class ModSetup
     Implements IConfigScope
@@ -342,11 +344,17 @@ Public Class ModSetup
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)
+        If ThemeService.CurrentTheme = ColorTheme.HmclBlue Then
+            Value = 4
+        End If
         Select Case Value
             Case 0 '无
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Collapsed
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible
@@ -355,8 +363,11 @@ Public Class ModSetup
                 End If
             Case 1 '默认
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -365,8 +376,11 @@ Public Class ModSetup
                 End If
             Case 2 '文本
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Visible
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -376,8 +390,11 @@ Public Class ModSetup
                 Setup.Load("UiLogoText", True)
             Case 3 '图片
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -390,6 +407,18 @@ Public Class ModSetup
                     FrmMain.ImageTitleLogo.Source = Nothing
                     Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)
                 End Try
+            Case 4 'HMCL (愚人节)
+                FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible
+                FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Visible
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible
+                If Not IsNothing(FrmSetupUI) Then
+                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                    FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+                End If
         End Select
         Setup.Load("UiLogoLeft", True)
         If Not IsNothing(FrmSetupUI) Then FrmSetupUI.CardLogo.TriggerForceResize()

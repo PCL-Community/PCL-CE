@@ -1,4 +1,4 @@
-﻿Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.IO.Net.Http.Client.Request
 
 Public Class PageHomepageMarket
     Implements IRefreshable
@@ -27,7 +27,12 @@ Public Class PageHomepageMarket
     Private Async Function RefreshAsync() As Task
         Try
             Const HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Homepage.Market/Custom.xaml"
-            Dim content = Await (Await HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(True)).AsStringAsync()
+            Dim content As String
+            Using resp = Await HttpRequest.Create(HomepageMarketUri).SendAsync()
+                resp.EnsureSuccessStatusCode()
+                content = resp.AsString()
+            End Using
+
             content = content.Replace("EventType=""刷新主页""", "EventType=""刷新主页市场""")
             PanCustom.Children.Clear()
             PanCustom.Children.Add(GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>"))

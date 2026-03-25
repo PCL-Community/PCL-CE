@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL.Core.Minecraft.IdentityModel.OAuth;
 
@@ -52,14 +53,16 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
         extData["code"] = code;
         var client = options.GetClient.Invoke();
         using var content = new FormUrlEncodedContent(extData);
-        using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
-        request.Content = content;
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request,token);
+        using var response = await HttpRequest
+            .CreatePost(options.Meta.TokenEndpoint)
+            .WithContent(content)
+            .WithHeaders(options.Headers ?? [])
+            .SendAsync(client, cancellationToken: token)
+            .ConfigureAwait(false);
         var result  = await response.Content.ReadAsStringAsync(token);
-        return JsonSerializer.Deserialize<AuthorizeResult>(result);
+        return await response
+            .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 获取设备代码对
@@ -76,15 +79,18 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
         extData ??= new Dictionary<string, string>();
         extData["scope"] = string.Join(" ", scopes);
         extData["client_id"] = options.ClientId;
-        using var request = new HttpRequestMessage(HttpMethod.Post, options.Meta.DeviceEndpoint);
         var content = new FormUrlEncodedContent(extData);
-        request.Content = content;
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request,token);
-        var result = await response.Content.ReadAsStringAsync(token);
-        return JsonSerializer.Deserialize<DeviceCodeData>(result);
+
+        using var response = await HttpRequest
+            .CreatePost(options.Meta.DeviceEndpoint)
+            .WithContent(content)
+            .WithHeaders(options.Headers ?? [])
+            .SendAsync(client, cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return await response
+            .AsJsonAsync<DeviceCodeData>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 验证用户授权状态 <br/>
@@ -104,15 +110,18 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
         extData["client_id"] = options.ClientId;
         extData["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code";
         extData["device_code"] = data.DeviceCode!;
-        using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
+
         using var content = new FormUrlEncodedContent(extData);
-        request.Content = content;
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request,token);
-        var result = await response.Content.ReadAsStringAsync(token);
-        return JsonSerializer.Deserialize<AuthorizeResult>(result);
+        using var response = await HttpRequest
+            .CreatePost(options.Meta.TokenEndpoint)
+            .WithContent(content)
+            .WithHeaders(options.Headers ?? [])
+            .SendAsync(client, cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return await response
+            .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
     /// <summary>
     /// 刷新登录
@@ -127,18 +136,20 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     {
         var client = options.GetClient.Invoke();
         if (data.IsError) throw new OperationCanceledException(data.ErrorDescription);
-        extData ??= new Dictionary<string, string>();
+        extData ??= [];
         extData["refresh_token"] = data.RefreshToken!;
         extData["grant_type"] = "refresh_token";
         extData["client_id"] = options.ClientId;
-        using var request = new HttpRequestMessage(HttpMethod.Post,options.Meta.TokenEndpoint);
         using var content = new FormUrlEncodedContent(extData);
-        request.Content = content;
-        if(options.Headers is not null)
-            foreach (var kvp in options.Headers)
-                _ = request.Headers.TryAddWithoutValidation(kvp.Key,kvp.Value);
-        using var response = await client.SendAsync(request,token);
-        var result = await response.Content.ReadAsStringAsync(token);
-        return JsonSerializer.Deserialize<AuthorizeResult>(result);
+        using var response = await HttpRequest
+            .CreatePost(options.Meta.TokenEndpoint)
+            .WithHeaders(options.Headers ?? [])
+            .WithContent(content)
+            .SendAsync(client, cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return await response
+            .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
+            .ConfigureAwait(false);
     }
 }
