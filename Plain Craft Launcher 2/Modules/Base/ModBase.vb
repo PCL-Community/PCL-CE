@@ -1680,6 +1680,20 @@ RetryDir:
         End Try
     End Function
     ''' <summary>
+    ''' 搜索字符串中的所有正则匹配项。
+    ''' </summary>
+    <Extension> Public Function RegexSearch(str As String, regex As Regex, Optional options As RegexOptions = RegexOptions.None) As List(Of String)
+        Try
+            RegexSearch = New List(Of String)
+            For Each item As Match In regex.Matches(str)
+                RegexSearch.Add(item.Value)
+            Next
+        Catch ex As Exception
+            Log(ex, "正则匹配全部项出错")
+            Return New List(Of String)
+        End Try
+    End Function
+    ''' <summary>
     ''' 获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
     ''' </summary>
     <Extension> Public Function RegexSeek(str As String, regex As String, Optional options As RegexOptions = RegexOptions.None) As String
