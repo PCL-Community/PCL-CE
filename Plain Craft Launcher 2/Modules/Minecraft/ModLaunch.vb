@@ -1533,6 +1533,16 @@ LoginFinish:
             Not Setup.Get("LaunchAdvanceDisableRW") AndAlso
             Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
+    
+    '''<summary>
+    ''' 判断是否启用了针对 Minecraft 26.1+ 的性能问题补丁
+    ''' </summary>
+    Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
+        Return (Mc.ReleaseTime >= New Date(2026, 3, 24) AndAlso Mc.Info.Drop >= 261) OrElse
+            (Mc.Info.Drop >= 261 AndAlso Mc.Info.Drop <> 99) AndAlso
+            Setup.Get("LaunchAdvanceUseLwjglUnsafeAgent") AndAlso
+            Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
+    End Function
 
 
     '主方法，合并 Jvm、Game、Replace 三部分的参数数据
@@ -1658,6 +1668,11 @@ LoginFinish:
             End Try
         End If
         
+        'LWJGL Unsafe Agent
+        If McLaunchUsesLwjglUnsafeAgent(McInstanceSelected) Then
+            DataList.Insert(0, "-javaagent:""" & PathPure & "lwjgl-unsafe-agent.jar""")
+        End If
+        
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
             If McInstanceSelected.ReleaseTime.Year >= 2017 Then
                 DataList.Insert(0, "-Dlog4j.configurationFile=""" & LaunchEnvUtils.ExtractDebugLog4j2Config() & """")
@@ -1753,6 +1768,11 @@ NextInstance:
             Catch ex As Exception
                 Throw New Exception("无法连接到第三方登录服务器（" & If(Server, Nothing) & "）", ex)
             End Try
+        End If
+        
+        'LWJGL Unsafe Agent
+        If McLaunchUsesLwjglUnsafeAgent(McInstanceSelected) Then
+            DataList.Insert(0, "-javaagent:""" & PathPure & "lwjgl-unsafe-agent.jar""")
         End If
 
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
@@ -2006,6 +2026,17 @@ NextInstance:
                 CpStrings.Add(WrapperPath)
             Catch ex As Exception
                 Log(ex, "RetroWrapper 释放失败")
+            End Try
+        End If
+        
+        'LWJGL Unsafe Agent 释放
+        If McLaunchUsesLwjglUnsafeAgent(instance) Then
+            Dim AgentPath As String = PathPure & "lwjgl-unsafe-agent.jar"
+            Try
+                WriteFile(AgentPath, GetResourceStream("Resources/lwjgl-unsafe-agent.jar"))
+                CpStrings.Add(AgentPath)
+            Catch ex As Exception
+                Log(ex, "LWJGL Unsafe Agent 释放失败")
             End Try
         End If
 
