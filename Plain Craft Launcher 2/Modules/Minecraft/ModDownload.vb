@@ -928,7 +928,7 @@ Public Module ModDownload
                 VersionName = ApiName
                 Version = New Version(ApiName.BeforeFirst("-"))
                 If Version.Major >= 24 Then
-                    Inherit = Version.ToString.Replace(".0", "")
+                    Inherit = Version.Major & "." & Version.Minor
                 Else
                     Inherit = "1." & Version.Major & If(Version.Minor > 0, "." & Version.Minor, "")
                 End If
