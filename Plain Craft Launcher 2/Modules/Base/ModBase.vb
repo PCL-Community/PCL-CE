@@ -1685,7 +1685,7 @@ RetryDir:
     <Extension> Public Function RegexSearch(str As String, regex As Regex, Optional options As RegexOptions = RegexOptions.None) As List(Of String)
         Try
             RegexSearch = New List(Of String)
-            For Each item As Match In regex.Matches(str)
+            For Each item As Match In regex.Matches(str, options)
                 RegexSearch.Add(item.Value)
             Next
         Catch ex As Exception
