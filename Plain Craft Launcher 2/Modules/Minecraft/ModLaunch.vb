@@ -1534,13 +1534,33 @@ LoginFinish:
             Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
     
-    '''<summary>
-    ''' 判断是否启用了针对 Minecraft 26.1+ 的性能问题补丁
+    
+    ''' <summary>
+    ''' 获取实例所依赖的 LWJGL 版本
+    ''' </summary>
+    Private Function McLaunchGetLwjglVersion(Mc As McInstance) As String
+        For Each library As McLibToken In McLibListGet(Mc, False)
+            If String.IsNullOrWhiteSpace(library.OriginalName) Then Continue For
+            
+            Dim parts = library.OriginalName.Split(":"c)
+            If parts.Length >= 3 AndAlso
+               parts(0).Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) AndAlso
+               parts(1).Equals("lwjgl", StringComparison.OrdinalIgnoreCase) Then
+                Return parts(2)
+            End If
+        Next
+        
+        Return Nothing
+    End Function
+    
+    ''' <summary>
+    ''' 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
     ''' </summary>
     Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
-        Return (Mc.Info.Drop >= 261) AndAlso
-            Setup.Get("LaunchAdvanceUseLwjglUnsafeAgent") AndAlso
-            Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
+        Return McLaunchGetLwjglVersion(Mc) IsNot Nothing AndAlso
+               McLaunchGetLwjglVersion(Mc).Equals("3.4.1") AndAlso
+               Setup.Get("LaunchAdvanceUseLwjglUnsafeAgent") AndAlso
+               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
     End Function
 
 
