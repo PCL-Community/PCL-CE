@@ -120,6 +120,12 @@
       "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/protobuf-net/protobuf-net",
       "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
+    },
+    {
+      "name": "LWJGL Unsafe Agent",
+      "info": "Copyright © 2026 Glavo\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
+      "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
     }
   ]
 }
