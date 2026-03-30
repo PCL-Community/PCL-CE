@@ -17,8 +17,10 @@ Class PageInstanceSavesInfo
         Refresh()
     End Sub
 
-    Public Sub Refresh()
-        If _loaded Then RefreshInfo()
+    Public Async Sub Refresh()
+        If _loaded Then
+            Await RefreshInfo()
+        End If
     End Sub
 
     Private Async Sub Init() Handles Me.Loaded
