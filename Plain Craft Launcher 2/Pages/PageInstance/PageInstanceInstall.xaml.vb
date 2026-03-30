@@ -1126,6 +1126,9 @@ Public Class PageInstanceInstall
     ''' </summary>
     Private Function LoadForgeGetError() As String
         If CompareVersionGe("1.5.1", _vanillaName) AndAlso CompareVersionGe(_vanillaName, "1.1") Then Return "无可用版本"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName <> "Forge" Then
+            Return $"与 {SelectedLoaderName} 不兼容"
+        End If
         '检查 Loader
         If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
         Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
@@ -2004,7 +2007,11 @@ Public Class PageInstanceInstall
         SelectedLabyModCommitRef = Nothing
         SelectedLabyModVersion = Nothing
         SelectedLabyModChannel = Nothing
-        SelectedLoaderName = Nothing
+        
+        If SelectedLoaderName = "LabyMod" Then
+            SelectedLoaderName = Nothing
+        End If
+        
         SelectedAPIName = Nothing
         CardLabyMod.IsSwapped = True
         e.Handled = True
