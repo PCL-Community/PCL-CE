@@ -29,7 +29,7 @@ public class ModernLevelDataWriter : ILevelDataWriter
             1 => "easy",
             2 => "normal",
             3 => "hard",
-            _ => "normal"
+            _ => "获取失败"
         };
 
         var difficultyTag = difficultySettings.Get<NbtString>("difficulty");

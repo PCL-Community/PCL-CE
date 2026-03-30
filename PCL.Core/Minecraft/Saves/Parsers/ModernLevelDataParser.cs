@@ -19,7 +19,7 @@ public class ModernLevelDataParser : ILevelDataParser
         };
 
         // 存档名称
-        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? "未知";
+        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? "获取失败";
 
         // 版本信息（Version 复合标签，位置未变）
         var versionCompound = dataTag.Get<NbtCompound>("Version");
@@ -48,7 +48,7 @@ public class ModernLevelDataParser : ILevelDataParser
                 "easy" => "简单",
                 "normal" => "普通",
                 "hard" => "困难",
-                _ => "未知"
+                _ => "获取失败"
             };
             result.IsDifficultyLocked = difficultySettings.Get<NbtByte>("locked")?.Value == 1;
         }
@@ -120,7 +120,7 @@ public class ModernLevelDataParser : ILevelDataParser
 
         var gameTypeTag = dataTag.Get<NbtInt>("GameType");
         if (gameTypeTag == null)
-            return "生存模式";
+            return "获取失败";
 
         return gameTypeTag.Value switch
         {
@@ -128,7 +128,7 @@ public class ModernLevelDataParser : ILevelDataParser
             1 => "创造模式",
             2 => "冒险模式",
             3 => "旁观模式",
-            _ => "生存模式"
+            _ => "获取失败"
         };
     }
 }
