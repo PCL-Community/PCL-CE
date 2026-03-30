@@ -1,12 +1,12 @@
-﻿Imports fNbt
-Imports PCL.Core.Minecraft
+﻿Imports PCL.Core.Minecraft.Saves
+Imports System.IO
 
 Class PageInstanceSavesInfo
     Implements IRefreshable
     
-    Private _currentSaveInfo As NbtFile
     Private _levelDataInfo As LevelDataInfo
-    Private _gameLevel As NbtCompound
+    Private _levelDataWriter As LevelDataWriter
+    Private _levelDataReader As LevelDataReader
 
     Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
         Refresh()
@@ -28,42 +28,50 @@ Class PageInstanceSavesInfo
         Try
             Dim saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
             
-            ' 使用核心库加载文件
-            _currentSaveInfo = Await Task.Run(Function() NbtHelper.LoadLevelData(saveDatPath))
-            _gameLevel = _currentSaveInfo.RootTag.Get(Of NbtCompound)("Data")
+            ' 检查文件是否存在
+            If Not File.Exists(saveDatPath) Then
+                Log("未找到 level.dat 文件，可能存档已损坏", LogLevel.Hint)
+                PanContent.Visibility = Visibility.Collapsed
+                Return
+            End If
             
-            ' 使用核心库解析数据，传入存档路径以读取world_gen_settings.dat
-            _levelDataInfo = Await Task.Run(Function() NbtHelper.ParseLevelData(_currentSaveInfo, saveDatPath))
+            ' 使用核心库读取数据
+            _levelDataReader = New LevelDataReader(saveDatPath)
+            _levelDataInfo = Await _levelDataReader.LoadAsync()
+            
+            If _levelDataInfo Is Nothing Then
+                Throw New Exception("无法解析存档数据")
+            End If
             
             ClearUI()
             UpdateUI()
-            
             PanContent.Visibility = Visibility.Visible
             
         Catch ex As Exception
             Log(ex, "获取存档信息失败", LogLevel.Msgbox)
             PanContent.Visibility = Visibility.Collapsed
             PanSettings.Visibility = Visibility.Collapsed
-            Hintversion1_9.Visibility = Visibility.Collapsed
-            Hintversion1_8.Visibility = Visibility.Collapsed
-            Hintversion1_3.Visibility = Visibility.Collapsed
+            HideAllHints()
         End Try
+    End Sub
+    
+    Private Sub HideAllHints()
+        Hintversion1_9.Visibility = Visibility.Collapsed
+        Hintversion1_8.Visibility = Visibility.Collapsed
+        Hintversion1_3.Visibility = Visibility.Collapsed
     End Sub
     
     Private Sub ClearUI()
         ClearInfoTable()
         PanSettingsList.Children.Clear()
         PanSettingsList.RowDefinitions.Clear()
-        
-        Hintversion1_9.Visibility = Visibility.Collapsed
-        Hintversion1_8.Visibility = Visibility.Collapsed
-        Hintversion1_3.Visibility = Visibility.Collapsed
+        HideAllHints()
         PanSettings.Visibility = Visibility.Collapsed
     End Sub
     
     Private Sub UpdateUI()
         ' 显示版本提示
-        Dim versionHint = NbtHelper.GetVersionHint(
+        Dim versionHint = LevelDataVersion.GetVersionHint(
             _levelDataInfo.HasDataVersion,
             _levelDataInfo.HasDifficulty,
             _levelDataInfo.HasAllowCommands)
@@ -81,8 +89,8 @@ Class PageInstanceSavesInfo
             End If
         End If
         
-        ' 显示数据包按钮(仅新版本)
-        Dim shouldShowDataPack = NbtHelper.ShouldShowDataPack(_levelDataInfo.DataVersion)
+        ' 显示数据包按钮（1.13+）
+        Dim shouldShowDataPack = LevelDataVersion.ShouldShowDataPack(_levelDataInfo.DataVersion)
         FrmInstanceSavesLeft.ItemDatapack.Visibility = If(shouldShowDataPack, Visibility.Visible, Visibility.Collapsed)
         
         ' 添加基本信息
@@ -101,19 +109,14 @@ Class PageInstanceSavesInfo
         AddSettingsControls()
         
         ' 添加其他信息
-        AddInfoTable("最后一次游玩", _levelDataInfo.LastPlayed.ToString())
+        AddInfoTable("最后一次游玩", _levelDataInfo.LastPlayed.ToString("yyyy-MM-dd HH:mm:ss"))
         AddInfoTable("出生点 (X/Y/Z)", _levelDataInfo.SpawnPoint)
         AddInfoTable("游戏模式", _levelDataInfo.GameType)
         
+        ' 显示难度信息（1.8以下不显示）
         If _levelDataInfo.HasDifficulty AndAlso Hintversion1_8.Visibility <> Visibility.Visible Then
-            Dim difficultyName As String
-            If _levelDataInfo.IsNewFormat AndAlso _levelDataInfo.Difficulty IsNot Nothing Then
-                difficultyName = NbtHelper.GetDifficultyName(_levelDataInfo.Difficulty)
-            Else
-                difficultyName = NbtHelper.GetDifficultyName(_levelDataInfo.DifficultyOld)
-            End If
             Dim lockedStatus = If(_levelDataInfo.IsDifficultyLocked OrElse _levelDataInfo.IsHardcore, "是", "否")
-            AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{lockedStatus})")
+            AddInfoTable("困难度", $"{_levelDataInfo.DifficultyDisplayName} (是否已锁定难度：{lockedStatus})")
         End If
         
         AddInfoTable("游戏时长", FormatPlayTime(_levelDataInfo.PlayTime))
@@ -122,18 +125,27 @@ Class PageInstanceSavesInfo
     Private Sub AddSettingsControls()
         Dim saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
         
+        ' 初始化写入器
+        Dim nbtFile = _levelDataReader.GetNbtFile()
+        If nbtFile Is Nothing Then
+            Log("无法获取 NBT 文件对象", LogLevel.Hint)
+            Return
+        End If
+        
+        _levelDataWriter = New LevelDataWriter(saveDatPath, nbtFile)
+        
         ' 命令权限设置
         If _levelDataInfo.HasAllowCommands Then
-            AddAllowCommandsControl(saveDatPath)
+            AddAllowCommandsControl()
         End If
         
         ' 难度设置
         If _levelDataInfo.HasDifficulty Then
-            AddDifficultyControl(saveDatPath)
+            AddDifficultyControl()
         End If
     End Sub
     
-    Private Sub AddAllowCommandsControl(saveDatPath As String)
+    Private Sub AddAllowCommandsControl()
         PanSettings.Visibility = Visibility.Visible
         
         Dim combo As New MyComboBox() With {
@@ -148,22 +160,28 @@ Class PageInstanceSavesInfo
         combo.DisplayMemberPath = "Display"
         combo.SelectedValue = _levelDataInfo.AllowCommands
         
-        AddHandler combo.SelectionChanged, Sub(s, e)
+        AddHandler combo.SelectionChanged, Async Sub(s, e)
             Try
                 Dim newVal As Integer = CInt(combo.SelectedValue)
-                NbtHelper.ModifyAllowCommands(_currentSaveInfo, newVal)
-                NbtHelper.SaveLevelData(saveDatPath, _currentSaveInfo)
-                _levelDataInfo.AllowCommands = newVal
-                Hint("作弊设置修改成功", HintType.Finish)
+                _levelDataWriter.ModifyAllowCommands(newVal)
+                Dim success = Await _levelDataWriter.SaveAsync()
+                
+                If success Then
+                    _levelDataInfo.AllowCommands = newVal
+                    Hint("作弊设置修改成功", HintType.Finish)
+                Else
+                    Hint("作弊设置修改失败", HintType.Critical)
+                End If
             Catch ex As Exception
                 Log(ex, "作弊设置修改失败", LogLevel.Hint)
+                Hint("作弊设置修改失败：" & ex.Message, HintType.Critical)
             End Try
         End Sub
         
         AddSettingRow("是否允许作弊", combo)
     End Sub
     
-    Private Sub AddDifficultyControl(saveDatPath As String)
+    Private Sub AddDifficultyControl()
         PanSettings.Visibility = Visibility.Visible
         
         Dim difficultyCombo As New MyComboBox() With {
@@ -217,28 +235,31 @@ Class PageInstanceSavesInfo
         difficultyPanel.Children.Add(difficultyCombo)
         difficultyPanel.Children.Add(lockCheckBox)
         
-        ' 难度修改事件
-        AddHandler difficultyCombo.SelectionChanged, Sub(s, e)
+        AddHandler difficultyCombo.SelectionChanged, Async Sub(s, e)
             If difficultyCombo.SelectedValue Is Nothing Then Return
-            SaveDifficultySettings(difficultyCombo, lockCheckBox, saveDatPath)
+            Await SaveDifficultySettingsAsync(difficultyCombo, lockCheckBox)
         End Sub
         
-        ' 锁定状态修改事件
-        AddHandler lockCheckBox.Change, Sub(sender, user)
+        AddHandler lockCheckBox.Change, Async Sub(sender, user)
             If difficultyCombo.SelectedValue Is Nothing Then Return
-            SaveDifficultySettings(difficultyCombo, lockCheckBox, saveDatPath)
+            Await SaveDifficultySettingsAsync(difficultyCombo, lockCheckBox)
         End Sub
         
         AddSettingRow("游戏难度", difficultyPanel)
     End Sub
     
-    Private Sub SaveDifficultySettings(difficultyCombo As MyComboBox, lockCheckBox As MyCheckBox, saveDatPath As String)
+    Private Async Function SaveDifficultySettingsAsync(difficultyCombo As MyComboBox, lockCheckBox As MyCheckBox) As Task
         Try
             Dim newDifficulty As Integer = CInt(difficultyCombo.SelectedValue)
             Dim newLocked As Boolean = If(lockCheckBox.Visibility = Visibility.Visible, lockCheckBox.Checked, False)
             
-            NbtHelper.ModifyDifficulty(_currentSaveInfo, newDifficulty, newLocked, _levelDataInfo.IsHardcore, _levelDataInfo.IsNewFormat)
-            NbtHelper.SaveLevelData(saveDatPath, _currentSaveInfo)
+            _levelDataWriter.ModifyDifficulty(newDifficulty, newLocked, _levelDataInfo.IsHardcore, _levelDataInfo.IsNewFormat)
+            Dim success = Await _levelDataWriter.SaveAsync()
+            
+            If Not success Then
+                Hint("难度设置修改失败", HintType.Critical)
+                Return
+            End If
             
             ' 更新本地缓存
             If _levelDataInfo.IsNewFormat Then
@@ -260,8 +281,9 @@ Class PageInstanceSavesInfo
             Hint("难度设置修改成功", HintType.Finish)
         Catch ex As Exception
             Log(ex, "难度设置修改失败", LogLevel.Hint)
+            Hint("难度设置修改失败：" & ex.Message, HintType.Critical)
         End Try
-    End Sub
+    End Function
     
     Private Sub AddSettingRow(headText As String, control As UIElement)
         Dim rowIndex = PanSettingsList.RowDefinitions.Count
@@ -296,8 +318,10 @@ Class PageInstanceSavesInfo
             AddHandler copyBtn.Click, Sub()
                 Try
                     ClipboardSet(content)
+                    Hint("已复制到剪贴板", HintType.Finish)
                 Catch ex As Exception
                     Log(ex, "复制到剪贴板失败", LogLevel.Hint)
+                    Hint("复制失败：" & ex.Message, HintType.Critical)
                 End Try
             End Sub
         Else
@@ -307,7 +331,7 @@ Class PageInstanceSavesInfo
         contentStack.Children.Add(contentTextBlock)
         
         ' 添加Chunkbase跳转按钮
-        If isSeed AndAlso content <> "获取失败" Then
+        If isSeed AndAlso content <> "获取失败" AndAlso content <> "未知" Then
             AddChunkbaseButton(contentStack, content, versionName)
         End If
         
@@ -317,23 +341,31 @@ Class PageInstanceSavesInfo
     Private Sub AddChunkbaseButton(parentStack As StackPanel, seed As String, versionName As String)
         Dim chunkbaseBtn As New MyIconButton With {
             .Logo = Logo.IconButtonlink,
-            .ToolTip = "跳转到 Chunkbase",
+            .ToolTip = "跳转到 Chunkbase 查看地图",
             .Width = 22,
-            .Height = 22
+            .Height = 22,
+            .Margin = New Thickness(5, 0, 0, 0)
         }
         
         parentStack.Children.Add(chunkbaseBtn)
         
         AddHandler chunkbaseBtn.Click, Sub()
             Try
-                Dim url = NbtHelper.BuildChunkbaseUrl(seed, versionName)
+                Dim url = ChunkbaseHelper.BuildUrl(seed, versionName)
                 If url Is Nothing Then
-                    Log(If(versionName Is Nothing, "当前存档版本无法确定", $"当前存档版本 '{versionName}' 可能是预览版，不受支持"), LogLevel.Hint)
+                    If versionName Is Nothing Then
+                        Log("当前存档版本无法确定，无法跳转到 Chunkbase", LogLevel.Hint)
+                        Hint("无法确定存档版本", HintType.Critical)
+                    Else
+                        Log($"当前存档版本 '{versionName}' 可能是预览版，Chunkbase 不支持", LogLevel.Hint)
+                        Hint($"版本 {versionName} 暂不支持", HintType.Critical)
+                    End If
                     Return
                 End If
                 OpenWebsite(url)
             Catch ex As Exception
                 Log(ex, "跳转到 Chunkbase 失败", LogLevel.Hint)
+                Hint("跳转失败：" & ex.Message, HintType.Critical)
             End Try
         End Sub
     End Sub
@@ -353,6 +385,14 @@ Class PageInstanceSavesInfo
     End Sub
     
     Private Function FormatPlayTime(playTime As TimeSpan) As String
-        Return $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
+        If playTime.TotalSeconds < 60 Then
+            Return $"{playTime.Seconds} 秒"
+        ElseIf playTime.TotalHours < 1 Then
+            Return $"{playTime.Minutes} 分钟 {playTime.Seconds} 秒"
+        ElseIf playTime.TotalDays < 1 Then
+            Return $"{playTime.Hours} 小时 {playTime.Minutes} 分钟"
+        Else
+            Return $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
+        End If
     End Function
 End Class
