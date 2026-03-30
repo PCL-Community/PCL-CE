@@ -111,11 +111,6 @@ Class PageInstanceSavesInfo
         AddInfoTable("出生点 (X/Y/Z)", info.SpawnPoint)
         AddInfoTable("游戏模式", info.GameType)
 
-        If info.HasDifficulty AndAlso Hintversion1_8.Visibility <> Visibility.Visible Then
-            Dim lockedStatus = If(info.IsDifficultyLocked OrElse info.IsHardcore, "是", "否")
-            AddInfoTable("困难度", $"{info.DifficultyDisplay} (是否已锁定难度：{lockedStatus})")
-        End If
-
         AddInfoTable("游戏时长", FormatPlayTime(info.PlayTime))
     End Sub
 
