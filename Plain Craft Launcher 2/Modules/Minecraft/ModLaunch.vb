@@ -1538,8 +1538,7 @@ LoginFinish:
     ''' 判断是否启用了针对 Minecraft 26.1+ 的性能问题补丁
     ''' </summary>
     Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
-        Return (Mc.ReleaseTime >= New Date(2026, 3, 24) AndAlso Mc.Info.Drop >= 261) OrElse
-            (Mc.Info.Drop >= 261 AndAlso Mc.Info.Drop <> 99) AndAlso
+        Return (Mc.Info.Drop >= 261) AndAlso
             Setup.Get("LaunchAdvanceUseLwjglUnsafeAgent") AndAlso
             Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
     End Function
