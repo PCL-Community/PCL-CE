@@ -111,7 +111,7 @@ Class PageInstanceSavesInfo
         AddInfoTable("出生点 (X/Y/Z)", info.SpawnPoint)
         AddInfoTable("游戏模式", info.GameType)
 
-        AddInfoTable("游戏时长", FormatPlayTime(info.PlayTime))
+        AddInfoTable("游戏时长", SavesPlayTime.FormatPlayTime(info.PlayTime))
     End Sub
 
     Private Function GetVersionHint(hasDataVersion As Boolean, hasDifficulty As Boolean, hasAllowCommands As Boolean) As String
@@ -378,15 +378,4 @@ Class PageInstanceSavesInfo
         Grid.SetColumn(contentStack, 2)
     End Sub
 
-    Private Function FormatPlayTime(playTime As TimeSpan) As String
-        If playTime.TotalSeconds < 60 Then
-            Return $"{playTime.Seconds} 秒"
-        ElseIf playTime.TotalHours < 1 Then
-            Return $"{playTime.Minutes} 分钟 {playTime.Seconds} 秒"
-        ElseIf playTime.TotalDays < 1 Then
-            Return $"{playTime.Hours} 小时 {playTime.Minutes} 分钟"
-        Else
-            Return $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟"
-        End If
-    End Function
 End Class
