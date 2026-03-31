@@ -1545,7 +1545,7 @@ LoginFinish:
             If parts.Length >= 3 AndAlso
                parts(0).Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) AndAlso
                parts(1).Equals("lwjgl", StringComparison.OrdinalIgnoreCase) Then
-                Return parts(2)
+               Return parts(2)
             End If
         Next
         
@@ -1556,8 +1556,10 @@ LoginFinish:
     ''' 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
     ''' </summary>
     Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
-        Return McLaunchGetLwjglVersion(Mc) IsNot Nothing AndAlso
-               McLaunchGetLwjglVersion(Mc).Equals("3.4.1") AndAlso
+        Dim lwjglVersion = McLaunchGetLwjglVersion(Mc)
+        
+        Return lwjglVersion IsNot Nothing AndAlso
+               lwjglVersion.Equals("3.4.1") AndAlso
                Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc) OrElse
                Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent")
     End Function
