@@ -185,62 +185,45 @@ Class PageInstanceSavesInfo
         panel.Children.Add(combo)
         panel.Children.Add(lockBox)
 
-        AddHandler combo.SelectionChanged,
-            Async Sub(s, e)
-                If combo.SelectedValue Is Nothing Then Return
-                Await SaveDifficultyAsync(combo, lockBox)
-            End Sub
+        Dim saveAction = New Func(Of Task)(Async Function()
+            If combo.SelectedValue Is Nothing Then Return
+            Dim newDifficulty As Integer = CInt(combo.SelectedValue)
+            Dim newLocked As Boolean = (lockBox.Visibility = Visibility.Visible AndAlso lockBox.Checked)
+        
+            Await SaveSettingAsync(
+                Sub()
+                    Dim gameLevel = _loadResult.NbtFile.RootTag.Get(Of NbtCompound)("Data")
+                    _currentWriter.ModifyDifficulty(gameLevel, newDifficulty, newLocked)
+                End Sub,
+                "难度设置",
+                Sub()
+                    Select Case newDifficulty
+                        Case 0 : _loadResult.Info.DifficultyDisplay = "和平"
+                        Case 1 : _loadResult.Info.DifficultyDisplay = "简单"
+                        Case 2 : _loadResult.Info.DifficultyDisplay = "普通"
+                        Case 3 : _loadResult.Info.DifficultyDisplay = "困难"
+                    End Select
+                    _loadResult.Info.IsDifficultyLocked = newLocked
+                End Sub)
+        End Function)
 
-        AddHandler lockBox.Change,
-            Async Sub(sender, user)
-                If combo.SelectedValue Is Nothing Then Return
-                Await SaveDifficultyAsync(combo, lockBox)
-            End Sub
+        AddHandler combo.SelectionChanged, Async Sub(s, e) Await saveAction()
+        AddHandler lockBox.Change, Async Sub(sender, user) Await saveAction()
 
         AddSettingRow("游戏难度", panel)
     End Sub
-
-    Private Async Function SaveDifficultyAsync(combo As MyComboBox, lockBox As MyCheckBox) As Task
-        Try
-            Dim newDifficulty As Integer = CInt(combo.SelectedValue)
-            Dim newLocked As Boolean = (lockBox.Visibility = Visibility.Visible AndAlso lockBox.Checked)
-            Dim gameLevel = _loadResult.NbtFile.RootTag.Get(Of NbtCompound)("Data")
-
-            _currentWriter.ModifyDifficulty(gameLevel, newDifficulty, newLocked)
-            Dim success = Await _service.SaveAsync(_saveDatPath, _loadResult.NbtFile)
-
-            If Not success Then
-                Hint("难度设置修改失败", HintType.Critical)
-                Return
-            End If
-
-            ' 更新本地缓存
-            Select Case newDifficulty
-                Case 0 : _loadResult.Info.DifficultyDisplay = "和平"
-                Case 1 : _loadResult.Info.DifficultyDisplay = "简单"
-                Case 2 : _loadResult.Info.DifficultyDisplay = "普通"
-                Case 3 : _loadResult.Info.DifficultyDisplay = "困难"
-            End Select
-            _loadResult.Info.IsDifficultyLocked = newLocked
-
-            Hint("难度设置修改成功", HintType.Finish)
-        Catch ex As Exception
-            Log(ex, "难度设置修改失败", LogLevel.Hint)
-            Hint("难度设置修改失败：" & ex.Message, HintType.Critical)
-        End Try
-    End Function
-
-    Private Async Function SaveSettingAsync(modifyAction As Action, settingName As String) As Task
+    
+    Private Async Function SaveSettingAsync(modifyAction As Action, settingName As String, Optional onSuccess As Action = Nothing) As Task
         Try
             modifyAction()
             If Await _service.SaveAsync(_saveDatPath, _loadResult.NbtFile) Then
+                onSuccess?.Invoke()
                 Hint($"{settingName}修改成功", HintType.Finish)
             Else
                 Hint($"{settingName}修改失败", HintType.Critical)
             End If
         Catch ex As Exception
-            Log(ex, $"{settingName}修改失败", LogLevel.Hint)
-            Hint($"{settingName}修改失败：{ex.Message}", HintType.Critical)
+            Log($"{settingName}修改失败：{ex.Message}", HintType.Critical)
         End Try
     End Function
 
