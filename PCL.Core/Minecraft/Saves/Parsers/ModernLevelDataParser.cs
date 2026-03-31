@@ -21,7 +21,7 @@ public class ModernLevelDataParser : ILevelDataParser
         // 存档名称
         result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? null!;
 
-        // 版本信息（Version 复合标签，位置未变）
+        // 版本信息
         var versionCompound = dataTag.Get<NbtCompound>("Version");
         if (versionCompound != null)
         {
@@ -29,14 +29,14 @@ public class ModernLevelDataParser : ILevelDataParser
             result.VersionId = versionCompound.Get<NbtInt>("Id")?.Value;
         }
 
-        // 种子：从 world_gen_settings.dat 读取
+        // 种子
         result.Seed = ReadSeedFromWorldGenSettings(saveFolderPath) ?? null!;
 
         // 命令权限
         result.HasAllowCommands = dataTag.Contains("allowCommands");
         result.AllowCommands = dataTag.Get<NbtByte>("allowCommands")?.Value;
 
-        // 难度和锁定：从 difficulty_settings 读取
+        // 难度和锁定
         var difficultySettings = dataTag.Get<NbtCompound>("difficulty_settings");
         if (difficultySettings != null)
         {
@@ -63,7 +63,7 @@ public class ModernLevelDataParser : ILevelDataParser
             result.LastPlayed = DateTimeOffset.FromUnixTimeMilliseconds(lastPlayedTag.Value).LocalDateTime;
         }
 
-        // 出生点：新格式在 spawn.pos
+        // 出生点
         result.SpawnPoint = GetSpawnPointModern(dataTag) ?? null!;
 
         // 游戏模式

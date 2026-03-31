@@ -21,7 +21,7 @@ public class LegacyLevelDataParser : ILevelDataParser
         // 存档名称
         result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? null!;
 
-        // 版本信息（Version 复合标签）
+        // 版本信息
         var versionCompound = dataTag.Get<NbtCompound>("Version");
         if (versionCompound != null)
         {
@@ -29,7 +29,7 @@ public class LegacyLevelDataParser : ILevelDataParser
             result.VersionId = versionCompound.Get<NbtInt>("Id")?.Value;
         }
 
-        // 种子：从 RandomSeed 或 WorldGenSettings.seed 读取
+        // 种子
         result.Seed = GetSeedLegacy(dataTag) ?? null!;
 
         // 命令权限

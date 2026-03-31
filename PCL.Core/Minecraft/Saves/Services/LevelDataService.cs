@@ -48,9 +48,6 @@ public class LevelDataService
             var saveFolderPath = Path.GetDirectoryName(levelDatPath) ?? string.Empty;
             var info = parser.Parse(dataTag, saveFolderPath);
 
-            // 补充一些在两个格式中通用的字段（已由解析器完成，但可再统一处理）
-            // 实际上解析器中已经填充了通用字段，这里无需重复
-
             return new LevelDataLoadResult
             {
                 Info = info,
