@@ -264,8 +264,10 @@ Class PageInstanceSavesInfo
         Dim headBlock = New TextBlock() With {.Text = head, .Margin = New Thickness(0, 3, 0, 3)}
         Dim panel = New StackPanel() With {.Orientation = Orientation.Horizontal}
 
-        If isSeed AndAlso content <> "获取失败" Then
-            Dim btn = New MyTextButton() With {.Text = content, .Margin = New Thickness(0, 3, 0, 3)}
+        Dim displayContent = If(content, "获取失败")
+        
+        If isSeed AndAlso displayContent <> "获取失败" Then
+            Dim btn = New MyTextButton() With {.Text = displayContent, .Margin = New Thickness(0, 3, 0, 3)}
             AddHandler btn.Click,
                 Sub()
                     Try
@@ -277,9 +279,11 @@ Class PageInstanceSavesInfo
                     End Try
                 End Sub
             panel.Children.Add(btn)
-            AddChunkbaseButton(panel, content, versionName)
+            If Not String.IsNullOrEmpty(content) Then
+                AddChunkbaseButton(panel, content, versionName)
+            End If
         Else
-            panel.Children.Add(New TextBlock() With {.Text = content, .Margin = New Thickness(0, 3, 0, 3)})
+            panel.Children.Add(New TextBlock() With {.Text = displayContent, .Margin = New Thickness(0, 3, 0, 3)})
         End If
 
         Dim idx = PanList.RowDefinitions.Count

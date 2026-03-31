@@ -19,7 +19,7 @@ public class LegacyLevelDataParser : ILevelDataParser
         };
 
         // 存档名称
-        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? "获取失败";
+        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? null!;
 
         // 版本信息（Version 复合标签）
         var versionCompound = dataTag.Get<NbtCompound>("Version");
@@ -30,7 +30,7 @@ public class LegacyLevelDataParser : ILevelDataParser
         }
 
         // 种子：从 RandomSeed 或 WorldGenSettings.seed 读取
-        result.Seed = GetSeedLegacy(dataTag);
+        result.Seed = GetSeedLegacy(dataTag) ?? null!;
 
         // 命令权限
         result.HasAllowCommands = dataTag.Contains("allowCommands");
@@ -47,7 +47,7 @@ public class LegacyLevelDataParser : ILevelDataParser
                 1 => "简单",
                 2 => "普通",
                 3 => "困难",
-                _ => "获取失败"
+                _ => null!
             };
         }
         result.IsDifficultyLocked = dataTag.Get<NbtByte>("DifficultyLocked")?.Value == 1;
@@ -63,10 +63,10 @@ public class LegacyLevelDataParser : ILevelDataParser
         }
 
         // 出生点
-        result.SpawnPoint = GetSpawnPointLegacy(dataTag);
+        result.SpawnPoint = GetSpawnPointLegacy(dataTag) ?? null!;
 
         // 游戏模式
-        result.GameType = GetGameTypeLegacy(dataTag, result.IsHardcore);
+        result.GameType = GetGameTypeLegacy(dataTag, result.IsHardcore) ?? null!;
 
         // 游戏时长
         var timeTag = dataTag.Get<NbtLong>("Time");
@@ -78,7 +78,7 @@ public class LegacyLevelDataParser : ILevelDataParser
         return result;
     }
 
-    private string GetSeedLegacy(NbtCompound dataTag)
+    private string? GetSeedLegacy(NbtCompound dataTag)
     {
         var seedLong = dataTag.Get<NbtLong>("RandomSeed");
         if (seedLong != null)
@@ -91,10 +91,10 @@ public class LegacyLevelDataParser : ILevelDataParser
             if (seed != null)
                 return seed.Value.ToString();
         }
-        return "获取失败";
+        return null;
     }
 
-    private string GetSpawnPointLegacy(NbtCompound dataTag)
+    private string? GetSpawnPointLegacy(NbtCompound dataTag)
     {
         var spawnX = dataTag.Get<NbtInt>("SpawnX");
         if (spawnX != null)
@@ -112,17 +112,17 @@ public class LegacyLevelDataParser : ILevelDataParser
             if (posArray?.Value.Length >= 3)
                 return $"{posArray.Value[0]} / {posArray.Value[1]} / {posArray.Value[2]}";
         }
-        return "获取失败";
+        return null;
     }
 
-    private string GetGameTypeLegacy(NbtCompound dataTag, bool isHardcore)
+    private string? GetGameTypeLegacy(NbtCompound dataTag, bool isHardcore)
     {
         if (isHardcore)
             return "极限模式";
 
         var gameTypeTag = dataTag.Get<NbtInt>("GameType");
         if (gameTypeTag == null)
-            return "获取失败";
+            return null;
 
         return gameTypeTag.Value switch
         {
@@ -130,7 +130,7 @@ public class LegacyLevelDataParser : ILevelDataParser
             1 => "创造模式",
             2 => "冒险模式",
             3 => "旁观模式",
-            _ => "获取失败"
+            _ => null
         };
     }
 }

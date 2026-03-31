@@ -19,7 +19,7 @@ public class ModernLevelDataParser : ILevelDataParser
         };
 
         // 存档名称
-        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? "获取失败";
+        result.LevelName = dataTag.Get<NbtString>("LevelName")?.Value ?? null!;
 
         // 版本信息（Version 复合标签，位置未变）
         var versionCompound = dataTag.Get<NbtCompound>("Version");
@@ -30,7 +30,7 @@ public class ModernLevelDataParser : ILevelDataParser
         }
 
         // 种子：从 world_gen_settings.dat 读取
-        result.Seed = ReadSeedFromWorldGenSettings(saveFolderPath) ?? "获取失败";
+        result.Seed = ReadSeedFromWorldGenSettings(saveFolderPath) ?? null!;
 
         // 命令权限
         result.HasAllowCommands = dataTag.Contains("allowCommands");
@@ -48,7 +48,7 @@ public class ModernLevelDataParser : ILevelDataParser
                 "easy" => "简单",
                 "normal" => "普通",
                 "hard" => "困难",
-                _ => "获取失败"
+                _ => null!
             };
             result.IsDifficultyLocked = difficultySettings.Get<NbtByte>("locked")?.Value == 1;
         }
@@ -64,10 +64,10 @@ public class ModernLevelDataParser : ILevelDataParser
         }
 
         // 出生点：新格式在 spawn.pos
-        result.SpawnPoint = GetSpawnPointModern(dataTag);
+        result.SpawnPoint = GetSpawnPointModern(dataTag) ?? null!;
 
         // 游戏模式
-        result.GameType = GetGameTypeModern(dataTag, result.IsHardcore);
+        result.GameType = GetGameTypeModern(dataTag, result.IsHardcore) ?? null!;
 
         // 游戏时长
         var timeTag = dataTag.Get<NbtLong>("Time");
@@ -101,7 +101,7 @@ public class ModernLevelDataParser : ILevelDataParser
         }
     }
 
-    private string GetSpawnPointModern(NbtCompound dataTag)
+    private string? GetSpawnPointModern(NbtCompound dataTag)
     {
         var spawnCompound = dataTag.Get<NbtCompound>("spawn");
         if (spawnCompound != null)
@@ -110,17 +110,17 @@ public class ModernLevelDataParser : ILevelDataParser
             if (posArray?.Value.Length >= 3)
                 return $"{posArray.Value[0]} / {posArray.Value[1]} / {posArray.Value[2]}";
         }
-        return "获取失败";
+        return null;
     }
 
-    private string GetGameTypeModern(NbtCompound dataTag, bool isHardcore)
+    private string? GetGameTypeModern(NbtCompound dataTag, bool isHardcore)
     {
         if (isHardcore)
             return "极限模式";
 
         var gameTypeTag = dataTag.Get<NbtInt>("GameType");
         if (gameTypeTag == null)
-            return "获取失败";
+            return null;
 
         return gameTypeTag.Value switch
         {
@@ -128,7 +128,7 @@ public class ModernLevelDataParser : ILevelDataParser
             1 => "创造模式",
             2 => "冒险模式",
             3 => "旁观模式",
-            _ => "获取失败"
+            _ => null
         };
     }
 }
