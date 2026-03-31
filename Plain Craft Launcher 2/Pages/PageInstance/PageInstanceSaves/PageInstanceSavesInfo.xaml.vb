@@ -1,16 +1,9 @@
-﻿Imports PCL.Core.Minecraft.Saves.Services
-Imports System.IO
-Imports fNbt
-Imports PCL.Core.Minecraft.Saves
-Imports PCL.Core.Minecraft.Saves.Writers
+﻿Imports PCL.Core.Minecraft.Saves
 
 Class PageInstanceSavesInfo
     Implements IRefreshable
 
-    Private ReadOnly _service As New LevelDataService()
-    Private _loadResult As LevelDataLoadResult
-    Private _currentWriter As ILevelDataWriter
-    Private _saveDatPath As String
+    Private ReadOnly _viewModel As New LevelDataViewModel()
     Private _loaded As Boolean
 
     Private Sub IRefreshable_Refresh() Implements IRefreshable.Refresh
@@ -19,45 +12,56 @@ Class PageInstanceSavesInfo
 
     Public Async Sub Refresh()
         If _loaded Then
-            Await RefreshInfo()
+            Await _viewModel.LoadAsync(IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat"))
         End If
     End Sub
 
     Private Async Sub Init() Handles Me.Loaded
         PanBack.ScrollToHome()
         _loaded = True
-        Await RefreshInfo()
+        
+        ' 订阅事件
+        AddHandler _viewModel.OnDataChanged, AddressOf OnDataChanged
+        
+        ' 加载数据
+        Await _viewModel.LoadAsync(IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat"))
     End Sub
 
-    Private Async Function RefreshInfo() As Task
-        Try
-            _saveDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat")
-            If Not File.Exists(_saveDatPath) Then
-                PanContent.Visibility = Visibility.Collapsed
-                Log("未找到 level.dat 文件，可能存档已损坏", LogLevel.Hint)
-                Return
-            End If
-
-            _loadResult = Await _service.LoadAsync(_saveDatPath)
-            If _loadResult Is Nothing Then Throw New Exception("无法解析存档数据")
-
-            _currentWriter = _service.GetWriter(_loadResult.NbtFile)
-            ClearUI()
-            UpdateUI()
-            PanContent.Visibility = Visibility.Visible
-
-        Catch ex As Exception
-            Log(ex, "获取存档信息失败", LogLevel.Msgbox)
-            PanContent.Visibility = Visibility.Collapsed
-            PanSettings.Visibility = Visibility.Collapsed
-            HideAllHints()
-        End Try
-    End Function
-
-    Private Sub HideAllHints()
+    Private Sub OnDataChanged()
+        UpdateUI()
+    End Sub
+    
+    Private Sub UpdateUI()
+        ' 设置可见性
+        PanContent.Visibility = If(_viewModel.HasData, Visibility.Visible, Visibility.Collapsed)
+        PanSettings.Visibility = If(_viewModel.ShowSettings, Visibility.Visible, Visibility.Collapsed)
+        
+        ' 版本提示
         Hintversion1_9.Visibility = Visibility.Collapsed
         Hintversion1_8.Visibility = Visibility.Collapsed
         Hintversion1_3.Visibility = Visibility.Collapsed
+        
+        If _viewModel.ShowVersionHint Then
+            Dim hintText = _viewModel.VersionHint
+            If hintText.Contains("1.9") Then
+                Hintversion1_9.Text = hintText
+                Hintversion1_9.Visibility = Visibility.Visible
+            ElseIf hintText.Contains("1.8") Then
+                Hintversion1_8.Text = hintText
+                Hintversion1_8.Visibility = Visibility.Visible
+            ElseIf hintText.Contains("1.3") Then
+                Hintversion1_3.Text = hintText
+                Hintversion1_3.Visibility = Visibility.Visible
+            End If
+        End If
+        
+        ' 数据包按钮
+        FrmInstanceSavesLeft.ItemDatapack.Visibility = If(_viewModel.ShowDatapackButton, Visibility.Visible, Visibility.Collapsed)
+        
+        ' 清空并重建 UI
+        ClearUI()
+        BuildInfoRows()
+        BuildSettingRows()
     End Sub
 
     Private Sub ClearUI()
@@ -65,55 +69,30 @@ Class PageInstanceSavesInfo
         PanList.RowDefinitions.Clear()
         PanSettingsList.Children.Clear()
         PanSettingsList.RowDefinitions.Clear()
-        HideAllHints()
-        PanSettings.Visibility = Visibility.Collapsed
     End Sub
 
-    Private Sub UpdateUI()
-        Dim info = _loadResult.Info
-
-        ' 版本提示
-        Dim hintMsg As String = Nothing
-        If Not info.HasDataVersion Then
-            If info.HasDifficulty Then
-                hintMsg = "1.9 以下的版本无法获取存档版本"
-                Hintversion1_9.Text = hintMsg
-                Hintversion1_9.Visibility = Visibility.Visible
-            ElseIf info.HasAllowCommands Then
-                hintMsg = "1.8 以下的版本无法获取存档版本和游戏难度"
-                Hintversion1_8.Text = hintMsg
-                Hintversion1_8.Visibility = Visibility.Visible
-            Else
-                hintMsg = "1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊"
-                Hintversion1_3.Text = hintMsg
-                Hintversion1_3.Visibility = Visibility.Visible
-            End If
+    Private Sub BuildInfoRows()
+        AddInfoRow("存档名称", _viewModel.LevelName)
+        
+        If Not String.IsNullOrEmpty(_viewModel.VersionDisplay) Then
+            AddInfoRow("存档版本", _viewModel.VersionDisplay)
         End If
+        
+        AddInfoRow("种子", _viewModel.Seed, isSeed:=True)
+        AddInfoRow("最后一次游玩", _viewModel.LastPlayed)
+        AddInfoRow("出生点 (X/Y/Z)", _viewModel.SpawnPoint)
+        AddInfoRow("游戏模式", _viewModel.GameType)
+        AddInfoRow("游戏时长", _viewModel.PlayTime)
+    End Sub
 
-        ' 数据包按钮 (1.13+)
-        FrmInstanceSavesLeft.ItemDatapack.Visibility = If(info.DataVersion.HasValue AndAlso info.DataVersion.Value >= 1444, Visibility.Visible, Visibility.Collapsed)
-
-        ' 基本信息
-        AddInfoRow("存档名称", info.LevelName)
-        If info.VersionName IsNot Nothing Then
-            If info.VersionId.HasValue Then
-                AddInfoRow("存档版本", $"{info.VersionName} ({info.VersionId.Value})")
-            Else
-                AddInfoRow("存档版本", info.VersionName)
-            End If
+    Private Sub BuildSettingRows()
+        If _viewModel.HasAllowCommands Then
+            AddAllowCommandsControl()
         End If
-        AddInfoRow("种子", info.Seed, True, info.VersionName)
-
-        ' 设置控件
-        If info.HasAllowCommands Then AddAllowCommandsControl()
-        If info.HasDifficulty Then AddDifficultyControl()
-        If PanSettingsList.Children.Count > 0 Then PanSettings.Visibility = Visibility.Visible
-
-        ' 其他信息
-        AddInfoRow("最后一次游玩", info.LastPlayed.ToString("yyyy-MM-dd HH:mm:ss"))
-        AddInfoRow("出生点 (X/Y/Z)", info.SpawnPoint)
-        AddInfoRow("游戏模式", info.GameType)
-        AddInfoRow("游戏时长", SavesPlayTime.FormatPlayTime(info.PlayTime))
+        
+        If _viewModel.HasDifficulty Then
+            AddDifficultyControl()
+        End If
     End Sub
 
     Private Sub AddAllowCommandsControl()
@@ -122,153 +101,106 @@ Class PageInstanceSavesInfo
             .HorizontalAlignment = HorizontalAlignment.Left,
             .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
         }
-        combo.Items.Add(New With {.Value = 0, .Display = "不允许"})
-        combo.Items.Add(New With {.Value = 1, .Display = "允许"})
+        
+        combo.ItemsSource = _viewModel.AllowCommandsOptions
         combo.SelectedValuePath = "Value"
         combo.DisplayMemberPath = "Display"
-        combo.SelectedValue = _loadResult.Info.AllowCommands
-
+        combo.SelectedValue = _viewModel.AllowCommands
+        
         AddHandler combo.SelectionChanged,
             Async Sub(s, e)
-                Await SaveSettingAsync(
-                    Sub()
-                        Dim gameLevel = _loadResult.NbtFile.RootTag.Get(Of NbtCompound)("Data")
-                        _currentWriter.ModifyAllowCommands(gameLevel, CInt(combo.SelectedValue))
-                    End Sub,
-                    "作弊设置")
+                If combo.SelectedValue IsNot Nothing Then
+                    Await _viewModel.SaveAllowCommandsAsync(CInt(combo.SelectedValue))
+                    ' 刷新显示
+                    combo.SelectedValue = _viewModel.AllowCommands
+                End If
             End Sub
-
+        
         AddSettingRow("是否允许作弊", combo)
     End Sub
 
     Private Sub AddDifficultyControl()
-        Dim info = _loadResult.Info
         Dim combo = New MyComboBox() With {
-            .Width = 100,
-            .HorizontalAlignment = HorizontalAlignment.Left,
-            .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
-        }
-        combo.Items.Add(New With {.Value = 0, .Display = "和平"})
-        combo.Items.Add(New With {.Value = 1, .Display = "简单"})
-        combo.Items.Add(New With {.Value = 2, .Display = "普通"})
-        combo.Items.Add(New With {.Value = 3, .Display = "困难"})
-        combo.SelectedValuePath = "Value"
+                .Width = 100,
+                .HorizontalAlignment = HorizontalAlignment.Left,
+                .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
+                }
+    
+        combo.ItemsSource = _viewModel.DifficultyOptions
+        combo.SelectedValuePath = "Display"
         combo.DisplayMemberPath = "Display"
-
-        Dim currentDifficulty = info.DifficultyDisplay
-        If currentDifficulty = "和平" Then
-            combo.SelectedValue = 0
-        ElseIf currentDifficulty = "简单" Then
-            combo.SelectedValue = 1
-        ElseIf currentDifficulty = "普通" Then
-            combo.SelectedValue = 2
-        ElseIf currentDifficulty = "困难" Then
-            combo.SelectedValue = 3
-        End If
-
+        combo.SelectedValue = _viewModel.DifficultyDisplay
+    
         Dim lockBox As New MyCheckBox() With {
-            .Text = "锁定难度",
-            .ToolTip = "锁定后无法在游戏中更改游戏难度",
-            .VerticalAlignment = VerticalAlignment.Center,
-            .Margin = New Thickness(10, 0, 0, 0)
-        }
-        If info.IsHardcore Then
-            lockBox.Visibility = Visibility.Collapsed
-        Else
-            lockBox.Checked = info.IsDifficultyLocked
-        End If
-
+                .Text = "锁定难度",
+                .ToolTip = "锁定后无法在游戏中更改游戏难度",
+                .VerticalAlignment = VerticalAlignment.Center,
+                .Margin = New Thickness(10, 0, 0, 0),
+                .Visibility = If(_viewModel.ShowDifficultyLock, Visibility.Visible, Visibility.Collapsed),
+                .Checked = _viewModel.IsDifficultyLocked
+                }
+    
         Dim panel As New StackPanel() With {
-            .Orientation = Orientation.Horizontal,
-            .HorizontalAlignment = HorizontalAlignment.Left
-        }
+                .Orientation = Orientation.Horizontal,
+                .HorizontalAlignment = HorizontalAlignment.Left
+                }
         panel.Children.Add(combo)
         panel.Children.Add(lockBox)
-
-        Dim saveAction = New Func(Of Task)(Async Function()
-            If combo.SelectedValue Is Nothing Then Return
-            Dim newDifficulty As Integer = CInt(combo.SelectedValue)
-            Dim newLocked As Boolean = (lockBox.Visibility = Visibility.Visible AndAlso lockBox.Checked)
-        
-            Await SaveSettingAsync(
-                Sub()
-                    Dim gameLevel = _loadResult.NbtFile.RootTag.Get(Of NbtCompound)("Data")
-                    _currentWriter.ModifyDifficulty(gameLevel, newDifficulty, newLocked)
-                End Sub,
-                "难度设置",
-                Sub()
-                    Select Case newDifficulty
-                        Case 0 : _loadResult.Info.DifficultyDisplay = "和平"
-                        Case 1 : _loadResult.Info.DifficultyDisplay = "简单"
-                        Case 2 : _loadResult.Info.DifficultyDisplay = "普通"
-                        Case 3 : _loadResult.Info.DifficultyDisplay = "困难"
-                    End Select
-                    _loadResult.Info.IsDifficultyLocked = newLocked
-                End Sub)
-        End Function)
-
-        AddHandler combo.SelectionChanged, Async Sub(s, e) Await saveAction()
-        AddHandler lockBox.Change, Async Sub(sender, user) Await saveAction()
-
+    
+        ' 定义保存函数
+        Dim saveDifficulty As Func(Of Task) = Async Function()
+            Dim selectedItem = TryCast(combo.SelectedItem, ComboItem)
+            If selectedItem IsNot Nothing Then
+                Await _viewModel.SaveDifficultyAsync(selectedItem.Value, lockBox.Checked)
+                combo.SelectedValue = _viewModel.DifficultyDisplay
+                lockBox.Checked = _viewModel.IsDifficultyLocked
+            End If
+        End Function
+    
+        ' 绑定事件
+        AddHandler combo.SelectionChanged, Sub(s, e) 
+            Dim ignore = saveDifficulty()
+        End Sub
+    
+        AddHandler lockBox.Change, Sub(sender, user) 
+            Dim ignore = saveDifficulty()
+        End Sub
+    
         AddSettingRow("游戏难度", panel)
     End Sub
-    
-    Private Async Function SaveSettingAsync(modifyAction As Action, settingName As String, Optional onSuccess As Action = Nothing) As Task
-        Try
-            modifyAction()
-            If Await _service.SaveAsync(_saveDatPath, _loadResult.NbtFile) Then
-                onSuccess?.Invoke()
-                Hint($"{settingName}修改成功", HintType.Finish)
-            Else
-                Hint($"{settingName}修改失败", HintType.Critical)
-            End If
-        Catch ex As Exception
-            Log($"{settingName}修改失败：{ex.Message}", HintType.Critical)
-        End Try
-    End Function
 
-    Private Sub AddSettingRow(headText As String, control As UIElement)
-        Dim idx = PanSettingsList.RowDefinitions.Count
-        PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = GridLength.Auto})
-
-        Dim head = New TextBlock() With {.Text = headText, .Margin = New Thickness(0, 3, 0, 3)}
-        Grid.SetRow(head, idx)
-        Grid.SetColumn(head, 0)
-
-        Grid.SetRow(control, idx)
-        Grid.SetColumn(control, 2)
-
-        PanSettingsList.Children.Add(head)
-        PanSettingsList.Children.Add(control)
-        PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = New GridLength(8)})
-    End Sub
-
-    Private Sub AddInfoRow(head As String, content As String, Optional isSeed As Boolean = False, Optional versionName As String = Nothing)
+    Private Sub AddInfoRow(head As String, content As String, Optional isSeed As Boolean = False)
         Dim headBlock = New TextBlock() With {.Text = head, .Margin = New Thickness(0, 3, 0, 3)}
         Dim panel = New StackPanel() With {.Orientation = Orientation.Horizontal}
-
-        Dim displayContent = If(content, "获取失败")
+        
+        Dim displayContent = If(String.IsNullOrEmpty(content), "获取失败", content)
         
         If isSeed AndAlso displayContent <> "获取失败" Then
             Dim btn = New MyTextButton() With {.Text = displayContent, .Margin = New Thickness(0, 3, 0, 3)}
             AddHandler btn.Click,
                 Sub()
-                    Try
-                        ClipboardSet(content)
-                        Hint("已复制到剪贴板", HintType.Finish)
-                    Catch ex As Exception
-                        Log(ex, "复制失败", LogLevel.Hint)
-                        Hint($"复制失败：{ex.Message}", HintType.Critical)
-                    End Try
+                    _viewModel.CopySeedToClipboard()
                 End Sub
             panel.Children.Add(btn)
-            If Not String.IsNullOrEmpty(content) Then
-                AddChunkbaseButton(panel, content, versionName)
+            
+            If Not String.IsNullOrEmpty(_viewModel.Seed) Then
+                Dim chunkbaseBtn = New MyIconButton() With {
+                    .Logo = Logo.IconButtonlink,
+                    .ToolTip = "跳转到 Chunkbase 查看地图",
+                    .Width = 22,
+                    .Height = 22,
+                    .Margin = New Thickness(5, 0, 0, 0)
+                }
+                AddHandler chunkbaseBtn.Click,
+                    Sub()
+                        _viewModel.OpenChunkbase()
+                    End Sub
+                panel.Children.Add(chunkbaseBtn)
             End If
         Else
             panel.Children.Add(New TextBlock() With {.Text = displayContent, .Margin = New Thickness(0, 3, 0, 3)})
         End If
-
+        
         Dim idx = PanList.RowDefinitions.Count
         PanList.RowDefinitions.Add(New RowDefinition() With {.Height = GridLength.Auto})
         Grid.SetRow(headBlock, idx)
@@ -279,28 +211,19 @@ Class PageInstanceSavesInfo
         PanList.Children.Add(panel)
     End Sub
 
-    Private Sub AddChunkbaseButton(parent As StackPanel, seed As String, versionName As String)
-        Dim btn = New MyIconButton() With {
-            .Logo = Logo.IconButtonlink,
-            .ToolTip = "跳转到 Chunkbase 查看地图",
-            .Width = 22,
-            .Height = 22,
-            .Margin = New Thickness(5, 0, 0, 0)
-        }
-        AddHandler btn.Click,
-            Sub()
-                Dim url = ChunkbaseHelper.BuildUrl(seed, versionName)
-                If url Is Nothing Then
-                    If versionName Is Nothing Then
-                        Log("无法确定存档版本", LogLevel.Hint)
-                    Else
-                        Log($"当前存档版本 '{versionName}' 可能是预览版，Chunkbase 不支持查看此类版本的地图", LogLevel.Hint)
-                    End If
-                    Return
-                End If
-                OpenWebsite(url)
-            End Sub
-        parent.Children.Add(btn)
+    Private Sub AddSettingRow(headText As String, control As UIElement)
+        Dim idx = PanSettingsList.RowDefinitions.Count
+        PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = GridLength.Auto})
+        
+        Dim head = New TextBlock() With {.Text = headText, .Margin = New Thickness(0, 3, 0, 3)}
+        Grid.SetRow(head, idx)
+        Grid.SetColumn(head, 0)
+        
+        Grid.SetRow(control, idx)
+        Grid.SetColumn(control, 2)
+        
+        PanSettingsList.Children.Add(head)
+        PanSettingsList.Children.Add(control)
+        PanSettingsList.RowDefinitions.Add(New RowDefinition() With {.Height = New GridLength(8)})
     End Sub
-
 End Class
