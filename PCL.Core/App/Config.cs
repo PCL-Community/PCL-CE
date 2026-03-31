@@ -508,9 +508,9 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceNoJavaw", false)] public partial bool NoJavaw { get; set; }
 
         /// <summary>
-        /// 对 Minecraft 26.1+ 使用 LWJGL Unsafe Agent。
+        /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceUseLwjglUnsafeAgent", true)] public partial bool UseLwjglUnsafeAgent { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool UseLwjglUnsafeAgent { get; set; }
         
         /// <summary>
         /// 渲染器。

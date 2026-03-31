@@ -1534,7 +1534,6 @@ LoginFinish:
             Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
     
-    
     ''' <summary>
     ''' 获取实例所依赖的 LWJGL 版本
     ''' </summary>
@@ -1559,8 +1558,8 @@ LoginFinish:
     Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
         Return McLaunchGetLwjglVersion(Mc) IsNot Nothing AndAlso
                McLaunchGetLwjglVersion(Mc).Equals("3.4.1") AndAlso
-               Setup.Get("LaunchAdvanceUseLwjglUnsafeAgent") AndAlso
-               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
+               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc) OrElse
+               Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent")
     End Function
 
 
@@ -1685,11 +1684,6 @@ LoginFinish:
             Catch ex As Exception
                 Throw New Exception($"无法连接到第三方登录服务器（{If(Server, Nothing)}）", ex)
             End Try
-        End If
-        
-        'LWJGL Unsafe Agent
-        If McLaunchUsesLwjglUnsafeAgent(McInstanceSelected) Then
-            DataList.Insert(0, "-javaagent:""" & PathPure & "lwjgl-unsafe-agent.jar""")
         End If
         
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
