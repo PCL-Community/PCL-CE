@@ -1560,8 +1560,8 @@ LoginFinish:
         
         Return lwjglVersion IsNot Nothing AndAlso
                lwjglVersion.Equals("3.4.1") AndAlso
-               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc) OrElse
-               Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent")
+               Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent") AndAlso
+               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc) '傻逼 VB.NET，什么神必运算优先级解释
     End Function
 
 
