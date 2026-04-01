@@ -64,15 +64,17 @@ public sealed partial class TelemetryService
     // 错误上报
     public static void ReportException(Exception ex, string plain, LogLevel level)
     {
-        var sentryEvent = new SentryEvent(ex);
-        
-        sentryEvent.Level = level.RealLevel() switch
+        var sentryEvent = new SentryEvent(ex)
         {
-            LogLevel.Fatal => SentryLevel.Fatal,
-            LogLevel.Error => SentryLevel.Error,
-            LogLevel.Warning => SentryLevel.Warning,
-            LogLevel.Info => SentryLevel.Info,
-            LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
+            Level = level.RealLevel() switch
+            {
+                LogLevel.Fatal => SentryLevel.Fatal,
+                LogLevel.Error => SentryLevel.Error,
+                LogLevel.Warning => SentryLevel.Warning,
+                LogLevel.Info => SentryLevel.Info,
+                LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
+                _ => throw new ArgumentOutOfRangeException(nameof(level))
+            }
         };
 
         if (!string.IsNullOrWhiteSpace(plain))
