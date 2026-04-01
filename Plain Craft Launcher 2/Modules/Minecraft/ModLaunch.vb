@@ -1556,12 +1556,11 @@ LoginFinish:
     ''' 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
     ''' </summary>
     Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
-        Dim lwjglVersion = McLaunchGetLwjglVersion(Mc)
-        
-        Return lwjglVersion IsNot Nothing AndAlso
-               lwjglVersion.Equals("3.4.1") AndAlso
-               Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent") AndAlso
-               Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc) '傻逼 VB.NET，什么神必运算优先级解释
+        If McLaunchGetLwjglVersion(Mc) = "3.4.1" Then
+            Return Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent") AndAlso Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
+        Else
+            Return False
+        End If
     End Function
 
 
