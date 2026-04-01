@@ -510,7 +510,7 @@ public static partial class Config
         /// <summary>
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool UseLwjglUnsafeAgent { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
         
         /// <summary>
         /// 渲染器。
