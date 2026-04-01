@@ -17,11 +17,9 @@ public class LevelDataViewModel : INotifyPropertyChanged
     private LevelDataLoadResult? _loadResult;
     private string _saveDatPath = string.Empty;
     private bool _isLoading;
-    private string? _errorMessage;
     private bool _hasData;
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    public event Action<string>? OnMessage; // 用于显示提示信息
     public event Action? OnDataChanged; // 数据变化时通知 UI 刷新
 
     // 基础信息属性
