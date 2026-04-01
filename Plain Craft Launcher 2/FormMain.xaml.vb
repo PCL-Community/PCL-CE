@@ -131,6 +131,9 @@ Public Class FormMain
         Setup.Load("UiLogoType")
         Setup.Load("UiHiddenPageDownload")
         Setup.Load("UiAutoPauseVideo") '智能暂停视频背景
+        If Not IsAprilFool() AndAlso Config.Preference.WindowTitleTypeConfig.GetValue = 4 Then
+             Config.Preference.WindowTitleTypeConfig.SetValue(1)
+        End If
         PageSetupUI.HiddenRefresh()
         PageSetupUI.BackgroundRefresh(False, True)
         MusicRefreshPlay(False, True)
@@ -610,6 +613,11 @@ Public Class FormMain
     '最小化
     Private Sub BtnTitleMin_Click() Handles BtnTitleMin.Click
         WindowState = WindowState.Minimized
+    End Sub
+
+    '“帮助”
+    Private Sub BtnTitleHelp_Click() Handles BtnTitleHelp.Click
+        OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX")
     End Sub
 #End Region
 

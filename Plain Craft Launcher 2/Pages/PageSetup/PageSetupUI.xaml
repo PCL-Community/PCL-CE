@@ -242,12 +242,14 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" x:Name="ColLogoType4" />
                             <ColumnDefinition Width="0.2*" />
                         </Grid.ColumnDefinitions>
                         <local:MyRadioBox Text="无" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0" Grid.Column="0" />
                         <local:MyRadioBox Text="默认" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1" Grid.Column="1" />
                         <local:MyRadioBox Text="文本" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2" Grid.Column="2" />
                         <local:MyRadioBox Text="图片" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3" Grid.Column="3" />
+                        <local:MyRadioBox Text="HMCL" x:Name="RadioLogoType4" Height="22" Tag="UiLogoType/4" Grid.Column="4" />
                     </Grid>
                     <local:MyCheckBox Text="标题栏居左" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft" Tag="UiLogoLeft" Visibility="Collapsed" />
                     <Grid x:Name="PanLogoText" Margin="0,14,0,5" Visibility="Collapsed">

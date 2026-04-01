@@ -341,59 +341,82 @@ Public Class ModSetup
         Application.Current.Resources("BlurType") = CType(Value, KernelType)
     End Sub
     '顶部栏
-    Public Sub UiLogoType(Value As Integer)
-        Select Case Value
-            Case 0 '无
-                FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.CELogo.Visibility = Visibility.Collapsed
-                If Not IsNothing(FrmSetupUI) Then
-                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible
-                    FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
-                End If
-            Case 1 '默认
-                FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible
-                FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.CELogo.Visibility = Visibility.Visible
-                If Not IsNothing(FrmSetupUI) Then
-                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
-                End If
-            Case 2 '文本
-                FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.LabTitleLogo.Visibility = Visibility.Visible
-                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.CELogo.Visibility = Visibility.Visible
-                If Not IsNothing(FrmSetupUI) Then
-                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoText.Visibility = Visibility.Visible
-                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
-                End If
-                Setup.Load("UiLogoText", True)
-            Case 3 '图片
-                FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
-                FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
-                FrmMain.CELogo.Visibility = Visibility.Visible
-                If Not IsNothing(FrmSetupUI) Then
-                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
-                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Visible
-                End If
-                Try
-                    FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
-                Catch ex As Exception
-                    FrmMain.ImageTitleLogo.Source = Nothing
-                    Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)
-                End Try
-        End Select
-        Setup.Load("UiLogoLeft", True)
-        If Not IsNothing(FrmSetupUI) Then FrmSetupUI.CardLogo.TriggerForceResize()
-    End Sub
+Public Sub UiLogoType(Value As Integer)
+    Select Case Value
+        Case 0 '无
+            FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+            FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.CELogo.Visibility = Visibility.Collapsed
+            If Not IsNothing(FrmSetupUI) Then
+                FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible
+                FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+            End If
+        Case 1 '默认
+            FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible
+FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+            FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.CELogo.Visibility = Visibility.Visible
+            If Not IsNothing(FrmSetupUI) Then
+                FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+            End If
+        Case 2 '文本
+            FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+            FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.LabTitleLogo.Visibility = Visibility.Visible
+            FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.CELogo.Visibility = Visibility.Visible
+            If Not IsNothing(FrmSetupUI) Then
+                FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoText.Visibility = Visibility.Visible
+                FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+            End If
+            Setup.Load("UiLogoText", True)
+        Case 3 '图片
+            FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+            FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+            FrmMain.CELogo.Visibility = Visibility.Visible
+            If Not IsNothing(FrmSetupUI) Then
+                FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoChange.Visibility = Visibility.Visible
+            End If
+            Try
+                FrmMain.ImageTitleLogo.Source = ExePath & "PCL\Logo.png"
+            Catch ex As Exception
+                FrmMain.ImageTitleLogo.Source = Nothing
+                Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)
+            End Try
+        Case 4 'HMCL (愚人节)
+            FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible
+            FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+            FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+            FrmMain.BtnTitleHelp.Visibility = Visibility.Visible
+            FrmMain.ImageTitleLogo.Width = 24.5
+            FrmMain.ImageTitleLogo.Height = 24.5
+            FrmMain.ImageTitleLogo.Margin = New Thickness(10, 0, 0, 0)
+            FrmMain.ImageTitleLogo.Source = PathImage & "Icons/HMCL.png"
+            If Not IsNothing(FrmSetupUI) Then
+                FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+            End If
+    End Select 
+    Setup.Load("UiLogoLeft", True)
+    If Not IsNothing(FrmSetupUI) Then FrmSetupUI.CardLogo.TriggerForceResize()
+End Sub
     Public Sub UiLogoText(Value As String)
         FrmMain.LabTitleLogo.Text = Value
     End Sub
