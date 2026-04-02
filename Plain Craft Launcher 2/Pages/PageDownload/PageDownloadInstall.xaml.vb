@@ -757,7 +757,7 @@ Public Class PageDownloadInstall
                                 Version("id") = "20w14∞"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))
-                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine"
+                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine", "26w14a"
                                 Type = "愚人节版"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))

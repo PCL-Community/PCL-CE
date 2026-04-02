@@ -1244,6 +1244,8 @@ ExitDataLoad:
             Return "2024 | 毒马铃薯一直都被大家忽视和低估，于是我们超级加强了它！"
         ElseIf name = "25w14craftmine" Then
             Return "2025 | 你可以合成任何东西——包括合成你的世界！"
+        ElseIf Name = "26w14a" Then
+            Return "2026 | 为什么需要物品栏？让方块们跟着你走吧！"
         Else
             Return ""
         End If
