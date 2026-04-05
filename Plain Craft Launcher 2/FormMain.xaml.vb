@@ -6,10 +6,6 @@ Imports PCL.Core.App
 Imports PCL.Core.App.IoC
 Imports PCL.Core.Logging
 Imports PCL.Core.UI
-Imports PCL.Core.UI.Animation
-Imports PCL.Core.UI.Animation.Animatable
-Imports PCL.Core.UI.Animation.Core
-Imports PCL.Core.UI.Animation.Easings
 Imports PCL.Core.UI.Theme
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
@@ -51,6 +47,14 @@ Public Class FormMain
         '版本号改变
         Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
+            '重新询问是否启用遥测数据收集
+            If LastVersion <= 511 Then
+                If Not Config.System.TelemetryConfig.IsDefault() AndAlso Config.System.Telemetry Then
+                    Config.System.TelemetryConfig.Reset()
+                    Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置")
+                End If
+            End If
+            
             '触发升级
             UpgradeSub(LastVersion)
         ElseIf LastVersion > VersionCode Then
@@ -99,6 +103,7 @@ Public Class FormMain
                     helper.HwndSource = HwndSource.FromHwnd(windowInterop.Handle)
                     helper.AddHook()
                 End Sub
+
             AddHandler Me.Closing,Sub() helper.RemoveHook()
             AddHandler Helper.DragDrop, Sub() FileDrag(helper.DropFilePaths)
         End If
@@ -175,137 +180,81 @@ Public Class FormMain
         ShowWindowToTop()
         Dim HwndSource As Interop.HwndSource = PresentationSource.FromVisual(Me)
         HwndSource.AddHook(New Interop.HwndSourceHook(AddressOf WndProc))
-'        AniStart({
-'            AaCode(Sub() AniControlEnabled -= 1, 50),
-'            AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
-'            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
-'            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
-'            AaCode(
-'            Sub()
-'                PanBack.RenderTransform = Nothing
-'                IsWindowLoadFinished = True
-'                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
-'            End Sub, , True)
-'        }, "Form Show")
-        
-'        Await Task.Delay(50)
-'        AniControlEnabled -= 1
-        
-        Dim aniGroup1 = New SequentialAnimationGroup
-        aniGroup1.Name = "Form Show"
-        
-        Dim aniGroup2 = New ParallelAnimationGroup
-        
-        Dim aniEnabled = New ActionAnimation(Sub() AniControlEnabled -= 1)
-        aniEnabled.Delay = TimeSpan.FromMilliseconds(50)
-        aniGroup2.Children.Add(aniEnabled)
-        
-        Dim aniOpacity = New DoubleFromToAnimation
-        aniOpacity.To = Math.Clamp(Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 0.0, 1.0)
-        aniOpacity.Duration = TimeSpan.FromMilliseconds(250)
-        aniOpacity.Delay = TimeSpan.FromMilliseconds(100)
-        aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
-        aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-        aniGroup2.Children.Add(aniOpacity)
-        
-        Dim aniPos = New DoubleFromToAnimation
-        aniPos.To = 0
-        aniPos.Duration = TimeSpan.FromMilliseconds(600)
-        aniPos.Delay = TimeSpan.FromMilliseconds(100)
-        aniPos.Easing = New BackEaseWithPowerOut(EasePower.Weak)
-        aniPos.SetValue(AnimationExtensions.TargetProperty, TransformPos)
-        aniPos.SetValue(AnimationExtensions.TargetPropertyProperty, TranslateTransform.YProperty)
-        aniGroup2.Children.Add(aniPos)
-        
-        Dim aniRotate = New DoubleFromToAnimation
-        aniRotate.To = 0
-        aniRotate.Duration = TimeSpan.FromMilliseconds(500)
-        aniRotate.Delay = TimeSpan.FromMilliseconds(100)
-        aniRotate.Easing = New BackEaseWithPowerOut(EasePower.Weak)
-        aniRotate.SetValue(AnimationExtensions.TargetProperty, TransformRotate)
-        aniRotate.SetValue(AnimationExtensions.TargetPropertyProperty, RotateTransform.AngleProperty)
-        aniGroup2.Children.Add(aniRotate)
-
-        aniGroup1.Children.Add(aniGroup2)
-        
-'        AddHandler animation.Completed, Sub(sender, args) 
-'            RunInUi(Sub()
-'                PanBack.RenderTransform = Nothing
-'                IsWindowLoadFinished = True
-'                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
-'                Debug.WriteLine(Opacity)
-'                End Sub)
-'        End Sub
-        
-        Dim aniCompleted = New ActionAnimation(Sub()
-            RenderTransform = Nothing
-            IsWindowLoadFinished = True
-            Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
-        End Sub)
-        aniGroup1.Children.Add(aniCompleted)
-        
-        aniGroup1.RunFireAndForget(EmptyAnimatable.Instance)
-        
+        AniStart({
+            AaCode(Sub() AniControlEnabled -= 1, 50),
+            AaOpacity(Me, Setup.Get("UiLauncherTransparent") / 1000 + 0.4, 250, 100),
+            AaDouble(Sub(i) TransformPos.Y += i, -TransformPos.Y, 600, 100, New AniEaseOutBack(AniEasePower.Weak)),
+            AaDouble(Sub(i) TransformRotate.Angle += i, -TransformRotate.Angle, 500, 100, New AniEaseOutBack(AniEasePower.Weak)),
+            AaCode(
+            Sub()
+                RenderTransform = Nothing
+                IsWindowLoadFinished = True
+                Log($"[System] DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ExePathWithName}")
+            End Sub, , True)
+        }, "Form Show")
         'Timer 启动
         AniStart()
         TimerMainStart()
+        RunInNewThread(
+            Sub()
+                Try
+                    '特殊版本提示
+#If DEBUG Or DEBUGCI Then
+                    If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
+#If DEBUG Then
+                        Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
+                                     "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
+                                     vbCrLf &
+                                     "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
+                                     "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
+#Else
+                        Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
+                                     "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
+                                     vbCrLf &
+                                     "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
+#End If
+                        MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
+                                 "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
+                                 Button2Action:=Sub()
+                                                    OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
+                                                    EndProgram(False)
+                                                End Sub)
+                    End If
+#End If
+                    'EULA 提示
+                    If Not Setup.Get("SystemEula") Then
+                        Select Case MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
+                                Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
+                            Case 1
+                                Setup.Set("SystemEula", True)
+                            Case 2
+                                EndProgram(False)
+                        End Select
+                    End If
+                    '遥测提示
+                    If Config.System.TelemetryConfig.IsDefault() Then
+                        Dim selection = MyMsgBox("启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。" & vbCrLf &
+                                             "若启用此功能，我们将会收集以下信息：" & vbCrLf & vbCrLf &
+                                             "- 启动器内出现的错误" & vbCrLf &
+                                             "- 启动器版本信息与识别码" & vbCrLf &
+                                             "- Windows 系统版本与架构" & vbCrLf &
+                                             "- 已安装的物理内存大小" & vbCrLf &
+                                             "- NAT 与 IPv6 支持情况" & vbCrLf &
+                                             "- 是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
+                                             "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
+                                             "如果不希望启用遥测，可以选择拒绝。这不会影响其他功能的正常使用，但可能会影响开发者修复潜在 Bug。" & vbCrLf &
+                                             "你可以随时在启动器设置中调整这项设置。", "启用遥测数据收集", "同意", "拒绝")
+                        Config.System.TelemetryConfig.SetValue(selection = 1, forceNewValue:=True)
+                    End If
+                Catch ex As Exception
+                    Log(ex, "初始弹窗提示运行失败", LogLevel.Feedback)
+                End Try
+            End Sub, "Start MsgBox", ThreadPriority.Lowest)
         '加载池
         RunInNewThread(
         Sub()
-            '特殊版本提示
-#If DEBUG Or DEBUGCI Then
-            If Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") Is Nothing Then
-#If DEBUG Then
-                Const hint = "当前运行的 PCL 社区版为 Debug 版本。" & vbCrLf &
-                             "该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。" & vbCrLf &
-                             vbCrLf &
-                             "非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。" & vbCrLf &
-                             "除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。"
-#Else
-                Const hint = "当前运行的 PCL 社区版为 CI 自动构建版本。" & vbCrLf &
-                             "该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。" & vbCrLf &
-                             vbCrLf &
-                             "除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。"
-#End If
-                MyMsgBox($"{hint}{vbCrLf}{vbCrLf}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
-                         "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn:=True,
-                         Button2Action:=Sub()
-                                            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest")
-                                            EndProgram(False)
-                                        End Sub)
-            End If
-#End If
-            'EULA 提示
-            If Not Setup.Get("SystemEula") Then
-                Select Case MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
-                        Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
-                    Case 1
-                        Setup.Set("SystemEula", True)
-                    Case 2
-                        EndProgram(False)
-                End Select
-            End If
-            '遥测提示
-            If Setup.IsUnset("SystemTelemetry") Then
-                Select Case MyMsgBox("这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" & vbCrLf &
-                                     "如果选择参与调查，我们将会收集以下信息：" & vbCrLf & vbCrLf &
-                                     "- 启动器版本信息与识别码" & vbCrLf &
-                                     "- Windows 系统版本与架构" & vbCrLf &
-                                     "- 已安装的物理内存大小" & vbCrLf &
-                                     "- NAT 与 IPv6 支持情况" & vbCrLf &
-                                     "- 是否使用过官方版 PCL、HMCL 或 BakaXL" & vbCrLf & vbCrLf &
-                                     "这些数据均不与你关联，我们也绝不会向第三方出售数据。" & vbCrLf &
-                                     "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" & vbCrLf &
-                                     "你可以随时在启动器设置中调整这项设置。", "参与 PCL CE 软硬件调查", "同意", "拒绝")
-                    Case 1
-                        Setup.Set("SystemTelemetry", True)
-                    Case 2
-                        Setup.Set("SystemTelemetry", False)
-                End Select
-            End If
             '启动加载器池
             Try
-                Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
                 ServerLoader.Start(1)
@@ -314,7 +263,7 @@ Public Class FormMain
                 Log(ex, "初始化加载池运行失败", LogLevel.Feedback)
             End Try
             GetSystemInfo()
-        End Sub, "Start Loader", ThreadPriority.Lowest)
+        End Sub, "Start Loader", ThreadPriority.BelowNormal)
 
         Log("[Start] 第三阶段加载用时：" & TimeUtils.GetTimeTick() - ApplicationStartTick & " ms")
     End Sub
@@ -562,82 +511,24 @@ Public Class FormMain
                 Dim TransformScale As New ScaleTransform(1, 1)
                 TransformScale.CenterX = Width / 2
                 TransformScale.CenterY = Height / 2
-                PanBack.RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
-'                AniStart({
-'                    AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
-'                    AaDouble(
-'                    Sub(i)
-'                        TransformScale.ScaleX += i
-'                        TransformScale.ScaleY += i
-'                    End Sub, 0.88 - TransformScale.ScaleX, 180),
-'                    AaDouble(Sub(i) TransformPos.Y += i, 20 - TransformPos.Y, 180, 0, New AniEaseOutFluent(AniEasePower.Weak)),
-'                    AaDouble(Sub(i) TransformRotate.Angle += i, 0.6 - TransformRotate.Angle, 180, 0, New AniEaseInoutFluent(AniEasePower.Weak)),
-'                    AaCode(
-'                    Sub()
-'                        IsHitTestVisible = False
-'                        Top = -10000
-'                        ShowInTaskbar = False
-'                    End Sub, 210),
-'                    AaCode(Sub() EndProgramForce(force:=False), 230)
-'                }, "Form Close")
-                
-                Dim animation = new ParallelAnimationGroup
-                animation.Name = "Form Close"
-                
-                Dim aniOpacity = New DoubleFromToAnimation
-                aniOpacity.To = 0
-                aniOpacity.Duration = TimeSpan.FromMilliseconds(140)
-                aniOpacity.Delay = TimeSpan.FromMilliseconds(40)
-                aniOpacity.Easing = QuadEaseOut.Shared
-                aniOpacity.SetValue(AnimationExtensions.TargetProperty, Me)
-                aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                animation.Children.Add(aniOpacity)
-                
-                Dim aniScaleX = New DoubleFromToAnimation
-                aniScaleX.To = 0.88
-                aniScaleX.Duration = TimeSpan.FromMilliseconds(180)
-                aniScaleX.SetValue(AnimationExtensions.TargetProperty, TransformScale)
-                aniScaleX.SetValue(AnimationExtensions.TargetPropertyProperty, ScaleTransform.ScaleXProperty)
-                animation.Children.Add(aniScaleX)
-                
-                Dim aniScaleY = New DoubleFromToAnimation
-                aniScaleY.To = 0.88
-                aniScaleY.Duration = TimeSpan.FromMilliseconds(180)
-                aniScaleY.SetValue(AnimationExtensions.TargetProperty, TransformScale)
-                aniScaleY.SetValue(AnimationExtensions.TargetPropertyProperty, ScaleTransform.ScaleYProperty)
-                animation.Children.Add(aniScaleY)
-                
-                Dim aniPos = New DoubleFromToAnimation
-                aniPos.To = 20
-                aniPos.Duration = TimeSpan.FromMilliseconds(180)
-                aniPos.Easing = QuadEaseOut.Shared
-                aniPos.SetValue(AnimationExtensions.TargetProperty, TransformPos)
-                aniPos.SetValue(AnimationExtensions.TargetPropertyProperty, TranslateTransform.YProperty)
-                animation.Children.Add(aniPos)
-                
-                Dim aniRotate = New DoubleFromToAnimation
-                aniRotate.To = 0.6
-                aniRotate.Duration = TimeSpan.FromMilliseconds(180)
-                aniRotate.Easing = QuadEaseInOut.Shared
-                aniRotate.SetValue(AnimationExtensions.TargetProperty, TransformRotate)
-                aniRotate.SetValue(AnimationExtensions.TargetPropertyProperty, RotateTransform.AngleProperty)
-                animation.Children.Add(aniRotate)
-                
-                AddHandler animation.Completed, Sub(sender, args) 
-                    RunInUi(Async Sub()
-                        Await Task.Delay(30)
-                    
+                RenderTransform = New TransformGroup() With {.Children = New TransformCollection({TransformRotate, TransformPos, TransformScale})}
+                AniStart({
+                    AaOpacity(Me, -Opacity, 140, 40, New AniEaseOutFluent(AniEasePower.Weak)),
+                    AaDouble(
+                    Sub(i)
+                        TransformScale.ScaleX += i
+                        TransformScale.ScaleY += i
+                    End Sub, 0.88 - TransformScale.ScaleX, 180),
+                    AaDouble(Sub(i) TransformPos.Y += i, 20 - TransformPos.Y, 180, 0, New AniEaseOutFluent(AniEasePower.Weak)),
+                    AaDouble(Sub(i) TransformRotate.Angle += i, 0.6 - TransformRotate.Angle, 180, 0, New AniEaseInoutFluent(AniEasePower.Weak)),
+                    AaCode(
+                    Sub()
                         IsHitTestVisible = False
                         Visibility = Visibility.Collapsed
                         ShowInTaskbar = False
-                    
-                        Await Task.Delay(20)
-                    
-                        EndProgramForce(force:=False, isUpdating:=isUpdating)
-                        End Sub)
-                End Sub
-                
-                animation.RunFireAndForget(EmptyAnimatable.Instance)
+                    End Sub, 210),
+                    AaCode(Sub() EndProgramForce(force:=False, isUpdating:=isUpdating), 230)
+                }, "Form Close")
             Else
                 EndProgramForce(force:=False, isUpdating:=isUpdating)
             End If
@@ -723,6 +614,11 @@ Public Class FormMain
     '最小化
     Private Sub BtnTitleMin_Click() Handles BtnTitleMin.Click
         WindowState = WindowState.Minimized
+    End Sub
+
+    '“帮助”
+    Private Sub BtnTitleHelp_Click() Handles BtnTitleHelp.Click
+        OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX")
     End Sub
 #End Region
 
@@ -1467,39 +1363,11 @@ Public Class FormMain
                 '即将切换到一个子页面
                 If PageStack.Any Then
                     '子页面 → 另一个子页面，更新
-'                    AniStart({
-'                        AaOpacity(LabTitleInner, -LabTitleInner.Opacity, 130),
-'                        AaCode(Sub() LabTitleInner.Text = PageName,, True),
-'                        AaOpacity(LabTitleInner, 1, 150, 30)
-'                    }, "FrmMain Titlebar SubLayer")
-                    
-                    Dim aniOut1 = New SequentialAnimationGroup
-                    aniOut1.Name = "FrmMain Titlebar SubLayer"
-                    
-                    Dim aniOpacityOut = New DoubleFromToAnimation
-                    aniOpacityOut.To = 0
-                    aniOpacityOut.Duration = TimeSpan.FromMilliseconds(130)
-                    aniOpacityOut.SetValue(AnimationExtensions.TargetProperty, LabTitleInner)
-                    aniOpacityOut.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                    aniOut1.Children.Add(aniOpacityOut)
-                    
-                    Dim aniOut2 = New ParallelAnimationGroup
-                    
-                    Dim aniChangeText = New ActionAnimation(Sub() LabTitleInner.Text = PageName)
-                    aniOut2.Children.Add(aniChangeText)
-                    
-                    Dim aniOpacityIn = New DoubleFromToAnimation
-                    aniOpacityIn.To = 1
-                    aniOpacityIn.Delay = TimeSpan.FromMilliseconds(30)
-                    aniOpacityIn.Duration = TimeSpan.FromMilliseconds(150)
-                    aniOpacityIn.SetValue(AnimationExtensions.TargetProperty, LabTitleInner)
-                    aniOpacityIn.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                    aniOut2.Children.Add(aniOpacityIn)
-                    
-                    aniOut1.Children.Add(aniOut2)
-                    
-                    aniOut1.RunFireAndForget(EmptyAnimatable.Instance)
-                    
+                    AniStart({
+                        AaOpacity(LabTitleInner, -LabTitleInner.Opacity, 130),
+                        AaCode(Sub() LabTitleInner.Text = PageName,, True),
+                        AaOpacity(LabTitleInner, 1, 150, 30)
+                    }, "FrmMain Titlebar SubLayer")
                     If PageStack.Contains(Stack) Then
                         '返回到更上层的子页面
                         Do While PageStack.Contains(Stack)
@@ -1515,61 +1383,13 @@ Public Class FormMain
                     PanTitleMain.IsHitTestVisible = False
                     PanTitleInner.IsHitTestVisible = True
                     PageNameRefresh(Stack)
-'                    AniStart({
-'                        AaOpacity(PanTitleMain, -PanTitleMain.Opacity, 150),
-'                        AaX(PanTitleMain, 12 - PanTitleMain.Margin.Left, 150,, New AniEaseInFluent(AniEasePower.Weak)),
-'                        AaOpacity(PanTitleInner, 1 - PanTitleInner.Opacity, 150, 200),
-'                        AaX(PanTitleInner, -PanTitleInner.Margin.Left, 350, 200, New AniEaseOutBack),
-'                        AaCode(Sub() PanTitleMain.Visibility = Visibility.Collapsed,, True)
-'                    }, "FrmMain Titlebar FirstLayer")
-                    
-                    Dim aniIn1 = New SequentialAnimationGroup
-                    aniIn1.Name = "FrmMain Titlebar FirstLayer"
-
-                    Dim aniIn2 = New ParallelAnimationGroup
-
-                    Dim aniTitleMainOpacity = New DoubleFromToAnimation
-                    aniTitleMainOpacity.To = 0
-                    aniTitleMainOpacity.Duration = TimeSpan.FromMilliseconds(150)
-                    aniTitleMainOpacity.SetValue(AnimationExtensions.TargetProperty, PanTitleMain)
-                    aniTitleMainOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                    aniIn2.Children.Add(aniTitleMainOpacity)
-
-                    Dim aniTitleMainMove = New ThicknessFromToAnimation
-                    aniTitleMainMove.To = New Thickness(12, PanTitleMain.Margin.Top, PanTitleMain.Margin.Right,
-                                                        PanTitleMain.Margin.Bottom)
-                    aniTitleMainMove.Duration = TimeSpan.FromMilliseconds(150)
-                    aniTitleMainMove.Easing = QuadEaseIn.Shared
-                    aniTitleMainMove.SetValue(AnimationExtensions.TargetProperty, PanTitleMain)
-                    aniTitleMainMove.SetValue(AnimationExtensions.TargetPropertyProperty, MarginProperty)
-                    aniIn2.Children.Add(aniTitleMainMove)
-
-                    aniIn1.Children.Add(aniIn2)
-                    
-                    Dim aniTitleInnerOpacity = New DoubleFromToAnimation
-                    aniTitleInnerOpacity.To = 1
-                    aniTitleInnerOpacity.Delay = TimeSpan.FromMilliseconds(200)
-                    aniTitleInnerOpacity.Duration = TimeSpan.FromMilliseconds(150)
-                    aniTitleInnerOpacity.SetValue(AnimationExtensions.TargetProperty, PanTitleInner)
-                    aniTitleInnerOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                    aniIn2.Children.Add(aniTitleInnerOpacity)
-
-                    Dim aniTitleInnerMove = New ThicknessFromToAnimation
-                    aniTitleInnerMove.To = New Thickness(0, PanTitleInner.Margin.Top, PanTitleInner.Margin.Right,
-                                                         PanTitleInner.Margin.Bottom)
-                    aniTitleInnerMove.Delay = TimeSpan.FromMilliseconds(200)
-                    aniTitleInnerMove.Duration = TimeSpan.FromMilliseconds(350)
-                    aniTitleInnerMove.Easing = New BackEaseWithPowerOut(EasePower.Middle)
-                    aniTitleInnerMove.SetValue(AnimationExtensions.TargetProperty, PanTitleInner)
-                    aniTitleInnerMove.SetValue(AnimationExtensions.TargetPropertyProperty, MarginProperty)
-                    aniIn2.Children.Add(aniTitleInnerMove)
-
-                    Dim aniVisibilityChange =
-                            New ActionAnimation(Sub() PanTitleMain.Visibility = Visibility.Collapsed)
-                    aniIn1.Children.Add(aniVisibilityChange)
-                    
-                    aniIn1.RunFireAndForget(EmptyAnimatable.Instance)
-                    
+                    AniStart({
+                        AaOpacity(PanTitleMain, -PanTitleMain.Opacity, 150),
+                        AaX(PanTitleMain, 12 - PanTitleMain.Margin.Left, 150,, New AniEaseInFluent(AniEasePower.Weak)),
+                        AaOpacity(PanTitleInner, 1 - PanTitleInner.Opacity, 150, 200),
+                        AaX(PanTitleInner, -PanTitleInner.Margin.Left, 350, 200, New AniEaseOutBack),
+                        AaCode(Sub() PanTitleMain.Visibility = Visibility.Collapsed,, True)
+                    }, "FrmMain Titlebar FirstLayer")
                     PageStack.Insert(0, PageCurrent)
                 End If
             End If
@@ -1633,17 +1453,9 @@ Public Class FormMain
             AniControlEnabled -= 1
         End Try
     End Sub
-    
-    Dim _aniFrmMainLeftChange As SequentialAnimationGroup = New SequentialAnimationGroup
-    Dim _aniPageLeftPageChange As SequentialAnimationGroup = New SequentialAnimationGroup
-    
     Private Sub PageChangeAnim(TargetLeft As FrameworkElement, TargetRight As FrameworkElement)
-'        AniStop("FrmMain LeftChange")
-'        AniStop("PageLeft PageChange") '停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        
-        _aniFrmMainLeftChange.CancelAndClear()
-        _aniPageLeftPageChange.CancelAndClear() '停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        
+        AniStop("FrmMain LeftChange")
+        AniStop("PageLeft PageChange") '停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         AniControlEnabled += 1
         '清除新页面关联性
         If Not IsNothing(TargetLeft.Parent) Then TargetLeft.SetValue(ContentPresenter.ContentProperty, Nothing)
@@ -1655,95 +1467,43 @@ Public Class FormMain
         CType(PanMainRight.Child, MyPageRight).PageOnExit()
         AniControlEnabled -= 1
         '执行动画
-'        AniStart({
-'            AaCode(
-'            Sub()
-'                AniControlEnabled += 1
-'                '把新页面添加进容器
-'                PanMainLeft.Child = PageLeft
-'                PageLeft.Opacity = 0
-'                PanMainLeft.Background = Nothing
-'                AniControlEnabled -= 1
-'                RunInUi(Sub() PanMainLeft_Resize(PanMainLeft.ActualWidth), True)
-'            End Sub, 110),
-'            AaCode(
-'            Sub()
-'                '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-'                PageLeft.Opacity = 1
-'                PageLeft.TriggerShowAnimation()
-'            End Sub, 30, True)
-'        }, "FrmMain PageChangeLeft")
-        
-        _aniFrmMainLeftChange = New SequentialAnimationGroup
-        _aniFrmMainLeftChange.Name = "FrmMain PageChangeLeft"
-        
-        Dim aniLeft1 = New ActionAnimation(Sub()
-            AniControlEnabled += 1
-            '把新页面添加进容器
-            PanMainLeft.Child = PageLeft
-            PageLeft.Opacity = 0
-            PanMainLeft.Background = Nothing
-            AniControlEnabled -= 1
-            PanMainLeft_Resize(PanMainLeft.ActualWidth)
-        End Sub)
-        aniLeft1.Delay = TimeSpan.FromMilliseconds(110)
-        _aniFrmMainLeftChange.Children.Add(aniLeft1)
-        
-        Dim aniLeft2 = New ActionAnimation(Sub()
-            '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-            PageLeft.Opacity = 1
-            PageLeft.TriggerShowAnimation()            
-        End Sub)
-        aniLeft2.Delay = TimeSpan.FromMilliseconds(30)
-        _aniFrmMainLeftChange.Children.Add(aniLeft2)
-        
-        _aniFrmMainLeftChange.RunFireAndForget(EmptyAnimatable.Instance)
-        
-'        AniStart({
-'            AaCode(
-'            Sub()
-'                AniControlEnabled += 1
-'                CType(PanMainRight.Child, MyPageRight).PageOnForceExit()
-'                '把新页面添加进容器
-'                PanMainRight.Child = PageRight
-'                PageRight.Opacity = 0
-'                PanMainRight.Background = Nothing
-'                AniControlEnabled -= 1
-'                RunInUi(Sub() BtnExtraBack.ShowRefresh(), True)
-'            End Sub, 110),
-'            AaCode(
-'            Sub()
-'                '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-'                PageRight.Opacity = 1
-'                PageRight.PageOnEnter()
-'            End Sub, 30, True)
-'        }, "FrmMain PageChangeRight")
-        
-        _aniPageLeftPageChange = New SequentialAnimationGroup()
-        _aniFrmMainLeftChange.Name = "FrmMain PageChangeRight"
-        
-        Dim aniRight1 = New ActionAnimation(Sub()
-            AniControlEnabled += 1
-            CType(PanMainRight.Child, MyPageRight).PageOnForceExit()
-            '把新页面添加进容器
-            PanMainRight.Child = PageRight
-            PageRight.Opacity = 0
-            PanMainRight.Background = Nothing
-            AniControlEnabled -= 1
-            BtnExtraBack.ShowRefresh()
-        End Sub)
-        aniRight1.Delay = TimeSpan.FromMilliseconds(110)
-        _aniPageLeftPageChange.Children.Add(aniRight1)
-        
-        Dim aniRight2 = New ActionAnimation(Sub()
-            '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-            PageRight.Opacity = 1
-            PageRight.PageOnEnter()
-        End Sub)
-        aniRight2.Delay = TimeSpan.FromMilliseconds(30)
-        _aniPageLeftPageChange.Children.Add(aniRight2)
-        
-        _aniPageLeftPageChange.RunFireAndForget(EmptyAnimatable.Instance)
+        AniStart({
+            AaCode(
+            Sub()
+                AniControlEnabled += 1
+                '把新页面添加进容器
+                PanMainLeft.Child = PageLeft
+                PageLeft.Opacity = 0
+                PanMainLeft.Background = Nothing
+                AniControlEnabled -= 1
+                RunInUi(Sub() PanMainLeft_Resize(PanMainLeft.ActualWidth), True)
+            End Sub, 110),
+            AaCode(
+            Sub()
+                '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
+                PageLeft.Opacity = 1
+                PageLeft.TriggerShowAnimation()
+            End Sub, 30, True)
+        }, "FrmMain PageChangeLeft")
+        AniStart({
+            AaCode(
+            Sub()
+                AniControlEnabled += 1
+                CType(PanMainRight.Child, MyPageRight).PageOnForceExit()
+                '把新页面添加进容器
+                PanMainRight.Child = PageRight
+                PageRight.Opacity = 0
+                PanMainRight.Background = Nothing
+                AniControlEnabled -= 1
+                RunInUi(Sub() BtnExtraBack.ShowRefresh(), True)
+            End Sub, 110),
+            AaCode(
+            Sub()
+                '延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
+                PageRight.Opacity = 1
+                PageRight.PageOnEnter()
+            End Sub, 30, True)
+        }, "FrmMain PageChangeRight")
     End Sub
     ''' <summary>
     ''' 退出子界面。
@@ -1754,61 +1514,13 @@ Public Class FormMain
             PanTitleMain.Visibility = Visibility.Visible
             PanTitleMain.IsHitTestVisible = True
             PanTitleInner.IsHitTestVisible = False
-'            AniStart({
-'                AaOpacity(PanTitleInner, -PanTitleInner.Opacity, 150),
-'                AaX(PanTitleInner, -18 - PanTitleInner.Margin.Left, 150,, New AniEaseInFluent),
-'                AaOpacity(PanTitleMain, 1 - PanTitleMain.Opacity, 150, 200),
-'                AaX(PanTitleMain, -PanTitleMain.Margin.Left, 350, 200, New AniEaseOutBack(AniEasePower.Weak)),
-'                AaCode(Sub() PanTitleInner.Visibility = Visibility.Collapsed,, True)
-'            }, "FrmMain Titlebar FirstLayer")
-            
-            Dim ani1 = New SequentialAnimationGroup
-            ani1.Name = "FrmMain Titlebar FirstLayer"
-            
-            Dim ani2 = New ParallelAnimationGroup
-            
-            Dim aniInnerOpacity = New DoubleFromToAnimation
-            aniInnerOpacity.To = 0
-            aniInnerOpacity.Duration = TimeSpan.FromMilliseconds(150)
-            aniInnerOpacity.SetValue(AnimationExtensions.TargetProperty, PanTitleInner)
-            aniInnerOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-            ani2.Children.Add(aniInnerOpacity)
-            
-            Dim aniInnerMove = New ThicknessFromToAnimation
-            aniInnerMove.To = New Thickness(-18, PanTitleInner.Margin.Top, PanTitleInner.Margin.Right,
-                                           PanTitleInner.Margin.Bottom)
-            aniInnerMove.Duration = TimeSpan.FromMilliseconds(150)
-            aniInnerMove.Easing = CubicEaseIn.Shared
-            aniInnerMove.SetValue(AnimationExtensions.TargetProperty, PanTitleInner)
-            aniInnerMove.SetValue(AnimationExtensions.TargetPropertyProperty, MarginProperty)
-            ani2.Children.Add(aniInnerMove)
-            
-            Dim aniMainOpacity = New DoubleFromToAnimation
-            aniMainOpacity.To = 1
-            aniMainOpacity.Delay = TimeSpan.FromMilliseconds(200)
-            aniMainOpacity.Duration = TimeSpan.FromMilliseconds(150)
-            aniMainOpacity.SetValue(AnimationExtensions.TargetProperty, PanTitleMain)
-            aniMainOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-            ani2.Children.Add(aniMainOpacity)
-            
-            Dim aniMainMove = New ThicknessFromToAnimation
-            aniMainMove.To = New Thickness(0, PanTitleMain.Margin.Top, PanTitleMain.Margin.Right,
-                                          PanTitleMain.Margin.Bottom)
-            aniMainMove.Delay = TimeSpan.FromMilliseconds(200)
-            aniMainMove.Duration = TimeSpan.FromMilliseconds(350)
-            aniMainMove.Easing = New BackEaseWithPowerOut(EasePower.Weak)
-            aniMainMove.SetValue(AnimationExtensions.TargetProperty, PanTitleMain)
-            aniMainMove.SetValue(AnimationExtensions.TargetPropertyProperty, MarginProperty)
-            ani2.Children.Add(aniMainMove)
-            
-            ani1.Children.Add(ani2)
-            
-            Dim aniVisibilityChange =
-                    New ActionAnimation(Sub() PanTitleInner.Visibility = Visibility.Collapsed)
-            ani1.Children.Add(aniVisibilityChange)
-            
-            ani1.RunFireAndForget(EmptyAnimatable.Instance)
-            
+            AniStart({
+                AaOpacity(PanTitleInner, -PanTitleInner.Opacity, 150),
+                AaX(PanTitleInner, -18 - PanTitleInner.Margin.Left, 150,, New AniEaseInFluent),
+                AaOpacity(PanTitleMain, 1 - PanTitleMain.Opacity, 150, 200),
+                AaX(PanTitleMain, -PanTitleMain.Margin.Left, 350, 200, New AniEaseOutBack(AniEasePower.Weak)),
+                AaCode(Sub() PanTitleInner.Visibility = Visibility.Collapsed,, True)
+            }, "FrmMain Titlebar FirstLayer")
             PageStack.Clear()
         Else
             '主页面 → 主页面，无事发生
@@ -1820,74 +1532,29 @@ Public Class FormMain
         If Not e.WidthChanged Then Return
         PanMainLeft_Resize(e.NewSize.Width)
     End Sub
-    
     Private Sub PanMainLeft_Resize(NewWidth As Double)
         Dim Delta As Double = NewWidth - RectLeftBackground.Width
-        Dim aniLeftChange = New ParallelAnimationGroup With {.Name = "FrmMain LeftChange"}
         If Math.Abs(Delta) > 0.1 AndAlso AniControlEnabled = 0 Then
             If PanMain.Opacity < 0.1 Then PanMainLeft.IsHitTestVisible = False '避免左边栏指向背景未能完美覆盖左边栏
             If NewWidth > 0 Then
                 '宽度足够，显示
-'                AniStart({
-'                    AaWidth(RectLeftBackground, NewWidth - RectLeftBackground.Width, 180,, New AniEaseOutFluent(AniEasePower.ExtraStrong)),
-'                    AaOpacity(RectLeftShadow, 1 - RectLeftShadow.Opacity, 180),
-'                    AaCode(Sub() PanMainLeft.IsHitTestVisible = True, 150)
-'                }, "FrmMain LeftChange", True)
-                
-                Dim aniWidth = New DoubleFromToAnimation
-                aniWidth.To = NewWidth
-                aniWidth.Duration = TimeSpan.FromMilliseconds(180)
-                aniWidth.Easing = QuinticEaseOut.Shared
-                aniWidth.SetValue(AnimationExtensions.TargetProperty, RectLeftBackground)
-                aniWidth.SetValue(AnimationExtensions.TargetPropertyProperty, WidthProperty)
-                aniLeftChange.Children.Add(aniWidth)
-                
-                Dim aniOpacity = New DoubleFromToAnimation
-                aniOpacity.To = 1
-                aniOpacity.Duration = TimeSpan.FromMilliseconds(180)
-                aniOpacity.SetValue(AnimationExtensions.TargetProperty, RectLeftShadow)
-                aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                aniLeftChange.Children.Add(aniOpacity)
-                
-                Dim aniHitTest = New ActionAnimation(Sub() PanMainLeft.IsHitTestVisible = True)
-                aniHitTest.Delay = TimeSpan.FromMilliseconds(150)
-                aniLeftChange.Children.Add(aniHitTest)
-                
-                aniLeftChange.RunFireAndForget(EmptyAnimatable.Instance)
+                AniStart({
+                    AaWidth(RectLeftBackground, NewWidth - RectLeftBackground.Width, 180,, New AniEaseOutFluent(AniEasePower.ExtraStrong)),
+                    AaOpacity(RectLeftShadow, 1 - RectLeftShadow.Opacity, 180),
+                    AaCode(Sub() PanMainLeft.IsHitTestVisible = True, 150)
+                }, "FrmMain LeftChange", True)
             Else
                 '宽度不足，隐藏
-'                AniStart({
-'                    AaWidth(RectLeftBackground, -RectLeftBackground.Width, 180,, New AniEaseOutFluent),
-'                    AaOpacity(RectLeftShadow, -RectLeftShadow.Opacity, 180),
-'                    AaCode(Sub() PanMainLeft.IsHitTestVisible = True, 150)
-'                }, "FrmMain LeftChange", True)
-                
-                Dim aniWidth = New DoubleFromToAnimation
-                aniWidth.To = 0
-                aniWidth.Duration = TimeSpan.FromMilliseconds(180)
-                aniWidth.Easing = CubicEaseOut.Shared
-                aniWidth.SetValue(AnimationExtensions.TargetProperty, RectLeftBackground)
-                aniWidth.SetValue(AnimationExtensions.TargetPropertyProperty, WidthProperty)
-                aniLeftChange.Children.Add(aniWidth)
-                
-                Dim aniOpacity = New DoubleFromToAnimation
-                aniOpacity.To = 0
-                aniOpacity.Duration = TimeSpan.FromMilliseconds(180)
-                aniOpacity.SetValue(AnimationExtensions.TargetProperty, RectLeftShadow)
-                aniOpacity.SetValue(AnimationExtensions.TargetPropertyProperty, OpacityProperty)
-                aniLeftChange.Children.Add(aniOpacity)
-                
-                Dim aniHitTest = New ActionAnimation(Sub() PanMainLeft.IsHitTestVisible = True)
-                aniHitTest.Delay = TimeSpan.FromMilliseconds(150)
-                aniLeftChange.Children.Add(aniHitTest)
-                
-                aniLeftChange.RunFireAndForget(EmptyAnimatable.Instance)
+                AniStart({
+                    AaWidth(RectLeftBackground, -RectLeftBackground.Width, 180,, New AniEaseOutFluent),
+                    AaOpacity(RectLeftShadow, -RectLeftShadow.Opacity, 180),
+                    AaCode(Sub() PanMainLeft.IsHitTestVisible = True, 150)
+                }, "FrmMain LeftChange", True)
             End If
         Else
             RectLeftBackground.Width = NewWidth
             PanMainLeft.IsHitTestVisible = True
-'            AniStop("FrmMain LeftChange")
-            aniLeftChange.CancelAndClear()
+            AniStop("FrmMain LeftChange")
         End If
     End Sub
 

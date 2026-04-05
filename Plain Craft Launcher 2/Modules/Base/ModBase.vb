@@ -967,7 +967,7 @@ Public Module ModBase
             '确保目录存在
             Directory.CreateDirectory(GetPathFromFullPath(FilePath))
             '读取流
-            Using fs As New FileStream(FilePath, FileMode.Create, FileAccess.Write)
+            Using fs As New FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.Read)
                 fs.SetLength(0)
                 Stream.CopyTo(fs)
             End Using
@@ -1672,6 +1672,20 @@ RetryDir:
             Dim RegexSearchRes = New Regex(regex, options).Matches(str)
             If RegexSearchRes Is Nothing Then Return RegexSearch
             For Each item As Match In RegexSearchRes
+                RegexSearch.Add(item.Value)
+            Next
+        Catch ex As Exception
+            Log(ex, "正则匹配全部项出错")
+            Return New List(Of String)
+        End Try
+    End Function
+    ''' <summary>
+    ''' 搜索字符串中的所有正则匹配项。
+    ''' </summary>
+    <Extension> Public Function RegexSearch(str As String, regex As Regex, Optional options As RegexOptions = RegexOptions.None) As List(Of String)
+        Try
+            RegexSearch = New List(Of String)
+            For Each item As Match In regex.Matches(str, options)
                 RegexSearch.Add(item.Value)
             Next
         Catch ex As Exception
@@ -2710,6 +2724,11 @@ NextElement:
     ''' 将 XML 转换为对应 UI 对象。
     ''' </summary>
     Public Function GetObjectFromXML(Str As String) As Object
+        Str = Str. '兼容旧版自定义事件写法
+            Replace("EventType=""", "local:CustomEventService.EventType=""").
+            Replace("EventData=""", "local:CustomEventService.EventData=""").
+            Replace("Property=""EventType""", "Property=""local:CustomEventService.EventType""").
+            Replace("Property=""EventData""", "Property=""local:CustomEventService.EventData""")
         Using Stream As New MemoryStream(Encoding.UTF8.GetBytes(Str))
             '类型检查
             Using Reader As New XamlXmlReader(Stream)

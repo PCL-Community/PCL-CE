@@ -1,4 +1,5 @@
-﻿Imports System.Collections.Concurrent
+Imports System.Collections.Concurrent
+Imports System.IO.Compression
 Imports System.Net.Http
 Imports System.Text.Json
 Imports System.Text.Json.Serialization
@@ -147,49 +148,90 @@ Public Module ModComp
     End Property
 
     Private Function InitializeModDbAndGetConnectionString() As String
-        Log($"[DB] 解压 ModData (SQLite) 中")
+        Log("[DB] 解压 ModData (SQLite) 中")
+
         Using compressedDbData As Stream = GetResourceStream("Resources/mcmod.buf")
-            Using trueDbFile As New IO.Compression.GZipStream(compressedDbData, Compression.CompressionMode.Decompress)
+            Using trueDbFile As New GZipStream(compressedDbData, CompressionMode.Decompress)
                 Using ms As New MemoryStream()
+                    ' 这里提取文件资源
                     trueDbFile.CopyTo(ms)
                     ms.Seek(0, SeekOrigin.Begin)
                     Dim fileHash = GetHexString(SHA1Provider.Instance.ComputeHash(ms))
+                    Dim dbDir = IO.Path.Combine(PathTemp, "Cache")
+                    Dim dbPath = IO.Path.Combine(dbDir, $"ModData{fileHash}.sqlite")
 
-                    Dim dbPath = IO.Path.GetFullPath(IO.Path.Combine(PathTemp, $"Cache\ModData{fileHash}.sqlite"))
+                    ' 检查数据库是否有效
+                    If File.Exists(dbPath) AndAlso Not IsDatabaseValid(dbPath) Then
+                        File.Delete(dbPath)
+                    End If
+
                     If Not File.Exists(dbPath) Then
                         ms.Seek(0, SeekOrigin.Begin)
                         Dim entries = ProtoBuf.Serializer.Deserialize(Of List(Of CompDatabaseEntry))(ms)
-                        Directory.CreateDirectory(IO.Path.GetDirectoryName(dbPath))
-                        Using buildDbConnection As New SqliteConnection($"Data Source=""{dbPath}"";Pooling=False")
+
+                        Directory.CreateDirectory(dbDir)
+
+                        Dim tempPath = dbPath & ".tmp"
+                        If File.Exists(tempPath) Then File.Delete(tempPath)
+
+                        Using buildDbConnection As New SqliteConnection($"Data Source=""{tempPath}"";Pooling=False")
                             buildDbConnection.Open()
-                            buildDbConnection.Execute("
-                                CREATE TABLE ModTranslation (
-                                    WikiId INTEGER,
-                                    ChineseName TEXT,
-                                    CurseForgeSlug TEXT,
-                                    ModrinthSlug TEXT
-                                );
-                                CREATE INDEX idx_curseforge ON ModTranslation (CurseForgeSlug);
-                                CREATE INDEX idx_modrinth ON ModTranslation (ModrinthSlug);
-                                CREATE INDEX idx_chinesename ON ModTranslation (ChineseName);
-                            ")
 
-                            Using tran = buildDbConnection.BeginTransaction()
+                            ' 不用事务的话构建会非常慢
+                            Using transaction = buildDbConnection.BeginTransaction()
+                                buildDbConnection.Execute("
+                                    CREATE TABLE ModTranslation (
+                                        WikiId INTEGER,
+                                        ChineseName TEXT,
+                                        CurseForgeSlug TEXT,
+                                        ModrinthSlug TEXT
+                                    );
+                                    CREATE INDEX idx_curseforge ON ModTranslation (CurseForgeSlug);
+                                    CREATE INDEX idx_modrinth ON ModTranslation (ModrinthSlug);
+                                    CREATE INDEX idx_chinesename ON ModTranslation (ChineseName);
+                                ")
+
                                 Dim insertSql = "INSERT INTO ModTranslation (WikiId, ChineseName, CurseForgeSlug, ModrinthSlug) 
-                                VALUES (@WikiId, @ChineseName, @CurseForgeSlug, @ModrinthSlug)"
-
+                                             VALUES (@WikiId, @ChineseName, @CurseForgeSlug, @ModrinthSlug)"
                                 For Each entry In entries
-                                    buildDbConnection.Execute(insertSql, entry, tran)
+                                    buildDbConnection.Execute(insertSql, entry, transaction)
                                 Next
 
-                                tran.Commit()
+                                transaction.Commit()
                             End Using
                         End Using
+
+                        ' 构建完成的文件移入缓存位
+                        File.Move(tempPath, dbPath, True)
                     End If
+
                     Return $"Data Source=""{dbPath}"""
                 End Using
             End Using
         End Using
+    End Function
+
+    ''' <summary>
+    ''' 验证 SQLite 数据库文件是否包含预期的表且非空
+    ''' </summary>
+    Private Function IsDatabaseValid(dbPath As String) As Boolean
+        Try
+            Using conn As New SqliteConnection($"Data Source=""{dbPath}"";Pooling=False;Mode=ReadOnly")
+                conn.Open()
+                ' 检查表是否存在
+                Dim tableCheck = conn.ExecuteScalar(Of Integer)("
+                SELECT count(*) FROM sqlite_master 
+                WHERE type='table' AND name='ModTranslation'")
+                If tableCheck = 0 Then Return False
+
+                ' 检查表中是否有数据
+                Dim rowCount = conn.ExecuteScalar(Of Integer)("SELECT COUNT(*) FROM ModTranslation")
+                Return rowCount > 0
+            End Using
+        Catch ex As Exception
+            Log(ex, "检查模组翻译数据库有效性失败")
+            Return False
+        End Try
     End Function
 
     Private ReadOnly Property CompDB As SqliteConnection
@@ -803,22 +845,22 @@ Public Module ModComp
                 NewItem.Tags = Tags
                 NewItem.Description = Description.Replace(vbCr, "").Replace(vbLf, "")
                 '下边栏
-                If Not ShowMcVersionDesc AndAlso Not ShowLoaderDesc Then
+                If Not showMcVersionDesc AndAlso Not showLoaderDesc Then
                     '全部隐藏
                     CType(NewItem.PathVersion.Parent, Grid).Children.Remove(NewItem.PathVersion)
                     CType(NewItem.LabVersion.Parent, Grid).Children.Remove(NewItem.LabVersion)
                     NewItem.ColumnVersion1.Width = New GridLength(0)
                     NewItem.ColumnVersion2.MaxWidth = 0
                     NewItem.ColumnVersion3.Width = New GridLength(0)
-                ElseIf ShowMcVersionDesc AndAlso ShowLoaderDesc Then
+                ElseIf showMcVersionDesc AndAlso showLoaderDesc Then
                     '全部显示
-                    NewItem.LabVersion.Text = If(ModLoaderDescriptionPart = "", "", ModLoaderDescriptionPart & " ") & GameVersionDescription
-                ElseIf ShowMcVersionDesc Then
+                    NewItem.LabVersion.Text = If(modLoaderDescriptionPart = "", "", modLoaderDescriptionPart & " ") & gameVersionDescription
+                ElseIf showMcVersionDesc Then
                     '仅显示版本
-                    NewItem.LabVersion.Text = GameVersionDescription
+                    NewItem.LabVersion.Text = gameVersionDescription
                 Else
                     '仅显示 Mod 加载器
-                    NewItem.LabVersion.Text = ModLoaderDescriptionFull
+                    NewItem.LabVersion.Text = modLoaderDescriptionFull
                 End If
                 NewItem.LabSource.Text = If(FromCurseForge, "CurseForge", "Modrinth")
                 If LastUpdate IsNot Nothing Then
@@ -836,12 +878,17 @@ Public Module ModComp
             End Function) With {.Height = 64}
         End Function
         Public Function ToListItem() As MyListItem
-            Dim result As New MyListItem()
-            result.Title = TranslatedName
-            result.Info = Description.Replace(vbCr, "").Replace(vbLf, "")
-            result.Logo = LogoUrl
-            result.Tags = Tags
-            result.Tag = Me
+            Dim result As New MyListItem With {
+                .Title = TranslatedName,
+                .Info = Description.Replace(vbCr, "").Replace(vbLf, ""),
+                .Logo = LogoUrl,
+                .Tags = Tags,
+                .Tag = Me
+            }
+
+            Dim img = DirectCast(result.PathLogo, MyImage)
+            img.CornerRadius = New CornerRadius(6)
+            img.SnapsToDevicePixels = True
             Return result
         End Function
         Public Sub ApplyLogoToMyImage(img As MyImage)
@@ -2066,8 +2113,8 @@ Retry:
                 Body.Items.Add(Item)
             Next
             AddHandler Body.Closed, Sub()
-                                      ClosedCallBack?.Invoke()
-                                  End Sub
+                                        ClosedCallBack?.Invoke()
+                                    End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True
@@ -2097,8 +2144,8 @@ Retry:
                 Body.Items.Add(Item)
             Next
             AddHandler Body.Closed, Sub()
-                                      ClosedCallBack?.Invoke()
-                                  End Sub
+                                        ClosedCallBack?.Invoke()
+                                    End Sub
             Body.Placement = Primitives.PlacementMode.Bottom
             Body.PlacementTarget = Pos
             Body.IsOpen = True
@@ -2310,8 +2357,8 @@ Retry:
         Public Shared Sub GetClipboardResource()
             Dim Text As String = Nothing
             RunInUiWait(Sub()
-                Text = Clipboard.GetText()
-            End Sub)
+                            Text = Clipboard.GetText()
+                        End Sub)
             If Text = CurrentText Then Exit Sub
             CurrentText = Text
 
@@ -2373,7 +2420,8 @@ Retry:
 
                         Log("[Clipboard] 剪贴板资源 ProjectId: " + ProjectId)
 
-                        Application.Current.Dispatcher.BeginInvoke(Async Function() As Task
+                        Application.Current.Dispatcher.BeginInvoke(
+                        Async Function() As Task
                             If MyMsgBox("PCL 在剪贴板中识别到了资源链接，是否要跳转到该资源的详细信息页面？", "识别到剪贴板资源", "确定", "取消", ForceWait:=True) = 1 Then
                                 Hint("正在获取资源信息，请稍等...")
                                 Dim Ids As New List(Of String)({ProjectId})
@@ -2382,8 +2430,9 @@ Retry:
                                     Hint("剪贴板中的资源内容无效", HintType.Critical)
                                     Return
                                 End If
-                                FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.CompDetail,
-                                .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
+                                FrmMain.PageChange(New FormMain.PageStackData With {
+                                                    .Page = FormMain.PageType.CompDetail,
+                                                    .Additional = {CompProjects.First(), New List(Of String), String.Empty, CompLoaderType.Any, CompType.Any}})
                             End If
                         End Function)
                     Catch ex As Exception

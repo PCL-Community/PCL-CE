@@ -1,9 +1,3 @@
-Imports System.Threading.Tasks
-Imports PCL.Core.UI
-Imports PCL.Core.UI.Animation
-Imports PCL.Core.UI.Animation.Animatable
-Imports PCL.Core.UI.Animation.Core
-Imports PCL.Core.UI.Animation.Easings
 Imports PCL.Core.UI.Controls
 
 Public Class MyCard
@@ -155,89 +149,25 @@ Public Class MyCard
     Public Property HasMouseAnimation As Boolean = True
     Private Sub MyCard_MouseEnter(sender As Object, e As MouseEventArgs) Handles Me.MouseEnter
         If Not HasMouseAnimation Then Return
-'        Dim AniList As New List(Of AniData)
-        Dim animation = New ParallelAnimationGroup
-        animation.Name = "MyCard Mouse " & Uuid
-        
-        If Not IsNothing(MainTextBlock) Then 
-'            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90))
-            Dim aniTextColor = New NColorFromToAnimation
-            aniTextColor.To = New NColor("ColorBrush2")
-            aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
-            aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
-            aniTextColor.SetValue(AnimationExtensions.TargetPropertyProperty, TextBlock.ForegroundProperty)
-            animation.Children.Add(aniTextColor)
-        End If
-        If Not IsNothing(MainSwap) Then
-'            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush2", 90))
-            Dim aniSwapColor = New NColorFromToAnimation
-            aniSwapColor.To = New NColor("ColorBrush2")
-            aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
-            aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
-            aniSwapColor.SetValue(AnimationExtensions.TargetPropertyProperty, Shapes.Path.FillProperty)
-            animation.Children.Add(aniSwapColor)
-        End If
-'        AniList.AddRange({
-'            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
-'            AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
-'        })
-        Dim aniChromeColor = New NColorFromToAnimation
-        aniChromeColor.To = New NColor("ColorObject4")
-        aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
-        aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
-        Dim aniChromeOpacity = New DoubleFromToAnimation
-        aniChromeOpacity.To = DropShadowHoverOpacity
-        aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
-        animation.Children.Add(aniChromeColor)
-        animation.Children.Add(aniChromeOpacity)
-        
-        
-        If Not IsAnimating Then 
-'            AniStart(AniList, "MyCard Mouse " & Uuid)
-            animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
-        End If
+        Dim AniList As New List(Of AniData)
+        If Not IsNothing(MainTextBlock) Then AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90))
+        If Not IsNothing(MainSwap) Then AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush2", 90))
+        AniList.AddRange({
+            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
+            AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
+        })
+        If Not IsAnimating Then AniStart(AniList, "MyCard Mouse " & Uuid)
     End Sub
     Private Sub MyCard_MouseLeave(sender As Object, e As MouseEventArgs) Handles Me.MouseLeave
         If Not HasMouseAnimation Then Return
-'        Dim AniList As New List(Of AniData)
-        Dim animation = New ParallelAnimationGroup
-        animation.Name = "MyCard Mouse " & Uuid
-        
-        If Not IsNothing(MainTextBlock) Then
-'            AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90))
-            Dim aniTextColor = New NColorFromToAnimation
-            aniTextColor.To = New NColor("ColorBrush1")
-            aniTextColor.Duration = TimeSpan.FromMilliseconds(90)
-            aniTextColor.SetValue(AnimationExtensions.TargetProperty, MainTextBlock)
-            aniTextColor.SetValue(AnimationExtensions.TargetPropertyProperty, TextBlock.ForegroundProperty)
-            animation.Children.Add(aniTextColor)
-        End If
-        If Not IsNothing(MainSwap) Then
-'            AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush1", 90))
-            Dim aniSwapColor = New NColorFromToAnimation
-            aniSwapColor.To = New NColor("ColorBrush1")
-            aniSwapColor.Duration = TimeSpan.FromMilliseconds(90)
-            aniSwapColor.SetValue(AnimationExtensions.TargetProperty, MainSwap)
-            aniSwapColor.SetValue(AnimationExtensions.TargetPropertyProperty, Shapes.Path.FillProperty)
-            animation.Children.Add(aniSwapColor)
-        End If
-'        AniList.AddRange({
-'            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
-'            AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
-'        })
-        Dim aniChromeColor = New NColorFromToAnimation
-        aniChromeColor.To = New NColor("ColorObject1")
-        aniChromeColor.Duration = TimeSpan.FromMilliseconds(90)
-        aniChromeColor.SetValue(AnimationExtensions.TargetPropertyProperty, MyDropShadow.ColorProperty)
-        Dim aniChromeOpacity = New DoubleFromToAnimation
-        aniChromeOpacity.To = DropShadowIdleOpacity
-        aniChromeOpacity.Duration = TimeSpan.FromMilliseconds(90)
-        animation.Children.Add(aniChromeColor)
-        animation.Children.Add(aniChromeOpacity)
-        If Not IsAnimating Then 
-'            AniStart(AniList, "MyCard Mouse " & Uuid)
-            animation.RunFireAndForget(New WpfAnimatable(MainChrome, OpacityProperty))
-        End If
+        Dim AniList As New List(Of AniData)
+        If Not IsNothing(MainTextBlock) Then AniList.Add(AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90))
+        If Not IsNothing(MainSwap) Then AniList.Add(AaColor(MainSwap, Shapes.Path.FillProperty, "ColorBrush1", 90))
+        AniList.AddRange({
+            AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
+            AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
+        })
+        If Not IsAnimating Then AniStart(AniList, "MyCard Mouse " & Uuid)
     End Sub
 
 #Region "高度改变动画"
@@ -361,20 +291,11 @@ Public Class MyCard
             
             ' 根据折叠状态旋转箭头图标
             ' 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
-'            AniStart(AaRotateTransform(MainSwap, If(_IsSwapped, If(SwapLogoRight, 270, 0), 180) - CType(MainSwap.RenderTransform, RotateTransform).Angle, 250,, New AniEaseOutFluent(AniEasePower.ExtraStrong)), "MyCard Swap " & Uuid, True)
-            Dim aniRotate = New DoubleFromToAnimation
-            aniRotate.Name = "MyCard Swap " & Uuid
-            aniRotate.To = If(_IsSwapped, If(SwapLogoRight, 270, 0), 180)
-            aniRotate.Duration = TimeSpan.FromMilliseconds(250)
-            aniRotate.Easing = new QuinticEaseOut()
-            aniRotate.RunFireAndForget(New WpfAnimatable(MainSwap.RenderTransform, RotateTransform.AngleProperty))
+            AniStart(AaRotateTransform(MainSwap, If(_IsSwapped, If(SwapLogoRight, 270, 0), 180) - CType(MainSwap.RenderTransform, RotateTransform).Angle, 250,, New AniEaseOutFluent(AniEasePower.ExtraStrong)), "MyCard Swap " & Uuid, True)
         End Set
     End Property
     Private _IsSwapped As Boolean = False
     
-    ''' <summary>
-    ''' 是否已被折叠。(已过时，请使用 IsSwapped)
-    ''' </summary>
     <Obsolete("请使用 IsSwapped 属性，IsSwaped 存在拼写错误")>
     Public Property IsSwaped As Boolean
         Get
@@ -386,37 +307,45 @@ Public Class MyCard
     End Property
 
     Public Property SwapLogoRight As Boolean = False
-    Private IsMouseDown As Boolean = False
+    Private IsSwapMouseDown As Boolean = False '用于触发卡片展开/折叠的 MouseDown
+    Private IsCustomMouseDown As Boolean = False '用于触发自定义事件的 MouseDown
     Public Event PreviewSwap(sender As Object, e As RouteEventArgs)
     Public Event Swap(sender As Object, e As RouteEventArgs)
     Public Const SwapedHeight As Integer = 40
     Private Sub MyCard_MouseLeftButtonDown(sender As Object, e As MouseButtonEventArgs) Handles Me.MouseLeftButtonDown
         Dim Pos As Double = Mouse.GetPosition(Me).Y
         If Not IsSwapped AndAlso
-            (SwapControl Is Nothing OrElse Pos > If(IsSwapped, SwapedHeight, SwapedHeight - 6) OrElse (Pos = 0 AndAlso Not IsMouseDirectlyOver)) Then Return '检测点击位置；或已经不在可视树上的误判
-        IsMouseDown = True
+           (Pos > If(IsSwapped, SwapedHeight, SwapedHeight - 6) OrElse (Pos = 0 AndAlso Not IsMouseDirectlyOver)) Then Return
+        IsCustomMouseDown = True
+        If Not IsSwapped AndAlso
+           (SwapControl Is Nothing OrElse Pos > If(IsSwapped, SwapedHeight, SwapedHeight - 6) OrElse (Pos = 0 AndAlso Not IsMouseDirectlyOver)) Then Return '检测点击位置；或已经不在可视树上的误判
+        IsSwapMouseDown = True
     End Sub
-    Private Sub MyCard_MouseLeftButtonUp(sender As Object, e As MouseButtonEventArgs) Handles Me.MouseLeftButtonUp
-        If Not IsMouseDown Then Return
-        IsMouseDown = False
+    Private Sub MyCard_MouseLeftButtonUp() Handles Me.MouseLeftButtonUp
+        If Not IsCustomMouseDown Then Return
+        IsCustomMouseDown = False
+        RaiseCustomEvent() '触发自定义事件
+
+        If Not IsSwapMouseDown Then Return
+        IsSwapMouseDown = False
 
         Dim Pos As Double = Mouse.GetPosition(Me).Y
         If Not IsSwapped AndAlso
-            (SwapControl Is Nothing OrElse Pos > If(IsSwapped, SwapedHeight, SwapedHeight - 6) OrElse (Pos = 0 AndAlso Not IsMouseDirectlyOver)) Then Return '检测点击位置；或已经不在可视树上的误判
+           (SwapControl Is Nothing OrElse Pos > If(IsSwapped, SwapedHeight, SwapedHeight - 6) OrElse (Pos = 0 AndAlso Not IsMouseDirectlyOver)) Then Return '检测点击位置；或已经不在可视树上的误判
 
-        Dim ee = New RouteEventArgs(True)
-        RaiseEvent PreviewSwap(Me, ee)
-        If ee.Handled Then
-            IsMouseDown = False
+        Dim e = New RouteEventArgs(True)
+        RaiseEvent PreviewSwap(Me, e)
+        If e.Handled Then
+            IsSwapMouseDown = False
             Return
         End If
 
         IsSwapped = Not IsSwapped
         Log("[Control] " & If(IsSwapped, "折叠卡片", "展开卡片") & If(Title Is Nothing, "", "：" & Title))
-        RaiseEvent Swap(Me, ee)
+        RaiseEvent Swap(Me, e)
     End Sub
     Private Sub MyCard_MouseLeave_Swap(sender As Object, e As MouseEventArgs) Handles Me.MouseLeave
-        IsMouseDown = False
+        IsSwapMouseDown = False
     End Sub
 
 #End Region
@@ -452,41 +381,3 @@ Partial Public Module ModAnimation
         End If
     End Sub
 End Module
-
-''' <summary>
-''' 基于初始速度的流畅缓出动画。
-''' </summary>
-Public Class FluentEaseOutWithInitial
-    Inherits Easing
-
-    ' (初速度 / 平均速度) – 1
-    Private ReadOnly _alpha As Double
-
-    ''' <summary>
-    ''' 初始化缓动类。
-    ''' </summary>
-    ''' <param name="initialPixelPerSecond">初速度，px/s。</param>
-    ''' <param name="totalSecond">总时长，s。</param>
-    ''' <param name="totalDistance">总路程，px。</param>
-    Public Sub New(initialPixelPerSecond As Double, totalSecond As Double, totalDistance As Double)
-        ' 防止除以零
-        If Math.Abs(totalDistance - 0) < 1e-6 Then
-            _alpha = 0
-        Else
-            ' 归一化初速度
-            Dim v0Norm As Double = initialPixelPerSecond * totalSecond / totalDistance
-            _alpha = v0Norm - 1.0
-        End If
-
-        ' 初速度小于平均速度时，退化为线性
-        If _alpha < 0 Then _alpha = 0
-    End Sub
-
-    Protected Overrides Function EaseCore(progress As Double) As Double
-        ' 如果 alpha 为 0，退化为线性 (y = x)
-        If Math.Abs(_alpha - 0) < 1e-6 Then Return progress
-        
-        Return (_alpha + 1) * progress / (1 + _alpha * progress)
-    End Function
-
-End Class

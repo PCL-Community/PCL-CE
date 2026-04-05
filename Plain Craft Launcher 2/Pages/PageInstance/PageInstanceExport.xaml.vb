@@ -23,7 +23,7 @@ Public Class PageInstanceExport
     Private Sub PageInstanceExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
         If CurrentVersion <> PageInstanceLeft.Instance.PathInstance Then RefreshAll() '切换到了另一个实例，重置页面
-        BtnAdvancedHelp.EventData = "指南/整合包制作.json"
+        CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json")
         AniControlEnabled -= 1
     End Sub
     Public Sub RefreshAll() Implements IRefreshable.Refresh

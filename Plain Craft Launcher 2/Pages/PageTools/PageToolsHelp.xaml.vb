@@ -73,7 +73,7 @@
     Public Shared Sub OnItemClick(Entry As HelpEntry)
         Try
             If Entry.IsEvent Then
-                ModEvent.TryStartEvent(Entry.EventType, Entry.EventData)
+                CustomEvent.Raise(Entry.EventType, Entry.EventData)
             Else
                 EnterHelpPage(Entry)
             End If

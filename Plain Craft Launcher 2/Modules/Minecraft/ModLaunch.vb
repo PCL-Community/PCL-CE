@@ -5,10 +5,10 @@ Imports PCL.Core.Minecraft
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.App
-Imports PCL.Core.IO.Net.Http.Client
 Imports PCL.Core.Minecraft.Launch.Utils
 Imports PCL.Core.Utils.Secret
 Imports PCL.Core.Utils.Exts
+Imports PCL.Core.IO.Net.Http.Client.Request
 
 Public Module ModLaunch
 
@@ -605,10 +605,20 @@ SkipLogin:
 Retry:
         McLaunchLog("开始正版验证 Step 1/6（原始登录）")
         Dim PrepareJson As JObject
-        Using response = HttpRequestBuilder.Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post).
-                WithContent(New ByteArrayContent(Encoding.UTF8.GetBytes($"client_id={OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access")), "application/x-www-form-urlencoded").
-                SendAsync(True).GetAwaiter().GetResult()
-            PrepareJson = GetJson(response.AsStringContent())
+        Dim parameters As New Dictionary(Of String, String) From {
+            {"client_id", OAuthClientId},
+            {"tenant", "/consumers"},
+            {"scope", "XboxLive.signin offline_access"}
+        }
+        Using response = HttpRequest.
+            CreatePost("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode").
+            WithFormContent(parameters).
+            SendAsync().
+            GetAwaiter().
+            GetResult()
+
+            response.EnsureSuccessStatusCode()
+            PrepareJson = GetJson(response.AsString())
         End Using
 
         McLaunchLog("网页登录地址：" & PrepareJson("verification_uri").ToString)
@@ -643,10 +653,21 @@ Retry:
         If String.IsNullOrEmpty(Code) Then Throw New ArgumentException("传入的 Code 为空", NameOf(Code))
         Dim Result As String = Nothing
         Try
-            Using response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post).
-                WithContent($"client_id={OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded").
-                SendAsync(True).GetAwaiter().GetResult()
-                Result = response.AsStringContent()
+            Dim parameters As New Dictionary(Of String, String) From {
+                {"client_id", OAuthClientId},
+                {"refresh_token", Code},
+                {"grant_type", "refresh_token"},
+                {"scope", "XboxLive.signin offline_access"}
+            }
+            Using response = HttpRequest.
+                CreatePost("https://login.live.com/oauth20_token.srf").
+                WithFormContent(parameters).
+                SendAsync().
+                GetAwaiter().
+                GetResult()
+
+                response.EnsureSuccessStatusCode()
+                Result = response.AsString()
             End Using
         Catch ex As ThreadInterruptedException
             Log(ex, "加载线程已终止")
@@ -704,10 +725,15 @@ Retry:
         }
         Dim Result As String = Nothing
         Try
-            Using response = HttpRequestBuilder.Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post).
+            Using response = HttpRequest.
+                CreatePost("https://user.auth.xboxlive.com/user/authenticate").
                 WithJsonContent(requestData).
-                SendAsync(True).GetAwaiter().GetResult()
-                Result = response.AsStringContent()
+                SendAsync().
+                GetAwaiter().
+                GetResult()
+
+                response.EnsureSuccessStatusCode()
+                Result = response.AsString()
             End Using
         Catch ex As Exception
             ProfileLog("正版验证 Step 2/6 获取 XBLToken 失败：" & ex.ToString())
@@ -752,12 +778,15 @@ Retry:
             .TokenType = "JWT"
         }
         Dim result As String
-        Using response = HttpRequestBuilder.Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post).
+        Using response = HttpRequest.CreatePost("https://xsts.auth.xboxlive.com/xsts/authorize").
                 WithJsonContent(requestData).
-                SendAsync().GetAwaiter().GetResult()
-            result = response.AsStringContent()
+                SendAsync().
+                GetAwaiter().
+                GetResult()
 
-            If Not response.IsSuccess Then
+            result = response.AsString()
+
+            If Not response.IsSuccessStatusCode Then
                 '参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
                 If result.Contains("2148916227") Then
                     MyMsgBox("该账号似乎已被微软封禁，无法登录。", "登录失败", "我知道了", IsWarn:=True)
@@ -816,10 +845,15 @@ Retry:
         }
         Dim Result As String
         Try
-            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post).
+            Using response = HttpRequest.
+                CreatePost("https://api.minecraftservices.com/authentication/login_with_xbox").
                 WithJsonContent(requestData).
-                SendAsync(True).GetAwaiter().GetResult()
-                Result = response.AsStringContent()
+                SendAsync().
+                GetAwaiter().
+                GetResult()
+
+                response.EnsureSuccessStatusCode()
+                Result = response.AsString()
             End Using
         Catch ex As HttpRequestException
             Dim Message As String = ex.Message
@@ -858,10 +892,14 @@ Retry:
         If String.IsNullOrEmpty(accessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(accessToken))
         Dim result As String = ""
         Try
-            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/entitlements/mcstore", HttpMethod.Get).
+            Using response = HttpRequest.Create("https://api.minecraftservices.com/entitlements/mcstore").
                 WithBearerToken(accessToken).
-                SendAsync(True).GetAwaiter().GetResult()
-                result = response.AsStringContent()
+                SendAsync().
+                GetAwaiter().
+                GetResult()
+
+                response.EnsureSuccessStatusCode()
+                result = response.AsString()
             End Using
             Dim ResultJson As JObject = GetJson(result)
             If Not (ResultJson.ContainsKey("items") AndAlso
@@ -890,10 +928,15 @@ Retry:
         If String.IsNullOrEmpty(AccessToken) Then Throw New ArgumentException("传入的 AccessToken 为空", NameOf(AccessToken))
         Dim Result As String
         Try
-            Using response = HttpRequestBuilder.Create("https://api.minecraftservices.com/minecraft/profile", HttpMethod.Get).
-                    WithBearerToken(AccessToken).
-                    SendAsync(True).GetAwaiter().GetResult()
-                Result = response.AsStringContent()
+            Using response = HttpRequest.
+                Create("https://api.minecraftservices.com/minecraft/profile").
+                WithBearerToken(AccessToken).
+                SendAsync().
+                GetAwaiter().
+                GetResult()
+
+                response.EnsureSuccessStatusCode()
+                Result = response.AsString()
             End Using
         Catch ex As HttpRequestException
             Dim Message As String = ex.Message
@@ -1490,6 +1533,35 @@ LoginFinish:
             Not Setup.Get("LaunchAdvanceDisableRW") AndAlso
             Not Setup.Get("VersionAdvanceDisableRW", Mc) '<1.6
     End Function
+    
+    ''' <summary>
+    ''' 获取实例所依赖的 LWJGL 版本
+    ''' </summary>
+    Private Function McLaunchGetLwjglVersion(Mc As McInstance) As String
+        For Each library As McLibToken In McLibListGet(Mc, False)
+            If String.IsNullOrWhiteSpace(library.OriginalName) Then Continue For
+            
+            Dim parts = library.OriginalName.Split(":"c)
+            If parts.Length >= 3 AndAlso
+               parts(0).Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) AndAlso
+               parts(1).Equals("lwjgl", StringComparison.OrdinalIgnoreCase) Then
+               Return parts(2)
+            End If
+        Next
+        
+        Return Nothing
+    End Function
+    
+    ''' <summary>
+    ''' 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
+    ''' </summary>
+    Private Function McLaunchUsesLwjglUnsafeAgent(Mc As McInstance) As Boolean
+        If McLaunchGetLwjglVersion(Mc) = "3.4.1" Then
+            Return Not Setup.Get("LaunchAdvanceDisableLwjglUnsafeAgent") AndAlso Not Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", Mc)
+        Else
+            Return False
+        End If
+    End Function
 
 
     '主方法，合并 Jvm、Game、Replace 三部分的参数数据
@@ -1710,6 +1782,11 @@ NextInstance:
             Catch ex As Exception
                 Throw New Exception("无法连接到第三方登录服务器（" & If(Server, Nothing) & "）", ex)
             End Try
+        End If
+        
+        'LWJGL Unsafe Agent
+        If McLaunchUsesLwjglUnsafeAgent(McInstanceSelected) Then
+            DataList.Insert(0, "-javaagent:""" & PathPure & "lwjgl-unsafe-agent.jar""")
         End If
 
         If Config.Instance.UseDebugLof4j2Config.Item(instance.PathIndie) Then
@@ -1963,6 +2040,17 @@ NextInstance:
                 CpStrings.Add(WrapperPath)
             Catch ex As Exception
                 Log(ex, "RetroWrapper 释放失败")
+            End Try
+        End If
+        
+        'LWJGL Unsafe Agent 释放
+        If McLaunchUsesLwjglUnsafeAgent(instance) Then
+            Dim AgentPath As String = PathPure & "lwjgl-unsafe-agent.jar"
+            Try
+                WriteFile(AgentPath, GetResourceStream("Resources/lwjgl-unsafe-agent.jar"))
+                CpStrings.Add(AgentPath)
+            Catch ex As Exception
+                Log(ex, "LWJGL Unsafe Agent 释放失败")
             End Try
         End If
 

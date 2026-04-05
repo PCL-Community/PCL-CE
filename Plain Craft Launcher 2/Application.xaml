@@ -4,8 +4,6 @@
     xmlns:local="clr-namespace:PCL"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
-    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:ani="https://ce.pclc.cc/core/ui/animation"
     xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
     xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
     ShutdownMode="OnExplicitShutdown">
@@ -141,6 +139,7 @@
             <!-- TextBlock -->
             <Style TargetType="TextBlock">
                 <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -148,6 +147,7 @@
             </Style>
             <Style TargetType="TextBlock" x:Key="BasedOnTextBlock">
                 <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -458,33 +458,11 @@
                             <Border Background="{DynamicResource ColorBrushSemiTransparent}">
                                 <Path x:Name="path" Width="15" RenderTransformOrigin="0.3,0.5" HorizontalAlignment="Right" Data="M1,1L4.5,4.5L8,1" StrokeThickness="1.5" Stroke="{TemplateBinding Foreground}" VerticalAlignment="Center">
                                     <Path.RenderTransform>
-                                        <RotateTransform x:Name="PathRotateTransform"/>
+                                        <RotateTransform />
                                     </Path.RenderTransform>
                                 </Path>
-                                <i:Interaction.Triggers>
-                                    <i:DataTrigger
-                                        Binding="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
-                                        Value="True">
-                                        <ani:RunAnimationAction>
-                                            <ani:DoubleFromToAnimation Name="MyComboBoxPathRotateAngle" To="180" Duration="0:0:0.2"
-                                                                       Easing="CircularEaseOut"
-                                                                       ani:AnimationExtensions.Target="{x:Reference PathRotateTransform}"
-                                                                       ani:AnimationExtensions.TargetProperty="{x:Static RotateTransform.AngleProperty}" />
-                                        </ani:RunAnimationAction>
-                                    </i:DataTrigger>
-                                    <i:DataTrigger
-                                        Binding="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
-                                        Value="False">
-                                        <ani:RunAnimationAction>
-                                            <ani:DoubleFromToAnimation Name="MyComboBoxPathRotateAngle" To="0" Duration="0:0:0.2"
-                                                                       Easing="CircularEaseOut"
-                                                                       ani:AnimationExtensions.Target="{x:Reference PathRotateTransform}"
-                                                                       ani:AnimationExtensions.TargetProperty="{x:Static RotateTransform.AngleProperty}" />
-                                        </ani:RunAnimationAction>
-                                    </i:DataTrigger>
-                                </i:Interaction.Triggers>
                             </Border>
-                            <!-- <ControlTemplate.Triggers>
+                            <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
                                     <Trigger.EnterActions>
                                         <BeginStoryboard>
@@ -509,7 +487,7 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
-                            </ControlTemplate.Triggers> -->
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

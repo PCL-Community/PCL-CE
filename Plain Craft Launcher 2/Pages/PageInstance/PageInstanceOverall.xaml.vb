@@ -33,7 +33,7 @@ Public Class PageInstanceOverall
 
         Dim instance = PageInstanceLeft.Instance
         '刷新设置项目
-        ComboDisplayType.SelectedIndex = Config.Instance.CardType(instance.PathInstance)
+        ComboDisplayType.SelectedIndex = States.Instance.CardType(instance.PathInstance)
         BtnDisplayStar.Text = If(instance.IsStar, "从收藏夹中移除", "加入收藏夹")
         BtnFolderMods.Visibility = If(instance.Modable, Visibility.Visible, Visibility.Collapsed)
         '刷新实例显示
@@ -46,8 +46,8 @@ Public Class PageInstanceOverall
         GetInstanceInfo()
         '刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0
-        Dim Logo As String = Config.Instance.LogoPath(instance.PathInstance)
-        Dim LogoCustom As Boolean = Config.Instance.IsLogoCustom(instance.PathInstance)
+        Dim Logo As String = States.Instance.LogoPath(instance.PathInstance)
+        Dim LogoCustom As Boolean = States.Instance.IsLogoCustom(instance.PathInstance)
         If LogoCustom Then
             For Each Selection As MyComboBoxItem In ComboDisplayLogo.Items
                 If Selection.Tag = Logo OrElse (Selection.Tag = "PCL\Logo.png" AndAlso Logo.EndsWith("PCL\Logo.png")) Then
@@ -70,9 +70,9 @@ Public Class PageInstanceOverall
                 End Sub)
         Dim loaders As New List(Of LoaderBase)
         loaders.Add(New LoaderTask(Of Integer, Integer)("获取可能的整合包信息", Sub()
-                                                                          Dim modpackId = Config.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)
+                                                                          Dim modpackId = States.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)
                                                                           If Not String.IsNullOrWhiteSpace(modpackId) Then
-                                                                              Dim compProjects = CompRequest.GetCompProjectsByIds(New List(Of String) From {Config.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)})
+                                                                              Dim compProjects = CompRequest.GetCompProjectsByIds(New List(Of String) From {States.Instance.ModpackId(PageInstanceLeft.Instance.PathInstance)})
                                                                               If Not compProjects.Count = 0 Then RunInUi(Sub()
                                                                                                                              ModpackCompItem = compProjects.First().ToCompItem(False, False)
                                                                                                                              ModpackCompItem.Tag = compProjects.First()
@@ -84,13 +84,13 @@ Public Class PageInstanceOverall
                                                                                   Dim instance = PageInstanceLeft.Instance
                                                                                   Dim instanceInfo = instance.Info
                                                                                   Dim items As New List(Of MyListItem)
-                                                                                  Dim launchCount = Config.Instance.LaunchCount(instance.PathInstance)
+                                                                                  Dim launchCount = States.Instance.LaunchCount(instance.PathInstance)
                                                                                   If launchCount = 0 Then
                                                                                       items.Add(New MyListItem With {.Title = "启动次数", .Info = "从未启动", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOff.png"})
                                                                                   Else
-                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "已启动 " & Config.Instance.LaunchCount(instance.PathInstance).ToString() & " 次", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"})
+                                                                                      items.Add(New MyListItem With {.Title = "启动次数", .Info = "已启动 " & States.Instance.LaunchCount(instance.PathInstance).ToString() & " 次", .Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"})
                                                                                   End If
-                                                                                  If Not String.IsNullOrWhiteSpace(Config.Instance.ModpackVersion(instance.PathInstance)) Then items.Add(New MyListItem With {.Title = "整合包版本", .Info = Config.Instance.ModpackVersion(instance.PathInstance), .Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"})
+                                                                                  If Not String.IsNullOrWhiteSpace(States.Instance.ModpackVersion(instance.PathInstance)) Then items.Add(New MyListItem With {.Title = "整合包版本", .Info = States.Instance.ModpackVersion(instance.PathInstance), .Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"})
                                                                                   items.Add(New MyListItem With {.Title = "Minecraft", .Info = instanceInfo.VanillaName, .Logo = "pack://application:,,,/images/Blocks/Grass.png"})
                                                                                   If instanceInfo.HasForge Then items.Add(New MyListItem With {.Title = "Forge", .Info = instanceInfo.Forge, .Logo = "pack://application:,,,/images/Blocks/Anvil.png"})
                                                                                   If instanceInfo.HasNeoForge Then items.Add(New MyListItem With {.Title = "NeoForge", .Info = instanceInfo.NeoForge, .Logo = "pack://application:,,,/images/Blocks/NeoForge.png"})
@@ -127,8 +127,8 @@ Public Class PageInstanceOverall
             '改为不隐藏
             Try
                 '若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = ComboDisplayType.SelectedIndex
-                PageInstanceLeft.Instance.DisplayType = Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance)
+                States.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = ComboDisplayType.SelectedIndex
+                PageInstanceLeft.Instance.DisplayType = States.Instance.CardType(PageInstanceLeft.Instance.PathInstance)
                 FrmInstanceLeft.RefreshModDisabled()
 
                 WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
@@ -147,7 +147,7 @@ Public Class PageInstanceOverall
                     End If
                     Setup.Set("HintHide", True)
                 End If
-                Config.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = CInt(McInstanceCardType.Hidden)
+                States.Instance.CardType(PageInstanceLeft.Instance.PathInstance) = CInt(McInstanceCardType.Hidden)
                 WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
                 LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
             Catch ex As Exception
@@ -159,9 +159,9 @@ Public Class PageInstanceOverall
     '更改描述
     Private Sub BtnDisplayDesc_Click(sender As Object, e As EventArgs) Handles BtnDisplayDesc.Click
         Try
-            Dim OldInfo As String = Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance)
+            Dim OldInfo As String = States.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance)
             Dim NewInfo As String = MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo, New ObjectModel.Collection(Of Validate), "默认描述")
-            If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then Config.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance) = NewInfo
+            If NewInfo IsNot Nothing AndAlso OldInfo <> NewInfo Then States.Instance.CustomInfo(PageInstanceLeft.Instance.PathInstance) = NewInfo
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
             LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
@@ -264,8 +264,8 @@ Public Class PageInstanceOverall
         '进行更改
         Try
             Dim NewLogo As String = ComboDisplayLogo.SelectedItem.Tag
-            Config.Instance.LogoPath(PageInstanceLeft.Instance.PathInstance) = NewLogo
-            Config.Instance.IsLogoCustom(PageInstanceLeft.Instance.PathInstance) = Not NewLogo = ""
+            States.Instance.LogoPath(PageInstanceLeft.Instance.PathInstance) = NewLogo
+            States.Instance.IsLogoCustom(PageInstanceLeft.Instance.PathInstance) = Not NewLogo = ""
             '刷新显示
             WriteIni(McFolderSelected & "PCL.ini", "InstanceCache", "") '要求刷新缓存
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
@@ -279,7 +279,7 @@ Public Class PageInstanceOverall
     '收藏夹
     Private Sub BtnDisplayStar_Click(sender As Object, e As EventArgs) Handles BtnDisplayStar.Click
         Try
-            Config.Instance.Starred(PageInstanceLeft.Instance.PathInstance) = Not PageInstanceLeft.Instance.IsStar
+            States.Instance.Starred(PageInstanceLeft.Instance.PathInstance) = Not PageInstanceLeft.Instance.IsStar
             PageInstanceLeft.Instance = New McInstance(PageInstanceLeft.Instance.Name).Load()
             Reload()
             McInstanceListForceRefresh = True

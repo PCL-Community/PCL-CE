@@ -254,7 +254,7 @@
                             <local:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140" Text="读取配置" Padding="13,0" Margin="0,0,20,0" ColorType="Highlight" />
                             <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140" Text="保存配置" Padding="13,0" Margin="0,0,20,0" />
                             <local:MyButton Grid.Column="2" MinWidth="140" Text="整合包制作指南" Padding="13,0" Margin="0,0,20,0" x:Name="BtnAdvancedHelp"
-                                            EventType="打开帮助" />
+                                            local:CustomEventService.EventType="打开帮助" />
                         </Grid>
                     </StackPanel>
                 </local:MyCard>

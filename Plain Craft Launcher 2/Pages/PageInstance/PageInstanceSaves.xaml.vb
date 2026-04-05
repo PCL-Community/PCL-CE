@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualBasic.FileIO
+Imports Microsoft.VisualBasic.FileIO
 Imports System.IO
 
 Public Class PageInstanceSaves
@@ -211,7 +211,10 @@ Public Class PageInstanceSaves
                         }
                     AddHandler BtnLaunch.Click, Sub()
                                                     Dim WorldName = GetFileNameFromPath(tmpCurFolder)
-                                                    Dim LaunchOptions As New McLaunchOptions With {.WorldName = WorldName}
+                                                    Dim LaunchOptions As New McLaunchOptions With {
+                                                        .WorldName = WorldName,
+                                                        .Instance = PageInstanceLeft.Instance
+                                                    }
                                                     McLaunchStart(LaunchOptions)
                                                     FrmMain.PageChange(New FormMain.PageStackData With {.Page = FormMain.PageType.Launch})
                                                 End Sub

@@ -346,8 +346,8 @@ Retry:
             Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
-                Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
-                Config.Instance.IsLogoCustom(VersionFolder) = True
+                States.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                States.Instance.IsLogoCustom(VersionFolder) = True
                 Log("[ModPack] 已设置整合包 Logo：" & Logo)
             End If
             '删除原始整合包文件
@@ -363,14 +363,14 @@ Retry:
             End If
             '整合包版本
             If Json("version") IsNot Nothing Then
-                Config.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+                States.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
             End If
-            Config.Instance.ModpackSource(VersionFolder) = "CurseForge"
-            Config.Instance.ModpackId(VersionFolder) = resourceId
+            States.Instance.ModpackSource(VersionFolder) = "CurseForge"
+            States.Instance.ModpackId(VersionFolder) = resourceId
             Try
                 Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
                 If projects.Count = 0 Then Exit Try
-                Config.Instance.CustomInfo(VersionFolder) = projects.First().Description
+                States.Instance.CustomInfo(VersionFolder) = projects.First().Description
             Catch ex As Exception
                 Log(ex, "[ModPack] 获取整合包描述文本失败")
             End Try
@@ -505,8 +505,8 @@ Retry:
             Dim VersionFolder As String = $"{McFolderSelected}versions\{InstanceName}\"
             If Logo IsNot Nothing AndAlso File.Exists(Logo) Then
                 File.Copy(Logo, VersionFolder & "PCL\Logo.png", True)
-                Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
-                Config.Instance.IsLogoCustom(VersionFolder) = True
+                States.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                States.Instance.IsLogoCustom(VersionFolder) = True
                 Log("[ModPack] 已设置整合包 Logo：" & Logo)
             End If
             '删除原始整合包文件
@@ -522,14 +522,14 @@ Retry:
             End If
             '整合包版本
             If Json("versionId") IsNot Nothing Then
-                Config.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
+                States.Instance.ModpackVersion(VersionFolder) = Json("versionId").ToString()
             End If
-            Config.Instance.ModpackSource(VersionFolder) = "Modrinth"
-            Config.Instance.ModpackId(VersionFolder) = resourceId
+            States.Instance.ModpackSource(VersionFolder) = "Modrinth"
+            States.Instance.ModpackId(VersionFolder) = resourceId
             Try
                 Dim projects = CompRequest.GetCompProjectsByIds(New List(Of String) From {resourceId})
                 If projects.Count = 0 Then Exit Try
-                Config.Instance.CustomInfo(VersionFolder) = projects.First().Description
+                States.Instance.CustomInfo(VersionFolder) = projects.First().Description
             Catch ex As Exception
                 Log(ex, "[ModPack] 获取整合包描述文本失败")
             End Try
@@ -863,8 +863,8 @@ Retry:
                     End If
                     Dim Logo As String = IO.Path.GetFileName(ReadIni(MMCSetupFile, "iconKey", ""))
                     If Logo <> "" AndAlso File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png") Then
-                        Config.Instance.IsLogoCustom(VersionFolder) = True
-                        Config.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
+                        States.Instance.IsLogoCustom(VersionFolder) = True
+                        States.Instance.LogoPath(VersionFolder) = "PCL\Logo.png"
                         CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png", $"{McFolderSelected}versions\{InstanceName}\PCL\Logo.png")
                         Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）")
                     End If
@@ -973,7 +973,7 @@ Retry:
             End If
             '整合包版本
             If Json("version") IsNot Nothing Then
-                Config.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
+                States.Instance.ModpackVersion(VersionFolder) = Json("version").ToString()
             End If
         End Sub) With {.ProgressWeight = New FileInfo(FileAddress).Length / 1024 / 1024 / 6, .Block = False}) '每 6M 需要 1s
         '构造加载器

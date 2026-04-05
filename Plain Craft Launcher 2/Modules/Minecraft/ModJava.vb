@@ -144,18 +144,25 @@ Public Module ModJava
 
         Dim preference As JavaPreference = Nothing
 
-        Try
-            preference = JsonSerializer.Deserialize(Of JavaPreference)(rawPreference.Trim())
-        Catch ex As JsonException
-            Dim trimmed = rawPreference.Trim()
-            If trimmed = "使用全局设置" Then '全局设置
-                preference = New UseGlobalPreference()
-            ElseIf trimmed.IsNullOrEmpty() Then
+        '尝试读取 JSON 配置
+        If Not rawPreference.IsNullOrEmpty() Then
+            Try
+                preference = JsonSerializer.Deserialize(Of JavaPreference)(rawPreference)
+            Catch ex As JsonException
+                'ignored
+            End Try
+        End If
+        '以旧方式读取配置
+        If preference Is Nothing Then
+            Dim trimmed = rawPreference?.Trim()
+            If trimmed.IsNullOrEmpty() Then
                 preference = New AutoSelect()
+            ElseIf trimmed = "使用全局设置" Then '全局设置
+                preference = New UseGlobalPreference()
             Else
                 preference = New ExistingJava(trimmed)
             End If
-        End Try
+        End If
 
         Select Case True
             Case TypeOf preference Is ExistingJava

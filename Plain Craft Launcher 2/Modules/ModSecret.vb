@@ -431,7 +431,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         Catch ex As Win32Exception
             Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", LogLevel.Debug, "出现错误")
             If MyMsgBox(String.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！", vbCrLf, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", True, True, False, Nothing, Nothing, Nothing) = 1 Then
-                TryStartEvent("打开帮助", "启动器/Microsoft Defender 添加排除项.json")
+                CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json")
             End If
         End Try
     End Sub
@@ -497,10 +497,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                                    If(item.btn2 Is Nothing, "", item.btn2.text),
                                    "关闭",
                                    Button1Action:=Sub()
-                                                      TryStartEvent(item.btn1.command, item.btn1.command_paramter)
+                                       CustomEvent.Raise(item.btn1.command, item.btn1.command_paramter)
                                                   End Sub,
                                    Button2Action:=Sub()
-                                                      TryStartEvent(item.btn2.command, item.btn2.command_paramter)
+                                       CustomEvent.Raise(item.btn2.command, item.btn2.command_paramter)
                                                   End Sub
                                     )
                                Next

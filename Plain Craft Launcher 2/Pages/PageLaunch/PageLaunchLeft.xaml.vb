@@ -112,12 +112,6 @@ Public Class PageLaunchLeft
 #Region "切换大页面"
 
     ''' <summary>
-    ''' 获取你知道吗。
-    ''' </summary>
-    Private Function GetRandomHint() As String
-        Return PageLaunchRight.GetRandomHint(True)
-    End Function
-    ''' <summary>
     ''' 切换至启动中页面。
     ''' </summary>
     Public Sub PageChangeToLaunching()
@@ -154,7 +148,7 @@ Public Class PageLaunchLeft
 
         Dim ShouldShowHint As Boolean = Setup.Get("UiShowLaunchingHint")
         If ShouldShowHint Then
-            LabLaunchingHint.Text = GetRandomHint()
+            LabLaunchingHint.Text = PageLaunchRight.GetRandomHint(True, raw:=True)
         Else
             LabLaunchingHint.Text = ""
         End If

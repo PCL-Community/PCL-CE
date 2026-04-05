@@ -517,9 +517,15 @@ Public Module ModWatcher
                         GameProcess.WaitForExit(5000)
                         If CheckAlive(GameProcess) Then
                             WatcherLog("进程仍未退出，尝试使用 taskkill.exe")
-                            Dim taskkillProcess = Process.Start("taskkill.exe", $"/PID {GameProcess.Id} /F /T")
+                            Dim taskkillInfo As New ProcessStartInfo With {
+                                .FileName = "taskkill.exe",
+                                .Arguments = $"/PID {GameProcess.Id} /F /T",
+                                .RedirectStandardOutput = True,
+                                .UseShellExecute = False
+                            }
+                            Dim taskkillProcess = Process.Start(taskkillInfo)
                             Dim output = taskkillProcess.StandardOutput.ReadToEnd()
-                            Log($"执行 taskkill.exe 结果: {output}")
+                            WatcherLog($"执行 taskkill.exe 结果:{vbLf}{output}")
                             GameProcess.WaitForExit(5000)
                             If CheckAlive(GameProcess) Then
                                 WatcherLog("强制结束 Minecraft 进程失败: 等待进程退出超时")

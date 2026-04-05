@@ -315,7 +315,7 @@ Public Class PageSelectRight
             BtnStar.Logo = Logo.IconButtonLikeLine
         End If
         AddHandler BtnStar.Click, Sub()
-                                      Config.Instance.Starred(Version.PathInstance) = Not Version.IsStar
+                                      States.Instance.Starred(Version.PathInstance) = Not Version.IsStar
                                       McInstanceListForceRefresh = True
                                       LoaderFolderRun(McInstanceListLoader, McFolderSelected, LoaderFolderRunType.ForceRun, MaxDepth:=1, ExtraPath:="versions\")
                                   End Sub

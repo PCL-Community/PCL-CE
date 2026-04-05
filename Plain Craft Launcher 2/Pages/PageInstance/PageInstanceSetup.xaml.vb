@@ -1,5 +1,6 @@
 Imports PCL.Core.App
 Imports PCL.Core.Minecraft
+Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.UI
 Imports PCL.Core.Utils.OS
 Imports PCL.Core.Utils.Exts
@@ -80,7 +81,9 @@ Public Class PageInstanceSetup
             Else
                 CheckAdvanceDisableJLW.Checked = Setup.Get("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             End If
-
+            CheckAdvanceDisableRW.Checked = Setup.Get("VersionAdvanceDisableRW", instance:=PageInstanceLeft.Instance)
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", instance:=PageInstanceLeft.Instance)
+            
         Catch ex As Exception
             Log(ex, "重载实例独立设置时出错", LogLevel.Feedback)
         End Try
@@ -89,32 +92,10 @@ Public Class PageInstanceSetup
     '初始化
     Public Sub Reset()
         Try
-            If Not Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance) Then
-                Setup.Reset("VersionServerLoginRequire", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthServer", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthRegister", instance:=PageInstanceLeft.Instance)
-                Setup.Reset("VersionServerAuthName", instance:=PageInstanceLeft.Instance)
-            End If
-            Setup.Reset("VersionServerEnter", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentTitle", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentInfo", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionArgumentIndieV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamType", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamCustom", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionRamOptimize", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJvm", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceGame", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssets", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceAssetsV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceJava", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJlw", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRun", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRunWait", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceUseProxyV2", instance:=PageInstanceLeft.Instance)
-            Setup.Reset("VersionAdvanceRenderer", instance:=PageInstanceLeft.Instance)
+            If Not Config.InstanceAuth.AuthLocked(PageInstanceLeft.Instance.PathInstance) Then _
+                Config.InstanceAuth.Reset(PageInstanceLeft.Instance.PathInstance)
 
-            Setup.Reset("VersionArgumentJavaSelect", instance:=PageInstanceLeft.Instance)
+            Config.Instance.Reset(PageInstanceLeft.Instance.PathInstance)
 
             Log("[Setup] 已初始化实例独立设置")
             Hint("已初始化实例独立设置！", HintType.Finish, False)
@@ -147,7 +128,7 @@ Public Class PageInstanceSetup
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex = 0, instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change, CheckAdvanceRunWait.Change, CheckAdvanceAssetsV2.Change, CheckAdvanceJava.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceUseProxyV2.Change, CheckAdvanceDisableRW.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change, CheckAdvanceRunWait.Change, CheckAdvanceAssetsV2.Change, CheckAdvanceJava.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceUseProxyV2.Change, CheckAdvanceDisableRW.Change, CheckAdvanceDisableLwjglUnsafeAgent.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked, instance:=PageInstanceLeft.Instance)
     End Sub
 
@@ -399,21 +380,22 @@ PreFin:
     End Sub
     Private Sub TextServerAuthServer_MouseLeave() Handles TextServerAuthServer.LostFocus
         If String.IsNullOrWhiteSpace(TextServerAuthServer.Text) Then Exit Sub
-        If Not (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") OrElse TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")) Then
-            If TextServerAuthServer.Text.EndsWithF("/") Then
-                TextServerAuthServer.Text = TextServerAuthServer.Text & "api/yggdrasil"
-                Hint("已自动格式化验证服务器地址！")
-            Else
-                TextServerAuthServer.Text = TextServerAuthServer.Text & "/api/yggdrasil"
-                Hint("已自动格式化验证服务器地址！")
-            End If
-        End If
-        If TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") Then
-            TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/")
-            Hint("已自动格式化验证服务器地址！")
-        End If
-        ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex
-        ComboChange(ComboServerLoginRequire, Nothing)
+        Hint("正在检查 API 地址信息，请稍后！")
+
+        Dispatcher.BeginInvoke(Async Function() As Task
+            Dim originAddress = TextServerAuthServer.Text
+            Try
+                TextServerAuthServer.Text = Await ApiLocation.TryRequestAsync(TextServerAuthServer.Text)
+                Hint("检查 API 地址信息成功，验证服务器地址已更新", HintType.Finish)
+            Catch ex As Exception
+                Log(ex,"检查验证服务器地址失败",LogLevel.Hint)
+                TextServerAuthServer.Text = originAddress
+            Finally
+                ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex
+                ComboChange(ComboServerLoginRequire, Nothing)
+
+            End Try
+        End Function)
     End Sub
     Public Sub ServerLogin(Type As Integer)
         LabServerAuthName.Visibility = If(Type = 2 OrElse Type = 3, Visibility.Visible, Visibility.Collapsed)

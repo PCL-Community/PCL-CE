@@ -232,8 +232,6 @@ Public Module ModLoader
     Public Class LoaderTask(Of InputType, OutputType)
         Inherits LoaderBase
 
-        '线程设定
-        Protected Friend ThreadPriority As ThreadPriority
         '执行事件
         Protected Friend LoadDelegate As Action(Of LoaderTask(Of InputType, OutputType))
         Protected Friend InputDelegate As Func(Of Object)
@@ -243,14 +241,16 @@ Public Module ModLoader
         ''' </summary>
         Public ReadOnly Property IsAborted As Boolean
             Get
-                Return IsAbortedWithThread(Thread.CurrentThread)
+                Return IsAbortedWithThread(If(Task.CurrentId, -1))
             End Get
         End Property
         ''' <summary>
         ''' 当前执行线程是否应当中断。需要手动提供加载器线程，用于需要跨线程检查的情况。
         ''' </summary>
-        Public Function IsAbortedWithThread(Thread As Thread) As Boolean
-            Return LastRunningThread Is Nothing OrElse Not ReferenceEquals(Thread, LastRunningThread) OrElse State = LoadState.Aborted
+        Public Function IsAbortedWithThread(compareTaskId As Integer) As Boolean
+            Return LastRunningTask Is Nothing OrElse
+                compareTaskId <> LastRunningTask.Id OrElse
+                State = LoadState.Aborted
         End Function
         ''' <summary>
         ''' 在输入相同时使用原有结果的超时，单位为毫秒。
@@ -263,7 +263,8 @@ Public Module ModLoader
         ''' <summary>
         ''' 最后一次运行加载器的线程。可能为 Nothing，或线程已结束。
         ''' </summary>
-        Public LastRunningThread As Thread = Nothing
+        Public LastRunningTask As Task = Nothing
+        Private CancelToken As CancellationTokenSource = Nothing
         '输入输出
         Public Input As InputType = Nothing
         Public Output As OutputType = Nothing
@@ -313,49 +314,52 @@ Public Module ModLoader
                 Return
             End If
 
-            LastRunningThread = New Thread(
+            CancelToken = New CancellationTokenSource()
+            LastRunningTask = Task.Run(
             Sub()
                 Try
                     IsForceRestarting = IsForceRestart
-                    If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已{If(IsForceRestarting, "强制", "")}启动")
+                    If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已{If(IsForceRestarting, "强制", "")}启动")
                     LoadDelegate(Me)
                     If IsAborted Then
-                        Log($"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{If(LastRunningThread Is Nothing, -1, LastRunningThread.ManagedThreadId)}）", LogLevel.Developer)
+                        Log($"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{If(LastRunningTask Is Nothing, -1, LastRunningTask.Id)}）", LogLevel.Developer)
                         Return
                     End If
-                    If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已完成")
+                    If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已完成")
                     RaisePreviewFinish()
                     State = LoadState.Finished
                     LastFinishedTime = TimeUtils.GetTimeTick() '未中断，本次输出有效
                 Catch ex As CancelledException
-                    If ModeDebug Then Log(ex, $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已触发取消中断，已完成 {Math.Round(Progress * 100)}%")
+                    If ModeDebug Then Log(ex, $"加载线程 {Name} ({Task.CurrentId}) 已触发取消中断，已完成 {Math.Round(Progress * 100)}%")
                     If Not IsAborted Then State = LoadState.Aborted
                 Catch ex As ThreadInterruptedException
-                    If ModeDebug Then Log(ex, $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 已触发线程中断，已完成 {Math.Round(Progress * 100)}%")
+                    If ModeDebug Then Log(ex, $"加载线程 {Name} ({Task.CurrentId}) 已触发线程中断，已完成 {Math.Round(Progress * 100)}%")
                     '如果线程是因为判断到 IsAborted 而提前中止，则代表已有新线程被重启，此时不应当改为 Aborted
                     '如果线程是在没有 IsAborted 时手动引发了 ThreadInterruptedException，则代表没有重启线程，这通常代表用户手动取消，应当改为 Aborted
                     If Not IsAborted Then State = LoadState.Aborted
                 Catch ex As Exception
                     If IsAborted Then Return
-                    Log(ex, $"加载线程 {Name} ({Thread.CurrentThread.ManagedThreadId}) 出错，已完成 {Math.Round(Progress * 100)}%", LogLevel.Developer)
+                    Log(ex, $"加载线程 {Name} ({Task.CurrentId}) 出错，已完成 {Math.Round(Progress * 100)}%", LogLevel.Developer)
                     [Error] = ex
                     State = LoadState.Failed
                 End Try
-            End Sub) With {.Name = Name, .Priority = ThreadPriority}
-            LastRunningThread.Start() '不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
+            End Sub, CancelToken.Token)
+            'LastRunningTask.Start() '不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
         End Sub
         Public Overrides Sub Abort()
             If State <> LoadState.Loading Then Return
             SyncLock LockState
                 State = LoadState.Aborted
             End SyncLock
+
             TriggerThreadAbort()
         End Sub
         Private Sub TriggerThreadAbort()
-            If LastRunningThread Is Nothing Then Return
-            If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({LastRunningThread.ManagedThreadId}) 已中断")
-            If LastRunningThread.IsAlive Then LastRunningThread.Interrupt()
-            LastRunningThread = Nothing
+            If LastRunningTask Is Nothing Then Return
+            If ModeDebug Then Log($"[Loader] 加载线程 {Name} ({LastRunningTask.Id}) 已中断")
+            If Not LastRunningTask.IsCompleted Then CancelToken.Cancel()
+            LastRunningTask = Nothing
+            CancelToken = Nothing
         End Sub
 
         Public Sub New()
@@ -365,7 +369,6 @@ Public Module ModLoader
             Me.Name = Name
             Me.LoadDelegate = LoadDelegate
             Me.InputDelegate = InputDelegate
-            ThreadPriority = Priority
         End Sub
 
     End Class
@@ -606,11 +609,11 @@ Restart:
             '更新任务栏信息
             If Not LoaderTaskbar.Any() OrElse LoaderTaskbarProgress = 1 Then
                 NewState = Shell.TaskbarItemProgressState.None
-            ElseIf LoaderTaskbarProgress < 0.015 Then
-                NewState = Shell.TaskbarItemProgressState.Indeterminate
+            ElseIf LoaderTaskbarProgress <0.015 Then
+                NewState= Shell.TaskbarItemProgressState.Indeterminate
             Else
-                NewState = Shell.TaskbarItemProgressState.Normal
-                FrmMain.TaskbarItemInfo.ProgressValue = LoaderTaskbarProgress
+                NewState= Shell.TaskbarItemProgressState.Normal
+                FrmMain.TaskbarItemInfo.ProgressValue= LoaderTaskbarProgress
             End If
             If LoaderTaskbarProgressLast <> NewState Then
                 LoaderTaskbarProgressLast = NewState
