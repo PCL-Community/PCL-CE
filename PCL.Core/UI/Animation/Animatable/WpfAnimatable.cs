@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
 using PCL.Core.UI.Animation.ValueProcessor;
@@ -58,5 +59,47 @@ public sealed class WpfAnimatable(DependencyObject owner, DependencyProperty? pr
         };
 
         Owner.SetValue(Property, value);
+    }
+
+    public void SetValue<T>(T value)
+    {
+        value = ValueProcessorManager.Filter(value);
+        ArgumentNullException.ThrowIfNull(Property);
+        SetValueCore(value);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SetValueCore<T>(T value)
+    {
+        ArgumentNullException.ThrowIfNull(Property);
+        
+        if (typeof(T) == typeof(NColor))
+        {
+            var color = Unsafe.As<T, NColor>(ref value);
+
+            Owner.SetValue(
+                Property,
+                Property.Name == "Color"
+                    ? (Color)color
+                    : (SolidColorBrush)color);
+
+            return;
+        }
+
+        if (typeof(T) == typeof(NScaleTransform))
+        {
+            var st = Unsafe.As<T, NScaleTransform>(ref value);
+            Owner.SetValue(Property, (ScaleTransform)st);
+            return;
+        }
+
+        if (typeof(T) == typeof(NRotateTransform))
+        {
+            var rt = Unsafe.As<T, NRotateTransform>(ref value);
+            Owner.SetValue(Property, (RotateTransform)rt);
+            return;
+        }
+
+        Owner.SetValue(Property, value!);
     }
 }
