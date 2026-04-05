@@ -56,7 +56,7 @@ public static class PipeComm
                     var clientProcessId = 0;
                     try
                     {
-                        KernelInterop.GetNamedPipeClientProcessId(pipe.SafePipeHandle.DangerousGetHandle(), out var pid);
+                        var pid = KernelInterop.GetNamedPipeClientProcessId(pipe.SafePipeHandle.DangerousGetHandle());
                         clientProcessId = (int)pid;
                         if (allowedProcessId != null)
                         {

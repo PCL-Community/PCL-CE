@@ -97,7 +97,7 @@ public static class StackHelper
         return method;
     }
 
-    private static string _FormatMethod(MethodBase method, bool includeNamespace, bool includeParameters)
+    private static string _FormatMethod(MethodBase method, bool includeNamespace, bool includeParameters, bool includeParameterNamespace = false)
     {
         var sb = new StringBuilder();
         var type = method.DeclaringType;
@@ -128,7 +128,7 @@ public static class StackHelper
             for (var i = 0; i < ps.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
-                sb.Append(_FormatTypeName(ps[i].ParameterType, includeNamespace));
+                sb.Append(_FormatTypeName(ps[i].ParameterType, includeParameterNamespace));
                 if (!string.IsNullOrEmpty(ps[i].Name))
                 {
                     sb.Append(' ').Append(ps[i].Name);

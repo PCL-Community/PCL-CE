@@ -84,11 +84,11 @@ public abstract class ConfigStorage : IConfigProvider
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    private string _GenerateDiagnosticsInfo<TInput, TOutput>(
+    private string _GenerateDiagnosticsInfo<TKey, TValue>(
         StorageAction accessAction,
-        TInput? accessInput,
-        TOutput? accessOutput,
-        bool accessHasOutput,
+        TKey? accessKey,
+        TValue? accessValue,
+        bool accessHasValue,
         object? accessContext,
         bool appendCallStack = false)
     {
@@ -98,15 +98,15 @@ public abstract class ConfigStorage : IConfigProvider
         const bool needFileInfo = false;
 #endif
         var context = JsonSerializer.Serialize(accessContext, _SerializerOptions);
-        var input = JsonSerializer.Serialize(accessInput, _SerializerOptions);
-        var output = JsonSerializer.Serialize(accessOutput, _SerializerOptions);
+        var key = JsonSerializer.Serialize(accessKey, _SerializerOptions);
+        var value = JsonSerializer.Serialize(accessValue, _SerializerOptions);
         var caller = appendCallStack
             ? "Stack:\n|=> " + string.Join("\n|=> ", StackHelper.GetStack(includeParameters: true, needFileInfo: needFileInfo).Skip(1))
-            : "Caller: " + StackHelper.GetDirectCallerName(includeParameters: true, skipAppFrames: 1);
-        var msg = $"Access: {accessAction} {ToString()}\n" +
-            $"|- Context: {context}\n" +
-            $"|- Input: {input}\n" +
-            $"|- Output: {output} (HasOutput: {accessHasOutput})\n" +
+            : "Caller: " + StackHelper.GetDirectCallerName(includeParameters: true, skipAppFrames: 2);
+        var msg = $"Storage Access: {accessAction} {ToString()}\n" +
+            $"|- Context: {(accessContext == null ? "" : "(" + accessContext.GetType().Name + ") ")}{context}\n" +
+            $"|- Key: ({typeof(TKey).Name}) {key}\n" +
+            $"|- Value: ({typeof(TValue).Name}) {(accessHasValue ? value : "undefined")}\n" +
             $"|- {caller}";
         return msg;
     }

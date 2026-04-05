@@ -52,7 +52,7 @@ jobs:
           PCL_WRITE_SECRET: '1'
           PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          PCL_TELEMETRY_KEY: ${{ secrets.TELEMETRY_KEY }}
+          PCL_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           PCL_NAID_CLIENT_ID: ${{ secrets.NAID_CLIENT_ID }}
           PCL_NAID_CLIENT_SECRET: ${{ secrets.NAID_CLIENT_SECRET }}
           PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}

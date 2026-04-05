@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 
@@ -36,45 +37,49 @@ public class LogService : ILifecycleLogService
         return Task.CompletedTask;
     }
 
-    public Task StopAsync()
+    public async Task StopAsync()
     {
         if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
-        _logger?.Dispose();
-        return Task.CompletedTask;
+        if (_logger != null)
+            await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    private static void _LogAction(ActionLevel level, string formatted, string plain, Exception? ex)
+    private static void _LogAction(LogLevel level, ActionLevel actionLevel, string formatted, string plain, Exception? ex)
     {
+        if (ex is not null) {
+            TelemetryService.ReportException(ex, plain, level);
+        }
+        
         // log
 #if !TRACE
-        if (level != ActionLevel.TraceLog)
+        if (actionLevel != ActionLevel.TraceLog)
 #endif
         Logger.Log(formatted);
 
-        if (level <= ActionLevel.NormalLog) return;
+        if (actionLevel <= ActionLevel.NormalLog) return;
 
         // hint
-        if (level is ActionLevel.Hint or ActionLevel.HintErr)
+        if (actionLevel is ActionLevel.Hint or ActionLevel.HintErr)
         {
-            HintWrapper.Show(plain, (level == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
+            HintWrapper.Show(plain, (actionLevel == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
         }
 
         // message box
-        else if (level is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
+        else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
         {
             var caption = (ex == null) ? "提示" : "出现异常";
-            var theme = (level == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
+            var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
             var message = plain;
             if (ex != null)
                 message += $"\n\n详细信息:\n{ex}";
-            if (level == ActionLevel.MsgBoxErr)
+            if (actionLevel == ActionLevel.MsgBoxErr)
                 message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
                            "然后发送导出的日志压缩包，只发送这个窗口的截图通常无助于解决问题。";
             MsgBoxWrapper.Show(message, caption, theme, false);
         }
 
         // fatal message box
-        else if (level == ActionLevel.MsgBoxFatal)
+        else if (actionLevel == ActionLevel.MsgBoxFatal)
         {
             var message = plain;
             if (ex != null) message += $"\n\n相关异常信息:\n{ex}";
@@ -88,9 +93,9 @@ public class LogService : ILifecycleLogService
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
         if (module != null) module = $"[{module}] ";
         var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
+        _LogAction(level, level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
     }
 
     public void OnLog(LifecycleLogItem item) =>
-        _LogAction(item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
+        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
 }

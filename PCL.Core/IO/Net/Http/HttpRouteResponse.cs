@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.Utils;
 
-namespace PCL.Core.IO.Net.Http.Server;
+namespace PCL.Core.IO.Net.Http;
 
 /// <summary>
 /// 用于 <see cref="HttpServer"/> 响应客户端请求的服务端响应结构。

@@ -68,23 +68,27 @@ commit_preprocessors = [
 ]
 # Prevent commits that are breaking from being excluded by commit parsers.
 protect_breaking_commits = false
-# An array of regex based parsers for extracting data from the commit message.
-# Assigns commits to groups.
-# Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
-    { message = "^feat", group = "<!-- 0 -->🚀 新功能" },
+    { message = "^feat|^impl", group = "<!-- 0 -->🚀 功能追加" },
     { message = "^fix", group = "<!-- 1 -->🐛 问题修复" },
-    { message = "^doc", group = "<!-- 3 -->📚 文档修改" },
-    { message = "^perf", group = "<!-- 4 -->⚡ 性能优化" },
     { message = "^refactor", group = "<!-- 2 -->🚜 重构" },
-    { message = "^style", group = "<!-- 5 -->🎨 部分样式调整" },
-    { message = "^chore\\(release\\): prepare for", skip = true },
-    { message = "^chore\\(deps.*\\)", skip = true },
+    { message = "^perf", group = "<!-- 4 -->⚡ 性能改进" },
+    { message = "^improve|^imp", group = "<!-- 4 -->👀 优化改进" },
+    { message = "^i18n", group = "<!-- 5 -->🌐 国际化" },
+    { message = "^doc|^docs", group = "<!-- 5 -->📚 文档调整" },
+    { message = "^style", group = "<!-- 5 -->🎨 样式调整" },
+    { message = "^ci", group = "<!-- 6 -->🤖 工作流配置" },
+    { message = "^test", skip = true },
+    { message = "^chore\\(bump\\)", skip = true },
+    { message = "^deps", skip = true },
     { message = "^chore\\(pr\\)", skip = true },
     { message = "^chore\\(pull\\)", skip = true },
-    { message = "^chore|^ci", group = "<!-- 7 -->⚙️ 其他小改动" },
+    { message = "^wip|^temp|^tmp|^todo", skip = true },
+    { message = "^chore", group = "<!-- 7 -->⚙️ 其他改动" },
     { message = "^revert", group = "<!-- 9 -->◀️ 回退改动" },
-]
+] # An array of regex based parsers for extracting data from the commit message.
+# Assigns commits to groups.
+# Optionally sets the commit's scope and can decide to exclude commits from further processing.
 # Exclude commits that are not matched by any commit parser.
 filter_commits = true
 # An array of link parsers for extracting external references, and turning them into URLs, using regex.

@@ -138,6 +138,17 @@ public static partial class RegexPatterns
     public static readonly Regex EnglishSpacedKeywords = _EnglishSpacedKeywords();
     [GeneratedRegex("([A-Z]+|[a-z]+?)(?=[A-Z]+[a-z]+[a-z ]*)")]
     private static partial Regex _EnglishSpacedKeywords();
+    
+    /// <summary>
+    /// NTFS 8.3 文件名格式
+    /// </summary>
+    public static readonly Regex Ntfs83FileName = _Ntfs83FileName();
+    [GeneratedRegex(@".{2,}~\d")]
+    private static partial Regex _Ntfs83FileName();
+    
+    public static readonly Regex UncPath = _UncPath();
+    [GeneratedRegex("""^\\\\[^\\/:*?"<>|]+\\[^\\/:*?"<>|]+(\\[^\\/:*?"<>|]+)*\\?$""")]
+    private static partial Regex _UncPath();
 
     #region Minecraft 实例解析
 
@@ -208,6 +219,17 @@ public static partial class RegexPatterns
 
     #endregion
 
+    #region Minecraft 下载信息
+
+    /// <summary>
+    /// 匹配 NeoForge 版本列表 JSON 中的版本号
+    /// </summary>
+    public static readonly Regex DlNeoForgeVersion = _DlNeoForgeVersion();
+    [GeneratedRegex(@"(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(\+pre-\d+)?(?="")", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _DlNeoForgeVersion();
+
+    #endregion
+    
     #region 外部组件
 
     public static readonly Regex ModIdMatch = _ModIdMatch();
