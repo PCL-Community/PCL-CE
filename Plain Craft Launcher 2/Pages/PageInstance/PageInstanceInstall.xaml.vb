@@ -387,7 +387,7 @@ Public Class PageInstanceInstall
             End If
         End If
         'Fabric
-        If VanillaDrop <= 130 Then
+        If VanillaDrop > 0 AndAlso VanillaDrop <= 130 Then
             CardFabric.Visibility = Visibility.Collapsed
         Else
             CardFabric.Visibility = Visibility.Visible
