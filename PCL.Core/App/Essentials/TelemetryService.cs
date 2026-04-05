@@ -63,6 +63,7 @@ public sealed partial class TelemetryService
             options.AddExceptionFilterForType<OutOfMemoryException>();
             options.AddExceptionFilterForType<DirectoryNotFoundException>();
             options.AddExceptionFilterForType<UnauthorizedAccessException>();
+            options.AddExceptionFilterForType<FileNotFoundException>();
             
             // 细分类型的过滤器
             options.AddExceptionFilter(new SocketExceptionFilter());
