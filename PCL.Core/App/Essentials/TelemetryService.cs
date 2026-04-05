@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -13,6 +15,7 @@ using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 using STUN.Client;
 using Sentry;
+using Sentry.Extensibility;
 
 namespace PCL.Core.App.Essentials;
 
@@ -51,11 +54,28 @@ public sealed partial class TelemetryService
             options.AutoSessionTracking = true;
             options.Release = release;
             options.Environment = environment;
-            options.SetBeforeSend(@event =>
+            
+            // 应该被直接丢弃不上报的异常类型
+            options.AddExceptionFilterForType<TimeoutException>();
+            options.AddExceptionFilterForType<HttpRequestException>();
+            options.AddExceptionFilterForType<WebException>();
+            options.AddExceptionFilterForType<TaskCanceledException>();
+            options.AddExceptionFilterForType<DirectoryNotFoundException>();
+            options.AddExceptionFilterForType<UnauthorizedAccessException>();
+            options.AddExceptionFilterForType<FileNotFoundException>();
+            
+            // 细分类型的过滤器
+            options.AddExceptionFilter(new SocketExceptionFilter());
+            
+            options.SetBeforeSend(@event => @event.Level is SentryLevel.Debug ? null : @event);
+        });
+        
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.User = new User
             {
-                if (@event.Exception is TimeoutException) return null;
-                return @event.Level is SentryLevel.Debug ? null : @event;
-            });
+                Id = Utils.Secret.Identify.LauncherId
+            };
         });
         
         Context.Info("Sentry SDK 初始化完成");
@@ -180,6 +200,24 @@ public sealed partial class TelemetryService
         };
         
         _ReportDeviceEnvironment(telemetry);
+    }
+    
+    // 用来细分过滤 SocketException 的过滤器，我觉得应该除了遥测服务之外没有其他东西会用到这破玩意儿
+    private sealed class SocketExceptionFilter : IExceptionFilter
+    {
+        public bool Filter(Exception ex)
+        {
+            if (ex is SocketException socketEx)
+            {
+                return socketEx.SocketErrorCode is
+                    SocketError.ConnectionRefused or 
+                    SocketError.TimedOut or
+                    SocketError.HostNotFound or
+                    SocketError.NetworkUnreachable or
+                    SocketError.ConnectionReset;
+            }
+            return false;
+        }
     }
     
     [LifecycleStop]

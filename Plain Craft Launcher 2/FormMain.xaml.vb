@@ -47,6 +47,14 @@ Public Class FormMain
         '版本号改变
         Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
+            '重新询问是否启用遥测数据收集
+            If LastVersion <= 511 Then
+                If Not Config.System.TelemetryConfig.IsDefault() AndAlso Config.System.Telemetry Then
+                    Config.System.TelemetryConfig.Reset()
+                    Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置")
+                End If
+            End If
+            
             '触发升级
             UpgradeSub(LastVersion)
         ElseIf LastVersion > VersionCode Then
