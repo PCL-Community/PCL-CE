@@ -15,4 +15,9 @@ public sealed class EmptyAnimatable : IAnimatable
     {
         // 空
     }
+    
+    public void SetValue<T>(T value)
+    {
+        // 空
+    }
 }
