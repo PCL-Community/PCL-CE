@@ -60,7 +60,6 @@ public sealed partial class TelemetryService
             options.AddExceptionFilterForType<HttpRequestException>();
             options.AddExceptionFilterForType<WebException>();
             options.AddExceptionFilterForType<TaskCanceledException>();
-            options.AddExceptionFilterForType<OutOfMemoryException>();
             options.AddExceptionFilterForType<DirectoryNotFoundException>();
             options.AddExceptionFilterForType<UnauthorizedAccessException>();
             options.AddExceptionFilterForType<FileNotFoundException>();
