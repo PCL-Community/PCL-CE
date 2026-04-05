@@ -30,6 +30,8 @@ Public Class FormMain
                 End If
             End Sub, "UpdateLog Output")
     End Sub
+    
+    Private IsTelemetryReconsent As Boolean = False
 
     '窗口加载
     Private IsWindowLoadFinished As Boolean = False
@@ -47,6 +49,15 @@ Public Class FormMain
         '版本号改变
         Dim LastVersion As Integer = States.System.LastVersion
         If LastVersion < VersionCode Then
+            '重新询问是否启用遥测数据收集
+            If LastVersion <= 511 Then
+                If Not Config.System.TelemetryConfig.IsDefault() AndAlso Config.System.Telemetry Then
+                    Config.System.TelemetryConfig.Reset()
+                    IsTelemetryReconsent = True
+                    Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置")
+                End If
+            End If
+            
             '触发升级
             UpgradeSub(LastVersion)
         ElseIf LastVersion > VersionCode Then
@@ -224,7 +235,7 @@ Public Class FormMain
                         End Select
                     End If
                     '遥测提示
-                    If Config.System.TelemetryConfig.IsDefault() Then
+                    If Config.System.TelemetryConfig.IsDefault() Or IsTelemetryReconsent Then
                         Dim selection = MyMsgBox("启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。" & vbCrLf &
                                              "若启用此功能，我们将会收集以下信息：" & vbCrLf & vbCrLf &
                                              "- 启动器内出现的错误" & vbCrLf &
