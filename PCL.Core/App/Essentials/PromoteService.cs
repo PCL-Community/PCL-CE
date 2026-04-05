@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -24,7 +25,7 @@ public sealed class PromoteService : GeneralService
     
     private static readonly ConcurrentQueue<PromoteOperation> _PendingOperations = [];
     
-    private record PromoteOperation(string Command, Action<string>? Callback, bool DetailLog);
+    private readonly record struct PromoteOperation(string Command, Action<string?>? Callback, bool DetailLog);
     
     /// <summary>
     /// 提权进程是否正在运行。
@@ -38,7 +39,9 @@ public sealed class PromoteService : GeneralService
     
     private static string _GetPromotePipeName(int processId) => $"PCLCE_PM@{processId}";
 
-    private static readonly Dictionary<string, Func<string?, string?>> _OperationFunctions = new();
+    private static readonly Dictionary<string, PromoteOperationFunction> _OperationFunctions = new();
+
+    public delegate string? PromoteOperationFunction(string? arg);
 
     /// <summary>
     /// 添加提权操作，仅在提权进程中有效。
@@ -46,7 +49,7 @@ public sealed class PromoteService : GeneralService
     /// <param name="name">操作名</param>
     /// <param name="operation">操作实现，接收参数并返回结果，返回值会被自动压缩为单行</param>
     /// <returns>是否添加成功，若在主进程中调用或已存在相同操作名，则为 <c>false</c></returns>
-    public static bool AddOperationFunction(string name, Func<string?, string?> operation)
+    public static bool AddOperationFunction(string name, PromoteOperationFunction operation)
     {
         return IsCurrentProcessPromoted && _OperationFunctions.TryAdd(name, operation);
     }
@@ -71,27 +74,30 @@ public sealed class PromoteService : GeneralService
     private const string OperationErrNotFound = "ERR_OPERATION_NOT_FOUND";
     private const string OperationErrInvalidArgument = "ERR_ILLEGAL_ARGUMENT";
     private const string OperationErrExceptionThrown = "ERR_UNHANDLED_EXCEPTION";
-    private const string OperationErrEmpty = "EMPTY";
+    private const string OperationErrEmpty = "ERR_EMPTY";
     
     /// <summary>
     /// 提权进程接收到操作请求时触发的事件，接收一个字符串作为操作命令并返回一个字符串作为结果。<br/>
     /// <b>注意：如果你不知道这是做什么的，请勿覆盖默认实现。</b>请使用 <see cref="AddOperationFunction"/>。
     /// </summary>
-    public static Func<string, string?> Operate { private get; set; } = command =>
-    {
-        var split = command.Split([' '], 2);
-        _OperationFunctions.TryGetValue(split[0], out var operation);
-        if (operation == null) return OperationErrNotFound;
-        try
+    public static Func<string, string?> Operate {
+        private get => field ??= command =>
         {
-            return operation(split.Length > 1 ? split[1] : null) ?? OperationErrEmpty;
-        }
-        catch (Exception ex)
-        {
-            Context.Warn("操作出错", ex);
-            return OperationErrExceptionThrown;
-        }
-    };
+            var split = command.Split([' '], 2);
+            _OperationFunctions.TryGetValue(split[0], out var operation);
+            if (operation == null) return OperationErrNotFound;
+            try
+            {
+                return operation(split.Length > 1 ? split[1] : null) ?? OperationErrEmpty;
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("操作出错", ex);
+                return OperationErrExceptionThrown;
+            }
+        };
+        set;
+    } = null!;
     
     private static string _ShortenString(string str)
     {
@@ -165,6 +171,7 @@ public sealed class PromoteService : GeneralService
             }
             var resultLog = operation.DetailLog ? result : _ShortenString(result);
             Context.Trace($"执行结果: {resultLog}");
+            if (result == OperationErrEmpty) result = null;
             operation.Callback?.Invoke(result);
         }
         return false;
@@ -195,13 +202,10 @@ public sealed class PromoteService : GeneralService
     /// <param name="command">操作命令</param>
     /// <param name="callback">结果返回后的回调</param>
     /// <param name="detailLog">指定是否打印详细日志，若为 <c>false</c>，则日志仅保留前 40 或 15 字符（取决于是否为调试构建）</param>
-    public static void Append(string command, Action<string>? callback = null, bool detailLog = true)
+    public static void Append(string command, Action<string?>? callback = null, bool detailLog = true)
     {
         _PendingOperations.Enqueue(new PromoteOperation(command, callback, detailLog));
     }
-    
-    [Obsolete("请使用 Append()")]
-    public static void AppendOperation(string command, Action<string>? callback = null, bool detailLog = true) => Append(command, callback, detailLog);
 
     /// <summary>
     /// 尝试启动提权进程并开始执行操作。
@@ -215,24 +219,20 @@ public sealed class PromoteService : GeneralService
     }
 
     /// <summary>
-    /// 向等待区添加操作并开始执行。即使未成功开始执行，添加的操作也不会自动移除。
+    /// 标记一个方法，使其能够被提权进程调用，方法签名需符合 <see cref="PromoteOperationFunction"/>。
     /// </summary>
-    /// <param name="command">操作命令</param>
-    /// <param name="callback">结果返回后的回调</param>
-    /// <param name="detailLog">指定是否打印详细日志，若为 <c>false</c>，则日志仅保留前 40 或 15 字符（取决于是否为调试构建）</param>
-    /// <returns>是否成功开始执行，若提权进程启动失败则为 <c>false</c></returns>
-    public static bool AppendAndActivate(string command, Action<string>? callback = null, bool detailLog = true)
-    {
-        Append(command, callback, detailLog);
-        return Activate();
-    }
+    /// <param name="name">提权操作名</param>
+    [DependencyCollector<PromoteOperationFunction>("promote", AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class PromoteOperationAttribute(string name) : Attribute;
 
     private static readonly Dictionary<string, Process> _RunningProcesses = new();
     
     // name: kill
     // arg: process-id [timeout]
     // return: kill result (false over timeout)
-    private static string? _KillProcess(string? arg)
+    [PromoteOperation("kill")]
+    public static string? KillProcess(string? arg)
     {
         if (arg == null) return OperationErrInvalidArgument;
         var split = arg.Split(' ');
@@ -250,12 +250,13 @@ public sealed class PromoteService : GeneralService
     // name: start
     // arg: path\to\executable[.] ; arguments
     // return: process id
-    private static string? _StartProcess(string? arg)
+    [PromoteOperation("start")]
+    public static string? StartProcess(string? arg)
     {
         if (arg == null) return OperationErrInvalidArgument;
         var split = arg.Split([" ; "], 2, StringSplitOptions.RemoveEmptyEntries);
         var createNoWindow = false;
-        if (split[0].EndsWith("."))
+        if (split[0].EndsWith('.'))
         {
             split[0] = split[0][..^1];
             createNoWindow = true;
@@ -286,6 +287,11 @@ public sealed class PromoteService : GeneralService
         _RunningProcesses[id] = process;
         return id;
     }
+
+    private static void _LoadPromoteOperations(ImmutableList<(PromoteOperationFunction func, string name)> items)
+    {
+        foreach (var (func, name) in items) AddOperationFunction(name, func);
+    }
     
     public override void Start()
     {
@@ -295,12 +301,14 @@ public sealed class PromoteService : GeneralService
             Context.Info("当前进程为提权进程");
             IsCurrentProcessPromoted = true;
             // 预定义操作
-            AddOperationFunction("start", _StartProcess);
+            Context.Info("正在加载提权操作");
+            Action<ImmutableList<(PromoteOperationFunction, string)>> action = _LoadPromoteOperations;
+            DependencyGroups.InvokeInjection(action, "promote", AttributeTargets.Method);
             AddJsonOperationFunction<ProcessStartInfo>("start-json", _StartProcessWithInfo);
-            AddOperationFunction("kill", _KillProcess);
             // 结束生命周期管理，启动提权操作线程
             Lifecycle.PendingLogFileName = "LastPending_Promote.log";
-            new Thread(() => _PerformAsPromoteProcess(args[2])) { Name = "Promote" }.Start();
+            Context.Info("正在启动服务线程");
+            new Thread(() => _PerformAsPromoteProcess(args[1])) { Name = "Promote" }.Start();
             Context.RequestStopLoading();
             Context.DeclareStopped();
         }
