@@ -1,0 +1,130 @@
+<local:MyPageRight
+    x:Class="PageHomepageNewsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:PCL"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:PCL.Core.ViewModel.Homepage;assembly=PCL.Core"
+    MinWidth="150"
+    mc:Ignorable="d">
+    <local:MyPageRight.DataContext>
+        <vm:NewsViewModel />
+    </local:MyPageRight.DataContext>
+
+    <Grid>
+        <ItemsControl ItemsSource="{Binding NewsItems}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <core:WaterfallPanel
+                        Margin="0,0,0,10"
+                        ColumnSpacing="14"
+                        LayoutMode="AutoFit"
+                        MaxItemWidth="240"
+                        RowSpacing="14"
+                        VirtualizingPanel.CacheLengthUnit="Item"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <local:MyCard>
+                        <Grid Margin="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <!-- 图片行 -->
+                                <RowDefinition Height="Auto" />
+                                <!-- 标题行 -->
+                                <RowDefinition Height="Auto" />
+                                <!-- 作者和时间行 -->
+                                <RowDefinition Height="Auto" />
+                                <!-- 简介行 -->
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <local:MyImage
+                                HorizontalAlignment="Stretch"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True"
+                                Source="{Binding Image}"
+                                Stretch="UniformToFill"
+                                ToolTip="{Binding ImageAltText}"
+                                UseLayoutRounding="True" />
+
+                            <!-- 标题 -->
+                            <Border
+                                Grid.Row="1"
+                                Margin="0,5,0,0"
+                                Background="{DynamicResource ColorBrushBackground}"
+                                ClipToBounds="True"
+                                CornerRadius="6"
+                                Padding="5,3">
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource ColorBrush1}"
+                                    Text="{Binding Title}"
+                                    TextWrapping="Wrap" />
+                            </Border>
+
+                            <!-- 作者和时间 -->
+                            <Grid Grid.Row="2" Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Foreground="{DynamicResource ColorBrushGray2}"
+                                    Text="{Binding Author}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Foreground="{DynamicResource ColorBrushGray2}"
+                                    Text="{Binding PublishDate, StringFormat='yyyy-MM-dd HH:mm'}" />
+                            </Grid>
+
+                            <!-- 简介 -->
+                            <TextBlock
+                                Grid.Row="3"
+                                Margin="0,5,0,0"
+                                Foreground="{DynamicResource ColorBrushGray4}"
+                                Text="{Binding Description}"
+                                TextWrapping="Wrap" />
+
+                            <!-- Read more -->
+                            <local:MyTextButton
+                                Grid.Row="4"
+                                Margin="0,5,5,0"
+                                HorizontalAlignment="Right"
+                                Foreground="{DynamicResource ColorBrushGray2}"
+                                Text="查看详情">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <i:InvokeCommandAction Command="{Binding DataContext.OpenReadCommand, 
+                                                    RelativeSource={RelativeSource AncestorType=local:MyPageRight}}" CommandParameter="{Binding Url}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </local:MyTextButton>
+                        </Grid>
+                    </local:MyCard>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock
+            Foreground="{DynamicResource ColorBrushRedLight}"
+            Text="{Binding ErrorMessage}"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}" />
+
+        <local:MyCard
+            Margin="32"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <local:MyLoading Margin="20,20,20,17" Text="加载中……" />
+        </local:MyCard>
+    </Grid>
+</local:MyPageRight>
