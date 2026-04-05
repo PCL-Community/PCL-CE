@@ -58,6 +58,14 @@ public sealed partial class TelemetryService
             });
         });
         
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.User = new User
+            {
+                Id = Utils.Secret.Identify.LauncherId
+            };
+        });
+        
         Context.Info("Sentry SDK 初始化完成");
     }
 
