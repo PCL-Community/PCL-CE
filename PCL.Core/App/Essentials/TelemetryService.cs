@@ -203,7 +203,7 @@ public sealed partial class TelemetryService
     }
     
     // 用来细分过滤 SocketException 的过滤器，我觉得应该除了遥测服务之外没有其他东西会用到这破玩意儿
-    public class SocketExceptionFilter : IExceptionFilter
+    private sealed class SocketExceptionFilter : IExceptionFilter
     {
         public bool Filter(Exception ex)
         {
