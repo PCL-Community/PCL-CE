@@ -4,7 +4,7 @@ namespace PCL.Core.UI.Animation.Easings;
 
 public class CircularEaseIn : Easing
 {
-    public static CircularEaseOut Shared { get; } = new();
+    public static CircularEaseIn Shared { get; } = new();
     
     protected override double EaseCore(double progress)
     {
