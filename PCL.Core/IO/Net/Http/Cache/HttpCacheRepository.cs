@@ -99,12 +99,13 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     public bool TryGetCacheData(string uri,[NotNullWhen(true)] out HttpCacheDetails? details)
     {
         details = null;
-        using var cmd = _FindTableWithUri(uri);
+        using var conn = _connectionFactory.Invoke();
+        using var cmd = _FindTableWithUri(uri, conn);
         using var result = cmd.ExecuteReader();
         if (!result.Read()) return false;
         if ((HttpCacheStatus)result.GetInt16(6) is HttpCacheStatus.Invalid or HttpCacheStatus.Expired)
         {
-            _DeleteTable(result.GetString(0));
+            _DeleteTable(result.GetString(0), conn);
             return false;
         }
         details = new HttpCacheDetails(this)
@@ -151,6 +152,7 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     /// <returns></returns>
     public async ValueTask<HttpCacheUpdateHandle?> TryBeginUpdateAsync(string uri)
     {
+        await using var conn = _connectionFactory.Invoke();
         if (!TryGetCacheData(uri, out var details))
         {
             Span<byte> buffer = stackalloc byte[16];
@@ -165,7 +167,7 @@ public class HttpCacheRepository(string dbPath,string destLocation)
                 Status = HttpCacheStatus.Updating,
                 Hash = null
             };
-            await using var cmd = _InsertDatabase(details);
+            await using var cmd = _InsertDatabase(details, conn);
             cmd.ExecuteNonQuery();
             // 互斥锁，避免线程冲突
         }else if (details.Status == HttpCacheStatus.Updating) return null;
@@ -181,10 +183,11 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     /// <returns></returns>
     public async ValueTask<bool> TryEndUpdateAsync(HttpCacheUpdateHandle handle)
     {
+        await using var conn = _connectionFactory.Invoke();
         var details = handle.Details;
         if (details is null) return false;
         details.Status = HttpCacheStatus.Ok;
-        await using var cmd = _UpdateTable(details);
+        await using var cmd = _UpdateTable(details,conn);
         if (cmd is null) return true;
         await cmd.ExecuteNonQueryAsync();
         return true;
@@ -198,11 +201,12 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     /// <returns></returns>
     public bool TryRemove(HttpRequestMessage request)
     {
+        using var conn = _connectionFactory.Invoke();
         try
         {
             if (!TryGetCacheData(request.RequestUri!.ToString(), out var details) && details?.Hash is null) return false;
             if (request.RequestUri is null) return false;
-            using var cmd = _DeleteTable(request.RequestUri.ToString());
+            using var cmd = _DeleteTable(request.RequestUri.ToString(), conn);
             cmd.ExecuteNonQuery();
             _store.DeleteAsync(details.Hash!).GetAwaiter().GetResult();
             return true;
@@ -222,11 +226,12 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     /// <returns></returns>
     public async ValueTask<bool> TryRemoveAsync(HttpRequestMessage request)
     {
+        await using var conn = _connectionFactory.Invoke();
         try
         {
             if (!TryGetCacheData(request.RequestUri!.ToString(), out var details) && details?.Hash is null) return false;
             if (request.RequestUri is null) return false;
-            await using var cmd = _DeleteTable(request.RequestUri.ToString());
+            await using var cmd = _DeleteTable(request.RequestUri.ToString(), conn);
             await cmd.ExecuteNonQueryAsync();
             await _store.DeleteAsync(details.Hash!).ConfigureAwait(false);
             return true;
@@ -257,9 +262,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     #region "SQL 执行函数"
 
     
-    private SqliteCommand _InsertDatabase(HttpCacheDetails details)
+    private static SqliteCommand _InsertDatabase(HttpCacheDetails details, SqliteConnection conn)
     {
-        using var conn = _connectionFactory.Invoke();
         var cmd = conn.CreateCommand();
         cmd.CommandText = InsertTable;
         cmd.Parameters.AddWithValue("@Uri", details.RequestUri);
@@ -272,40 +276,35 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         return cmd;
     }
 
-    private SqliteCommand _DeleteTable(string uri)
+    private static SqliteCommand _DeleteTable(string uri, SqliteConnection conn)
     {
-        var conn = _connectionFactory.Invoke();
         var cmd = conn.CreateCommand();
         cmd.CommandText = DeleteTable;
         cmd.Parameters.AddWithValue("@Uri", uri);
-        cmd.Disposed += (_, _) => conn.Dispose();
         return cmd;
     }
 
-    private SqliteCommand _FindTableWithUri(string uri)
+    private static SqliteCommand _FindTableWithUri(string uri,  SqliteConnection conn)
     {
-        var conn = _connectionFactory.Invoke();
         var queryCmd = conn.CreateCommand();
         queryCmd.CommandText = FindTable;
         queryCmd.Parameters.AddWithValue("@Uri", uri);
-        queryCmd.Disposed += (_, _) => conn.Dispose(); 
         return queryCmd;
     }
     
-    private SqliteCommand? _UpdateTable(HttpCacheDetails details)
+    private SqliteCommand? _UpdateTable(HttpCacheDetails details, SqliteConnection conn)
     {
-        using var queryCmd = _FindTableWithUri(details.RequestUri);
+        using var queryCmd = _FindTableWithUri(details.RequestUri, conn);
         // 获取用于比较的原始内容
         using var reader = queryCmd.ExecuteReader();
         if (!reader.Read())
         {
             // 可能已经被删掉了，添加就好
-            return _InsertDatabase(details);
+            return _InsertDatabase(details,conn);
             
         }
         var sb = new StringBuilder();
         sb.Append("UPDATE HttpCache ");
-        var conn = _connectionFactory.Invoke();
         var writeCmd = conn.CreateCommand();
         writeCmd.Disposed += (_, _) => conn.Dispose(); 
         var setCount = 0;
