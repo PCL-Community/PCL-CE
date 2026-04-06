@@ -37,10 +37,17 @@ public class HttpCacheHandler:DelegatingHandler
         
         if(details.Tag is not null) request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(details.Tag));
         if(details.LastModify is not null) request.Headers.IfModifiedSince = DateTimeOffset.Parse(details.LastModify);
-        var response = base.Send(request, cancellationToken);
+        var response = await base.SendAsync(request, cancellationToken);
+        if (response.Headers.CacheControl?.NoStore ?? false) return response;
         if(response.StatusCode == HttpStatusCode.NotModified && _repository.TryGetCacheResponse(request,out cacheResponse))
             return cacheResponse;
         var handle = await _repository.TryBeginUpdateAsync(request.RequestUri.ToString());
+        var newDetails = handle?.Details;
+        newDetails?.RequestUri = request.RequestUri.ToString();
+        newDetails?.LastUpdate = DateTimeOffset.Now;
+        newDetails?.EnsureValidate = response.Headers.CacheControl?.NoCache ?? false;
+        newDetails?.LastModify = response.Headers.Date.ToString();
+        newDetails?.Tag = response.Headers.ETag?.Tag;
         if (handle is not null)
             response.Content = new StreamContent(new CacheStream(handle,
                 await response.Content.ReadAsStreamAsync(cancellationToken)));

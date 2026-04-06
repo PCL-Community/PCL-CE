@@ -13,7 +13,6 @@ public class HttpCacheDetails(HttpCacheRepository repo)
     public string? LastModify { get; set; }
     public int? ExpiredAt { get; set; }
     public bool EnsureValidate { get; set; }
-    public string? FilePath { get; set; }
     public string? Hash { get; set; }
     public HttpCacheStatus Status = HttpCacheStatus.Invalid;
 

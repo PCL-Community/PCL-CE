@@ -189,9 +189,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         if (details is null) return false;
         details.Status = HttpCacheStatus.Ok;
         await using var cmd = _UpdateTable(details);
-        if (cmd is null) throw new ArgumentException("Cache details is not updated");
+        if (cmd is null) return true;
         await cmd.ExecuteNonQueryAsync();
-        details.Hash = await _store.PutAsync(details.FilePath!).ConfigureAwait(false);
         return true;
     }
 
