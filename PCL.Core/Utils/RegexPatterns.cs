@@ -219,6 +219,17 @@ public static partial class RegexPatterns
 
     #endregion
 
+    #region Minecraft 下载信息
+
+    /// <summary>
+    /// 匹配 NeoForge 版本列表 JSON 中的版本号
+    /// </summary>
+    public static readonly Regex DlNeoForgeVersion = _DlNeoForgeVersion();
+    [GeneratedRegex(@"(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(\+pre-\d+)?(?="")", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _DlNeoForgeVersion();
+
+    #endregion
+    
     #region 外部组件
 
     public static readonly Regex ModIdMatch = _ModIdMatch();

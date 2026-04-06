@@ -928,7 +928,7 @@ Public Module ModDownload
                 VersionName = ApiName
                 Version = New Version(ApiName.BeforeFirst("-"))
                 If Version.Major >= 24 Then
-                    Inherit = Version.ToString.Replace(".0", "")
+                    Inherit = Version.Major & "." & Version.Minor
                 Else
                     Inherit = "1." & Version.Major & If(Version.Minor > 0, "." & Version.Minor, "")
                 End If
@@ -998,8 +998,7 @@ Public Module ModDownload
     End Sub
 
     Private Function GetNeoForgeEntries(latestJson As String, latestLegacyJson As String) As List(Of DlNeoForgeListEntry)
-        Dim versionNames = RegexSearch(latestLegacyJson & latestJson,
-                                       "(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(?="")")
+        Dim versionNames = RegexSearch(latestLegacyJson & latestJson, RegexPatterns.DlNeoForgeVersion)
         Dim versions = versionNames.
             Where(Function(name) name <> "47.1.82"). '这个版本虽然在版本列表中，但不能下载
                 Select(Function(name) New DlNeoForgeListEntry(name)).

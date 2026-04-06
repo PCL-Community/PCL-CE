@@ -118,7 +118,7 @@
                         </StackPanel>
                     </local:MyCard>
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Opacity="0.6" Orientation="Horizontal">
-                        <local:MyTextButton Text="违法违规举报" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://qm.qq.com/q/yaubjC6C5y" IsHitTestVisible="False"/>
+                        <local:MyTextButton Text="违法违规举报" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://qm.qq.com/q/zfml1KaPWS" IsHitTestVisible="False"/>
                         <TextBlock Text=" | " />
                         <local:MyTextButton Text="Natayark Network 用户协议与隐私政策" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://account.naids.com/policy" IsHitTestVisible="False"/>
                         <TextBlock Text=" | " />

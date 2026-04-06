@@ -508,6 +508,11 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceNoJavaw", false)] public partial bool NoJavaw { get; set; }
 
         /// <summary>
+        /// 禁用 LWJGL Unsafe Agent。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
+        
+        /// <summary>
         /// 渲染器。
         /// </summary>
         [ConfigItem<int>("LaunchAdvanceRenderer", 0 ,ConfigSource.Local)] public partial int Renderer { get; set; }
@@ -585,6 +590,7 @@ public static partial class Config
         [ConfigItem<string>("VersionAdvanceClasspathHead", "")] public partial ArgConfig<string> ClasspathHead { get; }
         [ConfigItem<bool>("VersionAdvanceRunWait", true)] public partial ArgConfig<bool> PreLaunchCommandWait { get; }
         [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
         [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }

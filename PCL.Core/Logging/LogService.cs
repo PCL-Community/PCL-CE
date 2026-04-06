@@ -52,7 +52,7 @@ public class LogService : ILifecycleLogService
         
         // log
 #if !TRACE
-        if (level != ActionLevel.TraceLog)
+        if (actionLevel != ActionLevel.TraceLog)
 #endif
         Logger.Log(formatted);
 

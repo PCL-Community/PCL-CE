@@ -367,7 +367,7 @@ Public Class PageDownloadInstall
             End If
         End If
         'Fabric
-        If VanillaDrop <= 130 Then
+        If VanillaDrop > 0 AndAlso VanillaDrop <= 130 Then
             CardFabric.Visibility = Visibility.Collapsed
         Else
             CardFabric.Visibility = Visibility.Visible
@@ -757,7 +757,7 @@ Public Class PageDownloadInstall
                                 Version("id") = "20w14∞"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))
-                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine"
+                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine", "26w14a"
                                 Type = "愚人节版"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))
@@ -1007,6 +1007,9 @@ Public Class PageDownloadInstall
     ''' </summary>
     Private Function LoadForgeGetError() As String
         If CompareVersionGE("1.5.1", _vanillaName) AndAlso CompareVersionGE(_vanillaName, "1.1") Then Return "无可用版本"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName <> "Forge" Then
+            Return $"与 {SelectedLoaderName} 不兼容"
+        End If
         '检查 Loader
         If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
         Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
@@ -1887,7 +1890,11 @@ Public Class PageDownloadInstall
         SelectedLabyModCommitRef = Nothing
         SelectedLabyModVersion = Nothing
         SelectedLabyModChannel = Nothing
-        SelectedLoaderName = Nothing
+        
+        If SelectedLoaderName = "LabyMod" Then
+            SelectedLoaderName = Nothing
+        End If
+        
         SelectedAPIName = Nothing
         CardLabyMod.IsSwapped = True
         e.Handled = True

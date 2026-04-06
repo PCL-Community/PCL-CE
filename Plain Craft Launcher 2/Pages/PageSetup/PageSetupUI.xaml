@@ -385,8 +385,8 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="查看日志" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 工具" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="联机" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="帮助" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="帮助" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" />
                         <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 实例设置 " />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="修改" x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="3" Text="导出" x:Name="CheckHiddenVersionExport" Tag="UiHiddenVersionExport" />

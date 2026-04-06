@@ -1680,6 +1680,20 @@ RetryDir:
         End Try
     End Function
     ''' <summary>
+    ''' 搜索字符串中的所有正则匹配项。
+    ''' </summary>
+    <Extension> Public Function RegexSearch(str As String, regex As Regex, Optional options As RegexOptions = RegexOptions.None) As List(Of String)
+        Try
+            RegexSearch = New List(Of String)
+            For Each item As Match In regex.Matches(str, options)
+                RegexSearch.Add(item.Value)
+            Next
+        Catch ex As Exception
+            Log(ex, "正则匹配全部项出错")
+            Return New List(Of String)
+        End Try
+    End Function
+    ''' <summary>
     ''' 获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
     ''' </summary>
     <Extension> Public Function RegexSeek(str As String, regex As String, Optional options As RegexOptions = RegexOptions.None) As String
@@ -1775,14 +1789,16 @@ RetryDir:
     ''' <summary>
     ''' 获取多段文本加权后的相似度。
     ''' </summary>
-    Private Function SearchSimilarityWeighted(Source As List(Of KeyValuePair(Of String, Double)), Query As String) As Double
-        Dim TotalWeight As Double = 0
-        Dim Sum As Double = 0
-        For Each Pair In Source
-            Sum += SearchSimilarity(Pair.Key, Query) * Pair.Value
-            TotalWeight += Pair.Value
+    Private Function SearchSimilarityWeighted(source As List(Of SearchSource), query As String) As Double
+        Dim totalWeight As Double = 0
+        Dim sum As Double = 0
+        For Each Pair In source
+            If Pair.Aliases.Any Then
+                sum += Pair.Aliases.Max(Function(a) SearchSimilarity(a, query)) * Pair.Weight
+            End If
+            totalWeight += Pair.Weight
         Next
-        Return Sum / TotalWeight
+        Return sum / totalWeight
     End Function
     ''' <summary>
     ''' 用于搜索的项目。
@@ -1793,9 +1809,10 @@ RetryDir:
         ''' </summary>
         Public Item As T
         ''' <summary>
-        ''' 该项目用于搜索的源。
+        ''' 该项目用于搜索的文本源。
+        ''' 在搜索时，会对每个文本源单独加权，但单个文本源内的多个别名只取最高的一个的相似度。
         ''' </summary>
-        Public SearchSource As List(Of KeyValuePair(Of String, Double))
+        Public SearchSource As List(Of SearchSource)
         ''' <summary>
         ''' 相似度。
         ''' </summary>
@@ -1804,6 +1821,21 @@ RetryDir:
         ''' 是否完全匹配。
         ''' </summary>
         Public AbsoluteRight As Boolean
+    End Class
+    ''' <summary>
+    ''' 单个用于搜索的文本源。
+    ''' </summary>
+    Public Class SearchSource
+        Public Aliases As String()
+        Public Weight As Double
+        Public Sub New(aliases As String(), Optional weight As Double = 1)
+            Me.Aliases = aliases
+            Me.Weight = weight
+        End Sub
+        Public Sub New(text As String, Optional weight As Double = 1)
+            Me.Aliases = {text}
+            Me.Weight = weight
+        End Sub
     End Class
     ''' <summary>
     ''' 进行多段文本加权搜索，获取相似度较高的数项结果。
@@ -1832,7 +1864,12 @@ RetryDir:
             Entry.Similarity = SearchSimilarityWeighted(Entry.SearchSource, Query)
 
             ' Preprocess search source keys: remove spaces and convert to lowercase
-            Dim processedSources = Entry.SearchSource.Select(Function(s) s.Key.Replace(" ", "").ToLower()).ToList()
+            Dim processedSources = Entry.SearchSource.Select(Function(s) 
+                For i = LBound(s.Aliases) To UBound(s.Aliases)
+                    s.Aliases(i) = s.Aliases(i).Replace(" ", "").ToLower()
+                Next i
+                Return s.Aliases
+                End Function).ToList()
 
             ' Check if all query parts are matched exactly by at least one source
             Dim isAbsoluteRight As Boolean = True

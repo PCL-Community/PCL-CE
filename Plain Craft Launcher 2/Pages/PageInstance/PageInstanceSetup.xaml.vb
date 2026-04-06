@@ -82,7 +82,8 @@ Public Class PageInstanceSetup
                 CheckAdvanceDisableJLW.Checked = Setup.Get("VersionAdvanceDisableJLW", instance:=PageInstanceLeft.Instance)
             End If
             CheckAdvanceDisableRW.Checked = Setup.Get("VersionAdvanceDisableRW", instance:=PageInstanceLeft.Instance)
-
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Setup.Get("VersionAdvanceDisableLwjglUnsafeAgent", instance:=PageInstanceLeft.Instance)
+            
         Catch ex As Exception
             Log(ex, "重载实例独立设置时出错", LogLevel.Feedback)
         End Try
@@ -127,7 +128,7 @@ Public Class PageInstanceSetup
     Private Shared Sub CheckBoxLikeComboChange(sender As MyComboBox, e As Object) Handles ComboArgumentIndieV2.SelectionChanged
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.SelectedIndex = 0, instance:=PageInstanceLeft.Instance)
     End Sub
-    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change, CheckAdvanceRunWait.Change, CheckAdvanceAssetsV2.Change, CheckAdvanceJava.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceUseProxyV2.Change, CheckAdvanceDisableRW.Change
+    Private Shared Sub CheckBoxChange(sender As MyCheckBox, e As Object) Handles CheckArgumentTitleEmpty.Change, CheckAdvanceRunWait.Change, CheckAdvanceAssetsV2.Change, CheckAdvanceJava.Change, CheckAdvanceDisableJLW.Change, CheckAdvanceUseProxyV2.Change, CheckAdvanceDisableRW.Change, CheckAdvanceDisableLwjglUnsafeAgent.Change
         If AniControlEnabled = 0 Then Setup.Set(sender.Tag, sender.Checked, instance:=PageInstanceLeft.Instance)
     End Sub
 

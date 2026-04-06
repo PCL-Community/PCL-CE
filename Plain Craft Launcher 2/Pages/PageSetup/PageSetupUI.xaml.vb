@@ -651,7 +651,16 @@ Refresh:
                 FrmToolsLeft.ItemGameLink.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsGameLink, Visibility.Collapsed, Visibility.Visible)
                 FrmToolsLeft.ItemLauncherHelp.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsHelp, Visibility.Collapsed, Visibility.Visible)
                 FrmToolsLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso conf.ToolsTest, Visibility.Collapsed, Visibility.Visible)
+    
+                ' 处理分类标题
+                Dim isGameLinkVisible = (Not HiddenForceShow AndAlso Not conf.ToolsGameLink) OrElse HiddenForceShow
+                FrmToolsLeft.TextGameLinkCategory.Visibility = If(isGameLinkVisible, Visibility.Visible, Visibility.Collapsed)
+                If isGameLinkVisible Then FrmToolsLeft.TextGameLinkCategory.Opacity = 0.6
 
+                Dim isToolsVisible = (Not HiddenForceShow AndAlso (Not conf.ToolsHelp OrElse Not conf.ToolsTest)) OrElse HiddenForceShow
+                FrmToolsLeft.TextToolsCategory.Visibility = If(isToolsVisible, Visibility.Visible, Visibility.Collapsed)
+                If isToolsVisible Then FrmToolsLeft.TextToolsCategory.Opacity = 0.6
+    
                 ' 统计工具页可用项数量
                 Dim ToolsCount As Integer = 0
                 If Not conf.ToolsGameLink Then ToolsCount += 1
