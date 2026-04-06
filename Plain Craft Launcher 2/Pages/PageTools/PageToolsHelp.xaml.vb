@@ -145,12 +145,12 @@
                 If Not Entry.ShowInSearch OrElse (Val(VersionBranchCode) = 50 AndAlso Not Entry.ShowInPublic) Then Continue For
                 If Not Entry.ShowInSearch OrElse (Val(VersionBranchCode) <> 50 AndAlso Not Entry.ShowInSnapshot) Then Continue For
                 QueryList.Add(New SearchEntry(Of HelpEntry) With {
-                    .Item = Entry,
-                    .SearchSource = New List(Of KeyValuePair(Of String, Double)) From {
-                        New KeyValuePair(Of String, Double)(Entry.Title, 1),
-                        New KeyValuePair(Of String, Double)(Entry.Desc, 0.5),
-                        New KeyValuePair(Of String, Double)(Entry.Search, 1.5)
-                    }
+                                 .Item = Entry,
+                                 .SearchSource = New List(Of SearchSource) From {
+                                 New SearchSource(Entry.Title, 1),
+                                 New SearchSource(Entry.Desc, 0.5),
+                                 New SearchSource(Entry.Search, 1.5)
+                                 }
                 })
                 'New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
             Next

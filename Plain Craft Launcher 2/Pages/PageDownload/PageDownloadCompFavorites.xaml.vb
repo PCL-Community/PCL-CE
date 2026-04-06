@@ -685,13 +685,13 @@ Public Class PageDownloadCompFavorites
             For Each Item As MyListItem In CompItemList
                 If TypeOf Item.Tag IsNot CompProject Then Continue For
                 Dim Entry As CompProject = Item.Tag
-                Dim SearchSource As New List(Of KeyValuePair(Of String, Double))
-                SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.RawName, 1))
+                Dim SearchSource As New List(Of SearchSource)
+                SearchSource.Add(New SearchSource(Entry.RawName, 1))
                 If Entry.Description IsNot Nothing AndAlso Entry.Description <> "" Then
-                    SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.Description, 0.4))
+                    SearchSource.Add(New SearchSource(Entry.Description, 0.4))
                 End If
-                If Entry.TranslatedName <> Entry.RawName Then SearchSource.Add(New KeyValuePair(Of String, Double)(Entry.TranslatedName, 1))
-                SearchSource.Add(New KeyValuePair(Of String, Double)(String.Join("", Entry.Tags), 0.2))
+                If Entry.TranslatedName <> Entry.RawName Then SearchSource.Add(New SearchSource(Entry.TranslatedName, 1))
+                SearchSource.Add(New SearchSource(String.Join("", Entry.Tags), 0.2))
                 QueryList.Add(New SearchEntry(Of MyListItem) With {.Item = Item, .SearchSource = SearchSource})
             Next
             '进行搜索

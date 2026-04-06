@@ -68,9 +68,10 @@
         <PackageReference Include="Polly" Version="8.6.5" />
         <!-- 本地化 -->
         <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
-        <!-- 日志支持 -->
+        <!-- 日志与遥测 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+        <PackageReference Include="Sentry" Version="3.34.0" />
         <!-- 身份认证 -->
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
         <!-- 验证 -->

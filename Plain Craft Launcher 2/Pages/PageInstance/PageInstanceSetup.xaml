@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -254,6 +254,8 @@
                               ToolTip="PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。" />
                         <local:MyCheckBox Height="28" Text="使用调试级别 log4j 配置文件" x:Name="CheckUseDebugLog4j2Config" Tag="VersionUseDebugLog4j2Config"
                                           ToolTipService.Placement="Right" />
+                        <local:MyCheckBox Height="28" Text="禁用 LWJGL Unsafe Agent" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="VersionAdvanceDisableLwjglUnsafeAgent"
+                                          ToolTipService.Placement="Right" ToolTip="Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#xa;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#xa;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#xa;&#xa;该功能仅会在 LWJGL 版本为 3.4.1 时生效。" />
                     </StackPanel>
                 </Grid>
             </local:MyCard>

@@ -373,8 +373,8 @@ Public Class PageInstanceSaves
                 Dim queryList As New List(Of SearchEntry(Of String))
                 For Each saveFolder In saveFolders
                     Dim folderName = GetFolderNameFromPath(saveFolder)
-                    Dim searchSource As New List(Of KeyValuePair(Of String, Double))
-                    searchSource.Add(New KeyValuePair(Of String, Double)(folderName, 1))
+                    Dim searchSource As New List(Of SearchSource)
+                    searchSource.Add(New SearchSource(folderName, 1))
                     queryList.Add(New SearchEntry(Of String) With {.Item = saveFolder, .SearchSource = searchSource})
                 Next
                 _searchResult = Search(queryList, SearchBox.Text, MaxBlurCount:=6, MinBlurSimilarity:=0.35).Select(Function(r) r.Item).ToList()

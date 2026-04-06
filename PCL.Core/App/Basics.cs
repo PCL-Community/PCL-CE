@@ -39,6 +39,11 @@ public static class Basics
     /// </summary>
     public static string VersionBranch => Metadata.Version.BranchName;
 
+    /// <summary>
+    /// 当前日期是否为愚人节。
+    /// </summary>
+    public static bool IsAprilFool => DateTime.Now is { Month: 4, Day: 1 };
+
     #endregion
 
     #region 程序路径信息

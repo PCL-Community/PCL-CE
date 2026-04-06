@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -10,16 +11,120 @@ using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 using STUN.Client;
+using Sentry;
+using Sentry.Extensibility;
 
 namespace PCL.Core.App.Essentials;
 
-[LifecycleScope("Telemetry", "遥测")]
+[LifecycleScope("telemetry", "遥测")]
 [LifecycleService(LifecycleState.Running)]
 public sealed partial class TelemetryService
 {
+    private static void _InitSentry()
+    {
+        Context.Info("开始初始化 Sentry SDK");
+        var dsn = EnvironmentInterop.GetSecret("SENTRY_DSN");
+        if (dsn is null)
+        {
+            Context.Warn("未找到 Sentry DSN");
+            return;
+        }
+        
+        var release = $"{Basics.VersionName}";
+        
+#if DEBUG
+        var environment = "Debug";
+#else
+        var environment = "Production";
+#endif
+        
+        SentrySdk.Init(options =>
+        {
+            options.Dsn = dsn;
+            #if DEBUG
+            options.Debug = true;
+            #else
+            options.Debug = false;
+            #endif
+            options.SendDefaultPii = false;
+            options.IsGlobalModeEnabled = true;
+            options.AutoSessionTracking = true;
+            options.Release = release;
+            options.Environment = environment;
+            
+            // 应该被直接丢弃不上报的异常类型
+            options.AddExceptionFilterForType<TimeoutException>();
+            options.AddExceptionFilterForType<HttpRequestException>();
+            options.AddExceptionFilterForType<WebException>();
+            options.AddExceptionFilterForType<TaskCanceledException>();
+            options.AddExceptionFilterForType<DirectoryNotFoundException>();
+            options.AddExceptionFilterForType<UnauthorizedAccessException>();
+            options.AddExceptionFilterForType<FileNotFoundException>();
+            
+            // 细分类型的过滤器
+            options.AddExceptionFilter(new SocketExceptionFilter());
+            
+            options.SetBeforeSend(@event => @event.Level is SentryLevel.Debug ? null : @event);
+        });
+        
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.User = new User
+            {
+                Id = Utils.Secret.Identify.LauncherId
+            };
+        });
+        
+        Context.Info("Sentry SDK 初始化完成");
+    }
+
+    // 错误上报
+    public static void ReportException(Exception ex, string plain, LogLevel level)
+    {
+        var sentryEvent = new SentryEvent(ex)
+        {
+            Level = level.RealLevel() switch
+            {
+                LogLevel.Fatal => SentryLevel.Fatal,
+                LogLevel.Error => SentryLevel.Error,
+                LogLevel.Warning => SentryLevel.Warning,
+                LogLevel.Info => SentryLevel.Info,
+                LogLevel.Debug or LogLevel.Trace => SentryLevel.Debug,
+                _ => throw new ArgumentOutOfRangeException(nameof(level))
+            }
+        };
+
+        if (!string.IsNullOrWhiteSpace(plain))
+        {
+            sentryEvent.Message = new SentryMessage { Formatted = plain };
+        }
+        
+        SentrySdk.CaptureEvent(sentryEvent);
+    }
+
+    // 设备环境上报
+    private static void _ReportDeviceEnvironment(TelemetryDeviceEnvironment content)
+    {
+        Context.Info("正在上报设备环境调查数据");
+        
+        SentrySdk.ConfigureScope(scope =>
+        {
+            scope.Contexts["Telemetry"] = content;
+        });
+
+        try
+        {
+            SentrySdk.CaptureMessage("设备环境调查");
+            Context.Info("已发送设备环境调查数据");
+        }
+        catch(Exception ex)
+        {
+            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本", ex);
+        }
+    }
 
     // ReSharper disable UnusedAutoPropertyAccessor.Local
 
@@ -49,8 +154,8 @@ public sealed partial class TelemetryService
     private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
-        var telemetryKey = EnvironmentInterop.GetSecret("TELEMETRY_KEY");
-        if (string.IsNullOrWhiteSpace(telemetryKey)) return;
+        _InitSentry();
+        
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         // stun test
@@ -93,16 +198,31 @@ public sealed partial class TelemetryService
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        using var response = await HttpRequest
-            .CreatePost("https://pcl2ce.pysio.online/post")
-            .WithHeader("Authorization", telemetryKey)
-            .WithJsonContent(telemetry)
-            .SendAsync()
-            .ConfigureAwait(false);
-        if (response.IsSuccess)
-            Context.Info("已发送设备环境调查数据");
-        else
-            Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本");
-        Context.DeclareStopped();
+        
+        _ReportDeviceEnvironment(telemetry);
+    }
+    
+    // 用来细分过滤 SocketException 的过滤器，我觉得应该除了遥测服务之外没有其他东西会用到这破玩意儿
+    private sealed class SocketExceptionFilter : IExceptionFilter
+    {
+        public bool Filter(Exception ex)
+        {
+            if (ex is SocketException socketEx)
+            {
+                return socketEx.SocketErrorCode is
+                    SocketError.ConnectionRefused or 
+                    SocketError.TimedOut or
+                    SocketError.HostNotFound or
+                    SocketError.NetworkUnreachable or
+                    SocketError.ConnectionReset;
+            }
+            return false;
+        }
+    }
+    
+    [LifecycleStop]
+    private static void _StopAsync()
+    {
+        SentrySdk.Close();
     }
 }

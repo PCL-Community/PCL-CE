@@ -89,7 +89,7 @@ Public Class MyImage
         GetType(CornerRadius),
         GetType(MyImage),
         New FrameworkPropertyMetadata(
-            New CornerRadius(0),
+            New CornerRadius(-1),
             AddressOf OnCornerRadiusChanged)
         )
 
@@ -98,7 +98,8 @@ Public Class MyImage
     End Sub
 
     Private Sub UpdateClip() Handles Me.SizeChanged
-        If (ActualWidth > 0 AndAlso ActualHeight > 0) Then
+        If (ActualWidth > 0 AndAlso ActualHeight > 0) AndAlso
+            (CornerRadius.TopLeft >= 0 AndAlso CornerRadius.TopRight >= 0) Then
             Clip = New RectangleGeometry(
                 New Rect(0, 0, ActualWidth, ActualHeight),
                 CornerRadius.TopLeft,
@@ -135,7 +136,7 @@ Public Class MyImage
     End Property
     Private _ActualSource As String = Nothing
 
-    Private Async Sub Load() Handles Me.Initialized '属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
+    Private Sub Load() Handles Me.Initialized '属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
         '空
         If Source Is Nothing Then
             ActualSource = Nothing
@@ -156,71 +157,83 @@ Public Class MyImage
             If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
         End If
 
-        Dim TempDownloadingPath As String = Nothing
-        Try
-            '下载
-            ActualSource = LoadingSource '显示加载中图片
-            TempDownloadingPath = TempPath & RandomUtils.NextInt(0, 1000000)
-            Directory.CreateDirectory(GetPathFromFullPath(TempPath)) '重新实现下载，以避免携带 Header（#5072）
-            Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
-                Using response = Await HttpRequest.Create(Url).
-                        WithHttpVersionOption(HttpVersion.Version30).
-                        SendAsync(addMetedata:=False).
-                        ConfigureAwait(False)
-                    If response.IsSuccessStatusCode Then
-                        Using nfs = Await response.AsStreamAsync()
-                            fs.SetLength(0)
-                            Await nfs.CopyToAsync(fs)
-                        End Using
-                    ElseIf Not FallbackSource.IsNullOrWhiteSpace() Then
-                        Using fallbackResponse = Await HttpRequest.
-                            Create(FallbackSource).
-                            WithHttpVersionOption(HttpVersion.Version30).
-                            SendAsync(addMetedata:=False).
-                            ConfigureAwait(False)
-                            If fallbackResponse.IsSuccessStatusCode Then
-                                Using fallbackNfs = Await fallbackResponse.AsStreamAsync()
-                                    fs.SetLength(0)
-                                    Await fallbackNfs.CopyToAsync(fs)
-                                End Using
-                            End If
-                        End Using
-                    Else
+        Dispatcher.BeginInvoke(
+            Async Function() As Task
+                Try
+                    '下载
+                    ActualSource = LoadingSource '显示加载中图片
+
+                    Dim resp = Await DownloadImageAsync(Url)
+                    If Not String.IsNullOrEmpty(resp) Then
+                        ActualSource = resp
                         Return
                     End If
-                End Using
-            End Using
-            If Url <> Source AndAlso Url <> FallbackSource Then
-                '已经更换了地址
-                File.Delete(TempDownloadingPath)
-            ElseIf EnableCache Then
-                '保存缓存并显示
-                If File.Exists(TempPath) Then File.Delete(TempPath)
-                File.Move(TempDownloadingPath, TempPath, True)
-                ActualSource = TempPath
-            Else
-                '直接显示
-                ActualSource = TempDownloadingPath
-            End If
-        Catch ex As Exception
-            Try
-                If TempPath IsNot Nothing AndAlso File.Exists(TempPath) Then File.Delete(TempPath)
-                If TempDownloadingPath IsNot Nothing AndAlso File.Exists(TempDownloadingPath) Then File.Delete(TempDownloadingPath)
-            Catch
-            End Try
-            '更换备用地址
-            Log(ex, $"下载图片失败（Base = {Url}, Fallback = {FallbackSource}）", LogLevel.Developer)
-            '从缓存加载网络图片
-            TempPath = GetTempPath(Url)
-            TempFile = New FileInfo(TempPath)
-            If EnableCache AndAlso TempFile.Exists() Then
-                ActualSource = TempPath
-                If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
-            End If
-        End Try
+
+                    resp = Await DownloadImageAsync(FallbackSource)
+                    If Not String.IsNullOrEmpty(resp) Then
+                        ActualSource = resp
+                        Return
+                    End If
+
+                Catch ex As Exception
+                    '更换备用地址
+                    Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", LogLevel.Developer)
+                    '从缓存加载网络图片
+                    TempPath = GetTempPath(Url)
+                    TempFile = New FileInfo(TempPath)
+                    If EnableCache AndAlso TempFile.Exists() Then
+                        ActualSource = TempPath
+                        If (Date.Now - TempFile.LastWriteTime) < FileCacheExpiredTime Then Return '无需刷新缓存
+                    End If
+                End Try
+            End Function)
     End Sub
+    Public Shared Function DownloadImageAsync(url As String) As Task(Of String)
+        Return _downloadTasks.GetOrAdd(
+            url,
+            Function(key)
+                Dim t = DownloadImageInternelAsync(key)
+                t.ContinueWith(
+                        Sub()
+                            _downloadTasks.Remove(url, Nothing)
+                        End Sub)
+                Return t
+            End Function)
+    End Function
     Public Shared Function GetTempPath(Url As String) As String
         Return IO.Path.Combine(PathTemp, "Cache", "Images", $"{GetStringMD5(Url)}.png")
     End Function
+
+    Private Shared ReadOnly _downloadTasks As New Concurrent.ConcurrentDictionary(Of String, Task(Of String))
+    Private Shared Async Function DownloadImageInternelAsync(url As String) As Task(Of String)
+        Dim tempPath = GetTempPath(url)
+        Dim TempDownloadingPath = tempPath & RandomUtils.NextInt(0, 1000000)
+
+        Try
+            Directory.CreateDirectory(GetPathFromFullPath(tempPath)) '重新实现下载，以避免携带 Header（#5072）
+            Using fs As New FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)
+                Using response = Await HttpRequest.Create(url).
+                        WithHttpVersionOption(HttpVersion.Version30).
+                        SendAsync(addMetedata:=False)
+                    response.EnsureSuccessStatusCode()
+
+                    Using nfs = Await response.AsStreamAsync()
+                        fs.SetLength(0)
+                        Await nfs.CopyToAsync(fs)
+                    End Using
+                End Using
+            End Using
+
+            File.Move(TempDownloadingPath, tempPath, True)
+            Return tempPath
+        Catch ex As Exception
+            If File.Exists(tempPath) Then File.Delete(tempPath)
+            If File.Exists(TempDownloadingPath) Then File.Delete(TempDownloadingPath)
+
+            Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})")
+            Return String.Empty
+        End Try
+    End Function
+
 
 End Class

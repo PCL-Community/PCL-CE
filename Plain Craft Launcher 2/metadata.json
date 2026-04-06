@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.4",
+    "base": "2.14.5",
     "upstream": "2.12.1",
-    "suffix": "",
-    "code": 510
+    "suffix": "beta.2",
+    "code": 512
   },
   "licenses": [
     {
@@ -120,6 +120,12 @@
       "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/protobuf-net/protobuf-net",
       "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
+    },
+    {
+      "name": "LWJGL Unsafe Agent",
+      "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
+      "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
     }
   ]
 }
