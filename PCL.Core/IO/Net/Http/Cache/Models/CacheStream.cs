@@ -25,7 +25,7 @@ public class CacheStream: Stream
 
 
     public override void Flush() { }
-
+    
     public override int Read(byte[] buffer, int offset, int count)
     {
         var read = _responseStream.Read(buffer, offset, count);
@@ -34,7 +34,7 @@ public class CacheStream: Stream
         _destStream?.Readable();
         return read;
     }
-
+    
     public override long Seek(long offset, SeekOrigin origin)
     {
         throw new InvalidOperationException("This stream is readonly.");

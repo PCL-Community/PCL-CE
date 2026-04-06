@@ -64,8 +64,7 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     };
 
     private readonly HashStorage _store = new(destLocation, SHA256Provider.Instance, true);
-
-    private readonly string _taskTemp = Path.Combine(destLocation, "TaskTemp");
+    
     #endregion
 
     #region "HTTP 缓存处理"
@@ -83,16 +82,6 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         {
             File.Delete(destLocation);
             Directory.CreateDirectory(destLocation);
-        }
-
-        try
-        {
-            if (!Directory.Exists(_taskTemp)) Directory.CreateDirectory(_taskTemp);
-        }
-        catch (IOException)
-        {
-            File.Delete(_taskTemp);
-            Directory.CreateDirectory(_taskTemp);
         }
 
         using var connection = _connectionFactory.Invoke();
@@ -285,19 +274,21 @@ public class HttpCacheRepository(string dbPath,string destLocation)
 
     private SqliteCommand _DeleteTable(string uri)
     {
-        using var conn = _connectionFactory.Invoke();
+        var conn = _connectionFactory.Invoke();
         var cmd = conn.CreateCommand();
         cmd.CommandText = DeleteTable;
         cmd.Parameters.AddWithValue("@Uri", uri);
+        cmd.Disposed += (_, _) => conn.Dispose();
         return cmd;
     }
 
     private SqliteCommand _FindTableWithUri(string uri)
     {
-        using var conn = _connectionFactory.Invoke();
+        var conn = _connectionFactory.Invoke();
         var queryCmd = conn.CreateCommand();
         queryCmd.CommandText = FindTable;
         queryCmd.Parameters.AddWithValue("@Uri", uri);
+        queryCmd.Disposed += (_, _) => conn.Dispose(); 
         return queryCmd;
     }
     
@@ -314,8 +305,9 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         }
         var sb = new StringBuilder();
         sb.Append("UPDATE HttpCache ");
-        using var conn = _connectionFactory.Invoke();
+        var conn = _connectionFactory.Invoke();
         var writeCmd = conn.CreateCommand();
+        writeCmd.Disposed += (_, _) => conn.Dispose(); 
         var setCount = 0;
         // 按需更新以减少开销
         if (reader.GetString(0) != details.RequestUri)
@@ -353,14 +345,14 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         if ((HttpCacheStatus)reader.GetInt16(5) != details.Status)
         {
             setCount++;
-            sb.Append("SET Status = @Status");
+            sb.Append("SET Status = @Status,");
             writeCmd.Parameters.AddWithValue("@Status", (int)details.Status);
         }
 
         if (reader.GetString(6) != details.LastUpdate.ToString())
         {
             setCount++;
-            sb.Append("SET LastUpdate = @LastUpdate");
+            sb.Append("SET LastUpdate = @LastUpdate,");
             writeCmd.Parameters.AddWithValue("@LastUpdate", details.LastUpdate.ToString());
         }
 
