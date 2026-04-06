@@ -11,14 +11,12 @@ namespace PCL.Core.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public class LifecycleScopeGenerator : IIncrementalGenerator
 {
-    private const string AppNamespace = "PCL.Core.App";
-    private const string IocNamespace = $"{AppNamespace}.IoC";
-    private const string ScopeAttributeType = $"{IocNamespace}.LifecycleScopeAttribute";
+    private const string ScopeAttributeType = $"{SharedConstants.IocNamespace}.LifecycleScopeAttribute";
 
-    private const string StartMethodAttributeType = $"{IocNamespace}.LifecycleStartAttribute";
-    private const string StopMethodAttributeType = $"{IocNamespace}.LifecycleStopAttribute";
-    private const string CommandHandlerMethodAttributeType = $"{IocNamespace}.LifecycleCommandHandlerAttribute";
-    private const string DependencyInjectionMethodAttributeType = $"{IocNamespace}.LifecycleDependencyInjectionAttribute";
+    private const string StartMethodAttributeType = $"{SharedConstants.IocNamespace}.LifecycleStartAttribute";
+    private const string StopMethodAttributeType = $"{SharedConstants.IocNamespace}.LifecycleStopAttribute";
+    private const string CommandHandlerMethodAttributeType = $"{SharedConstants.IocNamespace}.LifecycleCommandHandlerAttribute";
+    private const string DependencyInjectionMethodAttributeType = $"{SharedConstants.IocNamespace}.LifecycleDependencyInjectionAttribute";
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
@@ -179,8 +177,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine($"using {AppNamespace};");
-        sb.AppendLine($"using {IocNamespace};");
+        sb.AppendLine($"using {SharedConstants.AppNamespace};");
+        sb.AppendLine($"using {SharedConstants.IocNamespace};");
         sb.AppendLine();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();

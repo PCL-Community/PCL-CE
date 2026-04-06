@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -14,7 +13,7 @@ using PCL.Core.Utils.OS;
 namespace PCL.Core.App.Essentials;
 
 [LifecycleService(LifecycleState.BeforeLoading, Priority = -10)]
-public sealed class PromoteService : GeneralService
+public sealed partial class PromoteService : GeneralService
 {
     private static LifecycleContext? _context;
     private static LifecycleContext Context => _context!;
@@ -288,10 +287,9 @@ public sealed class PromoteService : GeneralService
         return id;
     }
 
-    private static void _LoadPromoteOperations(ImmutableList<(PromoteOperationFunction func, string name)> items)
-    {
-        foreach (var (func, name) in items) AddOperationFunction(name, func);
-    }
+    [DependencyInjectionPoint("promote")]
+    private static void _CollectOperationFunction(PromoteOperationFunction operation, string name)
+        => AddOperationFunction(name, operation);
     
     public override void Start()
     {
@@ -302,8 +300,7 @@ public sealed class PromoteService : GeneralService
             IsCurrentProcessPromoted = true;
             // 预定义操作
             Context.Info("正在加载提权操作");
-            Action<ImmutableList<(PromoteOperationFunction, string)>> action = _LoadPromoteOperations;
-            DependencyGroups.InvokeInjection(action, "promote", AttributeTargets.Method);
+            _InvokeInjection_CollectOperationFunction();
             AddJsonOperationFunction<ProcessStartInfo>("start-json", _StartProcessWithInfo);
             // 结束生命周期管理，启动提权操作线程
             Lifecycle.PendingLogFileName = "LastPending_Promote.log";

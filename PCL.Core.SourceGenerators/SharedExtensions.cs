@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -182,6 +183,32 @@ public static class SharedExtensions
                 case SpecialType.System_Decimal: keyword = "decimal"; return true;
                 default: keyword = ""; return false;
             }
+        }
+
+        public int GenerateTypeHeader(StringBuilder sb)
+        {
+            var ctnTypes = new Stack<INamedTypeSymbol>();
+            for (var ctnType = type.ContainingType; ctnType != null; ctnType = ctnType.ContainingType) ctnTypes.Push(ctnType);
+            // namespace
+            var ns = type.ContainingNamespace?.ToDisplayString();
+            var indent = 0;
+            if (!string.IsNullOrEmpty(ns))
+            {
+                sb.Append("namespace ").Append(ns).AppendLine();
+                sb.AppendLine("{");
+                indent++;
+            }
+            // outer classes
+            foreach (var containingType in ctnTypes)
+            {
+                sb.Append(' ', indent * 4).Append("partial class ").Append(containingType.Name).AppendLine();
+                sb.Append(' ', indent * 4).AppendLine("{");
+                indent++;
+            }
+            // class
+            sb.Append(' ', indent * 4).Append("partial class ").Append(type.Name).AppendLine();
+            sb.Append(' ', indent * 4).AppendLine("{");
+            return indent + 1;
         }
     }
 
