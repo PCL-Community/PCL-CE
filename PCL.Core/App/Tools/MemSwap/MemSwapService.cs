@@ -33,6 +33,7 @@ public sealed partial class MemSwapService
             if (!MemorySwap(SwapScope.All))
             {
                 Context.Error("请求无法处理，返回");
+                Context.RequestExit(-1);
                 return;
             }
 
@@ -52,10 +53,10 @@ public sealed partial class MemSwapService
         }
     }
 
-    private static SemaphoreSlim _memSwapLock = new(1, 1);
+    private static readonly SemaphoreSlim _MemSwapLock = new(1, 1);
     public static bool MemorySwap(SwapScope scope = SwapScope.All)
     {
-        if (!_memSwapLock.Wait(0))
+        if (!_MemSwapLock.Wait(0))
         {
             Context.Warn("检测到正在进行的内存处理，取消当前处理");
             return false;
@@ -83,7 +84,7 @@ public sealed partial class MemSwapService
         }
         finally
         {
-            _memSwapLock.Release();
+            _MemSwapLock.Release();
         }
     }
 

@@ -19,6 +19,9 @@ public class ByteStream(Stream stream)
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static string GetReadableLength(long length, int startUnit = 0)
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startUnit, _Units.Length, nameof(startUnit));
+        ArgumentOutOfRangeException.ThrowIfLessThan(startUnit, 0, nameof(startUnit));
+
         bool isNegative = length < 0;
         decimal absBytes = isNegative ? -length : length;
 
