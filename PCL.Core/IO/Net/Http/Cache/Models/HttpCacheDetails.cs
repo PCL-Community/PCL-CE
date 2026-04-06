@@ -18,6 +18,9 @@ public class HttpCacheDetails(HttpCacheRepository repo)
 
     public HttpCacheUpdateHandle GetUpdateHandle()
     {
-        return new HttpCacheUpdateHandle(repo);
+        return new HttpCacheUpdateHandle(repo)
+        {
+            Details = this
+        };
     }
 }

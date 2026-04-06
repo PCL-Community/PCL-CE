@@ -29,7 +29,7 @@ public class CacheStream: Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         var read = _responseStream.Read(buffer, offset, count);
-        _destStream?.Write(buffer);
+        _destStream?.Write(buffer,0, read);
         _destStream?.Readable();
         return read;
     }
@@ -53,7 +53,7 @@ public class CacheStream: Stream
     public override bool CanSeek => _responseStream.CanSeek;
     public override bool CanWrite => false;
     public override long Length => _responseStream.Length;
-    public override long Position { get;
+    public override long Position { get => _responseStream.Length;
         set => throw new InvalidOperationException("can not set position on readonly stream");
     }
 

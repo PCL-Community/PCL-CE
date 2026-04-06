@@ -33,7 +33,7 @@ public class HttpCacheRepository(string dbPath,string destLocation)
                                            LastModify TEXT NULL,
                                            ExpiredAt TEXT NOT NULL,
                                            EnsureValidate INTEGER NOT NULL DEFAULT 0,
-                                           Status INTEGER NOT NULL DEFAULT 0
+                                           Status INTEGER NOT NULL DEFAULT 0,
                                            LastUpdate TEXT NOT NULL
                                        )
                                        """;
@@ -54,8 +54,13 @@ public class HttpCacheRepository(string dbPath,string destLocation)
 
     #region "配置"
 
-    
-    private readonly SqliteConnection _connection = new($"Data Source={dbPath}");
+
+    private readonly Func<SqliteConnection> _connectionFactory = () =>
+    {
+        var c = new SqliteConnection($"Data Source={dbPath}");
+        c.Open();
+        return c;
+    };
 
     private readonly HashStorage _store = new(destLocation, SHA256Provider.Instance, true);
 
@@ -89,8 +94,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
             Directory.CreateDirectory(_taskTemp);
         }
 
-        _connection.Open();
-        var cmd = _connection.CreateCommand();
+        using var connection = _connectionFactory.Invoke();
+        var cmd = connection.CreateCommand();
         cmd.CommandText = CreateTable;
         cmd.ExecuteNonQuery();
     }
@@ -248,7 +253,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     /// </summary>
     public void MarkAllObjectAsExpired()
     {
-        using var cmd = _connection.CreateCommand();
+        using var conn = _connectionFactory.Invoke();
+        using var cmd = conn.CreateCommand();
         cmd.CommandText = "UPDATE HttpCache SET Status = 2";
         cmd.ExecuteNonQuery();
     }
@@ -262,7 +268,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
     
     private SqliteCommand _InsertDatabase(HttpCacheDetails details)
     {
-        var cmd = _connection.CreateCommand();
+        using var conn = _connectionFactory.Invoke();
+        var cmd = conn.CreateCommand();
         cmd.CommandText = InsertTable;
         cmd.Parameters.AddWithValue("@Uri", details.RequestUri);
         cmd.Parameters.AddWithValue("@Tag", details.Tag);
@@ -275,7 +282,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
 
     private SqliteCommand _DeleteTable(string uri)
     {
-        var cmd = _connection.CreateCommand();
+        using var conn = _connectionFactory.Invoke();
+        var cmd = conn.CreateCommand();
         cmd.CommandText = DeleteTable;
         cmd.Parameters.AddWithValue("@Uri", uri);
         return cmd;
@@ -283,7 +291,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
 
     private SqliteCommand _FindTableWithUri(string uri)
     {
-        var queryCmd = _connection.CreateCommand();
+        using var conn = _connectionFactory.Invoke();
+        var queryCmd = conn.CreateCommand();
         queryCmd.CommandText = FindTable;
         queryCmd.Parameters.AddWithValue("@Uri", uri);
         return queryCmd;
@@ -302,7 +311,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         }
         var sb = new StringBuilder();
         sb.Append("UPDATE HttpCache ");
-        var writeCmd = _connection.CreateCommand();
+        using var conn = _connectionFactory.Invoke();
+        var writeCmd = conn.CreateCommand();
         var setCount = 0;
         // 按需更新以减少开销
         if (reader.GetString(0) != details.RequestUri)
@@ -337,14 +347,14 @@ public class HttpCacheRepository(string dbPath,string destLocation)
             sb.Append("SET EnsureValidate = @EnsureValidate,");
             writeCmd.Parameters.AddWithValue("@EnsureValidate", details.EnsureValidate);
         }
-        if ((HttpCacheStatus)reader.GetInt16(6) != details.Status)
+        if ((HttpCacheStatus)reader.GetInt16(5) != details.Status)
         {
             setCount++;
             sb.Append("SET Status = @Status");
             writeCmd.Parameters.AddWithValue("@Status", (int)details.Status);
         }
 
-        if (reader.GetString(7) != details.LastUpdate.ToString())
+        if (reader.GetString(6) != details.LastUpdate.ToString())
         {
             setCount++;
             sb.Append("SET LastUpdate = @LastUpdate");
