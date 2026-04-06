@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -46,7 +47,7 @@ public class HttpCacheHandler:DelegatingHandler
         newDetails?.RequestUri = request.RequestUri.ToString();
         newDetails?.LastUpdate = DateTimeOffset.Now;
         newDetails?.EnsureValidate = response.Headers.CacheControl?.NoCache ?? false;
-        newDetails?.LastModify = response.Headers.Date.ToString();
+        newDetails?.LastModify = response.Content.Headers.LastModified.ToString();
         newDetails?.Tag = response.Headers.ETag?.Tag;
         if (handle is not null)
             response.Content = new StreamContent(new CacheStream(handle,

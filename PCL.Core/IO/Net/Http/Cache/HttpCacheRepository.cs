@@ -31,18 +31,19 @@ public class HttpCacheRepository(string dbPath,string destLocation)
                                            RequestUri TEXT NOT NULL PRIMARY KEY,
                                            Tag TEXT NULL,
                                            LastModify TEXT NULL,
-                                           ExpiredAt TEXT NOT NULL,
+                                           ExpiredAt INTEGER NOT NULL,
                                            EnsureValidate INTEGER NOT NULL DEFAULT 0,
                                            Status INTEGER NOT NULL DEFAULT 0,
-                                           LastUpdate TEXT NOT NULL
+                                           LastUpdate TEXT NOT NULL,
+                                           Hash TEXT NULL
                                        )
                                        """;
     
     private const string InsertTable = """
                                        INSERT OR REPLACE INTO HttpCache (
-                                           RequestUri, Tag, LastModify, ExpiredAt, EnsureValidate, Status, LastUpdate
+                                           RequestUri, Tag, LastModify, ExpiredAt, EnsureValidate, Status, LastUpdate, Hash
                                        ) VALUES (
-                                           @Uri, @Tag, @LastModify, @ExpiredAt, @EnsureValidate, @Status, @LastUpdate
+                                           @Uri, @Tag, @LastModify, @ExpiredAt, @EnsureValidate, @Status, @LastUpdate, @Hash
                                        )
                                        """;
     
@@ -172,7 +173,8 @@ public class HttpCacheRepository(string dbPath,string destLocation)
                 EnsureValidate = false,
                 ExpiredAt = null,
                 Tag = null,
-                Status = HttpCacheStatus.Updating
+                Status = HttpCacheStatus.Updating,
+                Hash = null
             };
             await using var cmd = _InsertDatabase(details);
             cmd.ExecuteNonQuery();
@@ -277,6 +279,7 @@ public class HttpCacheRepository(string dbPath,string destLocation)
         cmd.Parameters.AddWithValue("@ExpiredAt", details.ExpiredAt);
         cmd.Parameters.AddWithValue("@EnsureValidate", details.EnsureValidate);
         cmd.Parameters.AddWithValue("@Status", (int)details.Status);
+        cmd.Parameters.AddWithValue("@Hash", details.Hash);
         return cmd;
     }
 
@@ -359,6 +362,14 @@ public class HttpCacheRepository(string dbPath,string destLocation)
             setCount++;
             sb.Append("SET LastUpdate = @LastUpdate");
             writeCmd.Parameters.AddWithValue("@LastUpdate", details.LastUpdate.ToString());
+        }
+
+        if (reader.GetString(7) != details.Hash)
+        {
+            setCount++;
+            sb.Append("SET Hash = @Hash");
+            writeCmd.Parameters.AddWithValue("@Hash", details.Hash);
+
         }
 
         if (setCount == 0) return null;

@@ -29,6 +29,7 @@ public class CacheStream: Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         var read = _responseStream.Read(buffer, offset, count);
+        if (read == 0) return read;
         _destStream?.Write(buffer,0, read);
         _destStream?.Readable();
         return read;
