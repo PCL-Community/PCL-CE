@@ -38,9 +38,9 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        const string collectorMarkupAttr = "PCL.Core.App.IoC.DependencyCollectorAttribute";
+        const string collectorMarkupAttr = SharedConstants.DependencyCollectorAttribute;
         const string collectorMarkupAttrFull = $"{collectorMarkupAttr}`1";
-        const string injectionPointAttr = "PCL.Core.App.IoC.DependencyInjectionPointAttribute";
+        const string injectionPointAttr = SharedConstants.DependencyInjectionPointAttribute;
         
         // 收集被标记为 collector 的注解
         var collectorAttrs = context.SyntaxProvider
@@ -299,13 +299,20 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
             var indentStr = new string(' ', indent * 4);
             var targetMethodName = targetMethod.Name;
             var isStatic = targetMethod.IsStatic;
+            var isAwaitable = targetMethod.IsAwaitable();
             sb.Append(indentStr).AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"PCL.Core.SourceGenerators.DependencyCollectorGenerator\", \"1.0.0.0\")]");
             sb.Append(indentStr).AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
-            sb.Append(indentStr).AppendLine($"private{(isStatic ? " static" : "")} void _InvokeInjection{targetMethodName}()");
+            var idCode = match.Info.Identifier.SnakeIdToPascal();
+            sb.Append(indentStr).Append("private ");
+            if (isStatic) sb.Append("static ");
+            sb.Append(isAwaitable ? "async Task " : "void ");
+            sb.Append(targetMethodName).Append("_InvokeInjection_").Append(idCode).AppendLine("()");
             sb.Append(indentStr).AppendLine("{");
             foreach (var dep in match.Dependencies)
             {
-                sb.Append(indentStr).Append("    ").Append(targetMethodName).Append("(");
+                sb.Append(indentStr).Append("    ");
+                if (isAwaitable) sb.Append("await ");
+                sb.Append(targetMethodName).Append("(");
                 var depRef = dep.Target.GetQualifiedSymbolName();
                 switch (dep.TargetType)
                 {

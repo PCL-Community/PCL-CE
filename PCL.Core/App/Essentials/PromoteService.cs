@@ -13,12 +13,9 @@ using PCL.Core.Utils.OS;
 namespace PCL.Core.App.Essentials;
 
 [LifecycleService(LifecycleState.BeforeLoading, Priority = -10)]
-public sealed partial class PromoteService : GeneralService
+[LifecycleScope("promote", "提权服务", false)]
+public sealed partial class PromoteService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private PromoteService() : base("promote", "提权服务", false) { _context = ServiceContext; }
-    
     private static Process? _promoteProcess;
     private static NamedPipeServerStream? _promotePipeServer;
     
@@ -287,11 +284,12 @@ public sealed partial class PromoteService : GeneralService
         return id;
     }
 
-    [DependencyInjectionPoint("promote")]
+    [DependencyInjectionPoint("promote", false)]
     private static void _CollectOperationFunction(PromoteOperationFunction operation, string name)
         => AddOperationFunction(name, operation);
-    
-    public override void Start()
+
+    [LifecycleStart]
+    private void _Start()
     {
         var args = Basics.CommandLineArguments;
         if (args is ["promote", _])
@@ -300,7 +298,7 @@ public sealed partial class PromoteService : GeneralService
             IsCurrentProcessPromoted = true;
             // 预定义操作
             Context.Info("正在加载提权操作");
-            _InvokeInjection_CollectOperationFunction();
+            _CollectOperationFunction_InvokeInjection_Promote();
             AddJsonOperationFunction<ProcessStartInfo>("start-json", _StartProcessWithInfo);
             // 结束生命周期管理，启动提权操作线程
             Lifecycle.PendingLogFileName = "LastPending_Promote.log";
@@ -317,7 +315,8 @@ public sealed partial class PromoteService : GeneralService
         }
     }
 
-    public override void Stop()
+    [LifecycleStop]
+    private void _Stop()
     {
         if (_promotePipeServer != null)
         {
