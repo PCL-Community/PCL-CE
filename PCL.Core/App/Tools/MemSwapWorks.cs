@@ -1,10 +1,25 @@
-using PCL.Core.Utils.OS;
 using System;
 using System.Runtime.InteropServices;
+using PCL.Core.Utils.OS;
 
-namespace PCL.Core.App.Tools.MemSwap;
+namespace PCL.Core.App.Tools;
 
-internal static class SwapWorks
+[Flags]
+public enum MemSwapScope
+{
+    None = 0,
+    EmptyWorkingSets = 1 << 0,
+    FlushFileCache = 1 << 1,
+    FlushModifiedList = 1 << 2,
+    PurgeStandbyList = 1 << 3,
+    PurgeLowPriorityStandbyList = 1 << 4,
+    RegistryReconciliation = 1 << 5,
+    CombinePhysicalMemory = 1 << 6,
+    All = 0b111111
+}
+
+// ReSharper disable InconsistentNaming
+internal static class MemSwapWorks
 {
     private static void _ExecuteMemoryListOperation(int infoValue)
     {
@@ -14,7 +29,7 @@ internal static class SwapWorks
             NtInterop.SetSystemInformation(
                 NtInterop.SystemInformationClass.SystemMemoryListInformation,
                 handle.AddrOfPinnedObject(),
-                (uint)Marshal.SizeOf(infoValue));
+                sizeof(int));
         }
         finally
         {

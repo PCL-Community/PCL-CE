@@ -1,6 +1,8 @@
 Imports System.Drawing
 Imports System.Net.Http
 Imports PCL.Core.App
+Imports PCL.Core.App.Essentials
+Imports PCL.Core.App.Tools
 Imports PCL.Core.IO
 Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
@@ -218,7 +220,7 @@ Public Class PageToolsTest
                 End Try
             End Sub, "Rubbish Clear")
     End Sub
-    Public Shared Function AskTrulyWantMemoryOptimize()
+    Public Shared Function AskTrulyWantMemoryOptimize() As Boolean
         Dim memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024 / 1024  'GB
         Dim memLoad = KernelInterop.GetMemoryLoadPercent()
         If memLoad > 90 Then Return True ' 情况不太妙啊，先别问了
@@ -239,85 +241,8 @@ Public Class PageToolsTest
         Dim s = MyMsgBox(prompt, "确认内存优化？", "继续", "取消")
         Return s = 1
     End Function
-    Private Shared IsMemoryOptimizing
-    Public Shared Sub MemoryOptimize(ShowHint As Boolean)
-        If IsMemoryOptimizing Then
-            If ShowHint Then
-                Hint("内存优化尚未结束，请稍等！", HintType.Info, True)
-                Return
-            End If
-        Else
-            IsMemoryOptimizing = True
-            Dim num As Long
-            If ProcessInterop.IsAdmin() Then
-                num = CLng(KernelInterop.GetAvailablePhysicalMemoryBytes())
-                Try
-                    MemoryOptimizeInternal(ShowHint)
-                Catch ex As Exception
-                    Log(ex, "内存优化失败", If(ShowHint, LogLevel.Hint, LogLevel.Debug), "出现错误")
-                    Return
-                Finally
-                    IsMemoryOptimizing = False
-                End Try
-
-                num = Convert.ToInt64(Decimal.Subtract(New Decimal(KernelInterop.GetAvailablePhysicalMemoryBytes()), New Decimal(num)))
-            Else
-                Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
-                Try
-                    Using callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "memory")
-                        callProcess.WaitForExit()
-                        num = CLng(callProcess.ExitCode) * 1024L
-                    End Using
-                Catch ex2 As Exception
-                    Log(ex2, "命令行形式内存优化失败")
-                    If ShowHint Then
-                        Hint(String.Concat(New String() {"获取管理员权限失败，请尝试右键 PCL，选择 ", vbLQ, "以管理员身份运行", vbRQ, "！"}), HintType.Critical, True)
-                    End If
-
-                    Return
-                Finally
-                    IsMemoryOptimizing = False
-                End Try
-
-                If num < 0L Then
-                    Return
-                End If
-            End If
-
-            Dim MemAfter As String = GetString(CLng(KernelInterop.GetAvailablePhysicalMemoryBytes()))
-            Log(String.Format("[Test] 内存优化完成，可用内存改变量：{0}，大致剩余内存：{1}", GetString(num), MemAfter))
-            If num > 1024L Then
-                If ShowHint Then
-                    Hint(String.Format("内存优化完成，可用内存增加了 {0}，目前剩余内存 {1}！", GetString(CLng(Math.Round(CDbl(num) * 0.8))), MemAfter), HintType.Finish, True)
-                    Return
-                End If
-            ElseIf ShowHint Then
-                ModMain.Hint(String.Format("内存优化完成，已经优化到了最佳状态，目前剩余内存 {0}！", MemAfter), HintType.Info, True)
-            End If
-        End If
-    End Sub
-    Public Shared Sub MemoryOptimizeInternal(ShowHint As Boolean)
-        If Not ProcessInterop.IsAdmin() Then
-            Throw New Exception("内存优化功能需要管理员权限！" & vbCrLf & "如果需要自动以管理员身份启动 PCL，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")
-        End If
-
-        Log("[Test] 获取内存优化权限")
-
-        '提权部分
-        Try
-            Tools.MemSwap.MemSwapService.AcquirePrivileges()
-        Catch ex As System.ComponentModel.Win32Exception
-            Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
-        End Try
-
-        If ShowHint Then
-            Hint("正在进行内存优化……", ModMain.HintType.Info, True)
-        End If
-
-        If Not Tools.MemSwap.MemSwapService.MemorySwap() Then
-            If ShowHint Then Hint("内存优化失败")
-        End If
-
+    Public Shared Sub MemoryOptimize(showHint As Boolean)
+        MemSwapService.MemorySwap(showHint)
     End Sub
     Public Shared Function GetRandomCave() As String
         Return "为便于维护，社区版中不包含百宝箱功能……"
