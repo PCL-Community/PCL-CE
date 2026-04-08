@@ -1,7 +1,6 @@
 Imports System.Drawing
 Imports System.Net.Http
 Imports PCL.Core.App
-Imports PCL.Core.App.Essentials
 Imports PCL.Core.App.Tools
 Imports PCL.Core.IO
 Imports PCL.Core.IO.Net
