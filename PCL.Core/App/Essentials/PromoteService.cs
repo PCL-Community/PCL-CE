@@ -289,7 +289,7 @@ public sealed partial class PromoteService
         => AddOperationFunction(name, operation);
 
     [LifecycleStart]
-    private void _Start()
+    private static void _Start()
     {
         var args = Basics.CommandLineArguments;
         if (args is ["promote", _])
@@ -316,7 +316,7 @@ public sealed partial class PromoteService
     }
 
     [LifecycleStop]
-    private void _Stop()
+    private static void _Stop()
     {
         if (_promotePipeServer != null)
         {
