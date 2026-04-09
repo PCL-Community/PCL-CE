@@ -204,45 +204,51 @@ public class McPingService : IMcPingService
         byte[]? statusPayload = null;
         long? latency = null;
 
-        for (var packetIndex = 0; packetIndex < 2; packetIndex++)
+        try
         {
-            var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
-            LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
-            if (packetLength <= 0) throw new Exception("服务器返回了空数据包");
-
-            var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
-            using var packetStream = new MemoryStream(packetData, writable: false);
-            var packetId = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
-            LogWrapper.Debug(ModuleName, $"Packet id: {packetId}");
-
-            switch (packetId)
+            while (statusPayload is null || latency is null)
             {
-                case 0:
-                    var jsonLength = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
-                    statusPayload = await _ReadExactAsync(packetStream, jsonLength, cancellationToken);
-                    if (packetStream.Position != packetStream.Length)
-                        LogWrapper.Warn(ModuleName, $"Status packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
-                    break;
+                var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
+                if (packetLength <= 0) throw new Exception("服务器返回了空数据包");
 
-                case 1:
-                    var pongData = await _ReadExactAsync(packetStream, 8, cancellationToken);
-                    if (packetStream.Position != packetStream.Length)
-                        LogWrapper.Warn(ModuleName, $"Pong packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
-                    latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _ReadInt64BigEndian(pongData);
-                    break;
+                var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
+                using var packetStream = new MemoryStream(packetData, writable: false);
+                var packetId = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet id: {packetId}");
 
-                default:
-                    throw new Exception($"服务器返回了未知的数据包类型：{packetId}");
+                switch (packetId)
+                {
+                    case 0:
+                        var jsonLength = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                        statusPayload = await _ReadExactAsync(packetStream, jsonLength, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Status packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        break;
+
+                    case 1:
+                        var pongData = await _ReadExactAsync(packetStream, 8, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Pong packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _ReadInt64BigEndian(pongData);
+                        break;
+
+                    default:
+                        LogWrapper.Warn(ModuleName, $"Ignore unexpected packet type: {packetId}");
+                        break;
+                }
             }
-
-            if (statusPayload is not null && latency is not null)
-                return (statusPayload, latency.Value);
+        }
+        catch (EndOfStreamException ex) when (statusPayload is not null && latency is null)
+        {
+            throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
+        }
+        catch (EndOfStreamException ex) when (statusPayload is null)
+        {
+            throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
         }
 
-        if (statusPayload is null)
-            throw new Exception("未返回服务器状态数据包");
-
-        return (statusPayload, latency ?? 0);
+        return (statusPayload, latency.Value);
     }
 
     private static long _ReadInt64BigEndian(byte[] data)
@@ -264,7 +270,7 @@ public class McPingService : IMcPingService
         {
             var readLength = await stream.ReadAsync(buffer, offset, length - offset, cancellationToken);
             if (readLength == 0)
-                throw new EndOfStreamException();
+                throw new EndOfStreamException($"Unexpected end of stream while attempting to read {length} bytes; only {offset} bytes were read.");
             offset += readLength;
         }
         return buffer;

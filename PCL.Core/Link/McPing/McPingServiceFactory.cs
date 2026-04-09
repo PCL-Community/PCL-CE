@@ -31,7 +31,24 @@ public static class McPingServiceFactory
         return new McPingService(ip, port, timeout);
     }
 
-    public static IMcPingService CreateService(string host, IPEndPoint endpoint, int timeout = 10000)
+    public static IMcPingService CreateService(string host, string? ip, int port = 25565)
+    {
+        return CreateService(host, ip, port, 10000);
+    }
+
+    public static IMcPingService CreateService(string host, string? ip, int port, int timeout)
+    {
+        return !string.IsNullOrWhiteSpace(ip) && IPAddress.TryParse(ip, out var ipAddress)
+            ? new McPingService(host, new IPEndPoint(ipAddress, port), timeout)
+            : new McPingService(host, port, timeout);
+    }
+
+    public static IMcPingService CreateService(string host, IPEndPoint endpoint)
+    {
+        return new McPingService(host, endpoint);
+    }
+
+    public static IMcPingService CreateService(string host, IPEndPoint endpoint, int timeout)
     {
         return new McPingService(host, endpoint, timeout);
     }

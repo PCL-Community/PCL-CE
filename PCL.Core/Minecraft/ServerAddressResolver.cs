@@ -17,7 +17,7 @@ namespace PCL.Core.Minecraft;
 
 public static class ServerAddressResolver
 {
-    public readonly record struct ResolvedServerAddress(string Host, string Ip, int Port);
+    public readonly record struct ResolvedServerAddress(string Host, string? Ip, int Port);
 
     // Minecraft Java 默认端口
     private const int DefaultPort = 25565;
@@ -45,7 +45,7 @@ public static class ServerAddressResolver
     public static async Task<(string Ip, int Port)> GetReachableAddressAsync(string address, CancellationToken cancelToken = default)
     {
         var target = await GetResolvedServerAddressAsync(address, cancelToken).ConfigureAwait(false);
-        return (target.Ip, target.Port);
+        return (target.Ip ?? target.Host, target.Port);
     }
 
     public static async Task<ResolvedServerAddress> GetResolvedServerAddressAsync(string address, CancellationToken cancelToken = default)
@@ -70,7 +70,7 @@ public static class ServerAddressResolver
 
             // 回退策略：无法连接则仍返回解析到的首个 IP
             var fallbackIp = await _ResolveFirstIpAsync(hostOrIp, cancelToken).ConfigureAwait(false);
-            return new ResolvedServerAddress(hostOrIp, fallbackIp ?? hostOrIp, explicitPort);
+            return new ResolvedServerAddress(hostOrIp, fallbackIp, explicitPort);
         }
 
         // 3) 未指定端口
@@ -116,7 +116,7 @@ public static class ServerAddressResolver
 
         // 3.3 最终回退：域名 + 默认端口
         var ip = await _ResolveFirstIpAsync(idnHost, cancelToken).ConfigureAwait(false);
-        return new ResolvedServerAddress(idnHost, ip ?? idnHost, DefaultPort);
+        return new ResolvedServerAddress(idnHost, ip, DefaultPort);
     }
 
     // 规范化地址输入：去掉 scheme、空白、尾随 '/'

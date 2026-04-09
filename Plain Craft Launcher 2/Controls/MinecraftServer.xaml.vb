@@ -44,7 +44,7 @@ Class MinecraftServer
             Dim addr = Await ServerAddressResolver.GetResolvedServerAddressAsync(address)
 
             ' Ping服务器
-            Using query = McPingServiceFactory.CreateService(addr.Host, New IPEndPoint(IPAddress.Parse(addr.Ip), addr.Port))
+            Using query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port)
                 Dim ret = Await query.PingAsync()
 
                 If ret Is Nothing Then
