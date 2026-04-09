@@ -49,6 +49,13 @@ public class McPingService : IMcPingService
         _timeout = timeout;
     }
 
+    public McPingService(string host, IPEndPoint endpoint, int timeout = DefaultTimeout)
+    {
+        _endpoint = endpoint;
+        _host = host;
+        _timeout = timeout;
+    }
+
     /// <summary>
     /// 执行现代Minecraft协议的服务器探测
     /// </summary>
@@ -81,9 +88,10 @@ public class McPingService : IMcPingService
 
         var handshakePacket = _BuildHandshakePacket(_host, _endpoint.Port);
         var statusPacket = _BuildStatusRequestPacket();
+        var pingPacket = _BuildPingRequestPacket();
 
-        using var res = new MemoryStream();
         var watcher = new Stopwatch();
+        byte[]? statusPayload;
         try
         {
             await stream.WriteAsync(handshakePacket, linkedCts.Token);
@@ -92,20 +100,13 @@ public class McPingService : IMcPingService
             await stream.WriteAsync(statusPacket, linkedCts.Token);
             LogWrapper.Debug(ModuleName, $"Status sent, packet length: {statusPacket.Length}");
 
-            var buffer = new byte[4096];
+            await stream.WriteAsync(pingPacket, linkedCts.Token);
+            LogWrapper.Debug(ModuleName, $"Ping sent, packet length: {pingPacket.Length}");
+
             watcher.Start();
 
-            var totalLength = Convert.ToInt64(await VarIntHelper.ReadFromStreamAsync(stream, linkedCts.Token));
+            statusPayload = await _ReadStatusPayloadAsync(stream, linkedCts.Token);
             watcher.Stop();
-            LogWrapper.Debug(ModuleName, $"Total length: {totalLength}");
-
-            long readLength = 0;
-            while (readLength < totalLength)
-            {
-                var curReaded = await stream.ReadAsync(buffer, linkedCts.Token);
-                readLength += curReaded;
-                await res.WriteAsync(buffer, 0, curReaded, linkedCts.Token);
-            }
         }
         catch (OperationCanceledException)
         {
@@ -124,12 +125,8 @@ public class McPingService : IMcPingService
 
         so.Close();
 
-        var retBinary = res.ToArray();
-        var dataLength =
-            Convert.ToInt32(VarIntHelper.Decode(retBinary.Skip(1).ToArray(), out var packDataHeaderLength));
-        LogWrapper.Debug(ModuleName, $"ServerDataLength: {dataLength}");
-        if (dataLength > retBinary.Length) throw new Exception("The server data is too large");
-        var retCtx = Encoding.UTF8.GetString(retBinary.Skip(1 + packDataHeaderLength).Take(dataLength).ToArray());
+        if (statusPayload is null || statusPayload.Length == 0) throw new Exception("未返回服务器信息");
+        var retCtx = Encoding.UTF8.GetString(statusPayload);
 
         var retJson = JsonNode.Parse(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
 #if DEBUG
@@ -194,6 +191,62 @@ public class McPingService : IMcPingService
         statusRequest.AddRange(VarIntHelper.Encode(1)); //包长度
         statusRequest.AddRange(VarIntHelper.Encode(0)); //包 ID
         return statusRequest.ToArray();
+    }
+
+    private byte[] _BuildPingRequestPacket()
+    {
+        List<byte> pingRequest = [];
+        pingRequest.AddRange(VarIntHelper.Encode(9));
+        pingRequest.AddRange(VarIntHelper.Encode(1));
+        pingRequest.AddRange(BitConverter.GetBytes(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()).AsEnumerable().Reverse());
+        return pingRequest.ToArray();
+    }
+
+    private async Task<byte[]> _ReadStatusPayloadAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        for (var packetIndex = 0; packetIndex < 2; packetIndex++)
+        {
+            var packetLength = checked((int) await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
+            LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
+            if (packetLength <= 0) throw new Exception("服务器返回了空数据包");
+
+            var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
+            using var packetStream = new MemoryStream(packetData, writable: false);
+            var packetId = checked((int) await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+            LogWrapper.Debug(ModuleName, $"Packet id: {packetId}");
+
+            switch (packetId)
+            {
+                case 0:
+                    var jsonLength = checked((int) await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                    var jsonData = await _ReadExactAsync(packetStream, jsonLength, cancellationToken);
+                    if (packetStream.Position != packetStream.Length)
+                        LogWrapper.Warn(ModuleName, $"Status packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                    return jsonData;
+
+                case 1:
+                    continue;
+
+                default:
+                    throw new Exception($"服务器返回了未知的数据包类型：{packetId}");
+            }
+        }
+
+        throw new Exception("未返回服务器状态数据包");
+    }
+
+    private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[length];
+        var offset = 0;
+        while (offset < length)
+        {
+            var readLength = await stream.ReadAsync(buffer, offset, length - offset, cancellationToken);
+            if (readLength == 0)
+                throw new EndOfStreamException();
+            offset += readLength;
+        }
+        return buffer;
     }
 
     private static string _ConvertJNodeToMcString(JsonNode? jsonNode)

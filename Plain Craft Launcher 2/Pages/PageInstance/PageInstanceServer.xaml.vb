@@ -343,8 +343,8 @@ Public Class PageInstanceServer
     ''' </summary>
     Public Async Shared Function PingServer(server As MinecraftServerInfo, token As CancellationToken) As Task(Of MinecraftServerInfo)
         Try
-            Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(server.Address, token)
-            Using query = McPingServiceFactory.CreateService(addr.Ip, addr.Port)
+            Dim addr = Await ServerAddressResolver.GetResolvedServerAddressAsync(server.Address, token)
+            Using query = McPingServiceFactory.CreateService(addr.Host, New IPEndPoint(IPAddress.Parse(addr.Ip), addr.Port))
                 Dim result As McPingResult
                 Log("Pinging server: " & server.Address & ":" & addr.Port)
                 result = Await query.PingAsync(token) ' 传递 token

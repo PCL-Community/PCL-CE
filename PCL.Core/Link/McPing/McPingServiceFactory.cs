@@ -31,6 +31,11 @@ public static class McPingServiceFactory
         return new McPingService(ip, port, timeout);
     }
 
+    public static IMcPingService CreateService(string host, IPEndPoint endpoint, int timeout = 10000)
+    {
+        return new McPingService(host, endpoint, timeout);
+    }
+
     /// <summary>
     /// 创建旧版协议探测服务
     /// </summary>
