@@ -120,7 +120,7 @@
                     </local:MyCard>
                 </StackPanel>
                 <local:MyCard x:Name="PanFooter" Grid.Row="2" Margin="10">
-                    <StackPanel HorizontalAlignment="Stretch" Orientation="Vertical" Margin="8">
+                    <StackPanel HorizontalAlignment="Stretch" Orientation="Vertical" Opacity="0.75" Margin="8">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Orientation="Horizontal">
                             <local:MyTextButton Text="违法违规举报" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://qm.qq.com/q/zfml1KaPWS" />
                             <TextBlock Text=" | " />
