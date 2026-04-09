@@ -64,18 +64,6 @@ public sealed partial class MemSwapService
         }
     }
 
-    private static void _OnMemorySwap(MemSwapScope scope = MemSwapScope.All)
-    {
-        Context.Info($"开始处理，区域请求：{scope} ({(int)scope})");
-        if (scope.HasFlag(MemSwapScope.EmptyWorkingSets)) MemSwapWorks.EmptyWorkingSets();
-        if (scope.HasFlag(MemSwapScope.FlushFileCache)) MemSwapWorks.FlushFileCache();
-        if (scope.HasFlag(MemSwapScope.FlushModifiedList)) MemSwapWorks.FlushModifiedList();
-        if (scope.HasFlag(MemSwapScope.PurgeStandbyList)) MemSwapWorks.PurgeStandbyList();
-        if (scope.HasFlag(MemSwapScope.PurgeLowPriorityStandbyList)) MemSwapWorks.PurgeLowPriorityStandbyList();
-        if (scope.HasFlag(MemSwapScope.RegistryReconciliation)) MemSwapWorks.RegistryReconciliation();
-        if (scope.HasFlag(MemSwapScope.CombinePhysicalMemory)) MemSwapWorks.CombinePhysicalMemory();
-    }
-
     [LifecycleCommandHandler("memory")]
     private static void _MemSwapTriggered(bool isCallback) => MemorySwap(isCallback);
 
@@ -96,8 +84,20 @@ public sealed partial class MemSwapService
 
     private static void _AcquirePrivileges()
     {
-        Context.Info("获取内存管理权限……");
+        LogWrapper.Info("MemSwap", "获取内存管理权限……");
         NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true, false);
         NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true, false);
+    }
+
+    private static void _OnMemorySwap(MemSwapScope scope = MemSwapScope.All)
+    {
+        LogWrapper.Info("MemSwap", $"开始处理，区域请求：{scope} ({(int)scope})");
+        if (scope.HasFlag(MemSwapScope.EmptyWorkingSets)) MemSwapWorks.EmptyWorkingSets();
+        if (scope.HasFlag(MemSwapScope.FlushFileCache)) MemSwapWorks.FlushFileCache();
+        if (scope.HasFlag(MemSwapScope.FlushModifiedList)) MemSwapWorks.FlushModifiedList();
+        if (scope.HasFlag(MemSwapScope.PurgeStandbyList)) MemSwapWorks.PurgeStandbyList();
+        if (scope.HasFlag(MemSwapScope.PurgeLowPriorityStandbyList)) MemSwapWorks.PurgeLowPriorityStandbyList();
+        if (scope.HasFlag(MemSwapScope.RegistryReconciliation)) MemSwapWorks.RegistryReconciliation();
+        if (scope.HasFlag(MemSwapScope.CombinePhysicalMemory)) MemSwapWorks.CombinePhysicalMemory();
     }
 }

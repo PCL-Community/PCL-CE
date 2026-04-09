@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 
 namespace PCL.Core.App.Essentials;
@@ -306,6 +307,8 @@ public sealed partial class PromoteService
             AddJsonOperationFunction<ProcessStartInfo>("start-json", _StartProcessWithInfo);
             // 结束生命周期管理，启动提权操作线程
             Lifecycle.PendingLogFileName = "LastPending_Promote.log";
+            LogWrapper.OnLog += (level, msg, module, ex) => Context.CustomLog($"[{module}] {msg}", ex, level);
+            Context.Info("已接管通用日志");
             Context.Info("正在启动服务线程");
             new Thread(() => _PerformAsPromoteProcess(args[1])) { Name = "Promote" }.Start();
             Context.RequestStopLoading();
