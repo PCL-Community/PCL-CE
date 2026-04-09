@@ -15,7 +15,7 @@ public enum MemSwapScope
     PurgeLowPriorityStandbyList = 1 << 4,
     RegistryReconciliation = 1 << 5,
     CombinePhysicalMemory = 1 << 6,
-    All = 0b111111
+    All = 0b1111111
 }
 
 // ReSharper disable InconsistentNaming
