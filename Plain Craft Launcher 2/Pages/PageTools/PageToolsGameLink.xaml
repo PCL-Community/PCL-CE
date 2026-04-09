@@ -121,22 +121,22 @@
                 </StackPanel>
                 <local:MyCard x:Name="PanFooter" Grid.Row="2" Margin="10">
                     <StackPanel HorizontalAlignment="Stretch" Orientation="Vertical" Margin="8">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Opacity="0.6" Orientation="Horizontal">
-                            <local:MyTextButton Text="违法违规举报" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://qm.qq.com/q/zfml1KaPWS" IsHitTestVisible="False"/>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Orientation="Horizontal">
+                            <local:MyTextButton Text="违法违规举报" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://qm.qq.com/q/zfml1KaPWS" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="Natayark Network 用户协议与隐私政策" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://account.naids.com/policy" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="Natayark Network 用户协议与隐私政策" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://account.naids.com/policy" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="大厅隐私协议" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="大厅隐私协议" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="停用联机功能" x:Name="BtnEulaStop" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="停用联机功能" x:Name="BtnEulaStop" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="常见问题解答" local:CustomEventService.EventType="打开帮助" local:CustomEventService.EventData="启动器/P2P 联机常见问题.json" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="常见问题解答" local:CustomEventService.EventType="打开帮助" local:CustomEventService.EventData="启动器/P2P 联机常见问题.json" />
                         </StackPanel>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Opacity="0.6" Orientation="Horizontal">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6" Orientation="Horizontal">
                             <TextBlock Text="友情链接：" />
-                            <local:MyTextButton Text="EasyTier 工具官网" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://easytier.cn/" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="EasyTier 工具官网" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://easytier.cn/" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="Pysio's Home" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://pysio.online/" IsHitTestVisible="False"/>
+                            <local:MyTextButton Text="Pysio's Home" local:CustomEventService.EventType="打开网页" local:CustomEventService.EventData="https://pysio.online/" />
                         </StackPanel>
                     </StackPanel>
                 </local:MyCard>
