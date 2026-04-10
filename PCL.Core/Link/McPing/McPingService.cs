@@ -87,8 +87,6 @@ public class McPingService : IMcPingService
 
         var handshakePacket = _BuildHandshakePacket(_host, _endpoint.Port);
         var statusPacket = _BuildStatusRequestPacket();
-        var pingTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var pingPacket = _BuildPingRequestPacket(pingTimestamp);
 
         byte[]? statusPayload;
         long latency = 0;
@@ -100,6 +98,9 @@ public class McPingService : IMcPingService
             await stream.WriteAsync(statusPacket, linkedCts.Token);
             LogWrapper.Debug(ModuleName, $"Status sent, packet length: {statusPacket.Length}");
 
+            var pingTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var pingPacket = _BuildPingRequestPacket(pingTimestamp);
+            
             await stream.WriteAsync(pingPacket, linkedCts.Token);
             LogWrapper.Debug(ModuleName, $"Ping sent, packet length: {pingPacket.Length}");
 
@@ -193,6 +194,7 @@ public class McPingService : IMcPingService
     private byte[] _BuildPingRequestPacket(long timestamp)
     {
         List<byte> pingRequest = [];
+        // Packet ID 使用值为 1 的 VarInt 编码和 8 字节的 long 时间戳
         pingRequest.AddRange(VarIntHelper.Encode(9));
         pingRequest.AddRange(VarIntHelper.Encode(1));
         pingRequest.AddRange(BitConverter.GetBytes(timestamp).AsEnumerable().Reverse());
