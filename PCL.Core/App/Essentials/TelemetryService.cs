@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -72,7 +72,7 @@ public sealed partial class TelemetryService
         
         SentrySdk.ConfigureScope(scope =>
         {
-            scope.User = new User
+            scope.User = new SentryUser
             {
                 Id = Utils.Secret.Identify.LauncherId
             };
