@@ -122,6 +122,12 @@
       "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
     },
     {
+      "name": "Sentry",
+      "info": "Copyright © 2018 Sentry\nLicensed under the MIT license.",
+      "website": "https://sentry.io/",
+      "license": "https://github.com/getsentry/sentry-dotnet/blob/main/LICENSE"
+    },
+    {
       "name": "LWJGL Unsafe Agent",
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
