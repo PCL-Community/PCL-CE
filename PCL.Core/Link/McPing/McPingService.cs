@@ -242,13 +242,15 @@ public class McPingService : IMcPingService
                 }
             }
         }
-        catch (EndOfStreamException ex) when (statusPayload is not null && latency is null)
+        catch (EndOfStreamException ex)
         {
-            throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
-        }
-        catch (EndOfStreamException ex) when (statusPayload is null)
-        {
-            throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
+            if (statusPayload is not null && latency is null)
+                throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
+
+            if (statusPayload is null)
+                throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
+
+            throw;
         }
 
         return (statusPayload, latency.Value);
