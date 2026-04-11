@@ -17,7 +17,6 @@ namespace PCL.Core.Minecraft;
 
 public static class ServerAddressResolver
 {
-    public readonly record struct ReachableAddress(string Ip, int Port);
     public readonly record struct ResolvedServerAddress(string Host, string? Ip, int Port);
 
     // Minecraft Java 默认端口
@@ -34,20 +33,6 @@ public static class ServerAddressResolver
     // 纯端口（用于 host:port 末尾匹配）
     private static readonly Regex _TrailingPort =
         new(@":(?<port>\d{1,5})$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    /// <summary>
-    /// 解析服务器地址并获取可达的 IP 与端口。
-    /// </summary>
-    /// <param name="address">服务器地址，支持 IP / IP:port / [IPv6]:port / domain / domain:port</param>
-    /// <param name="cancelToken">取消令牌</param>
-    /// <returns>包含 IP 与端口的地址信息</returns>
-    /// <exception cref="ArgumentException">地址为空</exception>
-    /// <exception cref="FormatException">端口无效或地址格式无效</exception>
-    public static async Task<ReachableAddress> GetReachableAddressAsync(string address, CancellationToken cancelToken = default)
-    {
-        var target = await GetResolvedServerAddressAsync(address, cancelToken).ConfigureAwait(false);
-        return new ReachableAddress(target.Ip ?? target.Host, target.Port);
-    }
 
     public static async Task<ResolvedServerAddress> GetResolvedServerAddressAsync(string address, CancellationToken cancelToken = default)
     {
