@@ -31,38 +31,46 @@ public sealed partial class MemSwapService
         Context.Info("收到内存交换请求，开始处理");
         if (showHint) HintWrapper.Show("正在进行内存优化");
 
-        var before = KernelInterop.GetAvailablePhysicalMemoryBytes();
-        Context.Info($"处理前内存量 {ByteStream.GetReadableLength((long)before)}");
-
-        // 添加内存处理提权操作
-        PromoteService.Append("mem-swap", result =>
+        try
         {
-            try
-            {
-                if (result == null)
-                {
-                    var after = KernelInterop.GetAvailablePhysicalMemoryBytes();
-                    Context.Info($"处理后内存量 {ByteStream.GetReadableLength((long)after)}");
-                    var diff = Math.Max(0, after - before);
-                    var afterStr = ByteStream.GetReadableLength((long)after);
-                    var diffStr = ByteStream.GetReadableLength((long)diff);
-                    Context.Info($"处理结束，总共处理 {diffStr}");
-                    if (showHint) MsgBoxWrapper.Show($"内存优化结束，共优化 {diffStr}，目前可用内存 {afterStr}");
-                }
-                else
-                {
-                    Context.Error($"内存优化失败\n\n详细信息: {result}", actionLevel: ActionLevel.MsgBoxErr);
-                }
-            }
-            catch (Exception ex) { Context.Error("内存优化失败", ex); }
-            finally { _MemSwapLock.Release(); }
-        });
+            var before = KernelInterop.GetAvailablePhysicalMemoryBytes();
+            Context.Info($"处理前内存量 {ByteStream.GetReadableLength((long)before)}");
 
-        // 执行操作
-        if (PromoteService.Activate()) return true;
-        _MemSwapLock.Release();
-        if (showHint) MsgBoxWrapper.Show("提权进程启动失败，请允许管理员权限以使用内存优化", "内存优化失败");
-        return false;
+            // 添加内存处理提权操作
+            PromoteService.Append("mem-swap", result =>
+            {
+                try
+                {
+                    if (result == null)
+                    {
+                        var after = KernelInterop.GetAvailablePhysicalMemoryBytes();
+                        Context.Info($"处理后内存量 {ByteStream.GetReadableLength((long)after)}");
+                        var diff = Math.Max(0, after - before);
+                        var afterStr = ByteStream.GetReadableLength((long)after);
+                        var diffStr = ByteStream.GetReadableLength((long)diff);
+                        Context.Info($"处理结束，总共处理 {diffStr}");
+                        if (showHint) MsgBoxWrapper.Show($"内存优化结束，共优化 {diffStr}，目前可用内存 {afterStr}");
+                    }
+                    else
+                    {
+                        Context.Error($"内存优化失败\n\n详细信息: {result}", actionLevel: ActionLevel.MsgBoxErr);
+                    }
+                }
+                catch (Exception ex) { Context.Error("内存优化失败", ex); }
+                finally { _MemSwapLock.Release(); }
+            });
+
+            // 执行操作
+            if (PromoteService.Activate()) return true;
+            _MemSwapLock.Release();
+            if (showHint) MsgBoxWrapper.Show("提权进程启动失败，请允许管理员权限以使用内存优化", "内存优化失败");
+            return false;
+        }
+        catch (Exception)
+        {
+            _MemSwapLock.Release();
+            throw;
+        }
     }
 
     [LifecycleCommandHandler("memory")]
