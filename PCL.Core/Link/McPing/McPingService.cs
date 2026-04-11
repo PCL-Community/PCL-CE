@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -258,23 +259,13 @@ public class McPingService : IMcPingService
         if (data.Length != 8)
             throw new ArgumentException("Pong 数据长度必须为 8 字节", nameof(data));
 
-        var buffer = new byte[8];
-        Array.Copy(data, buffer, 8);
-        Array.Reverse(buffer);
-        return BitConverter.ToInt64(buffer, 0);
+        return BinaryPrimitives.ReadInt64BigEndian(data);
     }
 
     private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)
     {
         var buffer = new byte[length];
-        var offset = 0;
-        while (offset < length)
-        {
-            var readLength = await stream.ReadAsync(buffer, offset, length - offset, cancellationToken);
-            if (readLength == 0)
-                throw new EndOfStreamException($"Unexpected end of stream while attempting to read {length} bytes; only {offset} bytes were read.");
-            offset += readLength;
-        }
+        await stream.ReadExactlyAsync(buffer, cancellationToken);
         return buffer;
     }
 
