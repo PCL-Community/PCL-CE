@@ -21,11 +21,6 @@ public class HttpCacheHandler:DelegatingHandler
         _repository = repo;
     }
 
-    protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        return SendAsync(request, cancellationToken).GetAwaiter().GetResult();
-    }
-
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if(!_repository.TryGetCacheData(request.RequestUri!.ToString(),out var details))
