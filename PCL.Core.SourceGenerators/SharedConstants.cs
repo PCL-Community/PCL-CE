@@ -10,5 +10,4 @@ public static class SharedConstants
     public const string LifecycleStartAttribute = $"{IocNamespace}.LifecycleStartAttribute";
     public const string LifecycleStopAttribute = $"{IocNamespace}.LifecycleStopAttribute";
     public const string LifecycleCommandHandlerAttribute = $"{IocNamespace}.LifecycleCommandHandlerAttribute";
-    public const string LifecycleDependencyInjectionAttribute = $"{IocNamespace}.LifecycleDependencyInjectionAttribute";
 }

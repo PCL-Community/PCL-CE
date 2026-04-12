@@ -16,13 +16,11 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
     private const string StartMethodAttributeType = SharedConstants.LifecycleStartAttribute;
     private const string StopMethodAttributeType = SharedConstants.LifecycleStopAttribute;
     private const string CommandHandlerMethodAttributeType = SharedConstants.LifecycleCommandHandlerAttribute;
-    private const string DependencyInjectionMethodAttributeType = SharedConstants.LifecycleDependencyInjectionAttribute;
-    private const string NewDependencyInjectionPointAttributeType = SharedConstants.DependencyInjectionPointAttribute;
+    private const string DependencyInjectionPointAttributeType = SharedConstants.DependencyInjectionPointAttribute;
 
     private static readonly HashSet<string> _MethodAttributeTypes = [
         StartMethodAttributeType, StopMethodAttributeType,
-        CommandHandlerMethodAttributeType, DependencyInjectionMethodAttributeType,
-        NewDependencyInjectionPointAttributeType
+        CommandHandlerMethodAttributeType, DependencyInjectionPointAttributeType
     ];
 
     private record ScopeMethodModel
@@ -42,13 +40,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         (string Name, string TypeName, bool hasDefaultValue, object? DefaultValue)[] SplitArgs
     ) : ScopeMethodModel;
 
-    private record DependencyInjectionMethodModel(
-        string Identifier,
-        int Targets,
-        string ParameterType
-    ) : ScopeMethodModel;
-
-    private record NewDependencyInjectionPointModel(
+    private record DependencyInjectionPointModel(
         string Identifier
     ) : ScopeMethodModel;
 
@@ -116,8 +108,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                     StartMethodAttributeType => new StartMethodModel { MethodName = methodName, Awaitable = awaitable },
                     StopMethodAttributeType => new StopMethodModel { MethodName = methodName, Awaitable = awaitable },
                     CommandHandlerMethodAttributeType => GetCommandHandlerMethodModel(),
-                    DependencyInjectionMethodAttributeType => GetDependencyInjectionMethodModel(),
-                    NewDependencyInjectionPointAttributeType => GetNewDependencyInjectionPointModel(),
+                    DependencyInjectionPointAttributeType => GetDependencyInjectionPointModel(),
                     _ => null
                 };
                 if (methodModel != null) model.Methods.Add(methodModel);
@@ -149,25 +140,12 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                         Awaitable = false
                     };
                 }
-                DependencyInjectionMethodModel? GetDependencyInjectionMethodModel()
-                {
-                    var args = attr.ConstructorArguments;
-                    var identifier = args[0].Value!.ToString();
-                    var targets = (int)args[1].Value!;
-                    if (method.Parameters.FirstOrDefault() is not { } param) return null;
-                    var paramType = param.Type.GetFullyQualifiedName();
-                    return new DependencyInjectionMethodModel(identifier, targets, paramType)
-                    {
-                        MethodName = methodName,
-                        Awaitable = awaitable
-                    };
-                }
-                NewDependencyInjectionPointModel? GetNewDependencyInjectionPointModel()
+                DependencyInjectionPointModel? GetDependencyInjectionPointModel()
                 {
                     var args = attr.ConstructorArguments;
                     if (args.Length > 1 && args[1].Value is false) return null; // lifecycleAutoInvoke is set to false
                     var identifier = args[0].Value!.ToString();
-                    return new NewDependencyInjectionPointModel(identifier)
+                    return new DependencyInjectionPointModel(identifier)
                     {
                         MethodName = methodName,
                         Awaitable = awaitable
@@ -181,9 +159,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
     private static readonly HashSet<Type> _TypesIncludingInStartMethod = [
         typeof(StartMethodModel),
         typeof(CommandHandlerMethodModel),
-        typeof(DependencyInjectionMethodModel),
         typeof(CommandHandlerMethodModel),
-        typeof(NewDependencyInjectionPointModel),
+        typeof(DependencyInjectionPointModel),
     ];
 
     private static string _GenerateScopeSource(ScopeModel model)
@@ -278,23 +255,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
             yield return MethodInvoke("    ", argTexts);
             yield return "}, true);";
         }
-        else if (model is DependencyInjectionMethodModel diModel)
-        {
-            var awaitable = diModel.Awaitable;
-            if (awaitable) yield return "await Task.Run(() => {";
-            var indentStr = awaitable ? "    " : "";
-            if (awaitable) yield return $"{indentStr}Func<{diModel.ParameterType}, Task>";
-            else yield return $"{indentStr}Action<{diModel.ParameterType}>";
-            yield return $"{indentStr}    action = {diModel.MethodName};";
-            yield return $"{indentStr}var result = DependencyGroups.InvokeInjection(action, " +
-                         $"{diModel.Identifier.ToLiteral()}, " +
-                         $"(AttributeTargets){diModel.Targets});";
-            var logStr = diModel.Identifier + "@" + diModel.Targets;
-            yield return $"{indentStr}if (result) Context.Trace(\"Dependency injection success: {logStr}\");";
-            yield return $"{indentStr}else Context.Warn(\"Dependency injection failed: {logStr}\");";
-            if (awaitable) yield return "});";
-        }
-        else if (model is NewDependencyInjectionPointModel newDiModel)
+        else if (model is DependencyInjectionPointModel newDiModel)
         {
             yield return $"{(model.Awaitable ? "await " : "")}" +
                 $"{model.MethodName}_InvokeInjection_{newDiModel.Identifier.SnakeIdToPascal()}();";

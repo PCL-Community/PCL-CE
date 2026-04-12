@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -52,27 +51,21 @@ public sealed partial class RpcService
         if (_pipe != null) await _pipe.DisposeAsync();
     }
 
-    [LifecycleDependencyInjection("rpc-function", AttributeTargets.Method)]
-    private static void _CollectRpcFunctionRegistry(ImmutableList<(RpcFunction func, string name)> items)
+    [DependencyInjectionPoint("rpc-function")]
+    private static void _CollectRpcFunctionRegistry(RpcFunction func, string name)
     {
-        foreach (var (func, name) in items)
-        {
-            AddFunction(name, func);
-        }
+        AddFunction(name, func);
     }
 
-    [LifecycleDependencyInjection("rpc-property", AttributeTargets.Property)]
-    private static void _CollectRpcPropertyRegistry(ImmutableList<(PropertyAccessor<string> prop, string name)> items)
+    [DependencyInjectionPoint("rpc-property")]
+    private static void _CollectRpcPropertyRegistry(PropertyAccessor<string> prop, string name)
     {
-        foreach (var (prop, name) in items)
-        {
-            AddProperty(new RpcProperty(
-                name,
-                () => prop.Value,
-                value => prop.Value = value ?? "",
-                prop.CanSet
-            ));
-        }
+        AddProperty(new RpcProperty(
+            name,
+            () => prop.Value,
+            value => prop.Value = value ?? "",
+            prop.CanSet
+        ));
     }
 
     public const string PipePrefix = "PCLCE_RPC";

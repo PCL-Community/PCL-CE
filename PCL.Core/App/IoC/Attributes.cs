@@ -83,24 +83,3 @@ public sealed class LifecycleStopAttribute : Attribute;
 /// <param name="command">命令名</param>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LifecycleCommandHandlerAttribute(string command) : Attribute;
-
-/// <summary>
-/// 标记一个依赖注入入口，可以标记多个。
-/// <p/>示例：
-/// <code>
-/// [LifecycleDependencyInjection("some-property", AttributeTargets.Property)]
-/// private static void _LoadProperties(ImmutableList&lt;(PropertyAccessor&lt;string&gt; prop, string name)&gt; items)
-/// {
-///     // process logic...
-/// }
-/// [LifecycleDependencyInjection("some-method", AttributeTargets.Method)]
-/// private static void _LoadMethods(ImmutableList&lt;(Action method, string name)&gt; items)
-/// {
-///     // process logic...
-/// }
-/// </code>
-/// </summary>
-/// <param name="identifier">依赖标识符</param>
-/// <param name="targets">依赖类型，可以使用 <c>|</c> 连接多个</param>
-[AttributeUsage(AttributeTargets.Method)]
-public sealed class LifecycleDependencyInjectionAttribute(string identifier, AttributeTargets targets) : Attribute;
