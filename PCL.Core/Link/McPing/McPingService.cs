@@ -124,7 +124,7 @@ public class McPingService : IMcPingService
 
         so.Close();
 
-        if (statusPayload is null || statusPayload.Length == 0) throw new Exception("未返回服务器信息");
+        if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException("未返回服务器信息");
         var retCtx = Encoding.UTF8.GetString(statusPayload);
 
         var retJson = JsonNode.Parse(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
@@ -213,7 +213,7 @@ public class McPingService : IMcPingService
             {
                 var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
                 LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
-                if (packetLength <= 0) throw new Exception("服务器返回了空数据包");
+                if (packetLength <= 0) throw new InvalidDataException("服务器返回了空数据包");
 
                 var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
                 using var packetStream = new MemoryStream(packetData, writable: false);
