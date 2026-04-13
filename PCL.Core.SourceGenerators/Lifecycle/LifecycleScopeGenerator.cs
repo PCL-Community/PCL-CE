@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PCL.Core.SourceGenerators;
+namespace PCL.Core.SourceGenerators.Lifecycle;
 
 [Generator(LanguageNames.CSharp)]
 public class LifecycleScopeGenerator : IIncrementalGenerator
@@ -163,6 +163,9 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         typeof(DependencyInjectionPointModel),
     ];
 
+    private const string MethodPrefix =
+        """[global::System.CodeDom.Compiler.GeneratedCode("PCL.Core.SourceGenerators.Lifecycle.LifecycleScopeGenerator", "1.0.0.0")]""";
+
     private static string _GenerateScopeSource(ScopeModel model)
     {
         var sb = new StringBuilder();
@@ -194,6 +197,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // StopAsync() implementation
+        sb.Append("    ").AppendLine(MethodPrefix);
+        sb.Append("    ").AppendLine(SharedConstants.ExcludeFromCodeCoverage);
         sb.AppendLine("    public async Task StopAsync()");
         sb.AppendLine("    {");
         var stopCount = AppendMethodInvokes(2, model.Methods.Where(x => x is StopMethodModel));
@@ -201,6 +206,8 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // StartAsync() implementation
+        sb.Append("    ").AppendLine(MethodPrefix);
+        sb.Append("    ").AppendLine(SharedConstants.ExcludeFromCodeCoverage);
         sb.AppendLine("    public async Task StartAsync()");
         sb.AppendLine("    {");
         AppendMethodInvokes(2, model.Methods.Where(x => _TypesIncludingInStartMethod.Contains(x.GetType())));

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PCL.Core.SourceGenerators;
+namespace PCL.Core.SourceGenerators.Essentials;
 
 public readonly record struct CollectorInfo(
     INamedTypeSymbol CollectorAttrSymbol,
@@ -157,6 +157,9 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(injectionPointMatches, _GenerateDependencyInjectionMethods);
     }
 
+    private const string MethodPrefix =
+        """[global::System.CodeDom.Compiler.GeneratedCode("PCL.Core.SourceGenerators.Essentials.DependencyCollectorGenerator", "1.0.0.0")]""";
+
     private static void _GenerateDependencyInjectionMethods(SourceProductionContext spc, ImmutableArray<InjectionPointMatchResult> matches)
     {
         foreach (var match in matches)
@@ -183,8 +186,8 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
             var targetMethodName = targetMethod.Name;
             var isStatic = targetMethod.IsStatic;
             var isAwaitable = targetMethod.IsAwaitable();
-            sb.Append(indentStr).AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"PCL.Core.SourceGenerators.DependencyCollectorGenerator\", \"1.0.0.0\")]");
-            sb.Append(indentStr).AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
+            sb.Append(indentStr).AppendLine(MethodPrefix);
+            sb.Append(indentStr).AppendLine(SharedConstants.ExcludeFromCodeCoverage);
             var idCode = match.Info.Identifier.SnakeIdToPascal();
             sb.Append(indentStr).Append("private ");
             if (isStatic) sb.Append("static ");
