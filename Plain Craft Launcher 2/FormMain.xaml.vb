@@ -758,7 +758,7 @@ Public Class FormMain
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
                     e.Effects = DragDropEffects.Copy
-                ElseIf (Path.IsPathRooted(Str) OrElse Str.Starts("\\")) AndAlso File.Exists(Str) Then 
+                ElseIf (Path.IsPathRooted(Str) OrElse Str.StartsWith("\\")) AndAlso File.Exists(Str) Then 
                     e.Effects = DragDropEffects.Copy
                 End If
             End If
