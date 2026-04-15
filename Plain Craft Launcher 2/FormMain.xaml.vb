@@ -740,6 +740,7 @@ Public Class FormMain
                 e.Effects = PrevEffects
                 Return
             End If
+            PrevData = e.Data
             '确定拖放效果
             e.Effects = DragDropEffects.None
             If e.Data.GetDataPresent(DataFormats.FileDrop) Then
@@ -750,18 +751,16 @@ Public Class FormMain
             ElseIf e.Data.GetDataPresent(DataFormats.Text) Then
                 Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
                 If Str Is Nothing Then
-                    PrevData = e.Data
                     Return
                 End If
                 If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
                     e.Effects = DragDropEffects.Copy
-                ElseIf (Str.Contains(":\") OrElse Str.Contains("\")) AndAlso File.Exists(Str) Then 
+                ElseIf (Path.IsPathRooted(Str) OrElse Str.Starts("\\")) AndAlso File.Exists(Str) Then 
                     e.Effects = DragDropEffects.Copy
                 End If
             End If
-            PrevData = e.Data
             PrevEffects = e.Effects
             Log("[System] 设置拖放类型：" & GetStringFromEnum(e.Effects))
         Catch ex As Exception
