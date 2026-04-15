@@ -741,7 +741,6 @@ Public Class FormMain
                 e.Effects = PrevEffects
                 Return
             End If
-            PrevData = e.Data
             '确定拖放效果
             e.Effects = DragDropEffects.None
             If e.Data.GetDataPresent(DataFormats.FileDrop) Then
@@ -752,6 +751,8 @@ Public Class FormMain
             ElseIf e.Data.GetDataPresent(DataFormats.Text) Then
                 Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
                 If Str Is Nothing Then
+                    PrevEffects = e.Effects
+                    PrevData = e.Data
                     Return
                 End If
                 If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
@@ -763,6 +764,7 @@ Public Class FormMain
                 End If
             End If
             PrevEffects = e.Effects
+            PrevData = e.Data
             Log("[System] 设置拖放类型：" & GetStringFromEnum(e.Effects))
         Catch ex As Exception
             Log(ex, "处理拖放时出错", LogLevel.Feedback)
