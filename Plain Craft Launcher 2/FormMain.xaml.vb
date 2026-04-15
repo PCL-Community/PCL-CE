@@ -758,7 +758,7 @@ Public Class FormMain
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
                     e.Effects = DragDropEffects.Copy
-                ElseIf (Path.IsPathRooted(Str) OrElse Str.StartsWith("\\")) AndAlso File.Exists(Str) Then 
+                ElseIf Path.IsPathRooted(Str) Then 
                     e.Effects = DragDropEffects.Copy
                 End If
             End If
@@ -773,7 +773,8 @@ Public Class FormMain
             If e.Data.GetDataPresent(DataFormats.Text) Then
                 '获取文本
                 Try
-                    Dim Str As String = e.Data.GetData(DataFormats.Text)
+                    Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
+                    If Str Is Nothing Then Return
                     Log("[System] 接受文本拖拽：" & Str)
                     If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                         'Authlib 拖拽
