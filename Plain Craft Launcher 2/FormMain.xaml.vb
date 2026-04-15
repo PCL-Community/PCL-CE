@@ -776,6 +776,9 @@ Public Class FormMain
                     Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
                     If Str Is Nothing Then Return
                     Log("[System] 接受文本拖拽：" & Str)
+                    '虽然不想用 GoTo 这个晦气玩意儿，但是龙猫的代码只适合这玩意儿
+                    '之后重写吧（逃
+                    If Path.IsPathRooted(Str) Then GoTo PathText
                     If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                         'Authlib 拖拽
                         e.Handled = True
@@ -808,6 +811,7 @@ Public Class FormMain
                     Return
                 End Try
             ElseIf e.Data.GetDataPresent(DataFormats.FileDrop) Then
+                PathText:
                 '获取文件并检查
                 Dim FilePathRaw = e.Data.GetData(DataFormats.FileDrop)
                 If FilePathRaw Is Nothing Then '#2690
