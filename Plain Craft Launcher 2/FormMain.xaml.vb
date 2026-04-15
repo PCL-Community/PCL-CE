@@ -748,7 +748,8 @@ Public Class FormMain
                     e.Effects = DragDropEffects.Link
                 End If
             ElseIf e.Data.GetDataPresent(DataFormats.Text) Then
-                Dim Str As String = e.Data.GetData(DataFormats.Text)
+                Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
+                If Str Is Nothing Then Return
                 If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
