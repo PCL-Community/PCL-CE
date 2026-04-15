@@ -742,17 +742,19 @@ Public Class FormMain
             End If
             '确定拖放效果
             e.Effects = DragDropEffects.None
-            If e.Data.GetDataPresent(DataFormats.Text) Then
+            If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+                Dim Files As String() = e.Data.GetData(DataFormats.FileDrop)
+                If Files IsNot Nothing AndAlso Files.Length > 0 Then
+                    e.Effects = DragDropEffects.Link
+                End If
+            ElseIf e.Data.GetDataPresent(DataFormats.Text) Then
                 Dim Str As String = e.Data.GetData(DataFormats.Text)
                 If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
                     e.Effects = DragDropEffects.Copy
-                End If
-            ElseIf e.Data.GetDataPresent(DataFormats.FileDrop) Then
-                Dim Files As String() = e.Data.GetData(DataFormats.FileDrop)
-                If Files IsNot Nothing AndAlso Files.Length > 0 Then
-                    e.Effects = DragDropEffects.Link
+                ElseIf File.Exist(Str) Then 
+                    e.Effects = DragDropEffects.Copy
                 End If
             End If
             PrevData = e.Data
