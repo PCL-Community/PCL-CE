@@ -749,7 +749,10 @@ Public Class FormMain
                 End If
             ElseIf e.Data.GetDataPresent(DataFormats.Text) Then
                 Dim Str As String = TryCast(e.Data.GetData(DataFormats.Text), String)
-                If Str Is Nothing Then Return
+                If Str Is Nothing Then 
+                    Return
+                    PrevData = e.Data
+                End If
                 If Str.StartsWithF("authlib-injector:yggdrasil-server:") Then
                     e.Effects = DragDropEffects.Copy
                 ElseIf Str.StartsWithF("file:///") Then
