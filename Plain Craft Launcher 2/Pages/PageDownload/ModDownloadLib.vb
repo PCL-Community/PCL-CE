@@ -2753,7 +2753,7 @@ Retry:
         Dim OptiFineAsMod As Boolean = Request.OptiFineEntry IsNot Nothing AndAlso Modable '选择了 OptiFine 与任意 Mod 加载器
         If OptiFineAsMod Then
             Log("[Download] OptiFine 将作为 Mod 进行下载")
-            If Request.LiteLoaderEntry IsNot Nothing
+            If Request.LiteLoaderEntry IsNot Nothing Then
                 OptiFineFolder = ModsTempFolder & Request.MinecraftName & "\"
             Else
                 OptiFineFolder = ModsTempFolder
