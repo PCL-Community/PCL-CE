@@ -50,7 +50,7 @@ Class PageInstanceSavesInfo
                 Dim CurrentVersionId = If(versionId?.Value, Nothing)
                 FrmInstanceSavesLeft.ItemDatapack.Visibility = If(Not CurrentVersionId.HasValue OrElse CurrentVersionId < 1444, Visibility.Collapsed, Visibility.Visible)
 
-                Dim hasDifficulty = gameLevel.Contains("Difficulty")
+                Dim hasDifficulty = gameLevel.Contains("Difficulty") OrElse gameLevel.Contains("difficulty_settings")
                 Dim hasAllowCommands = gameLevel.Contains("allowCommands")
 
                 If versionName Is Nothing Then
@@ -75,7 +75,14 @@ Class PageInstanceSavesInfo
                 If gameLevel.TryGet(Of NbtLong)("RandomSeed", seedNbt) Then
                     seed = seedNbt.Value().ToString()
                 Else
-                    seed = gameLevel.Get(Of NbtCompound)("WorldGenSettings").Get(Of NbtLong)("seed").Value.ToString()
+                    If gameLevel.Contains("WorldGenSettings") Then
+                        seed = gameLevel.Get(Of NbtCompound)("WorldGenSettings").Get(Of NbtLong)("seed").Value.ToString()
+                    Else
+                        Dim worldGenSettingsDatPath = IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "data", "minecraft", "world_gen_settings.dat")
+                        Dim worldGenSettingsNbt As New NbtFile(worldGenSettingsDatPath)
+                        Dim worldGenSettings = worldGenSettingsNbt.RootTag.Get(Of NbtCompound)("data")
+                        seed = worldGenSettings.Get(Of NbtLong)("seed").Value.ToString()
+                    End If
                 End If
 
                 AddInfoTable("种子", seed, True, versionName?.Value, True)
@@ -119,8 +126,28 @@ Class PageInstanceSavesInfo
 
                 If hasDifficulty Then
                     PanSettings.Visibility = Visibility.Visible
-                    Dim difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
-                    Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
+                    Dim difficultyElement = Nothing
+                    
+                    If gameLevel.Contains("difficulty_settings") Then
+                        Dim difficultyElementString = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtString)("difficulty").Value
+                        Select Case difficultyElementString
+                            Case "peaceful"
+                                difficultyElement = 0
+                            Case "easy"
+                                difficultyElement = 1
+                            Case "normal"
+                                difficultyElement = 2
+                            Case "hard"
+                                difficultyElement = 3
+                            Case Else
+                                difficultyElement = 0
+                        End Select
+                        
+                    Else 
+                        difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
+                    End If
+                    
+                    Dim difficultyValue As Integer = Integer.Parse(difficultyElement)
 
                     Dim difficultyCombo As New MyComboBox() With {.Width = 100, .HorizontalAlignment = HorizontalAlignment.Left, .ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"}
                     difficultyCombo.Items.Add(New With {.Value = 0, .Display = "和平"})
@@ -130,8 +157,15 @@ Class PageInstanceSavesInfo
                     difficultyCombo.SelectedValuePath = "Value"
                     difficultyCombo.DisplayMemberPath = "Display"
                     difficultyCombo.SelectedValue = difficultyValue
-
-                    Dim isHardcoreCheck = gameLevel.Get(Of NbtByte)("hardcore")
+                    
+                    Dim isHardcoreCheck As NbtByte = Nothing
+                    
+                    If gameLevel.Contains("difficulty_settings") Then
+                        isHardcoreCheck = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtByte)("hardcore")
+                    Else
+                        isHardcoreCheck = gameLevel.Get(Of NbtByte)("hardcore")
+                    End If
+                    
                     Dim isHardcoreMode As Boolean = (isHardcoreCheck.Value = "1")
 
                     Dim lockCheckBox As New MyCheckBox() With {.Text = "锁定难度", .ToolTip = "锁定当前难度设置，锁定后无法在游戏中更改游戏难度", .VerticalAlignment = VerticalAlignment.Center, .Margin = New Thickness(10, 0, 0, 0)
@@ -140,7 +174,14 @@ Class PageInstanceSavesInfo
                     If isHardcoreMode Then
                         lockCheckBox.Visibility = Visibility.Collapsed
                     Else
-                        Dim lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                        Dim lockedElement As NbtByte
+                        
+                        If gameLevel.Contains("difficulty_settings") Then
+                            lockedElement = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtByte)("locked")
+                        Else
+                            lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                        End If
+                        
                         Dim isLocked As Boolean = (lockedElement IsNot Nothing AndAlso lockedElement.Value = "1")
                         lockCheckBox.Checked = isLocked
                     End If
@@ -157,8 +198,13 @@ Class PageInstanceSavesInfo
                                                                          If difficultyCombo.SelectedValue Is Nothing Then Return
 
                                                                          Dim newDifficulty As Integer = CInt(difficultyCombo.SelectedValue)
-
-                                                                         gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+                                                                         
+                                                                         If gameLevel.Contains("difficulty_settings") Then
+                                                                             Dim newDifficultyString = GetDifficultyName(newDifficulty)
+                                                                             gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtString)("difficulty").Value = newDifficultyString
+                                                                         Else 
+                                                                             gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+                                                                         End If
 
                                                                          If Not isHardcoreMode Then
                                                                              Dim newLocked As Integer = If(lockCheckBox.Checked, 1, 0)
@@ -184,14 +230,25 @@ Class PageInstanceSavesInfo
 
                                                             Dim newDifficulty As Integer = CInt(difficultyCombo.SelectedValue)
 
-                                                            gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+                                                            If gameLevel.Contains("difficulty_settings") Then
+                                                                Dim newDifficultyString = GetDifficultyName(newDifficulty)
+                                                                gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtString)("difficulty").Value = newDifficultyString
+                                                            Else 
+                                                                gameLevel.Get(Of NbtByte)("Difficulty").Value = CByte(newDifficulty)
+                                                            End If
 
                                                             If Not isHardcoreMode Then
                                                                 Dim newLocked As Integer = If(lockCheckBox.Checked, 1, 0)
-                                                                If gameLevel.Contains("DifficultyLocked") Then
+                                                                If gameLevel.Contains("difficulty_settings") Then
+                                                                    gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtByte)("locked").Value = CByte(newLocked)
+                                                                Else If gameLevel.Contains("DifficultyLocked") Then
                                                                     gameLevel.Get(Of NbtByte)("DifficultyLocked").Value = CByte(newLocked)
-                                                                ElseIf newLocked = 1 Then
-                                                                    gameLevel.Add(New NbtByte("DifficultyLocked", CByte(newLocked)))
+                                                                Else If newLocked = 1 Then
+                                                                    If gameLevel.Contains("difficulty_settings") Then
+                                                                        gameLevel.Get(Of NbtCompound)("difficulty_settings").Add(New NbtByte("locked", CByte(newLocked)))
+                                                                    Else
+                                                                        gameLevel.Add(New NbtByte("DifficultyLocked", CByte(newLocked)))
+                                                                    End If
                                                                 End If
                                                             End If
 
@@ -233,9 +290,15 @@ Class PageInstanceSavesInfo
                     AddInfoTable("出生点 (X/Y/Z)", $"{spawnXPos} / {spawnYPos} / {spawnZPos}")
                 End If
                 Dim gameTypeName As String = "获取失败"
-
-                Dim isHardcore = gameLevel.Get(Of NbtByte)("hardcore")
-                If isHardcore.Value = "1" Then
+                Dim isHardcore As NbtByte = Nothing
+                
+                If gameLevel.Contains("difficulty_settings") Then
+                    isHardcore = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtByte)("hardcore")
+                Else
+                    isHardcore = gameLevel.Get(Of NbtByte)("hardcore")
+                End If
+                
+                If isHardcore.Value = 1 Then
                     gameTypeName = "极限模式"
                 Else
                     Dim gameType = gameLevel.Get(Of NbtInt)("GameType")
@@ -255,20 +318,27 @@ Class PageInstanceSavesInfo
                 AddInfoTable("游戏模式", gameTypeName)
 
                 If hasDifficulty Then
-                    Dim difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
+                    Dim difficultyRaw As String
+                    If gameLevel.Contains("difficulty_settings") Then
+                        difficultyRaw = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtString)("difficulty").Value
+                    Else
+                        difficultyRaw = gameLevel.Get(Of NbtByte)("Difficulty").Value.ToString()
+                    End If
+
                     Dim difficultyName As String = "获取失败"
-                    Dim difficultyValue As Integer = Integer.Parse(difficultyElement.Value)
-                    Select Case difficultyValue
-                        Case 0
-                            difficultyName = "和平"
-                        Case 1
-                            difficultyName = "简单"
-                        Case 2
-                            difficultyName = "普通"
-                        Case 3
-                            difficultyName = "困难"
+                    Select Case difficultyRaw
+                        Case "0", "peaceful" : difficultyName = "和平"
+                        Case "1", "easy"     : difficultyName = "简单"
+                        Case "2", "normal"   : difficultyName = "普通"
+                        Case "3", "hard"     : difficultyName = "困难"
                     End Select
-                    Dim lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                    
+                    Dim lockedElement = Nothing
+                    If gameLevel.Contains("difficulty_settings") Then
+                        lockedElement = gameLevel.Get(Of NbtCompound)("difficulty_settings").Get(Of NbtByte)("locked")
+                    Else
+                        lockedElement = gameLevel.Get(Of NbtByte)("DifficultyLocked")
+                    End If
                     Dim isDifficultyLocked As String = If((lockedElement IsNot Nothing AndAlso lockedElement.Value = "1") OrElse isHardcore.Value = "1", "是", If(lockedElement IsNot Nothing, "否", "获取失败"))
                     If Hintversion1_8.Visibility <> Visibility.Visible Then
                         AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})")
@@ -367,4 +437,19 @@ Class PageInstanceSavesInfo
         Grid.SetRow(contentStack, rowIndex)
         Grid.SetColumn(contentStack, 2)
     End Sub
+    
+    Public Function GetDifficultyName(newDifficulty As Integer) As String
+        Select Case newDifficulty
+            Case 0
+                Return "peaceful"
+            Case 1
+                Return "easy"
+            Case 2
+                Return "normal"
+            Case 3
+                Return "hard"
+            Case Else
+                Throw New ArgumentOutOfRangeException(NameOf(newDifficulty), "Invalid difficulty value")
+        End Select
+    End Function
 End Class
