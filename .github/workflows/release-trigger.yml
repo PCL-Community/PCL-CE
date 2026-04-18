@@ -10,6 +10,9 @@ on:
 jobs:
   trigger_release:
     if: ${{ github.event.pull_request.merged == true }}
+    permissions:
+      actions: write
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Extract version from PR title
