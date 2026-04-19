@@ -404,7 +404,7 @@ Public Class PageDownloadInstall
             Else
                 BtnFabricApiClear.Visibility = Visibility.Visible
                 ImgFabricApi.Visibility = Visibility.Visible
-                LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")(1).Replace("Fabric API ", "").Replace(" build ", ".").Split("+").First.Trim
+                LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")(1).Replace("Fabric API ", "").Replace(" build ", ".").Trim
                 LabFabricApi.Foreground = ColorGray1
             End If
         End If
@@ -1282,33 +1282,11 @@ Public Class PageDownloadInstall
         Dim fabricApiName = fabricApi.DisplayName
         Try
             If fabricApiName Is Nothing OrElse _vanillaName Is Nothing Then Return False
-            fabricApiName = fabricApiName.ToLower : _vanillaName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower
-            If fabricApiName.StartsWith("[" & _vanillaName & "]") Then Return True
-            If Not fabricApiName.Contains("/") OrElse Not fabricApiName.Contains("]") Then Return False
-            '直接的判断（例如 1.18.1/22w03a）
-            For Each part As String In fabricApiName.BeforeFirst("]").TrimStart("[").Split("/")
-                If part = _vanillaName Then Return True
-            Next
-            '将版本名分割语素（例如 1.16.4/5）
-            Dim lefts = RegexSearch(fabricApiName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
-            Dim rights = RegexSearch(_vanillaName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
-            '对每段进行判断
-            Dim i As Integer = 0
-            While True
-                '两边均缺失，感觉是一个东西
-                If lefts.Count - 1 < i AndAlso rights.Count - 1 < i Then Return True
-                '确定两边是否一致
-                Dim leftValue As String = If(lefts.Count - 1 < i, "-1", lefts(i))
-                Dim rightValue As String = If(rights.Count - 1 < i, "-1", rights(i))
-                If Not leftValue.Contains("/") Then
-                    If leftValue <> rightValue Then Return False
-                Else
-                    '左边存在斜杠
-                    If Not leftValue.Contains(rightValue) Then Return False
-                End If
-                i += 1
-            End While
-            Return True
+            Dim targetName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower()
+            If FabricApi.RawGameVersions.Any(Function(f) f = targetName)
+                Return True
+            End If
+            Return False
         Catch ex As Exception
             Log(ex, "判断 Fabric API 版本适配性出错（" & FabricApiName & ", " & _vanillaName & "）")
             Return False
