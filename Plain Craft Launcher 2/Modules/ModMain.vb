@@ -1030,8 +1030,8 @@ NextFile:
         text = text.RegexReplaceEach("\{hint\}", Function() replacer(PageToolsTest.GetRandomHint()))
         text = text.RegexReplaceEach("\{cave\}", Function() replacer(PageToolsTest.GetRandomCave()))
         text = text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceSelected)))
-        text = text.RegexReplaceEach("\{varible:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
-        text = text.RegexReplaceEach("\{variable:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
+        text = text.RegexReplaceEach("\{varible:([^:\}]+)(?::([^\}]+))?\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value, m.Groups(2).Value)))
+        text = text.RegexReplaceEach("\{variable:([^:\}]+)(?::([^\}]+))?\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value, m.Groups(2).Value)))
         Return text
     End Function
 #End Region

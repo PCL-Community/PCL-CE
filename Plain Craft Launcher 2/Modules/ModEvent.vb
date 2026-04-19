@@ -290,11 +290,11 @@ Public Class CustomEvent
     End Sub
     
     ''' <summary>
-    ''' 获取自定义变量的值。若不存在这个变量则返回 Nothing。
+    ''' 获取自定义变量的值。若不存在这个变量则返回指定的 defaultValue。
     ''' </summary>
-    Public Shared Function GetCustomVariable(name As String) As String
+    Public Shared Function GetCustomVariable(name As String, Optional defaultValue As String = "") As String
         If States.CustomVariables.ContainsKey(name) Then Return States.CustomVariables(name)
-        Return Nothing
+        Return defaultValue
     End Function
     
     ''' <summary>
