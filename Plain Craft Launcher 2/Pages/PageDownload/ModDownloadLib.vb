@@ -1130,10 +1130,7 @@ Retry:
                                           }, Target, New FileChecker(MinSize:=64 * 1024)))
                 Case DlForgelikeEntry.ForgelikeType.Cleanroom
                     Dim clean As DlCleanroomListEntry = Info
-                    Files.Add(New NetFile({
-                                              clean.UrlBase & "-installer.jar",
-                                              clean.UrlBase & "-installer.jar"
-                                          }, Target, New FileChecker(MinSize:=64 * 1024)))
+                    Files.Add(New NetFile({ clean.UrlBase & "-installer.jar" }, Target, New FileChecker(MinSize:=64 * 1024)))
                 Case Else
                     Throw New NotSupportedException("未知的 Forgelike 类型")
             End Select

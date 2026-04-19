@@ -628,6 +628,7 @@ Public Module ModDownload
                     Case ForgelikeType.Cleanroom
                         Return "Cleanroom"
                     Case Else
+                        Log("[Download] 遇到未知的 ForgeType：" & ForgeType.ToString, LogLevel.Normal)
                         Return "Unknown"
                 End Select
             End Get
