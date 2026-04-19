@@ -616,11 +616,20 @@ Public Module ModDownload
             Cleanroom
         End Enum
         ''' <summary>
-        ''' 加载器名称。Forge 或 NeoForge。
+        ''' 加载器名称。Forge / NeoForge / Cleanroom。
         ''' </summary>
         Public ReadOnly Property LoaderName As String
             Get
-                Return If(ForgeType = 1, "NeoForge", "Forge")
+                Select Case ForgeType
+                    Case ForgelikeType.Forge
+                        Return "Forge"
+                    Case ForgelikeType.NeoForge
+                        Return "NeoForge"
+                    Case ForgelikeType.Cleanroom
+                        Return "Cleanroom"
+                    Case Else
+                        Return "Unknown"
+                End Select
             End Get
         End Property
         ''' <summary>

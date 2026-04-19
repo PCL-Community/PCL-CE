@@ -1115,21 +1115,28 @@ Retry:
 
             '获取下载地址
             Dim Files As New List(Of NetFile)
-            If Info.ForgeType = 1 Then
-                'NeoForge
-                Dim Neo As DlNeoForgeListEntry = Info
-                Dim Url As String = Neo.UrlBase & "-installer.jar"
-                Files.Add(New NetFile({
-                    Url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), Url
-                }, Target, New FileChecker(MinSize:=64 * 1024)))
-            Else
-                'Forge
-                Dim Forge As DlForgeVersionEntry = Info
-                Files.Add(New NetFile({
-                    $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{Forge.Inherit}-{Forge.FileVersion}/forge-{Forge.Inherit}-{Forge.FileVersion}-{Forge.Category}.{Forge.FileExtension}",
-                    $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{Forge.Inherit}-{Forge.FileVersion}/forge-{Forge.Inherit}-{Forge.FileVersion}-{Forge.Category}.{Forge.FileExtension}"
-                }, Target, New FileChecker(MinSize:=64 * 1024, Hash:=Forge.Hash)))
-            End If
+            Select Info.ForgeType
+                Case DlForgelikeEntry.ForgelikeType.Forge
+                    Dim forge As DlForgeVersionEntry = Info
+                    Files.Add(New NetFile({
+                                              $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}",
+                                              $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}"
+                                          }, Target, New FileChecker(MinSize:=64 * 1024, Hash:=forge.Hash)))
+                Case DlForgelikeEntry.ForgelikeType.NeoForge
+                    Dim neo As DlNeoForgeListEntry = Info
+                    Dim url As String = neo.UrlBase & "-installer.jar"
+                    Files.Add(New NetFile({
+                                              url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), url
+                                          }, Target, New FileChecker(MinSize:=64 * 1024)))
+                Case DlForgelikeEntry.ForgelikeType.Cleanroom
+                    Dim clean As DlCleanroomListEntry = Info
+                    Files.Add(New NetFile({
+                                              clean.UrlBase & "-installer.jar",
+                                              clean.UrlBase & "-installer.jar"
+                                          }, Target, New FileChecker(MinSize:=64 * 1024)))
+                Case Else
+                    Throw New NotSupportedException("未知的 Forgelike 类型")
+            End Select
 
             '构造加载器
             Dim Loaders As New List(Of LoaderBase)
