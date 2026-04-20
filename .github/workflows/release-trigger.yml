@@ -21,12 +21,12 @@ jobs:
           PR_TITLE="${{ github.event.pull_request.title }}"
           echo "PR Title: $PR_TITLE"
           
-          # 尝试匹配 "release-stable: VERSION" 或 "beta-release: VERSION" 格式，支持 SemVer（可选 v 前缀）
-          if [[ "$PR_TITLE" =~ (release-stable|beta-release):\ ?[vV]?([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?) ]]; then
+          # 尝试匹配 "release-stable: VERSION" 或 "release-beta: VERSION" 格式，支持 SemVer（可选 v 前缀）
+          if [[ "$PR_TITLE" =~ (release-stable|release-beta):\ ?[vV]?([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?) ]]; then
             VERSION="${BASH_REMATCH[2]}"
             RELEASE_TYPE="${BASH_REMATCH[1]}"
             
-            if [[ "$RELEASE_TYPE" == "beta-release" ]]; then
+            if [[ "$RELEASE_TYPE" == "release-beta" ]]; then
               IS_BETA="true"
             else
               IS_BETA="false"
@@ -36,7 +36,7 @@ jobs:
             echo "is_beta=$IS_BETA" >> $GITHUB_OUTPUT
             echo "Extracted version: $VERSION, is_beta: $IS_BETA"
           else
-            echo "Error: PR title does not match expected format 'release-stable: VERSION' or 'beta-release: VERSION' (SemVer)"
+            echo "Error: PR title does not match expected format 'release-stable: VERSION' or 'release-beta: VERSION' (SemVer)"
             exit 1
           fi
 
