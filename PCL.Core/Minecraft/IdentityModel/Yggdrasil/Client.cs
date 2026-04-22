@@ -3,6 +3,8 @@ using System;
 using System.Threading.Tasks;
 using System.Net;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 
