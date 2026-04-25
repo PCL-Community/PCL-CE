@@ -144,7 +144,7 @@ Class PageInstanceSavesInfo
                         End Select
                         
                     Else 
-                        difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty")
+                        difficultyElement = gameLevel.Get(Of NbtByte)("Difficulty").Value()
                     End If
                     
                     Dim difficultyValue As Integer = Integer.Parse(difficultyElement)
