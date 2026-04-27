@@ -409,6 +409,11 @@ Public Class MyListItem
             End If
         End If
         LabTitle.Margin = New Thickness(4, 0, 0, If(Height < 40, 0, 2))
+        If PathLogo IsNot Nothing AndAlso _logoCornerRadius.TopLeft >= 0 Then
+            If TypeOf PathLogo Is Canvas Then
+                UpdateCanvasClip(CType(PathLogo, Canvas))
+            End If
+        End If
     End Sub
 
     '勾选状态
@@ -570,6 +575,41 @@ Public Class MyListItem
     '菜单与按钮绑定
     Public Property ContentHandler As Action(Of MyListItem, EventArgs)
 
+    ''' <summary>
+    ''' 图标可选的圆角。仅当 Logo 为位图（本地文件或网络图片）时生效。
+    ''' 传递一个 TopLeft 为负值的 CornerRadius 表示不设置圆角。
+    ''' </summary>
+    Public Property LogoCornerRadius As CornerRadius
+        Get
+            Return _logoCornerRadius
+        End Get
+        Set(value As CornerRadius)
+            _logoCornerRadius = value
+            ApplyLogoCornerRadius()
+        End Set
+    End Property
+    Private _logoCornerRadius As CornerRadius = New CornerRadius(-1)
+    
+    Private Sub UpdateCanvasClip(c As Canvas)
+        If c.ActualWidth > 0 AndAlso c.ActualHeight > 0 Then
+            c.Clip = New RectangleGeometry(
+                New Rect(0, 0, c.ActualWidth, c.ActualHeight),
+                LogoCornerRadius.TopLeft,
+                LogoCornerRadius.TopRight)
+        End If
+    End Sub
+
+    Private Sub ApplyLogoCornerRadius()
+        If PathLogo Is Nothing Then Return
+        If LogoCornerRadius.TopLeft < 0 Then Return
+
+        If TypeOf PathLogo Is MyImage Then
+            CType(PathLogo, MyImage).CornerRadius = LogoCornerRadius
+        ElseIf TypeOf PathLogo Is Canvas Then
+            Dim c = CType(PathLogo, Canvas)
+            UpdateCanvasClip(c)
+        End If
+    End Sub
 #End Region
 
 #Region "点击"

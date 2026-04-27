@@ -879,16 +879,13 @@ Public Module ModComp
         End Function
         Public Function ToListItem() As MyListItem
             Dim result As New MyListItem With {
-                .Title = TranslatedName,
-                .Info = Description.Replace(vbCr, "").Replace(vbLf, ""),
-                .Logo = LogoUrl,
-                .Tags = Tags,
-                .Tag = Me
-            }
-
-            Dim img = DirectCast(result.PathLogo, MyImage)
-            img.CornerRadius = New CornerRadius(6)
-            img.SnapsToDevicePixels = True
+                    .Title = TranslatedName,
+                    .Info = Description.Replace(vbCr, "").Replace(vbLf, ""),
+                    .Logo = If(String.IsNullOrEmpty(LogoUrl), PathImage & "Icons/NoIcon.png", LogoUrl),
+                    .Tags = Tags,
+                    .Tag = Me,
+                    .LogoCornerRadius = New CornerRadius(6)
+                    }
             Return result
         End Function
         Public Sub ApplyLogoToMyImage(img As MyImage)
