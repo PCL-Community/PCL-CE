@@ -592,16 +592,15 @@ Public Class MyListItem
     Private _logoCornerRadius As CornerRadius = New CornerRadius(-1)
     
     Private Function IsLogoCornerRadiusEnabled() As Boolean
-        With LogoCornerRadius
-            Return .TopLeft >= 0 AndAlso .TopRight >= 0 AndAlso .BottomLeft >= 0 AndAlso .BottomRight >= 0
-        End With
+        Dim r = LogoCornerRadius
+        Return r.TopLeft >= 0 AndAlso r.TopRight >= 0 AndAlso r.BottomLeft >= 0 AndAlso r.BottomRight >= 0
     End Function
 
     Private Sub UpdateCanvasClip(c As Canvas)
         If c.ActualWidth > 0 AndAlso c.ActualHeight > 0 Then
             Dim radius = Math.Max(Math.Max(LogoCornerRadius.TopLeft, LogoCornerRadius.TopRight),
                                   Math.Max(LogoCornerRadius.BottomLeft, LogoCornerRadius.BottomRight))
-        c.Clip = New RectangleGeometry(
+            c.Clip = New RectangleGeometry(
             New Rect(0, 0, c.ActualWidth, c.ActualHeight), radius, radius)
         End If
     End Sub
