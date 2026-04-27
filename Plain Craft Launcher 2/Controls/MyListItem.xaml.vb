@@ -336,6 +336,8 @@ Public Class MyListItem
         End If
         '改变行距
         ColumnLogo.Width = New GridLength(If(_Logo = "", 0, 34) + If(Height < 40, 0, 4))
+        _canvasClipHandlerAdded = False
+        ApplyLogoCornerRadius()
     End Sub
 
     Private _LogoScale As Double = 1
@@ -409,10 +411,9 @@ Public Class MyListItem
             End If
         End If
         LabTitle.Margin = New Thickness(4, 0, 0, If(Height < 40, 0, 2))
-        If PathLogo IsNot Nothing AndAlso _logoCornerRadius.TopLeft >= 0 Then
-            If TypeOf PathLogo Is Canvas Then
-                UpdateCanvasClip(CType(PathLogo, Canvas))
-            End If
+        If PathLogo IsNot Nothing AndAlso IsLogoCornerRadiusEnabled() AndAlso TypeOf PathLogo Is Canvas Then
+            _canvasClipHandlerAdded = False
+            ApplyLogoCornerRadius()
         End If
     End Sub
 
@@ -575,10 +576,10 @@ Public Class MyListItem
     '菜单与按钮绑定
     Public Property ContentHandler As Action(Of MyListItem, EventArgs)
 
-    ''' <summary>
-    ''' 图标可选的圆角。仅当 Logo 为位图（本地文件或网络图片）时生效。
-    ''' 传递一个 TopLeft 为负值的 CornerRadius 表示不设置圆角。
-    ''' </summary>
+''' <summary>
+''' 图标可选的圆角。仅当 Logo 为位图（MyImage 或 Canvas）时生效。
+''' 当所有角的圆角半径均 ≥ 0 时，应用圆角效果；否则不应用。
+''' </summary>
     Public Property LogoCornerRadius As CornerRadius
         Get
             Return _logoCornerRadius
@@ -590,24 +591,45 @@ Public Class MyListItem
     End Property
     Private _logoCornerRadius As CornerRadius = New CornerRadius(-1)
     
+    Private Function IsLogoCornerRadiusEnabled() As Boolean
+        With LogoCornerRadius
+            Return .TopLeft >= 0 AndAlso .TopRight >= 0 AndAlso .BottomLeft >= 0 AndAlso .BottomRight >= 0
+        End With
+    End Function
+
     Private Sub UpdateCanvasClip(c As Canvas)
         If c.ActualWidth > 0 AndAlso c.ActualHeight > 0 Then
-            c.Clip = New RectangleGeometry(
-                New Rect(0, 0, c.ActualWidth, c.ActualHeight),
-                LogoCornerRadius.TopLeft,
-                LogoCornerRadius.TopRight)
+            Dim radius = Math.Max(Math.Max(LogoCornerRadius.TopLeft, LogoCornerRadius.TopRight),
+                                  Math.Max(LogoCornerRadius.BottomLeft, LogoCornerRadius.BottomRight))
+        c.Clip = New RectangleGeometry(
+            New Rect(0, 0, c.ActualWidth, c.ActualHeight), radius, radius)
         End If
     End Sub
 
+    Private _canvasClipHandlerAdded As Boolean = False
+
     Private Sub ApplyLogoCornerRadius()
         If PathLogo Is Nothing Then Return
-        If LogoCornerRadius.TopLeft < 0 Then Return
+        If Not IsLogoCornerRadiusEnabled() Then Return
 
         If TypeOf PathLogo Is MyImage Then
             CType(PathLogo, MyImage).CornerRadius = LogoCornerRadius
         ElseIf TypeOf PathLogo Is Canvas Then
             Dim c = CType(PathLogo, Canvas)
             UpdateCanvasClip(c)
+            If Not _canvasClipHandlerAdded AndAlso c.ActualWidth = 0 AndAlso c.ActualHeight = 0 Then
+                AddHandler c.SizeChanged, AddressOf OnCanvasLogoSizeChanged
+                _canvasClipHandlerAdded = True
+            End If
+        End If
+    End Sub
+
+    Private Sub OnCanvasLogoSizeChanged(sender As Object, e As SizeChangedEventArgs)
+        Dim c = CType(sender, Canvas)
+        If c.ActualWidth > 0 AndAlso c.ActualHeight > 0 Then
+            UpdateCanvasClip(c)
+            RemoveHandler c.SizeChanged, AddressOf OnCanvasLogoSizeChanged
+            _canvasClipHandlerAdded = False
         End If
     End Sub
 #End Region
