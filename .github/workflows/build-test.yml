@@ -27,26 +27,12 @@ jobs:
         include:
           - configuration: CI
             architecture: x64
-            project_file: Plain Craft Launcher 2/Plain Craft Launcher 2.csproj
-            artifact_name_suffix: _CSharp
           - configuration: CI
             architecture: ARM64
-            project_file: Plain Craft Launcher 2/Plain Craft Launcher 2.csproj
-            artifact_name_suffix: _CSharp
-          - configuration: CI
-            architecture: x64
-            project_file: Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj
-            artifact_name_suffix: _VB
-          - configuration: CI
-            architecture: ARM64
-            project_file: Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj
-            artifact_name_suffix: _VB
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
     with:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
-      project_file: ${{ matrix.project_file }}
-      artifact_name_suffix: ${{ matrix.artifact_name_suffix }}
     secrets: inherit

@@ -12,14 +12,6 @@ on:
       architecture:
         required: true
         type: string
-      project_file:
-        required: false
-        type: string
-        default: Plain Craft Launcher 2/Plain Craft Launcher 2.csproj
-      artifact_name_suffix:
-        required: false
-        type: string
-        default: ""
 
 jobs:
   build:
@@ -67,12 +59,12 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          dotnet publish "${{ inputs.project_file }}" \
+          dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
           -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
           -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}${{ inputs.artifact_name_suffix }}
+          name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}
           path: artifact/**
