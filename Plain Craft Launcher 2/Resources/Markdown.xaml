@@ -8,9 +8,9 @@
         <Setter Property="FontSize" Value="15" />
         <Setter Property="TextAlignment" Value="Left" />
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
-        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
-        <Setter Property="VirtualizingPanel.UseLayoutRounding" Value="True"/>
-        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+        <Setter Property="VirtualizingPanel.UseLayoutRounding" Value="True" />
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
     </Style>
 
     <!-- 紧凑段落样式 -->
@@ -77,7 +77,7 @@
     </Style>
 
     <Style TargetType="{x:Type Hyperlink}" x:Key="{x:Static markdig:Styles.HyperlinkStyleKey}">
-        <Setter Property="Foreground" Value="{DynamicResource ColorBrush4}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ColorBrush4}" />
     </Style>
 
     <Style TargetType="{x:Type Line}" x:Key="{x:Static markdig:Styles.ThematicBreakStyleKey}">
@@ -90,28 +90,28 @@
         <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
         <Setter Property="BorderThickness" Value="2,0,0,0" />
         <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray2}" />
-        <Setter Property="Background" Value="{DynamicResource ColorBrushGray7}"/>
+        <Setter Property="Background" Value="{DynamicResource ColorBrushGray7}" />
         <Setter Property="Padding" Value="8,2,0,2" />
         <Setter Property="Margin" Value="0,4,0,4" />
     </Style>
 
     <!-- 表格样式优化 -->
     <Style TargetType="{x:Type Table}" x:Key="{x:Static markdig:Styles.TableStyleKey}">
-        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray3}"/>
-        <Setter Property="BorderThickness" Value="0,0,1,1"/>
-        <Setter Property="CellSpacing" Value="0"/>
-        <Setter Property="Margin" Value="0,6,0,6"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray3}" />
+        <Setter Property="BorderThickness" Value="0,0,1,1" />
+        <Setter Property="CellSpacing" Value="0" />
+        <Setter Property="Margin" Value="0,6,0,6" />
     </Style>
 
     <Style TargetType="{x:Type TableCell}" x:Key="{x:Static markdig:Styles.TableCellStyleKey}">
-        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray3}"/>
-        <Setter Property="BorderThickness" Value="1,1,0,0"/>
-        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray3}" />
+        <Setter Property="BorderThickness" Value="1,1,0,0" />
+        <Setter Property="Padding" Value="4,2" />
     </Style>
 
     <Style TargetType="{x:Type TableRow}" x:Key="{x:Static markdig:Styles.TableHeaderStyleKey}">
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Background" Value="{DynamicResource ColorBrushGray6}"/>
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Background" Value="{DynamicResource ColorBrushGray6}" />
     </Style>
 
     <Style TargetType="{x:Type CheckBox}" x:Key="{x:Static markdig:Styles.TaskListStyleKey}">
@@ -126,13 +126,13 @@
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.StrikeThroughStyleKey}">
         <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
-        <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray4}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ColorBrushGray4}" />
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.InsertedStyleKey}">
         <Setter Property="TextBlock.TextDecorations" Value="Underline" />
     </Style>
     <Style TargetType="{x:Type Span}" x:Key="{x:Static markdig:Styles.MarkedStyleKey}">
-        <Setter Property="Background" Value="{DynamicResource ColorBrush5}"/>
+        <Setter Property="Background" Value="{DynamicResource ColorBrush5}" />
     </Style>
 
     <!-- MarkdownViewer模板优化 -->
@@ -140,11 +140,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="markdig:MarkdownViewer">
-                    <FlowDocumentScrollViewer 
+                    <FlowDocumentScrollViewer
                         Document="{TemplateBinding Document}"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
                         ContextMenu="{x:Null}"
-                        SelectionBrush="{DynamicResource ColorBrush6}"/>
+                        SelectionBrush="{DynamicResource ColorBrush6}" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

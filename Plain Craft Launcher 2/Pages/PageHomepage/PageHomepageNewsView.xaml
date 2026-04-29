@@ -1,5 +1,5 @@
 <local:MyPageRight
-    x:Class="PageHomepageNewsView"
+    x:Class="PCL.PageHomepageNewsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:core="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
