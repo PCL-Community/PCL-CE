@@ -2056,6 +2056,10 @@ NextInstance:
 
         For Each Library As McLibToken In LibList
             If Library.IsNatives Then Continue For
+            If McInstanceSelected.Info.HasCleanroom AndAlso Library.OriginalName IsNot Nothing AndAlso _ 
+               (Library.OriginalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") _
+                OrElse Library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0") _
+                OrElse Library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")) Then Continue For 
             If Library.Name IsNot Nothing AndAlso Library.Name.Contains("com.cleanroommc:cleanroom:0.2") Then 'Cleanroom 的主 Jar 必须放在 ClassPath 第一位
                 CpStrings.Insert(0, Library.LocalPath)
             End If
