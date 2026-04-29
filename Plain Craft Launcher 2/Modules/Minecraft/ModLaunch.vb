@@ -1326,7 +1326,12 @@ LoginFinish:
 
         'Cleanroom 检测
         If McInstanceSelected.Info.HasCleanroom Then
-            Dim cleanroomVersion = new Version(McInstanceSelected.Info.Cleanroom.Split("-"c)(0))
+            Dim cleanroomVersion As Version
+            Try
+                cleanroomVersion = Version.Parse(McInstanceSelected.Info.Cleanroom.Split("-"c)(0))
+            Catch ex As Exception
+                Throw New Exception("cleanroom版本解析失败："& ex.Message, ex)
+            End Try
             If cleanroomVersion < new Version(0, 5, 0, 0) Then
                 If ModeDebug Then Log("[Launch] [Debug] Cleanroom0.5之前的版本 要求至少 Java 21")
                 minVer = If(New Version(21, 0, 0, 0) > minVer, New Version(21, 0, 0, 0), minVer)
