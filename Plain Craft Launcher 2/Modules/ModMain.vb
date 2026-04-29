@@ -2,6 +2,7 @@ Imports System.Windows.Interop
 Imports System.Windows.Threading
 Imports Microsoft.Win32
 Imports PCL.Core.IO
+Imports PCL.Core.App
 Imports PCL.Core.Utils
 
 Public Module ModMain
@@ -557,6 +558,9 @@ EndHint:
     '资源信息分页声明
     Public FrmDownloadCompDetail As PageDownloadCompDetail
 
+    '主页缓存
+    Public FrmHomepageNews As PageHomepageNewsView
+
 #End Region
 
 #Region "帮助"
@@ -625,7 +629,7 @@ EndHint:
         ''' </summary>
         Public Sub New(FilePath As String)
             RawPath = FilePath
-            Dim JsonData As JObject = GetJson(HelpArgumentReplace(ReadFile(FilePath)))
+            Dim JsonData As JObject = GetJson(ArgumentReplace(ReadFile(FilePath)))
             If JsonData Is Nothing Then Throw New FileNotFoundException("未找到帮助文件：" & FilePath, FilePath)
             '加载常规信息
             If JsonData("Title") IsNot Nothing Then
@@ -645,8 +649,7 @@ EndHint:
             Next
             '加载事件信息
             If If(JsonData("IsEvent"), False) Then
-                EventType = JsonData("EventType")
-                If EventType Is Nothing Then Throw New ArgumentException("未找到 EventType 项")
+                EventType = [Enum].Parse(GetType(CustomEvent.EventType), JsonData("EventType").ToString)
                 EventData = If(JsonData("EventData"), "")
                 IsEvent = True
             Else
@@ -671,7 +674,7 @@ EndHint:
         Public Function SetToListItem(Item As MyListItem) As MyListItem
             Dim Logo As String
             If IsEvent Then
-                If EventType = "弹出窗口" Then
+                If EventType = CustomEvent.EventType.弹出窗口 Then
                     Logo = PathImage & "Blocks/GrassPath.png"
                 Else
                     Logo = PathImage & "Blocks/CommandBlock.png"
@@ -688,9 +691,9 @@ EndHint:
                 .Height = 42
                 .Type = MyListItem.CheckType.Clickable
                 .Tag = Me
-                .EventType = Nothing
-                .EventData = Nothing
             End With
+            CustomEventService.SetEventType(Item, CustomEvent.EventType.None) '清空自定义事件属性，它们会被下面的点击事件处理
+            CustomEventService.SetEventData(Item, Nothing)
             '项目的点击事件
             AddHandler Item.Click, Sub(sender, e) PageToolsHelp.OnItemClick(sender.Tag)
             Return Item
@@ -961,6 +964,76 @@ NextFile:
         End If
     End Sub
 
+    ''' <summary>
+    ''' 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
+    ''' </summary>
+    Public Function ArgumentReplace(text As String, Optional escapeHandler As Func(Of String, String) = Nothing, Optional replaceTime As Boolean = True) As String
+        '预处理
+        If text Is Nothing Then Return Nothing
+        Dim replacer =
+        Function(s As String) As String
+            If s Is Nothing Then Return ""
+            If escapeHandler Is Nothing Then Return s
+            If s.Contains(":\") Then s = ShortenPath(s)
+            Return escapeHandler(s)
+        End Function
+        '基础
+        text = text.Replace("{pcl_version}", replacer(VersionBaseName))
+        text = text.Replace("{pcl_version_code}", replacer(VersionCode))
+        text = text.Replace("{pcl_version_branch}", replacer(VersionBranchName))
+        text = text.Replace("{pcl_branch}", replacer(VersionBranchName))
+        text = text.Replace("{identify}", replacer(UniqueAddress))
+        text = text.Replace("{path}", replacer(Basics.ExecutableDirectory))
+        text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName))
+        text = text.Replace("{path_temp}", replacer(PathTemp))
+        '时间
+        If replaceTime Then '在窗口标题中，时间会被后续动态替换，所以此时不应该替换
+            text = text.Replace("{date}", replacer(Date.Now.ToString("yyyy/M/d")))
+            text = text.Replace("{time}", replacer(Date.Now.ToString("HH:mm:ss")))
+        End If
+        'Minecraft
+        text = text.Replace("{java}", replacer(McLaunchJavaSelected?.Installation.JavaFolder))
+        text = text.Replace("{minecraft}", replacer(McFolderSelected))
+        If McInstanceSelected IsNot Nothing Then
+            text = text.Replace("{version_path}", replacer(McInstanceSelected.PathInstance)) : text = text.Replace("{verpath}", replacer(McInstanceSelected.PathInstance))
+            text = text.Replace("{version_indie}", replacer(McInstanceSelected.PathIndie)) : text = text.Replace("{verindie}", replacer(McInstanceSelected.PathIndie))
+            text = text.Replace("{name}", replacer(McInstanceSelected.Name))
+            If {"unknown", "old", "pending"}.Contains(McInstanceSelected.Info.VanillaName) Then
+                text = text.Replace("{version}", replacer(McInstanceSelected.Name))
+            Else
+                text = text.Replace("{version}", replacer(McInstanceSelected.Info.VanillaName))
+            End If
+        Else
+            text = text.Replace("{version_path}", replacer(Nothing)) : text = text.Replace("{verpath}", replacer(Nothing))
+            text = text.Replace("{version_indie}", replacer(Nothing)) : text = text.Replace("{verindie}", replacer(Nothing))
+            text = text.Replace("{name}", replacer(Nothing))
+            text = text.Replace("{version}", replacer(Nothing))
+        End If
+        '验证信息
+        If McLoginLoader.State = LoadState.Finished Then
+            text = text.Replace("{user}", replacer(McLoginLoader.Output.Name))
+            text = text.Replace("{uuid}", replacer(McLoginLoader.Output.Uuid.ToLower))
+            Select Case McLoginLoader.Input.Type
+                Case McLoginType.Legacy
+                    text = text.Replace("{login}", replacer("离线"))
+                Case McLoginType.Ms
+                    text = text.Replace("{login}", replacer("正版"))
+                Case McLoginType.Auth
+                    text = text.Replace("{login}", replacer("Authlib-Injector"))
+            End Select
+        Else
+            text = text.Replace("{user}", replacer(Nothing))
+            text = text.Replace("{uuid}", replacer(Nothing))
+            text = text.Replace("{login}", replacer(Nothing))
+        End If
+        '高级
+        text = text.RegexReplaceEach("\{hint\}", Function() replacer(PageToolsTest.GetRandomHint()))
+        text = text.RegexReplaceEach("\{cave\}", Function() replacer(PageToolsTest.GetRandomCave()))
+        text = text.RegexReplaceEach("\{setup:([a-zA-Z0-9]+)\}", Function(m) replacer(Setup.GetSafe(m.Groups(1).Value, McInstanceSelected)))
+        text = text.RegexReplaceEach("\{varible:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
+        text = text.RegexReplaceEach("\{variable:([^\}]+)\}", Function(m) replacer(CustomEvent.GetCustomVariable(m.Groups(1).Value)))
+        Return text
+    End Function
 #End Region
 
 #Region "任务缓存"
@@ -1073,6 +1146,7 @@ NextFile:
                     RunInUiWait(AddressOf TimerMain)
                     Thread.Sleep(50 * 0.98)
                 Loop
+            Catch ignore As OperationCanceledException
             Catch ex As Exception
                 Log(ex, "程序主时钟出错", LogLevel.Feedback)
             End Try

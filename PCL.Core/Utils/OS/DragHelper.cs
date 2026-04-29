@@ -1,20 +1,18 @@
-﻿// reshaper disable all
-#pragma warning disable all
-
-using System;
-using System.Buffers;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Interop;
 
 namespace PCL.Core.Utils.OS;
 
-public unsafe partial class DragHelper
+// ReSharper disable InconsistentNaming
+public partial class DragHelper
 {
     public event EventHandler? DragDrop;
 
     public string[]? DropFilePaths { get; private set; }
-    public DragPoint DropDragPoint { get; private set; }
+    public Point DropDragPoint { get; private set; }
 
     public HwndSource? HwndSource { get; set; }
 
@@ -60,7 +58,7 @@ public unsafe partial class DragHelper
         if (TryGetDropInfo(msg, wParam, out var files, out var pt))
         {
             DropFilePaths = files;
-            DropDragPoint = pt;
+            DropDragPoint = new Point(pt.X, pt.Y);
             DragDrop?.Invoke(this, EventArgs.Empty);
             handled = true;
         }
@@ -72,34 +70,32 @@ public unsafe partial class DragHelper
 
     #region Message filter (UAC)
 
-    private static void ChangeMessageFilter(IntPtr hwnd)
+    private static unsafe void ChangeMessageFilter(IntPtr hwnd)
     {
-        Version ver = Environment.OSVersion.Version;
+        var ver = Environment.OSVersion.Version;
         if (ver < new Version(6, 0))
             return;
 
-        bool win7OrHigher = ver >= new Version(6, 1);
+        var win7OrHigher = ver >= new Version(6, 1);
 
         var filter = new CHANGEFILTERSTRUCT
         {
             cbSize = (uint)sizeof(CHANGEFILTERSTRUCT)
         };
 
-        uint[] messages =
-        {
+        uint[] messages = [
             WM_DROPFILES,
             WM_COPYGLOBALDATA,
             WM_COPYDATA
-        };
+        ];
 
-        foreach (uint msg in messages)
+        foreach (var msg in messages)
         {
-            bool ok = win7OrHigher
+            var ok = win7OrHigher
                 ? ChangeWindowMessageFilterEx(hwnd, msg, MSGFLT_ALLOW, ref filter)
                 : ChangeWindowMessageFilter(msg, MSGFLT_ADD);
 
-            if (!ok)
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (!ok) throw new Win32Exception(Marshal.GetLastWin32Error());
         }
     }
 
@@ -119,14 +115,19 @@ public unsafe partial class DragHelper
         if (msg != WM_DROPFILES)
             return false;
 
-        var count = DragQueryFile(hDrop, uint.MaxValue, out _, 0);
+        var count = DragQueryFile(hDrop, uint.MaxValue, IntPtr.Zero, 0);
         filePaths = new string[count];
-        
+
+        const int maxPath = 32768, smallerMaxPath = 1024;
+
+        Span<char> gBuffer = stackalloc char[smallerMaxPath];
         for (uint i = 0; i < count; i++)
         {
-            var len = DragQueryFile(hDrop, i, out _, 0);
-            DragQueryFile(hDrop, i, out var pathPtr, len + 1);
-            filePaths[i] = Marshal.PtrToStringUTF8(pathPtr) ?? "";
+            var len = DragQueryFile(hDrop, i, IntPtr.Zero, 0) + 1;
+            if (len > maxPath) len = maxPath;
+            var buffer = len <= smallerMaxPath ? gBuffer[..(int)len] : new char[len];
+            _ = DragQueryFile(hDrop, i, buffer, len);
+            filePaths[i] = new string(buffer[..(int)(len - 1)]);
         }
 
         DragFinish(hDrop);
@@ -163,48 +164,39 @@ public unsafe partial class DragHelper
         IntPtr hwnd,
         [MarshalAs(UnmanagedType.Bool)] bool accept);
 
+    [LibraryImport("shell32.dll", EntryPoint = "DragQueryFileW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial uint DragQueryFile(IntPtr hDrop, uint iFile, Span<char> lpszFile, uint cch);
+    
     [LibraryImport("shell32.dll", EntryPoint = "DragQueryFileW")]
-    private static partial uint DragQueryFile(
-        IntPtr hDrop,
-        uint iFile,
-        out IntPtr lpszFile,
-        uint cch);
+    private static partial uint DragQueryFile(IntPtr hDrop, uint iFile, IntPtr lpszFile, uint cch);
 
     [LibraryImport("shell32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool DragQueryPoint(
-        IntPtr hDrop,
-        out DragPoint pt);
-
-    [LibraryImport("shell32.dll")]
-    private static partial void DragFinish(
-        IntPtr hDrop);
+    private static partial void DragFinish(IntPtr hDrop);
 
     [LibraryImport("ole32.dll")]
-    private static partial int RevokeDragDrop(
-        IntPtr hwnd);
+    private static partial int RevokeDragDrop(IntPtr hwnd);
 
     [LibraryImport("shell32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool IsUserAnAdmin();
 
     #endregion
+
+    #region Structs
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct DragPoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CHANGEFILTERSTRUCT
+    {
+        public uint cbSize;
+        public uint ExtStatus;
+    }
+
+    #endregion
 }
-
-#region Structs
-
-[StructLayout(LayoutKind.Sequential)]
-public struct DragPoint
-{
-    public int X;
-    public int Y;
-}
-
-[StructLayout(LayoutKind.Sequential)]
-internal struct CHANGEFILTERSTRUCT
-{
-    public uint cbSize;
-    public uint ExtStatus;
-}
-
-#endregion

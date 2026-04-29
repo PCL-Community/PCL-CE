@@ -1,5 +1,5 @@
-﻿Imports System.Net.Http
-Imports PCL.Core.IO.Net.Http.Client
+Imports System.Net.Http
+Imports PCL.Core.IO.Net.Http.Client.Request
 Imports PCL.Core.Minecraft.Yggdrasil
 Imports PCL.Core.Utils
 Imports PCL.Core.Utils.Exts
@@ -75,25 +75,28 @@ Public Class PageLoginAuth
             TextServerName.Visibility = Visibility.Hidden
             Exit Sub
         End If
-        Dispatcher.BeginInvoke(Async Function() As Task
-            Dim serverUri As String = Nothing
-            Dim serverName As String = Nothing
-            Try
-                serverUri = Await ApiLocation.TryRequestAsync(serverUriInput)
-                Dim response = Await HttpRequestBuilder.Create(serverUri, HttpMethod.Get).SendAsync()
-                Dim responseText As String = Await response.AsStringAsync()
-                serverName = Await Task.Run(Function() JObject.Parse(responseText)("meta")("serverName").ToString())
-            Catch ex As Exception
-                Log(ex, "从服务器获取名称失败", LogLevel.Debug)
-            End Try
-            If serverUri IsNot Nothing Then TextServer.Text = serverUri
-            If serverName Is Nothing Then
-                TextServerName.Visibility = Visibility.Hidden
-            Else
-                TextServerName.Text = "验证服务器: " & serverName
-                TextServerName.Visibility = Visibility.Visible
-            End If
-        End Function)
+        Dispatcher.BeginInvoke(
+            Async Function() As Task
+                Dim serverUri As String = Nothing
+                Dim serverName As String = Nothing
+                Try
+                    serverUri = Await ApiLocation.TryRequestAsync(serverUriInput)
+                    Using resp = Await HttpRequest.Create(serverUri).SendAsync()
+                        Dim responseText As String = Await resp.AsStringAsync()
+                        serverName = Await Task.Run(Function() JObject.Parse(responseText)("meta")("serverName").ToString())
+                    End Using
+                Catch ex As Exception
+                    Log(ex, "从服务器获取名称失败", LogLevel.Debug)
+                End Try
+
+                If serverUri IsNot Nothing Then TextServer.Text = serverUri
+                If serverName Is Nothing Then
+                    TextServerName.Visibility = Visibility.Hidden
+                Else
+                    TextServerName.Text = "验证服务器: " & serverName
+                    TextServerName.Visibility = Visibility.Visible
+                End If
+            End Function)
     End Sub
     '链接处理
     Private Sub ComboName_TextChanged() Handles TextName.TextChanged

@@ -6,20 +6,20 @@
 
 # PCL Community Edition
 
-[![Stars](https://img.shields.io/github/stars/PCL-Community/PCL2-CE?style=flat&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTggLjI1YS43NS43NSAwIDAgMSAuNjczLjQxOGwxLjg4MiAzLjgxNSA0LjIxLjYxMmEuNzUuNzUgMCAwIDEgLjQxNiAxLjI3OWwtMy4wNDYgMi45Ny43MTkgNC4xOTJhLjc1MS43NTEgMCAwIDEtMS4wODguNzkxTDggMTIuMzQ3bC0zLjc2NiAxLjk4YS43NS43NSAwIDAgMS0xLjA4OC0uNzlsLjcyLTQuMTk0TC44MTggNi4zNzRhLjc1Ljc1IDAgMCAxIC40MTYtMS4yOGw0LjIxLS42MTFMNy4zMjcuNjY4QS43NS43NSAwIDAgMSA4IC4yNVoiIGZpbGw9IiNlYWM1NGYiLz48L3N2Zz4=&logoSize=auto&label=stars&labelColor=444444&color=eac54f)](https://github.com/PCL-Community/PCL2-CE/)
-![GitHub Release](https://img.shields.io/github/v/release/PCL-Community/PCL2-CE?label=release&logo=github)
-[![Issues](https://img.shields.io/github/issues/PCL-Community/PCL2-CE?style=flat&label=issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/issues)
-[![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL2-CE?style=flat&label=pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL2-CE/pulls)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL2-CE/build-test.yml)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL2-CE/total)
+[![Stars](https://img.shields.io/github/stars/PCL-Community/PCL-CE?style=flat&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTggLjI1YS43NS43NSAwIDAgMSAuNjczLjQxOGwxLjg4MiAzLjgxNSA0LjIxLjYxMmEuNzUuNzUgMCAwIDEgLjQxNiAxLjI3OWwtMy4wNDYgMi45Ny43MTkgNC4xOTJhLjc1MS43NTEgMCAwIDEtMS4wODguNzkxTDggMTIuMzQ3bC0zLjc2NiAxLjk4YS43NS43NSAwIDAgMS0xLjA4OC0uNzlsLjcyLTQuMTk0TC44MTggNi4zNzRhLjc1Ljc1IDAgMCAxIC40MTYtMS4yOGw0LjIxLS42MTFMNy4zMjcuNjY4QS43NS43NSAwIDAgMSA4IC4yNVoiIGZpbGw9IiNlYWM1NGYiLz48L3N2Zz4=&logoSize=auto&label=stars&labelColor=444444&color=eac54f)](https://github.com/PCL-Community/PCL-CE/)
+![GitHub Release](https://img.shields.io/github/v/release/PCL-Community/PCL-CE?label=release&logo=github)
+[![Issues](https://img.shields.io/github/issues/PCL-Community/PCL-CE?style=flat&label=issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL-CE/issues)
+[![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL-CE?style=flat&label=pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL-CE/pulls)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL-CE/build-test.yml)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PCL-Community/PCL-CE/total)
 [![哔哩哔哩](https://img.shields.io/badge/动态-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[社区版下载](https://github.com/PCL-Community/PCL2-CE/releases/latest) |
+[社区版下载](https://github.com/PCL-Community/PCL-CE/releases/latest) |
 [上游存储库](https://github.com/Meloong-Git/PCL) |
 [帮助文档库](https://github.com/PCL-Community/PCL2CEHelp)
 
-[提交问题](https://github.com/PCL-Community/PCL2-CE/issues/new/choose) |
-[贡献指南](https://github.com/PCL-Community/PCL2-CE/wiki/开发指南)
+[提交问题](https://github.com/PCL-Community/PCL-CE/issues/new/choose) |
+[贡献指南](https://github.com/PCL-Community/PCL-CE/wiki/开发指南)
 
 </div>
 
@@ -56,15 +56,15 @@ PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。
 
 ## 🔒 许可证
 
-- `Plain Craft Launcher 2/` 使用 [自定义许可证](https://github.com/PCL-Community/PCL2-CE/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
-- `其余所有目录` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE)
+- `Plain Craft Launcher 2/` 使用 [自定义许可证](https://github.com/PCL-Community/PCL-CE/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
+- `其余所有目录` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE)
 
 ## 🌟 统计数据
 ![Alt](https://repobeats.axiom.co/api/embed/7780da7a2612e74751bdf872f507efe2ea132b3a.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL2-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL2-CE&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL-CE&Date)
 
-**此页浏览量**（总计 / 今日）：[![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2-CE&web=true)
+**此页浏览量**（总计 / 今日）：[![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE&web=true)
 ## ❤️ 贡献者
 
-[![](https://contrib.rocks/image?repo=PCL-Community/PCL2-CE)](https://github.com/PCL-Community/PCL2-CE/graphs/contributors)
+[![](https://contrib.rocks/image?repo=PCL-Community/PCL-CE)](https://github.com/PCL-Community/PCL-CE/graphs/contributors)

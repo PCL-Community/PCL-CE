@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.Link.McPing;
 
 namespace PCL.Core.Link.Lobby;
 
@@ -204,7 +205,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             {
                 if (!recordedPorts.TryAdd(info.Address.Port)) return;
 
-                using var pinger = new McPing(new IPEndPoint(IPAddress.Loopback, info.Address.Port));
+                using var pinger = McPingServiceFactory.CreateService(new IPEndPoint(IPAddress.Loopback, info.Address.Port));
                 using var cts = new CancellationTokenSource(2000);
 
                 try

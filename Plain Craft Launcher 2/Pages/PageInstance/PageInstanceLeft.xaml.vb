@@ -155,7 +155,7 @@ Public Class PageInstanceLeft
             Case FormMain.PageSubType.VersionMod
                 PageInstanceCompResource.Refresh(CompType.Mod)
             Case FormMain.PageSubType.VersionScreenshot
-                PageInstanceScreenshot.Refresh()
+                Dim ignore = PageInstanceScreenshot.Refresh()
             Case FormMain.PageSubType.VersionWorld
                 PageInstanceSaves.Refresh()
             Case FormMain.PageSubType.VersionResourcePack

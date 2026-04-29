@@ -366,7 +366,7 @@ Public Class PageInstanceInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop > 0 AndAlso VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
@@ -387,7 +387,7 @@ Public Class PageInstanceInstall
             End If
         End If
         'Fabric
-        If VanillaDrop <= 130 Then
+        If VanillaDrop > 0 AndAlso VanillaDrop <= 130 Then
             CardFabric.Visibility = Visibility.Collapsed
         Else
             CardFabric.Visibility = Visibility.Visible
@@ -1126,6 +1126,9 @@ Public Class PageInstanceInstall
     ''' </summary>
     Private Function LoadForgeGetError() As String
         If CompareVersionGe("1.5.1", _vanillaName) AndAlso CompareVersionGe(_vanillaName, "1.1") Then Return "无可用版本"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName <> "Forge" Then
+            Return $"与 {SelectedLoaderName} 不兼容"
+        End If
         '检查 Loader
         If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
         Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
@@ -1266,9 +1269,9 @@ Public Class PageInstanceInstall
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Cleanroom" Then Return $"与 {SelectedLoaderName} 不兼容"
         '检查 Loader
-        If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
+        If GetLoaderError(LoadCleanroom) IsNot Nothing Then Return GetLoaderError(LoadCleanroom)
         '检查版本
-        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
+        Return If(DlCleanroomListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -2004,7 +2007,11 @@ Public Class PageInstanceInstall
         SelectedLabyModCommitRef = Nothing
         SelectedLabyModVersion = Nothing
         SelectedLabyModChannel = Nothing
-        SelectedLoaderName = Nothing
+        
+        If SelectedLoaderName = "LabyMod" Then
+            SelectedLoaderName = Nothing
+        End If
+        
         SelectedAPIName = Nothing
         CardLabyMod.IsSwapped = True
         e.Handled = True

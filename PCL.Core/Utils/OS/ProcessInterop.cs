@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
@@ -39,7 +39,12 @@ public class ProcessInterop {
     public static Process? Start(string path, string? arguments = null, bool runAsAdmin = false) {
         var psi = new ProcessStartInfo(path);
         if (arguments != null) psi.Arguments = arguments;
-        if (runAsAdmin) psi.Verb = "runas";
+        if (runAsAdmin)
+        {
+            psi.UseShellExecute = true;
+            psi.Verb = "runas";
+        }
+
         return Process.Start(psi);
     }
 

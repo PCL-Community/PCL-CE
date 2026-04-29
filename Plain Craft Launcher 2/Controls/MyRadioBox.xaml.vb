@@ -93,6 +93,7 @@ Public Class MyRadioBox
             If IsChanged Then
                 If Checked Then RaiseEvent Check(Me, New RouteEventArgs(user))
                 RaiseEvent Changed(Me, New RouteEventArgs(user))
+                RaiseCustomEvent()
             End If
 
             '更改动画

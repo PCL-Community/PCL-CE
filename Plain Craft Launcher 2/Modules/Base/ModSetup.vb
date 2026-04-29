@@ -1,7 +1,9 @@
 Imports System.Reflection
 Imports System.Windows.Media.Effects
+Imports PCL.Core.App
 Imports PCL.Core.App.Configuration
 Imports PCL.Core.IO.Net.Http.Client
+Imports PCL.Core.UI.Theme
 
 Public Class ModSetup
     Implements IConfigScope
@@ -49,6 +51,17 @@ Public Class ModSetup
     Public Sub [Set](key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
         GetConfigItem(key).SetValueNoType(value, instance?.PathInstance)
     End Sub
+    
+    ''' <summary>
+    ''' 写入某个未经加密的设置项。
+    ''' 若该设置项经过了加密，则会抛出异常。
+    ''' </summary>
+    Public Sub SetSafe(key As String, value As Object, Optional forceReload As Boolean = False, Optional instance As McInstance = Nothing)
+        Dim item As ConfigItem = Nothing
+        If Not ConfigService.TryGetConfigItemNoType(key, item) Then Return
+        If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止写入加密设置项：" & Key)
+        [Set](key, value, forceReload, instance)
+    End Sub
 
     ''' <summary>
     ''' 应用某个设置项的值。
@@ -67,6 +80,17 @@ Public Class ModSetup
         Return GetConfigItem(key).GetValueNoType(instance?.PathInstance)
     End Function
 
+    ''' <summary>
+    ''' 获取某个未经加密的设置项的值。
+    ''' 若该设置项经过了加密，则会抛出异常。
+    ''' </summary>
+    Public Function GetSafe(key As String, Optional instance As McInstance = Nothing)
+        Dim item As ConfigItem = Nothing
+        If Not ConfigService.TryGetConfigItemNoType(key, item) Then Return Nothing
+        If item.Source = ConfigSource.SharedEncrypt Then Throw New InvalidOperationException("禁止读取加密设置项：" & key)
+        Return [Get](key, instance)
+    End Function
+    
     ''' <summary>
     ''' 初始化某个设置项的值。
     ''' </summary>
@@ -268,8 +292,7 @@ Public Class ModSetup
                 FrmSetupUI.HintCustom.Visibility = Visibility.Visible
                 FrmSetupUI.HintCustomWarn.Visibility = If(Setup.Get("HintCustomWarn"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupUI.HintCustom.Text = $"从 PCL 文件夹下的 Custom.xaml 读取主页内容。{vbCrLf}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。"
-                FrmSetupUI.HintCustom.EventType = ""
-                FrmSetupUI.HintCustom.EventData = ""
+                CustomEventService.SetEventType(FrmSetupUI.HintCustom, CustomEvent.EventType.None)
             Case 2 '联网
                 FrmSetupUI.PanCustomPreset.Visibility = Visibility.Collapsed
                 FrmSetupUI.PanCustomLocal.Visibility = Visibility.Collapsed
@@ -277,8 +300,8 @@ Public Class ModSetup
                 FrmSetupUI.HintCustom.Visibility = Visibility.Visible
                 FrmSetupUI.HintCustomWarn.Visibility = If(Setup.Get("HintCustomWarn"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupUI.HintCustom.Text = $"从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。{vbCrLf}如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！"
-                FrmSetupUI.HintCustom.EventType = "打开网页"
-                FrmSetupUI.HintCustom.EventData = "https://github.com/Meloong-Git/PCL/discussions/2528"
+                CustomEventService.SetEventType(FrmSetupUI.HintCustom, CustomEvent.EventType.打开网页)
+                CustomEventService.SetEventData(FrmSetupUI.HintCustom, "https://github.com/Meloong-Git/PCL/discussions/2528")
             Case 3 '预设
                 FrmSetupUI.PanCustomPreset.Visibility = Visibility.Visible
                 FrmSetupUI.PanCustomLocal.Visibility = Visibility.Collapsed
@@ -321,11 +344,17 @@ Public Class ModSetup
     End Sub
     '顶部栏
     Public Sub UiLogoType(Value As Integer)
+        If ThemeService.CurrentTheme = ColorTheme.HmclBlue Then
+            Value = 4
+        End If
         Select Case Value
             Case 0 '无
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Collapsed
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible
@@ -334,8 +363,11 @@ Public Class ModSetup
                 End If
             Case 1 '默认
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -344,8 +376,11 @@ Public Class ModSetup
                 End If
             Case 2 '文本
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Visible
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -355,8 +390,11 @@ Public Class ModSetup
                 Setup.Load("UiLogoText", True)
             Case 3 '图片
                 FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.ImageTitleLogo.Visibility = Visibility.Visible
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed
                 FrmMain.CELogo.Visibility = Visibility.Visible
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -369,6 +407,18 @@ Public Class ModSetup
                     FrmMain.ImageTitleLogo.Source = Nothing
                     Log(ex, "显示标题栏图片失败", LogLevel.Msgbox)
                 End Try
+            Case 4 'HMCL (愚人节)
+                FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible
+                FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed
+                FrmMain.BtnTitleHelp.Visibility = Visibility.Visible
+                FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible
+                If Not IsNothing(FrmSetupUI) Then
+                    FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
+                    FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed
+                    FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
+                End If
         End Select
         Setup.Load("UiLogoLeft", True)
         If Not IsNothing(FrmSetupUI) Then FrmSetupUI.CardLogo.TriggerForceResize()

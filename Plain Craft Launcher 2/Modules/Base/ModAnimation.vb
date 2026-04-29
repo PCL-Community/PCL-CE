@@ -13,7 +13,7 @@ Public Module ModAnimation
     ''' <summary>
     ''' 动画组列表。
     ''' </summary>
-    Public AniGroups As New Dictionary(Of String, AniGroupEntry)
+    Public AniGroups As New Concurrent.ConcurrentDictionary(Of String, AniGroupEntry)
     Public Class AniGroupEntry
         Public Data As List(Of AniData)
         Public StartTick As Long
@@ -752,7 +752,7 @@ Public Module ModAnimation
         Else
             AniStop(Name)
         End If
-        AniGroups.Add(Name, NewEntry)
+        AniGroups.TryAdd(Name, NewEntry)
     End Sub
     ''' <summary>
     ''' 开始一个动画组。
@@ -765,7 +765,7 @@ Public Module ModAnimation
     ''' </summary>
     ''' <param name="name">需要停止的动画组的名称。</param>
     Public Sub AniStop(Name As String)
-        AniGroups.Remove(Name)
+        AniGroups.Remove(Name, Nothing)
     End Sub
     ''' <summary>
     ''' 获取动画是否正在进行中。
@@ -831,6 +831,7 @@ Public Module ModAnimation
                                                    End If
                                                End Sub)
                                Loop
+                           Catch ignore As OperationCanceledException
                            Catch ex As Exception
                                Log(ex, "动画帧执行失败", LogLevel.Critical)
                            End Try
@@ -899,7 +900,7 @@ NextAni:
                     '为了允许动画在执行中添加同名动画组，不能按名字移除
                     For Current = 0 To AniGroups.Count - 1
                         If AniGroups.ElementAt(Current).Value.Uuid = Entry.Uuid Then
-                            AniGroups.Remove(AniGroups.ElementAt(Current).Key)
+                            AniGroups.Remove(AniGroups.ElementAt(Current).Key, Nothing)
                             Exit For
                         End If
                     Next

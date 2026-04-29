@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace PCL.Core.App.IoC;
 
@@ -33,6 +33,15 @@ public sealed class LifecycleServiceAttribute(LifecycleState startState) : Attri
 /// <typeparam name="TDependency">依赖类型</typeparam>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class DependencyCollectorAttribute<TDependency>(string identifier, AttributeTargets targets) : Attribute;
+
+/// <summary>
+/// 标记一个方法以自动生成注入操作，该方法需在 <see langword="partial"/> 类中。<br/>
+/// 自动生成的注入操作将收集依赖并调用该方法以注入，该方法第一个参数必须为依赖类型，其余参数需与对应依赖收集器匹配。
+/// </summary>
+/// <param name="identifier">依赖标记</param>
+/// <param name="lifecycleAutoInvoke">是否在生命周期启动时自动执行注入</param>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public sealed class DependencyInjectionPointAttribute(string identifier, bool lifecycleAutoInvoke = true) : Attribute;
 
 /// <summary>
 /// 标记一个 partial 类，自动实现 <see cref="ILifecycleService"/> 接口，并基于其他有标记的方法生成

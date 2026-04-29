@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,9 +13,7 @@ public class LoggerTest
     public void TestSimpleWrite()
     {
         var loggerOps = new LoggerConfiguration(
-            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"),
-            LoggerSegmentMode.BySize,
-            10 * 1024 * 1024);
+            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"));
         var logger = new Logger(loggerOps);
         for (var i = 0; i < 10; i++)
             logger.Info($"Current we got {i}");
@@ -27,7 +24,7 @@ public class LoggerTest
     {
         var loggerOps = new LoggerConfiguration(
             Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"));
-        var logger = new Logger(loggerOps);
+        await using var logger = new Logger(loggerOps);
         var tasks = new List<Task>();
         for (var i = 0; i < 25; i++)
         {
@@ -38,9 +35,10 @@ public class LoggerTest
                 {
                     logger.Info($"Current we got {current}:{j}");
                 }
-            }));
+            }, TestContext.CancellationToken));
         }
         await Task.WhenAll(tasks.ToArray());
-        logger.Dispose();
     }
+
+    public TestContext TestContext { get; set; }
 }

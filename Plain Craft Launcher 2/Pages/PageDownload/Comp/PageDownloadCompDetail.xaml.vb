@@ -118,7 +118,10 @@ GroupDone:
         ' UI 化筛选器
         PanInstanceFilter.Children.Clear()
         PanModLoaderFilter.Children.Clear()
-        If Not _pageType = CompType.Mod Then
+        If _pageType = CompType.Mod Then
+            PanInstanceFilter.Margin = New Thickness(10, 10, 0, 5)
+            PanModLoaderFilter.Margin = New Thickness(10, 5, 0, 10)
+        Else
             PanInstanceFilter.Margin = New Thickness(10, 10, 0, 10)
             PanModLoaderFilter.Margin = New Thickness(0)
         End If

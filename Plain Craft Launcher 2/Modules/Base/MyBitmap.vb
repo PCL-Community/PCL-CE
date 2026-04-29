@@ -1,4 +1,4 @@
-﻿'一个万能的自动图片类型转换工具类
+'一个万能的自动图片类型转换工具类
 
 Imports System.Drawing.Imaging
 Imports PCL.Core.UI.Media
@@ -72,7 +72,7 @@ Public Class MyBitmap
                 End If
             Else
                 '使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                Using picStream As New FileStream(FilePathOrResourceName, FileMode.Open)
+                Using picStream As New FileStream(FilePathOrResourceName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                     If picStream.Length > 2 AndAlso picStream.ReadByte() = 82 AndAlso picStream.ReadByte() = 73 Then
                         picStream.Seek(0, SeekOrigin.Begin)
                         '调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统

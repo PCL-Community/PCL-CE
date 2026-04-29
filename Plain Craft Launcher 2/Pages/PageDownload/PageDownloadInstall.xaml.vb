@@ -346,7 +346,7 @@ Public Class PageDownloadInstall
             CardCleanroom.Visibility = Visibility.Collapsed
         End If
         'NeoForge
-        If VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
+        If VanillaDrop > 0 AndAlso VanillaDrop < 200 Then '匹配 1.20.1+ 与一些愚人节版本
             CardNeoForge.Visibility = Visibility.Collapsed
         Else
             CardNeoForge.Visibility = Visibility.Visible
@@ -367,7 +367,7 @@ Public Class PageDownloadInstall
             End If
         End If
         'Fabric
-        If VanillaDrop <= 130 Then
+        If VanillaDrop > 0 AndAlso VanillaDrop <= 130 Then
             CardFabric.Visibility = Visibility.Collapsed
         Else
             CardFabric.Visibility = Visibility.Visible
@@ -404,7 +404,7 @@ Public Class PageDownloadInstall
             Else
                 BtnFabricApiClear.Visibility = Visibility.Visible
                 ImgFabricApi.Visibility = Visibility.Visible
-                LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")(1).Replace("Fabric API ", "").Replace(" build ", ".").Split("+").First.Trim
+                LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")(1).Replace("Fabric API ", "").Replace(" build ", ".").Trim
                 LabFabricApi.Foreground = ColorGray1
             End If
         End If
@@ -757,7 +757,7 @@ Public Class PageDownloadInstall
                                 Version("id") = "20w14∞"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))
-                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine"
+                            Case "3d shareware v1.34", "1.rv-pre1", "15w14a", "2.0", "22w13oneblockatatime", "23w13a_or_b", "24w14potato", "25w14craftmine", "26w14a"
                                 Type = "愚人节版"
                                 Version("type") = "special"
                                 Version.Add("lore", GetMcFoolName(Version("id")))
@@ -1007,6 +1007,9 @@ Public Class PageDownloadInstall
     ''' </summary>
     Private Function LoadForgeGetError() As String
         If CompareVersionGE("1.5.1", _vanillaName) AndAlso CompareVersionGE(_vanillaName, "1.1") Then Return "无可用版本"
+        If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName <> "Forge" Then
+            Return $"与 {SelectedLoaderName} 不兼容"
+        End If
         '检查 Loader
         If GetLoaderError(LoadForge) IsNot Nothing Then Return GetLoaderError(LoadForge)
         Dim loader As LoaderTask(Of String, List(Of DlForgeVersionEntry)) = LoadForge.State
@@ -1148,9 +1151,9 @@ Public Class PageDownloadInstall
         If SelectedOptiFine IsNot Nothing Then Return "与 OptiFine 不兼容"
         If SelectedLoaderName IsNot Nothing AndAlso SelectedLoaderName IsNot "Cleanroom" Then Return $"与 {SelectedLoaderName} 不兼容"
         '检查 Loader
-        If GetLoaderError(LoadNeoForge) IsNot Nothing Then Return GetLoaderError(LoadNeoForge)
+        If GetLoaderError(LoadCleanroom) IsNot Nothing Then Return GetLoaderError(LoadCleanroom)
         '检查版本
-        Return If(DlNeoForgeListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
+        Return If(DlCleanroomListLoader.Output.Value.Any(Function(v) v.Inherit = _vanillaName), Nothing, "无可用版本")
     End Function
 
     '限制展开
@@ -1279,33 +1282,11 @@ Public Class PageDownloadInstall
         Dim fabricApiName = fabricApi.DisplayName
         Try
             If fabricApiName Is Nothing OrElse _vanillaName Is Nothing Then Return False
-            fabricApiName = fabricApiName.ToLower : _vanillaName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower
-            If fabricApiName.StartsWith("[" & _vanillaName & "]") Then Return True
-            If Not fabricApiName.Contains("/") OrElse Not fabricApiName.Contains("]") Then Return False
-            '直接的判断（例如 1.18.1/22w03a）
-            For Each part As String In fabricApiName.BeforeFirst("]").TrimStart("[").Split("/")
-                If part = _vanillaName Then Return True
-            Next
-            '将版本名分割语素（例如 1.16.4/5）
-            Dim lefts = RegexSearch(fabricApiName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
-            Dim rights = RegexSearch(_vanillaName.BeforeFirst("]"), "[a-z/]+|[0-9/]+")
-            '对每段进行判断
-            Dim i As Integer = 0
-            While True
-                '两边均缺失，感觉是一个东西
-                If lefts.Count - 1 < i AndAlso rights.Count - 1 < i Then Return True
-                '确定两边是否一致
-                Dim leftValue As String = If(lefts.Count - 1 < i, "-1", lefts(i))
-                Dim rightValue As String = If(rights.Count - 1 < i, "-1", rights(i))
-                If Not leftValue.Contains("/") Then
-                    If leftValue <> rightValue Then Return False
-                Else
-                    '左边存在斜杠
-                    If Not leftValue.Contains(rightValue) Then Return False
-                End If
-                i += 1
-            End While
-            Return True
+            Dim targetName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower()
+            If FabricApi.RawGameVersions.Any(Function(f) f = targetName)
+                Return True
+            End If
+            Return False
         Catch ex As Exception
             Log(ex, "判断 Fabric API 版本适配性出错（" & FabricApiName & ", " & _vanillaName & "）")
             Return False
@@ -1887,7 +1868,11 @@ Public Class PageDownloadInstall
         SelectedLabyModCommitRef = Nothing
         SelectedLabyModVersion = Nothing
         SelectedLabyModChannel = Nothing
-        SelectedLoaderName = Nothing
+        
+        If SelectedLoaderName = "LabyMod" Then
+            SelectedLoaderName = Nothing
+        End If
+        
         SelectedAPIName = Nothing
         CardLabyMod.IsSwapped = True
         e.Handled = True
@@ -1915,7 +1900,7 @@ Public Class PageDownloadInstall
         Dim request As New McInstallRequest With {
             .TargetInstanceName = instanceName,
             .TargetInstanceFolder = $"{McFolderSelected}versions\{instanceName}\",
-            .MinecraftJson = _vanillaData("url").ToString(),
+            .MinecraftJson = _vanillaData?("url").ToString(),
             .MinecraftName = _vanillaName,
             .OptiFineEntry = SelectedOptiFine,
             .ForgeEntry = SelectedForge,

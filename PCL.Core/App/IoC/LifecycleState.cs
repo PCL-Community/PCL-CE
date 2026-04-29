@@ -1,4 +1,108 @@
-﻿namespace PCL.Core.App.IoC;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PCL.Core.App.IoC;
+
+partial class Lifecycle
+{
+    /// <summary>
+    /// 生命周期状态改变时触发的事件。<br/>
+    /// <b>非异步执行，请注意自行实现必要的异步，否则会卡住生命周期管理线程。</b>
+    /// </summary>
+    public static event Action<LifecycleState>? StateChanged;
+
+    /// <summary>
+    /// 当前的生命周期状态，会随生命周期变化随时更新。
+    /// </summary>
+    public static LifecycleState CurrentState
+    {
+        get;
+        private set
+        {
+            Context.Debug($"状态改变: {value}");
+            field = value;
+            try
+            {
+                StateChanged?.Invoke(value);
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("状态更改事件出错", ex);
+            }
+        }
+    } = LifecycleState.BeforeLoading;
+
+    private static void _NextState(LifecycleState? enforce = null)
+    {
+        if (enforce is { } state) CurrentState = state;
+        else CurrentState++;
+    }
+
+    /// <summary>
+    /// 阻塞当前线程并等待到达指定生命周期状态。
+    /// </summary>
+    /// <param name="state">指定生命周期状态</param>
+    /// <returns>
+    /// 是否真正“等待”过（若调用该方法时已经到达或晚于指定状态，则为 <c>false</c>）
+    /// </returns>
+    public static bool WaitForState(LifecycleState state)
+    {
+        if (CurrentState >= state) return false; // 如果已经是目标状态，直接返回
+        using var mre = new ManualResetEventSlim(false);
+        StateChanged += TempHandler;
+        try { mre.Wait(); } // 等待 Set() 方法
+        finally { StateChanged -= TempHandler; } // 取消订阅，避免内存泄漏或重复唤醒
+        return true;
+
+        void TempHandler(LifecycleState s)
+        {
+            // ReSharper disable once AccessToDisposedClosure
+            if (s == state) mre.Set();
+        }
+    }
+
+    /// <summary>
+    /// 异步等待到达指定生命周期状态。
+    /// </summary>
+    /// <param name="state">指定生命周期状态</param>
+    /// <returns>
+    /// 结果表示是否真正“等待”过的 <see cref="Task"/> 实例（若调用该方法时已经到达或晚于指定状态，则结果为 <c>false</c>）
+    /// </returns>
+    public static Task<bool> WaitForStateAsync(LifecycleState state)
+    {
+        if (CurrentState >= state) return Task.FromResult(false); // 如果已经是目标状态，则直接返回 false
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        StateChanged += TempHandler;
+        return tcs.Task;
+
+        void TempHandler(LifecycleState s)
+        {
+            if (s != state) return;
+            StateChanged -= TempHandler;
+            tcs.TrySetResult(true);
+        }
+    }
+
+    /// <summary>
+    /// 快速注册改变到目标生命周期状态的事件，与直接注册 <see cref="StateChanged"/> 的区别是会自动判断目标状态并自动移除事件注册。
+    /// </summary>
+    /// <param name="when">目标生命周期状态</param>
+    /// <param name="action">事件触发委托</param>
+    public static void When(LifecycleState when, Action action)
+    {
+        if (CurrentState >= when) return;
+        StateChanged += TempHandler;
+        return;
+
+        void TempHandler(LifecycleState state)
+        {
+            if (state != when) return;
+            action();
+            StateChanged -= TempHandler;
+        }
+    }
+}
 
 /// <summary>
 /// 生命周期状态

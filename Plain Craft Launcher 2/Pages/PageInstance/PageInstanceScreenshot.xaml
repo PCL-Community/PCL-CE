@@ -1,8 +1,9 @@
 ﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    mc:Ignorable="d" x:Class="PageInstanceScreenshot"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageInstanceScreenshot"
     PanScroll="{Binding ElementName=PanBack}" Grid.IsSharedSizeScope="True">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <Grid>
@@ -20,10 +21,16 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center" Text="暂时没有截图文件" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
-                    <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
-                    <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5" Text="在游戏内按下截图键（默认为 F2）后，可在此处查看保存的截图" TextWrapping="Wrap" />
-                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" Click="BtnOpenFolder_Click" MinWidth="140" Text="打开截图文件夹" Margin="10,10,10,0" Padding="13,0" ColorType="Highlight" />
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
+                               Text="暂时没有截图文件" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
+                               Text="在游戏内按下截图键（默认为 F2）后，可在此处查看保存的截图" TextWrapping="Wrap" />
+                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center"
+                                    x:Name="BtnOpenFolderTop" MinWidth="140" Text="打开截图文件夹" Margin="10,10,10,0"
+                                    Padding="13,0" ColorType="Highlight" />
                 </Grid>
             </local:MyCard>
             <StackPanel Orientation="Vertical" Margin="10,25,10,10" x:Name="PanContent">
@@ -33,7 +40,8 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开截图文件夹" Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left" Click="BtnOpenFolder_Click" ColorType="Highlight"/>
+                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开截图文件夹" Padding="13,0" Margin="0,0,20,0"
+                                        HorizontalAlignment="Left" x:Name="BtnOpenFolder"  ColorType="Highlight" />
                     </Grid>
                 </local:MyCard>
                 <WrapPanel Margin="8,0,8,25" Name="PanList" HorizontalAlignment="Center" Orientation="Horizontal">

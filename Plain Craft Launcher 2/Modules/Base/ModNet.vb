@@ -1006,7 +1006,6 @@ StartThread:
             Try
                 Dim httpDataCount As Integer = 0
                 If SourcesOnce.Contains(th.Source) AndAlso Not th.Equals(th.Source.SingleThread) Then GoTo SourceBreak
-                ' 使用 HttpClient 替代 HttpWebRequest
                 Dim request As New HttpRequestMessage(HttpMethod.Get, th.Source.Url)
                 SecretHeadersSign(th.Source.Url, request, UseBrowserUserAgent, Me.CustomUserAgent)
                 If Not th.IsFirstThread OrElse th.DownloadStart <> 0 Then request.Headers.Range = New Headers.RangeHeaderValue(th.DownloadStart, Nothing)
@@ -1440,11 +1439,17 @@ Retry:
                 If State >= NetState.Finished Then Return
                 State = NetState.Interrupted
             End SyncLock
+
             InterruptAndDelete()
         End Sub
         Private Sub InterruptAndDelete()
             'On Error Resume Next
-            If File.Exists(LocalPath) Then File.Delete(LocalPath)
+            Try
+                If File.Exists(LocalPath) Then File.Delete(LocalPath)
+            Catch ex As Exception
+                Log(ex, $"[Download] 尝试删除文件 {LocalPath} 失败，忽略错误", LogLevel.Normal)
+            End Try
+
             SyncLock NetManager.LockRemain
                 NetManager.FileRemain -= 1
                 Log($"[Download] {LocalName}：状态 {State}，剩余文件 {NetManager.FileRemain}")

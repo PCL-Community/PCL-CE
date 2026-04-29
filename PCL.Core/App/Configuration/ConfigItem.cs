@@ -58,6 +58,10 @@ public class ConfigItem<TValue>(
 
     private ConfigValueCache<TValue> _valueCache = new();
 
+    /// <summary>
+    /// 指定是否启用缓存。<br/>
+    /// <b>NOTE</b>: 禁用缓存将造成一些功能（如自动监听内容更改）不按预期工作，请仅在真正需要的时候禁用。
+    /// </summary>
     public bool EnableCache
     {
         get;
@@ -72,23 +76,24 @@ public class ConfigItem<TValue>(
     /// 处理看起来是新的值，并返回是否真的是新的。<br/>
     /// 只有启用缓存时该方法才会生效，未启用缓存将始终直接返回 <see langword="true"/>。
     /// </summary>
-    private bool _ProcessNewCache(TValue newCache, object? argument)
+    private bool _ProcessNewCache(TValue newCache, object? argument, bool force = false)
     {
         if (!EnableCache) return true;
-        var existsOld = _valueCache.TryRead(out var oldCache, argument);
-        if (existsOld)
+        if (!force)
         {
-            // 判断一下是否是新值
-            if (EqualityComparer<TValue>.Default.Equals(oldCache, newCache)) return false;
-            // 对新缓存值执行准备工作
-            if (newCache is INotifyPropertyChanged reactive)
-                reactive.PropertyChanged += (_, _) => OnContentChanged();
-            else if (newCache is INotifyCollectionChanged reactiveCollection)
-                reactiveCollection.CollectionChanged += (_, _) => OnContentChanged();
+            // 判断是否是新值
+            var existsOld = _valueCache.TryRead(out var oldCache, argument);
+            if (existsOld && EqualityComparer<TValue>.Default.Equals(oldCache, newCache)) return false;
         }
+        // 对新缓存值执行准备工作
+        if (newCache is INotifyPropertyChanged reactive)
+            reactive.PropertyChanged += (_, _) => OnContentChanged();
+        else if (newCache is INotifyCollectionChanged reactiveCollection)
+            reactiveCollection.CollectionChanged += (_, _) => OnContentChanged();
+        // 写入缓存
         _valueCache.Write(newCache, argument);
         return true;
-        void OnContentChanged() => SetValue(newCache, argument, true);
+        void OnContentChanged() => SetValue(newCache, argument, bypassCache: true);
     }
 
     /// <summary>
@@ -127,9 +132,10 @@ public class ConfigItem<TValue>(
     /// </summary>
     /// <param name="value">用于设置的值</param>
     /// <param name="argument">上下文参数</param>
-    /// <param name="bypassCacheCheck">跳过缓存检查，<b>将造成一些功能不按预期工作，请仅在真正需要的时候指定该参数</b></param>
+    /// <param name="forceNewValue">强制将传入的值视为新值，不检查缓存，仅在 <see cref="EnableCache"/> 为 <see langword="true"/> 时生效</param>
+    /// <param name="bypassCache">跳过缓存检查和写入，相当于对本次操作临时将 <see cref="EnableCache"/> 设为 <see langword="false"/></param>
     /// <returns>是否成功设置值，若成功则为 <c>true</c></returns>
-    public bool SetValue(TValue value, object? argument = null, bool bypassCacheCheck = false)
+    public bool SetValue(TValue value, object? argument = null, bool forceNewValue = false, bool bypassCache = false)
     {
         var e = _TriggerEvent(ConfigEvent.Set, argument, value, isPreview: true);
         if (e != null)
@@ -137,7 +143,8 @@ public class ConfigItem<TValue>(
             if (e.Cancelled) return false;
             if (e.NewValueReplacement != null) value = (TValue)e.NewValueReplacement;
         }
-        if (bypassCacheCheck || _ProcessNewCache(value, argument)) _Provider.SetValue(Key, value, argument);
+        if (bypassCache || _ProcessNewCache(value, argument, forceNewValue))
+            _Provider.SetValue(Key, value, argument);
         _TriggerEvent(ConfigEvent.Set, argument, value, e: e, isPreview: false);
         return true;
     }
@@ -157,9 +164,9 @@ public class ConfigItem<TValue>(
         }
     }
 
-    public bool SetDefaultValue(object? argument = null)
+    public bool SetDefaultValue(object? argument = null, bool? forceNewValue = null)
     {
-        return SetValue(DefaultValue, argument);
+        return SetValue(DefaultValue, argument, forceNewValue ?? IsDefault(argument));
     }
 
     public bool Reset(object? argument = null)
@@ -333,8 +340,9 @@ public interface ConfigItem
     /// 将配置项的值设置为默认值，设置后 <see cref="IsDefault"/> 将返回 <c>false</c>。
     /// </summary>
     /// <param name="argument">上下文参数</param>
+    /// <param name="forceNewValue">强制视为新值，不检查缓存，仅在 <see cref="EnableCache"/> 为 <see langword="true"/> 时生效</param>
     /// <returns>是否成功设置值，若成功则为 <c>true</c></returns>
-    public bool SetDefaultValue(object? argument = null);
+    public bool SetDefaultValue(object? argument = null, bool? forceNewValue = null);
 
     /// <summary>
     /// 没有泛型的 <see cref="ConfigItem{T}.GetValue"/>。<br/>

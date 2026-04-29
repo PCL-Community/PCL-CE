@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL.Core.Link.Natayark;
 
@@ -56,15 +56,15 @@ public static class NatayarkProfileManager
 
                 var httpContent = new StringContent(requestData, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                using var oauthResponse = await HttpRequestBuilder
-                    .Create("https://account.naids.com/api/oauth2/token", HttpMethod.Post)
+                using var oauthResponse = await HttpRequest
+                    .CreatePost("https://account.naids.com/api/oauth2/token")
                     .WithContent(httpContent)
-                    .SendAsync(true).ConfigureAwait(false);
+                    .SendAsync()
+                    .ConfigureAwait(false);
+                oauthResponse.EnsureSuccessStatusCode();
 
-                var result = await oauthResponse.AsStringAsync().ConfigureAwait(false);
-
-                if (result == null) throw new Exception("获取 AccessToken 与 RefreshToken 失败，返回内容为空");
-
+                var result = await oauthResponse.AsStringAsync().ConfigureAwait(false) 
+                    ?? throw new Exception("获取 AccessToken 与 RefreshToken 失败，返回内容为空");
                 var data = JsonNode.Parse(result);
                 var accessToken = data?["access_token"]?.ToString();
                 var refreshToken = data?["refresh_token"]?.ToString();
@@ -78,16 +78,17 @@ public static class NatayarkProfileManager
                 var expiresAt = data["refresh_token_expires_at"]!.ToString();
 
                 // 获取用户信息
-                using var userDataResponse = await HttpRequestBuilder
-                    .Create("https://account.naids.com/api/api/user/data", HttpMethod.Get)
+                using var userDataResponse = await HttpRequest
+                    .Create("https://account.naids.com/api/api/user/data")
                     .WithBearerToken(NaidProfile.AccessToken)
-                    .SendAsync(true).ConfigureAwait(false);
+                    .SendAsync()
+                    .ConfigureAwait(false);
+                userDataResponse.EnsureSuccessStatusCode();
 
-                var receivedUserData = await userDataResponse.AsStringAsync();
-                if (receivedUserData == null) throw new Exception("获取 Natayark 用户信息失败，返回内容为空");
-
-                var userData = JsonNode.Parse(receivedUserData)?["data"];
-                if (userData == null) throw new Exception("获取 Natayark 用户信息失败，解析返回内容失败");
+                var receivedUserData = await userDataResponse.AsStringAsync()
+                    ?? throw new Exception("获取 Natayark 用户信息失败，返回内容为空");
+                var userData = (JsonNode.Parse(receivedUserData)?["data"])
+                    ?? throw new Exception("获取 Natayark 用户信息失败，解析返回内容失败");
 
                 NaidProfile.Id = userData["id"]?.GetValue<int>() ?? 0;
                 NaidProfile.Username = userData["username"]?.ToString() ?? string.Empty;

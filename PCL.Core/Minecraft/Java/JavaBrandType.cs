@@ -3,9 +3,9 @@
 public enum JavaBrandType
 {
     EclipseTemurin,
-    Bellsoft,
-    AzulZulu,
-    AmazonCorretto,
+    Liberica,
+    Zulu,
+    Corretto,
     Microsoft,
     IBMSemeru,
     Oracle,
