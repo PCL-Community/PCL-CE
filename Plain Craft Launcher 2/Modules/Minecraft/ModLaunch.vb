@@ -1326,9 +1326,14 @@ LoginFinish:
 
         'Cleanroom 检测
         If McInstanceSelected.Info.HasCleanroom Then
-            '需要至少 Java 21
-            If ModeDebug Then Log("[Launch] [Debug] Cleanroom 要求至少 Java 21")
-            minVer = If(New Version(21, 0, 0, 0) > minVer, New Version(21, 0, 0, 0), minVer)
+            Dim cleanroomVersion = new Version(McInstanceSelected.Info.Cleanroom.Split("-"c)(0))
+            If cleanroomVersion < new Version(0, 5, 0, 0) Then
+                If ModeDebug Then Log("[Launch] [Debug] Cleanroom0.5之前的版本 要求至少 Java 21")
+                minVer = If(New Version(21, 0, 0, 0) > minVer, New Version(21, 0, 0, 0), minVer)
+            Else 
+                If ModeDebug Then Log("[Launch] [Debug] Cleanroom0.5及之后版本 要求至少 Java 25")
+                minVer = If(New Version(25, 0, 0, 0) > minVer, New Version(25, 0, 0, 0), minVer)
+            End If
         End If
 
         'Fabric 检测
