@@ -59,7 +59,7 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj" \
+          dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" \
           -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
           -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
 
