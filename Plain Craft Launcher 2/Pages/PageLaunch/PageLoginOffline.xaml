@@ -1,8 +1,8 @@
-﻿<Grid x:Class="PageLoginOffline" Tag="False"
+﻿<Grid x:Class="PCL.PageLoginOffline" Tag="False"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:PCL"
       mc:Ignorable="d" d:DesignWidth="317.6" Margin="0,0,0,-2">
     <Grid.RowDefinitions>
@@ -18,27 +18,34 @@
         <RowDefinition Height="30" />
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="50"/>
+        <ColumnDefinition Width="50" />
         <ColumnDefinition />
     </Grid.ColumnDefinitions>
     <TextBlock Text="玩家 ID" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" />
     <local:MyTextBox Grid.Row="0" Grid.Column="1" Height="28" x:Name="TextName" ToolTip="3 - 16 位，只可以包含英文字母、数字与下划线" />
-    <TextBlock Grid.Row="2" Grid.Column="1" Text="UUID 标准" TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold"/>
+    <TextBlock Grid.Row="2" Grid.Column="1" Text="UUID 标准" TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />
     <Grid Margin="-40,0,0,0" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="85" />
             <ColumnDefinition Width="85" />
             <ColumnDefinition Width="85" />
         </Grid.ColumnDefinitions>
-        <local:MyRadioBox Grid.Column="0" Text="行业规范" x:Name="RadioUuidStandard" Checked="True" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                          ToolTip="[推荐] 生成的 UUID 与 HMCL、BakaXL 和 Bukkit 等其他软件一致"/>
-        <local:MyRadioBox Grid.Column="1" Text="旧版" x:Name="RadioUuidLegacy" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" 
+        <local:MyRadioBox Grid.Column="0" Text="行业规范" x:Name="RadioUuidStandard" Checked="True" Height="22"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" Check="RadioUuid_Checked"
+                          ToolTip="[推荐] 生成的 UUID 与 HMCL、BakaXL 和 Bukkit 等其他软件一致" />
+        <local:MyRadioBox Grid.Column="1" Text="旧版" x:Name="RadioUuidLegacy" Height="22" HorizontalAlignment="Center"
+                          VerticalAlignment="Center" Check="RadioUuid_Checked"
                           ToolTip="使用旧版 PCL 的 UUID 生成规则&#xa;若从旧版 PCL 升级，且单人存档的部分信息丢失，可尝试此项" />
-        <local:MyRadioBox Grid.Column="2" Text="自定义" x:Name="RadioUuidCustom" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                          ToolTip="适用于高级用户，如果你不知道这是什么，请不要选择此项"/>
+        <local:MyRadioBox Grid.Column="2" Text="自定义" x:Name="RadioUuidCustom" Height="22" HorizontalAlignment="Center"
+                          VerticalAlignment="Center" Check="RadioUuid_Checked"
+                          ToolTip="适用于高级用户，如果你不知道这是什么，请不要选择此项" />
     </Grid>
-    <TextBlock Text="UUID" Grid.Row="6" x:Name="TextUuidTitle" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
-    <local:MyTextBox Grid.Row="6" Grid.Column="1" Height="28" Visibility="Collapsed" x:Name="TextUuid" ToolTip="应为 32 位 16 进制字符串，不含连字符" />
-    <local:MyButton x:Name="BtnBack" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,-40,0,40" ColorType="Normal" Text="返回" HorizontalAlignment="Center"/>
-    <local:MyButton x:Name="BtnLogin" Grid.Row="9" Grid.Column="1" Width="50" Margin="20,-40,0,40" ColorType="Highlight" Text="创建" HorizontalAlignment="Center"/>
+    <TextBlock Text="UUID" Grid.Row="6" x:Name="TextUuidTitle" HorizontalAlignment="Center" VerticalAlignment="Center"
+               Visibility="Collapsed" />
+    <local:MyTextBox Grid.Row="6" Grid.Column="1" Height="28" Visibility="Collapsed" x:Name="TextUuid"
+                     ToolTip="应为 32 位 16 进制字符串，不含连字符" />
+    <local:MyButton x:Name="BtnBack" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,-40,0,40" ColorType="Normal"
+                    Text="返回" HorizontalAlignment="Center" />
+    <local:MyButton x:Name="BtnLogin" Grid.Row="9" Grid.Column="1" Width="50" Margin="20,-40,0,40"
+                    ColorType="Highlight" Text="创建" HorizontalAlignment="Center" />
 </Grid>

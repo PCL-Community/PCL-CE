@@ -1,17 +1,18 @@
 <local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    mc:Ignorable="d" x:Class="PageSetupGameLink"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageSetupGameLink"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
             <local:MyCard Margin="0,15" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
-                    <local:MyHint Text="修改此处的设置后，需要重新启动大厅以使设置生效。" Theme="Yellow" Margin="0,0,0,10"/>
+                    <local:MyHint Text="修改此处的设置后，需要重新启动大厅以使设置生效。" Theme="Yellow" Margin="0,0,0,10" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="TextBlock"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="TextBlock" />
                             <ColumnDefinition Width="8" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
@@ -35,8 +36,11 @@
                             <!--<RowDefinition Height="4" />
                         <RowDefinition Height="35" />-->
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="用户名" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextLinkUsername" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkUsername" Grid.Column="2" ToolTip="PCL CE 会尽可能使用此处的用户名用于大厅信息展示。&#xa;若留空，则使用 Natayark ID 的用户名。&#xa;&#xa;部分情况下可能始终展示 Natayark ID 用户名，而非此处设置的名称。"/>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="用户名"
+                                   Margin="0,0,25,0" />
+                        <local:MyTextBox x:Name="TextLinkUsername" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkUsername"
+                                         Grid.Column="2" TextChanged="TextBoxChange"
+                                         ToolTip="PCL CE 会尽可能使用此处的用户名用于大厅信息展示。&#xa;若留空，则使用 Natayark ID 的用户名。&#xa;&#xa;部分情况下可能始终展示 Natayark ID 用户名，而非此处设置的名称。" />
                         <!--<TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义节点" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="2" Grid.ColumnSpan="2" Tag="LinkRelayServer" Grid.Column="2" HintText="一般应以 tcp:// 或 udp:// 开头；若有多个，请使用英文分号分割">
                         <local:MyTextBox.ValidateRules>
@@ -57,24 +61,34 @@
                         <local:MyComboBoxItem Content="自有节点 + 社区节点 协助中继" ToolTip="除自有节点外，添加由 PCL CE 挑选的部分 EasyTier 社区提供的节点。&#xa;这些节点由社区志愿者部署，可能可以提供更快的连接速度。"/>
                         <local:MyComboBoxItem Content="不使用预设节点中继 (谨慎选择)" ToolTip="不使用任何预设节点中继数据。&#xa;联机双方将需要添加至少一个相同的自定义节点才可以连接。&#xa;这要求你具备一定技术能力且有特殊需要，在绝大多数情况下不要选择此选项！"/>
                     </local:MyComboBox>-->
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="协议偏好"/>
-                        <local:MyComboBox x:Name="ComboPreferProtocol" Tag="LinkProtocolPreference" Grid.Row="2" Grid.Column="2">
-                            <local:MyComboBoxItem Content="TCP" ToolTip="让 EasyTier 优先使用 TCP 进行通信，TCP 通常能带来更好的稳定性"/>
-                            <local:MyComboBoxItem Content="UDP" ToolTip="让 EasyTier 优先使用 UDP 进行通信，UDP 通常能带来更低的通信时延"/>
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="协议偏好" />
+                        <local:MyComboBox x:Name="ComboPreferProtocol" Tag="LinkProtocolPreference" Grid.Row="2"
+                                          SelectionChanged="LinkProtocolPerferenceChange"
+                                          Grid.Column="2">
+                            <local:MyComboBoxItem Content="TCP" ToolTip="让 EasyTier 优先使用 TCP 进行通信，TCP 通常能带来更好的稳定性" />
+                            <local:MyComboBoxItem Content="UDP" ToolTip="让 EasyTier 优先使用 UDP 进行通信，UDP 通常能带来更低的通信时延" />
                         </local:MyComboBox>
-                        <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="4" Grid.ColumnSpan="3" Text="选择最低延迟路径而不是最短路径" ToolTip="启用后，EasyTier 将在通信时选择延迟最低的路径，而不是路由跳数最少的路径。&#xa;启用此选项在部分情况下能降低联机时的延迟，但可能会提高丢包率。"/>
-                        <local:MyCheckBox x:Name="CheckTryPunchSym" Tag="LinkTryPunchSym" Grid.Row="5" Grid.ColumnSpan="3" Text="对对称型 NAT 进行端口猜测" ToolTip="让 EasyTier 尝试对对称型 NAT 进行端口猜测（生日悖论）。&#xa;这也许可以改善联机体验，但在部分情况下也可能导致一些问题。&#xa;一般保持开启即可。"/>
-                        <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="6" Grid.ColumnSpan="3" Text="允许使用 IPv6 通信" ToolTip="IPv6 相比于 IPv4 更加容易进行 P2P 通信，能极大改善联机体验，除有特殊原因外不建议关闭。"/>
-                        <local:MyCheckBox x:Name="CheckEnableCliOutput" Tag="LinkEnableCliOutput" Grid.Row="7" Grid.ColumnSpan="3" Text="在日志中输出 Cli 信息以用于调试" ToolTip="在启动器日志中每 30s 输出一次 EasyTier Cli 信息以便于开发者和社区支持调查。&#xa;该选项仅用于调试目的，不推荐一直开启。"/>
+                        <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="4"
+                                          Grid.ColumnSpan="3" Text="选择最低延迟路径而不是最短路径" Change="CheckBoxChange"
+                                          ToolTip="启用后，EasyTier 将在通信时选择延迟最低的路径，而不是路由跳数最少的路径。&#xa;启用此选项在部分情况下能降低联机时的延迟，但可能会提高丢包率。" />
+                        <local:MyCheckBox x:Name="CheckTryPunchSym" Tag="LinkTryPunchSym" Grid.Row="5"
+                                          Grid.ColumnSpan="3" Text="对对称型 NAT 进行端口猜测" Change="CheckBoxChange"
+                                          ToolTip="让 EasyTier 尝试对对称型 NAT 进行端口猜测（生日悖论）。&#xa;这也许可以改善联机体验，但在部分情况下也可能导致一些问题。&#xa;一般保持开启即可。" />
+                        <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="6"
+                                          Grid.ColumnSpan="3" Text="允许使用 IPv6 通信" Change="CheckBoxChange"
+                                          ToolTip="IPv6 相比于 IPv4 更加容易进行 P2P 通信，能极大改善联机体验，除有特殊原因外不建议关闭。" />
+                        <local:MyCheckBox x:Name="CheckEnableCliOutput" Tag="LinkEnableCliOutput" Grid.Row="7"
+                                          Grid.ColumnSpan="3" Text="在日志中输出 Cli 信息以用于调试" Change="CheckBoxChange"
+                                          ToolTip="在启动器日志中每 30s 输出一次 EasyTier Cli 信息以便于开发者和社区支持调查。&#xa;该选项仅用于调试目的，不推荐一直开启。" />
                         <!--<local:MyButton Grid.Row="17" HorizontalAlignment="Left" Grid.ColumnSpan="3" Width="120" Text="社区节点列表" EventType="打开网页" EventData="https://uptime.easytier.cn/" ColorType="Highlight" ToolTip="查看 EasyTier 社区提供的节点。&#xa;你也可以在此页面提交自己的节点，以帮助整个社区优化连接。"/>-->
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="10" Title="网络测试" Grid.Column="0" Visibility="Collapsed">
+            <local:MyCard Margin="10" Title="网络测试" Visibility="Collapsed">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="8" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
@@ -88,7 +102,9 @@
                         <TextBlock x:Name="TextUdpNatType" Text="UDP NAT 类型: 尚未检测" Grid.Row="0" />
                         <TextBlock x:Name="TextTcpNatType" Text="TCP NAT 类型: 尚未检测" Grid.Row="1" />
                         <TextBlock x:Name="TextIpv6Status" Text="IPv6: 尚未检测" Grid.Row="2" />
-                        <local:MyButton x:Name="BtnNetTest" Text="开始测试" Grid.Row="4" ColorType="Highlight" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+                        <local:MyButton x:Name="BtnNetTest" Text="开始测试" Grid.Row="4" ColorType="Highlight"
+                                        Click="BtnNetTest_Click"
+                                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
