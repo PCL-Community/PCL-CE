@@ -288,7 +288,7 @@ public partial class PageInstanceSetup
         var RamAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
         var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
         var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
-        var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        var RamEmpty = Math.Round(Math.Clamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
         // 设置最大可用内存
         if (RamTotal <= 1.5d)
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));

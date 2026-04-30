@@ -395,6 +395,26 @@ public struct NColor :
 
     public Brush ToBrush() => ToSolidColorBrush();
 
+    /// <summary>
+    /// 从任意对象安全提取 <see cref="NColor"/>。
+    /// 支持 <see cref="Color"/>、<see cref="SolidColorBrush"/>、<see cref="Brush"/>、<see cref="NColor"/> 类型。
+    /// 传入 <see langword="null"/> 时返回白色。
+    /// </summary>
+    /// <exception cref="InvalidCastException">当对象类型不受支持时抛出。</exception>
+    public static NColor FromObject(object? value)
+    {
+        return value switch
+        {
+            null => new NColor(255f, 255f, 255f, 255f),
+            NColor n => n,
+            Color c => new NColor(c),
+            SolidColorBrush sb => new NColor(sb),
+            Brush b => new NColor((SolidColorBrush)b),
+            _ => throw new InvalidCastException(
+                $"Cannot convert {value.GetType().FullName ?? "unknown"} to {nameof(NColor)}. " +
+                $"Supported types: {nameof(NColor)}, {nameof(Color)}, {nameof(SolidColorBrush)}, {nameof(Brush)}.")
+        };
+    }
 
     #endregion
 

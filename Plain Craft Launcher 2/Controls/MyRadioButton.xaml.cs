@@ -245,7 +245,7 @@ public partial class MyRadioButton
                             if (Checked)
                             {
                                 // 勾选
-                                var color3 = new NColor(ModSecret.AppResources["ColorObject3"]);
+                                var color3 = NColor.FromObject(ModSecret.AppResources["ColorObject3"]);
                                 ModAnimation.Start(
                                     new[]
                                     {
@@ -264,7 +264,7 @@ public partial class MyRadioButton
                                 // 按下
                                 ModAnimation.Start(
                                     ModAnimation.AaColor(this, BackgroundProperty,
-                                        new NColor(120, new NColor(ModSecret.AppResources["ColorObject8"])) - Background, 60),
+                                        new NColor(120, NColor.FromObject(ModSecret.AppResources["ColorObject8"])) - Background, 60),
                                     "MyRadioButton Color " + Uuid);
                             }
                             else if (IsMouseOver)
@@ -281,7 +281,7 @@ public partial class MyRadioButton
                                     }, "MyRadioButton Checked " + Uuid);
                                 ModAnimation.Start(
                                     ModAnimation.AaColor(this, BackgroundProperty,
-                                        new NColor(50, new NColor(ModSecret.AppResources["ColorObject8"])) - Background,
+                                        new NColor(50, NColor.FromObject(ModSecret.AppResources["ColorObject8"])) - Background,
                                         AnimationTimeOfMouseIn), "MyRadioButton Color " + Uuid);
                             }
                             else
@@ -299,7 +299,7 @@ public partial class MyRadioButton
                                     }, "MyRadioButton Checked " + Uuid);
                                 ModAnimation.Start(
                                     ModAnimation.AaColor(this, BackgroundProperty,
-                                        new NColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                        NColor.FromObject(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
                                         Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                             }
 
@@ -358,7 +358,7 @@ public partial class MyRadioButton
                                     }, "MyRadioButton Checked " + Uuid);
                                 ModAnimation.Start(
                                     ModAnimation.AaColor(this, BackgroundProperty,
-                                        new NColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                        NColor.FromObject(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
                                         Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                             }
 

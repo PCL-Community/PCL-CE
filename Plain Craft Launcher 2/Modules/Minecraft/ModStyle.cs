@@ -1,11 +1,12 @@
+using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
+using PCL.Core.UI.Controls;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Newtonsoft.Json.Linq;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -204,49 +205,49 @@ internal static class ModStyle
                             // 格式化代码
                             case 'k':
                             case 'K': // 随机字符
-                            {
-                                IsRandomText = true;
-                                // 开始新的Run用于随机文本
-                                if (!string.IsNullOrEmpty(curRun.Text))
                                 {
-                                    curRun = new TimerRun();
-                                    lab.Inlines.Add(curRun);
-                                }
+                                    IsRandomText = true;
+                                    // 开始新的Run用于随机文本
+                                    if (!string.IsNullOrEmpty(curRun.Text))
+                                    {
+                                        curRun = new TimerRun();
+                                        lab.Inlines.Add(curRun);
+                                    }
 
-                                curRun.AutoStart = true;
-                                randomTextRuns.Add(curRun);
-                                break;
-                            }
+                                    curRun.AutoStart = true;
+                                    randomTextRuns.Add(curRun);
+                                    break;
+                                }
                             case 'l': // 粗体
-                            {
-                                HasBlodProperty = true;
-                                break;
-                            }
+                                {
+                                    HasBlodProperty = true;
+                                    break;
+                                }
                             case 'o': // 斜体
-                            {
-                                HasItalicProperty = true;
-                                break;
-                            }
+                                {
+                                    HasItalicProperty = true;
+                                    break;
+                                }
                             case 'n': // 下划线
-                            {
-                                HasStrickThroughProperty = true;
-                                break;
-                            }
+                                {
+                                    HasStrickThroughProperty = true;
+                                    break;
+                                }
                             case 'm': // 删除线
-                            {
-                                HasDeleteLineProperty = true;
-                                break;
-                            }
+                                {
+                                    HasDeleteLineProperty = true;
+                                    break;
+                                }
                             case 'r': // 重置
-                            {
-                                color = isDarkMode ? "#FFFFFF" : "#888888";
-                                HasBlodProperty = false;
-                                HasItalicProperty = false;
-                                HasStrickThroughProperty = false;
-                                HasDeleteLineProperty = false;
-                                IsRandomText = false;
-                                break;
-                            }
+                                {
+                                    color = isDarkMode ? "#FFFFFF" : "#888888";
+                                    HasBlodProperty = false;
+                                    HasItalicProperty = false;
+                                    HasStrickThroughProperty = false;
+                                    HasDeleteLineProperty = false;
+                                    IsRandomText = false;
+                                    break;
+                                }
                         }
 
                     if (!string.IsNullOrEmpty(curRun.Text) && c.ToString() != "k" && c.ToString() != "K") // 遇到格式代码但是有文本，重开一个Run

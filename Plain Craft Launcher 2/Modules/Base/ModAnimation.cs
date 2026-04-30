@@ -302,14 +302,15 @@ public static partial class ModAnimation
                 case AniType.Color:
                     {
                         // 利用 Last 记录了余下的小数值
-                        var Delta = MathUtils.Percent(new NColor(0, 0, 0, 0), (NColor)Ani.Value,
-                                        Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent)) +
-                                    (NColor)Ani.ValueLast;
+                        var valueFromObject = NColor.FromObject(Ani.Value);
+                        var Delta = MathUtils.Percent(new NColor(0, 0, 0, 0), 
+                            valueFromObject,
+                                        (float)(Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent) + (double)Ani.ValueLast));
                         var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
                         var Prop = (DependencyProperty)((dynamic)Ani.Obj)[1];
-                        var NewColor = new NColor(Obj.GetValue(Prop)) + Delta;
+                        var NewColor = NColor.FromObject(Obj.GetValue(Prop)) + Delta;
                         Obj.SetValue(Prop, Prop.PropertyType.Name == "Color" ? (Color)NewColor : (SolidColorBrush)NewColor);
-                        Ani.ValueLast = NewColor - new NColor(Obj.GetValue(Prop));
+                        Ani.ValueLast = NewColor - NColor.FromObject(Obj.GetValue(Prop));
                         break;
                     }
 
@@ -990,8 +991,8 @@ public static partial class ModAnimation
             TimeTotal = Time,
             Ease = Ease ?? new AniEaseLinear(),
             Obj = new object[] { Obj, Prop, Res },
-            Value = new NColor(System.Windows.Application.Current.FindResource(Res)) -
-                    new NColor(Obj.GetValue(Prop)),
+            Value = NColor.FromObject(System.Windows.Application.Current.FindResource(Res)) -
+                    NColor.FromObject(Obj.GetValue(Prop)),
             IsAfter = After,
             TimeFinished = -Delay,
             ValueLast = new NColor(0, 0, 0, 0)

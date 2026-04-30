@@ -306,26 +306,26 @@ public static class ModMain
                         DoubleStack = stack;
                 // 获取渐变颜色
                 NColor TargetColor0, TargetColor1;
-                var Percent = 0.3d;
+                var percent = 0.3f;
                 switch (CurrentHint.Type)
                 {
                     case HintType.Info:
                         {
-                            TargetColor0 = new NColor(215d, 37d, 155d, 252d);
-                            TargetColor1 = new NColor(215d, 10d, 142d, 252d);
+                            TargetColor0 = new NColor(215, 37, 155, 252);
+                            TargetColor1 = new NColor(215, 10, 142, 252);
                             break;
                         }
                     case HintType.Finish:
                         {
-                            TargetColor0 = new NColor(215d, 33d, 177d, 33d);
-                            TargetColor1 = new NColor(215d, 29d, 160d, 29d); // HintType.Critical
+                            TargetColor0 = new NColor(215, 33, 177, 33);
+                            TargetColor1 = new NColor(215, 29, 160, 29); // HintType.Critical
                             break;
                         }
 
                     default:
                         {
-                            TargetColor0 = new NColor(215d, 255d, 53d, 11d);
-                            TargetColor1 = new NColor(215d, 255d, 43d, 0d);
+                            TargetColor0 = new NColor(215, 255, 53, 11);
+                            TargetColor1 = new NColor(215, 255, 43, 0);
                             break;
                         }
                 }
@@ -337,7 +337,7 @@ public static class ModMain
                     if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
                     {
                         ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
-                        var Delay = (800d + ModBase.MathClamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
+                        var Delay = (800d + Math.Clamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
                                     ModAnimation.AniSpeed;
                         ModAnimation.Start(new[]
                             {
@@ -348,14 +348,14 @@ public static class ModMain
                                 ModAnimation.AaX(DoubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaDouble(i =>
                                 {
-                                    Percent += (double)i;
-                                    var Gradient = (LinearGradientBrush)DoubleStack.Background;
-                                    Gradient.GradientStops[0].Color = TargetColor0 * Percent +
-                                                                      new NColor(255d, 255d, 255d) *
-                                                                      (1d - Percent);
-                                    Gradient.GradientStops[1].Color = TargetColor1 * Percent +
-                                                                      new NColor(255d, 255d, 255d) *
-                                                                      (1d - Percent);
+                                    percent += (float)i;
+                                    var gradient = (LinearGradientBrush)DoubleStack.Background;
+                                    gradient.GradientStops[0].Color = TargetColor0 * percent +
+                                                                      new NColor(255, 255, 255) *
+                                                                      (1 - percent);
+                                    gradient.GradientStops[1].Color = TargetColor1 * percent +
+                                                                      new NColor(255, 255, 255) *
+                                                                      (1 - percent);
                                 }, 0.7d, 250),
                                 ModAnimation.AaX(DoubleStack, -50, 200, (int)Math.Round(Delay),
                                     new ModAnimation.AniEaseInFluent()),
@@ -384,16 +384,16 @@ public static class ModMain
                         Background = new LinearGradientBrush(
                             new GradientStopCollection(new List<GradientStop>
                             {
-                                new(TargetColor0 * Percent + new NColor(255d, 255d, 255d) * (1d - Percent),
+                                new(TargetColor0 * percent + new NColor(255, 255, 255) * (1 - percent),
                                     0d),
-                                new(TargetColor1 * Percent + new NColor(255d, 255d, 255d) * (1d - Percent), 1d)
+                                new(TargetColor1 * percent + new NColor(255, 255, 255) * (1 - percent), 1d)
                             }), 90d),
                         Child = new TextBlock
                         {
                             TextTrimming = TextTrimming.CharacterEllipsis,
                             FontSize = 13d,
                             Text = CurrentHint.Text,
-                            Foreground = new NColor(255d, 255d, 255d),
+                            Foreground = new NColor(255, 255, 255),
                             Margin = new Thickness(33d, 5d, 8d, 5d)
                         }
                     };
@@ -416,17 +416,17 @@ public static class ModMain
                         ModAnimation.AaOpacity(NewHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
-                            Percent += (double)i;
+                            percent += (float)i;
                             var Gradient = (LinearGradientBrush)NewHintControl.Background;
-                            Gradient.GradientStops[0].Color = TargetColor0 * Percent +
-                                                              new NColor(255d, 255d, 255d) * (1d - Percent);
-                            Gradient.GradientStops[1].Color = TargetColor1 * Percent +
-                                                              new NColor(255d, 255d, 255d) * (1d - Percent);
+                            Gradient.GradientStops[0].Color = TargetColor0 * percent +
+                                                              new NColor(255, 255, 255) * (1 - percent);
+                            Gradient.GradientStops[1].Color = TargetColor1 * percent +
+                                                              new NColor(255, 255, 255) * (1 - percent);
                         }, 0.7d, 250, 100)
                     ]);
                     ModAnimation.Start(Animations, $"Hint Show {newHintTag[1]}");
                     // 结束动画
-                    var Delay = (800d + ModBase.MathClamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
+                    var Delay = (800d + Math.Clamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
                                 ModAnimation.AniSpeed;
                     ModAnimation.Start(
                         new[]
@@ -1356,10 +1356,10 @@ public static class ModMain
             FrmLaunchLeft.AprilPosTrans.Y += AprilSpeed.Y;
             // 大小改变
             FrmLaunchLeft.AprilScaleTrans.ScaleX =
-                ModBase.MathClamp(1d - (Math.Abs(Direction.X) - Math.Abs(Direction.Y)) * (SpeedValue / 160d), 0.2d,
+                Math.Clamp(1d - (Math.Abs(Direction.X) - Math.Abs(Direction.Y)) * (SpeedValue / 160d), 0.2d,
                     1.8d);
             FrmLaunchLeft.AprilScaleTrans.ScaleY =
-                ModBase.MathClamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 100d), 0.2d,
+Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 100d), 0.2d,
                     1.8d);
             // 放弃提示
             if (AprilDistance > 4000)

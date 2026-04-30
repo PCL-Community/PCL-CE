@@ -1,9 +1,10 @@
+using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
+using PCL.Core.UI.Controls;
+using PCL.Network;
 using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
-using PCL.Core.UI.Controls;
-using PCL.Network;
 
 namespace PCL;
 
@@ -95,7 +96,8 @@ public partial class MyMsgLogin
                         Method = "POST",
                         Content = bodyData,
                         ContentType = "application/x-www-form-urlencoded",
-                        Timeout = 5000 + UnknownFailureCount * 5000, MakeLog = false
+                        Timeout = 5000 + UnknownFailureCount * 5000,
+                        MakeLog = false
                     });
                 // 获取结果
                 var ResultJson = (JObject)ModBase.GetJson(Result);
@@ -163,8 +165,8 @@ public partial class MyMsgLogin
             ModAnimation.Start(
                 ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (MyConverter.IsWarn
-                        ? new NColor(140d, 80d, 0d, 0d)
-                        : new NColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
+                        ? new NColor(140, 80, 0, 0)
+                        : new NColor(90, 0, 0, 0)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.Start(
                 new[]
@@ -195,7 +197,7 @@ public partial class MyMsgLogin
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.Start(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new NColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
+                        new NColor(0, 0, 0, 0) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),

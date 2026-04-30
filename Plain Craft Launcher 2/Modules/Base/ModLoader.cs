@@ -1,10 +1,9 @@
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
-using System.Collections;
+using PCL.Network;
 using System.IO;
 using System.Windows.Shell;
-using PCL.Network;
 
 namespace PCL;
 
@@ -90,7 +89,7 @@ public static class ModLoader
             if (!LoaderTaskbar.Any())
                 return 1d;
 
-            return ModBase.MathClamp(
+            return Math.Clamp(
                 LoaderTaskbar.Select(l => l.Progress).Average(),
                 0,
                 1
@@ -284,21 +283,21 @@ public static class ModLoader
                     switch (value)
                     {
                         case ModBase.LoadState.Loading:
-                        {
-                            LoadingState = MyLoading.MyLoadingState.Run;
-                            break;
-                        }
+                            {
+                                LoadingState = MyLoading.MyLoadingState.Run;
+                                break;
+                            }
                         case ModBase.LoadState.Failed:
-                        {
-                            LoadingState = MyLoading.MyLoadingState.Error;
-                            break;
-                        }
+                            {
+                                LoadingState = MyLoading.MyLoadingState.Error;
+                                break;
+                            }
 
                         default:
-                        {
-                            LoadingState = MyLoading.MyLoadingState.Stop;
-                            break;
-                        }
+                            {
+                                LoadingState = MyLoading.MyLoadingState.Stop;
+                                break;
+                            }
                     }
 
                     OnStateChangedUi?.Invoke(this, value, OldState);
@@ -324,18 +323,18 @@ public static class ModLoader
                 switch (State)
                 {
                     case ModBase.LoadState.Waiting:
-                    {
-                        return 0d;
-                    }
+                        {
+                            return 0d;
+                        }
                     case ModBase.LoadState.Loading:
-                    {
-                        return _Progress == -1 ? 0.02d : _Progress;
-                    }
+                        {
+                            return _Progress == -1 ? 0.02d : _Progress;
+                        }
 
                     default:
-                    {
-                        return 1d;
-                    }
+                        {
+                            return 1d;
+                        }
                 }
             }
             set
@@ -714,28 +713,28 @@ public static class ModLoader
                 switch (State)
                 {
                     case ModBase.LoadState.Waiting:
-                    {
-                        return 0d;
-                    }
-                    case ModBase.LoadState.Loading:
-                    {
-                        var Total = 0d;
-                        var Finished = 0d;
-                        foreach (var Loader in Loaders)
                         {
-                            Total += Loader.ProgressWeight;
-                            Finished += Loader.ProgressWeight * Loader.Progress;
+                            return 0d;
+                        }
+                    case ModBase.LoadState.Loading:
+                        {
+                            var Total = 0d;
+                            var Finished = 0d;
+                            foreach (var Loader in Loaders)
+                            {
+                                Total += Loader.ProgressWeight;
+                                Finished += Loader.ProgressWeight * Loader.Progress;
+                            }
+
+                            if (Total == 0d)
+                                return 0d;
+                            return Finished / Total;
                         }
 
-                        if (Total == 0d)
-                            return 0d;
-                        return Finished / Total;
-                    }
-
                     default:
-                    {
-                        return 1d;
-                    }
+                        {
+                            return 1d;
+                        }
                 }
             }
             set => throw new Exception("多重加载器不支持设置进度");
@@ -790,49 +789,49 @@ public static class ModLoader
             switch (NewState)
             {
                 case ModBase.LoadState.Loading:
-                {
-                    break;
-                }
+                    {
+                        break;
+                    }
                 // 开始，啥都不干
                 case ModBase.LoadState.Waiting:
-                {
-                    break;
-                }
+                    {
+                        break;
+                    }
                 // 子加载器可能由于外部输入改变而暂时变为 Waiting，之后会立即重新启动
                 // 所以啥都不干就行
                 case ModBase.LoadState.Finished:
-                {
-                    // 正常结束，触发刷新
-                    Update();
-                    break;
-                }
+                    {
+                        // 正常结束，触发刷新
+                        Update();
+                        break;
+                    }
                 case ModBase.LoadState.Aborted:
-                {
-                    // 被中断，这个任务也中断
-                    Abort();
-                    break;
-                }
+                    {
+                        // 被中断，这个任务也中断
+                        Abort();
+                        break;
+                    }
 
                 default:
-                {
-                    // 完蛋，出错了
-                    lock (LockState)
                     {
-                        if (State >= ModBase.LoadState.Finished)
-                            return;
-                        Error = new Exception(Loader.Name + "失败", Loader.Error);
-                        State = Loader.State;
-                    }
+                        // 完蛋，出错了
+                        lock (LockState)
+                        {
+                            if (State >= ModBase.LoadState.Finished)
+                                return;
+                            Error = new Exception(Loader.Name + "失败", Loader.Error);
+                            State = Loader.State;
+                        }
 
-                    foreach (var currentLoader in Loaders)
-                    {
-                        Loader = currentLoader;
-                        Loader.Abort();
-                    }
+                        foreach (var currentLoader in Loaders)
+                        {
+                            Loader = currentLoader;
+                            Loader.Abort();
+                        }
 
-                    ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-                    return;
-                }
+                        ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
+                        return;
+                    }
             }
         }
 
@@ -854,55 +853,55 @@ public static class ModLoader
                 switch (loader.State)
                 {
                     case ModBase.LoadState.Finished:
-                    {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
                         {
-                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
-                                ? input
-                                : null;
-
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (loader.GetType().Name.StartsWithF("LoaderTask"))
                             {
-                                ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
-                                goto Restart;
+                                var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+                                var shouldInput = input != null && genericArg == input.GetType()
+                                    ? input
+                                    : null;
+
+                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                                {
+                                    ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
+                                    goto Restart;
+                                }
+
+                                input = ((dynamic)loader).Output;
                             }
 
-                            input = ((dynamic)loader).Output;
+                            if (loader.Block && !isFinished)
+                                blocked = true;
+
+                            break;
                         }
-
-                        if (loader.Block && !isFinished)
-                            blocked = true;
-
-                        break;
-                    }
 
                     case ModBase.LoadState.Loading:
-                    {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
                         {
-                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
-                                ? input
-                                : null;
-
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (loader.GetType().Name.StartsWithF("LoaderTask"))
                             {
-                                ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
-                                            + loader.Name,
-                                    ModBase.LogLevel.Developer);
-                                goto Restart;
-                            }
-                        }
+                                var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+                                var shouldInput = input != null && genericArg == input.GetType()
+                                    ? input
+                                    : null;
 
-                        isFinished = false;
-                        blocked = true;
-                        break;
-                    }
+                                if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                                {
+                                    ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
+                                                + loader.Name,
+                                        ModBase.LogLevel.Developer);
+                                    goto Restart;
+                                }
+                            }
+
+                            isFinished = false;
+                            blocked = true;
+                            break;
+                        }
 
                     default:
 
-                        Restart:
+                    Restart:
 
                         isFinished = false;
 

@@ -56,7 +56,7 @@ public partial class MySlider
         {
             try
             {
-                value = (int)Math.Round(ModBase.MathClamp(value, 0d, MaxValue));
+                value = (int)Math.Round(Math.Clamp(value, 0d, MaxValue));
                 if (_Value == value)
                     return;
 
@@ -161,18 +161,18 @@ public partial class MySlider
     public void DragDoing()
     {
         var Percent =
-            ModBase.MathClamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width), 0d,
+            Math.Clamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width), 0d,
                 1d);
         var NewValue = (int)Math.Round(Percent * MaxValue);
         if (!(NewValue == Value)) Value = NewValue;
         RefreshPopup();
     }
-    
+
     private void OnDragMouseMove(object sender, MouseEventArgs e)
     {
         DragDoing();
     }
-    
+
     public void DragStop()
     {
         MouseMove -= OnDragMouseMove;

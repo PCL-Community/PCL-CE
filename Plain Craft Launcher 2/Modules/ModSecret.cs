@@ -229,10 +229,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static NColor ColorGray1 = new(AppResources["ColorObjectGray1"]);
-    public static NColor ColorGray4 = new(AppResources["ColorObjectGray4"]);
-    public static NColor ColorGray5 = new(AppResources["ColorObjectGray5"]);
-    public static NColor ColorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
+    public static NColor ColorGray1 = NColor.FromObject(AppResources["ColorObjectGray1"]);
+    public static NColor ColorGray4 = NColor.FromObject(AppResources["ColorObjectGray4"]);
+    public static NColor ColorGray5 = NColor.FromObject(AppResources["ColorObjectGray5"]);
+    public static NColor ColorSemiTransparent = NColor.FromObject(AppResources["ColorBrushSemiTransparent"]);
 
     public static int ThemeNow = -1;
 
@@ -257,10 +257,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         // ThemeRefreshColor()
         // RaiseThemeChanged(IsDarkMode)
-        ColorGray1 = new NColor(AppResources["ColorObjectGray1"]);
-        ColorGray4 = new NColor(AppResources["ColorObjectGray4"]);
-        ColorGray5 = new NColor(AppResources["ColorObjectGray5"]);
-        ColorSemiTransparent = new NColor(AppResources["ColorBrushSemiTransparent"]);
+        ColorGray1 = NColor.FromObject(AppResources["ColorObjectGray1"]);
+        ColorGray4 = NColor.FromObject(AppResources["ColorObjectGray4"]);
+        ColorGray5 = NColor.FromObject(AppResources["ColorObjectGray5"]);
+        ColorSemiTransparent = NColor.FromObject(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 
