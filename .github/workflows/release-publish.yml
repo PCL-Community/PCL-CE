@@ -26,9 +26,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - configuration: ${{ inputs.configuration}}
+          - configuration: ${{ inputs.configuration }}
             architecture: x64
-          - configuration: ${{ inputs.configuration}}
+          - configuration: ${{ inputs.configuration }}
             architecture: ARM64
       fail-fast: false
 
