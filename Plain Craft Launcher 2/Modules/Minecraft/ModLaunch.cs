@@ -1926,10 +1926,28 @@ public static class ModLaunch
         // Cleanroom 检测
         if (ModMinecraft.McInstanceSelected.Info.HasCleanroom)
         {
-            // 需要至少 Java 21
-            if (ModBase.ModeDebug)
-                ModBase.Log("[Launch] [Debug] Cleanroom 要求至少 Java 21");
-            minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+            Version cleanroomVersion;
+            try
+            {
+                cleanroomVersion = Version.Parse(ModMinecraft.McInstanceSelected.Info.Cleanroom.Split('-')[0]);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("cleanroom版本解析失败：" + ex.Message, ex);
+            }
+
+            if ( cleanroomVersion < new Version(0, 5, 0, 0))
+            {
+                if (ModBase.ModeDebug)
+                    ModBase.Log("[Launch] [Debug] Cleanroom0.5之前的版本 要求至少 Java 21");
+                minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+            }
+            else
+            {
+                if (ModBase.ModeDebug)
+                    ModBase.Log("[Launch] [Debug] Cleanroom0.5及之后版本 要求至少 Java 25");
+                minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
+            }
         }
 
         // Fabric 检测
@@ -2890,6 +2908,12 @@ public static class ModLaunch
         foreach (var Library in LibList)
         {
             if (Library.IsNatives)
+                continue;
+            if (ModMinecraft.McInstanceSelected.Info.HasCleanroom 
+                && Library.OriginalName is not null 
+                && (Library.OriginalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
+                    || Library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0")
+                    || Library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
                 continue;
             if (Library.Name is not null &&
                 Library.Name.Contains("com.cleanroommc:cleanroom:0.2")) // Cleanroom 的主 Jar 必须放在 ClassPath 第一位
