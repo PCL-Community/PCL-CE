@@ -343,8 +343,8 @@ namespace PCL
             }
         }
 
-        public static string GetCustomVariable(string name) =>
-            States.CustomVariables.TryGetValue(name, out var value) ? value : null;
+        public static string GetCustomVariable(string name, string defaultValue = "") =>
+            States.CustomVariables.TryGetValue(name, out var value) ? value : defaultValue;
 
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
