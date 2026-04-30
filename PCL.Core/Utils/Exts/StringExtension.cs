@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace PCL.Core.Utils.Exts;
@@ -42,7 +41,7 @@ public static class StringConvertExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse", 
+        var parse = targetType.GetMethod("Parse",
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
@@ -171,7 +170,7 @@ public static class StringExtension
 
     extension(string input)
     {
-          
+
         public T ParseToEnum<T>() where T : struct, Enum
         {
             if (String.IsNullOrWhiteSpace(input))
@@ -186,6 +185,18 @@ public static class StringExtension
             {
                 return Enum.Parse<T>(input, true);
             }
+        }
+
+        public string GetEnumName<T>(T content) where T : struct, Enum
+        {
+            return Enum.GetName(content.GetType(), content)!;
+        }
+
+        public bool TryGetEnumName<T>(T content, [NotNullWhen(true)] out string? result) where T : struct, Enum
+        {
+            var str = Enum.GetName(content.GetType(), content);
+            result = str;
+            return str is not null;
         }
     }
 

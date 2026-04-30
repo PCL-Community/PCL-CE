@@ -6,6 +6,7 @@
              xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
              xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
              xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
+             xmlns:converters="clr-namespace:PCL.Core.UI.Converters"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
@@ -17,7 +18,7 @@
             <KernelType x:Key="BlurType">Gaussian</KernelType>
 
             <!-- Converter -->
-            <local:AdditionConverter x:Key="AdditionConverter" />
+            <converters:AdditionConverter x:Key="AdditionConverter" />
             <local:MultiplicationConverter x:Key="MultiplicationConverter" />
             <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
             <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />

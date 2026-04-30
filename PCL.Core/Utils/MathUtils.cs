@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI;
 using PCL.Core.Utils.Exts;
 using System;
@@ -30,7 +29,7 @@ public static class MathUtils
         // 转换为十进制
         var realNum = 0L;
         var scale = 1L;
-        foreach (var digit in input.Reverse().Select(l => digits.IndexOfF(Conversions.ToString(l))))
+        foreach (var digit in input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
         {
             realNum += digit * scale;
             scale *= fromRadix;
