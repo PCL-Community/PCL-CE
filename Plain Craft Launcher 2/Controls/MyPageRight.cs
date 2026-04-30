@@ -180,7 +180,7 @@ public class MyPageRight : AdornerDecorator
                 else if (PageLoader.State == ModBase.LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
-                    ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
+                    ModAnimation.Start(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
                         "PageRight PageChange " + PageUuid);
                 }
                 else // PageLoader.State = LoadState.Failed
@@ -203,7 +203,7 @@ public class MyPageRight : AdornerDecorator
                 else if (PageLoader.State == ModBase.LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
-                    ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
+                    ModAnimation.Start(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
                         "PageRight PageChange " + PageUuid);
                 }
                 else // PageLoader.State = LoadState.Failed
@@ -369,7 +369,7 @@ public class MyPageRight : AdornerDecorator
             case PageStates.LoaderEnter:
             {
                 PageState = PageStates.LoaderStayForce;
-                ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderStayFinished, 400),
+                ModAnimation.Start(ModAnimation.AaCode(PageOnLoaderStayFinished, 400),
                     "PageRight PageChange " + PageUuid);
                 break;
             }
@@ -601,7 +601,7 @@ public class MyPageRight : AdornerDecorator
 
         // 结束
         AniList.Add(ModAnimation.AaCode(() => PageOnEnterAnimationFinished(), After: true));
-        ModAnimation.AniStart(AniList, "PageRight PageChange " + PageUuid, true);
+        ModAnimation.Start(AniList, "PageRight PageChange " + PageUuid, true);
     }
 
     // 逐个退出动画
@@ -641,7 +641,7 @@ public class MyPageRight : AdornerDecorator
                 Element.Visibility = Visibility.Collapsed;
             PageOnExitAnimationFinished();
         }, After: true));
-        ModAnimation.AniStart(AniList, "PageRight PageChange " + PageUuid);
+        ModAnimation.Start(AniList, "PageRight PageChange " + PageUuid);
     }
 
     /// <summary>

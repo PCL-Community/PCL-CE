@@ -55,12 +55,12 @@ public class MyScrollViewer : ScrollViewer
         if (Application.ShowingTooltips.Count > 0)
             foreach (var TooltipBorder in Application.ShowingTooltips)
                 // 建议：如果动画已经在执行，则不再重复触发
-                ModAnimation.AniStart(ModAnimation.AaOpacity(TooltipBorder, -1, 100), TooltipHideId);
+                ModAnimation.Start(ModAnimation.AaOpacity(TooltipBorder, -1, 100), TooltipHideId);
     }
 
     public void PerformVerticalOffsetDelta(double Delta)
     {
-        ModAnimation.AniStart(ModAnimation.AaDouble(AnimDelta =>
+        ModAnimation.Start(ModAnimation.AaDouble(AnimDelta =>
         {
             RealOffset = ModBase.MathClamp(RealOffset + (double)AnimDelta, 0d, ExtentHeight - ActualHeight);
             ScrollToVerticalOffset(RealOffset);

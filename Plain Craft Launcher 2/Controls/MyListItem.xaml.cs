@@ -123,7 +123,7 @@ public partial class MyListItem : IMyRadio
                     });
             }
 
-            ModAnimation.AniStart(Ani, "ListItem Color " + Uuid);
+            ModAnimation.Start(Ani, "ListItem Color " + Uuid);
         }
         else
         {
@@ -870,7 +870,7 @@ public partial class MyListItem : IMyRadio
                     Anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
                 }
 
-                ModAnimation.AniStart(Anim, "MyListItem Checked " + Uuid);
+                ModAnimation.Start(Anim, "MyListItem Checked " + Uuid);
             }
             else
             {

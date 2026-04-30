@@ -158,7 +158,7 @@ public partial class PageToolsHelp : IRefreshable
         if (string.IsNullOrWhiteSpace(SearchBox.Text))
         {
             // 隐藏
-            ModAnimation.AniStart(new[]
+            ModAnimation.Start(new[]
             {
                 ModAnimation.AaOpacity(PanSearch, -PanSearch.Opacity, 100),
                 ModAnimation.AaCode(() =>
@@ -213,7 +213,7 @@ public partial class PageToolsHelp : IRefreshable
             }
 
             // 显示
-            ModAnimation.AniStart(new[]
+            ModAnimation.Start(new[]
             {
                 ModAnimation.AaOpacity(PanList, -PanList.Opacity, 100),
                 ModAnimation.AaCode(() =>

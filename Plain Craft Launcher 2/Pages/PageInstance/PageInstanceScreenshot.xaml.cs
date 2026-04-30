@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
+using PCL.Core.UI.Icons;
 using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
@@ -209,7 +210,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnOpen",
                     Text = "打开",
                     LogoScale = 0.8d,
-                    Logo = ModBase.Logo.IconButtonOpen,
+                    Logo = Logo.ButtonOpen,
                     Tag = i
                 };
                 btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
@@ -219,7 +220,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnDelete",
                     Text = "删除",
                     LogoScale = 0.8d,
-                    Logo = ModBase.Logo.IconButtonDelete,
+                    Logo = Logo.ButtonDelete,
                     Tag = i
                 };
                 btnDelete.Click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
@@ -229,14 +230,14 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnCopy",
                     Text = "复制",
                     LogoScale = 0.8d,
-                    Logo = ModBase.Logo.IconButtonCopy,
+                    Logo = Logo.ButtonCopy,
                     Tag = i
                 };
                 btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
                 myCard.Opacity = 0d;
-                ModAnimation.AniStart(new[] { ModAnimation.AaOpacity(myCard, 1d, 200) });
+                ModAnimation.Start(new[] { ModAnimation.AaOpacity(myCard, 1d, 200) });
             }
             catch (Exception ex)
             {

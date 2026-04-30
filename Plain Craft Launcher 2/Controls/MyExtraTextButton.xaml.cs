@@ -97,7 +97,7 @@ public partial class MyExtraTextButton
                 {
                     // 有了
                     Opacity = 0d;
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(this, 1d - Opacity, 80, 50),
@@ -109,7 +109,7 @@ public partial class MyExtraTextButton
                 else
                 {
                     // 没了
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(this, -Opacity, 50, 50),
@@ -140,7 +140,7 @@ public partial class MyExtraTextButton
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
@@ -153,7 +153,7 @@ public partial class MyExtraTextButton
 
     private void Button_LeftMouseUp()
     {
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
@@ -166,7 +166,7 @@ public partial class MyExtraTextButton
     private void Button_RightMouseUp(object sender, MouseEventArgs e)
     {
         if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
@@ -178,7 +178,7 @@ public partial class MyExtraTextButton
     private void Button_MouseLeave(object sender, MouseEventArgs e)
     {
         IsLeftMouseHeld = false;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
@@ -195,17 +195,17 @@ public partial class MyExtraTextButton
             {
                 if (!IsEnabled)
                     // 禁用
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", AnimationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", AnimationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else
                     // 普通
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", AnimationColorOut),
                         "MyExtraTextButton Color " + Uuid);
             }

@@ -84,7 +84,7 @@ public partial class MyCompItem
                 });
             }
 
-            ModAnimation.AniStart(Ani, "CompItem Color " + Uuid);
+            ModAnimation.Start(Ani, "CompItem Color " + Uuid);
         }
         else
         {

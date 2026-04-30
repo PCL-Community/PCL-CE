@@ -1,3 +1,10 @@
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.UI.Icons;
+using PCL.Core.UI.Theme;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -5,12 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.UI.Theme;
-using PCL.Network;
-using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 
 namespace PCL;
@@ -276,14 +277,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         };
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -291,7 +292,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonDelete, Tag = sender };
         BtnDelete.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
@@ -300,7 +301,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonStop, Tag = sender };
+            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonStop, Tag = sender };
             BtnDisable.ToolTip = "禁用";
             ToolTipService.SetPlacement(BtnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnDisable, 30d);
@@ -310,7 +311,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonCheck, Tag = sender };
+            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonCheck, Tag = sender };
             BtnEnable.ToolTip = "启用";
             ToolTipService.SetPlacement(BtnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnEnable, 30d);
@@ -482,7 +483,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     BottomBarShownCount = NewCount;
                     // 出现/跳跃动画
                     CardSelect.Visibility = Visibility.Visible;
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
@@ -501,7 +502,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                         return;
                     BottomBarShownCount = 0;
                     // 隐藏动画
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
@@ -681,26 +682,26 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         switch (Choice)
         {
             case 1: // TXT
-            {
-                var ExportContent = new List<string>();
-                foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
-                    ExportContent.Add(DatapackEntity.FileName);
-                ExportText(ExportContent.Join("\r\n"),
-                    ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.txt");
-                break;
-            }
+                {
+                    var ExportContent = new List<string>();
+                    foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
+                        ExportContent.Add(DatapackEntity.FileName);
+                    ExportText(ExportContent.Join("\r\n"),
+                        ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.txt");
+                    break;
+                }
 
             case 2: // CSV
-            {
-                var ExportContent = new List<string>();
-                ExportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
-                foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
-                    ExportContent.Add(
-                        $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.CompFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.Path).Length},{DatapackEntity.Path}");
-                ExportText(ExportContent.Join("\r\n"),
-                    ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.csv");
-                break;
-            }
+                {
+                    var ExportContent = new List<string>();
+                    ExportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
+                    foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
+                        ExportContent.Add(
+                            $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.CompFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.Path).Length},{DatapackEntity.Path}");
+                    ExportText(ExportContent.Join("\r\n"),
+                        ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.csv");
+                    break;
+                }
         }
     }
 
@@ -786,31 +787,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             switch (value)
             {
                 case FilterType.All:
-                {
-                    BtnFilterAll.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterAll.Checked = true;
+                        break;
+                    }
                 case FilterType.Enabled:
-                {
-                    BtnFilterEnabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterEnabled.Checked = true;
+                        break;
+                    }
                 case FilterType.Disabled:
-                {
-                    BtnFilterDisabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterDisabled.Checked = true;
+                        break;
+                    }
                 case FilterType.CanUpdate:
-                {
-                    BtnFilterCanUpdate.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterCanUpdate.Checked = true;
+                        break;
+                    }
 
                 default:
-                {
-                    BtnFilterError.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterError.Checked = true;
+                        break;
+                    }
             }
 
             RefreshUI();
@@ -834,30 +835,30 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         switch (Filter)
         {
             case FilterType.All:
-            {
-                return true;
-            }
+                {
+                    return true;
+                }
             case FilterType.Enabled:
-            {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
-            }
+                {
+                    return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
+                }
             case FilterType.Disabled:
-            {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
-            }
+                {
+                    return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
+                }
             case FilterType.CanUpdate:
-            {
-                return CheckingDatapack.CanUpdate;
-            }
+                {
+                    return CheckingDatapack.CanUpdate;
+                }
             case FilterType.Unavailable:
-            {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
-            }
+                {
+                    return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+                }
 
             default:
-            {
-                return false;
-            }
+                {
+                    return false;
+                }
         }
     }
 
@@ -895,26 +896,26 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         switch (Method)
         {
             case SortMethod.FileName:
-            {
-                return "文件名";
-            }
+                {
+                    return "文件名";
+                }
             case SortMethod.CompName:
-            {
-                return "资源名称";
-            }
+                {
+                    return "资源名称";
+                }
             case SortMethod.CreateTime:
-            {
-                return "加入时间";
-            }
+                {
+                    return "加入时间";
+                }
             case SortMethod.DatapackFileSize:
-            {
-                return "文件大小";
-            }
+                {
+                    return "文件大小";
+                }
 
             default:
-            {
-                return "资源名称";
-            }
+                {
+                    return "资源名称";
+                }
         }
 
         return "";
@@ -976,48 +977,48 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         switch (Method)
         {
             case SortMethod.FileName:
-            {
-                return (a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
+                }
             case SortMethod.CompName:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                }
             case SortMethod.CreateTime:
-            {
-                return (a, b) =>
                 {
-                    var aDate = GetDatapackFileInfo(a.Path).CreationTime;
-                    var bDate = GetDatapackFileInfo(b.Path).CreationTime;
-                    if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    return (a, b) =>
+                    {
+                        var aDate = GetDatapackFileInfo(a.Path).CreationTime;
+                        var bDate = GetDatapackFileInfo(b.Path).CreationTime;
+                        if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                    if (aDate == DateTime.MinValue) return 1;
+                        if (aDate == DateTime.MinValue) return 1;
 
-                    if (bDate == DateTime.MinValue) return -1;
-                    return bDate.CompareTo(aDate);
-                };
-            }
+                        if (bDate == DateTime.MinValue) return -1;
+                        return bDate.CompareTo(aDate);
+                    };
+                }
             case SortMethod.DatapackFileSize:
-            {
-                return (a, b) =>
                 {
-                    var aSize = GetDatapackFileInfo(a.Path).Length;
-                    var bSize = GetDatapackFileInfo(b.Path).Length;
-                    if (aSize == 0L && bSize == 0L)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    return (a, b) =>
+                    {
+                        var aSize = GetDatapackFileInfo(a.Path).Length;
+                        var bSize = GetDatapackFileInfo(b.Path).Length;
+                        if (aSize == 0L && bSize == 0L)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                    if (aSize == 0L) return 1;
+                        if (aSize == 0L) return 1;
 
-                    if (bSize == 0L) return -1;
-                    return bSize.CompareTo(aSize);
-                };
-            }
+                        if (bSize == 0L) return -1;
+                        return bSize.CompareTo(aSize);
+                    };
+                }
 
             default:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                }
         }
     }
 
@@ -1187,7 +1188,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var InstallLoaders = new List<ModLoader.LoaderBase>();
             var FinishedFileNames = new List<string>();
             InstallLoaders.Add(new LoaderDownload("下载新版数据包文件", FileList)
-                { ProgressWeight = DatapackList.Count() * 1.5d });
+            { ProgressWeight = DatapackList.Count() * 1.5d });
 
             InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
             {
@@ -1236,44 +1237,44 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 switch (Loader.State)
                 {
                     case ModBase.LoadState.Finished:
-                    {
-                        switch (FinishedFileNames.Count)
                         {
-                            case 0:
+                            switch (FinishedFileNames.Count)
                             {
-                                ModBase.Log("[DatapackUpdate] 没有数据包被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Single()}！", ModMain.HintType.Finish);
-                                break;
+                                case 0:
+                                    {
+                                        ModBase.Log("[DatapackUpdate] 没有数据包被成功更新");
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        ModMain.Hint($"已成功更新 {FinishedFileNames.Single()}！", ModMain.HintType.Finish);
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        ModMain.Hint($"已成功更新 {FinishedFileNames.Count} 个数据包！", ModMain.HintType.Finish);
+                                        break;
+                                    }
                             }
 
-                            default:
-                            {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Count} 个数据包！", ModMain.HintType.Finish);
-                                break;
-                            }
+                            break;
+                        }
+                    case ModBase.LoadState.Failed:
+                        {
+                            ModMain.Hint("数据包更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
+                            break;
+                        }
+                    case ModBase.LoadState.Aborted:
+                        {
+                            ModMain.Hint("数据包更新已中止！");
+                            break;
                         }
 
-                        break;
-                    }
-                    case ModBase.LoadState.Failed:
-                    {
-                        ModMain.Hint("数据包更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
-                        break;
-                    }
-                    case ModBase.LoadState.Aborted:
-                    {
-                        ModMain.Hint("数据包更新已中止！");
-                        break;
-                    }
-
                     default:
-                    {
-                        return;
-                    }
+                        {
+                            return;
+                        }
                 }
 
                 ModBase.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{PathDatapacks}");
@@ -1574,7 +1575,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     }
 
                     QueryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>
-                        { Item = Entry, SearchSource = SearchSource });
+                    { Item = Entry, SearchSource = SearchSource });
                 }
 
                 // 进行搜索

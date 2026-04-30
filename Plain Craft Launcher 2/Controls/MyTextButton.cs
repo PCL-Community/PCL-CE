@@ -18,7 +18,7 @@ public class MyTextButton : Label
         {
             if (Equals(e.OldValue, e.NewValue)) return;
             var button = (MyTextButton)sender;
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaOpacity(button, -button.Opacity, 50),
@@ -111,7 +111,7 @@ public class MyTextButton : Label
         if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
         {
             // 有动画
-            ModAnimation.AniStart(ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time),
+            ModAnimation.Start(ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time),
                 "MyTextButton Color " + Uuid);
         }
         else

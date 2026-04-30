@@ -142,13 +142,13 @@ public partial class MyIconTextButton
                         if (IsMouseDown)
                         {
                             // 按下
-                            ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
+                            ModAnimation.Start(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
                         {
                             // 指向
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
@@ -156,14 +156,14 @@ public partial class MyIconTextButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
                                         AnimationTimeOfMouseIn)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty, "ColorBrushBg1", AnimationTimeOfMouseIn),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else if (IsEnabled)
                         {
                             // 正常
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush1",
@@ -171,7 +171,7 @@ public partial class MyIconTextButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush1",
                                         AnimationTimeOfMouseOut)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
@@ -179,13 +179,13 @@ public partial class MyIconTextButton
                         else
                         {
                             // 禁用
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrushGray5", 100),
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
@@ -198,13 +198,13 @@ public partial class MyIconTextButton
                         if (IsMouseDown)
                         {
                             // 按下
-                            ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
+                            ModAnimation.Start(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
                         {
                             // 指向
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
@@ -212,14 +212,14 @@ public partial class MyIconTextButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
                                         AnimationTimeOfMouseIn)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty, "ColorBrushBg1", AnimationTimeOfMouseIn),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else if (IsEnabled)
                         {
                             // 正常
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
@@ -227,7 +227,7 @@ public partial class MyIconTextButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
                                         AnimationTimeOfMouseOut)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
@@ -235,13 +235,13 @@ public partial class MyIconTextButton
                         else
                         {
                             // 禁用
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 new[]
                                 {
                                     ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrushGray5", 100),
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
                                 }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
+                            ModAnimation.Start(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);

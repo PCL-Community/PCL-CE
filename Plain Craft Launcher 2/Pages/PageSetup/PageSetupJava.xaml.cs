@@ -5,6 +5,7 @@ using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.UI.Icons;
 
 namespace PCL;
 
@@ -94,7 +95,7 @@ public partial class PageSetupJava
             }
         };
         var btnOpenFolder = new MyIconButton();
-        btnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
+        btnOpenFolder.Logo = Logo.ButtonOpen;
         btnOpenFolder.ToolTip = "打开";
         btnOpenFolder.Click += (sender, e) =>
         {
@@ -107,7 +108,7 @@ public partial class PageSetupJava
             ModBase.OpenExplorer(J.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
-        btnInfo.Logo = ModBase.Logo.IconButtonInfo;
+        btnInfo.Logo = Logo.ButtonInfo;
         btnInfo.ToolTip = "详细信息";
         btnInfo.Click += (sender, e) =>
         {
@@ -143,14 +144,14 @@ public partial class PageSetupJava
             {
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonDisable;
+                btnEnableSwitch.Logo = Logo.ButtonDisable;
                 btnEnableSwitch.ToolTip = "禁用此 Java";
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonEnable;
+                btnEnableSwitch.Logo = Logo.ButtonEnable;
                 btnEnableSwitch.ToolTip = "启用此 Java";
             }
         }

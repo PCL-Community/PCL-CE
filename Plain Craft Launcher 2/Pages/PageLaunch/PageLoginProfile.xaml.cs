@@ -1,10 +1,11 @@
+using PCL.Core.App;
+using PCL.Core.UI.Icons;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -69,7 +70,7 @@ public partial class PageLoginProfile
             Info = (string)ModProfile.GetProfileInfo(profile);
             var LogoPath = ModBase.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
             if (!(File.Exists(LogoPath) && !(new FileInfo(LogoPath).Length == 0L)))
-                LogoPath = ModBase.Logo.IconButtonUser;
+                LogoPath = Core.UI.Icons.Logo.ButtonUser;
             Logo = LogoPath;
         }
 
@@ -107,27 +108,27 @@ public partial class PageLoginProfile
     {
         // 更改 UUID
         var btnEditUuid = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonEdit, ToolTip = "更改 UUID", Tag = sender.Tag };
+        { Logo = Logo.ButtonEdit, ToolTip = "更改 UUID", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2d);
         btnEditUuid.Click += EditProfileUuid;
         // 复制 UUID
         var btnCopyUuid = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonCopy, ToolTip = "复制 UUID", Tag = sender.Tag };
+        { Logo = Logo.ButtonCopy, ToolTip = "复制 UUID", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnCopyUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2d);
         btnCopyUuid.Click += CopyProfileUuid;
         // 更改验证服务器名称
         var btnEditServerName = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更改验证服务器名称", Tag = sender.Tag };
+        { Logo = Logo.ButtonInfo, ToolTip = "更改验证服务器名称", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditServerName, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditServerName, 30d);
         ToolTipService.SetHorizontalOffset(btnEditServerName, 2d);
         btnEditServerName.Click += EditProfileServer;
         // 删除档案
-        var btnDelete = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, ToolTip = "删除档案", Tag = sender.Tag };
+        var btnDelete = new MyIconButton { Logo = Logo.ButtonDelete, ToolTip = "删除档案", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);

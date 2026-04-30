@@ -1,3 +1,7 @@
+using Microsoft.VisualBasic.CompilerServices;
+using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.UI.Icons;
 using System.Collections;
 using System.IO;
 using System.Windows;
@@ -6,10 +10,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -171,23 +171,23 @@ public partial class PageInstanceInstall
         switch (loader.State.LoadingState)
         {
             case MyLoading.MyLoadingState.Run:
-            {
-                return "获取中……";
-            }
+                {
+                    return "获取中……";
+                }
             case MyLoading.MyLoadingState.Error:
-            {
-                var message = ((ModLoader.LoaderBase)loader.State).Error.Message;
-                return message == "无可用版本" ? "无可用版本" : "获取失败：" + message;
-            }
+                {
+                    var message = ((ModLoader.LoaderBase)loader.State).Error.Message;
+                    return message == "无可用版本" ? "无可用版本" : "获取失败：" + message;
+                }
             case MyLoading.MyLoadingState.Unloaded:
-            {
-                return "未知错误，状态为 Unloaded";
-            }
+                {
+                    return "未知错误，状态为 Unloaded";
+                }
 
             default:
-            {
-                return null;
-            }
+                {
+                    return null;
+                }
         }
     }
 
@@ -258,7 +258,7 @@ public partial class PageInstanceInstall
         ModDownload.DlLegacyFabricApiLoader.Start();
         ModDownload.DlOptiFabricLoader.Start();
 
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaOpacity(PanMinecraft, -PanMinecraft.Opacity, 100, 10),
             ModAnimation.AaCode(() =>
@@ -337,7 +337,7 @@ public partial class PageInstanceInstall
         PanBack.IsHitTestVisible = false;
         PanBack.ScrollToHome();
 
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaOpacity(PanSelect, -PanSelect.Opacity, 90, 10),
             ModAnimation.AaCode(() => PanBack.ScrollToHome(), After: true),
@@ -447,13 +447,13 @@ public partial class PageInstanceInstall
         {
             ItemSelect.Info = selectedInfo;
             BtnSelectStart.Text = "开始重置";
-            BtnSelectStart.Logo = ModBase.Logo.IconButtonReset;
+            BtnSelectStart.Logo = Logo.ButtonReset;
         }
         else
         {
             ItemSelect.Info = CurrentInfo + " → " + selectedInfo;
             BtnSelectStart.Text = "开始修改";
-            BtnSelectStart.Logo = ModBase.Logo.IconButtonEdit;
+            BtnSelectStart.Logo = Logo.ButtonEdit;
         }
 
         // Minecraft
@@ -934,7 +934,7 @@ public partial class PageInstanceInstall
             return;
         panel.Tag = visible.ToString();
         if (visible)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaTranslateY(panel, -((TranslateTransform)panel.RenderTransform).Y, 150,
@@ -942,7 +942,7 @@ public partial class PageInstanceInstall
                     ModAnimation.AaOpacity(panel, 1d - panel.Opacity, 60)
                 }, "PageDownloadInstall Visibility " + panel.Name);
         else
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaTranslateY(panel, 6d - ((TranslateTransform)panel.RenderTransform).Y, 60),
@@ -1111,7 +1111,8 @@ public partial class PageInstanceInstall
             SelectedOptiFine = new ModDownload.DlOptiFineListEntry
             {
                 DisplayName = CurrentInstance.VanillaName + " " + CurrentInstance.OptiFine.Replace("_", " "),
-                IsPreview = CurrentInstance.OptiFine.ContainsF("pre"), Inherit = CurrentInstance.VanillaName,
+                IsPreview = CurrentInstance.OptiFine.ContainsF("pre"),
+                Inherit = CurrentInstance.VanillaName,
                 NameVersion = CurrentInstance.VanillaName + "-OptiFine_HD_U_" + CurrentInstance.OptiFine
             };
         if (CurrentInstance.HasCleanroom)
@@ -1125,7 +1126,8 @@ public partial class PageInstanceInstall
             SelectedForge =
                 new ModDownload.DlForgeVersionEntry(CurrentInstance.Forge, null, CurrentInstance.VanillaName)
                 {
-                    Category = "installer", ForgeType = ModDownload.DlForgelikeEntry.ForgelikeType.Forge,
+                    Category = "installer",
+                    ForgeType = ModDownload.DlForgelikeEntry.ForgelikeType.Forge,
                     Inherit = CurrentInstance.VanillaName
                 };
         }
@@ -1152,7 +1154,8 @@ public partial class PageInstanceInstall
             SelectedNeoForgeVersion = CurrentInstance.NeoForge;
             SelectedNeoForge = new ModDownload.DlNeoForgeListEntry(CurrentInstance.NeoForge)
             {
-                VersionName = CurrentInstance.NeoForge, Inherit = CurrentInstance.VanillaName,
+                VersionName = CurrentInstance.NeoForge,
+                Inherit = CurrentInstance.VanillaName,
                 ForgeType = ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge
             };
         }
@@ -1199,94 +1202,94 @@ public partial class PageInstanceInstall
                     switch (Type ?? "")
                     {
                         case "release":
-                        {
-                            Type = "正式版";
-                            break;
-                        }
-                        case "snapshot":
-                        case "pending":
-                        {
-                            Type = "预览版";
-                            // Mojang 误分类
-                            if (versionId.StartsWith("1.") && !versionId.Contains("combat") &&
-                                !versionId.Contains("rc") && !versionId.Contains("experimental") &&
-                                !versionId.Equals("1.2") && !versionId.Contains("pre"))
                             {
                                 Type = "正式版";
-                                Version["type"] = "release";
+                                break;
                             }
-
-                            // 愚人节版本
-                            switch (Version["id"].ToString().ToLower() ?? "")
+                        case "snapshot":
+                        case "pending":
                             {
-                                case "2point0_blue":
-                                case "2point0_red":
-                                case "2point0_purple":
-                                case "2.0_blue":
-                                case "2.0_red":
-                                case "2.0_purple":
-                                case "2.0":
+                                Type = "预览版";
+                                // Mojang 误分类
+                                if (versionId.StartsWith("1.") && !versionId.Contains("combat") &&
+                                    !versionId.Contains("rc") && !versionId.Contains("experimental") &&
+                                    !versionId.Equals("1.2") && !versionId.Contains("pre"))
                                 {
-                                    Type = "愚人节版";
-                                    Version["id"] = Version["id"].ToString().Replace("point", ".");
-                                    Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "20w14infinite":
-                                case "20w14∞":
-                                {
-                                    Type = "愚人节版";
-                                    Version["id"] = "20w14∞";
-                                    Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "3d shareware v1.34":
-                                case "1.rv-pre1":
-                                case "15w14a":
-                                case var @case when @case == "2.0":
-                                case "22w13oneblockatatime":
-                                case "23w13a_or_b":
-                                case "24w14potato":
-                                case "25w14craftmine":
-                                case "26w14a":
-                                {
-                                    Type = "愚人节版";
-                                    Version["type"] = "special";
-                                    Version.Add("lore",
-                                        ModMinecraft.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
-                                    break;
+                                    Type = "正式版";
+                                    Version["type"] = "release";
                                 }
 
-                                default:
+                                // 愚人节版本
+                                switch (Version["id"].ToString().ToLower() ?? "")
                                 {
-                                    var ReleaseDate = Version["releaseTime"].Value<DateTime>().ToUniversalTime()
-                                        .AddHours(2d);
-                                    if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
-                                    {
-                                        Type = "愚人节版";
-                                        Version["type"] = "special";
-                                    }
+                                    case "2point0_blue":
+                                    case "2point0_red":
+                                    case "2point0_purple":
+                                    case "2.0_blue":
+                                    case "2.0_red":
+                                    case "2.0_purple":
+                                    case "2.0":
+                                        {
+                                            Type = "愚人节版";
+                                            Version["id"] = Version["id"].ToString().Replace("point", ".");
+                                            Version["type"] = "special";
+                                            Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                            break;
+                                        }
+                                    case "20w14infinite":
+                                    case "20w14∞":
+                                        {
+                                            Type = "愚人节版";
+                                            Version["id"] = "20w14∞";
+                                            Version["type"] = "special";
+                                            Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                            break;
+                                        }
+                                    case "3d shareware v1.34":
+                                    case "1.rv-pre1":
+                                    case "15w14a":
+                                    case var @case when @case == "2.0":
+                                    case "22w13oneblockatatime":
+                                    case "23w13a_or_b":
+                                    case "24w14potato":
+                                    case "25w14craftmine":
+                                    case "26w14a":
+                                        {
+                                            Type = "愚人节版";
+                                            Version["type"] = "special";
+                                            Version.Add("lore",
+                                                ModMinecraft.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
+                                            break;
+                                        }
 
-                                    break;
+                                    default:
+                                        {
+                                            var ReleaseDate = Version["releaseTime"].Value<DateTime>().ToUniversalTime()
+                                                .AddHours(2d);
+                                            if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
+                                            {
+                                                Type = "愚人节版";
+                                                Version["type"] = "special";
+                                            }
+
+                                            break;
+                                        }
                                 }
+
+                                break;
                             }
-
-                            break;
-                        }
                         case "special":
-                        {
-                            // 已被处理的愚人节版
-                            Type = "愚人节版";
-                            break;
-                        }
+                            {
+                                // 已被处理的愚人节版
+                                Type = "愚人节版";
+                                break;
+                            }
 
                         default:
-                        {
-                            Type = "远古版";
-                            break;
-                        }
+                            {
+                                Type = "远古版";
+                                break;
+                            }
                     }
 
                     // 加入辞典
@@ -1316,7 +1319,8 @@ public partial class PageInstanceInstall
                 var PanInfo = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = TopestVersions
                 };
 
@@ -1338,11 +1342,12 @@ public partial class PageInstanceInstall
                         continue;
                     // 增加卡片
                     var NewCard = new MyCard
-                        { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                     var NewStack = new StackPanel
                     {
                         Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                        VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                        VerticalAlignment = VerticalAlignment.Top,
+                        RenderTransform = new TranslateTransform(0d, 0d),
                         Tag = Pair.Value
                     };
                     NewCard.Children.Add(NewStack);
@@ -1603,7 +1608,7 @@ public partial class PageInstanceInstall
     {
         if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName) && ModMinecraft.CompareVersionGe(_vanillaName, "1.1"))
             return "无可用版本";
-                
+
         if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "Forge"))
             return $"与 {SelectedLoaderName} 不兼容";
 
@@ -2781,11 +2786,11 @@ public partial class PageInstanceInstall
         SelectedLabyModCommitRef = null;
         SelectedLabyModVersion = null;
         SelectedLabyModChannel = null;
-        
+
         if (SelectedLoaderName == "LabyMod")
         {
             SelectedLoaderName = null;
-        }    
+        }
 
         SelectedAPIName = null;
         CardLabyMod.IsSwapped = true;

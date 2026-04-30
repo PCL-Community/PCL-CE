@@ -1,10 +1,10 @@
+using PCL.Core.App;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -232,7 +232,7 @@ public partial class PageSetupLaunch
         if (showAnim)
         {
             // 宽度动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
@@ -290,38 +290,38 @@ public partial class PageSetupLaunch
             switch (Left)
             {
                 case 0:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 1:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 2:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
             }
         }
 
@@ -339,7 +339,7 @@ public partial class PageSetupLaunch
                 (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
             {
                 // 需要动画
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaX(LabRamGame, TotalWidth - LabGameWidth - LabRamGame.Margin.Left, 100,
@@ -360,7 +360,7 @@ public partial class PageSetupLaunch
                  (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
         {
             // 需要动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaX(LabRamGame, 2d + RectUsedWidth - LabRamGame.Margin.Left, 100,
@@ -454,7 +454,7 @@ public partial class PageSetupLaunch
             RamAvailable -= RamDelta / 0.15d;
             if (RamAvailable < 0.1d)
                 goto PreFin;
-            PreFin: ;
+        PreFin:;
 
             // 不低于最低值
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);

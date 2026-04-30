@@ -1,3 +1,13 @@
+using Microsoft.VisualBasic;
+using Microsoft.VisualBasic.CompilerServices;
+using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,15 +19,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
-using PCL.Core.App;
-using PCL.Core.UI.Theme;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
-using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -63,14 +64,14 @@ internal static class ModSecret
         try
         {
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new ModBase.MyColor(), ModBase.DPI);
+                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.DPI);
         }
         catch (UriFormatException ex) // 修复 #3555
         {
             Environment.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"),
                 EnvironmentVariableTarget.User);
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new ModBase.MyColor(), ModBase.DPI);
+                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.DPI);
         }
 
         // 检测当前文件夹权限
@@ -145,17 +146,17 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         switch (Config.Launch.PreferredIpStack)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DataList.Add("-Djava.net.preferIPv4Stack=true");
-                DataList.Add("-Djava.net.preferIPv4Addresses=true");
-                break;
-            }
+                {
+                    DataList.Add("-Djava.net.preferIPv4Stack=true");
+                    DataList.Add("-Djava.net.preferIPv4Addresses=true");
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
-            {
-                DataList.Add("-Djava.net.preferIPv6Stack=true");
-                DataList.Add("-Djava.net.preferIPv6Addresses=true");
-                break;
-            }
+                {
+                    DataList.Add("-Djava.net.preferIPv6Stack=true");
+                    DataList.Add("-Djava.net.preferIPv6Addresses=true");
+                    break;
+                }
         }
 
         double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
@@ -228,10 +229,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static ModBase.MyColor ColorGray1 = new(AppResources["ColorObjectGray1"]);
-    public static ModBase.MyColor ColorGray4 = new(AppResources["ColorObjectGray4"]);
-    public static ModBase.MyColor ColorGray5 = new(AppResources["ColorObjectGray5"]);
-    public static ModBase.MyColor ColorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
+    public static NColor ColorGray1 = new(AppResources["ColorObjectGray1"]);
+    public static NColor ColorGray4 = new(AppResources["ColorObjectGray4"]);
+    public static NColor ColorGray5 = new(AppResources["ColorObjectGray5"]);
+    public static NColor ColorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
 
     public static int ThemeNow = -1;
 
@@ -256,10 +257,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         // ThemeRefreshColor()
         // RaiseThemeChanged(IsDarkMode)
-        ColorGray1 = new ModBase.MyColor(AppResources["ColorObjectGray1"]);
-        ColorGray4 = new ModBase.MyColor(AppResources["ColorObjectGray4"]);
-        ColorGray5 = new ModBase.MyColor(AppResources["ColorObjectGray5"]);
-        ColorSemiTransparent = new ModBase.MyColor(AppResources["ColorBrushSemiTransparent"]);
+        ColorGray1 = new NColor(AppResources["ColorObjectGray1"]);
+        ColorGray4 = new NColor(AppResources["ColorObjectGray4"]);
+        ColorGray5 = new NColor(AppResources["ColorObjectGray5"]);
+        ColorSemiTransparent = new NColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 
@@ -359,11 +360,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 var hue2 = hue + 15;
                 var tone = ThemeService.CurrentTone;
                 brush.GradientStops.Add(new GradientStop
-                    { Offset = -0.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue1) });
+                { Offset = -0.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue1) });
                 brush.GradientStops.Add(new GradientStop
-                    { Offset = 0.4d, Color = LabColor.FromLch(GetDarkThemeLight(0.96d), tone.C7, hue) });
+                { Offset = 0.4d, Color = LabColor.FromLch(GetDarkThemeLight(0.96d), tone.C7, hue) });
                 brush.GradientStops.Add(new GradientStop
-                    { Offset = 1.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue2) });
+                { Offset = 1.1d, Color = LabColor.FromLch(GetDarkThemeLight(0.84d), tone.C5, hue2) });
                 ModMain.FrmMain.PanForm.Background = brush;
             }
             else
@@ -586,7 +587,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 $"update {Process.GetCurrentProcess().Id} \"{ModBase.ExePathWithName}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
             ModBase.Log("[System] 更新程序启动，参数：" + text);
             Process.Start(new ProcessStartInfo(fileName)
-                { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, Arguments = text });
+            { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, Arguments = text });
             if (triggerRestartAndByEnd)
             {
                 ModMain.FrmMain.EndProgram(false, true);
@@ -648,30 +649,30 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         switch (updateDesire)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 静默更新
-            {
-                ModBase.Log("[Update] 更新设置: 自动下载并安装更新");
-                if (GetVersionStatus() != VersionStatus.Latest) UpdateStart(UpdateType.Silent);
+                {
+                    ModBase.Log("[Update] 更新设置: 自动下载并安装更新");
+                    if (GetVersionStatus() != VersionStatus.Latest) UpdateStart(UpdateType.Silent);
 
-                break;
-            }
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 自动下载，提示更新
-            {
-                ModBase.Log("[Update] 更新设置: 自动下载并提示更新");
-                UpdateStart(UpdateType.DownloadAndPrompt);
-                break;
-            }
+                {
+                    ModBase.Log("[Update] 更新设置: 自动下载并提示更新");
+                    UpdateStart(UpdateType.DownloadAndPrompt);
+                    break;
+                }
             case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 提示更新
-            {
-                ModBase.Log("[Update] 更新设置: 提示更新");
-                UpdateStart(UpdateType.PromptOnly);
-                break;
-            }
+                {
+                    ModBase.Log("[Update] 更新设置: 提示更新");
+                    UpdateStart(UpdateType.PromptOnly);
+                    break;
+                }
 
             default:
-            {
-                ModBase.Log("[Update] 更新设置: 不自动检查更新");
-                return;
-            }
+                {
+                    ModBase.Log("[Update] 更新设置: 不自动检查更新");
+                    return;
+                }
         }
 
         if (Conversions.ToBoolean(Operators.ConditionalCompareObjectLessEqual(AnnouncementDesire, 1, false)))
@@ -687,12 +688,12 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 {
                     var SelectedBtn = ModMain.MyMsgBox(item.detail, item.title, item.btn1 is null ? "" : item.btn1.text,
                         item.btn2 is null ? "" : item.btn2.text, "关闭",
-                        Button1Action: () => 
+                        Button1Action: () =>
                         {
                             if (Enum.TryParse<CustomEvent.EventType>(item.btn1.command, true, out var eventType))
                                 CustomEvent.Raise(eventType, item.btn1.command_paramter);
                         },
-                        Button2Action: () => 
+                        Button2Action: () =>
                         {
                             if (Enum.TryParse<CustomEvent.EventType>(item.btn2.command, true, out var eventType))
                                 CustomEvent.Raise(eventType, item.btn2.command_paramter);

@@ -13,6 +13,7 @@ using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -324,12 +325,12 @@ public static class ModDownloadLib
 
     private static void McDownloadSaveMenuBuild(object sender, EventArgs _)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
         BtnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
-        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonServer, ToolTip = "下载服务端" };
+        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonServer, ToolTip = "下载服务端" };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
@@ -339,17 +340,17 @@ public static class ModDownloadLib
 
     private static void McDownloadMenuBuild(object sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
         BtnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
-        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonServer, ToolTip = "下载服务端" };
+        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonServer, ToolTip = "下载服务端" };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
@@ -1132,7 +1133,7 @@ pause";
 
     private static void OptiFineSaveContMenuBuild(object sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -1142,12 +1143,12 @@ pause";
 
     private static void OptiFineContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var btnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         //btnSave.Click += () ModDownloadLib.OptiFineSave_Click;
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -1430,7 +1431,7 @@ pause";
         }
         else
         {
-            var BtnList = new MyIconButton { Logo = ModBase.Logo.IconButtonList, ToolTip = "查看全部版本", Tag = sender };
+            var BtnList = new MyIconButton { Logo = Logo.ButtonList, ToolTip = "查看全部版本", Tag = sender };
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
@@ -1441,7 +1442,7 @@ pause";
 
     private static void LiteLoaderContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "保存安装器", Tag = sender };
+        var BtnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "保存安装器", Tag = sender };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
@@ -1452,7 +1453,7 @@ pause";
         }
         else
         {
-            var BtnList = new MyIconButton { Logo = ModBase.Logo.IconButtonList, ToolTip = "查看全部版本", Tag = sender };
+            var BtnList = new MyIconButton { Logo = Logo.ButtonList, ToolTip = "查看全部版本", Tag = sender };
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
@@ -2327,12 +2328,12 @@ pause";
 
     private static void ForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2342,7 +2343,7 @@ pause";
 
     private static void ForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2527,12 +2528,12 @@ pause";
 
     private static void NeoForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2542,7 +2543,7 @@ pause";
 
     private static void NeoForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2635,12 +2636,12 @@ pause";
 
     private static void CleanroomContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2650,7 +2651,7 @@ pause";
 
     private static void CleanroomSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2919,7 +2920,7 @@ pause";
 
     private static void FabricContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3137,7 +3138,7 @@ pause";
 
     private static void QuiltContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3411,12 +3412,12 @@ pause";
 
     private static void LabyModContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+        var btnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonInfo, ToolTip = "更新日志" };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

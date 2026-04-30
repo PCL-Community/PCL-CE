@@ -1,3 +1,8 @@
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
+using PCL.Core.UI.Icons;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -5,11 +10,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
-using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace PCL;
@@ -162,90 +162,90 @@ public partial class PageSelectRight
                 switch (Card.Key)
                 {
                     case ModMinecraft.McInstanceCardType.OriginalLike:
-                    {
-                        CardName = "常规实例";
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.API:
-                    {
-                        var IsForgeExists = false;
-                        var IsNeoForgeExists = false;
-                        var IsFabricExists = false;
-                        var IsQuiltExists = false;
-                        var IsLiteExists = false;
-                        var IsCleanroomExists = false;
-                        var IsLabyModExists = false;
-                        foreach (var instance in Card.Value)
                         {
-                            if (!instance.IsLoaded)
-                                instance.Load();
-                            if (instance.Info.HasFabric)
-                                IsFabricExists = true;
-                            if (instance.Info.HasQuilt)
-                                IsQuiltExists = true;
-                            if (instance.Info.HasLiteLoader)
-                                IsLiteExists = true;
-                            if (instance.Info.HasForge)
-                                IsForgeExists = true;
-                            if (instance.Info.HasNeoForge)
-                                IsNeoForgeExists = true;
-                            if (instance.Info.HasCleanroom)
-                                IsCleanroomExists = true;
-                            if (instance.Info.HasLabyMod)
-                                IsLabyModExists = true;
+                            CardName = "常规实例";
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.API:
+                        {
+                            var IsForgeExists = false;
+                            var IsNeoForgeExists = false;
+                            var IsFabricExists = false;
+                            var IsQuiltExists = false;
+                            var IsLiteExists = false;
+                            var IsCleanroomExists = false;
+                            var IsLabyModExists = false;
+                            foreach (var instance in Card.Value)
+                            {
+                                if (!instance.IsLoaded)
+                                    instance.Load();
+                                if (instance.Info.HasFabric)
+                                    IsFabricExists = true;
+                                if (instance.Info.HasQuilt)
+                                    IsQuiltExists = true;
+                                if (instance.Info.HasLiteLoader)
+                                    IsLiteExists = true;
+                                if (instance.Info.HasForge)
+                                    IsForgeExists = true;
+                                if (instance.Info.HasNeoForge)
+                                    IsNeoForgeExists = true;
+                                if (instance.Info.HasCleanroom)
+                                    IsCleanroomExists = true;
+                                if (instance.Info.HasLabyMod)
+                                    IsLabyModExists = true;
+                            }
+
+                            if ((IsLiteExists ? 1 : 0) + (IsForgeExists ? 1 : 0) + (IsFabricExists ? 1 : 0) +
+                                (IsNeoForgeExists ? 1 : 0) + (IsQuiltExists ? 1 : 0) + (IsCleanroomExists ? 1 : 0) +
+                                (IsLabyModExists ? 1 : 0) > 1)
+                                CardName = "可安装 Mod";
+                            else if (IsForgeExists)
+                                CardName = "Forge 实例";
+                            else if (IsNeoForgeExists)
+                                CardName = "NeoForge 实例";
+                            else if (IsCleanroomExists)
+                                CardName = "Cleanroom 实例";
+                            else if (IsLabyModExists)
+                                CardName = "LabyMod 实例";
+                            else if (IsLiteExists)
+                                CardName = "LiteLoader 实例";
+                            else if (IsQuiltExists)
+                                CardName = "Quilt 实例";
+                            else
+                                CardName = "Fabric 实例";
+
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.Error:
+                        {
+                            CardName = "错误的实例";
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.Hidden:
+                        {
+                            CardName = "隐藏的实例";
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.Rubbish:
+                        {
+                            CardName = "不常用实例";
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.Star:
+                        {
+                            CardName = "收藏夹";
+                            break;
+                        }
+                    case ModMinecraft.McInstanceCardType.Fool:
+                        {
+                            CardName = "愚人节版本";
+                            break;
                         }
 
-                        if ((IsLiteExists ? 1 : 0) + (IsForgeExists ? 1 : 0) + (IsFabricExists ? 1 : 0) +
-                            (IsNeoForgeExists ? 1 : 0) + (IsQuiltExists ? 1 : 0) + (IsCleanroomExists ? 1 : 0) +
-                            (IsLabyModExists ? 1 : 0) > 1)
-                            CardName = "可安装 Mod";
-                        else if (IsForgeExists)
-                            CardName = "Forge 实例";
-                        else if (IsNeoForgeExists)
-                            CardName = "NeoForge 实例";
-                        else if (IsCleanroomExists)
-                            CardName = "Cleanroom 实例";
-                        else if (IsLabyModExists)
-                            CardName = "LabyMod 实例";
-                        else if (IsLiteExists)
-                            CardName = "LiteLoader 实例";
-                        else if (IsQuiltExists)
-                            CardName = "Quilt 实例";
-                        else
-                            CardName = "Fabric 实例";
-
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.Error:
-                    {
-                        CardName = "错误的实例";
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.Hidden:
-                    {
-                        CardName = "隐藏的实例";
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.Rubbish:
-                    {
-                        CardName = "不常用实例";
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.Star:
-                    {
-                        CardName = "收藏夹";
-                        break;
-                    }
-                    case ModMinecraft.McInstanceCardType.Fool:
-                    {
-                        CardName = "愚人节版本";
-                        break;
-                    }
-
                     default:
-                    {
-                        throw new ArgumentException($"未知的卡片种类（{(int)Card.Key}）");
-                    }
+                        {
+                            throw new ArgumentException($"未知的卡片种类（{(int)Card.Key}）");
+                        }
                 }
 
                 #endregion
@@ -256,7 +256,8 @@ public partial class PageSelectRight
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = filteredInstances
                 };
                 NewCard.Children.Add(NewStack);
@@ -380,7 +381,11 @@ public partial class PageSelectRight
     {
         var NewItem = new MyListItem
         {
-            Title = instance.Name, Info = instance.Desc, Height = 42d, Tag = instance, SnapsToDevicePixels = true,
+            Title = instance.Name,
+            Info = instance.Desc,
+            Height = 42d,
+            Tag = instance,
+            SnapsToDevicePixels = true,
             Type = MyListItem.CheckType.Clickable
         };
         var instanceInfo = instance.Info;
@@ -433,7 +438,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeFill;
+            BtnStar.Logo = Logo.ButtonLikeFill;
         }
         else
         {
@@ -442,7 +447,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeLine;
+            BtnStar.Logo = Logo.ButtonLikeLine;
         }
 
         BtnStar.Click += (_, _) =>
@@ -452,13 +457,13 @@ public partial class PageSelectRight
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
-        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonOpen };
+        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = Logo.ButtonOpen };
         BtnOpenFolder.ToolTip = "打开实例目录";
         ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
         BtnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonDelete };
+        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = Logo.ButtonDelete };
         BtnDel.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDel, 30d);
@@ -466,7 +471,7 @@ public partial class PageSelectRight
         BtnDel.Click += (_, _) => DeleteVersion(sender, Version);
         if (Version.State != ModMinecraft.McInstanceState.Error)
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonSetup };
+            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = Logo.ButtonSetup };
             BtnCont.ToolTip = "设置";
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -485,7 +490,7 @@ public partial class PageSelectRight
         }
         else
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = ModBase.Logo.IconButtonOpen };
+            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = Logo.ButtonOpen };
             BtnCont.ToolTip = "打开文件夹";
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -539,28 +544,28 @@ public partial class PageSelectRight
                          """, "实例删除确认", Button2: "取消", IsWarn: true))
             {
                 case 1:
-                {
-                    ModBase.IniClearCache(instance.PathIndie + "options.txt");
-                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
-                        instance.PathInstance);
-                    if (IsShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instance.PathInstance);
-                        ModMain.Hint($"实例 {instance.Name} 已永久删除！", ModMain.HintType.Finish);
-                    }
-                    else
-                    {
-                        FileSystem.DeleteDirectory(instance.PathInstance, UIOption.AllDialogs,
-                            RecycleOption.SendToRecycleBin);
-                        ModMain.Hint($"实例 {instance.Name} 已删除到回收站！", ModMain.HintType.Finish);
-                    }
+                        ModBase.IniClearCache(instance.PathIndie + "options.txt");
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
+                            instance.PathInstance);
+                        if (IsShiftPressed)
+                        {
+                            ModBase.DeleteDirectory(instance.PathInstance);
+                            ModMain.Hint($"实例 {instance.Name} 已永久删除！", ModMain.HintType.Finish);
+                        }
+                        else
+                        {
+                            FileSystem.DeleteDirectory(instance.PathInstance, UIOption.AllDialogs,
+                                RecycleOption.SendToRecycleBin);
+                            ModMain.Hint($"实例 {instance.Name} 已删除到回收站！", ModMain.HintType.Finish);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 2:
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
             }
 
             // 从 UI 中移除

@@ -67,7 +67,7 @@ public class MyComboBoxItem : ComboBoxItem
         if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
         {
             // 有动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaColor(this, BackgroundProperty, BackColorName, Time),

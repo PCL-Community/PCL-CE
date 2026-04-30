@@ -59,7 +59,7 @@ public partial class PageSetupAbout
 
     private void ImgPCLCommunity_Click(object sender, MouseButtonEventArgs e)
     {
-        ModAnimation.AniStart(new[] { ModAnimation.AaRotateTransform(sender, 360d) });
+        ModAnimation.Start(new[] { ModAnimation.AaRotateTransform(sender, 360d) });
     }
 
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
@@ -171,7 +171,7 @@ public partial class PageSetupAbout
             var my = rand.Next(-1, 1);
             if (my == 0)
                 my = 1;
-            ModAnimation.AniStart(new[]
+            ModAnimation.Start(new[]
             {
                 ModAnimation.AaTranslateX(sender, mx, 0), ModAnimation.AaTranslateY(sender, my, 0),
                 ModAnimation.AaTranslateX(sender, -mx, 0, 100), ModAnimation.AaTranslateY(sender, -my, 0, 100)

@@ -218,7 +218,7 @@ public partial class FormMain
         ShowWindowToTop();
         var HwndSource = (HwndSource)PresentationSource.FromVisual(this);
         HwndSource.AddHook(WndProc);
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaCode(() => ModAnimation.AniControlEnabled -= 1, 50),
             ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d, 250, 100),
@@ -235,7 +235,7 @@ public partial class FormMain
             }, After: true)
         }, "Form Show");
         // Timer 启动
-        ModAnimation.AniStart();
+        ModAnimation.Start();
         ModMain.TimerMainStart();
         // 特殊版本提示
         ModBase.RunInNewThread(() =>
@@ -617,7 +617,7 @@ public partial class FormMain
                 TransformScale.CenterY = Height / 2d;
                 RenderTransform = new TransformGroup
                     { Children = new TransformCollection([TransformRotate, TransformPos, TransformScale]) };
-                ModAnimation.AniStart(new[]
+                ModAnimation.Start(new[]
                 {
                     ModAnimation.AaOpacity(this, -Opacity, 140, 40,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
@@ -1840,7 +1840,7 @@ public partial class FormMain
             else if (PageStack.Any())
             {
                 // 子页面 → 另一个子页面，更新
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                     ModAnimation.AaOpacity(LabTitleInner, -LabTitleInner.Opacity, 130),
@@ -1862,7 +1862,7 @@ public partial class FormMain
                 PanTitleMain.IsHitTestVisible = false;
                 PanTitleInner.IsHitTestVisible = true;
                 PageNameRefresh(Stack);
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                     ModAnimation.AaOpacity(PanTitleMain, -PanTitleMain.Opacity, 150),
@@ -2012,7 +2012,7 @@ public partial class FormMain
         ((MyPageRight)PanMainRight.Child).PageOnExit();
         ModAnimation.AniControlEnabled -= 1;
         // 执行动画
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaCode(() =>
             {
@@ -2031,7 +2031,7 @@ public partial class FormMain
                 PageLeft.TriggerShowAnimation();
             }, 30, true)
         }, "FrmMain PageChangeLeft");
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaCode(() =>
             {
@@ -2064,7 +2064,7 @@ public partial class FormMain
             PanTitleMain.Visibility = Visibility.Visible;
             PanTitleMain.IsHitTestVisible = true;
             PanTitleInner.IsHitTestVisible = false;
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaOpacity(PanTitleInner, -PanTitleInner.Opacity, 150),
@@ -2097,7 +2097,7 @@ public partial class FormMain
                 PanMainLeft.IsHitTestVisible = false; // 避免左边栏指向背景未能完美覆盖左边栏
             if (NewWidth > 0d)
                 // 宽度足够，显示
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaWidth(RectLeftBackground, NewWidth - RectLeftBackground.Width, 180,
@@ -2107,7 +2107,7 @@ public partial class FormMain
                     }, "FrmMain LeftChange", true);
             else
                 // 宽度不足，隐藏
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaWidth(RectLeftBackground, -RectLeftBackground.Width, 180,

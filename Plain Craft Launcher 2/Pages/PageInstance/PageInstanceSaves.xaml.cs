@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.UI.Icons;
 
 namespace PCL;
 
@@ -210,13 +211,13 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnOpen = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonOpen,
+                        Logo = Logo.ButtonOpen,
                         ToolTip = "打开"
                     };
                     BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonDelete,
+                        Logo = Logo.ButtonDelete,
                         ToolTip = "删除"
                     };
                     BtnDelete.Click += (_, _) =>
@@ -241,7 +242,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnCopy = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonCopy,
+                        Logo = Logo.ButtonCopy,
                         ToolTip = "复制"
                     };
                     BtnCopy.Click += (_, _) =>
@@ -266,7 +267,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnInfo = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonInfo,
+                        Logo = Logo.ButtonInfo,
                         ToolTip = "详情"
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -274,7 +275,7 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnLaunch = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconPlayGame,
+                        Logo = Logo.PlayGame,
                         ToolTip = "快捷启动"
                     };
                     BtnLaunch.Click += (_, _) =>

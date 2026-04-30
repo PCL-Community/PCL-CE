@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using fNbt;
+using PCL.Core.UI.Icons;
 
 namespace PCL;
 
@@ -509,7 +510,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             var BtnChunkbase = new MyIconButton
             {
-                Logo = ModBase.Logo.IconButtonlink,
+                Logo = Logo.Buttonlink,
                 ToolTip = "跳转到 Chunkbase",
                 Width = 22d,
                 Height = 22d

@@ -1,15 +1,16 @@
+using FluentValidation;
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.UI.Icons;
+using PCL.Core.Utils.Validate;
+using PCL.Network;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using FluentValidation;
-using PCL.Core.App;
-using PCL.Core.Logging;
-using PCL.Core.UI;
-using PCL.Core.Utils.Validate;
-using PCL.Network;
 
 namespace PCL;
 
@@ -21,7 +22,7 @@ public partial class PageSelectLeft : IRefreshable
     public PageSelectLeft()
     {
         Initialized += PageSelectLeft_Initialized;
-        Loaded += PageSelectLeft_Loaded;     
+        Loaded += PageSelectLeft_Loaded;
         InitializeComponent();
     }
 
@@ -181,7 +182,7 @@ public partial class PageSelectLeft : IRefreshable
                 // 图标按钮
                 var newIconButton = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSetup,
+                    Logo = Logo.ButtonSetup,
                     LogoScale = 1.1
                 };
                 newIconButton.Click += (_, _) =>
@@ -216,7 +217,7 @@ public partial class PageSelectLeft : IRefreshable
                     Height = 34,
                     ToolTip = "在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹",
                     LogoScale = 0.9,
-                    Logo = ModBase.Logo.IconButtonCreate
+                    Logo = Logo.ButtonCreate
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
                 ToolTipService.SetHorizontalOffset(itemCreate, -50);
@@ -233,7 +234,7 @@ public partial class PageSelectLeft : IRefreshable
                 Title = "添加已有文件夹",
                 Height = 34,
                 ToolTip = "将一个已有的 Minecraft 文件夹添加到列表",
-                Logo = ModBase.Logo.IconButtonAdd
+                Logo = Logo.ButtonAdd
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemAdd, -50);
@@ -514,28 +515,28 @@ public partial class PageSelectLeft : IRefreshable
                         "配置文件清理", "删除", "保留", "取消"))
             {
                 case 1:
-                {
-                    // 删除配置文件
-                    if (File.Exists(Folder.Location + "PCL.ini"))
-                        File.Delete(Folder.Location + "PCL.ini");
-                    if (Directory.Exists(Folder.Location + @"versions\"))
-                        foreach (var Version in new DirectoryInfo(Folder.Location + @"versions\")
-                                     .EnumerateDirectories())
-                            if (Directory.Exists(Version.FullName + @"\PCL\"))
-                                Directory.Delete(Version.FullName + @"\PCL\", true);
+                    {
+                        // 删除配置文件
+                        if (File.Exists(Folder.Location + "PCL.ini"))
+                            File.Delete(Folder.Location + "PCL.ini");
+                        if (Directory.Exists(Folder.Location + @"versions\"))
+                            foreach (var Version in new DirectoryInfo(Folder.Location + @"versions\")
+                                         .EnumerateDirectories())
+                                if (Directory.Exists(Version.FullName + @"\PCL\"))
+                                    Directory.Delete(Version.FullName + @"\PCL\", true);
 
-                    break;
-                }
+                        break;
+                    }
                 case 2:
-                {
-                    break;
-                }
+                    {
+                        break;
+                    }
                 // 不删除
                 case 3:
-                {
-                    // 取消
-                    return;
-                }
+                    {
+                        // 取消
+                        return;
+                    }
             }
 
             // 若修改了本部分代码，应对应修改 Delete_Click 中的代码

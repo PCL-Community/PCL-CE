@@ -1,10 +1,3 @@
-using System.IO;
-using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
-using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
@@ -13,6 +6,12 @@ using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace PCL;
 
@@ -21,7 +20,7 @@ public partial class PageInstanceSetup
     private new bool IsLoaded;
 
     public PageInstanceSetup()
-    {     
+    {
         Loaded += PageSetupSystem_Loaded;
         InitializeComponent();
 
@@ -61,7 +60,7 @@ public partial class PageInstanceSetup
         CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
 
         BtnSwitch.Click += BtnSwitch_Click;
-        
+
         TextServerEnter.TextChanged += TextServerEnter_Change;
         ComboArgumentJava.DropDownOpened += ComboArgumentJava_DropDownOpened;
         CheckArgumentTitleEmpty.Change += CheckArgumentTitleEmpty_Change;
@@ -194,11 +193,11 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (o is not MyTextBox textBox) return;
-        
+
         // 使用新配置系统保存
         var tag = Conversions.ToString(textBox.Tag);
         var value = textBox.Text;
-        ArgConfig<string> setting = tag switch 
+        ArgConfig<string> setting = tag switch
         {
             "VersionArgumentTitle" => Config.Instance.Title,
             "VersionArgumentInfo" => Config.Instance.TypeInfo,
@@ -234,7 +233,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (sender is not MyCheckBox checkBox) return;
-        
+
         var tag = Conversions.ToString(checkBox.Tag);
         var value = checkBox.Checked.GetValueOrDefault();
         ArgConfig<bool> setting = tag switch
@@ -265,7 +264,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0) return;
         Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance] = ComboRamOptimize.SelectedIndex;
     }
-    
+
     public void RamType(int Type)
     {
         if (SliderRamCustom is null)
@@ -312,7 +311,7 @@ public partial class PageInstanceSetup
         if (ShowAnim)
         {
             // 宽度动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnRamUsed, RamUsed - ColumnRamUsed.Width.Value, 800,
@@ -370,38 +369,38 @@ public partial class PageInstanceSetup
             switch (Left)
             {
                 case 0:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
                 case 1:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
                 case 2:
-                {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
+                    {
+                        ModAnimation.Start(
+                            new[]
+                            {
                             ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
                             ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
             }
         }
 
@@ -419,7 +418,7 @@ public partial class PageInstanceSetup
                 (RamTextRight != Right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
             {
                 // 需要动画
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaX(LabRamGame, TotalWidth - LabGameWidth - LabRamGame.Margin.Left, 100,
@@ -439,7 +438,7 @@ public partial class PageInstanceSetup
                  (RamTextRight != Right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
         {
             // 需要动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaX(LabRamGame, 2d + RectUsedWidth - LabRamGame.Margin.Left, 100,
@@ -539,7 +538,7 @@ public partial class PageInstanceSetup
             RamAvailable -= RamDelta / 0.15d;
             if (RamAvailable < 0.1d)
                 goto PreFin;
-            PreFin: ;
+        PreFin:;
 
             // 不低于最低值
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
@@ -1006,13 +1005,13 @@ public partial class PageInstanceSetup
     private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
         TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
-        CheckBoxChange(sender,e);
+        CheckBoxChange(sender, e);
     }
 
     private void TextArgumentTitle_TextChanged(object sender, TextChangedEventArgs e)
     {
         CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
-        TextBoxChange(sender,e);
+        TextBoxChange(sender, e);
     }
 
     #endregion
@@ -1022,7 +1021,7 @@ public partial class PageInstanceSetup
     private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
     {
         CheckAdvanceRunWait.Visibility = string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
-        TextBoxChange(sender,e);
+        TextBoxChange(sender, e);
     }
 
     private void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1060,7 +1059,7 @@ public partial class PageInstanceSetup
             return;
         var checkBox = sender as MyCheckBox;
         if (checkBox == null) return;
-    
+
         if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {
             if (ModMain.MyMsgBox(

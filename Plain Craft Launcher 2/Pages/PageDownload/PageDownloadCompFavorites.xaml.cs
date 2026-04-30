@@ -1,12 +1,13 @@
+using PCL.Core.UI;
+using PCL.Core.UI.Icons;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.UI;
-using PCL.Network;
-using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -28,7 +29,7 @@ public partial class PageDownloadCompFavorites
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = ModBase.Logo.IconButtonSetup;
+            Btn_ManageTargetFav.Logo = Logo.ButtonSetup;
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -155,51 +156,51 @@ public partial class PageDownloadCompFavorites
         switch (Type)
         {
             case -1:
-            {
-                NewItem.Title = "搜索结果 ({0})"; // 搜索结果
-                break;
-            }
+                {
+                    NewItem.Title = "搜索结果 ({0})"; // 搜索结果
+                    break;
+                }
             case (int)ModComp.CompType.Mod:
-            {
-                NewItem.Title = "Mod ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "Mod ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.ModPack:
-            {
-                NewItem.Title = "整合包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "整合包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.ResourcePack:
-            {
-                NewItem.Title = "资源包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "资源包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.Shader:
-            {
-                NewItem.Title = "光影包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "光影包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.DataPack:
-            {
-                NewItem.Title = "数据包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "数据包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.Plugin:
-            {
-                NewItem.Title = "插件 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "插件 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.World:
-            {
-                NewItem.Title = "世界 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "世界 ({0})";
+                    break;
+                }
 
             default:
-            {
-                NewItem.Title = "未分类类型 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "未分类类型 ({0})";
+                    break;
+                }
         }
 
         NewItem.Card.Title = string.Format(NewItem.Title, 0);
@@ -313,7 +314,7 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var Btn_EditNote = new MyIconButton();
-        Btn_EditNote.Logo = ModBase.Logo.IconButtonEdit;
+        Btn_EditNote.Logo = Logo.ButtonEdit;
         Btn_EditNote.ToolTip = "修改备注";
         ToolTipService.SetPlacement(Btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_EditNote, 30d);
@@ -332,7 +333,7 @@ public partial class PageDownloadCompFavorites
         };
         // 删除按钮
         var Btn_Delete = new MyIconButton();
-        Btn_Delete.Logo = ModBase.Logo.IconButtonLikeFill;
+        Btn_Delete.Logo = Logo.ButtonLikeFill;
         Btn_Delete.ToolTip = "取消收藏";
         ToolTipService.SetPlacement(Btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_Delete, 30d);
@@ -387,7 +388,7 @@ public partial class PageDownloadCompFavorites
                 BottomBarShownCount = NewCount;
                 // 出现/跳跃动画
                 CardSelect.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
@@ -406,7 +407,7 @@ public partial class PageDownloadCompFavorites
                     return;
                 BottomBarShownCount = 0;
                 // 隐藏动画
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
@@ -456,18 +457,18 @@ public partial class PageDownloadCompFavorites
         switch (Loader.State)
         {
             case ModBase.LoadState.Failed:
-            {
-                var ErrorMessage = "";
-                if (Loader.Error is not null)
-                    ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
                 {
-                    ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var ErrorMessage = "";
+                    if (Loader.Error is not null)
+                        ErrorMessage = Loader.Error.Message;
+                    if (ErrorMessage.Contains("不是有效的 json 文件"))
+                    {
+                        ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -659,10 +660,10 @@ public partial class PageDownloadCompFavorites
                 ProgressWeight = 2d
             });
             GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
-                { ProgressWeight = 8d });
+            { ProgressWeight = 8d });
             var CheckLoader =
                 new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
-                    { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+                { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(CheckLoader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -718,7 +719,7 @@ public partial class PageDownloadCompFavorites
         var NewItem = new MyMenuItem
         {
             Header = "分享当前收藏夹",
-            Icon = ModBase.Logo.IconButtonShare
+            Icon = Logo.ButtonShare
         };
         NewItem.Click += (_, _) =>
         {
@@ -741,7 +742,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "导入收藏",
-            Icon = ModBase.Logo.IconButtonAdd
+            Icon = Logo.ButtonAdd
         };
         NewItem.Click += (_, _) =>
         {
@@ -760,22 +761,22 @@ public partial class PageDownloadCompFavorites
                 switch (UserWant)
                 {
                     case 1:
-                    {
-                        var NewFavName = ModMain.MyMsgBoxInput("新收藏夹名称", "请输入新收藏夹名称");
-                        if (string.IsNullOrWhiteSpace(NewFavName)) return;
-                        ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, NewFavs));
-                        ModComp.CompFavorites.Save();
-                        RefreshFavTargets();
-                        ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
-                        break;
-                    }
+                        {
+                            var NewFavName = ModMain.MyMsgBoxInput("新收藏夹名称", "请输入新收藏夹名称");
+                            if (string.IsNullOrWhiteSpace(NewFavName)) return;
+                            ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, NewFavs));
+                            ModComp.CompFavorites.Save();
+                            RefreshFavTargets();
+                            ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+                            break;
+                        }
                     case 2:
-                    {
-                        NewFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
-                        ModComp.CompFavorites.Save();
-                        Loader.Start(IsForceRestart: true);
-                        break;
-                    }
+                        {
+                            NewFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
+                            ModComp.CompFavorites.Save();
+                            Loader.Start(IsForceRestart: true);
+                            break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -787,7 +788,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "新建收藏夹",
-            Icon = ModBase.Logo.IconButtonCreate
+            Icon = Logo.ButtonCreate
         };
         NewItem.Click += (_, _) =>
         {
@@ -803,7 +804,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "重命名收藏夹名称",
-            Icon = ModBase.Logo.IconButtonEdit
+            Icon = Logo.ButtonEdit
         };
         NewItem.Click += (_, _) =>
         {
@@ -818,7 +819,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "删除当前收藏夹",
-            Icon = ModBase.Logo.IconButtonDelete
+            Icon = Logo.ButtonDelete
         };
         NewItem.Click += (_, _) =>
         {

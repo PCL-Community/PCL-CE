@@ -83,7 +83,7 @@ public partial class MySlider
                     var DeltaProcess =
                         Math.Abs(LineFore.Width / (ActualWidth - ShapeDot.Width) - _Value / (double)MaxValue);
                     var Time = (1d - Math.Pow(1d - DeltaProcess, 3d)) * 300d + (ChangeByKey ? 100 : 0);
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaWidth(LineFore,
@@ -148,7 +148,7 @@ public partial class MySlider
         ModMain.DragControl = this;
         RefreshColor();
         ModMain.FrmMain.DragDoing();
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(ShapeDot, 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
@@ -178,7 +178,7 @@ public partial class MySlider
         MouseMove -= OnDragMouseMove;
         if (IsMouseCaptured) ReleaseMouseCapture();
         RefreshColor();
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(ShapeDot, 1d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 200,
@@ -241,7 +241,7 @@ public partial class MySlider
             if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
             {
                 // 有动画
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaColor(this, BorderBrushProperty, ForegroundName, AnimationTime),
@@ -298,7 +298,7 @@ public partial class MySlider
         {
             RefreshPopup();
             ModAnimation.AniStop("MySlider KeyPopup " + Uuid);
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 ModAnimation.AaCode(() => Popup.IsOpen = false, (int)Math.Round(700d * ModAnimation.AniSpeed)),
                 "MySlider KeyPopup " + Uuid);
         }

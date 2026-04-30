@@ -1,12 +1,12 @@
+using PCL.Core.App;
+using PCL.Core.Utils;
+using PCL.Network;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.Utils;
-using PCL.Network;
 
 namespace PCL;
 
@@ -253,51 +253,51 @@ public partial class PageLaunchLeft
         switch (CurrentState)
         {
             case 0:
-            {
-                ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "正在加载";
-                ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "正在加载中，请稍候";
-                ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = false;
-                ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
+                    ModMain.FrmLaunchLeft.BtnLaunch.Text = "正在加载";
+                    ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
+                    ModMain.FrmLaunchLeft.LabVersion.Text = "正在加载中，请稍候";
+                    ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = false;
+                    ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 1:
-            {
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
-                ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
-                ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
+                    ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
+                    ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
+                    ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
+                    ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
+                    ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 2:
-            {
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "下载游戏";
-                ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
-                ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
+                    ModMain.FrmLaunchLeft.BtnLaunch.Text = "下载游戏";
+                    ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
+                    ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
+                    ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
+                    ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 3:
-            {
-                ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModMinecraft.McInstanceSelected.PathInstance);
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
-                ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
-                if (ModProfile.SelectedProfile is not null)
-                    BtnLaunch.IsEnabled = true;
-                else
-                    BtnLaunch.IsEnabled = false;
-                ModMain.FrmLaunchLeft.LabVersion.Text = ModMinecraft.McInstanceSelected.Name;
-                break;
-            }
-            // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
+                {
+                    ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModMinecraft.McInstanceSelected.PathInstance);
+                    ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
+                    ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
+                    if (ModProfile.SelectedProfile is not null)
+                        BtnLaunch.IsEnabled = true;
+                    else
+                        BtnLaunch.IsEnabled = false;
+                    ModMain.FrmLaunchLeft.LabVersion.Text = ModMinecraft.McInstanceSelected.Name;
+                    break;
+                }
+                // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
         }
 
-        ExitRefresh: ;
+    ExitRefresh:;
 
         // 功能隐藏
         ModMain.FrmLaunchLeft.BtnInstance.Visibility =
@@ -460,7 +460,7 @@ public partial class PageLaunchLeft
                 });
             }
 
-            ModAnimation.AniStart(AnimList, "Launching Progress");
+            ModAnimation.Start(AnimList, "Launching Progress");
         }
         catch (Exception ex)
         {
@@ -474,7 +474,7 @@ public partial class PageLaunchLeft
         if (e.PreviousSize.Width == 0d || IsWidthAnimating || Math.Abs(DeltaWidth) < 1d ||
             PanLaunchingInfo.ActualWidth == 0d)
             return;
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaWidth(PanLaunchingInfo, DeltaWidth, 180, Ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
@@ -494,7 +494,7 @@ public partial class PageLaunchLeft
         if (e.PreviousSize.Height == 0d || IsHeightAnimating || Math.Abs(DeltaHeight) < 1d ||
             PanLaunchingInfo.ActualHeight == 0d)
             return;
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaHeight(PanLaunchingInfo, DeltaHeight, 180, Ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
@@ -525,22 +525,22 @@ public partial class PageLaunchLeft
         switch (ModProfile.SelectedProfile.Type)
         {
             case ModLaunch.McLoginType.Legacy:
-            {
-                LabLaunchingMethod.Text = "离线验证";
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = "离线验证";
+                    break;
+                }
             case ModLaunch.McLoginType.Ms:
-            {
-                LabLaunchingMethod.Text = "正版验证";
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = "正版验证";
+                    break;
+                }
             case ModLaunch.McLoginType.Auth:
-            {
-                LabLaunchingMethod.Text = "第三方验证" + (!string.IsNullOrEmpty(ModProfile.SelectedProfile.ServerName)
-                    ? " / " + ModProfile.SelectedProfile.ServerName
-                    : "");
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = "第三方验证" + (!string.IsNullOrEmpty(ModProfile.SelectedProfile.ServerName)
+                        ? " / " + ModProfile.SelectedProfile.ServerName
+                        : "");
+                    break;
+                }
         }
 
         // 初始化页面
@@ -576,7 +576,7 @@ public partial class PageLaunchLeft
         PanLaunching.IsHitTestVisible = false;
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Run;
         PanLaunching.Visibility = Visibility.Visible;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaOpacity(PanInput, 0d, 50),
@@ -600,7 +600,7 @@ public partial class PageLaunchLeft
         PanLaunching.IsHitTestVisible = false;
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Stop;
         PanInput.Visibility = Visibility.Visible;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaOpacity(PanLaunching, -PanLaunching.Opacity, 150),
@@ -638,40 +638,40 @@ public partial class PageLaunchLeft
         switch (Type)
         {
             case PageType.Auth:
-            {
-                if (ModMain.FrmLoginAuth == null)
-                    ModMain.FrmLoginAuth = new PageLoginAuth();
-                return ModMain.FrmLoginAuth;
-            }
+                {
+                    if (ModMain.FrmLoginAuth == null)
+                        ModMain.FrmLoginAuth = new PageLoginAuth();
+                    return ModMain.FrmLoginAuth;
+                }
             case PageType.Ms:
-            {
-                if (ModMain.FrmLoginMs == null)
-                    ModMain.FrmLoginMs = new PageLoginMs();
-                return ModMain.FrmLoginMs;
-            }
+                {
+                    if (ModMain.FrmLoginMs == null)
+                        ModMain.FrmLoginMs = new PageLoginMs();
+                    return ModMain.FrmLoginMs;
+                }
             case PageType.Profile:
-            {
-                if (ModMain.FrmLoginProfile == null)
-                    ModMain.FrmLoginProfile = new PageLoginProfile();
-                return ModMain.FrmLoginProfile;
-            }
+                {
+                    if (ModMain.FrmLoginProfile == null)
+                        ModMain.FrmLoginProfile = new PageLoginProfile();
+                    return ModMain.FrmLoginProfile;
+                }
             case PageType.ProfileSkin:
-            {
-                if (ModMain.FrmLoginProfileSkin == null)
-                    ModMain.FrmLoginProfileSkin = new PageLoginProfileSkin();
-                return ModMain.FrmLoginProfileSkin;
-            }
+                {
+                    if (ModMain.FrmLoginProfileSkin == null)
+                        ModMain.FrmLoginProfileSkin = new PageLoginProfileSkin();
+                    return ModMain.FrmLoginProfileSkin;
+                }
             case PageType.Offline:
-            {
-                if (ModMain.FrmLoginOffline == null)
-                    ModMain.FrmLoginOffline = new PageLoginOffline();
-                return ModMain.FrmLoginOffline;
-            }
+                {
+                    if (ModMain.FrmLoginOffline == null)
+                        ModMain.FrmLoginOffline = new PageLoginOffline();
+                    return ModMain.FrmLoginOffline;
+                }
 
             default:
-            {
-                throw new ArgumentOutOfRangeException("Type", "即将切换的登录分页编号越界");
-            }
+                {
+                    throw new ArgumentOutOfRangeException("Type", "即将切换的登录分页编号越界");
+                }
         }
     }
 
@@ -705,7 +705,7 @@ public partial class PageLaunchLeft
             {
                 // 动画
                 // 执行动画
-                Dispatcher.Invoke(() => ModAnimation.AniStart(new[]
+                Dispatcher.Invoke(() => ModAnimation.Start(new[]
                 {
                     ModAnimation.AaOpacity(PanLogin, -PanLogin.Opacity, 100, Ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaCode(() =>
@@ -854,7 +854,7 @@ public partial class PageLaunchLeft
             }
         }
 
-        Finish: ;
+    Finish:;
 
         // 刷新显示
         if (ModMain.FrmLoginProfileSkin is not null && ReferenceEquals(ModMain.FrmLoginProfileSkin.Skin.Loader, Data))
@@ -955,7 +955,7 @@ public partial class PageLaunchLeft
             }
         }
 
-        Finish: ;
+    Finish:;
 
         // 刷新显示
         if (ModMain.FrmLoginProfileSkin is not null && ReferenceEquals(ModMain.FrmLoginProfileSkin.Skin.Loader, Data))

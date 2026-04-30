@@ -311,7 +311,7 @@ public partial class PageInstanceLeft : IRefreshable
             Target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.FrmMain.PageRight = Target;
         ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaCode(() =>
             {

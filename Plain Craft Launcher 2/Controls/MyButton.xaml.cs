@@ -110,7 +110,7 @@ public partial class MyButton
                         {
                             if (IsMouseOver)
                                 // 指向（Main 3）
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush3",
@@ -118,7 +118,7 @@ public partial class MyButton
                                     }, "MyButton Color " + Uuid);
                             else
                                 // 普通（Main 1）
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush1",
@@ -131,7 +131,7 @@ public partial class MyButton
                         {
                             if (IsMouseOver)
                                 // 指向（Main 3）
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush3",
@@ -139,7 +139,7 @@ public partial class MyButton
                                     }, "MyButton Color " + Uuid);
                             else
                                 // 高亮（Main 2）
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush2",
@@ -152,7 +152,7 @@ public partial class MyButton
                         {
                             if (IsMouseOver)
                                 // 红色指向
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrushRedLight",
@@ -160,7 +160,7 @@ public partial class MyButton
                                     }, "MyButton Color " + Uuid);
                             else
                                 // 红色
-                                ModAnimation.AniStart(
+                                ModAnimation.Start(
                                     new[]
                                     {
                                         ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrushRedDark",
@@ -172,7 +172,7 @@ public partial class MyButton
                     }
                 else
                     // 不可用（Gray 4）
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaColor(PanFore, BorderBrushProperty,
@@ -238,7 +238,7 @@ public partial class MyButton
     {
         IsMouseDown = true;
         Focus();
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanFore, 0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
@@ -249,7 +249,7 @@ public partial class MyButton
 
     private void Button_MouseEnter()
     {
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaColor(PanFore, BackgroundProperty,
                 _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7", AnimationColorIn),
             "MyButton Background " + Uuid);
@@ -260,7 +260,7 @@ public partial class MyButton
         if (!IsMouseDown)
             return;
         IsMouseDown = false;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 300, 10,
@@ -270,13 +270,13 @@ public partial class MyButton
 
     private void Button_MouseLeave()
     {
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", AnimationColorOut),
             "MyButton Background " + Uuid);
         if (!IsMouseDown)
             return;
         IsMouseDown = false;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
                 Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + Uuid);
     }

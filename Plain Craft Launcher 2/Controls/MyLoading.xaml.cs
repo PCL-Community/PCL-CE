@@ -267,7 +267,7 @@ public partial class MyLoading
             return;
         IsLooping = true;
         ErrorAnimationWaiting = true;
-        ModAnimation.AniStart(new[]
+        ModAnimation.Start(new[]
         {
             ModAnimation.AaRotateTransform(PathPickaxe, -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
                 250, new ModAnimation.AniEaseInBack(ModAnimation.AniEasePower.Weak)),
@@ -311,7 +311,7 @@ public partial class MyLoading
         {
             // 非错误变为错误
             var Wait = ErrorAnimationWaiting ? 400 : 0;
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
@@ -323,7 +323,7 @@ public partial class MyLoading
         else
         {
             // 错误变为非错误
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaOpacity(PathError, -PathError.Opacity, 100),

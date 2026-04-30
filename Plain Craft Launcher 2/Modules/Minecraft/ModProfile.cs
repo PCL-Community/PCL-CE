@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net;
+using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
@@ -453,21 +454,21 @@ public static class ModProfile
                     {
                         Title = "正版验证",
                         Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonAuth
+                        Logo = Logo.ButtonAuth
                     },
 
                     new MyListItem
                     {
                         Title = "第三方验证",
                         Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonThirdparty
+                        Logo = Logo.ButtonThirdparty
                     },
 
                     new MyListItem
                     {
                         Title = "离线验证",
                         Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonOffline
+                        Logo = Logo.ButtonOffline
                     }
                 ];
             else
@@ -477,7 +478,7 @@ public static class ModProfile
                     {
                         Title = "正版验证",
                         Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonAuth
+                        Logo = Logo.ButtonAuth
                     }
                 ];
             selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");

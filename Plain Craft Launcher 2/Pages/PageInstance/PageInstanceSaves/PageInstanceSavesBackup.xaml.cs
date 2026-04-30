@@ -2,6 +2,7 @@ using System.Windows;
 using Microsoft.VisualBasic;
 using PCL.Core.IO;
 using PCL.Core.UI;
+using PCL.Core.UI.Icons;
 using PCL.Core.Utils.VersionControl;
 
 namespace PCL;
@@ -77,7 +78,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnApply = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconPlayGame,
+                    Logo = Logo.PlayGame,
                     ToolTip = "回到到此快照"
                 };
 
@@ -109,7 +110,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnExport = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSave,
+                    Logo = Logo.ButtonSave,
                     ToolTip = "导出到压缩包"
                 };
 
@@ -144,7 +145,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnDelete = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonDelete,
+                    Logo = Logo.ButtonDelete,
                     ToolTip = "删除"
                 };
 
@@ -171,7 +172,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnInfo = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonInfo,
+                    Logo = Logo.ButtonInfo,
                     ToolTip = "信息"
                 };
 

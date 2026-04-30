@@ -1,7 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Windows;
-using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link;
@@ -14,6 +10,10 @@ using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Windows;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -923,7 +923,7 @@ public partial class PageToolsGameLink
         else
         {
             var newProgress = value == 1d ? 1d : (value - displayingProgress) * 0.2d + displayingProgress;
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnProgressA, newProgress - ColumnProgressA.Width.Value, 300,

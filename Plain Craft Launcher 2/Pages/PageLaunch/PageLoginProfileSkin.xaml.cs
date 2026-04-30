@@ -53,7 +53,7 @@ public partial class PageLoginProfileSkin
     // 显示 / 隐藏控制
     private void ShowPanel(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, 120),
+        ModAnimation.Start(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
     }
 
@@ -61,7 +61,7 @@ public partial class PageLoginProfileSkin
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, 120),
+        ModAnimation.Start(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
     }
 

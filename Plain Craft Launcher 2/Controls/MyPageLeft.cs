@@ -42,7 +42,7 @@ public class MyPageLeft : Grid
             }
 
             Opacity = 0d;
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
@@ -90,7 +90,7 @@ public class MyPageLeft : Grid
                 }
             }
 
-            ModAnimation.AniStart(AniList, "PageLeft PageChange " + Uuid);
+            ModAnimation.Start(AniList, "PageLeft PageChange " + Uuid);
         }
     }
 
@@ -105,7 +105,7 @@ public class MyPageLeft : Grid
                 RenderTransformOrigin = new Point(0.5d, 0.5d);
             }
 
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(this, 0.95d - ((ScaleTransform)RenderTransform).ScaleX, 110,
@@ -127,7 +127,7 @@ public class MyPageLeft : Grid
                 Id += 1;
             }
 
-            ModAnimation.AniStart(AniList, "PageLeft PageChange " + Uuid);
+            ModAnimation.Start(AniList, "PageLeft PageChange " + Uuid);
         }
     }
 

@@ -6,6 +6,7 @@ using System.Windows.Markup;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 using System.Windows.Controls;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -126,10 +127,10 @@ public partial class MyHint
         }
 
         var s = ThemeService.CurrentTone;
-        Background = new ModBase.MyColor().FromHSL2(hue, 90, s.L7 * 100);
-        BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        Background = new NColor().FromHsl2(hue, 90, s.L7 * 100);
+        BorderBrush = new NColor().FromHsl2(hue, 90, s.L2 * 100);
+        LabText.Foreground = new NColor().FromHsl2(hue, 90, s.L2 * 100);
+        BtnClose.Foreground = new NColor().FromHsl2(hue, 90, s.L2 * 100);
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
@@ -237,7 +238,7 @@ public static partial class ModAnimation
         if (!Control.IsHitTestVisible)
             return;
         Control.IsHitTestVisible = false;
-        AniStart(new[]
+        Start(new[]
         {
             AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
             AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),

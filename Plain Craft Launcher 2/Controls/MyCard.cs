@@ -210,7 +210,7 @@ public class MyCard : AnimatedBackgroundGrid
             ModAnimation.AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
         });
         if (!IsAnimating)
-            ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
+            ModAnimation.Start(AniList, "MyCard Mouse " + Uuid);
     }
 
     private void MyCard_MouseLeave(object sender, MouseEventArgs e)
@@ -228,7 +228,7 @@ public class MyCard : AnimatedBackgroundGrid
             ModAnimation.AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
         });
         if (!IsAnimating)
-            ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
+            ModAnimation.Start(AniList, "MyCard Mouse " + Uuid);
     }
 
     #region 高度改变动画
@@ -316,7 +316,7 @@ public class MyCard : AnimatedBackgroundGrid
             if (IsSwapped && SwapControl is not null)
                 SwapControl.Visibility = Visibility.Collapsed;
         }, After: true));
-        ModAnimation.AniStart(AnimList, "MyCard Height " + Uuid);
+        ModAnimation.Start(AnimList, "MyCard Height " + Uuid);
         IsHeightAnimating = true;
         ActualUsedHeight = IsSwapped ? SwapedHeight : Height;
         Height = PreviousHeight;
@@ -380,7 +380,7 @@ public class MyCard : AnimatedBackgroundGrid
 
             // 根据折叠状态旋转箭头图标
             // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 ModAnimation.AaRotateTransform(MainSwap,
                     (_IsSwapped ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
                     250, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
@@ -465,7 +465,7 @@ public static partial class ModAnimation
         if (Control.IsHitTestVisible)
         {
             Control.IsHitTestVisible = false;
-            AniStart(new[]
+            Start(new[]
             {
                 AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
                 AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),

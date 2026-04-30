@@ -228,7 +228,7 @@ public class MyTextBox : TextBox
             {
                 // 变为正确
                 ShownValidateResult = IsSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaOpacity(labWrong, -labWrong.Opacity, 150),
@@ -242,7 +242,7 @@ public class MyTextBox : TextBox
                 // 变为错误
                 ShownValidateResult = ValidateState.FailedAndShowDetail;
                 labWrong.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
@@ -343,7 +343,7 @@ public class MyTextBox : TextBox
             if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
             {
                 // 有动画
-                ModAnimation.AniStart(
+                ModAnimation.Start(
                     new[]
                     {
                         ModAnimation.AaColor(this, BorderBrushProperty, ForeColorName, AnimationTime),
@@ -373,7 +373,7 @@ public class MyTextBox : TextBox
         if (IsLoaded && ModAnimation.AniControlEnabled == 0 && !string.IsNullOrEmpty(Text))
         {
             // 有动画
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaColor(this, ForegroundProperty, IsEnabled ? "ColorBrushGray1" : "ColorBrushGray4",

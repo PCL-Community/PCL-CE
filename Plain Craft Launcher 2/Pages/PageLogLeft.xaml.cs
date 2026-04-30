@@ -1,7 +1,8 @@
+using PCL.Core.App;
+using PCL.Core.UI.Icons;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -49,7 +50,7 @@ public partial class PageLogLeft
             // 测试实例列表
             // TODO(i18n): 文本 @ PageLog 左侧 - 列表标题
             ModMain.FrmLogLeft.PanList.Children.Add(new TextBlock
-                { Text = "测试实例列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
+            { Text = "测试实例列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
             foreach (var item in ShownLogs)
             {
                 // 添加控件
@@ -58,12 +59,17 @@ public partial class PageLogLeft
                 var Proc = item.Value.GameProcess;
                 var NewItem = new MyListItem
                 {
-                    IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = Version.Name, Info = $"{Version.Info} - {Proc.StartTime:HH:mm:ss}", Height = 40d, Tag = Uuid
+                    IsScaleAnimationEnabled = false,
+                    Type = MyListItem.CheckType.RadioBox,
+                    MinPaddingRight = 30,
+                    Title = Version.Name,
+                    Info = $"{Version.Info} - {Proc.StartTime:HH:mm:ss}",
+                    Height = 40d,
+                    Tag = Uuid
                 };
                 NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var RemoveButton = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, LogoScale = 1.1d };
+                var RemoveButton = new MyIconButton { Logo = Logo.ButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
                 RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 NewItem.Buttons = new[] { RemoveButton };
@@ -107,25 +113,25 @@ public partial class PageLogLeft
                     switch (MaxLog)
                     {
                         case <= 5UL:
-                        {
-                            MaxLog = (ulong)Math.Round(MaxLog * 10m + 50m);
-                            break;
-                        }
+                            {
+                                MaxLog = (ulong)Math.Round(MaxLog * 10m + 50m);
+                                break;
+                            }
                         case <= 13UL:
-                        {
-                            MaxLog = (ulong)Math.Round(MaxLog * 50m - 150m);
-                            break;
-                        }
+                            {
+                                MaxLog = (ulong)Math.Round(MaxLog * 50m - 150m);
+                                break;
+                            }
                         case <= 28UL:
-                        {
-                            MaxLog = (ulong)Math.Round(MaxLog * 100m - 800m);
-                            break;
-                        }
+                            {
+                                MaxLog = (ulong)Math.Round(MaxLog * 100m - 800m);
+                                break;
+                            }
                         default:
-                        {
-                            MaxLog = 18446744073709551615UL;
-                            break;
-                        }
+                            {
+                                MaxLog = 18446744073709551615UL;
+                                break;
+                            }
                     }
 
                     while (FlowDocuments[Uuid].Blocks.Count > (decimal)MaxLog)

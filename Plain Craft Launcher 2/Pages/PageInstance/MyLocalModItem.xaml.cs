@@ -247,7 +247,7 @@ public partial class MyLocalCompItem
             });
         }
 
-        ModAnimation.AniStart(Ani, "LocalModItem Color " + Uuid);
+        ModAnimation.Start(Ani, "LocalModItem Color " + Uuid);
     }
 
     // 触发虚拟化内容
@@ -730,7 +730,7 @@ public partial class MyLocalCompItem
                             LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
                     }
 
-                    ModAnimation.AniStart(Anim, "MyLocalCompItem Checked " + Uuid);
+                    ModAnimation.Start(Anim, "MyLocalCompItem Checked " + Uuid);
                 }
                 else
                 {

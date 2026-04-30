@@ -1,3 +1,13 @@
+using Dapper;
+using Microsoft.Data.Sqlite;
+using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.UI.Icons;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Hash;
+using PCL.Network;
+using ProtoBuf;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
@@ -10,15 +20,6 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using Newtonsoft.Json.Linq;
-using PCL.Core.App;
-using PCL.Core.Logging;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Hash;
-using PCL.Network;
-using ProtoBuf;
 
 namespace PCL;
 
@@ -279,12 +280,12 @@ public static class ModComp
                 if (HasFavs)
                 {
                     Item.Header = $"取消收藏 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeFill;
+                    Item.Icon = Logo.ButtonLikeFill;
                 }
                 else
                 {
                     Item.Header = $"收藏到 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeLine;
+                    Item.Icon = Logo.ButtonLikeLine;
                 }
 
                 Item.Click += (_, _) =>
@@ -1039,375 +1040,375 @@ public static class ModComp
                         {
                             // Mod
                             case 406:
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
+                                {
+                                    Tags.Add("世界元素");
+                                    break;
+                                }
                             case 407:
-                            {
-                                Tags.Add("生物群系");
-                                break;
-                            }
+                                {
+                                    Tags.Add("生物群系");
+                                    break;
+                                }
                             case 410:
-                            {
-                                Tags.Add("维度");
-                                break;
-                            }
+                                {
+                                    Tags.Add("维度");
+                                    break;
+                                }
                             case 408:
-                            {
-                                Tags.Add("矿物/资源");
-                                break;
-                            }
+                                {
+                                    Tags.Add("矿物/资源");
+                                    break;
+                                }
                             case 409:
-                            {
-                                Tags.Add("天然结构");
-                                break;
-                            }
+                                {
+                                    Tags.Add("天然结构");
+                                    break;
+                                }
                             case 412:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
+                                {
+                                    Tags.Add("科技");
+                                    break;
+                                }
                             case 415:
-                            {
-                                Tags.Add("管道/物流");
-                                break;
-                            }
+                                {
+                                    Tags.Add("管道/物流");
+                                    break;
+                                }
                             case 4843:
-                            {
-                                Tags.Add("自动化");
-                                break;
-                            }
+                                {
+                                    Tags.Add("自动化");
+                                    break;
+                                }
                             case 417:
-                            {
-                                Tags.Add("能源");
-                                break;
-                            }
+                                {
+                                    Tags.Add("能源");
+                                    break;
+                                }
                             case 4558:
-                            {
-                                Tags.Add("红石");
-                                break;
-                            }
+                                {
+                                    Tags.Add("红石");
+                                    break;
+                                }
                             case 436:
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
+                                {
+                                    Tags.Add("食物/烹饪");
+                                    break;
+                                }
                             case 416:
-                            {
-                                Tags.Add("农业");
-                                break;
-                            }
+                                {
+                                    Tags.Add("农业");
+                                    break;
+                                }
                             case 414:
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
+                                {
+                                    Tags.Add("运输");
+                                    break;
+                                }
                             case 420:
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
+                                {
+                                    Tags.Add("仓储");
+                                    break;
+                                }
                             case 419:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
+                                {
+                                    Tags.Add("魔法");
+                                    break;
+                                }
                             case 422:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
+                                {
+                                    Tags.Add("冒险");
+                                    break;
+                                }
                             case 424:
-                            {
-                                Tags.Add("装饰");
-                                break;
-                            }
+                                {
+                                    Tags.Add("装饰");
+                                    break;
+                                }
                             case 411:
-                            {
-                                Tags.Add("生物");
-                                break;
-                            }
+                                {
+                                    Tags.Add("生物");
+                                    break;
+                                }
                             case 434:
-                            {
-                                Tags.Add("装备");
-                                break;
-                            }
+                                {
+                                    Tags.Add("装备");
+                                    break;
+                                }
                             case 6814:
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
+                                {
+                                    Tags.Add("性能优化");
+                                    break;
+                                }
                             case 9026:
-                            {
-                                Tags.Add("创造模式");
-                                break;
-                            }
+                                {
+                                    Tags.Add("创造模式");
+                                    break;
+                                }
                             case 423:
-                            {
-                                Tags.Add("信息显示");
-                                break;
-                            }
+                                {
+                                    Tags.Add("信息显示");
+                                    break;
+                                }
                             case 435:
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
+                                {
+                                    Tags.Add("服务器");
+                                    break;
+                                }
                             case 5191:
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
+                                {
+                                    Tags.Add("改良");
+                                    break;
+                                }
                             case 421:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
+                                {
+                                    Tags.Add("支持库");
+                                    break;
+                                }
                             // 整合包
                             case 4484:
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
+                                {
+                                    Tags.Add("多人");
+                                    break;
+                                }
                             case 4479:
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
+                                {
+                                    Tags.Add("硬核");
+                                    break;
+                                }
                             case 4483:
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
+                                {
+                                    Tags.Add("战斗");
+                                    break;
+                                }
                             case 4478:
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
+                                {
+                                    Tags.Add("任务");
+                                    break;
+                                }
                             case 4472:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
+                                {
+                                    Tags.Add("科技");
+                                    break;
+                                }
                             case 4473:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
+                                {
+                                    Tags.Add("魔法");
+                                    break;
+                                }
                             case 4475:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
+                                {
+                                    Tags.Add("冒险");
+                                    break;
+                                }
                             case 4476:
-                            {
-                                Tags.Add("探索");
-                                break;
-                            }
+                                {
+                                    Tags.Add("探索");
+                                    break;
+                                }
                             case 4477:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
+                                {
+                                    Tags.Add("小游戏");
+                                    break;
+                                }
                             case 4471:
-                            {
-                                Tags.Add("科幻");
-                                break;
-                            }
+                                {
+                                    Tags.Add("科幻");
+                                    break;
+                                }
                             case 4736:
-                            {
-                                Tags.Add("空岛");
-                                break;
-                            }
+                                {
+                                    Tags.Add("空岛");
+                                    break;
+                                }
                             case 5128:
-                            {
-                                Tags.Add("原版改良");
-                                break;
-                            }
+                                {
+                                    Tags.Add("原版改良");
+                                    break;
+                                }
                             case 4487:
-                            {
-                                Tags.Add("FTB");
-                                break;
-                            }
+                                {
+                                    Tags.Add("FTB");
+                                    break;
+                                }
                             case 4480:
-                            {
-                                Tags.Add("基于地图");
-                                break;
-                            }
+                                {
+                                    Tags.Add("基于地图");
+                                    break;
+                                }
                             case 4481:
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
+                                {
+                                    Tags.Add("轻量");
+                                    break;
+                                }
                             case 4482:
-                            {
-                                Tags.Add("大型");
-                                break;
-                            }
+                                {
+                                    Tags.Add("大型");
+                                    break;
+                                }
                             // 资源包
                             case 403:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("原版风");
+                                    break;
+                                }
                             case 400:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("写实风");
+                                    break;
+                                }
                             case 401:
-                            {
-                                Tags.Add("现代风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("现代风");
+                                    break;
+                                }
                             case 402:
-                            {
-                                Tags.Add("中世纪");
-                                break;
-                            }
+                                {
+                                    Tags.Add("中世纪");
+                                    break;
+                                }
                             case 399:
-                            {
-                                Tags.Add("蒸汽朋克");
-                                break;
-                            }
+                                {
+                                    Tags.Add("蒸汽朋克");
+                                    break;
+                                }
                             case 5244:
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含字体");
+                                    break;
+                                }
                             case 404:
-                            {
-                                Tags.Add("动态效果");
-                                break;
-                            }
+                                {
+                                    Tags.Add("动态效果");
+                                    break;
+                                }
                             case 4465:
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
+                                {
+                                    Tags.Add("兼容 Mod");
+                                    break;
+                                }
                             case 393:
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("16x");
+                                    break;
+                                }
                             case 394:
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("32x");
+                                    break;
+                                }
                             case 395:
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("64x");
+                                    break;
+                                }
                             case 396:
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("128x");
+                                    break;
+                                }
                             case 397:
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("256x");
+                                    break;
+                                }
                             case 398:
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
+                                {
+                                    Tags.Add("超高清");
+                                    break;
+                                }
                             case 5193:
-                            {
-                                Tags.Add("数据包"); // 有这个 Tag 的项会从资源包请求中被移除
-                                break;
-                            }
+                                {
+                                    Tags.Add("数据包"); // 有这个 Tag 的项会从资源包请求中被移除
+                                    break;
+                                }
                             // 光影包
                             case 6553:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("写实风");
+                                    break;
+                                }
                             case 6554:
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("幻想风");
+                                    break;
+                                }
                             case 6555:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("原版风");
+                                    break;
+                                }
                             // 数据包
                             case 6948:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
+                                {
+                                    Tags.Add("冒险");
+                                    break;
+                                }
                             case 6949:
-                            {
-                                Tags.Add("幻想");
-                                break;
-                            }
+                                {
+                                    Tags.Add("幻想");
+                                    break;
+                                }
                             case 6950:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
+                                {
+                                    Tags.Add("支持库");
+                                    break;
+                                }
                             case 6952:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
+                                {
+                                    Tags.Add("魔法");
+                                    break;
+                                }
                             case 6946:
-                            {
-                                Tags.Add("Mod 相关");
-                                break;
-                            }
+                                {
+                                    Tags.Add("Mod 相关");
+                                    break;
+                                }
                             case 6951:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
+                                {
+                                    Tags.Add("科技");
+                                    break;
+                                }
                             case 6953:
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
+                                {
+                                    Tags.Add("实用");
+                                    break;
+                                }
                             // 世界
                             case 248:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
+                                {
+                                    Tags.Add("冒险");
+                                    break;
+                                }
                             case 249:
-                            {
-                                Tags.Add("创造");
-                                break;
-                            }
+                                {
+                                    Tags.Add("创造");
+                                    break;
+                                }
                             case 250:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
+                                {
+                                    Tags.Add("小游戏");
+                                    break;
+                                }
                             case 251:
-                            {
-                                Tags.Add("跑酷");
-                                break;
-                            }
+                                {
+                                    Tags.Add("跑酷");
+                                    break;
+                                }
                             case 252:
-                            {
-                                Tags.Add("解谜");
-                                break;
-                            }
+                                {
+                                    Tags.Add("解谜");
+                                    break;
+                                }
                             case 253:
-                            {
-                                Tags.Add("生存");
-                                break;
-                            }
+                                {
+                                    Tags.Add("生存");
+                                    break;
+                                }
                             case 4464:
-                            {
-                                Tags.Add("Mod 世界");
-                                break;
-                            }
+                                {
+                                    Tags.Add("Mod 世界");
+                                    break;
+                                }
                         }
                 }
 
@@ -1437,26 +1438,26 @@ public static class ModComp
                     switch (Data["project_type"].ToString() ?? "")
                     {
                         case "modpack":
-                        {
-                            Type = CompType.ModPack;
-                            break;
-                        }
+                            {
+                                Type = CompType.ModPack;
+                                break;
+                            }
                         case "resourcepack":
-                        {
-                            Type = CompType.ResourcePack;
-                            break;
-                        }
+                            {
+                                Type = CompType.ResourcePack;
+                                break;
+                            }
                         case "shader":
-                        {
-                            Type = CompType.Shader;
-                            break;
-                        }
+                            {
+                                Type = CompType.Shader;
+                                break;
+                            }
 
                         default:
-                        {
-                            Type = CompType.Mod; // Modrinth 将数据包标为 Mod
-                            break;
-                        }
+                            {
+                                Type = CompType.Mod; // Modrinth 将数据包标为 Mod
+                                break;
+                            }
                     }
 
                     // Tags & ModLoaders
@@ -1467,25 +1468,25 @@ public static class ModComp
                             switch (Category ?? "")
                             {
                                 case "forge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Forge);
-                                    break;
-                                }
+                                    {
+                                        ModLoaders.Add(CompLoaderType.Forge);
+                                        break;
+                                    }
                                 case "fabric":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Fabric);
-                                    break;
-                                }
+                                    {
+                                        ModLoaders.Add(CompLoaderType.Fabric);
+                                        break;
+                                    }
                                 case "quilt":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Quilt);
-                                    break;
-                                }
+                                    {
+                                        ModLoaders.Add(CompLoaderType.Quilt);
+                                        break;
+                                    }
                                 case "neoforge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.NeoForge);
-                                    break;
-                                }
+                                    {
+                                        ModLoaders.Add(CompLoaderType.NeoForge);
+                                        break;
+                                    }
                             }
 
                     foreach (var Category in Data["categories"].Select(t => t.ToString()))
@@ -1493,301 +1494,301 @@ public static class ModComp
                         {
                             // 加载器
                             case "forge":
-                            {
-                                ModLoaders.Add(CompLoaderType.Forge);
-                                break;
-                            }
+                                {
+                                    ModLoaders.Add(CompLoaderType.Forge);
+                                    break;
+                                }
                             case "fabric":
-                            {
-                                ModLoaders.Add(CompLoaderType.Fabric);
-                                break;
-                            }
+                                {
+                                    ModLoaders.Add(CompLoaderType.Fabric);
+                                    break;
+                                }
                             case "quilt":
-                            {
-                                ModLoaders.Add(CompLoaderType.Quilt);
-                                break;
-                            }
+                                {
+                                    ModLoaders.Add(CompLoaderType.Quilt);
+                                    break;
+                                }
                             case "neoforge":
-                            {
-                                ModLoaders.Add(CompLoaderType.NeoForge);
-                                break;
-                            }
+                                {
+                                    ModLoaders.Add(CompLoaderType.NeoForge);
+                                    break;
+                                }
                             case "datapack":
-                            {
-                                Type = CompType.DataPack; // 若包含数据包版本，则优先标为 DataPack
-                                break;
-                            }
+                                {
+                                    Type = CompType.DataPack; // 若包含数据包版本，则优先标为 DataPack
+                                    break;
+                                }
                             // 共用
                             case "technology":
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
+                                {
+                                    Tags.Add("科技");
+                                    break;
+                                }
                             case "magic":
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
+                                {
+                                    Tags.Add("魔法");
+                                    break;
+                                }
                             case "adventure":
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
+                                {
+                                    Tags.Add("冒险");
+                                    break;
+                                }
                             case "utility":
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
+                                {
+                                    Tags.Add("实用");
+                                    break;
+                                }
                             case "optimization":
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
+                                {
+                                    Tags.Add("性能优化");
+                                    break;
+                                }
                             case "vanilla-like":
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("原版风");
+                                    break;
+                                }
                             case "realistic":
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("写实风");
+                                    break;
+                                }
                             // Mod/数据包
                             case "worldgen":
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
+                                {
+                                    Tags.Add("世界元素");
+                                    break;
+                                }
                             case "food":
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
+                                {
+                                    Tags.Add("食物/烹饪");
+                                    break;
+                                }
                             case "game-mechanics":
-                            {
-                                Tags.Add("游戏机制");
-                                break;
-                            }
+                                {
+                                    Tags.Add("游戏机制");
+                                    break;
+                                }
                             case "transportation":
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
+                                {
+                                    Tags.Add("运输");
+                                    break;
+                                }
                             case "storage":
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
+                                {
+                                    Tags.Add("仓储");
+                                    break;
+                                }
                             case "decoration":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装饰");
-                                break;
-                            }
+                                {
+                                    if (Type != CompType.ResourcePack)
+                                        Tags.Add("装饰");
+                                    break;
+                                }
                             case "mobs":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("生物");
-                                break;
-                            }
+                                {
+                                    if (Type != CompType.ResourcePack)
+                                        Tags.Add("生物");
+                                    break;
+                                }
                             case "equipment":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装备");
-                                break;
-                            }
+                                {
+                                    if (Type != CompType.ResourcePack)
+                                        Tags.Add("装备");
+                                    break;
+                                }
                             case "social":
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
+                                {
+                                    Tags.Add("服务器");
+                                    break;
+                                }
                             case "library":
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
+                                {
+                                    Tags.Add("支持库");
+                                    break;
+                                }
                             // 整合包
                             case "multiplayer":
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
+                                {
+                                    Tags.Add("多人");
+                                    break;
+                                }
                             case "challenging":
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
+                                {
+                                    Tags.Add("硬核");
+                                    break;
+                                }
                             case "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
+                                {
+                                    Tags.Add("战斗");
+                                    break;
+                                }
                             case "quests":
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
+                                {
+                                    Tags.Add("任务");
+                                    break;
+                                }
                             case "kitchen-sink":
-                            {
-                                Tags.Add("水槽包");
-                                break;
-                            }
+                                {
+                                    Tags.Add("水槽包");
+                                    break;
+                                }
                             case "lightweight":
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
+                                {
+                                    Tags.Add("轻量");
+                                    break;
+                                }
                             // 资源包
                             case "simplistic":
-                            {
-                                Tags.Add("简洁");
-                                break;
-                            }
+                                {
+                                    Tags.Add("简洁");
+                                    break;
+                                }
                             case var @case when @case == "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
+                                {
+                                    Tags.Add("战斗");
+                                    break;
+                                }
                             case "tweaks":
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
+                                {
+                                    Tags.Add("改良");
+                                    break;
+                                }
 
                             case "8x-":
-                            {
-                                Tags.Add("极简");
-                                break;
-                            }
+                                {
+                                    Tags.Add("极简");
+                                    break;
+                                }
                             case "16x":
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("16x");
+                                    break;
+                                }
                             case "32x":
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("32x");
+                                    break;
+                                }
                             case "48x":
-                            {
-                                Tags.Add("48x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("48x");
+                                    break;
+                                }
                             case "64x":
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("64x");
+                                    break;
+                                }
                             case "128x":
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("128x");
+                                    break;
+                                }
                             case "256x":
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
+                                {
+                                    Tags.Add("256x");
+                                    break;
+                                }
                             case "512x+":
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
+                                {
+                                    Tags.Add("超高清");
+                                    break;
+                                }
 
                             case "audio":
-                            {
-                                Tags.Add("含声音");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含声音");
+                                    break;
+                                }
                             case "fonts":
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含字体");
+                                    break;
+                                }
                             case "models":
-                            {
-                                Tags.Add("含模型");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含模型");
+                                    break;
+                                }
                             case "gui":
-                            {
-                                Tags.Add("含 UI");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含 UI");
+                                    break;
+                                }
                             case "locale":
-                            {
-                                Tags.Add("含语言");
-                                break;
-                            }
+                                {
+                                    Tags.Add("含语言");
+                                    break;
+                                }
                             case "core-shaders":
-                            {
-                                Tags.Add("核心着色器");
-                                break;
-                            }
+                                {
+                                    Tags.Add("核心着色器");
+                                    break;
+                                }
                             case "modded":
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
+                                {
+                                    Tags.Add("兼容 Mod");
+                                    break;
+                                }
                             // 光影包
                             case "fantasy":
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("幻想风");
+                                    break;
+                                }
                             case "semi-realistic":
-                            {
-                                Tags.Add("半写实风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("半写实风");
+                                    break;
+                                }
                             case "cartoon":
-                            {
-                                Tags.Add("卡通风");
-                                break;
-                            }
+                                {
+                                    Tags.Add("卡通风");
+                                    break;
+                                }
                             // 暂时不添加性能负荷 Tag
                             // Case "potato" : Tags.Add("极低")
                             // Case "low" : Tags.Add("低")
                             // Case "medium" : Tags.Add("中")
                             // Case "high" : Tags.Add("高")
                             case "colored-lighting":
-                            {
-                                Tags.Add("彩色光照");
-                                break;
-                            }
+                                {
+                                    Tags.Add("彩色光照");
+                                    break;
+                                }
                             case "path-tracing":
-                            {
-                                Tags.Add("路径追踪");
-                                break;
-                            }
+                                {
+                                    Tags.Add("路径追踪");
+                                    break;
+                                }
                             case "pbr":
-                            {
-                                Tags.Add("PBR");
-                                break;
-                            }
+                                {
+                                    Tags.Add("PBR");
+                                    break;
+                                }
                             case "reflections":
-                            {
-                                Tags.Add("反射");
-                                break;
-                            }
+                                {
+                                    Tags.Add("反射");
+                                    break;
+                                }
 
                             case "iris":
-                            {
-                                Tags.Add("Iris");
-                                break;
-                            }
+                                {
+                                    Tags.Add("Iris");
+                                    break;
+                                }
                             case "optifine":
-                            {
-                                Tags.Add("OptiFine");
-                                break;
-                            }
+                                {
+                                    Tags.Add("OptiFine");
+                                    break;
+                                }
                             case "vanilla":
-                            {
-                                Tags.Add("原版可用");
-                                break;
-                            }
+                                {
+                                    Tags.Add("原版可用");
+                                    break;
+                                }
                         }
 
                     #endregion
@@ -1860,7 +1861,7 @@ public static class ModComp
 
             try
             {
-                var jsonObject = (JObject)await 
+                var jsonObject = (JObject)await
                     Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
                 if (jsonObject.ContainsKey("translated"))
                 {
@@ -2072,7 +2073,7 @@ public static class ModComp
 
                     return newItem;
                 })
-                { Height = 64 };
+            { Height = 64 };
         }
 
         public MyListItem ToListItem()
@@ -2389,35 +2390,35 @@ public static class ModComp
             switch (Type)
             {
                 case CompType.Mod:
-                {
-                    Address.Append("&classId=6");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=6");
+                        break;
+                    }
                 case CompType.ModPack:
-                {
-                    Address.Append("&classId=4471");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=4471");
+                        break;
+                    }
                 case CompType.DataPack:
-                {
-                    Address.Append("&classId=6945");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=6945");
+                        break;
+                    }
                 case CompType.Shader:
-                {
-                    Address.Append("&classId=6552");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=6552");
+                        break;
+                    }
                 case CompType.ResourcePack:
-                {
-                    Address.Append("&classId=12");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=12");
+                        break;
+                    }
                 case CompType.World:
-                {
-                    Address.Append("&classId=17");
-                    break;
-                }
+                    {
+                        Address.Append("&classId=17");
+                        break;
+                    }
             }
 
             if (!string.IsNullOrEmpty(Tag)) Address.Append($"&categoryId={Tag.BeforeFirst("/")}");
@@ -2432,36 +2433,36 @@ public static class ModComp
             switch (Sort)
             {
                 case CompSortType.Relevance:
-                {
-                    Address.Append("&sortField=4");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=4");
+                        break;
+                    }
                 case CompSortType.Downloads:
-                {
-                    Address.Append("&sortField=6");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=6");
+                        break;
+                    }
                 case CompSortType.Follows:
-                {
-                    Address.Append("&sortField=2");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=2");
+                        break;
+                    }
                 case CompSortType.Newest:
-                {
-                    Address.Append("&sortField=11");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=11");
+                        break;
+                    }
                 case CompSortType.Updated:
-                {
-                    Address.Append("&sortField=3");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=3");
+                        break;
+                    }
 
                 default:
-                {
-                    Address.Append("&sortField=2");
-                    break;
-                }
+                    {
+                        Address.Append("&sortField=2");
+                        break;
+                    }
             }
 
             return Address.ToString();
@@ -2483,36 +2484,36 @@ public static class ModComp
             switch (Sort)
             {
                 case CompSortType.Relevance:
-                {
-                    Address += "&index=relevance";
-                    break;
-                }
+                    {
+                        Address += "&index=relevance";
+                        break;
+                    }
                 case CompSortType.Downloads:
-                {
-                    Address += "&index=downloads";
-                    break;
-                }
+                    {
+                        Address += "&index=downloads";
+                        break;
+                    }
                 case CompSortType.Follows:
-                {
-                    Address += "&index=follows";
-                    break;
-                }
+                    {
+                        Address += "&index=follows";
+                        break;
+                    }
                 case CompSortType.Newest:
-                {
-                    Address += "&index=newest";
-                    break;
-                }
+                    {
+                        Address += "&index=newest";
+                        break;
+                    }
                 case CompSortType.Updated:
-                {
-                    Address += "&index=updated";
-                    break;
-                }
+                    {
+                        Address += "&index=updated";
+                        break;
+                    }
 
                 default:
-                {
-                    Address += "&index=relevance";
-                    break;
-                }
+                    {
+                        Address += "&index=relevance";
+                        break;
+                    }
             }
 
             if (!string.IsNullOrEmpty(SearchText))
@@ -3291,18 +3292,18 @@ public static class ModComp
                 switch (Status)
                 {
                     case CompFileStatus.Release:
-                    {
-                        return "正式版";
-                    }
+                        {
+                            return "正式版";
+                        }
                     case CompFileStatus.Beta:
-                    {
-                        return ModBase.ModeDebug ? "Beta 版" : "测试版";
-                    }
+                        {
+                            return ModBase.ModeDebug ? "Beta 版" : "测试版";
+                        }
 
                     default:
-                    {
-                        return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
-                    }
+                        {
+                            return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
+                        }
                 }
             }
         }
@@ -3420,7 +3421,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Logo.ButtonSave, ToolTip = "另存为" };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
@@ -3430,7 +3431,7 @@ public static class ModComp
 
                     return newItem;
                 })
-                { Height = 42 };
+            { Height = 42 };
         }
 
         public override string ToString()
@@ -3538,18 +3539,18 @@ public static class ModComp
             .Select(id => CompProjectCache[id]).ToList();
 
         foreach (var file in CurrentFiles)
-        foreach (var dep in AvailableDeps)
-        {
-            // 处理必要依赖
-            if (file.RawDependencies.Contains(dep.Id))
-                if (!file.Dependencies.Contains(dep.Id))
-                    file.Dependencies.Add(dep.Id);
+            foreach (var dep in AvailableDeps)
+            {
+                // 处理必要依赖
+                if (file.RawDependencies.Contains(dep.Id))
+                    if (!file.Dependencies.Contains(dep.Id))
+                        file.Dependencies.Add(dep.Id);
 
-            // 处理可选依赖
-            if (file.RawOptionalDependencies.Contains(dep.Id))
-                if (!file.OptionalDependencies.Contains(dep.Id))
-                    file.OptionalDependencies.Add(dep.Id);
-        }
+                // 处理可选依赖
+                if (file.RawOptionalDependencies.Contains(dep.Id))
+                    if (!file.OptionalDependencies.Contains(dep.Id))
+                        file.OptionalDependencies.Add(dep.Id);
+            }
 
         return CompFilesCache[ProjectId];
     }
@@ -3605,7 +3606,9 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "必要前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = "必要前置资源",
+                FontSize = 14d,
+                HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3629,7 +3632,9 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "可选前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = "可选前置资源",
+                FontSize = 14d,
+                HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3643,7 +3648,9 @@ public static class ModComp
         // 添加结尾间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "版本列表", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+            Text = "版本列表",
+            FontSize = 14d,
+            HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 12d, 0d, 5d)
         });
     }

@@ -1,3 +1,11 @@
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.UI.Icons;
+using PCL.Core.UI.Theme;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -5,13 +13,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.Logging;
-using PCL.Core.UI;
-using PCL.Core.UI.Theme;
-using PCL.Network;
-using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 
@@ -168,29 +169,29 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (CurrentCompType)
         {
             case ModComp.CompType.Mod:
-            {
-                RequireLoaders = ModLocalComp.GetCurrentVersionModLoader();
-                break;
-            }
-            case ModComp.CompType.ResourcePack:
-            {
-                RequireLoaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
-                break;
-            }
-            case ModComp.CompType.Shader:
-            {
-                RequireLoaders = new[]
                 {
+                    RequireLoaders = ModLocalComp.GetCurrentVersionModLoader();
+                    break;
+                }
+            case ModComp.CompType.ResourcePack:
+                {
+                    RequireLoaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
+                    break;
+                }
+            case ModComp.CompType.Shader:
+                {
+                    RequireLoaders = new[]
+                    {
                     ModComp.CompLoaderType.OptiFine, ModComp.CompLoaderType.Iris, ModComp.CompLoaderType.Vanilla,
                     ModComp.CompLoaderType.Canvas
                 }.ToList();
-                break;
-            }
+                    break;
+                }
             case ModComp.CompType.Schematic:
-            {
-                RequireLoaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
-                break;
-            }
+                {
+                    RequireLoaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
+                    break;
+                }
         }
 
         res.Loaders = RequireLoaders;
@@ -286,33 +287,33 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (WhichPage)
         {
             case ModComp.CompType.Mod:
-            {
-                if (ModMain.FrmInstanceMod is not null)
-                    ModMain.FrmInstanceMod.ReloadCompFileList(true); // 无需 Else，还没加载刷个鬼的新
-                ModMain.FrmInstanceLeft.ItemMod.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmInstanceMod is not null)
+                        ModMain.FrmInstanceMod.ReloadCompFileList(true); // 无需 Else，还没加载刷个鬼的新
+                    ModMain.FrmInstanceLeft.ItemMod.Checked = true;
+                    break;
+                }
             case ModComp.CompType.ResourcePack:
-            {
-                if (ModMain.FrmInstanceResourcePack is not null)
-                    ModMain.FrmInstanceResourcePack.ReloadCompFileList(true);
-                ModMain.FrmInstanceLeft.ItemResourcePack.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmInstanceResourcePack is not null)
+                        ModMain.FrmInstanceResourcePack.ReloadCompFileList(true);
+                    ModMain.FrmInstanceLeft.ItemResourcePack.Checked = true;
+                    break;
+                }
             case ModComp.CompType.Shader:
-            {
-                if (ModMain.FrmInstanceShader is not null)
-                    ModMain.FrmInstanceShader.ReloadCompFileList(true);
-                ModMain.FrmInstanceLeft.ItemShader.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmInstanceShader is not null)
+                        ModMain.FrmInstanceShader.ReloadCompFileList(true);
+                    ModMain.FrmInstanceLeft.ItemShader.Checked = true;
+                    break;
+                }
             case ModComp.CompType.Schematic:
-            {
-                if (ModMain.FrmInstanceSchematic is not null)
-                    ModMain.FrmInstanceSchematic.ReloadCompFileList(true);
-                ModMain.FrmInstanceLeft.ItemSchematic.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmInstanceSchematic is not null)
+                        ModMain.FrmInstanceSchematic.ReloadCompFileList(true);
+                    ModMain.FrmInstanceLeft.ItemSchematic.Checked = true;
+                    break;
+                }
         }
 
         ModMain.Hint("正在刷新……", Log: false);
@@ -628,20 +629,20 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Logo.ButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
         ToolTipService.SetHorizontalOffset(BtnCont, 2d);
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Logo.ButtonDelete, Tag = sender };
         BtnDelete.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
@@ -658,8 +659,8 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 LogoScale = 1d,
                 Logo = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? ModBase.Logo.IconButtonStop
-                    : ModBase.Logo.IconButtonCheck,
+                    ? Logo.ButtonStop
+                    : Logo.ButtonCheck,
                 Tag = sender
             };
             BtnED.ToolTip = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? "禁用" : "启用";
@@ -860,7 +861,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     BottomBarShownCount = NewCount;
                     // 出现/跳跃动画
                     CardSelect.Visibility = Visibility.Visible;
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
@@ -879,7 +880,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         return;
                     BottomBarShownCount = 0;
                     // 隐藏动画
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
@@ -971,28 +972,28 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (CurrentCompType)
         {
             case ModComp.CompType.Mod:
-            {
-                FileList = SystemDialogs.SelectFiles(
-                    "Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod");
-                break;
-            }
+                {
+                    FileList = SystemDialogs.SelectFiles(
+                        "Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod");
+                    break;
+                }
             case ModComp.CompType.ResourcePack:
-            {
-                FileList = SystemDialogs.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包");
-                break;
-            }
+                {
+                    FileList = SystemDialogs.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包");
+                    break;
+                }
             case ModComp.CompType.Shader:
-            {
-                FileList = SystemDialogs.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包");
-                break;
-            }
+                {
+                    FileList = SystemDialogs.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包");
+                    break;
+                }
             case ModComp.CompType.Schematic:
-            {
-                FileList = SystemDialogs.SelectFiles(
-                    "投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem",
-                    "选择要安装的投影原理图");
-                break;
-            }
+                {
+                    FileList = SystemDialogs.SelectFiles(
+                        "投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem",
+                        "选择要安装的投影原理图");
+                    break;
+                }
         }
 
         if (FileList is null || !FileList.Any())
@@ -1131,52 +1132,52 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (CompType)
         {
             case ModComp.CompType.Mod:
-            {
-                ValidExtensions = new[] { "jar", "litemod", "disabled", "old" };
-                CompTypeName = "Mod";
-                if (string.IsNullOrEmpty(TargetFolderPath))
-                    CompFolder = targetInstance.PathIndie +
-                                 (targetInstance.Info.HasLabyMod
-                                     ? @"labymod-neo\fabric\" + targetInstance.Info.VanillaName + @"\"
-                                     : "") + @"mods\";
-                else
-                    CompFolder = TargetFolderPath + @"\";
+                {
+                    ValidExtensions = new[] { "jar", "litemod", "disabled", "old" };
+                    CompTypeName = "Mod";
+                    if (string.IsNullOrEmpty(TargetFolderPath))
+                        CompFolder = targetInstance.PathIndie +
+                                     (targetInstance.Info.HasLabyMod
+                                         ? @"labymod-neo\fabric\" + targetInstance.Info.VanillaName + @"\"
+                                         : "") + @"mods\";
+                    else
+                        CompFolder = TargetFolderPath + @"\";
 
-                break;
-            }
+                    break;
+                }
             case ModComp.CompType.ResourcePack:
-            {
-                ValidExtensions = new[] { "zip" };
-                CompTypeName = "资源包";
-                if (string.IsNullOrEmpty(TargetFolderPath))
-                    CompFolder = targetInstance.PathIndie + @"resourcepacks\";
-                else
-                    CompFolder = TargetFolderPath + @"\";
+                {
+                    ValidExtensions = new[] { "zip" };
+                    CompTypeName = "资源包";
+                    if (string.IsNullOrEmpty(TargetFolderPath))
+                        CompFolder = targetInstance.PathIndie + @"resourcepacks\";
+                    else
+                        CompFolder = TargetFolderPath + @"\";
 
-                break;
-            }
+                    break;
+                }
             case ModComp.CompType.Shader:
-            {
-                ValidExtensions = new[] { "zip" };
-                CompTypeName = "光影包";
-                if (string.IsNullOrEmpty(TargetFolderPath))
-                    CompFolder = targetInstance.PathIndie + @"shaderpacks\";
-                else
-                    CompFolder = TargetFolderPath + @"\";
+                {
+                    ValidExtensions = new[] { "zip" };
+                    CompTypeName = "光影包";
+                    if (string.IsNullOrEmpty(TargetFolderPath))
+                        CompFolder = targetInstance.PathIndie + @"shaderpacks\";
+                    else
+                        CompFolder = TargetFolderPath + @"\";
 
-                break;
-            }
+                    break;
+                }
             case ModComp.CompType.Schematic:
-            {
-                ValidExtensions = new[] { "litematic", "nbt", "schematic", "schem" };
-                CompTypeName = "投影原理图";
-                if (string.IsNullOrEmpty(TargetFolderPath))
-                    CompFolder = targetInstance.PathIndie + @"schematics\";
-                else
-                    CompFolder = TargetFolderPath + @"\";
+                {
+                    ValidExtensions = new[] { "litematic", "nbt", "schematic", "schem" };
+                    CompTypeName = "投影原理图";
+                    if (string.IsNullOrEmpty(TargetFolderPath))
+                        CompFolder = targetInstance.PathIndie + @"schematics\";
+                    else
+                        CompFolder = TargetFolderPath + @"\";
 
-                break;
-            }
+                    break;
+                }
         }
 
         // 检查文件扩展名
@@ -1202,25 +1203,25 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (CompType)
         {
             case ModComp.CompType.Mod:
-            {
-                CurrentPage = FormMain.PageSubType.VersionMod;
-                break;
-            }
+                {
+                    CurrentPage = FormMain.PageSubType.VersionMod;
+                    break;
+                }
             case ModComp.CompType.ResourcePack:
-            {
-                CurrentPage = FormMain.PageSubType.VersionResourcePack;
-                break;
-            }
+                {
+                    CurrentPage = FormMain.PageSubType.VersionResourcePack;
+                    break;
+                }
             case ModComp.CompType.Shader:
-            {
-                CurrentPage = FormMain.PageSubType.VersionShader;
-                break;
-            }
+                {
+                    CurrentPage = FormMain.PageSubType.VersionShader;
+                    break;
+                }
             case ModComp.CompType.Schematic:
-            {
-                CurrentPage = FormMain.PageSubType.VersionSchematic;
-                break;
-            }
+                {
+                    CurrentPage = FormMain.PageSubType.VersionSchematic;
+                    break;
+                }
         }
 
         if (!(ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup &&
@@ -1263,23 +1264,23 @@ public partial class PageInstanceCompResource : IRefreshable
                 switch (CompType)
                 {
                     case ModComp.CompType.Mod:
-                    {
-                        if (ModMain.FrmInstanceMod is not null)
-                            ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, CompFolder,
-                                ModLoader.LoaderFolderRunType.ForceRun,
-                                LoaderInput: ModMain.FrmInstanceMod?.GetRequireLoaderData());
+                        {
+                            if (ModMain.FrmInstanceMod is not null)
+                                ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, CompFolder,
+                                    ModLoader.LoaderFolderRunType.ForceRun,
+                                    LoaderInput: ModMain.FrmInstanceMod?.GetRequireLoaderData());
 
-                        break;
-                    }
+                            break;
+                        }
                     case ModComp.CompType.ResourcePack:
                     case ModComp.CompType.Shader:
                     case ModComp.CompType.Schematic:
-                    {
-                        var CurrentForm = GetCurrentCompResourceForm();
-                        if (CurrentForm is not null) ModBase.RunInUi(() => CurrentForm.ReloadCompFileList(true));
+                        {
+                            var CurrentForm = GetCurrentCompResourceForm();
+                            if (CurrentForm is not null) ModBase.RunInUi(() => CurrentForm.ReloadCompFileList(true));
 
-                        break;
-                    }
+                            break;
+                        }
                 }
         }
 
@@ -1297,26 +1298,26 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (ModMain.FrmMain.PageCurrentSub)
         {
             case FormMain.PageSubType.VersionMod:
-            {
-                return ModMain.FrmInstanceMod;
-            }
+                {
+                    return ModMain.FrmInstanceMod;
+                }
             case FormMain.PageSubType.VersionResourcePack:
-            {
-                return ModMain.FrmInstanceResourcePack;
-            }
+                {
+                    return ModMain.FrmInstanceResourcePack;
+                }
             case FormMain.PageSubType.VersionShader:
-            {
-                return ModMain.FrmInstanceShader;
-            }
+                {
+                    return ModMain.FrmInstanceShader;
+                }
             case FormMain.PageSubType.VersionSchematic:
-            {
-                return ModMain.FrmInstanceSchematic;
-            }
+                {
+                    return ModMain.FrmInstanceSchematic;
+                }
 
             default:
-            {
-                return null;
-            }
+                {
+                    return null;
+                }
         }
     }
 
@@ -1347,24 +1348,24 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (Choice)
         {
             case 1: // TXT
-            {
-                var ExportContent = new List<string>();
-                foreach (var ModEntity in ModLocalComp.CompResourceListLoader.Output)
-                    ExportContent.Add(ModEntity.FileName);
-                ExportText(ExportContent.Join("\r\n"), PageInstanceLeft.Instance.Name + "已安装的资源信息.txt");
-                break;
-            }
+                {
+                    var ExportContent = new List<string>();
+                    foreach (var ModEntity in ModLocalComp.CompResourceListLoader.Output)
+                        ExportContent.Add(ModEntity.FileName);
+                    ExportText(ExportContent.Join("\r\n"), PageInstanceLeft.Instance.Name + "已安装的资源信息.txt");
+                    break;
+                }
 
             case 2: // CSV
-            {
-                var ExportContent = new List<string>();
-                ExportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径");
-                foreach (var ModEntity in ModLocalComp.CompResourceListLoader.Output)
-                    ExportContent.Add(
-                        $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.Path).Length},{ModEntity.Path}");
-                ExportText(ExportContent.Join("\r\n"), PageInstanceLeft.Instance.Name + "已安装的资源信息.csv");
-                break;
-            }
+                {
+                    var ExportContent = new List<string>();
+                    ExportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径");
+                    foreach (var ModEntity in ModLocalComp.CompResourceListLoader.Output)
+                        ExportContent.Add(
+                            $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.CompFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.Path).Length},{ModEntity.Path}");
+                    ExportText(ExportContent.Join("\r\n"), PageInstanceLeft.Instance.Name + "已安装的资源信息.csv");
+                    break;
+                }
         }
     }
 
@@ -1376,20 +1377,20 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (CurrentCompType)
         {
             case ModComp.CompType.Mod:
-            {
-                ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-                break;
-            }
+                {
+                    ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                    break;
+                }
             case ModComp.CompType.ResourcePack:
-            {
-                ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
-                break;
-            }
+                {
+                    ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                    break;
+                }
             case ModComp.CompType.Shader:
-            {
-                ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
-                break;
-            }
+                {
+                    ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                    break;
+                }
         }
 
         PageComp.TargetVersion = PageInstanceLeft.Instance; // 将当前实例设置为筛选器
@@ -1496,36 +1497,36 @@ public partial class PageInstanceCompResource : IRefreshable
             switch (value)
             {
                 case FilterType.All:
-                {
-                    BtnFilterAll.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterAll.Checked = true;
+                        break;
+                    }
                 case FilterType.Enabled:
-                {
-                    BtnFilterEnabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterEnabled.Checked = true;
+                        break;
+                    }
                 case FilterType.Disabled:
-                {
-                    BtnFilterDisabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterDisabled.Checked = true;
+                        break;
+                    }
                 case FilterType.CanUpdate:
-                {
-                    BtnFilterCanUpdate.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterCanUpdate.Checked = true;
+                        break;
+                    }
                 case FilterType.Duplicate:
-                {
-                    BtnFilterDuplicate.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterDuplicate.Checked = true;
+                        break;
+                    }
 
                 default:
-                {
-                    BtnFilterError.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterError.Checked = true;
+                        break;
+                    }
             }
 
             RefreshUI();
@@ -1550,39 +1551,39 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (Filter)
         {
             case FilterType.All:
-            {
-                return true;
-            }
+                {
+                    return true;
+                }
             case FilterType.Enabled:
-            {
-                return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
-            }
+                {
+                    return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
+                }
             case FilterType.Disabled:
-            {
-                return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
-            }
+                {
+                    return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
+                }
             case FilterType.CanUpdate:
-            {
-                return CheckingMod.CanUpdate;
-            }
+                {
+                    return CheckingMod.CanUpdate;
+                }
             case FilterType.Unavailable:
-            {
-                return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
-            }
+                {
+                    return CheckingMod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+                }
             case FilterType.Duplicate:
-            {
-                var ItemSource = IsSearching
-                    ? SearchResult
-                    : ModLocalComp.CompResourceListLoader.Output ?? new List<ModLocalComp.LocalCompFile>();
-                return ItemSource is not null && ItemSource.Where(m =>
-                    CheckingMod.Comp is not null && m.Comp is not null &&
-                    (CheckingMod.Comp.Id ?? "") == (m.Comp.Id ?? "")).Skip(1).Any();
-            }
+                {
+                    var ItemSource = IsSearching
+                        ? SearchResult
+                        : ModLocalComp.CompResourceListLoader.Output ?? new List<ModLocalComp.LocalCompFile>();
+                    return ItemSource is not null && ItemSource.Where(m =>
+                        CheckingMod.Comp is not null && m.Comp is not null &&
+                        (CheckingMod.Comp.Id ?? "") == (m.Comp.Id ?? "")).Skip(1).Any();
+                }
 
             default:
-            {
-                return false;
-            }
+                {
+                    return false;
+                }
         }
     }
 
@@ -1622,30 +1623,30 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (Method)
         {
             case SortMethod.FileName:
-            {
-                return "文件名";
-            }
+                {
+                    return "文件名";
+                }
             case SortMethod.CompName:
-            {
-                return "资源名称";
-            }
+                {
+                    return "资源名称";
+                }
             case SortMethod.TagNums:
-            {
-                return "标签数量";
-            }
+                {
+                    return "标签数量";
+                }
             case SortMethod.CreateTime:
-            {
-                return "加入时间";
-            }
+                {
+                    return "加入时间";
+                }
             case SortMethod.ModFileSize:
-            {
-                return "文件大小";
-            }
+                {
+                    return "文件大小";
+                }
 
             default:
-            {
-                return "资源名称";
-            }
+                {
+                    return "资源名称";
+                }
         }
 
         return "";
@@ -1721,117 +1722,117 @@ public partial class PageInstanceCompResource : IRefreshable
         switch (Method)
         {
             case SortMethod.FileName:
-            {
-                return (a, b) =>
                 {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹或都是文件，则按文件名排序
-                    return string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
-                };
-            }
+                    return (a, b) =>
+                    {
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹或都是文件，则按文件名排序
+                        return string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
+                    };
+                }
             case SortMethod.CompName:
-            {
-                return (a, b) =>
                 {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹或都是文件，则按资源名称排序
-                    return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                };
-            }
+                    return (a, b) =>
+                    {
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹或都是文件，则按资源名称排序
+                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    };
+                }
             case SortMethod.TagNums:
-            {
-                return (a, b) =>
                 {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹，则按名称排序
-                    if (a.IsFolder && b.IsFolder)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                    // 如果都是文件，则按标签数量排序（标签多的在前）
-                    if (!a.IsFolder && !b.IsFolder)
+                    return (a, b) =>
                     {
-                        // 安全检查，确保Comp不为空
-                        var aTagCount = a.Comp?.Tags?.Count ?? 0;
-                        var bTagCount = b.Comp?.Tags?.Count ?? 0;
-                        return bTagCount.CompareTo(aTagCount);
-                    }
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹，则按名称排序
+                        if (a.IsFolder && b.IsFolder)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                        // 如果都是文件，则按标签数量排序（标签多的在前）
+                        if (!a.IsFolder && !b.IsFolder)
+                        {
+                            // 安全检查，确保Comp不为空
+                            var aTagCount = a.Comp?.Tags?.Count ?? 0;
+                            var bTagCount = b.Comp?.Tags?.Count ?? 0;
+                            return bTagCount.CompareTo(aTagCount);
+                        }
 
-                    // 理论上不会到达这里，但为了安全起见
-                    return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                };
-            }
+                        // 理论上不会到达这里，但为了安全起见
+                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    };
+                }
             case SortMethod.CreateTime:
-            {
-                return (a, b) =>
                 {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
-                    var aPath = a.IsFolder ? a.ActualPath : a.Path;
-                    var bPath = b.IsFolder ? b.ActualPath : b.Path;
-                    var aDate = GetModFileInfo(aPath).CreationTime;
-                    var bDate = GetModFileInfo(bPath).CreationTime;
-                    if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-
-                    if (aDate == DateTime.MinValue) return 1; // 出错的文件排在后面
-
-                    if (bDate == DateTime.MinValue) return -1;
-                    return bDate.CompareTo(aDate);
-                };
-            }
-            case SortMethod.ModFileSize:
-            {
-                return (a, b) =>
-                {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹，则按名称排序
-                    if (a.IsFolder && b.IsFolder)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                    // 如果都是文件，则按文件大小排序（大的在前）
-                    if (!a.IsFolder && !b.IsFolder)
+                    return (a, b) =>
                     {
-                        var aSize = GetModFileInfo(a.ActualPath).Length;
-                        var bSize = GetModFileInfo(b.ActualPath).Length;
-                        if (aSize == 0L && bSize == 0L)
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹或都是文件，则按创建时间排序（新的在前）
+                        var aPath = a.IsFolder ? a.ActualPath : a.Path;
+                        var bPath = b.IsFolder ? b.ActualPath : b.Path;
+                        var aDate = GetModFileInfo(aPath).CreationTime;
+                        var bDate = GetModFileInfo(bPath).CreationTime;
+                        if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
                             return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                        if (aSize == 0L) return 1;
+                        if (aDate == DateTime.MinValue) return 1; // 出错的文件排在后面
 
-                        if (bSize == 0L) return -1;
-                        return bSize.CompareTo(aSize);
-                    }
+                        if (bDate == DateTime.MinValue) return -1;
+                        return bDate.CompareTo(aDate);
+                    };
+                }
+            case SortMethod.ModFileSize:
+                {
+                    return (a, b) =>
+                    {
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹，则按名称排序
+                        if (a.IsFolder && b.IsFolder)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                        // 如果都是文件，则按文件大小排序（大的在前）
+                        if (!a.IsFolder && !b.IsFolder)
+                        {
+                            var aSize = GetModFileInfo(a.ActualPath).Length;
+                            var bSize = GetModFileInfo(b.ActualPath).Length;
+                            if (aSize == 0L && bSize == 0L)
+                                return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                    // 理论上不会到达这里，但为了安全起见
-                    return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                };
-            }
+                            if (aSize == 0L) return 1;
+
+                            if (bSize == 0L) return -1;
+                            return bSize.CompareTo(aSize);
+                        }
+
+                        // 理论上不会到达这里，但为了安全起见
+                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    };
+                }
 
             default:
-            {
-                return (a, b) =>
                 {
-                    // 文件夹始终排在最前面
-                    var folderResult = folderFirstCompare(a, b);
-                    if (folderResult != 0)
-                        return folderResult;
-                    // 如果都是文件夹或都是文件，则按名称排序
-                    return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-                };
-            }
+                    return (a, b) =>
+                    {
+                        // 文件夹始终排在最前面
+                        var folderResult = folderFirstCompare(a, b);
+                        if (folderResult != 0)
+                            return folderResult;
+                        // 如果都是文件夹或都是文件，则按名称排序
+                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    };
+                }
         }
     }
 
@@ -2039,7 +2040,7 @@ public partial class PageInstanceCompResource : IRefreshable
             var InstallLoaders = new List<ModLoader.LoaderBase>();
             var FinishedFileNames = new List<string>();
             InstallLoaders.Add(new LoaderDownload("下载新版资源文件", FileList)
-                { ProgressWeight = ModList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
+            { ProgressWeight = ModList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", _ =>
             {
                 try
@@ -2090,44 +2091,44 @@ public partial class PageInstanceCompResource : IRefreshable
                 switch (Loader.State)
                 {
                     case ModBase.LoadState.Finished:
-                    {
-                        switch (FinishedFileNames.Count)
                         {
-                            case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
+                            switch (FinishedFileNames.Count)
                             {
-                                ModBase.Log("[CompUpdate] 没有资源被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Single()}！", ModMain.HintType.Finish);
-                                break;
+                                case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
+                                    {
+                                        ModBase.Log("[CompUpdate] 没有资源被成功更新");
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        ModMain.Hint($"已成功更新 {FinishedFileNames.Single()}！", ModMain.HintType.Finish);
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        ModMain.Hint($"已成功更新 {FinishedFileNames.Count} 个资源！", ModMain.HintType.Finish);
+                                        break;
+                                    }
                             }
 
-                            default:
-                            {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Count} 个资源！", ModMain.HintType.Finish);
-                                break;
-                            }
+                            break;
+                        }
+                    case ModBase.LoadState.Failed:
+                        {
+                            ModMain.Hint("资源更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
+                            break;
+                        }
+                    case ModBase.LoadState.Aborted:
+                        {
+                            ModMain.Hint("资源更新已中止！");
+                            break;
                         }
 
-                        break;
-                    }
-                    case ModBase.LoadState.Failed:
-                    {
-                        ModMain.Hint("资源更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
-                        break;
-                    }
-                    case ModBase.LoadState.Aborted:
-                    {
-                        ModMain.Hint("资源更新已中止！");
-                        break;
-                    }
-
                     default:
-                    {
-                        return;
-                    }
+                        {
+                            return;
+                        }
                 }
 
                 ModBase.Log($"[CompUpdate] 已从正在进行资源更新的文件夹列表移除：{PathMods}");
@@ -2373,38 +2374,38 @@ public partial class PageInstanceCompResource : IRefreshable
                             switch (CurrentCompType)
                             {
                                 case ModComp.CompType.Schematic:
-                                {
-                                    fileCount = new DirectoryInfo(folderPath)
-                                        .EnumerateFiles("*", SearchOption.AllDirectories).Where(f =>
-                                            ModLocalComp.LocalCompFile.IsCompFile(f.FullName,
-                                                ModComp.CompType.Schematic)).Count();
-                                    break;
-                                }
+                                    {
+                                        fileCount = new DirectoryInfo(folderPath)
+                                            .EnumerateFiles("*", SearchOption.AllDirectories).Where(f =>
+                                                ModLocalComp.LocalCompFile.IsCompFile(f.FullName,
+                                                    ModComp.CompType.Schematic)).Count();
+                                        break;
+                                    }
                                 case ModComp.CompType.Mod:
-                                {
-                                    fileCount = new DirectoryInfo(folderPath)
-                                        .EnumerateFiles("*.jar", SearchOption.AllDirectories).Count();
-                                    break;
-                                }
+                                    {
+                                        fileCount = new DirectoryInfo(folderPath)
+                                            .EnumerateFiles("*.jar", SearchOption.AllDirectories).Count();
+                                        break;
+                                    }
                                 case ModComp.CompType.ResourcePack:
-                                {
-                                    fileCount = new DirectoryInfo(folderPath)
-                                        .EnumerateFiles("*.zip", SearchOption.AllDirectories).Count();
-                                    break;
-                                }
+                                    {
+                                        fileCount = new DirectoryInfo(folderPath)
+                                            .EnumerateFiles("*.zip", SearchOption.AllDirectories).Count();
+                                        break;
+                                    }
                                 case ModComp.CompType.Shader:
-                                {
-                                    fileCount = new DirectoryInfo(folderPath)
-                                        .EnumerateFiles("*.zip", SearchOption.AllDirectories).Count();
-                                    break;
-                                }
+                                    {
+                                        fileCount = new DirectoryInfo(folderPath)
+                                            .EnumerateFiles("*.zip", SearchOption.AllDirectories).Count();
+                                        break;
+                                    }
 
                                 default:
-                                {
-                                    fileCount = new DirectoryInfo(folderPath)
-                                        .EnumerateFiles("*", SearchOption.AllDirectories).Count();
-                                    break;
-                                }
+                                    {
+                                        fileCount = new DirectoryInfo(folderPath)
+                                            .EnumerateFiles("*", SearchOption.AllDirectories).Count();
+                                        break;
+                                    }
                             }
                         }
                         catch (Exception ex)
@@ -2505,16 +2506,16 @@ public partial class PageInstanceCompResource : IRefreshable
                                     "返回"))
                         {
                             case 1:
-                            {
-                                ModBase.OpenWebsite(ModEntry.Url);
-                                break;
-                            }
+                                {
+                                    ModBase.OpenWebsite(ModEntry.Url);
+                                    break;
+                                }
                             case 2:
-                            {
-                                ModBase.OpenWebsite(
-                                    "https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
-                                break;
-                            }
+                                {
+                                    ModBase.OpenWebsite(
+                                        "https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
+                                    break;
+                                }
                         }
                     }
                 }
@@ -2853,7 +2854,7 @@ public partial class PageInstanceCompResource : IRefreshable
             }
 
             QueryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>
-                { Item = Entry, SearchSource = SearchSource });
+            { Item = Entry, SearchSource = SearchSource });
         }
 
         // 进行搜索

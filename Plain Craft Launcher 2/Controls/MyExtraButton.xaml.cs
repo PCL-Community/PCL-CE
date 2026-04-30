@@ -97,7 +97,7 @@ public partial class MyExtraButton
                 {
                     // 有了
                     Visibility = Visibility.Visible;
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaScaleTransform(this, 0.3d - ((ScaleTransform)RenderTransform).ScaleX, 500,
@@ -111,7 +111,7 @@ public partial class MyExtraButton
                 else
                 {
                     // 没了
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         new[]
                         {
                             ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
@@ -166,7 +166,7 @@ public partial class MyExtraButton
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!IsLeftMouseHeld && !IsRightMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
@@ -182,7 +182,7 @@ public partial class MyExtraButton
         if (!CanRightClick)
             return;
         if (!IsLeftMouseHeld && !IsRightMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
@@ -196,7 +196,7 @@ public partial class MyExtraButton
     private void Button_LeftMouseUp()
     {
         if (!IsRightMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
@@ -212,7 +212,7 @@ public partial class MyExtraButton
         if (!CanRightClick)
             return;
         if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
@@ -226,7 +226,7 @@ public partial class MyExtraButton
     {
         IsLeftMouseHeld = false;
         IsRightMouseHeld = false;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
@@ -243,17 +243,17 @@ public partial class MyExtraButton
             {
                 if (!IsEnabled)
                     // 禁用
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", AnimationColorIn),
                         "MyExtraButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", AnimationColorIn),
                         "MyExtraButton Color " + Uuid);
                 else
                     // 普通
-                    ModAnimation.AniStart(
+                    ModAnimation.Start(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", AnimationColorOut),
                         "MyExtraButton Color " + Uuid);
             }
@@ -289,7 +289,7 @@ public partial class MyExtraButton
             };
             Shape.SetResourceReference(Border.BackgroundProperty, "ColorBrush5");
             PanScale.Children.Insert(0, Shape);
-            ModAnimation.AniStart(
+            ModAnimation.Start(
                 new[]
                 {
                     ModAnimation.AaScaleTransform(Shape, 13d, 1000,

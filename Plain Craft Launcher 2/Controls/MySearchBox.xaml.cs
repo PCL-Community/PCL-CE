@@ -16,12 +16,12 @@ public partial class MySearchBox : MyCard
 
         Loaded += MySearchBox_Loaded;
     }
-    
+
     private void MySearchBox_KeyUp(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter) ModMain.RaiseCustomEvent(this);
     }
-    
+
     // 属性
     public string HintText
     {
@@ -56,13 +56,13 @@ public partial class MySearchBox : MyCard
     {
         if (string.IsNullOrEmpty(TextBox.Text))
         {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, -BtnClear.Opacity, 90),
+            ModAnimation.Start(ModAnimation.AaOpacity(BtnClear, -BtnClear.Opacity, 90),
                 "MySearchBox ClearBtn " + Uuid);
             BtnClear.IsHitTestVisible = false;
         }
         else
         {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, 1d - BtnClear.Opacity, 90),
+            ModAnimation.Start(ModAnimation.AaOpacity(BtnClear, 1d - BtnClear.Opacity, 90),
                 "MySearchBox ClearBtn " + Uuid);
             BtnClear.IsHitTestVisible = true;
         }

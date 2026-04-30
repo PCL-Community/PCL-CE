@@ -1,3 +1,6 @@
+using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
+using PCL.Network;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -5,9 +8,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Newtonsoft.Json.Linq;
-using PCL.Core.UI;
-using PCL.Network;
 
 namespace PCL;
 
@@ -66,14 +66,14 @@ public partial class MySkin
     // 控件动画
     private void PanSkin_MouseEnter(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.8d - ShadowSkin.Opacity, 200, 100), "Skin Shadow");
+        ModAnimation.Start(ModAnimation.AaOpacity(ShadowSkin, 0.8d - ShadowSkin.Opacity, 200, 100), "Skin Shadow");
     }
 
     private void PanSkin_MouseLeave(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200), "Skin Shadow");
+        ModAnimation.Start(ModAnimation.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200), "Skin Shadow");
         IsSkinMouseDown = false;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
     }
@@ -81,14 +81,14 @@ public partial class MySkin
     private void PanSkin_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         IsSkinMouseDown = true;
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
     }
 
     private void PanSkin_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ModAnimation.AniStart(
+        ModAnimation.Start(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
         if (IsSkinMouseDown)
@@ -194,7 +194,7 @@ public partial class MySkin
                      Image.Pic.GetPixel(Scale * 41, Scale * 9) &&
                      Image.Pic.GetPixel(Image.Pic.Width - 2, (int)Math.Round(Image.Pic.Height / 2d - 2d)) !=
                      Image.Pic.GetPixel(Scale * 41, Scale * 9))) // 如果图片中有任何透明像素（避免纯色白底）
-                    // 或是头部颜色和透明区均不一样
+                                                                 // 或是头部颜色和透明区均不一样
                 {
                     ImgFore.Source = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
                     SkinHead = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
