@@ -176,7 +176,7 @@ public partial class MyButton
                         new[]
                         {
                             ModAnimation.AaColor(PanFore, BorderBrushProperty,
-                                ModSecret.ColorGray4 - PanFore.BorderBrush, AnimationColorOut)
+                                ThemeManager.ColorGray4 - PanFore.BorderBrush, AnimationColorOut)
                         }, "MyButton Color " + Uuid);
             }
             else
@@ -214,7 +214,7 @@ public partial class MyButton
                         }
                     }
                 else
-                    PanFore.BorderBrush = ModSecret.ColorGray4;
+                    PanFore.BorderBrush = ThemeManager.ColorGray4;
             }
         }
         catch (Exception ex)

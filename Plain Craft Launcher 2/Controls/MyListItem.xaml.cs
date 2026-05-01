@@ -137,7 +137,7 @@ public partial class MyListItem : IMyRadio
                 }
 
                 // 由于鼠标已经移入，所以直接实例化 RectBack
-                RectBack.Background = (Brush)ModSecret.AppResources["ColorBrushBg1"];
+                RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrushBg1"];
                 RectBack.Opacity = 1d;
                 RectBack.RenderTransform = new ScaleTransform(1d, 1d);
                 RenderTransform = new ScaleTransform(1d, 1d);
@@ -155,7 +155,7 @@ public partial class MyListItem : IMyRadio
                 {
                     if (IsScaleAnimationEnabled)
                         RectBack.RenderTransform = new ScaleTransform(0.75d, 0.75d);
-                    RectBack.Background = (Brush)ModSecret.AppResources["ColorBrush7"];
+                    RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrush7"];
                     RectBack.Opacity = 0d;
                 }
             }
@@ -917,7 +917,7 @@ public partial class MyListItem : IMyRadio
     }
 
     public static readonly DependencyProperty ForegroundProperty = DependencyProperty.Register("Foreground",
-        typeof(Brush), typeof(MyListItem), new PropertyMetadata(ModSecret.AppResources["ColorBrush1"]));
+        typeof(Brush), typeof(MyListItem), new PropertyMetadata(ThemeManager.AppResources["ColorBrush1"]));
 
     // 菜单与按钮绑定
     public Action<MyListItem, EventArgs> ContentHandler { get; set; }

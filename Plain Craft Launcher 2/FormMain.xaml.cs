@@ -59,8 +59,8 @@ public partial class FormMain
         // 刷新主题
         // ThemeCheckAll(False)
         // ThemeRefreshColor()
-        ThemeService.ColorModeChanged += (_, _) => ModSecret.ThemeRefresh();
-        ThemeService.ColorThemeChanged += theme => ModSecret.ThemeRefresh((int)theme);
+        ThemeService.ColorModeChanged += (_, _) => ThemeManager.ThemeRefresh();
+        ThemeService.ColorThemeChanged += theme => ThemeManager.ThemeRefresh((int)theme);
         // 窗体参数初始化
         ModMain.FrmMain = this;
         ModMain.FrmLaunchLeft = new PageLaunchLeft();
@@ -195,7 +195,7 @@ public partial class FormMain
                 "M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5");
         // 加载窗口
 
-        ModSecret.ThemeRefresh();
+        ThemeManager.ThemeRefresh();
 
         Lifecycle.CurrentApplication.Resources["BlurSamplingRate"] = Config.Preference.Blur.SamplingRate * 0.01d;
         Lifecycle.CurrentApplication.Resources["BlurType"] = Config.Preference.Blur.KernelType;
@@ -336,9 +336,6 @@ public partial class FormMain
     private void RunCountSub()
     {
         States.System.StartupCount += 1;
-        if (States.System.StartupCount < 99) return;
-        if (ModSecret.ThemeUnlock(6, false))
-            ModMain.MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" + "\r\n" + "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！");
     }
 
     // 升级与降级事件
@@ -1298,7 +1295,7 @@ public partial class FormMain
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
                 if (Config.Preference.Theme.ColorMode == ColorMode.System &
-                    (ModSecret.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
+                    (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }
 

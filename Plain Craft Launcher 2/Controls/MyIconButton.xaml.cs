@@ -154,7 +154,7 @@ public partial class MyIconButton
                         }
                         case Themes.Black:
                         {
-                            if (ModSecret.IsDarkMode)
+                            if (ThemeManager.IsDarkMode)
                                 Path.Fill = new ModBase.MyColor(160d, 255d, 255d, 255d);
                             else
                                 Path.Fill = new ModBase.MyColor(160d, 0d, 0d, 0d);
@@ -195,7 +195,7 @@ public partial class MyIconButton
                         case Themes.Black:
                         {
                             AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                (ModSecret.IsDarkMode
+                                (ThemeManager.IsDarkMode
                                     ? new ModBase.MyColor(230d, 255d, 255d, 255d)
                                     : new ModBase.MyColor(230d, 0d, 0d, 0d)) - Path.Fill, AnimationColorIn));
                             break;
@@ -241,7 +241,7 @@ public partial class MyIconButton
                         case Themes.Black:
                         {
                             AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                (ModSecret.IsDarkMode
+                                (ThemeManager.IsDarkMode
                                     ? new ModBase.MyColor(160d, 255d, 255d, 255d)
                                     : new ModBase.MyColor(160d, 0d, 0d, 0d)) - Path.Fill, AnimationColorOut));
                             PanBack.Background = new ModBase.MyColor(0d, 255d, 255d, 255d);
@@ -282,7 +282,7 @@ public partial class MyIconButton
                     }
                     case Themes.Black:
                     {
-                        if (ModSecret.IsDarkMode)
+                        if (ThemeManager.IsDarkMode)
                             Path.Fill = new ModBase.MyColor(160d, 255d, 255d, 255d);
                         else
                             Path.Fill = new ModBase.MyColor(160d, 0d, 0d, 0d);

@@ -245,7 +245,7 @@ public partial class MyRadioButton
                         if (Checked)
                         {
                             // 勾选
-                            var color3 = new ModBase.MyColor(ModSecret.AppResources["ColorObject3"]);
+                            var color3 = new ModBase.MyColor(ThemeManager.AppResources["ColorObject3"]);
                             ModAnimation.AniStart(
                                 new[]
                                 {
@@ -265,7 +265,7 @@ public partial class MyRadioButton
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(120d,
-                                        new ModBase.MyColor(ModSecret.AppResources["ColorObject8"])) - Background, 60),
+                                        new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background, 60),
                                 "MyRadioButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
@@ -283,7 +283,7 @@ public partial class MyRadioButton
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(50d,
-                                        new ModBase.MyColor(ModSecret.AppResources["ColorObject8"])) - Background,
+                                        new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background,
                                     AnimationTimeOfMouseIn), "MyRadioButton Color " + Uuid);
                         }
                         else
@@ -301,7 +301,7 @@ public partial class MyRadioButton
                                 }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    new ModBase.MyColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                    new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
                                     Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
@@ -360,7 +360,7 @@ public partial class MyRadioButton
                                 }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    new ModBase.MyColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                    new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
                                     Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
@@ -386,7 +386,7 @@ public partial class MyRadioButton
                         }
                         else
                         {
-                            Background = (Brush)ModSecret.AppResources["ColorBrushSemiTransparent"];
+                            Background = (Brush)ThemeManager.AppResources["ColorBrushSemiTransparent"];
                             ShapeLogo.Fill = new ModBase.MyColor(255d, 255d, 255d);
                             LabText.Foreground = new ModBase.MyColor(255d, 255d, 255d);
                         }
@@ -403,7 +403,7 @@ public partial class MyRadioButton
                         }
                         else
                         {
-                            Background = (Brush)ModSecret.AppResources["ColorBrushSemiTransparent"];
+                            Background = (Brush)ThemeManager.AppResources["ColorBrushSemiTransparent"];
                             ShapeLogo.SetResourceReference(Shape.FillProperty, "ColorBrush3");
                             LabText.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush3");
                         }

@@ -173,7 +173,7 @@ public partial class MyIconTextButton
                                 }, "MyIconTextButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
+                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else
@@ -187,7 +187,7 @@ public partial class MyIconTextButton
                                 }, "MyIconTextButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
+                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
                         }
 
@@ -229,7 +229,7 @@ public partial class MyIconTextButton
                                 }, "MyIconTextButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
+                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
                         }
                         else
@@ -243,7 +243,7 @@ public partial class MyIconTextButton
                                 }, "MyIconTextButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    ModSecret.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
+                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
                                 "MyIconTextButton Color " + Uuid);
                         }
 
@@ -261,7 +261,7 @@ public partial class MyIconTextButton
                 {
                     case ColorState.Black:
                     {
-                        Background = ModSecret.ColorSemiTransparent;
+                        Background = ThemeManager.ColorSemiTransparent;
                         ShapeLogo.SetResourceReference(Shape.FillProperty,
                             IsEnabled ? "ColorBrush1" : "ColorBrushGray5");
                         LabText.SetResourceReference(TextBlock.ForegroundProperty,
@@ -270,7 +270,7 @@ public partial class MyIconTextButton
                     }
                     case ColorState.Highlight:
                     {
-                        Background = ModSecret.ColorSemiTransparent;
+                        Background = ThemeManager.ColorSemiTransparent;
                         ShapeLogo.SetResourceReference(Shape.FillProperty,
                             IsEnabled ? "ColorBrush3" : "ColorBrushGray5");
                         LabText.SetResourceReference(TextBlock.ForegroundProperty,

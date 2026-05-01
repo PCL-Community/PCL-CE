@@ -121,8 +121,6 @@ public static class ModMain
             MyMsgBoxTick();
             FrmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
-            if (ModSecret.ThemeDontClick == 2)
-                ModSecret.ThemeRefresh();
         }
 
         #endregion
@@ -139,9 +137,6 @@ public static class ModMain
             try
             {
                 #region 每 250ms 执行一次的代码
-
-                if (ModSecret.ThemeNow == 12)
-                    ModSecret.ThemeRefresh();
             }
 
             #endregion
