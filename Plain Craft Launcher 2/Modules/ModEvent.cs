@@ -407,10 +407,10 @@ namespace PCL
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "Help");
+                location = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)
