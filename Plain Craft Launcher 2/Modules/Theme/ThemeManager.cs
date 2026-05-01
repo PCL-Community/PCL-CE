@@ -14,10 +14,10 @@ public class ThemeManager
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static ModBase.MyColor ColorGray1;
-    public static ModBase.MyColor ColorGray4;
-    public static ModBase.MyColor ColorGray5;
-    public static ModBase.MyColor ColorSemiTransparent;
+    public static ModBase.MyColor ColorGray1 = new(AppResources["ColorObjectGray1"]);
+    public static ModBase.MyColor ColorGray4 = new(AppResources["ColorObjectGray4"]);
+    public static ModBase.MyColor ColorGray5 = new(AppResources["ColorObjectGray5"]);
+    public static ModBase.MyColor ColorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
 
     public static void ThemeRefresh(int NewTheme = -1)
     {
@@ -26,11 +26,6 @@ public class ThemeManager
         ColorGray5 = new ModBase.MyColor(AppResources["ColorObjectGray5"]);
         ColorSemiTransparent = new ModBase.MyColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
-    }
-
-    public static double GetDarkThemeLight(double OriginalLight)
-    {
-        return IsDarkMode ? OriginalLight * 0.2d : OriginalLight;
     }
 
     public static void ThemeRefreshMain()
