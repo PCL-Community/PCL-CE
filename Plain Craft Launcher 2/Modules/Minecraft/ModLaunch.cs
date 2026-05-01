@@ -1926,27 +1926,22 @@ public static class ModLaunch
         // Cleanroom 检测
         if (ModMinecraft.McInstanceSelected.Info.HasCleanroom)
         {
-            Version cleanroomVersion;
-            try
+            if (Version.TryParse(ModMinecraft.McInstanceSelected.Info.Cleanroom.Split('-')[0], out Version cleanroomVersion))
             {
-                cleanroomVersion = Version.Parse(ModMinecraft.McInstanceSelected.Info.Cleanroom.Split('-')[0]);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("cleanroom版本解析失败：" + ex.Message, ex);
-            }
-
-            if ( cleanroomVersion < new Version(0, 5, 0, 0))
-            {
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[Launch] [Debug] Cleanroom0.5之前的版本 要求至少 Java 21");
-                minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+                if (cleanroomVersion < new Version(0, 5, 0, 0))
+                {
+                    if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom0.5之前的版本 要求至少 Java 21");
+                    minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+                }
+                else
+                {
+                    if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom0.5及之后版本 要求至少 Java 25");
+                    minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
+                }
             }
             else
             {
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[Launch] [Debug] Cleanroom0.5及之后版本 要求至少 Java 25");
-                minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
+                throw new FormatException("无法解析此cleanroom版本号：" + ModMinecraft.McInstanceSelected.Info.Cleanroom);
             }
         }
 
