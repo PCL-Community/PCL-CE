@@ -1,15 +1,14 @@
-﻿using System;
+using PCL.Core.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using PCL.Core.App;
-using PCL.Core.IO;
-using PCL.Core.Logging;
+using System.Threading.Tasks;
+using Paths = PCL.Core.App.Paths;
 
 namespace PCL.Core.Link.EasyTier;
 // ReSharper disable InconsistentNaming, CompareOfFloatsByEqualityOperator
@@ -70,12 +69,13 @@ public static class ETInfoProvider
         bool IsContains(string str) => cost.Contains(str, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    private static readonly Process _CliProcess = new() { 
+    private static readonly Process _CliProcess = new()
+    {
         StartInfo = new ProcessStartInfo
         {
             FileName = $"{ETPath}\\easytier-cli.exe",
             WorkingDirectory = ETPath,
-            Arguments= $"--rpc-portal 127.0.0.1:{ETController.ETRpcPort} -o json peer",
+            Arguments = $"--rpc-portal 127.0.0.1:{ETController.ETRpcPort} -o json peer",
             ErrorDialog = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
@@ -162,7 +162,7 @@ public static class ETInfoProvider
                     NatType = info.NatType,
                     ETVersion = info.ETVersion
                 };
-                    
+
                 if (playerInfo.IsHost)
                 {
                     playerList.Insert(0, playerInfo); // 主机信息放在列表首位
@@ -180,7 +180,7 @@ public static class ETInfoProvider
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex,"Link", "获取 EasyTier 网络成员列表失败");
+            LogWrapper.Error(ex, "Link", "获取 EasyTier 网络成员列表失败");
             return new Tuple<List<ETPlayerInfo>?, ETPlayerInfo?>(null, null);
         }
     }

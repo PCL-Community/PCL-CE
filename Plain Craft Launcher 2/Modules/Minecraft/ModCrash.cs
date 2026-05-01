@@ -1,4 +1,5 @@
 using Microsoft.VisualBasic;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -162,7 +163,7 @@ public class CrashAnalyzer
             var Info = new FileInfo(FilePath);
             if (Info.Exists && Info.Length > 0L && !FilePath.EndsWithF(".jar", true))
             {
-                ModBase.ExtractFile(FilePath, TempFolder + @"Temp\");
+                Files.ExtractFileAsync(FilePath, TempFolder + @"Temp\").GetAwaiter().GetResult();
                 ModBase.Log("[Crash] 已解压导入的日志文件：" + FilePath);
                 goto Extracted;
             }
@@ -1339,7 +1340,7 @@ public class CrashAnalyzer
                         ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
                         // 导出报告
                         ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
-                        ModBase.DeleteDirectory(TempFolder + @"Report\");
+                        Directories.DeleteDirectoryAsync(TempFolder + @"Report\").GetAwaiter().GetResult();
                         ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
                     }
                     catch (Exception ex)

@@ -125,7 +125,7 @@ public partial class PageLaunchLeft
                             File.Delete(PackInstallPath);
                     }
                 }
-                catch (ModBase.CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     ModBase.Log(ex, "自动安装整合包被用户取消：" + PackInstallPath);
                 }

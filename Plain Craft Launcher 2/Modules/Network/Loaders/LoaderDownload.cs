@@ -122,7 +122,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             file.Loaders.Add(this);
 
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
-        if (file.Check?.CanUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
+        if (file.Check?.CanUseExistsFile == true && file.Check.CheckAsync(file.LocalPath).GetAwaiter().GetResult() is null)
         {
             file.IsCopy = true;
             file.State = PCL.Network.NetState.Finished;

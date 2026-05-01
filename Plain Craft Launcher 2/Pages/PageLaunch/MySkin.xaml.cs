@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -303,12 +304,12 @@ public partial class MySkin
                     ModMain.Hint("正在刷新头像……");
                     ModBase.Log("[Skin] 正在清空皮肤缓存");
                     if (Directory.Exists(ModBase.PathTemp + @"Cache\Skin"))
-                        ModBase.DeleteDirectory(ModBase.PathTemp + @"Cache\Skin");
+                        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"Cache\Skin").GetAwaiter().GetResult();
                     if (Directory.Exists(ModBase.PathTemp + @"Cache\Uuid"))
-                        ModBase.DeleteDirectory(ModBase.PathTemp + @"Cache\Uuid");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Skin\IndexAuth.ini");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini");
+                        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"Cache\Uuid").GetAwaiter().GetResult();
+                    IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini").Invalidate();
+                    IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexAuth.ini").Invalidate();
+                    IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Invalidate();
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.SkinLegacy, PageLaunchLeft.SkinMs })
@@ -335,7 +336,7 @@ public partial class MySkin
         {
             try
             {
-                ModBase.WriteIni(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.SelectedProfile.Uuid,
+                IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini").Write(ModProfile.SelectedProfile.Uuid,
                     SkinAddress);
                 ModBase.Log(string.Format("[Skin] 已写入皮肤地址缓存 {0} -> {1}", ModProfile.SelectedProfile.Uuid, SkinAddress));
                 foreach (var SkinLoader in new[] { PageLaunchLeft.SkinMs, PageLaunchLeft.SkinLegacy })

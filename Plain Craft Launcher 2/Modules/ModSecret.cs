@@ -2,6 +2,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
@@ -19,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Paths = PCL.Core.App.Paths;
 
 namespace PCL;
 
@@ -517,7 +519,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
-                    var curHash = ModBase.GetFileSHA256(dlTargetPath);
+                    var curHash = Files.GetFileSHA256Async(dlTargetPath).GetAwaiter().GetResult();
                     if ((curHash ?? "") != (version.SHA256 ?? ""))
                         throw new Exception($"更新文件 SHA256 不正确，应该为 {version.SHA256}，实际为 {curHash}");
                 }));
@@ -616,13 +618,13 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception("无法获取更新");
-        if (File.Exists(LatestPCLPath) && (ModBase.GetFileSHA256(LatestPCLPath) ?? "") == (target.SHA256 ?? ""))
+        if (File.Exists(LatestPCLPath) && (Files.GetFileSHA256Async(LatestPCLPath).GetAwaiter().GetResult()) == (target.SHA256 ?? ""))
         {
             ModBase.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((ModBase.GetFileSHA256(ModBase.ExePathWithName) ?? "") == (target.SHA256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((Files.GetFileSHA256Async(ModBase.ExePathWithName).GetAwaiter().GetResult()) == (target.SHA256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
             ModBase.CopyFile(ModBase.ExePathWithName, LatestPCLPath);
             return;

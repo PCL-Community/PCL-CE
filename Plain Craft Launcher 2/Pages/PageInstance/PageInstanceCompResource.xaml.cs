@@ -1874,10 +1874,10 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (File.Exists(ModEntity.Path))
                     {
                         // 同时存在两个名称的 Mod
-                        if ((ModBase.GetFileMD5(ModEntity.Path) ?? "") != (ModBase.GetFileMD5(NewPath) ?? ""))
+                        if ((Files.GetFileMD5Async(ModEntity.Path).GetAwaiter().GetResult()) != (Files.GetFileMD5Async(NewPath).GetAwaiter().GetResult()))
                         {
                             ModMain.MyMsgBox(
-                                $"目前同时存在启用和禁用的两个 Mod 文件：{"\r\n"} - {NewPath}{"\r\n"} - {ModEntity.Path}{"\r\n"}{"\r\n"}注意，这两个文件的内容并不相同。{"\r\n"}在手动删除或重命名其中一个文件后，才能继续操作。",
+                                $"目前同时存在启用和禁用的两个 Mod 文件：\r\n - {NewPath}\r\n - {ModEntity.Path}\r\n\r\n注意，这两个文件的内容并不相同。{"\r\n"}在手动删除或重命名其中一个文件后，才能继续操作。",
                                 "存在文件冲突");
                             continue;
                         }

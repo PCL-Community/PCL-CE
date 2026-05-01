@@ -2,6 +2,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -40,9 +41,9 @@ public static class ModDownload
             Version.JsonObject["downloads"]["client"]["url"] is null)
             throw new Exception("底层实例 " + Version.Name + " 中无 Jar 文件下载信息");
         // 检查文件
-        var Checker = new ModBase.FileChecker(1024L, (long)(Version.JsonObject["downloads"]["client"]["size"] ?? -1),
+        var Checker = new FileChecker(1024L, (long)(Version.JsonObject["downloads"]["client"]["size"] ?? -1),
             (string)Version.JsonObject["downloads"]["client"]["sha1"]);
-        if (ReturnNothingOnFileUseable && Checker.Check(Version.PathInstance + Version.Name + ".jar") is null)
+        if (ReturnNothingOnFileUseable && Checker.CheckAsync(Version.PathInstance + Version.Name + ".jar").GetAwaiter().GetResult() is null)
             return null; // 通过校验
         // 返回下载信息
         var JarUrl = (string)Version.JsonObject["downloads"]["client"]["url"];
@@ -67,7 +68,7 @@ public static class ModDownload
         if (string.IsNullOrEmpty(IndexUrl)) return null;
 
         return new DownloadFile(DlSourceLauncherOrMetaGet(IndexUrl), IndexAddress,
-            new ModBase.FileChecker(CanUseExistsFile: false));
+            new FileChecker(canUseExistsFile: false));
     }
 
     /// <summary>
@@ -116,7 +117,7 @@ public static class ModDownload
                     var IndexFile = DlClientAssetIndexGet(Version);
                     var IndexFileInfo = new FileInfo(IndexFile.LocalPath);
                     if (AssetsIndexBehaviour != AssetsIndexExistsBehaviour.AlwaysDownload &&
-                        IndexFile.Check.Check(IndexFile.LocalPath) is null)
+                        IndexFile.Check.CheckAsync(IndexFile.LocalPath).GetAwaiter().GetResult() is null)
                         Task.Output = new List<DownloadFile>();
                     else
                         Task.Output = new List<DownloadFile> { IndexFile };

@@ -235,10 +235,10 @@ public partial class PageToolsTest
 
                     foreach (var dirInfo in cleanMcFolderList)
                     {
-                        num += ModBase.DeleteDirectory(
-                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"crash-reports\", true);
-                        num += ModBase.DeleteDirectory(
-                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"logs\", true);
+                        num += Directories.DeleteDirectoryAsync(
+                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"crash-reports\", true).GetAwaiter().GetResult();
+                        num += Directories.DeleteDirectoryAsync(
+                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"logs\", true).GetAwaiter().GetResult();
                         foreach (var fileInfo in dirInfo.EnumerateFiles("*"))
                             if (fileInfo.Name.StartsWith("hs_err_pid") || fileInfo.Name.EndsWith(".log") ||
                                 fileInfo.Name == "WailaErrorOutput.txt")
@@ -250,11 +250,11 @@ public partial class PageToolsTest
                         foreach (var dirInfo2 in dirInfo.EnumerateDirectories())
                             if ((dirInfo2.Name ?? "") == (dirInfo2.Name + "-natives" ?? "") ||
                                 dirInfo2.Name == "natives-windows-x86_64")
-                                num += ModBase.DeleteDirectory(dirInfo2.FullName, true);
+                                num += Directories.DeleteDirectoryAsync(dirInfo2.FullName, true).GetAwaiter().GetResult();
                     }
 
-                    num += ModBase.DeleteDirectory(ModBase.PathTemp, true);
-                    num += ModBase.DeleteDirectory(ModBase.OsDrive + @"ProgramData\PCL\", true);
+                    num += Directories.DeleteDirectoryAsync(ModBase.PathTemp, true).GetAwaiter().GetResult();
+                    num += Directories.DeleteDirectoryAsync(ModBase.OsDrive + @"ProgramData\PCL\", true).GetAwaiter().GetResult();
                     if (num != 0)
                     {
                         ModMain.MyMsgBox($"""
@@ -504,8 +504,8 @@ public partial class PageToolsTest
         const string shortcutName = "PCL 社区版.lnk";
         const string desktopName = "桌面";
         const string startName = "开始菜单";
-        var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
-        var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
+        var desktop = Core.App.Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
+        var start = Core.App.Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
         var choice =
             ModMain.MyMsgBox(
                 $"""

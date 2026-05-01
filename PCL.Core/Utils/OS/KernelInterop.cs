@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -29,15 +29,15 @@ public static partial class KernelInterop
         ref uint returnLength);
 
     private const int ERROR_INSUFFICIENT_BUFFER = 122;
-    
+
     private enum LOGICAL_PROCESSOR_RELATIONSHIP : uint
     {
-        RelationProcessorCore    = 0,
-        RelationNumaNode         = 1,
-        RelationCache            = 2,
+        RelationProcessorCore = 0,
+        RelationNumaNode = 1,
+        RelationCache = 2,
         RelationProcessorPackage = 3,
-        RelationGroup            = 4,
-        RelationAll              = 0xffff
+        RelationGroup = 4,
+        RelationAll = 0xffff
     }
 
     private static MEMORYSTATUSEX CreateStatus() => new() { dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>() };
@@ -71,6 +71,9 @@ public static partial class KernelInterop
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetConsoleWindow")]
     private static partial nint _GetConsoleWindow();
+
+    [LibraryImport("kernel32", EntryPoint = "GetShortPathName", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    private static partial int _GetShortPathName(string longPath, [Out] char[] shortPathBuffer, int bufferSize);
 
     // ReSharper restore InconsistentNaming, UnusedMember.Local
 
@@ -129,6 +132,15 @@ public static partial class KernelInterop
             }
             return cnt;
         }
+    }
+
+    public static int GetShortPathName(string longPath, out string shortPath)
+    {
+        var reqSize = _GetShortPathName(longPath, Array.Empty<char>(), 0);
+        var buffer = new char[reqSize];
+        var res = _GetShortPathName(longPath, buffer, reqSize);
+        shortPath = new string(buffer);
+        return res;
     }
 
     /// <summary>

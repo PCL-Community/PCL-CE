@@ -2,6 +2,7 @@ using Dapper;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
@@ -1853,7 +1854,7 @@ public static class ModComp
 
             var DescHash = $"{Id}{TextUtils.GetStringMD5(Description)}";
             var CacheFilePath = $@"{ModBase.PathTemp}Cache\CompTranslation.ini";
-            var CacheTranslation = ModBase.ReadIni(CacheFilePath, DescHash);
+            var CacheTranslation = await IniFile.Open(CacheFilePath).ReadAsync(DescHash).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(CacheTranslation))
             {
                 result = Encoding.UTF8.GetString(Convert.FromBase64String(CacheTranslation));
@@ -1863,11 +1864,11 @@ public static class ModComp
             try
             {
                 var jsonObject = (JObject)await
-                    Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
-                if (jsonObject.ContainsKey("translated"))
+                    Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}").ConfigureAwait(false);
+                if (jsonObject.TryGetValue("translated", out var value))
                 {
-                    result = jsonObject["translated"].ToString();
-                    ModBase.WriteIni(CacheFilePath, DescHash, Convert.ToBase64String(Encoding.UTF8.GetBytes(result)));
+                    result = value.ToString();
+                    await IniFile.Open(CacheFilePath).WriteAsync(DescHash, Convert.ToBase64String(Encoding.UTF8.GetBytes(result))).ConfigureAwait(false);
                 }
             }
             catch (HttpRequestException ex)
@@ -3326,7 +3327,7 @@ public static class ModComp
         public DownloadFile ToNetFile(string LocalAddress)
         {
             return new DownloadFile(DownloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? FileName : ""),
-                new ModBase.FileChecker(Hash: Hash), true);
+                new FileChecker(hash: Hash), true);
         }
 
         /// <summary>

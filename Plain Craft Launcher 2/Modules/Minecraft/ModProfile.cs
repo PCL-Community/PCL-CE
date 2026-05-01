@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using PCL.Core.IO;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -161,7 +162,7 @@ public static class ModProfile
             //return string.Empty.Truncate("0", 32);
             return string.Empty;
         // 从缓存获取
-        var uuid = ModBase.ReadIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name);
+        var uuid = IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Read(name);
         if (Strings.Len(uuid) == 32)
             return uuid;
         // 从官网获取
@@ -202,7 +203,7 @@ public static class ModProfile
         // 写入缓存
         if (!(Strings.Len(uuid) == 32))
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
-        ModBase.WriteIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
+        IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Write(name, uuid);
         return uuid;
     }
 

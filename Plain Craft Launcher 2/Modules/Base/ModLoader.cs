@@ -634,7 +634,7 @@ public static class ModLoader
                     State = Enums.LoadState.Finished;
                     LastFinishedTime = TimeUtils.GetTimeTick();
                 }
-                catch (ModBase.CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     if (ModBase.ModeDebug)
                         ModBase.Log(ex,

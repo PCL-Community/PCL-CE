@@ -1,4 +1,5 @@
 using fNbt;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using System.IO;
@@ -13,7 +14,7 @@ public static class ModWorld
     /// <summary>
     /// 尝试处理存档。
     /// </summary>
-    /// <exception cref="ModBase.CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
+    /// <exception cref="OperationCanceledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
     /// <exception cref="Exception"></exception>
     public static void ReadWorld(string SavePath)
     {
@@ -21,8 +22,8 @@ public static class ModWorld
         {
             var ExtractPath = $@"{ModBase.PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
             if (Directory.Exists(ExtractPath))
-                ModBase.DeleteDirectory(ExtractPath);
-            ModBase.ExtractFile(SavePath, ExtractPath);
+                Directories.DeleteDirectoryAsync(ExtractPath).GetAwaiter().GetResult();
+            Files.ExtractFileAsync(SavePath, ExtractPath).GetAwaiter().GetResult();
             SavePath = ExtractPath;
         }
 
@@ -32,7 +33,7 @@ public static class ModWorld
         if (!world.Read())
         {
             ModMain.Hint("存档文件可能已损坏，无法读取！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new OperationCanceledException();
         }
 
         var sb = new StringBuilder();

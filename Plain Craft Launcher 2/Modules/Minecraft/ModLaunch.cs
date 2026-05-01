@@ -2,6 +2,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Launch.Utils;
@@ -2102,7 +2103,7 @@ public static class ModLaunch
     /// </summary>
     public static string ExtractJavaWrapper()
     {
-        var WrapperPath = ModBase.PathPure + "JavaWrapper.jar";
+        var WrapperPath = Paths.Temp + "JavaWrapper.jar";
         ModBase.Log("[Java] 选定的 Java Wrapper 路径：" + WrapperPath);
         lock (ExtractJavaWrapperLock) // 避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
         {
@@ -2124,7 +2125,7 @@ public static class ModLaunch
                     catch (Exception ex2)
                     {
                         ModBase.Log(ex2, "Java Wrapper 文件重新释放失败，将尝试更换文件名重新生成", ModBase.LogLevel.Developer);
-                        WrapperPath = ModBase.PathPure + "JavaWrapper2.jar";
+                        WrapperPath = Path.Combine(Paths.Temp, "JavaWrapper2.jar");
                         try
                         {
                             WriteJavaWrapper(WrapperPath);
@@ -2157,7 +2158,7 @@ public static class ModLaunch
     /// </summary>
     public static string ExtractLinkD()
     {
-        var LinkDPath = ModBase.PathPure + "linkd.exe";
+        var LinkDPath = Path.Combine(Paths.Temp, "linkd.exe");
         lock (ExtractLinkDLock) // 避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
         {
             try
@@ -2401,7 +2402,7 @@ public static class ModLaunch
             {
                 var Response = Requester.FetchString(Server);
                 DataList.Insert(0,
-                    "-javaagent:\"" + ModBase.PathPure + "authlib-injector.jar\"=" + Server +
+                    "-javaagent:\"" + Path.Combine(Paths.Temp, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)));
             }
@@ -2419,7 +2420,7 @@ public static class ModLaunch
         // LWJGL Unsafe Agent
         if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
         {
-            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
+            DataList.Insert(0, $"-javaagent:\"{Path.Combine(Paths.Temp, "lwjgl-unsafe-agent.jar")}\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
@@ -2442,7 +2443,7 @@ public static class ModLaunch
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
         var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + MesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(Paths.Temp, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
         if (Renderer != 0)
             DataList.Insert(0,
@@ -2472,7 +2473,7 @@ public static class ModLaunch
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
-            DataList.Add("-Doolloo.jlw.tmpdir=\"" + ModBase.PathPure.TrimEnd('\\') + "\"");
+            DataList.Add("-Doolloo.jlw.tmpdir=\"" + Paths.Temp.TrimEnd('\\') + "\"");
             DataList.Add("-jar \"" + ExtractJavaWrapper() + "\"");
         }
 
@@ -2530,7 +2531,7 @@ public static class ModLaunch
             {
                 var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
                 DataList.Insert(0,
-                    "-javaagent:\"" + ModBase.PathPure + "authlib-injector.jar\"=" + Server +
+                    "-javaagent:\"" + Path.Combine(Paths.Temp, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)));
             }
@@ -2560,7 +2561,7 @@ public static class ModLaunch
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
         var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + MesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(Paths.Temp, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
         if (Renderer != 0)
             DataList.Insert(0,
@@ -2594,7 +2595,7 @@ public static class ModLaunch
         {
             if (McLaunchJavaSelected.Installation.MajorVersion >= 9)
                 DataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
-            DataList.Add("-Doolloo.jlw.tmpdir=\"" + ModBase.PathPure.TrimEnd('\\') + "\"");
+            DataList.Add("-Doolloo.jlw.tmpdir=\"" + Paths.Temp.TrimEnd('\\') + "\"");
             DataList.Add("-jar \"" + ExtractJavaWrapper() + "\"");
         }
 
@@ -2780,9 +2781,9 @@ public static class ModLaunch
 
         // 基础参数
         GameArguments.Add("${classpath_separator}", ";");
-        GameArguments.Add("${natives_directory}", ModBase.ShortenPath(GetNativesFolder()));
-        GameArguments.Add("${library_directory}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "libraries"));
-        GameArguments.Add("${libraries_directory}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "libraries"));
+        GameArguments.Add("${natives_directory}", PathUtils.ToShortenPath(GetNativesFolder()));
+        GameArguments.Add("${library_directory}", PathUtils.ToShortenPath(ModMinecraft.McFolderSelected + "libraries"));
+        GameArguments.Add("${libraries_directory}", PathUtils.ToShortenPath(ModMinecraft.McFolderSelected + "libraries"));
         GameArguments.Add("${launcher_name}", "PCLCE");
         GameArguments.Add("${launcher_version}", ModBase.VersionCode.ToString());
         GameArguments.Add("${version_name}", instance.Name);
@@ -2793,9 +2794,9 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : ArgumentInfo));
         GameArguments.Add("${game_directory}",
-            ModBase.ShortenPath(Strings.Left(ModMinecraft.McInstanceSelected.PathIndie,
+            PathUtils.ToShortenPath(Strings.Left(ModMinecraft.McInstanceSelected.PathIndie,
                 ModMinecraft.McInstanceSelected.PathIndie.Count() - 1)));
-        GameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "assets"));
+        GameArguments.Add("${assets_root}", PathUtils.ToShortenPath(ModMinecraft.McFolderSelected + "assets"));
         GameArguments.Add("${user_properties}", "{}");
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name);
         GameArguments.Add("${auth_uuid}", McLoginLoader.Output.Uuid);
@@ -2847,7 +2848,7 @@ public static class ModLaunch
 
         // Assets 相关参数
         GameArguments.Add("${game_assets}",
-            ModBase.ShortenPath(ModMinecraft.McFolderSelected +
+            PathUtils.ToShortenPath(ModMinecraft.McFolderSelected +
                                 @"assets\virtual\legacy")); // 1.5.2 的 pre-1.6 资源索引应与 legacy 合并
         GameArguments.Add("${assets_index_name}", ModMinecraft.McAssetsGetIndexName(instance));
 
@@ -2875,7 +2876,7 @@ public static class ModLaunch
         // LWJGL Unsafe Agent 释放
         if (McLaunchUsesLwjglUnsafeAgent(instance))
         {
-            string AgentPath = ModBase.PathPure + "lwjgl-unsafe-agent.jar";
+            string AgentPath = Path.Combine(Paths.Temp, "lwjgl-unsafe-agent.jar");
             try
             {
                 ModBase.WriteFile(AgentPath, ModBase.GetResourceStream("Resources/lwjgl-unsafe-agent.jar"));
@@ -2909,7 +2910,7 @@ public static class ModLaunch
 
         if (OptiFineCp is not null)
             CpStrings.Insert(CpStrings.Count - 2, OptiFineCp); // OptiFine 的总是需要放到倒数第二位
-        GameArguments.Add("${classpath}", string.Join(' ', CpStrings.Select(c => ModBase.ShortenPath(c))));
+        GameArguments.Add("${classpath}", string.Join(' ', CpStrings.Select(c => PathUtils.ToShortenPath(c))));
 
         return GameArguments;
     }
@@ -3149,7 +3150,7 @@ public static class ModLaunch
                 {
                     McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
                     SetupFileAddress = YosbrFileAddress;
-                    ModBase.WriteIni(SetupFileAddress, "lang", "none"); // 忽略默认语言
+                    IniFile.Open(SetupFileAddress).Write("lang", "none"); // 忽略默认语言
                 }
             }
 
@@ -3161,7 +3162,7 @@ public static class ModLaunch
                 // 1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
                 // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
                 // 1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-                var CurrentLang = ModBase.ReadIni(SetupFileAddress, "lang", "none");
+                var CurrentLang = IniFile.Open(SetupFileAddress).Read("lang", "none");
                 string RequiredLang; // 需要的语言
                 var hasExistingSaves = Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves");
                 var shouldUseDefault = CurrentLang == "none" || !hasExistingSaves;
@@ -3206,15 +3207,15 @@ public static class ModLaunch
                 }
                 else
                 {
-                    ModBase.WriteIni(SetupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
-                    ModBase.WriteIni(SetupFileAddress, "lang", RequiredLang);
+                    IniFile.Open(SetupFileAddress).Write("lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
+                    IniFile.Open(SetupFileAddress).Write("lang", RequiredLang);
                     McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}");
                 }
 
                 // 如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
                 if (CurrentLang == "none" || !Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves"))
                 {
-                    ModBase.WriteIni(SetupFileAddress, "forceUnicodeFont", "true");
+                    IniFile.Open(SetupFileAddress).Write("forceUnicodeFont", "true");
                     McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示");
                 }
             }
@@ -3229,7 +3230,7 @@ public static class ModLaunch
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全屏
                 {
-                    ModBase.WriteIni(SetupFileAddress, "fullscreen", "true");
+                    IniFile.Open(SetupFileAddress).Write("fullscreen", "true");
                     break;
                 }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 默认
@@ -3240,7 +3241,7 @@ public static class ModLaunch
 
             default:
                 {
-                    ModBase.WriteIni(SetupFileAddress, "fullscreen", "false");
+                    IniFile.Open(SetupFileAddress).Write("fullscreen", "false");
                     break;
                 }
         }
@@ -3264,7 +3265,7 @@ public static class ModLaunch
                 $"{(McLaunchJavaSelected.Installation.MajorVersion > 8 ? "chcp 65001>nul" + "\r\n" : "")}" +
                 "@echo off" + "\r\n" + $"title 启动 - {ModMinecraft.McInstanceSelected.Name}" +
                 "\r\n" + "echo 游戏正在启动，请稍候。" + "\r\n" +
-                $"cd /D \"{ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie)}\"" + "\r\n" +
+                $"cd /D \"{PathUtils.ToShortenPath(ModMinecraft.McInstanceSelected.PathIndie)}\"" + "\r\n" +
                 CustomCommandGlobal + "\r\n" + CustomCommandVersion + "\r\n" +
                 $"\"{McLaunchJavaSelected.Installation.JavaExePath}\" {McLaunchArgument}" + "\r\n" +
                 "echo 游戏已退出。" + "\r\n" + "pause";
@@ -3296,7 +3297,7 @@ public static class ModLaunch
             {
                 CustomProcess.StartInfo.FileName = "cmd.exe";
                 CustomProcess.StartInfo.Arguments = "/c \"" + CustomCommandGlobal + "\"";
-                CustomProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.McFolderSelected);
+                CustomProcess.StartInfo.WorkingDirectory = PathUtils.ToShortenPath(ModMinecraft.McFolderSelected);
                 CustomProcess.StartInfo.UseShellExecute = false;
                 CustomProcess.StartInfo.CreateNoWindow = true;
                 CustomProcess.Start();
@@ -3326,7 +3327,7 @@ public static class ModLaunch
             {
                 CustomProcess.StartInfo.FileName = "cmd.exe";
                 CustomProcess.StartInfo.Arguments = "/c \"" + CustomCommandVersion + "\"";
-                CustomProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.McFolderSelected);
+                CustomProcess.StartInfo.WorkingDirectory = PathUtils.ToShortenPath(ModMinecraft.McFolderSelected);
                 CustomProcess.StartInfo.UseShellExecute = false;
                 CustomProcess.StartInfo.CreateNoWindow = true;
                 CustomProcess.Start();
@@ -3362,12 +3363,12 @@ public static class ModLaunch
 
         // 设置环境变量
         var Paths = new List<string>(StartInfo.EnvironmentVariables["Path"].Split(";"));
-        Paths.Add(ModBase.ShortenPath(McLaunchJavaSelected.Installation.JavaFolder));
+        Paths.Add(PathUtils.ToShortenPath(McLaunchJavaSelected.Installation.JavaFolder));
         StartInfo.EnvironmentVariables["Path"] = string.Join(' ', Paths.Distinct());
-        StartInfo.EnvironmentVariables["appdata"] = ModBase.ShortenPath(ModMinecraft.McFolderSelected);
+        StartInfo.EnvironmentVariables["appdata"] = PathUtils.ToShortenPath(ModMinecraft.McFolderSelected);
 
         // 设置其他参数
-        StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie);
+        StartInfo.WorkingDirectory = PathUtils.ToShortenPath(ModMinecraft.McInstanceSelected.PathIndie);
         StartInfo.UseShellExecute = false;
         StartInfo.RedirectStandardOutput = true;
         StartInfo.RedirectStandardError = true;
@@ -3558,7 +3559,7 @@ public static class ModLaunch
             if (escapeHandler is null)
                 return s;
             if (s.Contains(@":\"))
-                s = ModBase.ShortenPath(s);
+                s = PathUtils.ToShortenPath(s);
             return escapeHandler(s);
         }
 

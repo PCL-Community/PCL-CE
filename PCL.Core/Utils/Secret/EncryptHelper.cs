@@ -1,14 +1,12 @@
-﻿using System;
+using PCL.Core.Utils.Encryption;
+using PCL.Core.Utils.Exts;
+using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using PCL.Core.App;
-using PCL.Core.IO;
-using PCL.Core.Utils.Encryption;
-using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Secret;
 
@@ -32,7 +30,7 @@ public static class EncryptHelper
         var rawData = Encoding.UTF8.GetBytes(data);
 
         return Convert.ToBase64String(EncryptionData.ToBytes(new EncryptionData
-            { Version = DefaultProvider.Version, Data = DefaultProvider.Provider.Encrypt(rawData, EncryptionKey) }));
+        { Version = DefaultProvider.Version, Data = DefaultProvider.Provider.Encrypt(rawData, EncryptionKey) }));
     }
 
     public static string SecretDecrypt(string? data)
@@ -147,7 +145,7 @@ public static class EncryptHelper
 
     private static byte[] _GetKey()
     {
-        var keyFile = Path.Combine(Paths.SharedData, "UserKey.bin");
+        var keyFile = Path.Combine(App.Paths.SharedData, "UserKey.bin");
         if (File.Exists(keyFile))
         {
             var buf = File.ReadAllBytes(keyFile);

@@ -3,6 +3,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -10,7 +11,6 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -1131,7 +1131,7 @@ public static class ModMain
                     var IgnoreList = new List<string>();
                     // 读取自定义文件
                     if (Directory.Exists(ModBase.ExePath + @"PCL\Help\"))
-                        foreach (var File in ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Help\"))
+                        foreach (var File in Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Help\").GetAwaiter().GetResult())
                             switch (File.Extension.ToLower() ?? "")
                             {
                                 case ".helpignore":
@@ -1160,7 +1160,7 @@ public static class ModMain
 
                     ModBase.Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " + FileList.Count + " 条");
                     // 读取自带文件
-                    foreach (var File in ModBase.EnumerateFiles(ModBase.PathHelpFolder))
+                    foreach (var File in Directories.EnumerateFilesAsync(ModBase.PathHelpFolder).GetAwaiter().GetResult())
                     {
                         // 跳过非 Json 文件与以 . 开头的文件夹
                         if (File.Extension.ToLower() != ".json" || File.Directory.FullName
@@ -1226,10 +1226,10 @@ public static class ModMain
     /// </summary>
     public static void HelpExtract()
     {
-        ModBase.DeleteDirectory(ModBase.PathTemp + @"CE\Help");
+        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"CE\Help").GetAwaiter().GetResult();
         Directory.CreateDirectory(ModBase.PathTemp + @"CE\Help");
         ModBase.WriteFile(ModBase.PathTemp + @"CE\Cache\Help.zip", ModBase.GetResourceStream("Resources/Help.zip"));
-        ModBase.ExtractFile(ModBase.PathTemp + @"CE\Cache\Help.zip", ModBase.PathTemp + @"CE\Help", Encoding.UTF8);
+        Files.ExtractFileAsync(ModBase.PathTemp + @"CE\Cache\Help.zip", ModBase.PathTemp + @"CE\Help").GetAwaiter().GetResult();
         ModBase.Log("[Help] 已解压内置帮助文件，目前状态：" + File.Exists(ModBase.PathTemp + @"CE\Help\启动器\备份设置.xaml"),
             ModBase.LogLevel.Debug);
     }
@@ -1479,7 +1479,7 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         {
             if (s == null) return "";
             if (escapeHandler == null) return s;
-            if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
+            if (s.Contains(":\\")) s = PathUtils.ToShortenPath(s);
             return escapeHandler(s);
         };
 
@@ -1586,8 +1586,8 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
             try
             {
                 ModBase.Log("[System] 开始清理任务缓存文件夹");
-                ModBase.DeleteDirectory($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\");
-                ModBase.DeleteDirectory($@"{ModBase.PathTemp}TaskTemp\");
+                Directories.DeleteDirectoryAsync($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\").GetAwaiter().GetResult();
+                Directories.DeleteDirectoryAsync($@"{ModBase.PathTemp}TaskTemp\").GetAwaiter().GetResult();
                 ModBase.Log("[System] 已清理任务缓存文件夹");
             }
             catch (Exception ex)

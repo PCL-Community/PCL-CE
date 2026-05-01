@@ -2,6 +2,7 @@ using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
+using PCL.Core.IO;
 using PCL.Core.UI.Icons;
 using System.Collections;
 using System.Windows;
@@ -545,12 +546,12 @@ public partial class PageSelectRight
             {
                 case 1:
                     {
-                        ModBase.IniClearCache(instance.PathIndie + "options.txt");
+                        IniFile.Open(instance.PathIndie + "options.txt").Invalidate();
                         ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                             instance.PathInstance);
                         if (IsShiftPressed)
                         {
-                            ModBase.DeleteDirectory(instance.PathInstance);
+                            Directories.DeleteDirectoryAsync(instance.PathInstance).GetAwaiter().GetResult();
                             ModMain.Hint($"实例 {instance.Name} 已永久删除！", ModMain.HintType.Finish);
                         }
                         else

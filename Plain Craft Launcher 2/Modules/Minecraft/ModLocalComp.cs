@@ -2,6 +2,7 @@ using fNbt;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using System.Globalization;
@@ -1777,7 +1778,7 @@ public static class ModLocalComp
                     var Info = new FileInfo(Path);
                     var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-C")
                         .ToString();
-                    var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
+                    var Cached = IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
                     if (!string.IsNullOrEmpty(Cached) && Cached.RegexCheck(@"^\d+$")) // #5062
                     {
                         _CurseForgeHash = uint.Parse(Cached);
@@ -1837,7 +1838,7 @@ public static class ModLocalComp
                     h = h ^ (h >> 15);
                     _CurseForgeHash = h;
                     // 写入缓存
-                    ModBase.WriteIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey, h.ToString());
+                    IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, h.ToString());
                 }
 
                 return (uint)_CurseForgeHash;
@@ -1859,7 +1860,7 @@ public static class ModLocalComp
                     var Info = new FileInfo(Path);
                     var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-M")
                         .ToString();
-                    var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
+                    var Cached = IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
                     if (!string.IsNullOrEmpty(Cached))
                     {
                         _ModrinthHash = Cached;
@@ -1867,9 +1868,9 @@ public static class ModLocalComp
                     }
 
                     // 计算 SHA1
-                    _ModrinthHash = ModBase.GetFileSHA1(Path);
+                    _ModrinthHash = Files.GetFileSHA1Async(Path).GetAwaiter().GetResult();
                     // 写入缓存
-                    ModBase.WriteIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey, _ModrinthHash);
+                    IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, _ModrinthHash);
                 }
 
                 return _ModrinthHash;
@@ -2006,7 +2007,7 @@ public static class ModLocalComp
                 {
                     try
                     {
-                        foreach (var File in ModBase.EnumerateFiles(Loader.Input.CompPath))
+                        foreach (var File in Directories.EnumerateFilesAsync(Loader.Input.CompPath).GetAwaiter().GetResult())
                             try
                             {
                                 if ((File.DirectoryName.ToLower() + @"\" ?? "") != (RawName ?? ""))

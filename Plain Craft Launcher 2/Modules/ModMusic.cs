@@ -1,11 +1,12 @@
 using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using System.IO;
 using System.Windows.Controls;
-using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -152,7 +153,7 @@ public static class ModMusic
                 MusicAllList = new List<string>();
                 var musicDir = Path.Combine(ModBase.ExePath, "PCL", "Musics");
                 Directory.CreateDirectory(musicDir);
-                foreach (var file in ModBase.EnumerateFiles(musicDir))
+                foreach (var file in Directories.EnumerateFilesAsync(musicDir).GetAwaiter().GetResult())
                 {
                     var ext = file.Extension.ToLowerInvariant();
                     // 忽略非音频文件

@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using Control = System.Windows.Forms.Control;
 
@@ -213,7 +214,7 @@ public partial class PageDownloadCompDetail
             Loaders.Add(new LoaderDownload("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
             { ProgressWeight = 10d, Block = true });
             Loaders.Add(
-                new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
+                new ModLoader.LoaderTask<int, int>("安装世界", _ => Files.ExtractFileAsync(Target, TargetPath).GetAwaiter().GetResult())
                 { ProgressWeight = 0.1d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", _ => System.IO.File.Delete(Target)));
 

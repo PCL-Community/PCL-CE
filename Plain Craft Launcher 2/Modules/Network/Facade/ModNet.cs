@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.IO;
 using System.IO;
 using System.Text;
 
@@ -88,13 +89,13 @@ public static class ModNet
     }
 
     public static void NetDownloadByLoader(string url, string localFile, ModLoader.LoaderBase? loaderToSyncProgress = null,
-        ModBase.FileChecker? check = null, bool useBrowserUserAgent = false)
+        FileChecker? check = null, bool useBrowserUserAgent = false)
     {
         FileDownloader.Download(url, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
     public static void NetDownloadByLoader(IEnumerable<string> urls, string localFile,
-        ModLoader.LoaderBase? loaderToSyncProgress = null, ModBase.FileChecker? check = null,
+        ModLoader.LoaderBase? loaderToSyncProgress = null, FileChecker? check = null,
         bool useBrowserUserAgent = false)
     {
         FileDownloader.Download(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();

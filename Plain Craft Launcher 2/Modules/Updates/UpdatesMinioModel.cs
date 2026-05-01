@@ -1,12 +1,12 @@
-using System.IO;
-using System.IO.Compression;
-using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.IO;
+using System.IO.Compression;
 
 namespace PCL;
 
@@ -80,7 +80,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
-            var selfSha256 = ModBase.GetFileSHA256(ModBase.ExePathWithName);
+            var selfSha256 = Files.GetFileSHA256Async(ModBase.ExePathWithName).GetAwaiter().GetResult();
             var remoteUpdSha256 = deJsonData.sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.patches.Contains(patchFileName))
@@ -183,12 +183,12 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     /// <param name="path"></param>
     /// <param name="hash"></param>
     /// <returns></returns>
-    private bool IsCacheValid(string path, string hash)
+    private bool IsCacheValid(string path, string? hash)
     {
         var cacheFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).Hours < 1 &&
-               (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
+               (Files.GetFileMD5Async(cacheFile).GetAwaiter().GetResult()) == (hash ?? "");
     }
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)
@@ -197,41 +197,41 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         switch (channel)
         {
             case UpdateChannel.stable:
-            {
-                ChannelName += "sr";
-                break;
-            }
+                {
+                    ChannelName += "sr";
+                    break;
+                }
             case UpdateChannel.beta:
-            {
-                ChannelName += "fr";
-                break;
-            }
+                {
+                    ChannelName += "fr";
+                    break;
+                }
 
             default:
-            {
-                ChannelName += "sr";
-                break;
-            }
+                {
+                    ChannelName += "sr";
+                    break;
+                }
         }
 
         switch (arch)
         {
             case UpdateArch.x64:
-            {
-                ChannelName += "x64";
-                break;
-            }
+                {
+                    ChannelName += "x64";
+                    break;
+                }
             case UpdateArch.arm64:
-            {
-                ChannelName += "arm64";
-                break;
-            }
+                {
+                    ChannelName += "arm64";
+                    break;
+                }
 
             default:
-            {
-                ChannelName += "x64";
-                break;
-            }
+                {
+                    ChannelName += "x64";
+                    break;
+                }
         }
 
         return ChannelName;

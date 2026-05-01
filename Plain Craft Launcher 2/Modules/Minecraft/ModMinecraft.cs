@@ -1882,7 +1882,7 @@ public static class ModMinecraft
             // 如果没有可用实例，清空缓存并跳过后续处理
             if (!folderList.Any())
             {
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+                IniFile.Open(Path.Combine(path, "PCL.ini")).Write("InstanceCache", "");
                 McInstanceSelected = null;
                 States.Game.SelectedInstance = "";
                 ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
@@ -1895,7 +1895,7 @@ public static class ModMinecraft
 
             // 尝试使用缓存
             var useCache = !McInstanceListForceRefresh &&
-                           StringExtension.Val(ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) ==
+                           StringExtension.Val(IniFile.Open(Path.Combine(path, "PCL.ini")).Read("InstanceCache")) ==
                            folderListCheck;
 
             if (useCache)
@@ -1912,7 +1912,7 @@ public static class ModMinecraft
             {
                 McInstanceListForceRefresh = false;
                 ModBase.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
+                IniFile.Open(Path.Combine(path, "PCL.ini")).Write("InstanceCache", folderListCheck.ToString());
                 McInstanceList = InitMcInstanceListWithoutCache(path);
             }
 
@@ -1922,7 +1922,7 @@ public static class ModMinecraft
                 return;
 
             // 尝试读取已储存的选择
-            var savedSelection = ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
+            var savedSelection = IniFile.Open(Path.Combine(path, "PCL.ini")).Read("Version");
             if (!string.IsNullOrEmpty(savedSelection))
                 foreach (var card in McInstanceList)
                     foreach (var instance in card.Value)
@@ -1962,7 +1962,7 @@ public static class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
+            IniFile.Open(Path.Combine(path, "PCL.ini")).Write("InstanceCache", ""); // 要求下次重新加载
             ModBase.Log(ex, "加载 .minecraft 实例列表失败", ModBase.LogLevel.Feedback);
         }
     }
@@ -1973,18 +1973,18 @@ public static class ModMinecraft
         var results = new Dictionary<McInstanceCardType, List<McInstance>>();
         try
         {
-            var cardCount = Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
+            var cardCount = Conversions.ToInteger(IniFile.Open(path + "PCL.ini").Read("CardCount", (-1).ToString()));
             if (cardCount == -1)
                 return null;
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
             {
                 var cardType =
-                    (McInstanceCardType)Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
+                    (McInstanceCardType)Conversions.ToInteger(IniFile.Open(path + "PCL.ini").Read("CardKey" + (i + 1),
                         ":"));
                 var instanceList = new List<McInstance>();
 
                 // 循环读取实例
-                foreach (var folder in ModBase.ReadIni(path + "PCL.ini", "CardValue" + (i + 1), ":").Split(":"))
+                foreach (var folder in IniFile.Open(path + "PCL.ini").Read("CardValue" + (i + 1), ":").Split(":"))
                 {
                     if (string.IsNullOrEmpty(folder))
                         continue;
@@ -2363,15 +2363,15 @@ public static class ModMinecraft
 
         #region 保存卡片缓存
 
-        ModBase.WriteIni(path + "PCL.ini", "CardCount", results.Count.ToString());
+        IniFile.Open(path + "PCL.ini").Write("CardCount", results.Count.ToString());
         for (int i = 0, loopTo = results.Count - 1; i <= loopTo; i++)
         {
-            ModBase.WriteIni(path + "PCL.ini", "CardKey" + (i + 1),
+            IniFile.Open(path + "PCL.ini").Write("CardKey" + (i + 1),
                 ((int)results.Keys.ElementAtOrDefault(i)).ToString());
             var Value = "";
             foreach (var Instance in results.Values.ElementAtOrDefault(i))
                 Value += Instance.Name + ":";
-            ModBase.WriteIni(path + "PCL.ini", "CardValue" + (i + 1), Value);
+            IniFile.Open(path + "PCL.ini").Write("CardValue" + (i + 1), Value);
         }
 
         #endregion
@@ -2493,7 +2493,7 @@ public static class ModMinecraft
 
         // 尝试读取缓存
         var cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
-        var cacheSkinAddress = ModBase.ReadIni(cachePath, uuid);
+        var cacheSkinAddress = IniFile.Open(cachePath).Read(uuid);
         if (!string.IsNullOrEmpty(cacheSkinAddress))
             return cacheSkinAddress;
 
@@ -2545,7 +2545,7 @@ public static class ModMinecraft
         skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
 
         // 保存缓存
-        ModBase.WriteIni(cachePath, uuid, skinUrl);
+        IniFile.Open(cachePath).Write(uuid, skinUrl);
         ModBase.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
 
         return skinUrl;
@@ -3022,7 +3022,7 @@ public static class ModMinecraft
         result.AddRange(McLibNetFilesFromTokens(McLibListGet(instance, false)));
 
         // Authlib-Injector 文件
-        var authlibTargetFile = ModBase.PathPure + @"\authlib-injector.jar";
+        var authlibTargetFile = Path.Combine(Paths.Temp, "authlib-injector.jar");
         JObject authlibDownloadInfo = null;
         try
         {
@@ -3042,28 +3042,27 @@ public static class ModMinecraft
         // 校验文件
         if (authlibDownloadInfo is not null)
         {
-            var checker = new ModBase.FileChecker(Hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
-            if (checker.Check(authlibTargetFile) is not null)
+            var checker = new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
+            if (checker.CheckAsync(authlibTargetFile).GetAwaiter().GetResult() is not null)
             {
                 // 开始下载
                 var downloadAddress = authlibDownloadInfo["download_url"].ToString()
                     .Replace("bmclapi2.bangbang93.com/mirrors/authlib-injector", "authlib-injector.yushi.moe");
                 ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogLevel.Developer);
                 result.Add(new DownloadFile(
-                    new[]
-                    {
+                    [
                         downloadAddress,
                         downloadAddress.Replace("authlib-injector.yushi.moe",
                             "bmclapi2.bangbang93.com/mirrors/authlib-injector")
-                    }, authlibTargetFile,
-                    new ModBase.FileChecker(Hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
+                    ], authlibTargetFile,
+                    new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
             }
         }
 
         // 修改渲染器
         var mesaLoaderWindowsVersion = "25.3.5";
         var mesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + mesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(Paths.Temp, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
         if (McInstanceSelected is not null)
             renderer = Conversions.ToInteger(
@@ -3086,8 +3085,7 @@ public static class ModMinecraft
             {
                 if (Directory.Exists(instance.PathInstance + "labymod-neo"))
                     Directory.Delete(instance.PathInstance + "labymod-neo", true);
-                ModBase.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo",
-                    0x2);
+                File.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo");
             }
 
             try
@@ -3106,10 +3104,10 @@ public static class ModMinecraft
                     var assetPath = $@"{McFolderSelected}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
-                    var checker = new ModBase.FileChecker(Hash: assetSHA1);
-                    if (checker.Check(assetPath) is null)
+                    var checker = new FileChecker(hash: assetSHA1);
+                    if (checker.CheckAsync(assetPath).GetAwaiter().GetResult() is null)
                         continue;
-                    result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
+                    result.Add(new DownloadFile([assetUrl], assetPath, checker));
                 }
             }
             catch (Exception ex)
@@ -3148,8 +3146,8 @@ public static class ModMinecraft
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.SHA1);
-            if (checker.Check(token.LocalPath) is null)
+            var checker = new FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.SHA1);
+            if (checker.CheckAsync(token.LocalPath).GetAwaiter().GetResult() is null)
                 continue;
             if (token.IsLocal)
             {
@@ -3209,7 +3207,7 @@ public static class ModMinecraft
                 urls.Add(token.Url);
                 ModBase.Log(
                     $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.Size},SHA1 = {token.SHA1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(Hash: token.SHA1); // 只校验 SHA1
+                checker = new FileChecker(hash: token.SHA1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {
@@ -3438,23 +3436,20 @@ public static class ModMinecraft
                 ModDownload.DlSourceAssetsGet(
                     $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                 token.LocalPath,
-                new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
+                new FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.Hash))).ToList();
         // 如果不检查 Hash，则立即处理
         var result = new List<DownloadFile>();
 
-        List<McAssetsToken> assetsList;
         try
         {
-            assetsList = McAssetsListGet(instance);
-            McAssetsToken token;
+            var assetsList = McAssetsListGet(instance);
             if (progressFeed is not null)
                 progressFeed.Progress = 0.04d;
             for (int i = 0, loopTo = assetsList.Count - 1; i <= loopTo; i++)
             {
                 // 初始化
-                token = assetsList[i];
-                if (progressFeed is not null)
-                    progressFeed.Progress = 0.05d + 0.94d * i / assetsList.Count;
+                var token = assetsList[i];
+                progressFeed?.Progress = 0.05d + 0.94d * i / assetsList.Count;
                 // 检查文件是否存在
                 var file = new FileInfo(token.LocalPath);
                 if (file.Exists && (token.Size == 0L || token.Size == file.Length))
@@ -3464,7 +3459,7 @@ public static class ModMinecraft
                     ModDownload.DlSourceAssetsGet(
                         $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                     token.LocalPath,
-                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));
+                    new FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.Hash)));
             }
         }
         catch (Exception ex)
@@ -3472,8 +3467,7 @@ public static class ModMinecraft
             ModBase.Log(ex, "获取实例缺失的资源文件下载列表失败");
         }
 
-        if (progressFeed is not null)
-            progressFeed.Progress = 0.99d;
+        progressFeed?.Progress = 0.99d;
         return result;
     }
 

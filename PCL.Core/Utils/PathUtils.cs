@@ -1,4 +1,5 @@
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System;
 using System.IO;
 
@@ -18,7 +19,7 @@ public static class PathUtils
         if (lastSep < 0)
             throw new InvalidOperationException("不包含路径：" + filePath);
 
-        if (filePath.EndsWith('\\') || filePath.EndsWith('/'))
+        if (filePath is [.., '\\'] or [.., '/'])
         {
             // 是文件夹路径：去掉末尾分隔符，取上一级目录
             filePath = filePath[..lastSep];
@@ -44,7 +45,7 @@ public static class PathUtils
     public static string GetFileNameFromPath(string filePath)
     {
         filePath = filePath.Replace('/', '\\');
-        if (filePath.EndsWith('\\'))
+        if (filePath is [.., '\\'])
         {
             throw new InvalidOperationException("不包含文件名：" + filePath);
         }
@@ -85,12 +86,26 @@ public static class PathUtils
             return folderPath.Substring(0, 1);
         }
 
-        if (folderPath.EndsWith('\\') || folderPath.EndsWith('/'))
+        if (folderPath is [.., '\\'] or [.., '/'])
         {
             folderPath = folderPath[..^1];
         }
 
         return GetFileNameFromPath(folderPath);
+    }
+
+    /// <summary>
+    /// 若路径长度大于指定值，则将长路径转换为短路径。
+    /// </summary>
+    public static string ToShortenPath(string longPath, int shortenThreshold = 247)
+    {
+        if (longPath.Length <= shortenThreshold)
+        {
+            return longPath;
+        }
+
+        KernelInterop.GetShortPathName(longPath, out var shortPath);
+        return shortPath;
     }
 
 }

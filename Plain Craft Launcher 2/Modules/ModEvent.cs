@@ -1,18 +1,13 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Markup;
 using PCL.Core.App;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
+using System.Collections;
+using System.IO;
+using System.Windows;
+using System.Windows.Markup;
+using PCL.Core.IO;
+using PCL.Core.Utils;
 
 namespace PCL
 {

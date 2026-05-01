@@ -1,5 +1,6 @@
 using FluentValidation;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
@@ -615,7 +616,7 @@ public partial class PageSelectLeft : IRefreshable
             try
             {
                 ModMain.Hint($"正在{DeleteText}文件夹 {Folder.Name}！");
-                ModBase.DeleteDirectory(Folder.Location);
+                Directories.DeleteDirectoryAsync(Folder.Location).GetAwaiter().GetResult();
                 if (DeleteText == "清空") Directory.CreateDirectory(Folder.Location);
                 ModMain.Hint($"已{DeleteText}文件夹 {Folder.Name}！", ModMain.HintType.Finish);
             }
@@ -650,7 +651,7 @@ public partial class PageSelectLeft : IRefreshable
 
     public static void RefreshCurrent(string Folder)
     {
-        ModBase.WriteIni(Folder + "PCL.ini", "InstanceCache", ""); // 删除缓存以强制要求下一次加载时更新列表
+        IniFile.Open(Folder + "PCL.ini").Write("InstanceCache", ""); // 删除缓存以强制要求下一次加载时更新列表
         if ((Folder ?? "") == (ModMinecraft.McFolderSelected ?? ""))
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");

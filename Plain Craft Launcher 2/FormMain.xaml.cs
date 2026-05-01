@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.IoC;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
@@ -1136,7 +1137,7 @@ public partial class FormMain
                                 return;
                             }
 
-                            ModBase.ExtractFile(FilePath, DestFolder);
+                            Files.ExtractFileAsync(FilePath, DestFolder).GetAwaiter().GetResult();
                             ModMain.Hint($"已导入 {ModBase.GetFileNameWithoutExtentionFromPath(FilePath)}",
                                 ModMain.HintType.Finish);
                             if (ModMain.FrmInstanceSaves is not null)
@@ -1208,7 +1209,7 @@ public partial class FormMain
                     ModModpack.ModpackInstall(FilePath);
                     return;
                 }
-                catch (ModBase.CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     return; // 用户主动取消
                 }
@@ -1226,7 +1227,7 @@ public partial class FormMain
                     ModWorld.ReadWorld(FilePath);
                     return;
                 }
-                catch (ModBase.CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     return; // 是存档，但是损坏了
                 }

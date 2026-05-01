@@ -3,6 +3,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -829,7 +830,7 @@ public partial class PageInstanceExport : IRefreshable
                 if (Line.EndsWithF(@"\") || Line.EndsWithF("/"))
                 {
                     if (Directory.Exists(Line))
-                        ModBase.CopyDirectory(Line, BaseFolder + PathUtils.GetFolderNameFromPath(Line) + @"\");
+                        Directories.CopyDirectoryAsync(Line, BaseFolder + PathUtils.GetFolderNameFromPath(Line) + @"\").GetAwaiter().GetResult();
                     else
                         ModMain.Hint($"未找到配置文件中指定的文件夹：{Line}", ModMain.HintType.Critical);
                 }
@@ -844,7 +845,7 @@ public partial class PageInstanceExport : IRefreshable
 
             Loader.Progress = 0.97d;
             // 复制 PCL 实例设置
-            ModBase.CopyDirectory(McInstance.PathInstance + @"PCL\", OverridesFolder + @"PCL\");
+            Directories.CopyDirectoryAsync(McInstance.PathInstance + @"PCL\", OverridesFolder + @"PCL\").GetAwaiter().GetResult();
             /* TODO ERROR: Skipped IfDirectiveTrivia
             #If RELEASE Then
             */ /* TODO ERROR: Skipped DisabledTextTrivia
@@ -856,11 +857,11 @@ public partial class PageInstanceExport : IRefreshable
             if (IncludePCLCustom)
             {
                 if (Directory.Exists(ModBase.ExePath + @"PCL\Pictures\"))
-                    ModBase.CopyDirectory(ModBase.ExePath + @"PCL\Pictures\", CacheFolder + @"PCL\Pictures\");
+                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Pictures\", CacheFolder + @"PCL\Pictures\").GetAwaiter().GetResult();
                 if (Directory.Exists(ModBase.ExePath + @"PCL\Musics\"))
-                    ModBase.CopyDirectory(ModBase.ExePath + @"PCL\Musics\", CacheFolder + @"PCL\Musics\");
+                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Musics\", CacheFolder + @"PCL\Musics\").GetAwaiter().GetResult();
                 if (Directory.Exists(ModBase.ExePath + @"PCL\Help\"))
-                    ModBase.CopyDirectory(ModBase.ExePath + @"PCL\Help\", CacheFolder + @"PCL\Help\");
+                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Help\", CacheFolder + @"PCL\Help\").GetAwaiter().GetResult();
                 if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
                     ModBase.CopyFile(ModBase.ExePath + @"PCL\Custom.xaml", CacheFolder + @"PCL\Custom.xaml");
                 if (File.Exists(ModBase.ExePath + @"PCL\Setup.ini"))
@@ -1020,7 +1021,7 @@ public partial class PageInstanceExport : IRefreshable
                             "hashes",
                             new JObject
                             {
-                                { "sha1", ModFile.ModrinthHash }, { "sha512", ModBase.GetFileSHA512(ModFile.Path) }
+                                { "sha1", ModFile.ModrinthHash }, { "sha512", Core.IO.Files.GetFileSHA512Async(ModFile.Path).GetAwaiter().GetResult() }
                             }
                         },
                         { "downloads", new JArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com"))) },

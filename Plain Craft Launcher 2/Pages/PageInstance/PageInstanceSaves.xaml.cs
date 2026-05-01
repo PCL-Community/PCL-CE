@@ -1,4 +1,5 @@
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.IO;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using System.Collections.Specialized;
@@ -383,7 +384,7 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         else
                         {
-                            ModBase.CopyDirectory(i, WorldPath + GetFolderNameFromPath(i));
+                            Directories.CopyDirectoryAsync(i, WorldPath + GetFolderNameFromPath(i)).GetAwaiter().GetResult();
                             Copied += 1;
                         }
                     }

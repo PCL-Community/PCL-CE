@@ -1,21 +1,21 @@
+using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
+using PCL.Core.IO;
+using PCL.Core.UI;
+using PCL.Core.Utils;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.Utils;
 
 namespace PCL;
 
 public partial class PageSetupUI
 {
-    public string[] ThemeColors => Basics.IsAprilFool 
+    public string[] ThemeColors => Basics.IsAprilFool
         ? ["天空蓝", "龙猫蓝", "死机蓝", "HMCL"]
         : ["天空蓝", "龙猫蓝", "死机蓝"];
-    
+
     public new bool IsLoaded;
 
     public PageSetupUI()
@@ -37,21 +37,21 @@ public partial class PageSetupUI
             switch (ModSecret.ThemeDontClick)
             {
                 case 1:
-                {
-                    NewText = "眼瞎白";
-                    break;
-                }
+                    {
+                        NewText = "眼瞎白";
+                        break;
+                    }
                 case 2:
-                {
-                    NewText = "真·滑稽彩";
-                    break;
-                }
+                    {
+                        NewText = "真·滑稽彩";
+                        break;
+                    }
 
                 default:
-                {
-                    NewText = "？？？";
-                    break;
-                }
+                    {
+                        NewText = "？？？";
+                        break;
+                    }
             }
 
             foreach (var Control in PanLauncherTheme.Children)
@@ -334,7 +334,7 @@ public partial class PageSetupUI
                              """, "警告", Button2: "取消",
                 IsWarn: true) == 1)
         {
-            ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Pictures");
+            Directories.DeleteDirectoryAsync(ModBase.ExePath + @"PCL\Pictures").GetAwaiter().GetResult();
             BackgroundRefresh(false, true);
             ModMain.Hint("背景内容已清空！", ModMain.HintType.Finish);
         }
@@ -351,7 +351,7 @@ public partial class PageSetupUI
         {
             // 获取可用的图片文件
             Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures\");
-            var Pic = ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Pictures\").Where(file =>
+            var Pic = Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Pictures\").GetAwaiter().GetResult().Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -489,7 +489,7 @@ public partial class PageSetupUI
     {
         if (!(ModAnimation.AniControlEnabled == 0 && e.RaiseByMouse))
             return;
-        Refresh: ;
+    Refresh:;
 
         // 已有图片则不再选择
         if (File.Exists(ModBase.ExePath + @"PCL\Logo.png"))
@@ -581,7 +581,7 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = $"背景音乐（{ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Musics\").Count()} 首）";
+            CardMusic.Title = $"背景音乐（{Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Musics\").GetAwaiter().GetResult().Count()} 首）";
         }
         else
         {
@@ -612,7 +612,7 @@ public partial class PageSetupUI
                 // 删除文件
                 try
                 {
-                    ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Musics");
+                    Directories.DeleteDirectoryAsync(ModBase.ExePath + @"PCL\Musics").GetAwaiter().GetResult();
                     // DisableSMTCSupport()
                     ModMain.Hint("背景音乐已删除！", ModMain.HintType.Finish);
                 }
@@ -932,7 +932,7 @@ public partial class PageSetupUI
                     !HiddenForceShow && conf.ToolsHelp ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmToolsLeft.ItemTest.Visibility =
                     !HiddenForceShow && conf.ToolsTest ? Visibility.Collapsed : Visibility.Visible;
-                
+
                 // 处理分类标题
                 var isGameLinkVisible = (!HiddenForceShow && !conf.ToolsGameLink) || HiddenForceShow;
                 ModMain.FrmToolsLeft.TextGameLinkCategory.Visibility = isGameLinkVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -941,7 +941,7 @@ public partial class PageSetupUI
                 var isToolsVisible = (!HiddenForceShow && (!conf.ToolsHelp || !conf.ToolsTest)) || HiddenForceShow;
                 ModMain.FrmToolsLeft.TextToolsCategory.Visibility = isToolsVisible ? Visibility.Visible : Visibility.Collapsed;
                 if (isToolsVisible) ModMain.FrmToolsLeft.TextToolsCategory.Opacity = 0.6;
-                
+
                 // 统计工具页可用项数量
                 var ToolsCount = 0;
                 if (!conf.ToolsGameLink)
