@@ -1,0 +1,10 @@
+﻿using System;
+using System.Collections.Frozen;
+
+namespace PCL.CE.Core.UI.Animation.Core;
+
+public record AnimationData<T> : IAnimationData
+{
+    public IAnimation Animation { get; init; } = null!;
+    public FrozenDictionary<int, T> Values { get; init; } = null!;
+}

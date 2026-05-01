@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="CI" />
+    <BuildType Name="Beta" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="AnyCPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="PCL.CE.SourceGenerators/PCL.CE.Core.SourceGenerators.csproj" />
+  <Project Path="PCL.CE.Test/PCL.CE.Test.csproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="PCL.CE/PCL.CE.csproj" />
+</Solution>

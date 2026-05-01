@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <!-- 项目属性 -->
     <PropertyGroup>
-        <AssemblyTitle>PCL.Core</AssemblyTitle>
-        <AssemblyName>PCL.Core</AssemblyName>
+        <AssemblyTitle>PCL.CE.Core</AssemblyTitle>
+        <AssemblyName>PCL.CE.Core</AssemblyName>
         <Description>PCL Community 为 PCL 开发的启动器核心库</Description>
         <Company>PCL Community</Company>
-        <Product>PCL.Core</Product>
+        <Product>PCL.CE.Core</Product>
         <Copyright>Copyright © PCL Community</Copyright>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
@@ -16,7 +16,7 @@
         <Configurations>Debug;CI;Release;Beta</Configurations>
         <Platforms>AnyCPU;x64;ARM64</Platforms>
         <ProjectGuid>{A0C2209D-64FB-4C11-9459-8E86304B6F94}</ProjectGuid>
-        <RootNamespace>PCL.Core</RootNamespace>
+        <RootNamespace>PCL.CE.Core</RootNamespace>
         <TargetFramework>net8.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
@@ -89,12 +89,9 @@
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
         <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
-        <Resource Include="UI\Assets\*" />
-        <Resource Include="UI\Assets\Shaders\*.ps" />
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>
-        <AdditionalFiles Include="App\IoC\LifecycleState.cs" />
-        <ProjectReference Include="..\PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\PCL.CE.Core.SourceGenerators\PCL.CE.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 </Project>
