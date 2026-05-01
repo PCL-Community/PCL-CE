@@ -2081,14 +2081,11 @@ public static class ModComp
             {
                 Title = TranslatedName,
                 Info = Description.Replace("\r", "").Replace("\n", ""),
-                Logo = LogoUrl,
+                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{ModBase.PathImage}Icons/NoIcon.png" : LogoUrl,
                 Tags = Tags,
-                Tag = this
+                Tag = this,
+                LogoCornerRadius = new CornerRadius(6)
             };
-
-            var img = (MyImage)result.PathLogo;
-            img.CornerRadius = new CornerRadius(6);
-            img.SnapsToDevicePixels = true;
             return result;
         }
 
